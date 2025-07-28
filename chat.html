@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Support - IT Services Freetown</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            DEFAULT: '#040e40',
+                            50: '#f0f2ff',
+                            100: '#e4e8ff',
+                            900: '#1c1891',
+                            950: '#040e40',
+                        },
+                        danger: {
+                            DEFAULT: '#ff0000',
+                            500: '#ff2323',
+                            600: '#ff0000',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .btn-primary {
+            background-color: #040e40;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: rgba(4, 14, 64, 0.9);
+        }
+        .btn-secondary {
+            background-color: #ff0000;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-secondary:hover {
+            background-color: rgba(255, 0, 0, 0.9);
+        }
+        .input-field {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .input-field:focus {
+            border-color: #040e40;
+            box-shadow: 0 0 0 3px rgba(4, 14, 64, 0.1);
+        }
+        .chat-container {
+            height: 500px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            background: linear-gradient(135deg, #040e40 0%, #1c1891 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.75rem 0.75rem 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: between;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .chat-input-area {
+            border-top: 1px solid #e5e7eb;
+            padding: 1rem;
+            display: flex;
+            gap: 0.75rem;
+            align-items: end;
+        }
+        .message {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            max-width: 80%;
+        }
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        .message.ai {
+            align-self: flex-start;
+        }
+        .message.agent {
+            align-self: flex-start;
+        }
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .message.user .message-avatar {
+            background: #040e40;
+            color: white;
+        }
+        .message.ai .message-avatar {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+        .message.agent .message-avatar {
+            background: #22c55e;
+            color: white;
+        }
+        .message-content {
+            background: #f3f4f6;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            max-width: 100%;
+        }
+        .message.user .message-content {
+            background: #040e40;
+            color: white;
+        }
+        .message.ai .message-content {
+            background: #dbeafe;
+            border: 1px solid #93c5fd;
+        }
+        .message.agent .message-content {
+            background: #dcfce7;
+            border: 1px solid #86efac;
+        }
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 0;
+            opacity: 0.7;
+        }
+        .typing-dots {
+            display: flex;
+            gap: 0.25rem;
+        }
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #6b7280;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        .typing-dot:nth-child(3) { animation-delay: 0s; }
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .quick-action {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            padding: 0.5rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .quick-action:hover {
+            background: #040e40;
+            color: white;
+            border-color: #040e40;
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: auto;
+        }
+        .status-online { background: #22c55e; }
+        .status-busy { background: #f59e0b; }
+        .status-offline { background: #ef4444; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-mobile-alt text-2xl text-primary-950"></i>
+                        <span class="text-xl font-bold text-primary-950">IT Services Freetown</span>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="preview.html" class="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Home</a>
+                    <a href="book-appointment.html" class="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Book Appointment</a>
+                    <a href="track-repair.html" class="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Track Repair</a>
+                    <a href="troubleshoot.html" class="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Troubleshoot</a>
+                    <a href="chat.html" class="text-primary-950 px-3 py-2 text-sm font-medium font-semibold">Chat Support</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="min-h-screen bg-gray-50 py-12">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <div class="flex justify-center mb-4">
+                    <i class="fas fa-comments text-6xl text-primary-950"></i>
+                </div>
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                    Live Chat Support
+                </h1>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    Get instant help from our AI assistant or connect with a live technician for real-time support
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Chat Interface -->
+                <div class="lg:col-span-2">
+                    <div class="chat-container">
+                        <div class="chat-header">
+                            <div class="flex items-center space-x-3">
+                                <div class="message-avatar bg-gradient-to-br from-blue-500 to-blue-700">
+                                    <i class="fas fa-robot text-lg"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold">AI Assistant</h3>
+                                    <p class="text-sm opacity-75">Always online • Responds instantly</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm opacity-75">Status:</span>
+                                <div class="status-indicator status-online"></div>
+                            </div>
+                        </div>
+
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="message ai">
+                                <div class="message-avatar">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <div class="message-content">
+                                    <p class="text-sm mb-1"><strong>AI Assistant</strong></p>
+                                    <p>Hello! I'm your AI assistant. I can help you with common tech issues, answer questions about our services, or connect you with a live technician. How can I help you today?</p>
+                                </div>
+                            </div>
+
+                            <div class="quick-actions" id="quickActions">
+                                <button class="quick-action" data-message="My computer won't start">Computer won't start</button>
+                                <button class="quick-action" data-message="Phone battery drains fast">Battery issues</button>
+                                <button class="quick-action" data-message="I need help with my repair status">Check repair status</button>
+                                <button class="quick-action" data-message="I want to book an appointment">Book appointment</button>
+                                <button class="quick-action" data-message="Connect me with a human agent">Talk to human</button>
+                            </div>
+
+                            <div class="typing-indicator" id="typingIndicator">
+                                <div class="message-avatar">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <div class="typing-dots">
+                                    <div class="typing-dot"></div>
+                                    <div class="typing-dot"></div>
+                                    <div class="typing-dot"></div>
+                                </div>
+                                <span class="text-sm text-gray-500">AI is typing...</span>
+                            </div>
+                        </div>
+
+                        <div class="chat-input-area">
+                            <textarea
+                                id="messageInput"
+                                placeholder="Type your message here..."
+                                class="input-field resize-none"
+                                rows="2"
+                                style="min-height: 40px;"
+                            ></textarea>
+                            <button
+                                id="sendButton"
+                                class="btn-primary px-4 py-2 flex items-center justify-center"
+                                style="min-width: 100px;"
+                            >
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Support Info -->
+                <div class="space-y-6">
+                    <!-- Live Agents Status -->
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-user-headset text-primary-950 mr-2"></i>
+                            Live Agents
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold">
+                                        RS
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">Ryan Stewart</p>
+                                        <p class="text-sm text-gray-600">Senior Technician</p>
+                                    </div>
+                                </div>
+                                <div class="status-indicator status-online"></div>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center text-white font-semibold">
+                                        AP
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">Alison P Stewart</p>
+                                        <p class="text-sm text-gray-600">Mobile Specialist</p>
+                                    </div>
+                                </div>
+                                <div class="status-indicator status-busy"></div>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white font-semibold">
+                                        PJS
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">Paul Joe Stewart</p>
+                                        <p class="text-sm text-gray-600">Computer Expert</p>
+                                    </div>
+                                </div>
+                                <div class="status-indicator status-offline"></div>
+                            </div>
+                        </div>
+                        <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+                            <p class="text-sm text-blue-800">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Average response time: <strong>2 minutes</strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Quick Help -->
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-lightning-bolt text-primary-950 mr-2"></i>
+                            Quick Help
+                        </h3>
+                        <div class="space-y-3">
+                            <a href="troubleshoot.html" class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-brain text-blue-600"></i>
+                                    <div>
+                                        <p class="font-medium text-gray-900">AI Troubleshooting</p>
+                                        <p class="text-sm text-gray-600">Get instant solutions</p>
+                                    </div>
+                                </div>
+                            </a>
+                            <a href="book-appointment.html" class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-calendar-alt text-green-600"></i>
+                                    <div>
+                                        <p class="font-medium text-gray-900">Book Appointment</p>
+                                        <p class="text-sm text-gray-600">Schedule a repair</p>
+                                    </div>
+                                </div>
+                            </a>
+                            <a href="track-repair.html" class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-search text-orange-600"></i>
+                                    <div>
+                                        <p class="font-medium text-gray-900">Track Repair</p>
+                                        <p class="text-sm text-gray-600">Check status</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Contact Info -->
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-phone text-primary-950 mr-2"></i>
+                            Contact Info
+                        </h3>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-phone text-green-600 w-4"></i>
+                                <span>+232 33 399 391</span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-envelope text-blue-600 w-4"></i>
+                                <span>support@itservicesfreetown.com</span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-map-marker-alt text-red-600 w-4"></i>
+                                <span>1 Regent Highway, Jui Junction, Freetown</span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-clock text-orange-600 w-4"></i>
+                                <span>Mon-Sat: 8AM-6PM</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const quickActions = document.getElementById('quickActions');
+
+        let isAgentMode = false;
+        let messageCount = 0;
+
+        // AI responses based on message content
+        const aiResponses = {
+            'computer won\'t start': 'I can help you troubleshoot that! First, let\'s check if the power cable is securely connected. Can you confirm the power light is on? Also, try holding the power button for 10 seconds to fully shut down, then restart.',
+            'phone battery drains fast': 'Battery drain can be caused by several factors. Let\'s check: 1) Go to Settings > Battery to see which apps use the most power, 2) Enable battery saver mode, 3) Reduce screen brightness, 4) Close unused background apps. Would you like me to walk you through any of these steps?',
+            'repair status': 'I can help you check your repair status! Do you have your repair ticket number? It should be in the format RT-XXXXXX. You can also visit our Track Repair page for real-time updates.',
+            'book appointment': 'I\'d be happy to help you book an appointment! You can either use our online booking system or I can connect you with an agent. What type of device needs repair - computer or mobile?',
+            'human agent': 'I\'ll connect you with one of our live technicians right away. Please hold while I transfer you...',
+            'default': 'I understand you need help with that. Let me see what I can do to assist you. Could you provide more details about the specific issue you\'re experiencing?'
+        };
+
+        // Agent responses
+        const agentResponses = [
+            'Hi there! I\'m John from the technical support team. I\'ve reviewed your conversation with our AI assistant. How can I help you further?',
+            'Thanks for the additional details. Based on what you\'ve described, I think we can resolve this quickly. Let me walk you through a few steps.',
+            'That\'s a common issue we see. I have a solution that should work for you. Are you able to follow some troubleshooting steps right now?',
+            'I see the problem. This typically requires a hardware check. Would you like to schedule an appointment so we can take a closer look at your device?'
+        ];
+
+        // Handle quick actions
+        quickActions.addEventListener('click', (e) => {
+            if (e.target.classList.contains('quick-action')) {
+                const message = e.target.dataset.message;
+                sendMessage(message, 'user');
+            }
+        });
+
+        // Handle send button
+        sendButton.addEventListener('click', () => {
+            const message = messageInput.value.trim();
+            if (message) {
+                sendMessage(message, 'user');
+                messageInput.value = '';
+            }
+        });
+
+        // Handle enter key
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendButton.click();
+            }
+        });
+
+        function sendMessage(message, sender) {
+            // Add user message
+            addMessage(message, sender);
+            
+            // Hide quick actions after first message
+            if (messageCount === 1) {
+                quickActions.style.display = 'none';
+            }
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Generate response
+            setTimeout(() => {
+                hideTypingIndicator();
+                
+                if (message.toLowerCase().includes('human') || message.toLowerCase().includes('agent') || messageCount > 5) {
+                    if (!isAgentMode) {
+                        switchToAgent();
+                    } else {
+                        const response = agentResponses[Math.floor(Math.random() * agentResponses.length)];
+                        addMessage(response, 'agent');
+                    }
+                } else {
+                    const response = getAIResponse(message);
+                    addMessage(response, 'ai');
+                }
+            }, 1500 + Math.random() * 1000);
+        }
+
+        function addMessage(message, sender) {
+            messageCount++;
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            let avatar, senderName;
+            if (sender === 'user') {
+                avatar = '<i class="fas fa-user"></i>';
+                senderName = 'You';
+            } else if (sender === 'ai') {
+                avatar = '<i class="fas fa-robot"></i>';
+                senderName = 'AI Assistant';
+            } else if (sender === 'agent') {
+                avatar = 'JM';
+                senderName = 'John Mansaray';
+            }
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">
+                    ${avatar}
+                </div>
+                <div class="message-content">
+                    ${sender !== 'user' ? `<p class="text-sm mb-1"><strong>${senderName}</strong></p>` : ''}
+                    <p>${message}</p>
+                </div>
+            `;
+            
+            chatMessages.insertBefore(messageDiv, typingIndicator);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function getAIResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            for (const [key, response] of Object.entries(aiResponses)) {
+                if (key !== 'default' && lowerMessage.includes(key.split(' ')[0])) {
+                    return response;
+                }
+            }
+            
+            return aiResponses.default;
+        }
+
+        function switchToAgent() {
+            isAgentMode = true;
+            
+            // Update chat header
+            const chatHeader = document.querySelector('.chat-header');
+            chatHeader.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold">
+                        JM
+                    </div>
+                    <div>
+                        <h3 class="font-semibold">John Mansaray</h3>
+                        <p class="text-sm opacity-75">Senior Technician • Online</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm opacity-75">Status:</span>
+                    <div class="status-indicator status-online"></div>
+                </div>
+            `;
+            chatHeader.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)';
+            
+            // Add transfer message
+            setTimeout(() => {
+                addMessage('You\'ve been connected to a live technician. Please wait a moment...', 'ai');
+                setTimeout(() => {
+                    addMessage(agentResponses[0], 'agent');
+                }, 2000);
+            }, 1000);
+        }
+
+        function showTypingIndicator() {
+            typingIndicator.style.display = 'flex';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            typingIndicator.style.display = 'none';
+        }
+
+        // Auto-resize textarea
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+    </script>
+</body>
+</html>

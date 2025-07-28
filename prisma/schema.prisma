@@ -1,0 +1,153 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id          String        @id @default(cuid())
+  name        String
+  email       String        @unique
+  phone       String
+  address     String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  appointments Appointment[]
+  repairs      Repair[]
+  chatSessions ChatSession[]
+}
+
+model Appointment {
+  id               String   @id @default(cuid())
+  customerId       String
+  customer         Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  deviceType       String
+  deviceModel      String
+  issueDescription String
+  serviceType      String
+  preferredDate    String
+  preferredTime    String
+  status           String   @default("pending") // pending, confirmed, completed, cancelled
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  repair           Repair?
+}
+
+model Repair {
+  id              String      @id @default(cuid())
+  appointmentId   String?     @unique
+  appointment     Appointment? @relation(fields: [appointmentId], references: [id])
+  customerId      String
+  customer        Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  deviceType      String
+  deviceModel     String
+  issueDescription String
+  status          String      @default("received") // received, diagnostic, parts-ordered, in-repair, testing, completed, ready-pickup
+  estimatedCost   Float?
+  actualCost      Float?
+  estimatedCompletion String?
+  actualCompletion    String?
+  
+  technicianId    String?
+  technician      Technician? @relation(fields: [technicianId], references: [id])
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  timeline        RepairTimeline[]
+  notes           RepairNote[]
+}
+
+model Technician {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  phone     String
+  role      String   @default("technician")
+  expertise String   // comma-separated specializations
+  active    Boolean  @default(true)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  repairs      Repair[]
+  chatSessions ChatSession[]
+}
+
+model RepairTimeline {
+  id          String   @id @default(cuid())
+  repairId    String
+  repair      Repair   @relation(fields: [repairId], references: [id], onDelete: Cascade)
+  
+  step        String
+  status      String   // completed, current, pending
+  timestamp   DateTime?
+  description String
+  
+  createdAt   DateTime @default(now())
+}
+
+model RepairNote {
+  id        String   @id @default(cuid())
+  repairId  String
+  repair    Repair   @relation(fields: [repairId], references: [id], onDelete: Cascade)
+  
+  content   String
+  isPublic  Boolean  @default(true) // whether customer can see this note
+  authorId  String?  // technician who added the note
+  
+  createdAt DateTime @default(now())
+}
+
+model ChatSession {
+  id           String     @id @default(cuid())
+  customerId   String
+  customer     Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  technicianId String?
+  technician   Technician? @relation(fields: [technicianId], references: [id])
+  
+  status       String     @default("active") // active, waiting, ended
+  startedAt    DateTime   @default(now())
+  endedAt      DateTime?
+  
+  messages     ChatMessage[]
+}
+
+model ChatMessage {
+  id            String      @id @default(cuid())
+  sessionId     String
+  session       ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  content       String
+  sender        String      // user, bot, agent
+  messageType   String      @default("text") // text, system, transfer
+  
+  createdAt     DateTime    @default(now())
+}
+
+model AITroubleshooting {
+  id              String   @id @default(cuid())
+  customerId      String?
+  
+  deviceType      String
+  deviceModel     String?
+  issueDescription String
+  
+  aiDiagnosis     String
+  confidence      Float
+  steps           String   // JSON string of troubleshooting steps
+  escalated       Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+}
