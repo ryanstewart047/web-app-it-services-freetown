@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import OpenAI from 'openai'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import { PrismaClient } from '@prisma/client'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// Initialize Gemini AI
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
 const prisma = new PrismaClient()
 
@@ -20,7 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if we have API key configured
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.GEMINI_API_KEY) {
       return NextResponse.json({
         success: true,
         response: getFallbackResponse(message),
@@ -57,23 +56,15 @@ export async function POST(request: NextRequest) {
         systemPrompt += `\n\nCustomer's device: ${deviceType} - ${deviceModel}`
       }
 
-      const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [
-          {
-            role: "system",
-            content: systemPrompt
-          },
-          {
-            role: "user",
-            content: message
-          }
-        ],
-        max_tokens: 300,
-        temperature: 0.7,
-      })
+      // Initialize Gemini model
+      const model = genAI.getGenerativeModel({ model: "gemini-pro" })
 
-      const aiResponse = completion.choices[0]?.message?.content || getFallbackResponse(message)
+      // Create the prompt with context
+      const fullPrompt = `${systemPrompt}\n\nCustomer message: ${message}`
+
+      const result = await model.generateContent(fullPrompt)
+      const response = await result.response
+      const aiResponse = response.text() || getFallbackResponse(message)
 
       // Save the conversation to database if sessionId provided
       if (sessionId) {
@@ -137,10 +128,10 @@ export async function POST(request: NextRequest) {
         isAI: true
       })
 
-    } catch (openaiError) {
-      console.error('OpenAI API error:', openaiError)
+    } catch (geminiError) {
+      console.error('Gemini API error:', geminiError)
       
-      // Return fallback response if OpenAI fails
+      // Return fallback response if Gemini fails
       return NextResponse.json({
         success: true,
         response: getFallbackResponse(message),
