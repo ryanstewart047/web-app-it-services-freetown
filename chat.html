@@ -209,6 +209,89 @@
         .status-online { background: #22c55e; }
         .status-busy { background: #f59e0b; }
         .status-offline { background: #ef4444; }
+        
+        /* Header Background Slideshow */
+        .hero-section {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #040e40 0%, #1c1891 100%);
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .background-slideshow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        
+        .slide.active {
+            opacity: 0.3;
+        }
+        
+        .slide-1 {
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI0MDAiIHZpZXdCb3g9IjAgMCAxMjAwIDQwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQxIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzQzOGVmZjtzdG9wLW9wYWNpdHk6MC4yIiAvPgo8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM4YjVjZjY7c3RvcC1vcGFjaXR5OjAuMSIgLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8cmVjdCB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9InVybCgjZ3JhZGllbnQxKSIvPgo8IS0tIENvbXB1dGVyIGFuZCBNb2JpbGUgRGV2aWNlcyAtLT4KPHN2ZyB4PSIxMDAiIHk9IjEwMCIgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiPgo8cmVjdCB4PSIyMCIgeT0iMjAiIHdpZHRoPSIxNjAiIGhlaWdodD0iMTAwIiByeD0iMTAiIGZpbGw9IiM0Mzg4ZmYiIG9wYWNpdHk9IjAuMyIvPgo8cmVjdCB4PSIzMCIgeT0iMzAiIHdpZHRoPSIxNDAiIGhlaWdodD0iNjAiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuMiIvPgo8cmVjdCB4PSI3NSIgeT0iMTMwIiB3aWR0aD0iNTAiIGhlaWdodD0iMTAiIGZpbGw9IiM0Mzg4ZmYiIG9wYWNpdHk9IjAuNCIvPgo8L3N2Zz4KPHN2ZyB4PSI5MDAiIHk9IjEyMCIgd2lkdGg9IjE1MCIgaGVpZ2h0PSIxNTAiPgo8cmVjdCB4PSIzMCIgeT0iMTAiIHdpZHRoPSI5MCIgaGVpZ2h0PSIxNDAiIHJ4PSIxNSIgZmlsbD0iIzEwYjk4MSIgb3BhY2l0eT0iMC4zIi8+CjxyZWN0IHg9IjQwIiB5PSIyNSIgd2lkdGg9IjcwIiBoZWlnaHQ9IjkwIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjIiLz4KPC9zdmc+CjwhLS0gQ2lyY3VpdCBQYXR0ZXJucyAtLT4KPHN2ZyB4PSI0MDAiIHk9IjUwIiB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuMyIvPgo8bGluZSB4MT0iNTUiIHkxPSI1MCIgeDI9IjE1MCIgeTI9IjUwIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgb3BhY2l0eT0iMC4zIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjUwIiByPSI1IiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjMiLz4KPGxpbmUgeDE9IjE1MCIgeTE9IjU1IiB4Mj0iMTUwIiB5Mj0iMTUwIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgb3BhY2l0eT0iMC4zIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iNSIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC4zIi8+CjxsaW5lIHgxPSIxNTUiIHkxPSIxNTAiIHgyPSIyNTAiIHkyPSIxNTAiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIyIiBvcGFjaXR5PSIwLjMiLz4KPGNpcmNsZSBjeD0iMjUwIiBjeT0iMTUwIiByPSI1IiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjMiLz4KPC9zdmc+Cjwvc3ZnPgo=');
+        }
+        
+        .slide-2 {
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI0MDAiIHZpZXdCb3g9IjAgMCAxMjAwIDQwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQyIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzEwYjk4MTtzdG9wLW9wYWNpdHk6MC4yIiAvPgo8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMzYjgyZjY7c3RvcC1vcGFjaXR5OjAuMSIgLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8cmVjdCB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9InVybCgjZ3JhZGllbnQyKSIvPgo8IS0tIFJlcGFpciBUb29scyAtLT4KPHN2ZyB4PSIxNTAiIHk9IjEwMCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIyMDAiPgo8cGF0aCBkPSJNMjAgMjBMMjAgMTgwTDgwIDE4MEw4MCAyMFoiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuMyIvPgo8Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI4IiBmaWxsPSIjZmY5OTAwIiBvcGFjaXR5PSIwLjQiLz4KPC9zdmc+CjxzdmcgeD0iOTAwIiB5PSIxMDAiIHdpZHRoPSIxNTAiIGhlaWdodD0iMjAwIj4KPHBhdGggZD0iTTIwIDIwTDEyMCAyMEwxMjAgMTgwTDIwIDE4MFoiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuMiIvPgo8Y2lyY2xlIGN4PSI3MCIgY3k9IjEwMCIgcj0iMzAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzEwYjk4MSIgc3Ryb2tlLXdpZHRoPSI0IiBvcGFjaXR5PSIwLjUiLz4KPC9zdmc+CjwhLS0gTmV0d29yayBOb2RlcyAtLT4KPHN2ZyB4PSI0MDAiIHk9IjgwIiB3aWR0aD0iNDAwIiBoZWlnaHQ9IjI0MCI+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iMTUiIGZpbGw9IiM4YjVjZjYiIG9wYWNpdHk9IjAuNSIvPgo8Y2lyY2xlIGN4PSIzMDAiIGN5PSI2MCIgcj0iMTIiIGZpbGw9IiNmZjk5MDAiIG9wYWNpdHk9IjAuNSIvPgo8Y2lyY2xlIGN4PSIyMDAiIGN5PSIxODAiIHI9IjEwIiBmaWxsPSIjMTBiOTgxIiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjEwMCIgeTE9IjEwMCIgeDI9IjMwMCIgeTI9IjYwIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgb3BhY2l0eT0iMC4zIi8+CjxsaW5lIHgxPSIxMDAiIHkxPSIxMDAiIHgyPSIyMDAiIHkyPSIxODAiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIyIiBvcGFjaXR5PSIwLjMiLz4KPGxpbmUgeDE9IjMwMCIgeTE9IjYwIiB4Mj0iMjAwIiB5Mj0iMTgwIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgb3BhY2l0eT0iMC4zIi8+Cjwvc3ZnPgo8L3N2Zz4K');
+        }
+        
+        .slide-3 {
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI0MDAiIHZpZXdCb3g9IjAgMCAxMjAwIDQwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQzIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2Y1OWUwYjtzdG9wLW9wYWNpdHk6MC4yIiAvPgo8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNlZjQ0NDQ7c3RvcC1vcGFjaXR5OjAuMSIgLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8cmVjdCB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9InVybCgjZ3JhZGllbnQzKSIvPgo8IS0tIEFJIEJyYWluIGFuZCBHZWFycyAtLT4KPHN2ZyB4PSIyMDAiIHk9IjgwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjI0MCI+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEyMCIgcj0iNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIzIiBvcGFjaXR5PSIwLjQiLz4KPHBhdGggZD0iTTgwIDEwMEwxMjAgMTAwTTEwMCA4MEwxMDAgMTQwTTg1IDg1TDExNSAxMTVNMTE1IDg1TDg1IDExNSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9IjAuNSIvPgo8L3N2Zz4KPHN2ZyB4PSI4MDAiIHk9IjEwMCIgd2lkdGg9IjI0MCIgaGVpZ2h0PSIyMDAiPgo8Y2lyY2xlIGN4PSI4MCIgY3k9IjEwMCIgcj0iMzAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIzIiBvcGFjaXR5PSIwLjQiLz4KPGNpcmNsZSBjeD0iMTYwIiBjeT0iMTAwIiByPSIyNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjMiIG9wYWNpdHk9IjAuNCIvPgo8Y2lyY2xlIGN4PSIxMjAiIGN5PSI2MCIgcj0iMjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIzIiBvcGFjaXR5PSIwLjQiLz4KPC9zdmc+CjwhLS0gRGF0YSBGTG93IC0tPgo8c3ZnIHg9IjQ1MCIgeT0iMTUwIiB3aWR0aD0iMzAwIiBoZWlnaHQ9IjEwMCI+CjxsaW5lIHgxPSIwIiB5MT0iNTAiIHgyPSIzMDAiIHkyPSI1MCIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9IjAuMyIgc3Ryb2tlLWRhc2hhcnJheT0iMTAgNSIvPgo8Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1IiBmaWxsPSIjMTBiOTgxIiBvcGFjaXR5PSIwLjYiLz4KPGNpcmNsZSBjeD0iMTUwIiBjeT0iNTAiIHI9IjUiIGZpbGw9IiNmZjk5MDAiIG9wYWNpdHk9IjAuNiIvPgo8Y2lyY2xlIGN4PSIyNTAiIGN5PSI1MCIgcj0iNSIgZmlsbD0iIzhiNWNmNiIgb3BhY2l0eT0iMC42Ii8+Cjwvc3ZnPgo8L3N2Zz4K');
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            color: white;
+            max-width: 800px;
+            padding: 2rem;
+        }
+        
+        .hero-content h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .hero-content p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+            .hero-content p {
+                font-size: 1rem;
+            }
+            .hero-section {
+                min-height: 250px;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -250,20 +333,21 @@
         </div>
     </nav>
 
+    <!-- Hero Section with Background Slideshow -->
+    <div class="hero-section">
+        <div class="background-slideshow">
+            <div class="slide slide-1 active"></div>
+            <div class="slide slide-2"></div>
+            <div class="slide slide-3"></div>
+        </div>
+        <div class="hero-content">
+            <h1>Professional IT Services in Freetown</h1>
+            <p>Expert computer and mobile repairs with real-time tracking and AI-powered support</p>
+        </div>
+    </div>
+
     <div class="min-h-screen bg-gray-50 py-12">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
-                <div class="flex justify-center mb-4">
-                    <i class="fas fa-comments text-6xl text-primary-950"></i>
-                </div>
-                <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                    Live Chat Support
-                </h1>
-                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-                    Get instant help from our AI assistant or connect with a live technician for real-time support
-                </p>
-            </div>
-
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Chat Interface -->
                 <div class="lg:col-span-2">
@@ -457,26 +541,7 @@
     </div>
 
     <script>
-        // Mobile menu toggle
-        document.addEventListener('DOMContentLoaded', function() {
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const mobileMenu = document.getElementById('mobile-menu');
-            const menuIcon = document.getElementById('menu-icon');
-            const closeIcon = document.getElementById('close-icon');
-
-            mobileMenuButton.addEventListener('click', function() {
-                const isHidden = mobileMenu.classList.contains('hidden');
-                if (isHidden) {
-                    mobileMenu.classList.remove('hidden');
-                    menuIcon.classList.add('hidden');
-                    closeIcon.classList.remove('hidden');
-                } else {
-                    mobileMenu.classList.add('hidden');
-                    menuIcon.classList.remove('hidden');
-                    closeIcon.classList.add('hidden');
-                }
-            });
-        });
+        // Mobile menu toggle will be initialized in DOMContentLoaded below
 
         const chatMessages = document.getElementById('chatMessages');
         const messageInput = document.getElementById('messageInput');
@@ -717,6 +782,51 @@
         messageInput.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // Background slideshow functionality
+        function initBackgroundSlideshow() {
+            const slides = document.querySelectorAll('.slide');
+            let currentSlide = 0;
+
+            function showNextSlide() {
+                // Remove active class from current slide
+                slides[currentSlide].classList.remove('active');
+                
+                // Move to next slide
+                currentSlide = (currentSlide + 1) % slides.length;
+                
+                // Add active class to new slide
+                slides[currentSlide].classList.add('active');
+            }
+
+            // Change slide every 30 seconds
+            setInterval(showNextSlide, 30000);
+        }
+
+        // Initialize slideshow when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile menu toggle
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuIcon = document.getElementById('menu-icon');
+            const closeIcon = document.getElementById('close-icon');
+
+            mobileMenuButton.addEventListener('click', function() {
+                const isHidden = mobileMenu.classList.contains('hidden');
+                if (isHidden) {
+                    mobileMenu.classList.remove('hidden');
+                    menuIcon.classList.add('hidden');
+                    closeIcon.classList.remove('hidden');
+                } else {
+                    mobileMenu.classList.add('hidden');
+                    menuIcon.classList.remove('hidden');
+                    closeIcon.classList.add('hidden');
+                }
+            });
+            
+            // Initialize background slideshow
+            initBackgroundSlideshow();
         });
     </script>
 </body>
