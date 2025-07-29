@@ -127,6 +127,81 @@
                 min-height: 400px;
             }
         }
+        
+        /* Scroll Animation Styles */
+        .scroll-animate {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .scroll-animate.fade-in-up {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        
+        .scroll-animate.fade-in-left {
+            opacity: 0;
+            transform: translateX(-50px);
+        }
+        
+        .scroll-animate.fade-in-right {
+            opacity: 0;
+            transform: translateX(50px);
+        }
+        
+        .scroll-animate.fade-in-scale {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        
+        .scroll-animate.visible {
+            opacity: 1;
+            transform: translateY(0) translateX(0) scale(1);
+        }
+        
+        /* Staggered animations for cards */
+        .scroll-animate.delay-100 { transition-delay: 0.1s; }
+        .scroll-animate.delay-200 { transition-delay: 0.2s; }
+        .scroll-animate.delay-300 { transition-delay: 0.3s; }
+        .scroll-animate.delay-400 { transition-delay: 0.4s; }
+        .scroll-animate.delay-500 { transition-delay: 0.5s; }
+        .scroll-animate.delay-600 { transition-delay: 0.6s; }
+        
+        /* Special animation for section titles */
+        .section-title {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease-out;
+        }
+        
+        .section-title.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Counter animation */
+        .counter {
+            display: inline-block;
+            font-weight: bold;
+            font-size: 2.5rem;
+            color: #040e40;
+        }
+        
+        /* Pulse animation for call-to-action buttons */
+        .pulse-on-scroll {
+            transition: all 0.3s ease;
+        }
+        
+        .pulse-on-scroll.visible {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -195,15 +270,15 @@
     <section class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Services</h2>
-                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                <h2 class="section-title text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Services</h2>
+                <p class="section-title text-lg text-gray-600 max-w-2xl mx-auto">
                     We provide comprehensive IT repair services with cutting-edge technology and expert technicians
                 </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <!-- Computer Repair Card -->
-                <div class="card hover:shadow-xl transition-shadow duration-300">
+                <div class="card hover:shadow-xl transition-shadow duration-300 scroll-animate fade-in-up delay-100">
                     <div class="mb-4">
                         <i class="fas fa-desktop text-3xl text-primary-950"></i>
                     </div>
@@ -230,7 +305,7 @@
                 </div>
 
                 <!-- Mobile Repair Card -->
-                <div class="card hover:shadow-xl transition-shadow duration-300">
+                <div class="card hover:shadow-xl transition-shadow duration-300 scroll-animate fade-in-up delay-200">
                     <div class="mb-4">
                         <i class="fas fa-mobile-alt text-3xl text-primary-950"></i>
                     </div>
@@ -257,7 +332,7 @@
                 </div>
 
                 <!-- Network Setup Card -->
-                <div class="card hover:shadow-xl transition-shadow duration-300">
+                <div class="card hover:shadow-xl transition-shadow duration-300 scroll-animate fade-in-up delay-300">
                     <div class="mb-4">
                         <i class="fas fa-network-wired text-3xl text-primary-950"></i>
                     </div>
@@ -290,35 +365,35 @@
     <section class="py-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Why Choose Us?</h2>
-                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                <h2 class="section-title text-3xl md:text-4xl font-bold text-gray-900 mb-4">Why Choose Us?</h2>
+                <p class="section-title text-lg text-gray-600 max-w-2xl mx-auto">
                     Advanced technology meets exceptional service for the best repair experience
                 </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div class="text-center">
+                <div class="text-center scroll-animate fade-in-scale delay-100">
                     <div class="mb-4 flex justify-center">
                         <i class="fas fa-clock text-2xl text-primary-950"></i>
                     </div>
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">Real-Time Tracking</h3>
                     <p class="text-gray-600 text-sm">Monitor your repair status in real-time with detailed progress updates</p>
                 </div>
-                <div class="text-center">
+                <div class="text-center scroll-animate fade-in-scale delay-200">
                     <div class="mb-4 flex justify-center">
                         <i class="fas fa-comments text-2xl text-primary-950"></i>
                     </div>
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">Live Chat Support</h3>
                     <p class="text-gray-600 text-sm">Instant communication with our technicians and support team</p>
                 </div>
-                <div class="text-center">
+                <div class="text-center scroll-animate fade-in-scale delay-300">
                     <div class="mb-4 flex justify-center">
                         <i class="fas fa-brain text-2xl text-primary-950"></i>
                     </div>
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">AI Troubleshooting</h3>
                     <p class="text-gray-600 text-sm">Get instant repair suggestions powered by artificial intelligence</p>
                 </div>
-                <div class="text-center">
+                <div class="text-center scroll-animate fade-in-scale delay-400">
                     <div class="mb-4 flex justify-center">
                         <i class="fas fa-check-circle text-2xl text-primary-950"></i>
                     </div>
@@ -329,16 +404,47 @@
         </div>
     </section>
 
+    <!-- Statistics Section -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="section-title text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Track Record</h2>
+                <p class="section-title text-lg text-gray-600 max-w-2xl mx-auto">
+                    Numbers that speak for our commitment to excellence and customer satisfaction
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="text-center scroll-animate fade-in-up delay-100">
+                    <div class="counter text-4xl font-bold text-primary-950 mb-2" data-count="1250">0</div>
+                    <p class="text-gray-600 font-medium">Devices Repaired</p>
+                </div>
+                <div class="text-center scroll-animate fade-in-up delay-200">
+                    <div class="counter text-4xl font-bold text-primary-950 mb-2" data-count="98">0</div>
+                    <p class="text-gray-600 font-medium">Customer Satisfaction %</p>
+                </div>
+                <div class="text-center scroll-animate fade-in-up delay-300">
+                    <div class="counter text-4xl font-bold text-primary-950 mb-2" data-count="24">0</div>
+                    <p class="text-gray-600 font-medium">Hours Average Repair Time</p>
+                </div>
+                <div class="text-center scroll-animate fade-in-up delay-400">
+                    <div class="counter text-4xl font-bold text-primary-950 mb-2" data-count="5">0</div>
+                    <p class="text-gray-600 font-medium">Years Experience</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Call to Action Section -->
     <section class="bg-primary-950 text-white py-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-3xl md:text-4xl font-bold mb-6">Ready to Get Your Device Fixed?</h2>
-            <p class="text-xl mb-8 opacity-90">
+            <h2 class="section-title text-3xl md:text-4xl font-bold mb-6">Ready to Get Your Device Fixed?</h2>
+            <p class="section-title text-xl mb-8 opacity-90">
                 Book an appointment now and experience the future of IT repair services
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="book-appointment.html" class="btn-secondary text-lg px-6 sm:px-8 py-4 text-center">Schedule Appointment</a>
-                <a href="troubleshoot.html" class="bg-white text-primary-950 px-6 sm:px-8 py-4 rounded-lg font-medium hover:bg-gray-100 transition-colors duration-200 text-center">
+                <a href="book-appointment.html" class="btn-secondary text-lg px-6 sm:px-8 py-4 text-center scroll-animate fade-in-left delay-100 pulse-on-scroll">Schedule Appointment</a>
+                <a href="troubleshoot.html" class="bg-white text-primary-950 px-6 sm:px-8 py-4 rounded-lg font-medium hover:bg-gray-100 transition-colors duration-200 text-center scroll-animate fade-in-right delay-200">
                     Try AI Troubleshooting
                 </a>
             </div>
@@ -460,6 +566,80 @@
 
             // Initialize background slideshow
             initBackgroundSlideshow();
+            
+            // Initialize scroll animations
+            initScrollAnimations();
+        });
+
+        // Scroll animations functionality
+        function initScrollAnimations() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        
+                        // Special handling for counters or other special elements
+                        if (entry.target.classList.contains('counter')) {
+                            animateCounter(entry.target);
+                        }
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all scroll-animate and section-title elements
+            const animateElements = document.querySelectorAll('.scroll-animate, .section-title');
+            animateElements.forEach(element => {
+                observer.observe(element);
+            });
+        }
+
+        // Counter animation function (for future use)
+        function animateCounter(element) {
+            const finalValue = parseInt(element.dataset.count) || 100;
+            const duration = 2000; // 2 seconds
+            const startTime = performance.now();
+            
+            function updateCounter(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Easing function for smooth animation
+                const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+                const currentValue = Math.floor(easeOutQuart * finalValue);
+                
+                element.textContent = currentValue;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateCounter);
+                } else {
+                    element.textContent = finalValue;
+                }
+            }
+            
+            requestAnimationFrame(updateCounter);
+        }
+
+        // Add a subtle parallax effect to the hero section
+        function initParallax() {
+            window.addEventListener('scroll', function() {
+                const scrolled = window.pageYOffset;
+                const heroSection = document.querySelector('.hero-section');
+                const parallaxSpeed = 0.5;
+                
+                if (heroSection && scrolled < heroSection.offsetHeight) {
+                    heroSection.style.transform = `translateY(${scrolled * parallaxSpeed}px)`;
+                }
+            });
+        }
+
+        // Initialize parallax effect
+        document.addEventListener('DOMContentLoaded', function() {
+            initParallax();
         });
     </script>
 </body>
