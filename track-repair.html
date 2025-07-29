@@ -397,7 +397,7 @@
             });
         });
 
-        document.getElementById('trackingForm').addEventListener('submit', function(e) {
+        document.getElementById('trackingForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const trackingId = document.getElementById('trackingId').value.trim();
@@ -413,19 +413,63 @@
             button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Searching...';
             button.disabled = true;
             
-            // Simulate API call
-            setTimeout(() => {
+            try {
+                // Call real API
+                const response = await fetch('/api/repairs/track', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ trackingId })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update results with real data
+                    const repair = result.repair;
+                    
+                    // Show results
+                    document.getElementById('repairResults').style.display = 'block';
+                    document.getElementById('repairResults').scrollIntoView({ behavior: 'smooth' });
+                    
+                    // Update the content with real data
+                    document.querySelector('#repairResults h2').textContent = `Repair #${repair.trackingId}`;
+                    
+                    // Update progress bar
+                    const progressBar = document.querySelector('.bg-primary-950');
+                    if (progressBar) {
+                        progressBar.style.width = `${repair.progress}%`;
+                    }
+                    
+                    // Update status info
+                    const statusElements = document.querySelectorAll('#repairResults .text-lg.font-medium');
+                    if (statusElements.length > 0) {
+                        statusElements[0].textContent = repair.statusLabel;
+                    }
+                    
+                    // Update estimated completion
+                    if (repair.estimatedCompletion) {
+                        const estimatedElement = document.querySelector('#repairResults .text-sm.text-gray-600');
+                        if (estimatedElement) {
+                            const date = new Date(repair.estimatedCompletion).toLocaleDateString();
+                            estimatedElement.textContent = `Estimated completion: ${date}`;
+                        }
+                    }
+                    
+                } else {
+                    alert('Error: ' + (result.error || 'Repair not found. Please check your tracking ID.'));
+                    document.getElementById('repairResults').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Tracking error:', error);
+                alert('Network error: Please check your connection and try again.');
+                document.getElementById('repairResults').style.display = 'none';
+            } finally {
                 // Reset button
                 button.innerHTML = originalText;
                 button.disabled = false;
-                
-                // Show results (for demo purposes, show results for any ID)
-                document.getElementById('repairResults').style.display = 'block';
-                document.getElementById('repairResults').scrollIntoView({ behavior: 'smooth' });
-                
-                // Update the tracking ID in the results
-                document.querySelector('#repairResults h2').textContent = `Repair #${trackingId}`;
-            }, 1500);
+            }
         });
     </script>
 </body>

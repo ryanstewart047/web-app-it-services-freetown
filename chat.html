@@ -543,18 +543,18 @@
             showTypingIndicator();
             
             // Generate response
-            setTimeout(() => {
+            setTimeout(async () => {
                 hideTypingIndicator();
                 
                 if (message.toLowerCase().includes('human') || message.toLowerCase().includes('agent') || messageCount > 5) {
                     if (!isAgentMode) {
-                        switchToAgent();
+                        await requestHumanAgent();
                     } else {
                         const response = agentResponses[Math.floor(Math.random() * agentResponses.length)];
                         addMessage(response, 'agent');
                     }
                 } else {
-                    const response = getAIResponse(message);
+                    const response = await getAIResponse(message);
                     addMessage(response, 'ai');
                 }
             }, 1500 + Math.random() * 1000);
@@ -591,7 +591,37 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        function getAIResponse(message) {
+        // AI responses - now connected to real API
+        async function getAIResponse(message) {
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        sessionId: generateSessionId(),
+                        deviceType: localStorage.getItem('deviceType'),
+                        deviceModel: localStorage.getItem('deviceModel')
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    return data.response;
+                } else {
+                    return getFallbackResponse(message);
+                }
+            } catch (error) {
+                console.error('AI API Error:', error);
+                return getFallbackResponse(message);
+            }
+        }
+
+        // Fallback responses for when API is not available
+        function getFallbackResponse(message) {
             const lowerMessage = message.toLowerCase();
             
             for (const [key, response] of Object.entries(aiResponses)) {
@@ -601,6 +631,46 @@
             }
             
             return aiResponses.default;
+        }
+
+        // Generate unique session ID
+        function generateSessionId() {
+            let sessionId = localStorage.getItem('chatSessionId');
+            if (!sessionId) {
+                sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('chatSessionId', sessionId);
+            }
+            return sessionId;
+        }
+
+        async function requestHumanAgent() {
+            try {
+                const response = await fetch('/api/agents/request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sessionId: generateSessionId(),
+                        customerEmail: localStorage.getItem('customerEmail'),
+                        reason: 'Customer requested human support via chat'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    addMessage(data.message, 'ai');
+                    setTimeout(() => {
+                        switchToAgent();
+                    }, 2000);
+                } else {
+                    addMessage("I'm having trouble connecting you to an agent right now. Please try calling us at +232 33 399 391.", 'ai');
+                }
+            } catch (error) {
+                console.error('Agent request error:', error);
+                addMessage("I'm having trouble connecting you to an agent right now. Please try calling us at +232 33 399 391.", 'ai');
+            }
         }
 
         function switchToAgent() {
