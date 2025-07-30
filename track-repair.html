@@ -413,26 +413,61 @@
             button.disabled = true;
             
             try {
-                // Call real API
-                const response = await fetch('/api/repairs/track', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
+                // Simulate tracking lookup (for demo purposes on GitHub Pages)
+                // In production with Railway, this would call the real API
+                
+                // Sample repair data for demo
+                const sampleRepairs = {
+                    'TR-DEMO123': {
+                        trackingId: 'TR-DEMO123',
+                        deviceType: 'Computer',
+                        deviceModel: 'Dell XPS 13',
+                        status: 'in-progress',
+                        statusLabel: 'In Progress - Parts Ordered',
+                        progress: 60,
+                        estimatedCompletion: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+                        notes: ['Diagnostic completed', 'Parts ordered', 'Awaiting battery delivery']
                     },
-                    body: JSON.stringify({ trackingId })
-                });
-
-                const result = await response.json();
+                    'TR-DEMO456': {
+                        trackingId: 'TR-DEMO456',
+                        deviceType: 'Mobile Phone',
+                        deviceModel: 'iPhone 12',
+                        status: 'completed',
+                        statusLabel: 'Completed - Ready for Pickup',
+                        progress: 100,
+                        estimatedCompletion: null,
+                        notes: ['Screen replaced', 'Quality testing passed', 'Ready for pickup']
+                    }
+                };
+                
+                // Check if tracking ID exists in demo data or generate demo response
+                let repair = sampleRepairs[trackingId.toUpperCase()];
+                
+                if (!repair) {
+                    // Generate a demo repair for any tracking ID
+                    repair = {
+                        trackingId: trackingId,
+                        deviceType: 'Device',
+                        deviceModel: 'Unknown Model',
+                        status: 'received',
+                        statusLabel: 'Received - Initial Assessment',
+                        progress: 25,
+                        estimatedCompletion: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+                        notes: ['Device received', 'Initial assessment in progress']
+                    };
+                }
+                
+                const result = { success: true, repair: repair };
                 
                 if (result.success) {
-                    // Update results with real data
+                    // Update results with demo data
                     const repair = result.repair;
                     
                     // Show results
                     document.getElementById('repairResults').style.display = 'block';
                     document.getElementById('repairResults').scrollIntoView({ behavior: 'smooth' });
                     
-                    // Update the content with real data
+                    // Update the content with demo data
                     document.querySelector('#repairResults h2').textContent = `Repair #${repair.trackingId}`;
                     
                     // Update progress bar
@@ -455,6 +490,11 @@
                             estimatedElement.textContent = `Estimated completion: ${date}`;
                         }
                     }
+                    
+                    // Show demo notice
+                    setTimeout(() => {
+                        alert(`Demo Mode: Showing sample data for tracking ID: ${repair.trackingId}\n\nIn production, this would show real repair status from our database.\n\nTry these demo IDs:\n- TR-DEMO123 (In Progress)\n- TR-DEMO456 (Completed)`);
+                    }, 500);
                     
                 } else {
                     alert('Error: ' + (result.error || 'Repair not found. Please check your tracking ID.'));
