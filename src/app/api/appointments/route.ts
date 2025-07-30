@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendEmail, emailTemplates } from '@/lib/email'
+import { generateAppointmentId, APPOINTMENT_STATUSES } from '@/lib/repair-tracking'
+import { notificationService } from '@/lib/notification-service'
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,6 +29,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Generate unique appointment ID
+    const appointmentId = generateAppointmentId()
+
     // Create or find customer
     let customer = await prisma.customer.findUnique({
       where: { email }
@@ -41,11 +46,22 @@ export async function POST(request: NextRequest) {
           address
         }
       })
+    } else {
+      // Update customer info if needed
+      customer = await prisma.customer.update({
+        where: { id: customer.id },
+        data: {
+          name: customerName,
+          phone,
+          address: address || customer.address
+        }
+      })
     }
 
-    // Create appointment
+    // Create appointment with generated ID
     const appointment = await prisma.appointment.create({
       data: {
+        id: appointmentId,
         customerId: customer.id,
         deviceType,
         deviceModel,
@@ -53,7 +69,7 @@ export async function POST(request: NextRequest) {
         serviceType,
         preferredDate,
         preferredTime,
-        status: 'confirmed'
+        status: APPOINTMENT_STATUSES.CONFIRMED
       }
     })
 
@@ -61,17 +77,29 @@ export async function POST(request: NextRequest) {
     const emailData = emailTemplates.appointmentConfirmation({
       customerName,
       appointmentId: appointment.id,
-      date: preferredDate,
-      time: preferredTime,
       deviceType,
-      deviceModel
+      deviceModel,
+      issueDescription,
+      serviceType,
+      preferredDate,
+      preferredTime
     })
 
-    await sendEmail({
+    const emailResult = await sendEmail({
       to: email,
       subject: emailData.subject,
       html: emailData.html,
       text: emailData.text
+    })
+
+    // Notify agents about new appointment
+    await notificationService.notifyAgentsOfChatRequest({
+      sessionId: appointment.id,
+      customerName,
+      customerEmail: email,
+      deviceType,
+      issueDescription,
+      timestamp: new Date()
     })
 
     return NextResponse.json({
@@ -111,9 +139,6 @@ export async function GET(request: NextRequest) {
           repair: {
             include: {
               timeline: true,
-              notes: {
-                where: { isPublic: true }
-              },
               technician: true
             }
           }

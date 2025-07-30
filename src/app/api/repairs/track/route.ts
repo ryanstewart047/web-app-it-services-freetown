@@ -17,19 +17,10 @@ export async function POST(request: NextRequest) {
     // For now, we'll use the repair ID as tracking ID
     // In a real implementation, you'd add a trackingId field to the Repair model
     const repair = await prisma.repair.findFirst({
-      where: { 
-        OR: [
-          { id: trackingId },
-          { id: { contains: trackingId.replace('RT-', '') } }
-        ]
-      },
+      where: { trackingId },
       include: {
         customer: true,
         timeline: {
-          orderBy: { createdAt: 'desc' }
-        },
-        notes: {
-          where: { isPublic: true },
           orderBy: { createdAt: 'desc' }
         }
       }
@@ -72,10 +63,7 @@ export async function POST(request: NextRequest) {
           timestamp: item.timestamp,
           description: item.description
         })),
-        notes: repair.notes.map(note => ({
-          content: note.content,
-          createdAt: note.createdAt
-        }))
+        notes: repair.notes || '' // notes is a string field, not a relation
       }
     })
 

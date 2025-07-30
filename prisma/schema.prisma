@@ -45,6 +45,7 @@ model Appointment {
 
 model Repair {
   id              String      @id @default(cuid())
+  trackingId      String      @unique // Add tracking ID field
   appointmentId   String?     @unique
   appointment     Appointment? @relation(fields: [appointmentId], references: [id])
   customerId      String
@@ -58,6 +59,9 @@ model Repair {
   actualCost      Float?
   estimatedCompletion String?
   actualCompletion    String?
+  dateReceived    DateTime    @default(now()) // Add date received field
+  dateCompleted   DateTime?   // Add date completed field
+  notes           String      @default("") // Add notes field
   
   technicianId    String?
   technician      Technician? @relation(fields: [technicianId], references: [id])
@@ -66,7 +70,7 @@ model Repair {
   updatedAt       DateTime    @updatedAt
   
   timeline        RepairTimeline[]
-  notes           RepairNote[]
+  notes_relation  RepairNote[] @relation("RepairNotes") // Rename to avoid conflict
 }
 
 model Technician {
@@ -101,13 +105,12 @@ model RepairTimeline {
 model RepairNote {
   id        String   @id @default(cuid())
   repairId  String
-  repair    Repair   @relation(fields: [repairId], references: [id], onDelete: Cascade)
+  repair    Repair   @relation("RepairNotes", fields: [repairId], references: [id], onDelete: Cascade)
   
-  content   String
-  isPublic  Boolean  @default(true) // whether customer can see this note
-  authorId  String?  // technician who added the note
-  
-  createdAt DateTime @default(now())
+  note      String
+  author    String   // agent/technician name
+  timestamp DateTime @default(now())
+  type      String   @default("general") // general, customer, internal
 }
 
 model ChatSession {
