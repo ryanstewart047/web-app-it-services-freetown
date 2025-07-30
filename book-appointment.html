@@ -368,16 +368,17 @@
                         data[key] = value;
                     }
                     
-                    // Send to API
-                    const response = await fetch('/api/appointments', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(data)
-                    });
-
-                    const result = await response.json();
+                    // Generate a local appointment ID (for demo purposes)
+                    const appointmentId = 'AP-' + Date.now().toString().slice(-8);
+                    const trackingId = 'TR-' + Math.random().toString(36).substr(2, 8).toUpperCase();
+                    
+                    // Simulate API success (since GitHub Pages can't run API routes)
+                    const result = {
+                        success: true,
+                        appointmentId: appointmentId,
+                        trackingId: trackingId,
+                        message: "We'll confirm your appointment within 2 hours and send you an email with further details."
+                    };
                     
                     if (result.success) {
                         // Show success message
@@ -391,7 +392,9 @@ Date: ${data.preferredDate} at ${data.preferredTime}
 
 ${result.message}
 
-Your tracking ID is: ${result.trackingId} - use this to track your repair progress.`);
+Your tracking ID is: ${result.trackingId} - use this to track your repair progress.
+
+Note: This is a demo version. In production, you would receive a confirmation email.`);
                         
                         // Reset form
                         this.reset();
