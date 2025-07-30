@@ -19,6 +19,13 @@ export interface EmailData {
 
 export async function sendEmail({ to, subject, html, text }: EmailData) {
   try {
+    // Check if email is configured
+    if (!process.env.SMTP_USER || process.env.SMTP_USER === 'your-email@gmail.com') {
+      console.log('Email service not configured. Would send:', { to, subject })
+      console.log('To configure email, update SMTP_USER and SMTP_PASS in .env.local')
+      return { success: true, messageId: 'dev-mode', note: 'Email service not configured' }
+    }
+
     const result = await transporter.sendMail({
       from: `"IT Services Freetown" <${process.env.SMTP_USER || 'noreply@itservicesfreetown.com'}>`,
       to,

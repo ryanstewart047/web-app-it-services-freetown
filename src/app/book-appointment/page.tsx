@@ -46,29 +46,42 @@ export default function BookAppointment() {
     setIsSubmitting(true)
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // Here you would normally send the data to your backend
-      console.log('Appointment data:', formData)
-      
-      toast.success('Appointment booked successfully! You will receive a confirmation email shortly.')
-      
-      // Reset form
-      setFormData({
-        customerName: '',
-        email: '',
-        phone: '',
-        deviceType: 'computer',
-        deviceModel: '',
-        issueDescription: '',
-        preferredDate: '',
-        preferredTime: '',
-        address: '',
-        serviceType: 'repair'
+      // Send data to API
+      const response = await fetch('/api/appointments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
       })
+
+      const result = await response.json()
+      
+      if (result.success) {
+        toast.success(
+          `Appointment booked successfully!\n\nAppointment ID: ${result.appointment.id}\nCustomer: ${formData.customerName}\nDevice: ${formData.deviceType} - ${formData.deviceModel}\nDate: ${formData.preferredDate} at ${formData.preferredTime}\n\nYou will receive a confirmation email shortly.`,
+          { duration: 10000 }
+        )
+        
+        // Reset form
+        setFormData({
+          customerName: '',
+          email: '',
+          phone: '',
+          deviceType: 'computer',
+          deviceModel: '',
+          issueDescription: '',
+          preferredDate: '',
+          preferredTime: '',
+          address: '',
+          serviceType: 'repair'
+        })
+      } else {
+        toast.error('Error: ' + (result.error || 'Failed to book appointment. Please try again.'))
+      }
     } catch (error) {
-      toast.error('Failed to book appointment. Please try again.')
+      console.error('Booking error:', error)
+      toast.error('Network error: Please check your connection and try again.')
     } finally {
       setIsSubmitting(false)
     }
