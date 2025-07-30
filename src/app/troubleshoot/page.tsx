@@ -337,7 +337,7 @@ export default function Troubleshoot() {
                 <div className="border border-gray-200 rounded-lg p-6">
                   <h3 className="font-semibold text-gray-900 mb-2">Book Professional Service</h3>
                   <p className="text-gray-600 text-sm mb-4">
-                    If these steps don't resolve your issue, book an appointment with our technicians.
+                    If these steps don&apos;t resolve your issue, book an appointment with our technicians.
                   </p>
                   <a href="/book-appointment" className="btn-primary text-sm px-4 py-2 inline-block">
                     Book Appointment

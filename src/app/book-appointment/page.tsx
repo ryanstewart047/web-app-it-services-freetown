@@ -102,7 +102,7 @@ export default function BookAppointment() {
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Schedule your computer or mobile repair with our expert technicians. 
-            We'll provide you with real-time updates throughout the repair process.
+            We&apos;ll provide you with real-time updates throughout the repair process.
           </p>
         </div>
 
@@ -321,7 +321,7 @@ export default function BookAppointment() {
           <div className="card text-center">
             <Clock className="w-8 h-8 text-primary mx-auto mb-3" />
             <h3 className="font-semibold text-gray-900 mb-2">Quick Response</h3>
-            <p className="text-gray-600 text-sm">We'll confirm your appointment within 2 hours</p>
+            <p className="text-gray-600 text-sm">We&apos;ll confirm your appointment within 2 hours</p>
           </div>
           <div className="card text-center">
             <Mail className="w-8 h-8 text-primary mx-auto mb-3" />

@@ -316,7 +316,7 @@ export default function TrackRepair() {
         <div className="mt-12 bg-blue-50 rounded-lg p-8">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Need Help?</h2>
           <p className="text-gray-700 mb-4">
-            Can't find your tracking ID or have questions about your repair?
+            Can&apos;t find your tracking ID or have questions about your repair?
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <a
