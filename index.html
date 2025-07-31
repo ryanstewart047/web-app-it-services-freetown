@@ -238,6 +238,13 @@
                     <a href="track-repair.html" class="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium" data-translate="nav.track">Track Repair</a>
                     <a href="troubleshoot.html" class="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium" data-translate="nav.troubleshoot">Troubleshoot</a>
                     <a href="chat.html" class="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium" data-translate="nav.chat">Chat Support</a>
+                    
+                    <!-- Language Toggle -->
+                    <button id="languageToggle" class="language-toggle flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary-950 transition-colors">
+                        <span class="flag">🇬🇧</span>
+                        <span id="currentLang">EN</span>
+                    </button>
+                    
                     <a href="book-appointment.html" class="btn-primary text-sm px-4 py-2" data-translate="nav.book-now">Book Now</a>
                 </div>
                 <!-- Mobile menu button -->
@@ -257,6 +264,13 @@
                 <a href="track-repair.html" class="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" data-translate="nav.track">Track Repair</a>
                 <a href="troubleshoot.html" class="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" data-translate="nav.troubleshoot">Troubleshoot</a>
                 <a href="chat.html" class="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" data-translate="nav.chat">Chat Support</a>
+                
+                <!-- Mobile Language Toggle -->
+                <button id="mobileLanguageToggle" class="language-toggle flex items-center space-x-2 px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-950 w-full">
+                    <span class="flag">🇬🇧</span>
+                    <span id="mobileLangText">English</span>
+                </button>
+                
                 <a href="book-appointment.html" class="btn-primary text-sm px-4 py-2 w-full text-center mt-4" data-translate="nav.book-now">Book Now</a>
             </div>
         </div>
@@ -656,6 +670,62 @@
         // Initialize parallax effect
         document.addEventListener('DOMContentLoaded', function() {
             initParallax();
+            
+            // Initialize translation system
+            if (typeof TranslationManager !== 'undefined') {
+                const translator = new TranslationManager();
+                
+                // Set up language toggle buttons
+                const languageToggle = document.getElementById('languageToggle');
+                const mobileLanguageToggle = document.getElementById('mobileLanguageToggle');
+                const currentLang = document.getElementById('currentLang');
+                const mobileLangText = document.getElementById('mobileLangText');
+                
+                // Update UI based on current language
+                function updateLanguageUI() {
+                    const currentLanguage = translator.getCurrentLanguage();
+                    const isEnglish = currentLanguage === 'en';
+                    
+                    // Update desktop toggle
+                    if (currentLang) {
+                        currentLang.textContent = isEnglish ? 'EN' : 'FR';
+                    }
+                    
+                    // Update mobile toggle
+                    if (mobileLangText) {
+                        mobileLangText.textContent = isEnglish ? 'English' : 'Français';
+                    }
+                    
+                    // Update flags
+                    const flags = document.querySelectorAll('.flag');
+                    flags.forEach(flag => {
+                        flag.textContent = isEnglish ? '🇬🇧' : '🇫🇷';
+                    });
+                }
+                
+                // Handle language toggle
+                function toggleLanguage() {
+                    const currentLanguage = translator.getCurrentLanguage();
+                    const newLanguage = currentLanguage === 'en' ? 'fr' : 'en';
+                    translator.setLanguage(newLanguage);
+                    updateLanguageUI();
+                }
+                
+                // Add event listeners
+                if (languageToggle) {
+                    languageToggle.addEventListener('click', toggleLanguage);
+                }
+                
+                if (mobileLanguageToggle) {
+                    mobileLanguageToggle.addEventListener('click', toggleLanguage);
+                }
+                
+                // Initialize UI
+                updateLanguageUI();
+                
+                // Apply initial translations
+                translator.updatePageTranslations();
+            }
         });
     </script>
 </body>
