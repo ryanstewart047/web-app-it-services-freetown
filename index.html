@@ -287,6 +287,8 @@
         .image-slider-container {
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
             border: 2px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
         }
         
         .image-slide {
@@ -296,19 +298,24 @@
             width: 100%;
             height: 100%;
             opacity: 0;
-            transition: opacity 0.6s ease-in-out;
+            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+            transform: scale(1.1);
         }
         
         .image-slide.active {
             opacity: 1;
+            transform: scale(1);
         }
         
         .image-slide img {
-            transition: transform 0.6s ease;
+            transition: transform 8s ease;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         
         .image-slide.active img {
-            transform: scale(1.05);
+            transform: scale(1.1); /* Slow zoom effect on active slide */
         }
         
         /* Slider Navigation */
@@ -552,39 +559,17 @@
     <section id="home" class="hero-section">
         <div class="hero-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-3">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-screen py-20">
-                <!-- Left Side - Text Content (Dynamic based on slide) -->
+                <!-- Left Side - Text Content -->
                 <div class="text-left">
-                    <!-- Slide 1 Content - Mobile Motherboard Repair -->
-                    <div class="hero-text-content active" data-slide="0">
-                        <h1 class="hero-title">
-                            Expert Mobile Motherboard Repair
-                        </h1>
-                        <p class="hero-subtitle">
-                            Our skilled technicians diagnose and repair complex motherboard issues, from water damage to component replacement. We work with precision to bring your device back to life.
-                        </p>
-                    </div>
+                    <h1 class="hero-title">
+                        Professional IT Services in Freetown
+                    </h1>
+                    <p class="hero-subtitle">
+                        Expert computer and mobile repairs with real-time tracking and AI-powered support. 
+                        We fix all types of devices with genuine parts and provide excellent warranty coverage.
+                    </p>
                     
-                    <!-- Slide 2 Content - Laptop Repair -->
-                    <div class="hero-text-content" data-slide="1">
-                        <h1 class="hero-title">
-                            Professional Laptop Repair
-                        </h1>
-                        <p class="hero-subtitle">
-                            From hardware failures to software problems, our certified technicians can fix any laptop issue. We provide quick and reliable repairs with genuine parts and warranty.
-                        </p>
-                    </div>
-                    
-                    <!-- Slide 3 Content - Mobile Unlocking -->
-                    <div class="hero-text-content" data-slide="2">
-                        <h1 class="hero-title">
-                            Mobile Device Unlocking
-                        </h1>
-                        <p class="hero-subtitle">
-                            Locked out of your device? Our experts can safely unlock phones and tablets while preserving your data. We support all major brands and models for quick, secure unlocking.
-                        </p>
-                    </div>
-                    
-                    <!-- Buttons (Same for all slides) -->
+                    <!-- Buttons -->
                     <div class="hero-buttons justify-start">
                         <a href="book-appointment.html" class="btn-primary text-lg px-8 py-4 text-center">Book Repair Now</a>
                         <a href="track-repair.html" class="btn-secondary text-lg px-8 py-4 text-center">Track Your Repair</a>
@@ -612,54 +597,40 @@
                     <div class="image-slider-container relative w-full h-96 lg:h-[500px] rounded-2xl overflow-hidden">
                         <!-- Slide 1 - Mobile Motherboard Repair -->
                         <div class="image-slide active">
-                            <img src="assets/images/mobile-motherboard-repair.svg" 
+                            <img src="https://images.pexels.com/photos/3825582/pexels-photo-3825582.jpeg?auto=compress&cs=tinysrgb&w=1200" 
                                  alt="African man working on mobile motherboard" 
                                  class="w-full h-full object-cover">
-                            <div class="absolute inset-0 flex items-center bg-gradient-to-r from-black/70 via-black/50 to-transparent">
-                                <div class="p-8 lg:p-12 max-w-xl">
-                                    <h3 class="text-white text-2xl lg:text-3xl font-bold mb-3">Expert Mobile Motherboard Repair</h3>
-                                    <p class="text-white/90 text-base mb-6">Our certified technicians perform component-level repairs with precision and care. We fix what others can't.</p>
-                                    <div class="slide-buttons">
-                                        <a href="book-appointment.html" class="btn-primary mr-3">Book Now</a>
-                                        <a href="#services" class="btn-secondary">Learn More</a>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                         
                         <!-- Slide 2 - Laptop Repair -->
                         <div class="image-slide">
-                            <img src="assets/images/laptop-repair.svg" 
+                            <img src="https://images.pexels.com/photos/3568520/pexels-photo-3568520.jpeg?auto=compress&cs=tinysrgb&w=1200" 
                                  alt="African technician repairing laptop computer" 
                                  class="w-full h-full object-cover">
-                            <div class="absolute inset-0 flex items-center bg-gradient-to-r from-black/70 via-black/50 to-transparent">
-                                <div class="p-8 lg:p-12 max-w-xl">
-                                    <h3 class="text-white text-2xl lg:text-3xl font-bold mb-3">Professional Laptop Repair</h3>
-                                    <p class="text-white/90 text-base mb-6">From hardware to software issues, our experts diagnose and fix all laptop problems with guaranteed results.</p>
-                                    <div class="slide-buttons">
-                                        <a href="book-appointment.html" class="btn-primary mr-3">Book Now</a>
-                                        <a href="#services" class="btn-secondary">Learn More</a>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                         
                         <!-- Slide 3 - Mobile Unlocking -->
                         <div class="image-slide">
-                            <img src="assets/images/mobile-unlocking.svg" 
+                            <img src="https://images.pexels.com/photos/4350276/pexels-photo-4350276.jpeg?auto=compress&cs=tinysrgb&w=1200" 
                                  alt="Mobile device unlocking service" 
                                  class="w-full h-full object-cover">
-                            <div class="absolute inset-0 flex items-center bg-gradient-to-r from-black/70 via-black/50 to-transparent">
-                                <div class="p-8 lg:p-12 max-w-xl">
-                                    <h3 class="text-white text-2xl lg:text-3xl font-bold mb-3">Secure Mobile Device Unlocking</h3>
-                                    <p class="text-white/90 text-base mb-6">Fast and reliable unlocking services for all phone brands and models. Regain full access to your device.</p>
-                                    <div class="slide-buttons">
-                                        <a href="book-appointment.html" class="btn-primary mr-3">Book Now</a>
-                                        <a href="#services" class="btn-secondary">Learn More</a>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
+                        
+                        <!-- Navigation Dots -->
+                        <div class="absolute bottom-4 right-4 flex space-x-2">
+                            <button class="slider-dot active" data-slide="0"></button>
+                            <button class="slider-dot" data-slide="1"></button>
+                            <button class="slider-dot" data-slide="2"></button>
+                        </div>
+                        
+                        <!-- Navigation Arrows -->
+                        <button class="slider-arrow slider-prev absolute left-4 top-1/2 transform -translate-y-1/2">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="slider-arrow slider-next absolute right-4 top-1/2 transform -translate-y-1/2">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
                         
                         <!-- Navigation Dots -->
                         <div class="absolute bottom-4 right-4 flex space-x-2">
@@ -1218,7 +1189,6 @@
         // Image Slider Functionality
         function initImageSlider() {
             const slides = document.querySelectorAll('.image-slide');
-            const textContents = document.querySelectorAll('.hero-text-content');
             const dots = document.querySelectorAll('.slider-dot');
             const prevBtn = document.querySelector('.slider-prev');
             const nextBtn = document.querySelector('.slider-next');
@@ -1226,14 +1196,12 @@
             let slideInterval;
 
             function showSlide(index) {
-                // Remove active class from all slides, text contents, and dots
+                // Remove active class from all slides and dots
                 slides.forEach(slide => slide.classList.remove('active'));
-                textContents.forEach(content => content.classList.remove('active'));
                 dots.forEach(dot => dot.classList.remove('active'));
                 
-                // Add active class to current slide, text content, and dot
+                // Add active class to current slide and dot
                 if (slides[index]) slides[index].classList.add('active');
-                if (textContents[index]) textContents[index].classList.add('active');
                 if (dots[index]) dots[index].classList.add('active');
                 
                 currentSlide = index;
@@ -1250,7 +1218,7 @@
             }
 
             function startAutoSlide() {
-                slideInterval = setInterval(nextSlide, 5000); // Change slide every 5 seconds
+                slideInterval = setInterval(nextSlide, 3000); // Change slide every 3 seconds (faster)
             }
 
             function stopAutoSlide() {
