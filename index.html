@@ -265,6 +265,24 @@
             }
         }
         
+        /* Hero Text Content Styles */
+        .hero-text-content {
+            position: relative;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+            pointer-events: none;
+            position: absolute;
+            width: 100%;
+        }
+        
+        .hero-text-content.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+            position: relative;
+        }
+        
         /* Image Slider Styles */
         .image-slider-container {
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
@@ -534,14 +552,39 @@
     <section id="home" class="hero-section">
         <div class="hero-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-3">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-screen py-20">
-                <!-- Left Side - Text Content -->
+                <!-- Left Side - Text Content (Dynamic based on slide) -->
                 <div class="text-left">
-                    <h1 class="hero-title">
-                        Professional IT Services in Freetown
-                    </h1>
-                    <p class="hero-subtitle">
-                        Expert computer and mobile repairs with real-time tracking and AI-powered support. Get your devices fixed by certified technicians with genuine parts and warranty.
-                    </p>
+                    <!-- Slide 1 Content - Mobile Motherboard Repair -->
+                    <div class="hero-text-content active" data-slide="0">
+                        <h1 class="hero-title">
+                            Expert Mobile Motherboard Repair
+                        </h1>
+                        <p class="hero-subtitle">
+                            Our skilled technicians diagnose and repair complex motherboard issues, from water damage to component replacement. We work with precision to bring your device back to life.
+                        </p>
+                    </div>
+                    
+                    <!-- Slide 2 Content - Laptop Repair -->
+                    <div class="hero-text-content" data-slide="1">
+                        <h1 class="hero-title">
+                            Professional Laptop Repair
+                        </h1>
+                        <p class="hero-subtitle">
+                            From hardware failures to software problems, our certified technicians can fix any laptop issue. We provide quick and reliable repairs with genuine parts and warranty.
+                        </p>
+                    </div>
+                    
+                    <!-- Slide 3 Content - Mobile Unlocking -->
+                    <div class="hero-text-content" data-slide="2">
+                        <h1 class="hero-title">
+                            Mobile Device Unlocking
+                        </h1>
+                        <p class="hero-subtitle">
+                            Locked out of your device? Our experts can safely unlock phones and tablets while preserving your data. We support all major brands and models for quick, secure unlocking.
+                        </p>
+                    </div>
+                    
+                    <!-- Buttons (Same for all slides) -->
                     <div class="hero-buttons justify-start">
                         <a href="book-appointment.html" class="btn-primary text-lg px-8 py-4 text-center">Book Repair Now</a>
                         <a href="track-repair.html" class="btn-secondary text-lg px-8 py-4 text-center">Track Your Repair</a>
@@ -567,36 +610,36 @@
                 <!-- Right Side - Image Slider -->
                 <div class="relative">
                     <div class="image-slider-container relative w-full h-96 lg:h-[500px] rounded-2xl overflow-hidden">
-                        <!-- Slide 1 - Mobile Repair -->
+                        <!-- Slide 1 - Mobile Motherboard Repair -->
                         <div class="image-slide active">
-                            <img src="https://images.unsplash.com/photo-1607602195764-62b527cf68cb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
-                                 alt="Mobile Phone Repair Service" 
+                            <img src="https://images.unsplash.com/photo-1659535857224-64b7a57c01b6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                                 alt="African man working on mobile motherboard" 
                                  class="w-full h-full object-cover">
                             <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
-                                <h3 class="text-white text-xl font-semibold mb-2">Mobile Repair Services</h3>
-                                <p class="text-white/90 text-sm">Screen replacement, battery service, and water damage repair for all smartphone brands</p>
+                                <h3 class="text-white text-xl font-semibold mb-2">Mobile Motherboard Repair</h3>
+                                <p class="text-white/90 text-sm">Component-level repairs by expert technicians</p>
                             </div>
                         </div>
                         
-                        <!-- Slide 2 - Computer Repair -->
+                        <!-- Slide 2 - Laptop Repair -->
                         <div class="image-slide">
-                            <img src="https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
-                                 alt="Computer Repair Service" 
+                            <img src="https://images.unsplash.com/photo-1589652717521-10c0d092dea9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                                 alt="African technician repairing laptop computer" 
                                  class="w-full h-full object-cover">
                             <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
-                                <h3 class="text-white text-xl font-semibold mb-2">Computer Repair Services</h3>
-                                <p class="text-white/90 text-sm">Hardware diagnostics, software troubleshooting, and performance optimization for desktops & laptops</p>
+                                <h3 class="text-white text-xl font-semibold mb-2">Laptop Computer Repair</h3>
+                                <p class="text-white/90 text-sm">Complete diagnostic and repair services for all laptop brands</p>
                             </div>
                         </div>
                         
-                        <!-- Slide 3 - Technical Support -->
+                        <!-- Slide 3 - Mobile Unlocking -->
                         <div class="image-slide">
-                            <img src="https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
-                                 alt="Technical Support Service" 
+                            <img src="https://images.unsplash.com/photo-1570063578733-6a33b69d1438?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                                 alt="Mobile device unlocking service" 
                                  class="w-full h-full object-cover">
                             <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
-                                <h3 class="text-white text-xl font-semibold mb-2">Expert Technical Support</h3>
-                                <p class="text-white/90 text-sm">Real-time tracking, AI-powered diagnostics, and 24/7 customer support</p>
+                                <h3 class="text-white text-xl font-semibold mb-2">Mobile Device Unlocking</h3>
+                                <p class="text-white/90 text-sm">Safe and secure unlocking for all smartphones and tablets</p>
                             </div>
                         </div>
                         
@@ -1157,6 +1200,7 @@
         // Image Slider Functionality
         function initImageSlider() {
             const slides = document.querySelectorAll('.image-slide');
+            const textContents = document.querySelectorAll('.hero-text-content');
             const dots = document.querySelectorAll('.slider-dot');
             const prevBtn = document.querySelector('.slider-prev');
             const nextBtn = document.querySelector('.slider-next');
@@ -1164,12 +1208,14 @@
             let slideInterval;
 
             function showSlide(index) {
-                // Remove active class from all slides and dots
+                // Remove active class from all slides, text contents, and dots
                 slides.forEach(slide => slide.classList.remove('active'));
+                textContents.forEach(content => content.classList.remove('active'));
                 dots.forEach(dot => dot.classList.remove('active'));
                 
-                // Add active class to current slide and dot
+                // Add active class to current slide, text content, and dot
                 if (slides[index]) slides[index].classList.add('active');
+                if (textContents[index]) textContents[index].classList.add('active');
                 if (dots[index]) dots[index].classList.add('active');
                 
                 currentSlide = index;
