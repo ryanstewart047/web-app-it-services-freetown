@@ -30,15 +30,17 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .btn-primary {
-            background-color: #040e40;
+            background: linear-gradient(135deg, #040e40 0%, #040e40 100%);
             color: white;
             padding: 0.75rem 1.5rem;
             border-radius: 0.5rem;
             font-weight: 500;
             transition: all 0.2s;
+            border: none;
+            cursor: pointer;
         }
         .btn-primary:hover {
-            background-color: rgba(4, 14, 64, 0.9);
+            background: linear-gradient(135deg, #040e40 0%, #040e40 100%);
         }
         .input-field {
             width: 100%;
@@ -163,6 +165,21 @@
         .fade-out {
             opacity: 0;
             pointer-events: none;
+        }
+        
+        /* Smooth scrollbar - branded thumb */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #040e40, #ff0000);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #040e40, #ff0000);
         }
     </style>
 </head>
