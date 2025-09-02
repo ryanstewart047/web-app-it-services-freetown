@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { generateSessionId } from '@/lib/repair-tracking'
 import { notificationService, agentAvailabilityService } from '@/lib/notification-service'
-
-const prisma = new PrismaClient()
 
 // POST /api/chat/request-agent - Request human agent for chat
 export async function POST(request: NextRequest) {

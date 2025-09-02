@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
@@ -102,12 +100,20 @@ export async function POST(request: NextRequest) {
     // - Send push notifications
     // - Email/SMS alerts
     
+    // Get queue position safely
+    let queuePosition = 0;
+    try {
+      queuePosition = await getQueuePosition();
+    } catch (e) {
+      console.error("Error getting queue position:", e);
+    }
+    
     return NextResponse.json({
       success: true,
       message: 'Agent has been notified. Please wait while we connect you...',
       sessionId: chatSession.id,
       estimatedWaitTime: '2-5 minutes',
-      queuePosition: await getQueuePosition()
+      queuePosition
     })
 
   } catch (error) {
@@ -120,12 +126,17 @@ export async function POST(request: NextRequest) {
 }
 
 async function getQueuePosition(): Promise<number> {
-  // Count how many sessions are waiting for agents
-  const waitingCount = await prisma.chatSession.count({
-    where: { status: 'waiting' }
-  })
-  
-  return waitingCount
+  try {
+    // Count how many sessions are waiting for agents
+    const waitingCount = await prisma.chatSession.count({
+      where: { status: 'waiting' }
+    })
+    
+    return waitingCount;
+  } catch (error) {
+    console.error('Error getting queue position:', error);
+    return 0;
+  }
 }
 
 // GET endpoint to check agent availability
@@ -178,7 +189,13 @@ export async function GET(request: NextRequest) {
     }
 
     if (action === 'queue') {
-      const queueCount = await getQueuePosition()
+      let queueCount = 0;
+      try {
+        queueCount = await getQueuePosition();
+      } catch (e) {
+        console.error("Error getting queue position:", e);
+      }
+      
       return NextResponse.json({
         success: true,
         queueLength: queueCount,

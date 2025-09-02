@@ -206,7 +206,7 @@
             </div>
 
             <div class="card">
-                <form id="appointmentForm" class="space-y-6">
+                <form id="appointmentForm" class="space-y-6" action="process-appointment.php" method="post">
                     <!-- Customer Information -->
                     <div class="border-b border-gray-200 pb-6">
                         <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
@@ -450,32 +450,25 @@
                 
                 // Show loading state
                 const submitButton = this.querySelector('button[type="submit"]');
-                const originalText = submitButton.textContent;
-                submitButton.textContent = 'Booking Appointment...';
+                const originalText = submitButton.innerHTML;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Booking Appointment...';
                 submitButton.disabled = true;
                 
-                // Add loading spinner class
-                submitButton.classList.add('loading');
+                // Get form data
+                const formData = new FormData(this);
                 
                 try {
-                    // Get form data
-                    const formData = new FormData(this);
-                    const data = {};
-                    for (let [key, value] of formData.entries()) {
-                        data[key] = value;
+                    // Submit the form data via AJAX
+                    const response = await fetch('process-appointment.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
                     }
                     
-                    // Generate a local appointment ID (for demo purposes)
-                    const appointmentId = 'AP-' + Date.now().toString().slice(-8);
-                    const trackingId = 'TR-' + Math.random().toString(36).substr(2, 8).toUpperCase();
-                    
-                    // Simulate API success (since GitHub Pages can't run API routes)
-                    const result = {
-                        success: true,
-                        appointmentId: appointmentId,
-                        trackingId: trackingId,
-                        message: "We'll confirm your appointment within 2 hours and send you an email with further details."
-                    };
+                    const result = await response.json();
                     
                     if (result.success) {
                         // Show success message
@@ -483,29 +476,32 @@
                         
 Appointment ID: ${result.appointmentId}
 Tracking ID: ${result.trackingId}
-Customer: ${data.customerName}
-Device: ${data.deviceType} - ${data.deviceModel}
-Date: ${data.preferredDate} at ${data.preferredTime}
+Customer: ${result.customerName}
+Device: ${result.deviceType} - ${result.deviceModel}
+Date: ${result.preferredDate} at ${result.preferredTime}
 
 ${result.message}
 
-Your tracking ID is: ${result.trackingId} - use this to track your repair progress.
-
-Note: This is a demo version. In production, you would receive a confirmation email.`);
+Your tracking ID is: ${result.trackingId} - use this to track your repair progress.`);
                         
                         // Reset form
                         this.reset();
                     } else {
-                        alert('Error: ' + (result.error || 'Failed to book appointment. Please try again.'));
+                        alert('Error: ' + (result.message || 'Failed to book appointment. Please try again.'));
                     }
                 } catch (error) {
                     console.error('Booking error:', error);
-                    alert('Network error: Please check your connection and try again.');
+                    alert('Network error: Please check your connection and try again. If the problem persists, please refresh the page and try again.');
+                    
+                    // Enable traditional form submission as fallback
+                    if (confirm('Would you like to try submitting the form directly?')) {
+                        this.removeEventListener('submit', arguments.callee);
+                        this.submit();
+                    }
                 } finally {
                     // Reset button
-                    submitButton.textContent = originalText;
+                    submitButton.innerHTML = originalText;
                     submitButton.disabled = false;
-                    submitButton.classList.remove('loading');
                 }
             });
         });

@@ -19,6 +19,19 @@ A comprehensive IT services web application for computer and mobile repairs in F
 - **Email**: Nodemailer for automated notifications
 - **AI**: OpenAI API for troubleshooting suggestions
 
+## 🚀 Deployment Options
+
+### Vercel Deployment (Recommended)
+This application is optimized for deployment on Vercel. Check these guides:
+- [Migrating from Railway to Vercel](./MIGRATING_TO_VERCEL.md)
+- [Vercel Deployment Guide](./VERCEL_DEPLOYMENT_GUIDE.md)
+- [Setting Up Vercel Postgres](./VERCEL_POSTGRES_SETUP.md)
+
+### Alternative Hosting Options
+If you prefer other hosting solutions:
+- [Alternative Hosting Options](./ALTERNATIVE_HOSTING_OPTIONS.md)
+- [PHP Form Handler Setup](./PHP_FORM_HANDLER_README.md) (for PHP-capable hosts)
+
 ### 🎨 Design System
 - **Primary Color**: #040e40 (Dark Navy Blue)
 - **Secondary Color**: #ff0000 (Red)

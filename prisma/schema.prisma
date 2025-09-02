@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,146 +8,126 @@ datasource db {
 }
 
 model Customer {
-  id          String        @id @default(cuid())
-  name        String
-  email       String        @unique
-  phone       String
-  address     String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  phone        String
+  address      String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
   appointments Appointment[]
-  repairs      Repair[]
   chatSessions ChatSession[]
+  repairs      Repair[]
 }
 
 model Appointment {
   id               String   @id @default(cuid())
   customerId       String
-  customer         Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  
   deviceType       String
   deviceModel      String
   issueDescription String
   serviceType      String
   preferredDate    String
   preferredTime    String
-  status           String   @default("pending") // pending, confirmed, completed, cancelled
-  
+  status           String   @default("pending")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
-  
+  customer         Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   repair           Repair?
 }
 
 model Repair {
-  id              String      @id @default(cuid())
-  trackingId      String      @unique // Add tracking ID field
-  appointmentId   String?     @unique
-  appointment     Appointment? @relation(fields: [appointmentId], references: [id])
-  customerId      String
-  customer        Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  
-  deviceType      String
-  deviceModel     String
-  issueDescription String
-  status          String      @default("received") // received, diagnostic, parts-ordered, in-repair, testing, completed, ready-pickup
-  estimatedCost   Float?
-  actualCost      Float?
+  id                  String           @id @default(cuid())
+  trackingId          String           @unique
+  appointmentId       String?          @unique
+  customerId          String
+  deviceType          String
+  deviceModel         String
+  issueDescription    String
+  status              String           @default("received")
+  estimatedCost       Float?
+  actualCost          Float?
   estimatedCompletion String?
   actualCompletion    String?
-  dateReceived    DateTime    @default(now()) // Add date received field
-  dateCompleted   DateTime?   // Add date completed field
-  notes           String      @default("") // Add notes field
-  
-  technicianId    String?
-  technician      Technician? @relation(fields: [technicianId], references: [id])
-  
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  
-  timeline        RepairTimeline[]
-  notes_relation  RepairNote[] @relation("RepairNotes") // Rename to avoid conflict
+  dateReceived        DateTime         @default(now())
+  dateCompleted       DateTime?
+  notes               String           @default("")
+  technicianId        String?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  appointment         Appointment?     @relation(fields: [appointmentId], references: [id])
+  customer            Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  technician          Technician?      @relation(fields: [technicianId], references: [id])
+  notes_relation      RepairNote[]     @relation("RepairNotes")
+  timeline            RepairTimeline[]
 }
 
 model Technician {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  phone     String
-  role      String   @default("technician")
-  expertise String   // comma-separated specializations
-  active    Boolean  @default(true)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  repairs      Repair[]
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  phone        String
+  role         String        @default("technician")
+  expertise    String
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
   chatSessions ChatSession[]
+  repairs      Repair[]
 }
 
 model RepairTimeline {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   repairId    String
-  repair      Repair   @relation(fields: [repairId], references: [id], onDelete: Cascade)
-  
   step        String
-  status      String   // completed, current, pending
+  status      String
   timestamp   DateTime?
   description String
-  
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
+  repair      Repair    @relation(fields: [repairId], references: [id], onDelete: Cascade)
 }
 
 model RepairNote {
   id        String   @id @default(cuid())
   repairId  String
-  repair    Repair   @relation("RepairNotes", fields: [repairId], references: [id], onDelete: Cascade)
-  
   note      String
-  author    String   // agent/technician name
+  author    String
   timestamp DateTime @default(now())
-  type      String   @default("general") // general, customer, internal
+  type      String   @default("general")
+  repair    Repair   @relation("RepairNotes", fields: [repairId], references: [id], onDelete: Cascade)
 }
 
 model ChatSession {
-  id           String     @id @default(cuid())
+  id           String        @id @default(cuid())
   customerId   String
-  customer     Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
   technicianId String?
-  technician   Technician? @relation(fields: [technicianId], references: [id])
-  
-  status       String     @default("active") // active, waiting, ended
-  startedAt    DateTime   @default(now())
+  status       String        @default("active")
+  startedAt    DateTime      @default(now())
   endedAt      DateTime?
-  
   messages     ChatMessage[]
+  customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  technician   Technician?   @relation(fields: [technicianId], references: [id])
 }
 
 model ChatMessage {
-  id            String      @id @default(cuid())
-  sessionId     String
-  session       ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  
-  content       String
-  sender        String      // user, bot, agent
-  messageType   String      @default("text") // text, system, transfer
-  
-  createdAt     DateTime    @default(now())
+  id          String      @id @default(cuid())
+  sessionId   String
+  content     String
+  sender      String
+  messageType String      @default("text")
+  createdAt   DateTime    @default(now())
+  session     ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
 model AITroubleshooting {
-  id              String   @id @default(cuid())
-  customerId      String?
-  
-  deviceType      String
-  deviceModel     String?
+  id               String   @id @default(cuid())
+  customerId       String?
+  deviceType       String
+  deviceModel      String?
   issueDescription String
-  
-  aiDiagnosis     String
-  confidence      Float
-  steps           String   // JSON string of troubleshooting steps
-  escalated       Boolean  @default(false)
-  
-  createdAt       DateTime @default(now())
+  aiDiagnosis      String
+  confidence       Float
+  steps            String
+  escalated        Boolean  @default(false)
+  createdAt        DateTime @default(now())
 }

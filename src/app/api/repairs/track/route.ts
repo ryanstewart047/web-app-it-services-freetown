@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
@@ -57,7 +55,7 @@ export async function POST(request: NextRequest) {
         createdAt: repair.createdAt,
         updatedAt: repair.updatedAt,
         progress: getStatusProgress(repair.status),
-        timeline: repair.timeline.map(item => ({
+        timeline: repair.timeline.map((item: any) => ({
           step: item.step,
           status: item.status,
           timestamp: item.timestamp,

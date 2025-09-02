@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { generateRepairId, getStatusMessage } from '@/lib/repair-tracking'
 import { sendEmail, emailTemplates } from '@/lib/email'
 import { notificationService } from '@/lib/notification-service'
-
-const prisma = new PrismaClient()
 
 // GET /api/repairs - Get repair status by tracking ID
 export async function GET(request: NextRequest) {
