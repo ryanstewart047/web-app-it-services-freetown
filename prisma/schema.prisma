@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  phone        String
+  address      String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  appointments Appointment[]
+  chatSessions ChatSession[]
+  repairs      Repair[]
+}
+
+model Appointment {
+  id               String   @id @default(cuid())
+  customerId       String
+  deviceType       String
+  deviceModel      String
+  issueDescription String
+  serviceType      String
+  preferredDate    String
+  preferredTime    String
+  status           String   @default("pending")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  customer         Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  repair           Repair?
+}
+
+model Repair {
+  id                  String           @id @default(cuid())
+  trackingId          String           @unique
+  appointmentId       String?          @unique
+  customerId          String
+  deviceType          String
+  deviceModel         String
+  issueDescription    String
+  status              String           @default("received")
+  estimatedCost       Float?
+  actualCost          Float?
+  estimatedCompletion String?
+  actualCompletion    String?
+  dateReceived        DateTime         @default(now())
+  dateCompleted       DateTime?
+  notes               String           @default("")
+  technicianId        String?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  appointment         Appointment?     @relation(fields: [appointmentId], references: [id])
+  customer            Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  technician          Technician?      @relation(fields: [technicianId], references: [id])
+  notes_relation      RepairNote[]     @relation("RepairNotes")
+  timeline            RepairTimeline[]
+}
+
+model Technician {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  phone        String
+  role         String        @default("technician")
+  expertise    String
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  chatSessions ChatSession[]
+  repairs      Repair[]
+}
+
+model RepairTimeline {
+  id          String    @id @default(cuid())
+  repairId    String
+  step        String
+  status      String
+  timestamp   DateTime?
+  description String
+  createdAt   DateTime  @default(now())
+  repair      Repair    @relation(fields: [repairId], references: [id], onDelete: Cascade)
+}
+
+model RepairNote {
+  id        String   @id @default(cuid())
+  repairId  String
+  note      String
+  author    String
+  timestamp DateTime @default(now())
+  type      String   @default("general")
+  repair    Repair   @relation("RepairNotes", fields: [repairId], references: [id], onDelete: Cascade)
+}
+
+model ChatSession {
+  id           String        @id @default(cuid())
+  customerId   String
+  technicianId String?
+  status       String        @default("active")
+  startedAt    DateTime      @default(now())
+  endedAt      DateTime?
+  messages     ChatMessage[]
+  customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  technician   Technician?   @relation(fields: [technicianId], references: [id])
+}
+
+model ChatMessage {
+  id          String      @id @default(cuid())
+  sessionId   String
+  content     String
+  sender      String
+  messageType String      @default("text")
+  createdAt   DateTime    @default(now())
+  session     ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model AITroubleshooting {
+  id               String   @id @default(cuid())
+  customerId       String?
+  deviceType       String
+  deviceModel      String?
+  issueDescription String
+  aiDiagnosis      String
+  confidence       Float
+  steps            String
+  escalated        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+}

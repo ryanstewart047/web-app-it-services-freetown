@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next",
+      "config": {
+        "buildCommand": "prisma generate && next build"
+      }
+    }
+  ],
+  "env": {
+    "DATABASE_URL": "DATABASE_URL_PLACEHOLDER",
+    "SMTP_HOST": "SMTP_HOST_PLACEHOLDER",
+    "SMTP_PORT": "SMTP_PORT_PLACEHOLDER",
+    "SMTP_SECURE": "SMTP_SECURE_PLACEHOLDER",
+    "SMTP_USER": "SMTP_USER_PLACEHOLDER",
+    "SMTP_PASSWORD": "SMTP_PASSWORD_PLACEHOLDER"
+  }
+}
