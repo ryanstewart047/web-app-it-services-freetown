@@ -45,7 +45,7 @@ export default function Chat() {
       } else if (userMessage.toLowerCase().includes('track') || userMessage.toLowerCase().includes('status')) {
         response = "I can help you track your repair. Do you have your repair ID number?"
       } else if (userMessage.toLowerCase().includes('price') || userMessage.toLowerCase().includes('cost')) {
-        response = "Our pricing depends on the type of repair. Computer repairs start from $50, mobile repairs from $30. Would you like a detailed quote?"
+        response = "Our pricing depends on the type of repair. Computer repairs start from Le 2,500,000, mobile repairs from Le 1,500,000. Would you like a detailed quote?"
       }
       
       addMessage(response, 'bot')
