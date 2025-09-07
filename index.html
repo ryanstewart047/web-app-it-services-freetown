@@ -1498,23 +1498,48 @@
             // Mobile menu functionality
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
-            const menuIcon = document.getElementById('menu-icon');
-            const closeIcon = document.getElementById('close-icon');
+            const menuBar1 = document.getElementById('menu-bar-1');
+            const menuBar2 = document.getElementById('menu-bar-2');
+            const menuBar3 = document.getElementById('menu-bar-3');
 
             if (mobileMenuButton && mobileMenu) {
                 mobileMenuButton.addEventListener('click', () => {
-                    const isHidden = mobileMenu.classList.contains('hidden');
-                    mobileMenu.classList.toggle('hidden', !isHidden);
-                    menuIcon.classList.toggle('hidden', isHidden);
-                    closeIcon.classList.toggle('hidden', !isHidden);
+                    // Toggle body class for preventing scroll when menu is open
+                    document.body.classList.toggle('menu-open');
+                    
+                    // Toggle the mobile menu visibility
+                    mobileMenu.classList.toggle('hidden');
+                    
+                    // Transform hamburger icon to X
+                    if (menuBar1 && menuBar2 && menuBar3) {
+                        menuBar1.classList.toggle('rotate-45');
+                        menuBar1.classList.toggle('translate-y-2');
+                        menuBar2.classList.toggle('opacity-0');
+                        menuBar3.classList.toggle('-rotate-45');
+                        menuBar3.classList.toggle('-translate-y-2');
+                    }
+                    
+                    console.log("Mobile menu clicked, menu is now:", 
+                        mobileMenu.classList.contains('hidden') ? "hidden" : "visible");
                 });
 
                 // Close menu when clicking links
                 mobileMenu.querySelectorAll('a, button').forEach(link => {
                     link.addEventListener('click', () => {
+                        if (link.getAttribute('onclick') === 'showServicesPopup()') {
+                            // Don't close menu when opening services popup
+                            return;
+                        }
+                        
+                        document.body.classList.remove('menu-open');
                         mobileMenu.classList.add('hidden');
-                        menuIcon.classList.remove('hidden');
-                        closeIcon.classList.add('hidden');
+                        
+                        // Reset hamburger icon
+                        if (menuBar1 && menuBar2 && menuBar3) {
+                            menuBar1.classList.remove('rotate-45', 'translate-y-2');
+                            menuBar2.classList.remove('opacity-0');
+                            menuBar3.classList.remove('-rotate-45', '-translate-y-2');
+                        }
                     });
                 });
             }

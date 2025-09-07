@@ -15,7 +15,28 @@
         overflow: hidden; /* Prevent scrolling when menu is open */
     }
     
-    /* Hamburger to X animation */
+    /* Direct hamburger animation classes */
+    #menu-bar-1.rotate-45 {
+        transform: translateY(8px) rotate(45deg);
+    }
+    
+    #menu-bar-1.translate-y-2 {
+        transform: translateY(8px);
+    }
+    
+    #menu-bar-2.opacity-0 {
+        opacity: 0;
+    }
+    
+    #menu-bar-3.-rotate-45 {
+        transform: translateY(-8px) rotate(-45deg);
+    }
+    
+    #menu-bar-3.-translate-y-2 {
+        transform: translateY(-8px);
+    }
+    
+    /* Legacy hamburger to X animation */
     body.menu-open #menu-bar-1 {
         transform: translateY(8px) rotate(45deg);
     }
@@ -28,38 +49,23 @@
         transform: translateY(-8px) rotate(-45deg);
     }
     
-    /* Full screen menu styling */
+    /* Mobile menu animation */
     #mobile-menu {
-        opacity: 0;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    
+    #mobile-menu.hidden {
         visibility: hidden;
-        transition: opacity 0.4s ease, visibility 0.4s;
-    }
-    
-    #mobile-menu.active {
-        opacity: 1;
-        visibility: visible;
-    }
-    
-    /* Animation for menu items */
-    #mobile-menu a, 
-    #mobile-menu button {
         opacity: 0;
-        transform: translateY(20px);
-        transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.3s;
     }
     
-    #mobile-menu.active a, 
-    #mobile-menu.active button {
+    #mobile-menu:not(.hidden) {
+        visibility: visible;
         opacity: 1;
-        transform: translateY(0);
     }
     
-    /* Staggered animation delay for menu items */
-    #mobile-menu a:nth-child(1), #mobile-menu button:nth-child(1) { transition-delay: 0.1s; }
-    #mobile-menu a:nth-child(2), #mobile-menu button:nth-child(2) { transition-delay: 0.15s; }
-    #mobile-menu a:nth-child(3), #mobile-menu button:nth-child(3) { transition-delay: 0.2s; }
-    #mobile-menu a:nth-child(4), #mobile-menu button:nth-child(4) { transition-delay: 0.25s; }
-    #mobile-menu a:nth-child(5), #mobile-menu button:nth-child(5) { transition-delay: 0.3s; }
-    #mobile-menu a:nth-child(6), #mobile-menu button:nth-child(6) { transition-delay: 0.35s; }
-    #mobile-menu a:nth-child(7), #mobile-menu button:nth-child(7) { transition-delay: 0.4s; }
+    /* Improved touch targets for mobile */
+    .mobile-touch-target {
+        min-height: 44px; /* Apple's recommended minimum */
+    }
 }
