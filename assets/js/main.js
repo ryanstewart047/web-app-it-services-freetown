@@ -20,8 +20,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Toggle body class for preventing scroll when menu is open
             body.classList.toggle('menu-open');
             
-            // Toggle the mobile menu visibility
+            // Toggle the mobile menu visibility with both classes for compatibility
             mobileMenu.classList.toggle('hidden');
+            mobileMenu.classList.toggle('mobile-menu-visible');
             
             // Log for debugging
             console.log("Mobile menu button clicked, menu is now:", 

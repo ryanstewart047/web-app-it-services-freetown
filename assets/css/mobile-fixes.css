@@ -1,6 +1,8 @@
 /* Mobile menu fixes and animations */
 .mobile-menu-visible {
     display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 @media (max-width: 768px) {
@@ -52,19 +54,16 @@
     /* Mobile menu animation */
     #mobile-menu {
         transition: opacity 0.3s ease, visibility 0.3s ease;
-        display: flex;
     }
     
     #mobile-menu.hidden {
         visibility: hidden;
         opacity: 0;
-        display: none;
     }
     
     #mobile-menu:not(.hidden) {
         visibility: visible;
         opacity: 1;
-        display: flex;
     }
     
     /* Improved touch targets for mobile */
