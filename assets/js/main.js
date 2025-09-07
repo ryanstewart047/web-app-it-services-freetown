@@ -13,17 +13,64 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 800);
 
-    // Mobile Menu Toggle
+    // Enhanced Mobile Menu Toggle with animations
     const mobileMenuButton = document.getElementById('mobile-menu-button');
     const mobileMenu = document.getElementById('mobile-menu');
-    const menuIcon = document.getElementById('menu-icon');
-    const closeIcon = document.getElementById('close-icon');
+    const body = document.body;
 
-    if (mobileMenuButton) {
-        mobileMenuButton.addEventListener('click', function() {
+    if (mobileMenuButton && mobileMenu) {
+        // Add a more robust click event that works across all devices
+        mobileMenuButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Toggle body class for preventing scroll when menu is open
+            body.classList.toggle('menu-open');
+            
+            // Toggle the mobile menu visibility with animation class
             mobileMenu.classList.toggle('hidden');
-            menuIcon.classList.toggle('hidden');
-            closeIcon.classList.toggle('hidden');
+            
+            // Add a small delay to ensure the hidden class change is processed first
+            setTimeout(() => {
+                mobileMenu.classList.toggle('active');
+            }, 10);
+            
+            // Log for debugging
+            console.log("Mobile menu button clicked, menu is now:", 
+                mobileMenu.classList.contains('hidden') ? "hidden" : "visible");
+        });
+        
+        // Add a touchstart event for better mobile responsiveness
+        mobileMenuButton.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            
+            // Toggle body class for preventing scroll when menu is open
+            body.classList.toggle('menu-open');
+            
+            // Toggle the mobile menu visibility with animation class
+            mobileMenu.classList.toggle('hidden');
+            
+            // Add a small delay to ensure the hidden class change is processed first
+            setTimeout(() => {
+                mobileMenu.classList.toggle('active');
+            }, 10);
+        }, { passive: false });
+        
+        // Close menu when clicking menu items (better mobile experience)
+        const menuLinks = mobileMenu.querySelectorAll('a, button:not([id])');
+        menuLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                // Only run closing logic if it's not a dropdown toggle
+                if (!this.classList.contains('dropdown-toggle')) {
+                    body.classList.remove('menu-open');
+                    mobileMenu.classList.remove('active');
+                    
+                    // Delay hiding to allow animation to complete
+                    setTimeout(() => {
+                        mobileMenu.classList.add('hidden');
+                    }, 400);
+                }
+            });
         });
     }
 
