@@ -1,340 +1,333 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Calendar, Clock, Smartphone, Monitor, User, Mail, Phone, MapPin } from 'lucide-react'
-import toast from 'react-hot-toast'
-
-interface AppointmentForm {
-  customerName: string
-  email: string
-  phone: string
-  deviceType: 'computer' | 'mobile' | 'tablet' | 'other'
-  deviceModel: string
-  issueDescription: string
-  preferredDate: string
-  preferredTime: string
-  address: string
-  serviceType: 'repair' | 'diagnostic' | 'maintenance' | 'consultation'
-}
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function BookAppointment() {
-  const [formData, setFormData] = useState<AppointmentForm>({
-    customerName: '',
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    name: '',
     email: '',
     phone: '',
     deviceType: 'computer',
-    deviceModel: '',
-    issueDescription: '',
+    serviceType: 'hardware-repair',
+    description: '',
     preferredDate: '',
     preferredTime: '',
-    address: '',
-    serviceType: 'repair'
-  })
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [step, setStep] = useState(1);
 
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-  }
+  const nextStep = () => {
+    setStep(prev => prev + 1);
+  };
+
+  const prevStep = () => {
+    setStep(prev => prev - 1);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
 
     try {
-      // Send data to API
       const response = await fetch('/api/appointments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
-      })
+        body: JSON.stringify(formData),
+      });
 
-      const result = await response.json()
-      
-      if (result.success) {
-        toast.success(
-          `Appointment booked successfully!\n\nAppointment ID: ${result.appointment.id}\nCustomer: ${formData.customerName}\nDevice: ${formData.deviceType} - ${formData.deviceModel}\nDate: ${formData.preferredDate} at ${formData.preferredTime}\n\nYou will receive a confirmation email shortly.`,
-          { duration: 10000 }
-        )
-        
-        // Reset form
-        setFormData({
-          customerName: '',
-          email: '',
-          phone: '',
-          deviceType: 'computer',
-          deviceModel: '',
-          issueDescription: '',
-          preferredDate: '',
-          preferredTime: '',
-          address: '',
-          serviceType: 'repair'
-        })
+      if (response.ok) {
+        const data = await response.json();
+        router.push(`/track-repair?id=${data.id}`);
       } else {
-        toast.error('Error: ' + (result.error || 'Failed to book appointment. Please try again.'))
+        throw new Error('Failed to book appointment');
       }
     } catch (error) {
-      console.error('Booking error:', error)
-      toast.error('Network error: Please check your connection and try again.')
+      console.error('Error:', error);
+      alert('There was an error booking your appointment. Please try again.');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  const timeSlots = [
-    '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-    '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
-    '15:00', '15:30', '16:00', '16:30', '17:00'
-  ]
+  const serviceTypes = [
+    { value: 'hardware-repair', label: 'Hardware Repair', icon: '/assets/images/laptop-repair.svg' },
+    { value: 'software-issue', label: 'Software Issue', icon: '/assets/images/mobile-unlocking.svg' },
+    { value: 'maintenance', label: 'Maintenance', icon: '/assets/images/mobile-motherboard-repair.svg' },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Book Your Repair Appointment
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Schedule your computer or mobile repair with our expert technicians. 
-            We&apos;ll provide you with real-time updates throughout the repair process.
-          </p>
+    <div className="container mx-auto px-4 py-12">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl md:text-4xl font-bold text-center mb-8 text-primary">Book Your Repair Appointment</h1>
+        
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="flex flex-col items-center">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  step === i ? 'bg-primary text-white' : step > i ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                }`}>
+                  {step > i ? '✓' : i}
+                </div>
+                <span className="text-sm mt-2">
+                  {i === 1 ? 'Personal Info' : i === 2 ? 'Service Details' : 'Schedule'}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 h-2 flex">
+            <div className={`flex-1 rounded-l-full ${step >= 2 ? 'bg-green-500' : 'bg-gray-200'}`}></div>
+            <div className={`flex-1 rounded-r-full ${step >= 3 ? 'bg-green-500' : 'bg-gray-200'}`}></div>
+          </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Customer Information */}
-            <div className="border-b border-gray-200 pb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                <User className="w-5 h-5 mr-2 text-primary" />
-                Customer Information
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
+          <form onSubmit={handleSubmit}>
+            {step === 1 && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold mb-6">Personal Information</h2>
                 <div>
-                  <label htmlFor="customerName" className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name *
-                  </label>
+                  <label htmlFor="name" className="block text-gray-700 mb-2">Full Name</label>
                   <input
                     type="text"
-                    id="customerName"
-                    name="customerName"
-                    value={formData.customerName}
-                    onChange={handleInputChange}
-                    className="input-field"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
                     required
+                    className="input-field"
+                    placeholder="Enter your full name"
                   />
                 </div>
+                
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address *
-                  </label>
+                  <label htmlFor="email" className="block text-gray-700 mb-2">Email Address</label>
                   <input
                     type="email"
                     id="email"
                     name="email"
                     value={formData.email}
-                    onChange={handleInputChange}
-                    className="input-field"
+                    onChange={handleChange}
                     required
+                    className="input-field"
+                    placeholder="Enter your email address"
                   />
                 </div>
+                
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone Number *
-                  </label>
+                  <label htmlFor="phone" className="block text-gray-700 mb-2">Phone Number</label>
                   <input
                     type="tel"
                     id="phone"
                     name="phone"
                     value={formData.phone}
-                    onChange={handleInputChange}
-                    className="input-field"
+                    onChange={handleChange}
                     required
+                    className="input-field"
+                    placeholder="Enter your phone number"
                   />
                 </div>
-                <div>
-                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
-                    Address
-                  </label>
-                  <input
-                    type="text"
-                    id="address"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleInputChange}
-                    className="input-field"
-                    placeholder="Optional - for pickup service"
-                  />
+                
+                <div className="flex justify-end mt-8">
+                  <button
+                    type="button"
+                    onClick={nextStep}
+                    className="btn-primary"
+                  >
+                    Next Step
+                  </button>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Device Information */}
-            <div className="border-b border-gray-200 pb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                <Smartphone className="w-5 h-5 mr-2 text-primary" />
-                Device Information
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {step === 2 && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold mb-6">Service Details</h2>
+                
                 <div>
-                  <label htmlFor="deviceType" className="block text-sm font-medium text-gray-700 mb-2">
-                    Device Type *
-                  </label>
-                  <select
-                    id="deviceType"
-                    name="deviceType"
-                    value={formData.deviceType}
-                    onChange={handleInputChange}
-                    className="input-field"
-                    required
-                  >
-                    <option value="computer">Computer/Laptop</option>
-                    <option value="mobile">Mobile Phone</option>
-                    <option value="tablet">Tablet</option>
-                    <option value="other">Other</option>
-                  </select>
+                  <label className="block text-gray-700 mb-2">Device Type</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div
+                      className={`border rounded-lg p-4 cursor-pointer ${
+                        formData.deviceType === 'computer' ? 'border-primary bg-blue-50' : 'border-gray-200'
+                      }`}
+                      onClick={() => setFormData(prev => ({ ...prev, deviceType: 'computer' }))}
+                    >
+                      <div className="flex items-center mb-2">
+                        <i className="fas fa-laptop text-xl mr-2 text-primary"></i>
+                        <span className="font-medium">Computer/Laptop</span>
+                      </div>
+                      <p className="text-sm text-gray-500">Desktop, laptop, or all-in-one computers</p>
+                    </div>
+                    
+                    <div
+                      className={`border rounded-lg p-4 cursor-pointer ${
+                        formData.deviceType === 'mobile' ? 'border-primary bg-blue-50' : 'border-gray-200'
+                      }`}
+                      onClick={() => setFormData(prev => ({ ...prev, deviceType: 'mobile' }))}
+                    >
+                      <div className="flex items-center mb-2">
+                        <i className="fas fa-mobile-alt text-xl mr-2 text-primary"></i>
+                        <span className="font-medium">Mobile Device</span>
+                      </div>
+                      <p className="text-sm text-gray-500">Smartphones, tablets, and other mobile devices</p>
+                    </div>
+                  </div>
                 </div>
+                
                 <div>
-                  <label htmlFor="deviceModel" className="block text-sm font-medium text-gray-700 mb-2">
-                    Device Model/Brand *
-                  </label>
-                  <input
-                    type="text"
-                    id="deviceModel"
-                    name="deviceModel"
-                    value={formData.deviceModel}
-                    onChange={handleInputChange}
-                    className="input-field"
-                    placeholder="e.g., iPhone 13, Dell XPS 13, Samsung Galaxy S21"
-                    required
-                  />
+                  <label className="block text-gray-700 mb-2">Service Type</label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {serviceTypes.map(service => (
+                      <div
+                        key={service.value}
+                        className={`border rounded-lg p-4 cursor-pointer ${
+                          formData.serviceType === service.value ? 'border-primary bg-blue-50' : 'border-gray-200'
+                        }`}
+                        onClick={() => setFormData(prev => ({ ...prev, serviceType: service.value }))}
+                      >
+                        <div className="flex items-center justify-center mb-3">
+                          <div className="relative w-12 h-12">
+                            <Image 
+                              src={service.icon} 
+                              alt={service.label}
+                              fill
+                              style={{ objectFit: 'contain' }}
+                            />
+                          </div>
+                        </div>
+                        <p className="text-center font-medium">{service.label}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="md:col-span-2">
-                  <label htmlFor="serviceType" className="block text-sm font-medium text-gray-700 mb-2">
-                    Service Type *
-                  </label>
-                  <select
-                    id="serviceType"
-                    name="serviceType"
-                    value={formData.serviceType}
-                    onChange={handleInputChange}
-                    className="input-field"
-                    required
-                  >
-                    <option value="repair">Repair</option>
-                    <option value="diagnostic">Diagnostic</option>
-                    <option value="maintenance">Maintenance</option>
-                    <option value="consultation">Consultation</option>
-                  </select>
-                </div>
-                <div className="md:col-span-2">
-                  <label htmlFor="issueDescription" className="block text-sm font-medium text-gray-700 mb-2">
-                    Issue Description *
-                  </label>
+                
+                <div>
+                  <label htmlFor="description" className="block text-gray-700 mb-2">Issue Description</label>
                   <textarea
-                    id="issueDescription"
-                    name="issueDescription"
-                    value={formData.issueDescription}
-                    onChange={handleInputChange}
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    required
                     rows={4}
                     className="input-field"
-                    placeholder="Please describe the issue you're experiencing with your device..."
-                    required
-                  />
+                    placeholder="Please describe the issue you're experiencing..."
+                  ></textarea>
+                </div>
+                
+                <div className="flex justify-between mt-8">
+                  <button
+                    type="button"
+                    onClick={prevStep}
+                    className="btn-outline"
+                  >
+                    Previous Step
+                  </button>
+                  <button
+                    type="button"
+                    onClick={nextStep}
+                    className="btn-primary"
+                  >
+                    Next Step
+                  </button>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Appointment Time */}
-            <div className="pb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                <Calendar className="w-5 h-5 mr-2 text-primary" />
-                Preferred Appointment Time
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {step === 3 && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold mb-6">Schedule Your Appointment</h2>
+                
                 <div>
-                  <label htmlFor="preferredDate" className="block text-sm font-medium text-gray-700 mb-2">
-                    Preferred Date *
-                  </label>
+                  <label htmlFor="preferredDate" className="block text-gray-700 mb-2">Preferred Date</label>
                   <input
                     type="date"
                     id="preferredDate"
                     name="preferredDate"
                     value={formData.preferredDate}
-                    onChange={handleInputChange}
+                    onChange={handleChange}
+                    required
                     className="input-field"
                     min={new Date().toISOString().split('T')[0]}
-                    required
                   />
                 </div>
+                
                 <div>
-                  <label htmlFor="preferredTime" className="block text-sm font-medium text-gray-700 mb-2">
-                    Preferred Time *
-                  </label>
+                  <label htmlFor="preferredTime" className="block text-gray-700 mb-2">Preferred Time</label>
                   <select
                     id="preferredTime"
                     name="preferredTime"
                     value={formData.preferredTime}
-                    onChange={handleInputChange}
-                    className="input-field"
+                    onChange={handleChange}
                     required
+                    className="input-field"
                   >
-                    <option value="">Select a time</option>
-                    {timeSlots.map(time => (
-                      <option key={time} value={time}>{time}</option>
-                    ))}
+                    <option value="">Select a time slot</option>
+                    <option value="09:00">9:00 AM - 10:00 AM</option>
+                    <option value="10:00">10:00 AM - 11:00 AM</option>
+                    <option value="11:00">11:00 AM - 12:00 PM</option>
+                    <option value="13:00">1:00 PM - 2:00 PM</option>
+                    <option value="14:00">2:00 PM - 3:00 PM</option>
+                    <option value="15:00">3:00 PM - 4:00 PM</option>
+                    <option value="16:00">4:00 PM - 5:00 PM</option>
                   </select>
                 </div>
+                
+                <div className="mt-8 p-4 bg-blue-50 rounded-lg">
+                  <h3 className="font-semibold text-lg mb-2">Appointment Summary</h3>
+                  <div className="space-y-2 text-sm">
+                    <p><span className="font-medium">Name:</span> {formData.name}</p>
+                    <p><span className="font-medium">Email:</span> {formData.email}</p>
+                    <p><span className="font-medium">Phone:</span> {formData.phone}</p>
+                    <p><span className="font-medium">Device Type:</span> {formData.deviceType === 'computer' ? 'Computer/Laptop' : 'Mobile Device'}</p>
+                    <p><span className="font-medium">Service Type:</span> {
+                      serviceTypes.find(s => s.value === formData.serviceType)?.label
+                    }</p>
+                    <p><span className="font-medium">Issue Description:</span> {formData.description}</p>
+                    <p><span className="font-medium">Appointment:</span> {formData.preferredDate} at {formData.preferredTime}</p>
+                  </div>
+                </div>
+                
+                <div className="flex justify-between mt-8">
+                  <button
+                    type="button"
+                    onClick={prevStep}
+                    className="btn-outline"
+                  >
+                    Previous Step
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="btn-primary"
+                  >
+                    {isSubmitting ? (
+                      <span className="flex items-center">
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Processing...
+                      </span>
+                    ) : 'Book Appointment'}
+                  </button>
+                </div>
               </div>
-            </div>
-
-            {/* Submit Button */}
-            <div className="pt-6">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    Booking Appointment...
-                  </>
-                ) : (
-                  <>
-                    <Calendar className="w-5 h-5 mr-2" />
-                    Book Appointment
-                  </>
-                )}
-              </button>
-            </div>
+            )}
           </form>
-        </div>
-
-        {/* Information Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-          <div className="card text-center">
-            <Clock className="w-8 h-8 text-primary mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2">Quick Response</h3>
-            <p className="text-gray-600 text-sm">We&apos;ll confirm your appointment within 2 hours</p>
-          </div>
-          <div className="card text-center">
-            <Mail className="w-8 h-8 text-primary mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2">Email Updates</h3>
-            <p className="text-gray-600 text-sm">Receive automatic updates on your repair status</p>
-          </div>
-          <div className="card text-center">
-            <MapPin className="w-8 h-8 text-primary mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2">Flexible Service</h3>
-            <p className="text-gray-600 text-sm">Drop-off or pickup service available</p>
-          </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

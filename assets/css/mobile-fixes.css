@@ -52,16 +52,19 @@
     /* Mobile menu animation */
     #mobile-menu {
         transition: opacity 0.3s ease, visibility 0.3s ease;
+        display: flex;
     }
     
     #mobile-menu.hidden {
         visibility: hidden;
         opacity: 0;
+        display: none;
     }
     
     #mobile-menu:not(.hidden) {
         visibility: visible;
         opacity: 1;
+        display: flex;
     }
     
     /* Improved touch targets for mobile */
