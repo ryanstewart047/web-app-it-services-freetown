@@ -4,24 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IT Services Freetown - Book Appointment</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="assets/css/output.css" rel="stylesheet">
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            DEFAULT: '#040e40',
-                            50: '#f0f2ff',
-                            100: '#e4e8ff',
-                            900: '#1c1891',
-                            950: '#040e40',
-                        },
-                        danger: {
-                            DEFAULT: '#ff0000',
-                            500: '#ff2323',
-                            600: '#ff0000',
-                        },
+        // Custom Tailwind config for additional colors
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: {
+                                DEFAULT: '#040e40',
+                                50: '#f0f2ff',
+                                100: '#e4e8ff',
+                                900: '#1c1891',
+                                950: '#040e40',
+                            },
+                            danger: {
+                                DEFAULT: '#ff0000',
+                                500: '#ff2323',
+                                600: '#ff0000',
+                            },
+                        }
                     }
                 }
             }
