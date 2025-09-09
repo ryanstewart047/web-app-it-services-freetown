@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Favicon PNG Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        canvas { border: 1px solid #ccc; margin: 10px; }
+        .favicon-preview { display: inline-block; margin: 10px; text-align: center; }
+    </style>
+</head>
+<body>
+    <h2>IT Services Freetown - Red Mouse Pointer Favicon Generator</h2>
+    
+    <div class="favicon-preview">
+        <h4>16x16 Favicon</h4>
+        <canvas id="canvas16" width="16" height="16"></canvas>
+        <br>
+        <button onclick="download16()">Download 16x16 PNG</button>
+    </div>
+    
+    <div class="favicon-preview">
+        <h4>32x32 Favicon</h4>
+        <canvas id="canvas32" width="32" height="32"></canvas>
+        <br>
+        <button onclick="download32()">Download 32x32 PNG</button>
+    </div>
+    
+    <div class="favicon-preview">
+        <h4>SVG Preview</h4>
+        <div style="border: 1px solid #ccc; padding: 10px; background: white;">
+            <img src="favicon.svg" width="32" height="32" alt="SVG Favicon">
+        </div>
+    </div>
+    
+    <script>
+        function drawFavicon16() {
+            const canvas = document.getElementById('canvas16');
+            const ctx = canvas.getContext('2d');
+            
+            // White background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 16, 16);
+            
+            // Red mouse pointer
+            ctx.fillStyle = '#ff0000';
+            ctx.beginPath();
+            ctx.moveTo(3, 2);
+            ctx.lineTo(3, 11);
+            ctx.lineTo(6, 8);
+            ctx.lineTo(8, 8);
+            ctx.lineTo(10, 13);
+            ctx.lineTo(11, 12);
+            ctx.lineTo(9, 8);
+            ctx.lineTo(11, 8);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Highlight
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.beginPath();
+            ctx.moveTo(4, 3);
+            ctx.lineTo(4, 10);
+            ctx.lineTo(6.5, 7.5);
+            ctx.lineTo(7.5, 7.5);
+            ctx.lineTo(9, 11.5);
+            ctx.lineTo(9.5, 11);
+            ctx.lineTo(8, 7.5);
+            ctx.lineTo(9.5, 7.5);
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        function drawFavicon32() {
+            const canvas = document.getElementById('canvas32');
+            const ctx = canvas.getContext('2d');
+            
+            // White background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 32, 32);
+            
+            // Gray border
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(0.5, 0.5, 31, 31);
+            
+            // Red mouse pointer
+            ctx.fillStyle = '#ff0000';
+            ctx.beginPath();
+            ctx.moveTo(8, 6);
+            ctx.lineTo(8, 22);
+            ctx.lineTo(12, 18);
+            ctx.lineTo(15, 18);
+            ctx.lineTo(19, 25);
+            ctx.lineTo(21, 24);
+            ctx.lineTo(17, 17);
+            ctx.lineTo(20, 17);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Highlight
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.beginPath();
+            ctx.moveTo(9, 8);
+            ctx.lineTo(9, 20);
+            ctx.lineTo(11.5, 17.5);
+            ctx.lineTo(14, 17.5);
+            ctx.lineTo(17.5, 23.5);
+            ctx.lineTo(18.5, 23);
+            ctx.lineTo(15.5, 17.5);
+            ctx.lineTo(18, 17.5);
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        function download16() {
+            const canvas = document.getElementById('canvas16');
+            const link = document.createElement('a');
+            link.download = 'favicon-16x16.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        function download32() {
+            const canvas = document.getElementById('canvas32');
+            const link = document.createElement('a');
+            link.download = 'favicon-32x32.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        // Draw favicons when page loads
+        window.onload = function() {
+            drawFavicon16();
+            drawFavicon32();
+        };
+    </script>
+    
+    <div style="margin-top: 30px; padding: 20px; background: #f5f5f5; border-radius: 5px;">
+        <h3>Instructions:</h3>
+        <ol>
+            <li>Click the download buttons above to get PNG versions</li>
+            <li>Save the PNG files to your assets folder as:
+                <ul>
+                    <li><code>assets/favicon-16x16.png</code></li>
+                    <li>code>assets/favicon-32x32.png</code></li>
+                </ul>
+            </li>
+            <li>The SVG favicon (<code>favicon.svg</code>) is already created in your root directory</li>
+            <li>All HTML files have been updated with the favicon links</li>
+        </ol>
+        
+        <h4>Features of your new favicon:</h4>
+        <ul>
+            <li>🔴 Red mouse pointer design representing IT services</li>
+            <li>📱 Multiple formats for browser compatibility</li>
+            <li>✨ Clean, professional appearance</li>
+            <li>🎯 Brand colors matching your site theme</li>
+        </ul>
+    </div>
+</body>
+</html>
