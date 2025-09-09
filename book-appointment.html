@@ -406,7 +406,7 @@
         
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="card">
-                <form id="appointmentForm" class="space-y-8" action="process-appointment.php" method="post">
+                <form id="appointmentForm" class="space-y-8" action="/api/appointments" method="post">
                     <!-- Customer Information -->
                     <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-100">
                         <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
@@ -671,10 +671,13 @@
                 const formData = new FormData(this);
                 
                 try {
-                    // Submit the form data via AJAX
-                    const response = await fetch('process-appointment.php', {
+                    // Submit the form data via AJAX to the new API endpoint
+                    const response = await fetch('/api/appointments', {
                         method: 'POST',
-                        body: formData
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(Object.fromEntries(formData))
                     });
                     
                     if (!response.ok) {
