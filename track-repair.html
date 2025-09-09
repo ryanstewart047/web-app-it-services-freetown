@@ -5,28 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Track Repair - IT Services Freetown</title>
     <link href="assets/css/output.css" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            DEFAULT: '#040e40',
-                            50: '#f0f2ff',
-                            100: '#e4e8ff',
-                            900: '#1c1891',
-                            950: '#040e40',
-                        },
-                        danger: {
-                            DEFAULT: '#ff0000',
-                            500: '#ff2323',
-                            600: '#ff0000',
-                        },
-                    }
-                }
-            }
-        }
-    </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <!-- Favicon -->
@@ -267,6 +245,23 @@
         ::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(135deg, #040e40, #ff0000);
         }
+        
+        /* Mobile menu icon visibility fix */
+        #menu-icon {
+            display: block !important;
+        }
+        
+        #close-icon {
+            display: none !important;
+        }
+        
+        #close-icon.show {
+            display: block !important;
+        }
+        
+        #menu-icon.hide {
+            display: none !important;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -307,7 +302,7 @@
                 <div class="md:hidden flex items-center">
                     <button id="mobile-menu-button" class="text-gray-700 hover:text-primary-950 focus:outline-none focus:text-primary-950">
                         <i id="menu-icon" class="fas fa-bars text-xl"></i>
-                        <i id="close-icon" class="fas fa-times text-xl hidden"></i>
+                        <i id="close-icon" class="fas fa-times text-xl"></i>
                     </button>
                 </div>
             </div>
@@ -572,12 +567,12 @@
                 const isHidden = mobileMenu.classList.contains('hidden');
                 if (isHidden) {
                     mobileMenu.classList.remove('hidden');
-                    menuIcon.classList.add('hidden');
-                    closeIcon.classList.remove('hidden');
+                    menuIcon.classList.add('hide');
+                    closeIcon.classList.add('show');
                 } else {
                     mobileMenu.classList.add('hidden');
-                    menuIcon.classList.remove('hidden');
-                    closeIcon.classList.add('hidden');
+                    menuIcon.classList.remove('hide');
+                    closeIcon.classList.remove('show');
                 }
             });
         });

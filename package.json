@@ -3,15 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "prisma generate && next build",
-    "start": "next start",
-    "lint": "next lint",
-    "db:push": "prisma db push",
-    "db:generate": "prisma generate",
-    "db:studio": "prisma studio",
+    "build": "npm run build-css-prod",
     "build-css": "tailwindcss -i ./src/input.css -o ./assets/css/output.css --watch",
-    "build-css-prod": "tailwindcss -i ./src/input.css -o ./assets/css/output.css --minify"
+    "build-css-prod": "tailwindcss -i ./src/input.css -o ./assets/css/output.css --minify",
+    "dev": "npm run build-css",
+    "start": "python3 -m http.server 8000 2>/dev/null || python -m http.server 8000 2>/dev/null || npx serve .",
+    "preview": "npx serve ."
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

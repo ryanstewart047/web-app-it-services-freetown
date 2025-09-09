@@ -5,75 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IT Services Freetown - Preview</title>
     <link href="assets/css/output.css" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            DEFAULT: '#040e40',
-                            50: '#f0f2ff',
-                            100: '#e4e8ff',
-                            200: '#c7d0ff',
-                            300: '#a4b2ff',
-                            400: '#7c89ff',
-                            500: '#5a67ff',
-                            600: '#4338ca',
-                            700: '#3730a3',
-                            800: '#312e81',
-                            900: '#1c1891',
-                            950: '#040e40',
-                        },
-                        danger: {
-                            DEFAULT: '#ff0000',
-                            50: '#fff0f0',
-                            100: '#ffe4e4',
-                            200: '#ffc7c7',
-                            300: '#ffa4a4',
-                            400: '#ff7c7c',
-                            500: '#ff0000',
-                            600: '#dc2626',
-                            700: '#b91c1c',
-                            800: '#991b1b',
-                            900: '#7f1515',
-                        },
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.5s ease-in-out',
-                        'slide-up': 'slideUp 0.8s ease-out',
-                        'scale-in': 'scaleIn 0.6s ease-out',
-                        'bounce-subtle': 'bounceSubtle 2s infinite',
-                        'glow': 'glow 2s ease-in-out infinite alternate',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' }
-                        },
-                        slideUp: {
-                            '0%': { transform: 'translateY(30px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' }
-                        },
-                        scaleIn: {
-                            '0%': { transform: 'scale(0.95)', opacity: '0' },
-                            '100%': { transform: 'scale(1)', opacity: '1' }
-                        },
-                        bounceSubtle: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-5px)' }
-                        },
-                        glow: {
-                            '0%': { boxShadow: '0 0 5px rgba(16, 185, 129, 0.2)' },
-                            '100%': { boxShadow: '0 0 20px rgba(16, 185, 129, 0.6)' }
-                        }
-                    },
-                    backdropBlur: {
-                        xs: '2px',
-                    }
-                }
-            }
-        }
-    </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <!-- Favicon -->
@@ -723,6 +654,23 @@
         ::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(135deg, #040e40, #ff0000);
         }
+        
+        /* Mobile menu icon visibility fix */
+        #menu-icon {
+            display: block !important;
+        }
+        
+        #close-icon {
+            display: none !important;
+        }
+        
+        #close-icon.show {
+            display: block !important;
+        }
+        
+        #menu-icon.hide {
+            display: none !important;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -763,7 +711,7 @@
                 <div class="md:hidden flex items-center">
                     <button id="mobile-menu-button" class="text-gray-700 hover:text-primary-950 focus:outline-none focus:text-primary-950">
                         <i id="menu-icon" class="fas fa-bars text-xl"></i>
-                        <i id="close-icon" class="fas fa-times text-xl hidden"></i>
+                        <i id="close-icon" class="fas fa-times text-xl"></i>
                     </button>
                 </div>
             </div>
@@ -1574,13 +1522,13 @@
                 if (isHidden) {
                     console.log('Showing menu');
                     mobileMenu.classList.remove('hidden');
-                    menuIcon.classList.add('hidden');
-                    closeIcon.classList.remove('hidden');
+                    menuIcon.classList.add('hide');
+                    closeIcon.classList.add('show');
                 } else {
                     console.log('Hiding menu');
                     mobileMenu.classList.add('hidden');
-                    menuIcon.classList.remove('hidden');
-                    closeIcon.classList.add('hidden');
+                    menuIcon.classList.remove('hide');
+                    closeIcon.classList.remove('show');
                 }
             });
 
