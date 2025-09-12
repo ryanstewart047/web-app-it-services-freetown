@@ -350,6 +350,42 @@
             transition: all 0.3s ease;
         }
         
+        /* Enhanced social media icons */
+        .social-icon {
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .social-icon:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .social-icon:hover i {
+            color: #1e293b !important;
+        }
+        
+        /* Ensure Font Awesome brand icons are visible */
+        .fa-brands, .fab, .fa-solid, .fas {
+            font-family: "Font Awesome 6 Brands", "Font Awesome 6 Free" !important;
+            font-weight: 900 !important;
+            display: inline-block !important;
+        }
+        
+        /* Specific brand icon fixes */
+        .fa-brands.fa-facebook,
+        .fa-brands.fa-instagram,
+        .fa-brands.fa-whatsapp,
+        .fa-brands.fa-youtube,
+        .fa-brands.fa-linkedin,
+        .fa-brands.fa-tiktok {
+            font-family: "Font Awesome 6 Brands" !important;
+            font-weight: 400 !important;
+        }
+        
         .card:hover .icon-container {
             transform: rotate(10deg) scale(1.1);
             background: linear-gradient(135deg, #040e40, #ff0000);
@@ -2025,37 +2061,37 @@
                         <div class="grid grid-cols-3 gap-4 max-w-xs mx-auto">
                             <!-- Facebook -->
                             <a href="#" class="social-icon w-16 h-16 rounded-xl flex flex-col items-center justify-center text-white hover:text-gray-900 transition-all duration-300 group">
-                                <i class="fab fa-facebook-f text-xl mb-1"></i>
+                                <i class="fa-brands fa-facebook text-xl mb-1"></i>
                                 <span class="text-xs font-medium">Facebook</span>
                             </a>
                             
                             <!-- Instagram -->
                             <a href="#" class="social-icon w-16 h-16 rounded-xl flex flex-col items-center justify-center text-white hover:text-gray-900 transition-all duration-300 group">
-                                <i class="fab fa-instagram text-xl mb-1"></i>
+                                <i class="fa-brands fa-instagram text-xl mb-1"></i>
                                 <span class="text-xs font-medium">Instagram</span>
                             </a>
                             
                             <!-- WhatsApp -->
                             <a href="#" class="social-icon w-16 h-16 rounded-xl flex flex-col items-center justify-center text-white hover:text-gray-900 transition-all duration-300 group">
-                                <i class="fab fa-whatsapp text-xl mb-1"></i>
+                                <i class="fa-brands fa-whatsapp text-xl mb-1"></i>
                                 <span class="text-xs font-medium">WhatsApp</span>
                             </a>
                             
                             <!-- YouTube -->
                             <a href="#" class="social-icon w-16 h-16 rounded-xl flex flex-col items-center justify-center text-white hover:text-gray-900 transition-all duration-300 group">
-                                <i class="fab fa-youtube text-xl mb-1"></i>
+                                <i class="fa-brands fa-youtube text-xl mb-1"></i>
                                 <span class="text-xs font-medium">YouTube</span>
                             </a>
                             
                             <!-- LinkedIn -->
                             <a href="#" class="social-icon w-16 h-16 rounded-xl flex flex-col items-center justify-center text-white hover:text-gray-900 transition-all duration-300 group">
-                                <i class="fab fa-linkedin-in text-xl mb-1"></i>
+                                <i class="fa-brands fa-linkedin text-xl mb-1"></i>
                                 <span class="text-xs font-medium">LinkedIn</span>
                             </a>
                             
                             <!-- TikTok -->
                             <a href="#" class="social-icon w-16 h-16 rounded-xl flex flex-col items-center justify-center text-white hover:text-gray-900 transition-all duration-300 group">
-                                <i class="fab fa-tiktok text-xl mb-1"></i>
+                                <i class="fa-brands fa-tiktok text-xl mb-1"></i>
                                 <span class="text-xs font-medium">TikTok</span>
                             </a>
                         </div>
