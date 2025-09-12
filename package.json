@@ -3,13 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "prisma generate && next build",
-    "start": "next start",
-    "lint": "next lint",
-    "db:push": "prisma db push",
-    "db:generate": "prisma generate",
-    "db:studio": "prisma studio"
+    "build": "npm run build-css-prod",
+    "build-css": "tailwindcss -i ./src/input.css -o ./assets/css/output.css --watch",
+    "build-css-prod": "tailwindcss -i ./src/input.css -o ./assets/css/output.css --minify",
+    "dev": "npm run build-css",
+    "start": "python3 -m http.server 8000 2>/dev/null || python -m http.server 8000 2>/dev/null || npx serve .",
+    "preview": "npx serve ."
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -19,8 +18,8 @@
     "date-fns": "^2.30.0",
     "framer-motion": "^10.16.16",
     "lucide-react": "^0.294.0",
+    "nodemailer": "^6.9.8",
     "next": "14.0.4",
-    "nodemailer": "^6.9.7",
     "prisma": "^5.7.1",
     "react": "^18",
     "react-dom": "^18",
@@ -38,5 +37,18 @@
     "postcss": "^8",
     "tailwindcss": "^3.3.0",
     "typescript": "^5"
-  }
+  },
+  "description": "A comprehensive IT services web application for computer and mobile repairs in Freetown, Sierra Leone. Built with Next.js 14, TypeScript, and modern web technologies.",
+  "main": "next.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ryanstewart047/web-app-it-services-freetown.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ryanstewart047/web-app-it-services-freetown/issues"
+  },
+  "homepage": "https://github.com/ryanstewart047/web-app-it-services-freetown#readme"
 }

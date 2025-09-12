@@ -4,30 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Support - IT Services Freetown</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            DEFAULT: '#040e40',
-                            50: '#f0f2ff',
-                            100: '#e4e8ff',
-                            900: '#1c1891',
-                            950: '#040e40',
-                        },
-                        danger: {
-                            DEFAULT: '#ff0000',
-                            500: '#ff2323',
-                            600: '#ff0000',
-                        },
-                    }
-                }
-            }
-        }
-    </script>
+    <link href="assets/css/output.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/png" sizes="52x52" href="assets/favicon-52x52.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="shortcut icon" href="favicon.ico">
+    
     <style>
         .btn-primary {
             background: linear-gradient(135deg, #040e40 0%, #040e40 100%);
@@ -297,14 +282,14 @@
             }
         }
         
-        /* Loading Animation */
+        /* Enhanced loading overlay */
         .loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #040e40 0%, #ffffff 50%, #ff0000 100%);
+            background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 25%, #f8fafc 50%, #fff1f2 75%, #fef7f7 100%);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -312,18 +297,97 @@
             transition: opacity 0.5s ease-out;
         }
         
+        .loading-overlay::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(4,14,64,0.03)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.5;
+        }
+        
+        .loading-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 2rem;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            z-index: 2;
+        }
+        
         .loading-spinner {
-            width: 60px;
-            height: 60px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            position: relative;
+        }
+        
+        .loading-spinner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 4px solid transparent;
+            border-top: 4px solid #040e40;
+            border-right: 4px solid #1c1891;
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite;
+        }
+        
+        .loading-spinner::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: calc(100% - 20px);
+            height: calc(100% - 20px);
+            border: 3px solid transparent;
             border-top: 3px solid #ff0000;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 1s linear infinite reverse;
         }
+        
+        .loading-dots {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #040e40, #ff0000);
+            animation: bounce 1.4s ease-in-out infinite both;
+        }
+        
+        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+        .loading-dot:nth-child(3) { animation-delay: 0s; }
         
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
         }
         
         .fade-out {
@@ -345,14 +409,133 @@
         ::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(135deg, #040e40, #ff0000);
         }
+        
+        /* Mobile menu icon visibility fix */
+        #menu-icon {
+            display: block !important;
+        }
+        
+        #close-icon {
+            display: none !important;
+        }
+        
+        #close-icon.show {
+            display: block !important;
+        }
+        
+        #menu-icon.hide {
+            display: none !important;
+        }
+        
+        /* Notification Banner Styles */
+        .notification-banner {
+            background: linear-gradient(135deg, #ff8c00 0%, #ff6b00 50%, #ff8c00 100%);
+            color: white;
+            padding: 0.75rem 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            box-shadow: 0 2px 10px rgba(255, 140, 0, 0.3);
+            overflow: hidden;
+            border-bottom: 2px solid #ff6b00;
+        }
+        
+        .notification-content {
+            white-space: nowrap;
+            animation: scrollText 30s linear infinite;
+            display: inline-block;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding-left: 100%;
+        }
+        
+        @keyframes scrollText {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+        
+        .notification-banner:hover .notification-content {
+            animation-play-state: paused;
+        }
+        
+        .banner-icon {
+            margin-right: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.1);
+            }
+        }
+        
+        /* Adjust body padding to account for fixed banner */
+        body {
+            padding-top: 3rem;
+        }
+        
+        /* Mobile responsive banner */
+        @media (max-width: 768px) {
+            .notification-banner {
+                padding: 0.5rem 0;
+                font-size: 0.85rem;
+            }
+            
+            body {
+                padding-top: 2.5rem;
+            }
+            
+            .notification-content {
+                animation-duration: 25s;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
+    <!-- Notification Banner -->
+    <div class="notification-banner">
+        <div class="notification-content">
+            <i class="fas fa-bullhorn banner-icon"></i>
+            🔧 SPECIAL OFFER: 20% OFF All Mobile Screen Repairs This Week! 
+            <i class="fas fa-mobile-alt"></i>
+            📱 Professional Repair Services Available 
+            <i class="fas fa-tools"></i>
+            💻 Free Diagnostics on All Computer Repairs 
+            <i class="fas fa-laptop"></i>
+            🎯 Same Day Service Available 
+            <i class="fas fa-clock"></i>
+            📞 Call +232 33 399 391 for Immediate Support 
+            <i class="fas fa-phone"></i>
+            🏆 Trusted by 1000+ Customers in Freetown 
+            <i class="fas fa-star"></i>
+            ⚡ Quick Turnaround Time Guaranteed 
+            <i class="fas fa-bolt"></i>
+            🛡️ 6 Month Warranty on All Repairs 
+        </div>
+    </div>
+
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay">
-        <div class="text-center">
-            <div class="loading-spinner mx-auto mb-4"></div>
-            <p class="text-white text-lg font-medium">Loading...</p>
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">IT Services Freetown</h3>
+            <p class="text-gray-700 font-medium mb-4">Connecting to chat support...</p>
+            <div class="loading-dots">
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
+            </div>
         </div>
     </div>
 
@@ -376,7 +559,7 @@
                 <div class="md:hidden flex items-center">
                     <button id="mobile-menu-button" class="text-gray-700 hover:text-primary-950 focus:outline-none focus:text-primary-950">
                         <i id="menu-icon" class="fas fa-bars text-xl"></i>
-                        <i id="close-icon" class="fas fa-times text-xl hidden"></i>
+                        <i id="close-icon" class="fas fa-times text-xl"></i>
                     </button>
                 </div>
             </div>
@@ -888,12 +1071,12 @@
                 const isHidden = mobileMenu.classList.contains('hidden');
                 if (isHidden) {
                     mobileMenu.classList.remove('hidden');
-                    menuIcon.classList.add('hidden');
-                    closeIcon.classList.remove('hidden');
+                    menuIcon.classList.add('hide');
+                    closeIcon.classList.add('show');
                 } else {
                     mobileMenu.classList.add('hidden');
-                    menuIcon.classList.remove('hidden');
-                    closeIcon.classList.add('hidden');
+                    menuIcon.classList.remove('hide');
+                    closeIcon.classList.remove('show');
                 }
             });
             
