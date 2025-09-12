@@ -1589,7 +1589,7 @@
                     </div>
                     
                     <h3 class="text-2xl font-bold text-gray-900 mb-6">Send us a Message</h3>
-                    <form action="https://formspree.io/f/YOUR_FORMSPREE_ID" method="POST" class="space-y-6" id="contactForm">
+                    <form action="https://formspree.io/f/xdknqjpb" method="POST" class="space-y-6" id="contactForm">
                         <!-- Success Message -->
                         <div id="successMessage" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
                             <i class="fas fa-check-circle mr-2"></i>
@@ -1664,6 +1664,7 @@
                         <input type="hidden" name="_subject" value="New Contact Form Submission - IT Services Freetown">
                         <input type="hidden" name="_cc" value="info@itservicesfreetown.com">
                         <input type="hidden" name="_autoresponse" value="Thank you for contacting IT Services Freetown! We have received your message and will respond within 24 hours.">
+                        <input type="hidden" name="_next" value="https://itservicesfreetown.com/index.html#contact">
 
                         <button type="submit" id="submitBtn" 
                                 class="w-full bg-primary-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-primary-700 focus:ring-4 focus:ring-primary-200 transition-all duration-300 transform hover:scale-105">
@@ -1678,6 +1679,21 @@
                         <p class="text-sm text-gray-600 text-center">
                             We typically respond within 24 hours. For urgent matters, please call us directly.
                         </p>
+                        
+                        <!-- Alternative Contact Methods -->
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500 mb-2">Or contact us directly:</p>
+                            <div class="flex justify-center space-x-4">
+                                <a href="tel:+23233399391" onclick="trackBusinessGoal('phone_clicked', '+23233399391')" 
+                                   class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                                    <i class="fas fa-phone mr-1"></i>+232 33 399 391
+                                </a>
+                                <a href="mailto:support@itservicesfreetown.com" onclick="trackBusinessGoal('email_clicked', 'support@itservicesfreetown.com')"
+                                   class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                                    <i class="fas fa-envelope mr-1"></i>Email Us
+                                </a>
+                            </div>
+                        </div>
                         
                         <!-- Social Proof -->
                         <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
