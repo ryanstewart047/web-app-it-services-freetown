@@ -82,6 +82,35 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     
+    <!-- Font Awesome - Load immediately for social icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous">
+    
+    <!-- Fallback Font Awesome from different CDN -->
+    <script>
+        // Check if Font Awesome loaded, if not load from backup CDN
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                const testIcon = document.createElement('i');
+                testIcon.className = 'fas fa-home';
+                testIcon.style.display = 'none';
+                document.body.appendChild(testIcon);
+                
+                const styles = window.getComputedStyle(testIcon);
+                const fontFamily = styles.getPropertyValue('font-family');
+                
+                if (!fontFamily.includes('Font Awesome')) {
+                    // Load backup Font Awesome
+                    const link = document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = 'https://use.fontawesome.com/releases/v6.4.0/css/all.css';
+                    document.head.appendChild(link);
+                }
+                
+                document.body.removeChild(testIcon);
+            }, 100);
+        });
+    </script>
+    
     <!-- Google Analytics 4 -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
     <script>
@@ -172,7 +201,6 @@
     /></noscript>
     
     <link href="assets/css/output.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" media="print" onload="this.media='all'">
     
     <!-- Critical CSS for Above-the-Fold Content -->
     <style>
@@ -1993,19 +2021,42 @@
                     
                     <!-- Social Media Icons -->
                     <div class="relative z-10">
-                        <h4 class="text-white text-lg font-semibold mb-4 text-center">Follow Us</h4>
-                        <div class="flex space-x-4 justify-center">
-                            <a href="#" class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white hover:text-primary-950 transition-all duration-300 hover:scale-110">
-                                <i class="fab fa-facebook-f text-lg"></i>
+                        <h4 class="text-white text-lg font-semibold mb-6 text-center">Follow Us</h4>
+                        <div class="grid grid-cols-3 gap-4 max-w-xs mx-auto">
+                            <!-- Facebook -->
+                            <a href="#" class="social-icon w-16 h-16 rounded-xl flex flex-col items-center justify-center text-white hover:text-gray-900 transition-all duration-300 group">
+                                <i class="fab fa-facebook-f text-xl mb-1"></i>
+                                <span class="text-xs font-medium">Facebook</span>
                             </a>
-                            <a href="#" class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white hover:text-primary-950 transition-all duration-300 hover:scale-110">
-                                <i class="fab fa-instagram text-lg"></i>
+                            
+                            <!-- Instagram -->
+                            <a href="#" class="social-icon w-16 h-16 rounded-xl flex flex-col items-center justify-center text-white hover:text-gray-900 transition-all duration-300 group">
+                                <i class="fab fa-instagram text-xl mb-1"></i>
+                                <span class="text-xs font-medium">Instagram</span>
                             </a>
-                            <a href="#" class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white hover:text-primary-950 transition-all duration-300 hover:scale-110">
-                                <i class="fab fa-whatsapp text-lg"></i>
+                            
+                            <!-- WhatsApp -->
+                            <a href="#" class="social-icon w-16 h-16 rounded-xl flex flex-col items-center justify-center text-white hover:text-gray-900 transition-all duration-300 group">
+                                <i class="fab fa-whatsapp text-xl mb-1"></i>
+                                <span class="text-xs font-medium">WhatsApp</span>
                             </a>
-                            <a href="#" class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white hover:text-primary-950 transition-all duration-300 hover:scale-110">
-                                <i class="fab fa-linkedin-in text-lg"></i>
+                            
+                            <!-- YouTube -->
+                            <a href="#" class="social-icon w-16 h-16 rounded-xl flex flex-col items-center justify-center text-white hover:text-gray-900 transition-all duration-300 group">
+                                <i class="fab fa-youtube text-xl mb-1"></i>
+                                <span class="text-xs font-medium">YouTube</span>
+                            </a>
+                            
+                            <!-- LinkedIn -->
+                            <a href="#" class="social-icon w-16 h-16 rounded-xl flex flex-col items-center justify-center text-white hover:text-gray-900 transition-all duration-300 group">
+                                <i class="fab fa-linkedin-in text-xl mb-1"></i>
+                                <span class="text-xs font-medium">LinkedIn</span>
+                            </a>
+                            
+                            <!-- TikTok -->
+                            <a href="#" class="social-icon w-16 h-16 rounded-xl flex flex-col items-center justify-center text-white hover:text-gray-900 transition-all duration-300 group">
+                                <i class="fab fa-tiktok text-xl mb-1"></i>
+                                <span class="text-xs font-medium">TikTok</span>
                             </a>
                         </div>
                     </div>
