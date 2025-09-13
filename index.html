@@ -2895,11 +2895,14 @@
                 return result;
             };
             
-            // Only proceed if on mobile or tablet
-            if (!isMobileOrTablet()) {
-                console.log('[PWA] Desktop detected - PWA install banner disabled');
-                return;
-            }
+            // Only proceed if on mobile or tablet (temporarily disabled for testing)
+            // if (!isMobileOrTablet()) {
+            //     console.log('[PWA] Desktop detected - PWA install banner disabled');
+            //     return;
+            // }
+            
+            // TEMPORARY: Enable PWA banner on all devices for testing
+            console.log('[PWA] PWA banner enabled for all devices (testing mode)');
             
             // Check if buttons exist before adding event listeners
             if (!installBtn || !dismissBtn || !installBanner) {
@@ -2961,6 +2964,7 @@
                 elements: { installBanner, installBtn, dismissBtn },
                 showBanner: () => {
                     console.log('[PWA] Manual banner show triggered');
+                    localStorage.removeItem('pwa-dismissed'); // Remove dismissal to force show
                     showInstallBanner();
                 },
                 hideBanner: () => {
@@ -2971,6 +2975,41 @@
                     localStorage.removeItem('pwa-dismissed');
                     localStorage.removeItem('pwa-dismissed-time');
                     console.log('[PWA] Dismissal reset');
+                },
+                testCloseButton: () => {
+                    console.log('[PWA] Testing close button functionality');
+                    if (dismissBtn) {
+                        console.log('[PWA] Close button exists, triggering click');
+                        dismissBtn.click();
+                    } else {
+                        console.error('[PWA] Close button not found!');
+                    }
+                },
+                checkBannerState: () => {
+                    const banner = document.getElementById('pwa-install-banner');
+                    if (banner) {
+                        console.log('[PWA] Banner state:', {
+                            display: window.getComputedStyle(banner).display,
+                            visibility: window.getComputedStyle(banner).visibility,
+                            transform: window.getComputedStyle(banner).transform,
+                            classes: banner.className,
+                            isVisible: !banner.classList.contains('-translate-y-full')
+                        });
+                    } else {
+                        console.log('[PWA] Banner element not found');
+                    }
+                },
+                forceShow: () => {
+                    console.log('[PWA] Force showing banner...');
+                    localStorage.removeItem('pwa-dismissed');
+                    localStorage.removeItem('pwa-dismissed-time');
+                    localStorage.removeItem('pwa-installed');
+                    const banner = document.getElementById('pwa-install-banner');
+                    if (banner) {
+                        banner.classList.remove('-translate-y-full');
+                        banner.classList.add('translate-y-0');
+                        console.log('[PWA] Banner forced to show');
+                    }
                 }
             };
             
@@ -2981,12 +3020,20 @@
                 deferredPrompt = e;
                 
                 // Show install banner if not already installed or dismissed (mobile/tablet only)
-                if (!isInstalled && !localStorage.getItem('pwa-dismissed') && isMobileOrTablet()) {
+                if (!isInstalled && !localStorage.getItem('pwa-dismissed')) {
                     setTimeout(() => {
                         showInstallBanner();
-                    }, 5000); // Show after 5 seconds
+                    }, 2000); // Show after 2 seconds for testing
                 }
             });
+            
+            // TEMPORARY: Show banner immediately for testing (remove in production)
+            if (!isInstalled && !localStorage.getItem('pwa-dismissed')) {
+                console.log('[PWA] Showing banner immediately for testing');
+                setTimeout(() => {
+                    showInstallBanner();
+                }, 3000); // Show after 3 seconds
+            }
             
             // Set up event listeners immediately (not dependent on beforeinstallprompt)
             if (installBtn) {
@@ -3030,17 +3077,35 @@
             
             // Set up dismiss button - always available
             if (dismissBtn) {
-                dismissBtn.addEventListener('click', (e) => {
-                    console.log('[PWA] Dismiss button clicked');
+                console.log('[PWA] Setting up dismiss button event listener');
+                
+                // Add multiple event types to ensure it works
+                ['click', 'touchstart'].forEach(eventType => {
+                    dismissBtn.addEventListener(eventType, (e) => {
+                        console.log('[PWA] Dismiss button triggered via:', eventType);
+                        e.preventDefault();
+                        e.stopPropagation();
+                        hideInstallBanner();
+                        localStorage.setItem('pwa-dismissed', 'true');
+                        localStorage.setItem('pwa-dismissed-time', Date.now().toString());
+                        if (typeof trackEvent === 'function') {
+                            trackEvent('pwa', 'banner_dismissed', 'install_banner');
+                        }
+                    }, { passive: false });
+                });
+                
+                // Also add a direct onclick for fallback
+                dismissBtn.onclick = function(e) {
+                    console.log('[PWA] Dismiss button clicked via onclick');
                     e.preventDefault();
                     e.stopPropagation();
                     hideInstallBanner();
                     localStorage.setItem('pwa-dismissed', 'true');
                     localStorage.setItem('pwa-dismissed-time', Date.now().toString());
-                    if (typeof trackEvent === 'function') {
-                        trackEvent('pwa', 'banner_dismissed', 'install_banner');
-                    }
-                });
+                    return false;
+                };
+                
+                console.log('[PWA] Dismiss button setup complete');
             } else {
                 console.error('[PWA] Dismiss button not found in DOM');
             }
