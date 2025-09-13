@@ -33,17 +33,17 @@
                 extend: {
                     colors: {
                         primary: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            200: '#bae6fd',
-                            300: '#7dd3fc',
-                            400: '#38bdf8',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                            800: '#075985',
-                            900: '#0c4a6e',
-                            950: '#082f49'
+                            50: '#f0f4ff',
+                            100: '#e5edff',
+                            200: '#d1dcff',
+                            300: '#b4c1ff',
+                            400: '#949bff',
+                            500: '#7975ff',
+                            600: '#6b5eff',
+                            700: '#5b4bff',
+                            800: '#4940e6',
+                            900: '#040e40',
+                            950: '#040e40'
                         },
                         danger: {
                             50: '#fef2f2',
@@ -69,10 +69,10 @@
     <!-- Custom Styles -->
     <style>
         .gradient-bg {
-            background: #0ea5e9; /* Fallback color */
-            background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);
-            background: -webkit-linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);
-            background: -moz-linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);
+            background: #040e40; /* Fallback color - traditional dark blue */
+            background: linear-gradient(135deg, #040e40 0%, #dc2626 100%);
+            background: -webkit-linear-gradient(135deg, #040e40 0%, #dc2626 100%);
+            background: -moz-linear-gradient(135deg, #040e40 0%, #dc2626 100%);
         }
         
         .hero-pattern {
@@ -112,7 +112,7 @@
             top: 0;
             bottom: 0;
             width: 2px;
-            background: linear-gradient(to bottom, #0ea5e9, #0369a1);
+            background: linear-gradient(to bottom, #040e40, #dc2626);
         }
         
         .timeline-item:last-child::before {
@@ -126,7 +126,7 @@
         
         .process-step:hover {
             background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
-            border-color: #0ea5e9;
+            border-color: #040e40;
         }
     </style>
 </head>
@@ -180,21 +180,21 @@
     </nav>
 
     <!-- Hero Section -->
-    <section class="gradient-bg hero-pattern pt-24 pb-16" style="background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);">
+    <section class="gradient-bg hero-pattern pt-24 pb-16" style="background: linear-gradient(135deg, #040e40 0%, #dc2626 100%);">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center">
                 <h1 class="text-4xl md:text-6xl font-bold text-white mb-6 scroll-animate" style="color: white !important; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
                     Learn More About
                     <span class="text-yellow-300" style="color: #fde047 !important; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">IT Services Freetown</span>
                 </h1>
-                <p class="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto scroll-animate" style="color: #dbeafe !important; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
+                <p class="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto scroll-animate" style="color: #f3f4f6 !important; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
                     Discover our expertise, commitment to excellence, and comprehensive IT solutions that have made us Freetown's trusted technology partner.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center scroll-animate">
-                    <a href="#about" class="bg-white text-primary-950 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-300 shadow-lg">
+                    <a href="#about" class="bg-white text-primary-950 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-300 shadow-lg" style="color: #040e40 !important;">
                         About Our Company
                     </a>
-                    <a href="#services" class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-primary-950 transition-colors duration-300">
+                    <a href="#services" class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-gray-900 transition-colors duration-300">
                         Our Services
                     </a>
                 </div>
@@ -218,11 +218,11 @@
                     </p>
                     <div class="grid grid-cols-2 gap-6">
                         <div class="text-center">
-                            <div class="text-3xl font-bold text-primary-600">500+</div>
+                            <div class="text-3xl font-bold text-red-600">500+</div>
                             <div class="text-gray-600">Devices Repaired</div>
                         </div>
                         <div class="text-center">
-                            <div class="text-3xl font-bold text-primary-600">95%</div>
+                            <div class="text-3xl font-bold text-red-600">95%</div>
                             <div class="text-gray-600">Success Rate</div>
                         </div>
                     </div>
@@ -251,52 +251,52 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <!-- Computer Repair -->
                 <div class="feature-card bg-white rounded-2xl p-8 shadow-lg scroll-animate">
-                    <div class="w-16 h-16 bg-primary-100 rounded-xl flex items-center justify-center mb-6">
-                        <i class="fas fa-laptop text-2xl text-primary-600"></i>
+                    <div class="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center mb-6" style="background-color: #040e40;">
+                        <i class="fas fa-laptop text-2xl text-white"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-900 mb-4">Computer Repair & Maintenance</h3>
                     <p class="text-gray-600 mb-4">
                         Expert diagnosis and repair of desktop computers, laptops, and workstations. We handle hardware failures, software issues, and performance optimization.
                     </p>
                     <ul class="text-sm text-gray-600 space-y-2">
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Hardware troubleshooting</li>
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Virus removal & security</li>
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Performance optimization</li>
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Component replacement</li>
+                        <li class="flex items-center"><i class="fas fa-check text-red-500 mr-2"></i> Hardware troubleshooting</li>
+                        <li class="flex items-center"><i class="fas fa-check text-red-500 mr-2"></i> Virus removal & security</li>
+                        <li class="flex items-center"><i class="fas fa-check text-red-500 mr-2"></i> Performance optimization</li>
+                        <li class="flex items-center"><i class="fas fa-check text-red-500 mr-2"></i> Component replacement</li>
                     </ul>
                 </div>
 
                 <!-- Mobile Repair -->
                 <div class="feature-card bg-white rounded-2xl p-8 shadow-lg scroll-animate">
-                    <div class="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mb-6">
-                        <i class="fas fa-mobile-alt text-2xl text-green-600"></i>
+                    <div class="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center mb-6" style="background-color: #dc2626;">
+                        <i class="fas fa-mobile-alt text-2xl text-white"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-900 mb-4">Mobile Phone Services</h3>
                     <p class="text-gray-600 mb-4">
                         Complete mobile phone repair services including screen replacement, battery issues, software problems, and unlocking services.
                     </p>
                     <ul class="text-sm text-gray-600 space-y-2">
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Screen & display repair</li>
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Battery replacement</li>
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Software troubleshooting</li>
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Network unlocking</li>
+                        <li class="flex items-center"><i class="fas fa-check text-red-500 mr-2"></i> Screen & display repair</li>
+                        <li class="flex items-center"><i class="fas fa-check text-red-500 mr-2"></i> Battery replacement</li>
+                        <li class="flex items-center"><i class="fas fa-check text-red-500 mr-2"></i> Software troubleshooting</li>
+                        <li class="flex items-center"><i class="fas fa-check text-red-500 mr-2"></i> Network unlocking</li>
                     </ul>
                 </div>
 
                 <!-- Data Recovery -->
                 <div class="feature-card bg-white rounded-2xl p-8 shadow-lg scroll-animate">
-                    <div class="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
-                        <i class="fas fa-database text-2xl text-purple-600"></i>
+                    <div class="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center mb-6" style="background-color: #040e40;">
+                        <i class="fas fa-database text-2xl text-white"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-900 mb-4">Data Recovery</h3>
                     <p class="text-gray-600 mb-4">
                         Professional data recovery services for lost, corrupted, or deleted files from various storage devices.
                     </p>
                     <ul class="text-sm text-gray-600 space-y-2">
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Hard drive recovery</li>
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> SSD data retrieval</li>
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> USB/SD card recovery</li>
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> File system repair</li>
+                        <li class="flex items-center"><i class="fas fa-check text-red-500 mr-2"></i> Hard drive recovery</li>
+                        <li class="flex items-center"><i class="fas fa-check text-red-500 mr-2"></i> SSD data retrieval</li>
+                        <li class="flex items-center"><i class="fas fa-check text-red-500 mr-2"></i> USB/SD card recovery</li>
+                        <li class="flex items-center"><i class="fas fa-check text-red-500 mr-2"></i> File system repair</li>
                     </ul>
                 </div>
 
@@ -551,19 +551,19 @@
     </section>
 
     <!-- Call to Action -->
-    <section class="py-20 gradient-bg" style="background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);">
+    <section class="py-20 gradient-bg" style="background: linear-gradient(135deg, #040e40 0%, #dc2626 100%);">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 class="text-3xl md:text-4xl font-bold text-white mb-6 scroll-animate" style="color: white !important; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
                 Ready to Experience Our Expert Service?
             </h2>
-            <p class="text-xl text-blue-100 mb-8 scroll-animate" style="color: #dbeafe !important; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
+            <p class="text-xl text-blue-100 mb-8 scroll-animate" style="color: #f3f4f6 !important; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
                 Join hundreds of satisfied customers who trust IT Services Freetown for all their technology needs.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center scroll-animate">
-                <a href="book-appointment.html" class="bg-white text-primary-950 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-300 shadow-lg">
+                <a href="book-appointment.html" class="bg-white text-primary-950 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-300 shadow-lg" style="color: #040e40 !important;">
                     Book Appointment Now
                 </a>
-                <a href="tel:+23233399391" class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-primary-950 transition-colors duration-300">
+                <a href="tel:+23233399391" class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-gray-900 transition-colors duration-300">
                     Call Us: +232 33 399 391
                 </a>
             </div>
@@ -571,7 +571,7 @@
     </section>
 
     <!-- Footer -->
-    <footer class="bg-primary-950 text-white">
+    <footer class="text-white" style="background-color: #040e40;">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 <!-- Company Info -->
