@@ -2784,6 +2784,12 @@
             const installBtn = document.getElementById('pwa-install-btn');
             const dismissBtn = document.getElementById('pwa-dismiss-btn');
             
+            console.log('[PWA] Initializing PWA with elements:', {
+                installBanner: !!installBanner,
+                installBtn: !!installBtn,
+                dismissBtn: !!dismissBtn
+            });
+            
             // Check if device is mobile or tablet (not desktop)
             const isMobileOrTablet = () => {
                 const userAgent = navigator.userAgent.toLowerCase();
@@ -2822,19 +2828,64 @@
                 return;
             }
             
+            // Check if buttons exist before adding event listeners
+            if (!installBtn || !dismissBtn || !installBanner) {
+                console.log('[PWA] Install banner elements not found:', { 
+                    installBanner: !!installBanner,
+                    installBtn: !!installBtn, 
+                    dismissBtn: !!dismissBtn 
+                });
+                return;
+            }
+            
             // Check if already installed or dismissed
             const isInstalled = localStorage.getItem('pwa-installed') === 'true';
             const isDismissed = localStorage.getItem('pwa-dismissed') === 'true';
             const dismissedTime = localStorage.getItem('pwa-dismissed-time');
             
+            console.log('[PWA] Storage states:', { isInstalled, isDismissed, dismissedTime });
+            
             // Reset dismissal after 7 days
             if (isDismissed && dismissedTime) {
                 const daysSinceDismissed = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60 * 24);
+                console.log('[PWA] Days since dismissed:', daysSinceDismissed);
                 if (daysSinceDismissed > 7) {
                     localStorage.removeItem('pwa-dismissed');
                     localStorage.removeItem('pwa-dismissed-time');
+                    console.log('[PWA] Dismissal reset after 7 days');
                 }
             }
+            
+            // Helper functions defined first
+            function showInstallBanner() {
+                if (installBanner) {
+                    console.log('[PWA] Showing install banner');
+                    installBanner.classList.remove('-translate-y-full');
+                    installBanner.classList.add('translate-y-0');
+                    if (typeof trackEvent === 'function') {
+                        trackEvent('pwa', 'banner_shown', 'install_prompt');
+                    }
+                } else {
+                    console.error('[PWA] Install banner element not found for showing');
+                }
+            }
+            
+            function hideInstallBanner() {
+                if (installBanner) {
+                    console.log('[PWA] Hiding install banner');
+                    installBanner.classList.add('-translate-y-full');
+                    installBanner.classList.remove('translate-y-0');
+                } else {
+                    console.error('[PWA] Install banner element not found for hiding');
+                }
+            }
+            
+            // Add to window for debugging (remove in production)
+            window.testPWABanner = {
+                show: showInstallBanner,
+                hide: hideInstallBanner,
+                elements: { installBanner, installBtn, dismissBtn }
+            };
             
             // Listen for beforeinstallprompt event
             window.addEventListener('beforeinstallprompt', (e) => {
@@ -2850,8 +2901,15 @@
                 }
             });
             
+            // Check if buttons exist before adding event listeners
+            if (!installBtn || !dismissBtn) {
+                console.log('[PWA] Install banner elements not found:', { installBtn: !!installBtn, dismissBtn: !!dismissBtn });
+                return;
+            }
+            
             // Handle install button click
             installBtn.addEventListener('click', async () => {
+                console.log('[PWA] Install button clicked');
                 if (!deferredPrompt) {
                     console.log('[PWA] No deferred prompt available');
                     return;
@@ -2885,7 +2943,10 @@
             });
             
             // Handle dismiss button click
-            dismissBtn.addEventListener('click', () => {
+            dismissBtn.addEventListener('click', (e) => {
+                console.log('[PWA] Dismiss button clicked');
+                e.preventDefault();
+                e.stopPropagation();
                 hideInstallBanner();
                 localStorage.setItem('pwa-dismissed', 'true');
                 localStorage.setItem('pwa-dismissed-time', Date.now().toString());
@@ -2921,19 +2982,6 @@
             // Register service worker
             if ('serviceWorker' in navigator) {
                 registerServiceWorker();
-            }
-            
-            function showInstallBanner() {
-                installBanner.classList.remove('-translate-y-full');
-                installBanner.classList.add('translate-y-0');
-                if (typeof trackEvent === 'function') {
-                    trackEvent('pwa', 'banner_shown', 'install_prompt');
-                }
-            }
-            
-            function hideInstallBanner() {
-                installBanner.classList.add('-translate-y-full');
-                installBanner.classList.remove('translate-y-0');
             }
             
             function showInstallSuccessMessage() {
