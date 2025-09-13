@@ -556,6 +556,18 @@
             transform: scale(1.1); /* Slow zoom effect on active slide */
         }
         
+        /* Loading states for random slide selection */
+        .image-slider-container.loading .image-slide {
+            opacity: 0;
+            transform: scale(1.05);
+        }
+        
+        .image-slider-container.loaded .image-slide.active {
+            opacity: 1;
+            transform: scale(1);
+            transition: opacity 1s ease-out, transform 1s ease-out;
+        }
+        
         /* Slider Navigation */
         .slider-dot {
             width: 12px;
@@ -1581,9 +1593,9 @@
                 
                 <!-- Right Side - Image Slider -->
                 <div class="relative">
-                    <div class="image-slider-container relative w-full h-96 lg:h-[500px] rounded-2xl overflow-hidden">
+                    <div class="image-slider-container loading relative w-full h-96 lg:h-[500px] rounded-2xl overflow-hidden">
                         <!-- Slide 1 - Mobile Motherboard Repair -->
-                        <div class="image-slide active">
+                        <div class="image-slide">
                             <img src="https://images.pexels.com/photos/3825582/pexels-photo-3825582.jpeg?auto=compress&cs=tinysrgb&w=1200" 
                                  alt="African man working on mobile motherboard" 
                                  class="w-full h-full object-cover">
@@ -1605,7 +1617,7 @@
                         
                         <!-- Navigation Dots -->
                         <div class="absolute bottom-4 right-4 flex space-x-2">
-                            <button class="slider-dot active" data-slide="0"></button>
+                            <button class="slider-dot" data-slide="0"></button>
                             <button class="slider-dot" data-slide="1"></button>
                             <button class="slider-dot" data-slide="2"></button>
                         </div>
@@ -3557,7 +3569,7 @@
         // Monitor memory usage periodically
         setInterval(monitorMemoryUsage, 30000); // Every 30 seconds
 
-        // Image Slider Functionality
+        // Image Slider Functionality with Random Start
         function initImageSlider() {
             const slides = document.querySelectorAll('.image-slide');
             const dots = document.querySelectorAll('.slider-dot');
@@ -3565,6 +3577,14 @@
             const nextBtn = document.querySelector('.slider-next');
             let currentSlide = 0;
             let slideInterval;
+
+            // Generate random starting slide
+            function getRandomStartSlide() {
+                if (slides.length === 0) return 0;
+                const randomIndex = Math.floor(Math.random() * slides.length);
+                console.log(`[Slider] Starting with random slide: ${randomIndex + 1} of ${slides.length}`);
+                return randomIndex;
+            }
 
             function showSlide(index) {
                 // Remove active class from all slides and dots
@@ -3589,7 +3609,7 @@
             }
 
             function startAutoSlide() {
-                slideInterval = setInterval(nextSlide, 3000); // Change slide every 3 seconds (faster)
+                slideInterval = setInterval(nextSlide, 4000); // Change slide every 4 seconds
             }
 
             function stopAutoSlide() {
@@ -3625,9 +3645,22 @@
                 sliderContainer.addEventListener('mouseleave', startAutoSlide);
             }
 
-            // Initialize
-            showSlide(0);
-            startAutoSlide();
+            // Initialize with random starting slide and smooth animation
+            const randomStartSlide = getRandomStartSlide();
+            
+            // Add a brief delay for smooth loading animation
+            if (sliderContainer) {
+                setTimeout(() => {
+                    sliderContainer.classList.remove('loading');
+                    sliderContainer.classList.add('loaded');
+                    showSlide(randomStartSlide);
+                    startAutoSlide();
+                }, 300); // Small delay for smooth transition
+            } else {
+                // Fallback if container not found
+                showSlide(randomStartSlide);
+                startAutoSlide();
+            }
         }
 
         // Initialize slider when DOM is loaded
