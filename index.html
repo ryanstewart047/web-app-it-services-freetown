@@ -946,6 +946,13 @@
             z-index: 10001 !important;
         }
         
+        /* Hide PWA banner on desktop devices */
+        @media (min-width: 1025px) and (hover: hover) and (pointer: fine) {
+            #pwa-install-banner {
+                display: none !important;
+            }
+        }
+        
         .notification-content {
             white-space: nowrap;
             animation: scrollText 30s linear infinite;
@@ -2777,6 +2784,44 @@
             const installBtn = document.getElementById('pwa-install-btn');
             const dismissBtn = document.getElementById('pwa-dismiss-btn');
             
+            // Check if device is mobile or tablet (not desktop)
+            const isMobileOrTablet = () => {
+                const userAgent = navigator.userAgent.toLowerCase();
+                const mobileKeywords = ['android', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone', 'mobile', 'tablet'];
+                const isMobile = mobileKeywords.some(keyword => userAgent.includes(keyword));
+                
+                // Also check screen size for tablets
+                const isTabletSize = window.screen.width <= 1024 || window.innerWidth <= 1024;
+                
+                // Check for touch support
+                const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                
+                // Additional check for desktop vs mobile
+                const isDesktop = window.screen.width >= 1025 && !hasTouch && 
+                    !userAgent.includes('mobile') && !userAgent.includes('tablet');
+                
+                const result = (isMobile || (isTabletSize && hasTouch)) && !isDesktop;
+                
+                console.log('[PWA] Device detection:', {
+                    userAgent: userAgent,
+                    isMobile: isMobile,
+                    isTabletSize: isTabletSize,
+                    hasTouch: hasTouch,
+                    isDesktop: isDesktop,
+                    screenWidth: window.screen.width,
+                    innerWidth: window.innerWidth,
+                    finalResult: result
+                });
+                
+                return result;
+            };
+            
+            // Only proceed if on mobile or tablet
+            if (!isMobileOrTablet()) {
+                console.log('[PWA] Desktop detected - PWA install banner disabled');
+                return;
+            }
+            
             // Check if already installed or dismissed
             const isInstalled = localStorage.getItem('pwa-installed') === 'true';
             const isDismissed = localStorage.getItem('pwa-dismissed') === 'true';
@@ -2797,8 +2842,8 @@
                 e.preventDefault();
                 deferredPrompt = e;
                 
-                // Show install banner if not already installed or dismissed
-                if (!isInstalled && !localStorage.getItem('pwa-dismissed')) {
+                // Show install banner if not already installed or dismissed (mobile/tablet only)
+                if (!isInstalled && !localStorage.getItem('pwa-dismissed') && isMobileOrTablet()) {
                     setTimeout(() => {
                         showInstallBanner();
                     }, 5000); // Show after 5 seconds
