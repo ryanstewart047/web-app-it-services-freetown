@@ -250,10 +250,7 @@
     <style>
         /* Critical CSS - Above the fold styles */
         body { margin: 0; padding-top: 6.5rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        .notification-banner { background: linear-gradient(135deg, #ff8c00 0%, #ff6b00 50%, #ff8c00 100%); color: white; padding: 0.75rem 0; position: fixed; top: 0; left: 0; right: 0; z-index: 9999; overflow: hidden; }
-        .notification-content { white-space: nowrap; animation: scrollText 30s linear infinite; display: inline-block; font-weight: 600; padding-left: 100%; }
-        @keyframes scrollText { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
-        nav { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 3rem; z-index: 50; }
+        nav { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 50; }
         .hero { min-height: 70vh; display: flex; align-items: center; justify-content: center; }
         .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f0f4ff; display: flex; justify-content: center; align-items: center; z-index: 9999; }
         
@@ -975,30 +972,142 @@
             display: none !important;
         }
         
-        /* Notification Banner Styles */
-        .notification-banner {
-            background: linear-gradient(135deg, #ff8c00 0%, #ff6b00 50%, #ff8c00 100%);
-            color: white;
-            padding: 0.75rem 0;
+        /* PWA Install Banner - Clean and Simple */
+        .pwa-install-banner {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
+            background: linear-gradient(90deg, #4F46E5 0%, #7C3AED 100%);
+            color: white;
+            padding: 12px 16px;
             z-index: 9999;
-            box-shadow: 0 2px 10px rgba(255, 140, 0, 0.3);
-            overflow: hidden;
-            border-bottom: 2px solid #ff6b00;
+            transform: translateY(-100%);
+            transition: transform 0.3s ease-in-out;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            display: none; /* Hidden by default */
         }
         
-        /* PWA Install Banner - Higher z-index than notification banner */
-        #pwa-install-banner {
-            z-index: 10001 !important;
+        .pwa-install-banner.show {
+            display: block;
+            transform: translateY(0);
         }
         
-        /* Hide PWA banner on desktop devices */
-        @media (min-width: 1025px) and (hover: hover) and (pointer: fine) {
-            #pwa-install-banner {
+        .pwa-banner-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 12px;
+        }
+        
+        .pwa-banner-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        
+        .pwa-banner-text {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .pwa-banner-title {
+            font-weight: 600;
+            font-size: 14px;
+            line-height: 1.2;
+        }
+        
+        .pwa-banner-subtitle {
+            font-size: 12px;
+            opacity: 0.9;
+            line-height: 1.2;
+        }
+        
+        .pwa-banner-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .pwa-install-btn {
+            background: white;
+            color: #4F46E5;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .pwa-install-btn:hover {
+            background: #F8FAFC;
+            transform: translateY(-1px);
+        }
+        
+        .pwa-close-btn {
+            background: none;
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: background 0.2s ease;
+        }
+        
+        .pwa-close-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Hide PWA banner on desktop */
+        @media (min-width: 1024px) and (hover: hover) {
+            .pwa-install-banner {
                 display: none !important;
+            }
+        }
+        
+        /* Mobile responsive adjustments */
+        @media (max-width: 640px) {
+            .pwa-banner-content {
+                gap: 8px;
+            }
+            
+            .pwa-banner-title {
+                font-size: 13px;
+            }
+            
+            .pwa-banner-subtitle {
+                font-size: 11px;
+            }
+            
+            .pwa-install-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            
+            .pwa-close-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 12px;
+            }
+        }
+        
+        /* Adjust body padding when banner is shown */
+        body.pwa-banner-shown {
+            padding-top: 60px;
+        }
+        
+        @media (max-width: 640px) {
+            body.pwa-banner-shown {
+                padding-top: 56px;
             }
         }
         
@@ -1237,47 +1346,19 @@
     </style>
 </head>
 <body class="bg-gray-50">
-    <!-- Notification Banner -->
-    <div class="notification-banner">
-        <div class="notification-content">
-            <i class="fas fa-bullhorn banner-icon"></i>
-            🔧 SPECIAL OFFER: 20% OFF All Mobile Screen Repairs This Week! 
-            <i class="fas fa-mobile-alt"></i>
-            📱 Professional Repair Services Available 
-            <i class="fas fa-tools"></i>
-            💻 Free Diagnostics on All Computer Repairs 
-            <i class="fas fa-laptop"></i>
-            🎯 Same Day Service Available 
-            <i class="fas fa-clock"></i>
-            📞 Call +232 33 399 391 for Immediate Support 
-            <i class="fas fa-phone"></i>
-            🏆 Trusted by 1000+ Customers in Freetown 
-            <i class="fas fa-star"></i>
-            ⚡ Quick Turnaround Time Guaranteed 
-            <i class="fas fa-bolt"></i>
-            🛡️ 1 Month Warranty on All Repairs 
-        </div>
-    </div>
 
-    <!-- PWA Install Banner -->
-    <div id="pwa-install-banner" class="fixed top-12 left-0 right-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 z-[10000] transform -translate-y-full transition-transform duration-500 ease-out">
-        <div class="max-w-7xl mx-auto flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="flex-shrink-0">
-                    <i class="fas fa-download text-xl"></i>
-                </div>
-                <div>
-                    <h4 class="font-semibold text-sm sm:text-base">Install IT Services Freetown</h4>
-                    <p class="text-xs sm:text-sm opacity-90">Get instant access, offline support, and faster performance!</p>
-                </div>
+
+    <!-- PWA Install Banner - New Simplified Version -->
+    <div id="pwa-banner" class="pwa-install-banner">
+        <div class="pwa-banner-content">
+            <div class="pwa-banner-icon">📱</div>
+            <div class="pwa-banner-text">
+                <div class="pwa-banner-title">Install Our App</div>
+                <div class="pwa-banner-subtitle">Get faster access and work offline</div>
             </div>
-            <div class="flex items-center space-x-2">
-                <button id="pwa-install-btn" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gray-100 transition-colors">
-                    Install App
-                </button>
-                <button id="pwa-dismiss-btn" class="text-white/80 hover:text-white p-2 cursor-pointer transition-all duration-200 hover:bg-white/10 rounded">
-                    <i class="fas fa-times"></i>
-                </button>
+            <div class="pwa-banner-buttons">
+                <button id="pwa-install" class="pwa-install-btn">Install</button>
+                <button id="pwa-close" class="pwa-close-btn">✕</button>
             </div>
         </div>
     </div>
@@ -2877,68 +2958,35 @@
             initPWA();
         });
 
-        // PWA Installation and Service Worker Management
+        // PWA Installation - Simplified and Clean
         function initPWA() {
             let deferredPrompt;
-            const installBanner = document.getElementById('pwa-install-banner');
-            const installBtn = document.getElementById('pwa-install-btn');
-            const dismissBtn = document.getElementById('pwa-dismiss-btn');
+            const banner = document.getElementById('pwa-banner');
+            const installBtn = document.getElementById('pwa-install');
+            const closeBtn = document.getElementById('pwa-close');
             
-            console.log('[PWA] Initializing PWA with elements:', {
-                installBanner: !!installBanner,
+            console.log('[PWA] Initializing with elements:', {
+                banner: !!banner,
                 installBtn: !!installBtn,
-                dismissBtn: !!dismissBtn
+                closeBtn: !!closeBtn
             });
             
-            // Check if device is mobile or tablet (not desktop)
-            const isMobileOrTablet = () => {
-                const userAgent = navigator.userAgent.toLowerCase();
-                const mobileKeywords = ['android', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone', 'mobile', 'tablet'];
-                const isMobile = mobileKeywords.some(keyword => userAgent.includes(keyword));
-                
-                // Also check screen size for tablets
-                const isTabletSize = window.screen.width <= 1024 || window.innerWidth <= 1024;
-                
-                // Check for touch support
-                const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-                
-                // Additional check for desktop vs mobile
-                const isDesktop = window.screen.width >= 1025 && !hasTouch && 
-                    !userAgent.includes('mobile') && !userAgent.includes('tablet');
-                
-                const result = (isMobile || (isTabletSize && hasTouch)) && !isDesktop;
-                
-                console.log('[PWA] Device detection:', {
-                    userAgent: userAgent,
-                    isMobile: isMobile,
-                    isTabletSize: isTabletSize,
-                    hasTouch: hasTouch,
-                    isDesktop: isDesktop,
-                    screenWidth: window.screen.width,
-                    innerWidth: window.innerWidth,
-                    finalResult: result
-                });
-                
-                return result;
-            };
-            
-            // Only proceed if on mobile or tablet (temporarily disabled for testing)
-            // if (!isMobileOrTablet()) {
-            //     console.log('[PWA] Desktop detected - PWA install banner disabled');
-            //     return;
-            // }
-            
-            // TEMPORARY: Enable PWA banner on all devices for testing
-            console.log('[PWA] PWA banner enabled for all devices (testing mode)');
-            
-            // Check if buttons exist before adding event listeners
-            if (!installBtn || !dismissBtn || !installBanner) {
-                console.log('[PWA] Install banner elements not found:', { 
-                    installBanner: !!installBanner,
-                    installBtn: !!installBtn, 
-                    dismissBtn: !!dismissBtn 
-                });
+            if (!banner || !installBtn || !closeBtn) {
+                console.log('[PWA] Missing required elements');
                 return;
+            }
+            
+            // Check device type - only show on mobile/tablet
+            function isMobileDevice() {
+                const userAgent = navigator.userAgent.toLowerCase();
+                const mobilePatterns = ['android', 'iphone', 'ipad', 'ipod', 'mobile', 'tablet'];
+                const isMobileUA = mobilePatterns.some(pattern => userAgent.includes(pattern));
+                const hasTouch = 'ontouchstart' in window;
+                const isSmallScreen = window.innerWidth <= 1024;
+                
+                const result = isMobileUA || (hasTouch && isSmallScreen);
+                console.log('[PWA] Device check:', { isMobileUA, hasTouch, isSmallScreen, result });
+                return result;
             }
             
             // Check if already installed or dismissed
@@ -2946,219 +2994,102 @@
             const isDismissed = localStorage.getItem('pwa-dismissed') === 'true';
             const dismissedTime = localStorage.getItem('pwa-dismissed-time');
             
-            console.log('[PWA] Storage states:', { isInstalled, isDismissed, dismissedTime });
-            
             // Reset dismissal after 7 days
             if (isDismissed && dismissedTime) {
-                const daysSinceDismissed = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60 * 24);
-                console.log('[PWA] Days since dismissed:', daysSinceDismissed);
-                if (daysSinceDismissed > 7) {
+                const daysSince = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60 * 24);
+                if (daysSince > 7) {
                     localStorage.removeItem('pwa-dismissed');
                     localStorage.removeItem('pwa-dismissed-time');
                     console.log('[PWA] Dismissal reset after 7 days');
                 }
             }
             
-            // Helper functions defined first
-            function showInstallBanner() {
-                if (installBanner) {
-                    console.log('[PWA] Showing install banner');
-                    installBanner.classList.remove('-translate-y-full');
-                    installBanner.classList.add('translate-y-0');
-                    if (typeof trackEvent === 'function') {
-                        trackEvent('pwa', 'banner_shown', 'install_prompt');
-                    }
-                } else {
-                    console.error('[PWA] Install banner element not found for showing');
-                }
+            // Show banner
+            function showBanner() {
+                banner.classList.add('show');
+                document.body.classList.add('pwa-banner-shown');
+                console.log('[PWA] Banner shown');
             }
             
-            function hideInstallBanner() {
-                if (installBanner) {
-                    console.log('[PWA] Hiding install banner - current classes:', installBanner.className);
-                    installBanner.classList.add('-translate-y-full');
-                    installBanner.classList.remove('translate-y-0');
-                    console.log('[PWA] Install banner hidden - new classes:', installBanner.className);
-                } else {
-                    console.error('[PWA] Install banner element not found for hiding');
-                }
+            // Hide banner
+            function hideBanner() {
+                banner.classList.remove('show');
+                document.body.classList.remove('pwa-banner-shown');
+                console.log('[PWA] Banner hidden');
             }
             
-            // Add to window for debugging and manual testing
-            window.testPWABanner = {
-                show: showInstallBanner,
-                hide: hideInstallBanner,
-                elements: { installBanner, installBtn, dismissBtn },
-                showBanner: () => {
-                    console.log('[PWA] Manual banner show triggered');
-                    localStorage.removeItem('pwa-dismissed'); // Remove dismissal to force show
-                    showInstallBanner();
-                },
-                hideBanner: () => {
-                    console.log('[PWA] Manual banner hide triggered');
-                    hideInstallBanner();
-                },
-                resetDismissal: () => {
-                    localStorage.removeItem('pwa-dismissed');
-                    localStorage.removeItem('pwa-dismissed-time');
-                    console.log('[PWA] Dismissal reset');
-                },
-                testCloseButton: () => {
-                    console.log('[PWA] Testing close button functionality');
-                    if (dismissBtn) {
-                        console.log('[PWA] Close button exists, triggering click');
-                        dismissBtn.click();
-                    } else {
-                        console.error('[PWA] Close button not found!');
-                    }
-                },
-                checkBannerState: () => {
-                    const banner = document.getElementById('pwa-install-banner');
-                    if (banner) {
-                        console.log('[PWA] Banner state:', {
-                            display: window.getComputedStyle(banner).display,
-                            visibility: window.getComputedStyle(banner).visibility,
-                            transform: window.getComputedStyle(banner).transform,
-                            classes: banner.className,
-                            isVisible: !banner.classList.contains('-translate-y-full')
-                        });
-                    } else {
-                        console.log('[PWA] Banner element not found');
-                    }
-                },
-                forceShow: () => {
-                    console.log('[PWA] Force showing banner...');
-                    localStorage.removeItem('pwa-dismissed');
-                    localStorage.removeItem('pwa-dismissed-time');
-                    localStorage.removeItem('pwa-installed');
-                    const banner = document.getElementById('pwa-install-banner');
-                    if (banner) {
-                        banner.classList.remove('-translate-y-full');
-                        banner.classList.add('translate-y-0');
-                        console.log('[PWA] Banner forced to show');
-                    }
-                }
-            };
-            
-            // Listen for beforeinstallprompt event
+            // Listen for install prompt event
             window.addEventListener('beforeinstallprompt', (e) => {
-                console.log('[PWA] beforeinstallprompt fired');
+                console.log('[PWA] Install prompt available');
                 e.preventDefault();
                 deferredPrompt = e;
                 
-                // Show install banner if not already installed or dismissed (mobile/tablet only)
-                if (!isInstalled && !localStorage.getItem('pwa-dismissed')) {
-                    setTimeout(() => {
-                        showInstallBanner();
-                    }, 2000); // Show after 2 seconds for testing
+                // Show banner if conditions are met
+                if (!isInstalled && !localStorage.getItem('pwa-dismissed') && isMobileDevice()) {
+                    setTimeout(() => showBanner(), 3000); // Show after 3 seconds
                 }
             });
             
-            // TEMPORARY: Show banner immediately for testing (remove in production)
-            if (!isInstalled && !localStorage.getItem('pwa-dismissed')) {
-                console.log('[PWA] Showing banner immediately for testing');
-                setTimeout(() => {
-                    showInstallBanner();
-                }, 3000); // Show after 3 seconds
-            }
-            
-            // Set up event listeners immediately (not dependent on beforeinstallprompt)
-            if (installBtn) {
-                installBtn.addEventListener('click', async () => {
-                    console.log('[PWA] Install button clicked');
-                    if (!deferredPrompt) {
-                        console.log('[PWA] No deferred prompt available - hiding banner');
-                        hideInstallBanner();
-                        localStorage.setItem('pwa-dismissed', 'true');
-                        localStorage.setItem('pwa-dismissed-time', Date.now().toString());
-                        return;
-                    }
+            // Install button click
+            installBtn.addEventListener('click', async () => {
+                console.log('[PWA] Install button clicked');
+                
+                if (!deferredPrompt) {
+                    console.log('[PWA] No install prompt available');
+                    hideBanner();
+                    return;
+                }
+                
+                hideBanner();
+                
+                try {
+                    await deferredPrompt.prompt();
+                    const choiceResult = await deferredPrompt.userChoice;
                     
-                    // Hide the banner
-                    hideInstallBanner();
+                    console.log('[PWA] User choice:', choiceResult.outcome);
                     
-                    // Show the install prompt
-                    deferredPrompt.prompt();
-                    
-                    // Wait for user response
-                    const { outcome } = await deferredPrompt.userChoice;
-                    console.log(`[PWA] User response: ${outcome}`);
-                    
-                    if (outcome === 'accepted') {
+                    if (choiceResult.outcome === 'accepted') {
                         localStorage.setItem('pwa-installed', 'true');
-                        if (typeof trackEvent === 'function') {
-                            trackEvent('pwa', 'install_accepted', 'install_banner');
-                        }
+                        trackEvent('pwa', 'installed', 'user_choice');
                     } else {
                         localStorage.setItem('pwa-dismissed', 'true');
                         localStorage.setItem('pwa-dismissed-time', Date.now().toString());
-                        if (typeof trackEvent === 'function') {
-                            trackEvent('pwa', 'install_dismissed', 'install_banner');
-                        }
+                        trackEvent('pwa', 'dismissed', 'user_choice');
                     }
-                    
-                    // Clear the deferred prompt
-                    deferredPrompt = null;
-                });
-            }
-            
-            // Set up dismiss button - always available
-            if (dismissBtn) {
-                console.log('[PWA] Setting up dismiss button event listener');
-                
-                // Add multiple event types to ensure it works
-                ['click', 'touchstart'].forEach(eventType => {
-                    dismissBtn.addEventListener(eventType, (e) => {
-                        console.log('[PWA] Dismiss button triggered via:', eventType);
-                        e.preventDefault();
-                        e.stopPropagation();
-                        hideInstallBanner();
-                        localStorage.setItem('pwa-dismissed', 'true');
-                        localStorage.setItem('pwa-dismissed-time', Date.now().toString());
-                        if (typeof trackEvent === 'function') {
-                            trackEvent('pwa', 'banner_dismissed', 'install_banner');
-                        }
-                    }, { passive: false });
-                });
-                
-                // Also add a direct onclick for fallback
-                dismissBtn.onclick = function(e) {
-                    console.log('[PWA] Dismiss button clicked via onclick');
-                    e.preventDefault();
-                    e.stopPropagation();
-                    hideInstallBanner();
-                    localStorage.setItem('pwa-dismissed', 'true');
-                    localStorage.setItem('pwa-dismissed-time', Date.now().toString());
-                    return false;
-                };
-                
-                console.log('[PWA] Dismiss button setup complete');
-            } else {
-                console.error('[PWA] Dismiss button not found in DOM');
-            }
-            
-            // Listen for app installed event
-            window.addEventListener('appinstalled', (evt) => {
-                console.log('[PWA] App was installed');
-                localStorage.setItem('pwa-installed', 'true');
-                hideInstallBanner();
-                if (typeof trackEvent === 'function') {
-                    trackEvent('pwa', 'installed', 'browser');
+                } catch (error) {
+                    console.error('[PWA] Install error:', error);
                 }
                 
-                // Show thank you message
-                showInstallSuccessMessage();
+                deferredPrompt = null;
             });
             
-            // Detect if running as installed PWA
+            // Close button click
+            closeBtn.addEventListener('click', () => {
+                console.log('[PWA] Close button clicked');
+                hideBanner();
+                localStorage.setItem('pwa-dismissed', 'true');
+                localStorage.setItem('pwa-dismissed-time', Date.now().toString());
+                trackEvent('pwa', 'dismissed', 'close_button');
+            });
+            
+            // Handle app installed
+            window.addEventListener('appinstalled', () => {
+                console.log('[PWA] App installed');
+                localStorage.setItem('pwa-installed', 'true');
+                hideBanner();
+                trackEvent('pwa', 'installed', 'browser');
+                
+                // Show success message
+                showSuccessMessage('App installed successfully!', '📱 IT Services Freetown is now on your device');
+            });
+            
+            // Detect if running as PWA
             const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
             if (isStandalone) {
                 console.log('[PWA] Running as installed app');
                 localStorage.setItem('pwa-installed', 'true');
                 document.body.classList.add('pwa-installed');
-                if (typeof trackEvent === 'function') {
-                    trackEvent('pwa', 'launched', 'standalone');
-                }
+                trackEvent('pwa', 'launched', 'standalone');
             }
             
             // Register service worker
@@ -3166,35 +3097,45 @@
                 registerServiceWorker();
             }
             
-            function showInstallSuccessMessage() {
-                // Create and show a success message
-                const successDiv = document.createElement('div');
-                successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
-                successDiv.innerHTML = `
-                    <div class="flex items-center space-x-3">
-                        <i class="fas fa-check-circle text-xl"></i>
-                        <div>
-                            <h4 class="font-semibold">App Installed!</h4>
-                            <p class="text-sm opacity-90">IT Services Freetown is now on your device</p>
-                        </div>
+            // Add test functions for debugging
+            window.PWATest = {
+                show: showBanner,
+                hide: hideBanner,
+                resetDismissal: () => {
+                    localStorage.removeItem('pwa-dismissed');
+                    localStorage.removeItem('pwa-dismissed-time');
+                    console.log('[PWA] Dismissal reset');
+                },
+                forceShow: () => {
+                    localStorage.removeItem('pwa-dismissed');
+                    localStorage.removeItem('pwa-dismissed-time');
+                    localStorage.removeItem('pwa-installed');
+                    showBanner();
+                }
+            };
+        }
+        
+        // Show success message
+        function showSuccessMessage(title, message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
+            successDiv.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="text-xl">✅</div>
+                    <div>
+                        <h4 class="font-semibold">${title}</h4>
+                        <p class="text-sm opacity-90">${message}</p>
                     </div>
-                `;
-                
-                document.body.appendChild(successDiv);
-                
-                // Show the message
-                setTimeout(() => {
-                    successDiv.classList.remove('translate-x-full');
-                }, 100);
-                
-                // Hide after 5 seconds
-                setTimeout(() => {
-                    successDiv.classList.add('translate-x-full');
-                    setTimeout(() => {
-                        document.body.removeChild(successDiv);
-                    }, 300);
-                }, 5000);
-            }
+                </div>
+            `;
+            
+            document.body.appendChild(successDiv);
+            
+            setTimeout(() => successDiv.classList.remove('translate-x-full'), 100);
+            setTimeout(() => {
+                successDiv.classList.add('translate-x-full');
+                setTimeout(() => document.body.removeChild(successDiv), 300);
+            }, 5000);
         }
         
         // Service Worker Registration
