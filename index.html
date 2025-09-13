@@ -122,28 +122,72 @@
             page_location: window.location.href
         });
         
-        // Custom events for tracking
+        // Custom events for tracking with better error handling
         function trackEvent(action, category, label, value) {
-            // Google Analytics
-            if (typeof gtag !== 'undefined') {
-                gtag('event', action, {
-                    event_category: category,
-                    event_label: label,
-                    value: value
-                });
+            // Validate parameters
+            if (!action || !category) {
+                console.warn('trackEvent: Missing required parameters action or category');
+                return;
             }
-            
-            // Facebook Pixel
-            if (typeof fbq !== 'undefined') {
-                fbq('track', 'CustomEvent', {
-                    action: action,
-                    category: category,
-                    label: label
-                });
-            }
-            
+
             // Console logging for debugging
             console.log('Event tracked:', { action, category, label, value });
+
+            // Google Analytics
+            if (typeof gtag !== 'undefined') {
+                try {
+                    gtag('event', action, {
+                        event_category: category,
+                        event_label: label,
+                        value: value
+                    });
+                } catch (error) {
+                    console.error('Google Analytics tracking error:', error);
+                }
+            }
+            
+            // Facebook Pixel with proper event handling
+            if (typeof fbq !== 'undefined') {
+                try {
+                    // Map our events to Facebook standard events where possible
+                    let fbEvent = 'CustomEvent';
+                    let fbParams = {
+                        content_name: label || action,
+                        content_category: category
+                    };
+
+                    // Map specific events to Facebook standard events
+                    if (action === 'submit' && category === 'contact_form') {
+                        fbEvent = 'Contact';
+                        fbParams = {
+                            content_name: 'Contact Form',
+                            content_category: 'Lead Generation'
+                        };
+                    } else if (action === 'click' && category === 'external_link') {
+                        fbEvent = 'Contact';
+                    } else if (action.includes('appointment')) {
+                        fbEvent = 'Contact';
+                        fbParams = {
+                            content_name: 'Appointment Booking',
+                            content_category: 'Service Request'
+                        };
+                    }
+
+                    // Only track if we have a valid event
+                    if (fbEvent && fbEvent !== 'CustomEvent') {
+                        fbq('track', fbEvent, fbParams);
+                    } else {
+                        // For custom events, use trackCustom with proper parameters
+                        fbq('trackCustom', action + '_' + category, {
+                            category: category,
+                            label: label || '',
+                            value: value || 0
+                        });
+                    }
+                } catch (error) {
+                    console.error('Facebook Pixel tracking error:', error);
+                }
+            }
         }
         
         // Enhanced page tracking
@@ -2621,23 +2665,6 @@
             window.addEventListener('error', function(e) {
                 trackEvent('error', 'javascript_error', e.message);
             });
-            
-            // Track page load performance
-            window.addEventListener('load', function() {
-                setTimeout(() => {
-                    if (window.performance && window.performance.timing) {
-                        const loadTime = window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
-                        
-                        if (loadTime < 1000) {
-                            trackEvent('performance', 'page_load_fast', `${loadTime}ms`);
-                        } else if (loadTime < 3000) {
-                            trackEvent('performance', 'page_load_medium', `${loadTime}ms`);
-                        } else {
-                            trackEvent('performance', 'page_load_slow', `${loadTime}ms`);
-                        }
-                    }
-                }, 0);
-            });
         }
 
         // Social proof and conversion optimization
@@ -3275,7 +3302,7 @@
             initImageOptimization();
             initResourcePrefetching();
             
-            // Performance metrics tracking
+            // Performance metrics tracking with validation
             if ('performance' in window && performance.timing) {
                 const timing = performance.timing;
                 const loadTime = timing.loadEventEnd - timing.navigationStart;
@@ -3287,13 +3314,23 @@
                     - DOM Content Loaded: ${domContentLoaded}ms
                     - First Paint: ${firstPaint}ms`);
                 
-                // Track performance in analytics
+                // Track performance in analytics with validation
                 if (typeof trackEvent === 'function') {
-                    trackEvent('performance', 'load_time', loadTime.toString());
-                    trackEvent('performance', 'dom_ready', domContentLoaded.toString());
+                    // Only track valid positive values
+                    if (loadTime > 0 && loadTime < 60000) { // Max 60 seconds
+                        trackEvent('performance', 'load_time', `${loadTime}ms`, loadTime);
+                    }
+                    
+                    if (domContentLoaded > 0 && domContentLoaded < 60000) {
+                        trackEvent('performance', 'dom_ready', `${domContentLoaded}ms`, domContentLoaded);
+                    }
                     
                     if (loadTime > 3000) {
-                        trackEvent('performance', 'slow_load', 'above_3s');
+                        trackEvent('performance', 'slow_load', 'above_3s', loadTime);
+                    } else if (loadTime > 0 && loadTime < 1000) {
+                        trackEvent('performance', 'page_load_fast', `${loadTime}ms`, loadTime);
+                    } else if (loadTime >= 1000 && loadTime <= 3000) {
+                        trackEvent('performance', 'page_load_medium', `${loadTime}ms`, loadTime);
                     }
                 }
             }
