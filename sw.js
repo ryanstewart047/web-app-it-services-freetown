@@ -75,6 +75,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip chrome-extension and other unsupported schemes
+  const url = new URL(event.request.url);
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    return;
+  }
+
   event.respondWith(
     (async () => {
       try {
@@ -83,8 +89,12 @@ self.addEventListener('fetch', (event) => {
         
         // If successful, update cache with fresh content
         if (networkResponse.ok) {
-          const cache = await caches.open(CACHE_NAME);
-          cache.put(event.request, networkResponse.clone());
+          try {
+            const cache = await caches.open(CACHE_NAME);
+            await cache.put(event.request, networkResponse.clone());
+          } catch (cacheError) {
+            console.warn('[ServiceWorker] Failed to cache response:', cacheError);
+          }
         }
         
         return networkResponse;
