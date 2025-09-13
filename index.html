@@ -1111,17 +1111,38 @@
             }
         }
         
-        /* Mobile Logo Optimizations */
+        /* Mobile Logo Optimizations - Enhanced for PWA */
         .logo-mobile {
             filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
             max-width: none;
             height: auto;
+            object-fit: contain;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
         }
         
-        /* Mobile-specific logo adjustments */
-        @media (max-width: 640px) {
+        /* PWA-specific logo adjustments */
+        body.pwa-installed .logo-mobile {
+            filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.2));
+        }
+        
+        /* Extra small mobile devices (iPhone SE, small Android) */
+        @media (max-width: 375px) {
             .logo-mobile {
-                height: 2rem; /* 32px - smaller for mobile */
+                height: 1.75rem; /* 28px - very compact for small screens */
+                transition: all 0.2s ease;
+            }
+            
+            nav .flex.justify-between {
+                align-items: center;
+                min-height: 3rem; /* 48px - compact navigation */
+            }
+        }
+        
+        /* Standard mobile devices */
+        @media (min-width: 376px) and (max-width: 640px) {
+            .logo-mobile {
+                height: 2rem; /* 32px - balanced size for mobile */
                 transition: all 0.2s ease;
             }
             
@@ -1138,40 +1159,115 @@
             }
         }
         
-        /* Tablet-specific adjustments */
+        /* Large mobile/small tablet devices */
         @media (min-width: 641px) and (max-width: 768px) {
             .logo-mobile {
-                height: 2.5rem; /* 40px - medium size for tablets */
+                height: 2.25rem; /* 36px - slightly larger for bigger screens */
+            }
+        }
+        
+        /* Tablet devices */
+        @media (min-width: 769px) and (max-width: 1023px) {
+            .logo-mobile {
+                height: 2.75rem; /* 44px - good tablet size */
             }
         }
         
         /* Desktop logo size */
-        @media (min-width: 769px) {
+        @media (min-width: 1024px) {
             .logo-mobile {
-                height: 3rem; /* 48px */
+                height: 3.25rem; /* 52px - professional desktop size */
             }
         }
         
-        @media (min-width: 1024px) {
+        /* Large desktop screens */
+        @media (min-width: 1280px) {
             .logo-mobile {
                 height: 3.5rem; /* 56px - full size for large screens */
+            }
+        }
+        
+        /* PWA standalone mode adjustments */
+        @media (display-mode: standalone) {
+            .logo-mobile {
+                height: calc(100% - 8px);
+                max-height: 2.5rem; /* 40px max in PWA mode */
+                filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+            }
+            
+            nav .flex.justify-between {
+                min-height: 3.5rem;
+                padding: 0.5rem 0;
             }
         }
         
         /* Logo hover effects - more subtle on mobile */
         @media (hover: hover) and (pointer: fine) {
             .logo-mobile:hover {
-                transform: scale(1.05);
-                filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+                transform: scale(1.03);
+                filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.18));
+                transition: all 0.3s ease;
             }
         }
         
-        /* Touch-friendly hover effect for mobile */
+        /* Touch-friendly active effect for mobile */
         @media (hover: none) and (pointer: coarse) {
             .logo-mobile:active {
-                transform: scale(0.98);
-                transition: transform 0.1s ease;
+                transform: scale(0.97);
+                transition: transform 0.15s ease;
+                filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
             }
+        }
+        
+        /* Landscape orientation adjustments for mobile */
+        @media (max-width: 640px) and (orientation: landscape) {
+            .logo-mobile {
+                height: 1.5rem; /* 24px - smaller in landscape to save space */
+            }
+            
+            nav .flex.justify-between {
+                min-height: 2.5rem; /* 40px - compact in landscape */
+            }
+        }
+        
+        /* High DPI/Retina display optimizations */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .logo-mobile {
+                image-rendering: -webkit-optimize-contrast;
+                image-rendering: crisp-edges;
+                filter: drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0.1));
+            }
+        }
+        
+        /* Device-specific logo optimizations */
+        .logo-mobile.mobile-optimized {
+            max-height: 2rem;
+            width: auto;
+        }
+        
+        .logo-mobile.tablet-optimized {
+            max-height: 2.75rem;
+            width: auto;
+        }
+        
+        .logo-mobile.retina-optimized {
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+        
+        .logo-mobile.pwa-logo {
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+            max-height: 2.25rem;
+        }
+        
+        /* Logo loading states */
+        .logo-mobile {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .logo-mobile.loaded {
+            opacity: 1;
         }
         
         .notification-content {
@@ -1383,9 +1479,14 @@
             <div class="flex justify-between items-center h-14 sm:h-16">
                 <div class="flex items-center">
                     <div class="flex items-center">
-                        <!-- Mobile Logo (smaller, optimized) -->
+                        <!-- Mobile Logo (optimized for PWA and mobile devices) -->
                         <a href="index.html" class="flex items-center">
-                            <img src="assets/logo.png" alt="IT Services Freetown Logo" class="h-8 sm:h-10 md:h-12 lg:h-14 w-auto transition-all duration-300 hover:scale-105 logo-mobile">
+                            <img src="assets/logo.png" 
+                                 alt="IT Services Freetown Logo" 
+                                 class="h-8 sm:h-10 md:h-12 lg:h-14 w-auto transition-all duration-300 hover:scale-105 logo-mobile"
+                                 loading="eager"
+                                 decoding="sync"
+                                 fetchpriority="high">
                         </a>
                     </div>
                 </div>
@@ -2953,10 +3054,78 @@
             initContactForm();
             initAutoTracking();
             initSocialProof();
+            initLogoOptimization();
             
             // Initialize PWA functionality
             initPWA();
         });
+
+        // Logo optimization for mobile and PWA
+        function initLogoOptimization() {
+            const logo = document.querySelector('.logo-mobile');
+            if (!logo) return;
+            
+            // Detect PWA mode and add appropriate classes
+            const isPWA = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+            
+            if (isPWA) {
+                console.log('[Logo] PWA mode detected - optimizing logo');
+                document.body.classList.add('pwa-installed');
+                logo.classList.add('pwa-logo');
+            }
+            
+            // Optimize logo loading for mobile
+            function optimizeLogoForDevice() {
+                const isMobile = window.innerWidth <= 768;
+                const isTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
+                const devicePixelRatio = window.devicePixelRatio || 1;
+                
+                // Add device-specific classes
+                logo.classList.toggle('mobile-optimized', isMobile);
+                logo.classList.toggle('tablet-optimized', isTablet);
+                logo.classList.toggle('retina-optimized', devicePixelRatio > 1);
+                
+                console.log('[Logo] Device optimization:', {
+                    isMobile,
+                    isTablet,
+                    devicePixelRatio,
+                    isPWA
+                });
+            }
+            
+            // Initial optimization
+            optimizeLogoForDevice();
+            
+            // Re-optimize on resize (debounced)
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(optimizeLogoForDevice, 150);
+            });
+            
+            // Handle orientation changes
+            window.addEventListener('orientationchange', () => {
+                setTimeout(optimizeLogoForDevice, 100);
+            });
+            
+            // Ensure logo is visible and properly sized
+            logo.addEventListener('load', () => {
+                console.log('[Logo] Logo loaded successfully');
+                logo.classList.add('loaded');
+            });
+            
+            // Handle logo error
+            logo.addEventListener('error', () => {
+                console.warn('[Logo] Logo failed to load');
+                // Add loaded class anyway to show something
+                logo.classList.add('loaded');
+            });
+            
+            // Immediate show if already cached
+            if (logo.complete) {
+                logo.classList.add('loaded');
+            }
+        }
 
         // PWA Installation - Simplified and Clean
         function initPWA() {
