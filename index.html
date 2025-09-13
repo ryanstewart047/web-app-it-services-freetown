@@ -941,6 +941,11 @@
             border-bottom: 2px solid #ff6b00;
         }
         
+        /* PWA Install Banner - Higher z-index than notification banner */
+        #pwa-install-banner {
+            z-index: 10001 !important;
+        }
+        
         .notification-content {
             white-space: nowrap;
             animation: scrollText 30s linear infinite;
@@ -1136,7 +1141,7 @@
     </div>
 
     <!-- PWA Install Banner -->
-    <div id="pwa-install-banner" class="fixed top-12 left-0 right-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 z-40 transform -translate-y-full transition-transform duration-500 ease-out">
+    <div id="pwa-install-banner" class="fixed top-12 left-0 right-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 z-[10000] transform -translate-y-full transition-transform duration-500 ease-out">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             <div class="flex items-center space-x-3">
                 <div class="flex-shrink-0">
