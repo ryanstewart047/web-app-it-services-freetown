@@ -906,6 +906,10 @@ video {
   z-index: 70;
 }
 
+.z-40 {
+  z-index: 40;
+}
+
 .col-span-1 {
   grid-column: span 1 / span 1;
 }
@@ -3602,6 +3606,10 @@ video {
 
   .sm\:h-16 {
     height: 4rem;
+  }
+
+  .sm\:h-12 {
+    height: 3rem;
   }
 
   .sm\:grid-cols-2 {

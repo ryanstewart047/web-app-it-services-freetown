@@ -1281,65 +1281,6 @@
         .logo-mobile.loaded {
             opacity: 1;
         }
-        
-        .notification-content {
-            white-space: nowrap;
-            animation: scrollText 30s linear infinite;
-            display: inline-block;
-            font-weight: 600;
-            font-size: 0.95rem;
-            padding-left: 100%;
-        }
-        
-        @keyframes scrollText {
-            0% {
-                transform: translateX(0);
-            }
-            100% {
-                transform: translateX(-100%);
-            }
-        }
-        
-        .notification-banner:hover .notification-content {
-            animation-play-state: paused;
-        }
-        
-        .banner-icon {
-            margin-right: 0.5rem;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-            50% {
-                opacity: 0.8;
-                transform: scale(1.1);
-            }
-        }
-        
-        /* Adjust body padding to account for fixed banner */
-        body {
-            padding-top: 3rem;
-        }
-        
-        /* Mobile responsive banner */
-        @media (max-width: 768px) {
-            .notification-banner {
-                padding: 0.5rem 0;
-                font-size: 0.85rem;
-            }
-            
-            body {
-                padding-top: 2.5rem;
-            }
-            
-            .notification-content {
-                animation-duration: 25s;
-            }
-        }
 
         /* Form Validation Styles */
         .error {
@@ -1486,7 +1427,7 @@
     </div>
 
     <!-- Navigation -->
-    <nav class="bg-white/95 backdrop-blur-md shadow-lg sticky top-12 z-50 border-b border-white/20">
+    <nav class="bg-white/95 backdrop-blur-md shadow-lg sticky top-0 z-50 border-b border-white/20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-14 sm:h-16">
                 <div class="flex items-center">
