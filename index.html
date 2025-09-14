@@ -2007,17 +2007,53 @@
                     </div>
 
                     <!-- Quick Actions -->
-                    <div class="bg-white rounded-2xl p-8 shadow-lg">
-                        <h3 class="text-xl font-bold text-gray-900 mb-4">Quick Actions</h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <a href="book-appointment.html" class="bg-red-600 hover:bg-red-700 text-white p-4 rounded-lg text-center transition-colors duration-300 flex flex-col items-center justify-center min-h-[100px] shadow-md hover:shadow-lg">
-                                <i class="fas fa-calendar-plus mb-2 text-xl"></i>
-                                <span class="font-semibold">Book Repair</span>
+                    <div class="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-8 shadow-xl border border-gray-100">
+                        <div class="text-center mb-6">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-2">Quick Actions</h3>
+                            <p class="text-gray-600 text-sm">Get started with our most popular services</p>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <!-- Book Repair Button -->
+                            <a href="book-appointment.html" class="group relative overflow-hidden bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white p-6 rounded-xl text-center transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+                                <div class="absolute inset-0 bg-gradient-to-r from-red-400 to-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                <div class="relative z-10">
+                                    <div class="bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-white/30 transition-colors duration-300">
+                                        <i class="fas fa-calendar-plus text-2xl text-white"></i>
+                                    </div>
+                                    <h4 class="font-bold text-lg mb-2">Book Repair</h4>
+                                    <p class="text-red-100 text-sm">Schedule your device repair appointment</p>
+                                </div>
                             </a>
-                            <a href="track-repair.html" class="text-white p-4 rounded-lg text-center transition-colors duration-300 flex flex-col items-center justify-center min-h-[100px] shadow-md hover:shadow-lg" style="background-color: #040e40;" onmouseover="this.style.backgroundColor='#1e3a8a'" onmouseout="this.style.backgroundColor='#040e40'">
-                                <i class="fas fa-search mb-2 text-xl"></i>
-                                <span class="font-semibold">Track Repair</span>
+
+                            <!-- Track Repair Button -->
+                            <a href="track-repair.html" class="group relative overflow-hidden text-white p-6 rounded-xl text-center transition-all duration-300 transform hover:scale-105 hover:shadow-2xl" style="background: linear-gradient(135deg, #040e40 0%, #1e3a8a 100%);" onmouseover="this.style.background='linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)'" onmouseout="this.style.background='linear-gradient(135deg, #040e40 0%, #1e3a8a 100%)'">
+                                <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);"></div>
+                                <div class="relative z-10">
+                                    <div class="bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-white/30 transition-colors duration-300">
+                                        <i class="fas fa-search text-2xl text-white"></i>
+                                    </div>
+                                    <h4 class="font-bold text-lg mb-2">Track Repair</h4>
+                                    <p class="text-blue-100 text-sm">Check your repair status in real-time</p>
+                                </div>
                             </a>
+                        </div>
+                        
+                        <!-- Additional Quick Links -->
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <div class="flex flex-wrap justify-center gap-3">
+                                <a href="troubleshoot.html" class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors duration-300">
+                                    <i class="fas fa-tools mr-2 text-gray-600"></i>
+                                    AI Troubleshoot
+                                </a>
+                                <a href="chat.html" class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors duration-300">
+                                    <i class="fas fa-comments mr-2 text-gray-600"></i>
+                                    Live Chat
+                                </a>
+                                <a href="tel:+23233399391" class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors duration-300">
+                                    <i class="fas fa-phone mr-2 text-gray-600"></i>
+                                    Call Now
+                                </a>
+                            </div>
                         </div>
                     </div>
                     
