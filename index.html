@@ -280,7 +280,7 @@
     <style>
         /* Modern Button Styles with Enhanced Effects */
         .btn-primary {
-            background: linear-gradient(135deg, #040e40 0%, #040e40 100%);
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
             color: white;
             padding: 0.875rem 2rem;
             border-radius: 0.75rem;
@@ -289,7 +289,7 @@
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(4, 14, 64, 0.2);
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.2);
             border: none;
             cursor: pointer;
         }
@@ -311,17 +311,17 @@
         
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(4, 14, 64, 0.3);
-            background: linear-gradient(135deg, #040e40 0%, #040e40 100%);
+            box-shadow: 0 8px 25px rgba(220, 38, 38, 0.3);
+            background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
         }
         
         .btn-primary:active {
             transform: translateY(0);
-            box-shadow: 0 4px 15px rgba(4, 14, 64, 0.2);
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.2);
         }
 
         .btn-secondary {
-            background: linear-gradient(135deg, #ff0000 0%, #ff0000 100%);
+            background: linear-gradient(135deg, #040e40 0%, #1e3a8a 100%);
             color: white;
             padding: 0.875rem 2rem;
             border-radius: 0.75rem;
@@ -330,7 +330,7 @@
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(255, 0, 0, 0.2);
+            box-shadow: 0 4px 15px rgba(4, 14, 64, 0.2);
             border: none;
             cursor: pointer;
         }
@@ -352,13 +352,13 @@
         
         .btn-secondary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 0, 0, 0.3);
-            background: linear-gradient(135deg, #ff0000 0%, #ff0000 100%);
+            box-shadow: 0 8px 25px rgba(4, 14, 64, 0.3);
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
         }
         
         .btn-secondary:active {
             transform: translateY(0);
-            box-shadow: 0 4px 15px rgba(255, 0, 0, 0.2);
+            box-shadow: 0 4px 15px rgba(4, 14, 64, 0.2);
         }
         
         .card {
@@ -1044,8 +1044,8 @@
         }
         
         .pwa-install-btn {
-            background: white;
-            color: #4F46E5;
+            background: #dc2626;
+            color: white;
             border: none;
             padding: 8px 16px;
             border-radius: 6px;
@@ -1056,7 +1056,7 @@
         }
         
         .pwa-install-btn:hover {
-            background: #F8FAFC;
+            background: #b91c1c;
             transform: translateY(-1px);
         }
         
@@ -1511,7 +1511,7 @@
                     <a href="#contact" class="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium transition-colors duration-200">Contact</a>
                     
                     <button onclick="showServicesPopup()" class="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium transition-colors duration-200">Services Info</button>
-                    <a href="book-appointment.html" class="btn-primary text-sm px-4 py-2">Book Now</a>
+                    <a href="book-appointment.html" class="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-lg font-semibold transition-colors duration-300">Book Now</a>
                 </div>
                 <!-- Mobile menu button -->
                 <div class="md:hidden flex items-center">
@@ -1533,7 +1533,7 @@
                 <a href="#contact" class="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium">Contact</a>
                 <button onclick="showServicesPopup()" class="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium w-full text-left">Services Info</button>
                 
-                <a href="book-appointment.html" class="btn-primary text-sm px-4 py-2 w-full text-center mt-4">Book Now</a>
+                <a href="book-appointment.html" class="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-lg font-semibold transition-colors duration-300 w-full text-center mt-4">Book Now</a>
             </div>
         </div>
     </nav>
@@ -1563,12 +1563,13 @@
                     <!-- Buttons -->
                     <div class="hero-buttons justify-start">
                         <a href="book-appointment.html" 
-                           class="btn-primary text-lg px-8 py-4 text-center"
+                           class="bg-red-600 hover:bg-red-700 text-white text-lg px-8 py-4 text-center rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
                            onclick="trackEvent('click', 'hero', 'book_repair_now')">
                            <i class="fas fa-calendar-plus mr-2"></i>Book Repair Now
                         </a>
                         <a href="track-repair.html" 
-                           class="btn-secondary text-lg px-8 py-4 text-center"
+                           class="bg-white hover:bg-gray-100 text-lg px-8 py-4 text-center rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-lg border-2 border-white"
+                           style="color: #040e40;"
                            onclick="trackEvent('click', 'hero', 'track_repair')">
                            <i class="fas fa-search mr-2"></i>Track Your Repair
                         </a>
@@ -1708,7 +1709,7 @@
                                 <span>Performance optimization</span>
                             </li>
                         </ul>
-                        <a href="learn-more.html" class="rounded-full px-5 py-2.5 bg-white shadow-md font-medium hover:text-white transition-all duration-300 flex items-center justify-center group-hover:shadow-lg" style="color: #040e40; border: 2px solid #040e40;" onmouseover="this.style.backgroundColor='#040e40'" onmouseout="this.style.backgroundColor='white'">
+                        <a href="learn-more.html" class="rounded-full px-5 py-2.5 bg-white shadow-md font-medium text-white transition-all duration-300 flex items-center justify-center group-hover:shadow-lg" style="color: #040e40; border: 2px solid #040e40; background-color: white;" onmouseover="this.style.backgroundColor='#040e40'; this.style.color='white';" onmouseout="this.style.backgroundColor='white'; this.style.color='#040e40';">
                             Learn More <i class="fas fa-arrow-right ml-2 transition-transform duration-300 group-hover:translate-x-1"></i>
                         </a>
                     </div>
@@ -1745,7 +1746,7 @@
                                 <span>Software restoration</span>
                             </li>
                         </ul>
-                        <a href="learn-more.html" class="rounded-full px-5 py-2.5 bg-white shadow-md text-red-600 font-medium hover:bg-red-600 hover:text-white transition-all duration-300 flex items-center justify-center group-hover:shadow-lg">
+                        <a href="learn-more.html" class="rounded-full px-5 py-2.5 bg-white shadow-md font-medium text-white transition-all duration-300 flex items-center justify-center group-hover:shadow-lg" style="color: #040e40; border: 2px solid #040e40; background-color: white;" onmouseover="this.style.backgroundColor='#040e40'; this.style.color='white';" onmouseout="this.style.backgroundColor='white'; this.style.color='#040e40';">
                             Learn More <i class="fas fa-arrow-right ml-2 transition-transform duration-300 group-hover:translate-x-1"></i>
                         </a>
                     </div>
@@ -1782,7 +1783,7 @@
                                 <span>System integration</span>
                             </li>
                         </ul>
-                        <a href="learn-more.html" class="rounded-full px-5 py-2.5 bg-white shadow-md text-red-600 font-medium hover:text-white transition-all duration-300 flex items-center justify-center group-hover:shadow-lg" style="border: 2px solid #040e40; background-color: white;" onmouseover="this.style.backgroundColor='#040e40'" onmouseout="this.style.backgroundColor='white'">
+                        <a href="learn-more.html" class="rounded-full px-5 py-2.5 bg-white shadow-md font-medium transition-all duration-300 flex items-center justify-center group-hover:shadow-lg" style="color: #040e40; border: 2px solid #040e40; background-color: white;" onmouseover="this.style.backgroundColor='#040e40'; this.style.color='white';" onmouseout="this.style.backgroundColor='white'; this.style.color='#040e40';">
                             Learn More <i class="fas fa-arrow-right ml-2 transition-transform duration-300 group-hover:translate-x-1"></i>
                         </a>
                     </div>
@@ -1942,8 +1943,8 @@
                 Book an appointment now and experience the future of IT repair services
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="book-appointment.html" class="bg-white text-primary-950 px-6 sm:px-8 py-4 rounded-xl font-semibold hover:bg-gray-100 transition-all duration-300 hover:scale-105 hover:shadow-2xl text-center scroll-animate fade-in-left delay-100 pulse-on-scroll">Schedule Appointment</a>
-                <a href="troubleshoot.html" class="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white px-6 sm:px-8 py-4 rounded-xl font-semibold hover:bg-white/20 hover:border-white/50 transition-all duration-300 hover:scale-105 text-center scroll-animate fade-in-right delay-200">
+                <a href="book-appointment.html" class="bg-white text-primary-950 px-6 sm:px-8 py-4 rounded-xl font-semibold hover:bg-gray-100 transition-all duration-300 hover:scale-105 hover:shadow-2xl text-center scroll-animate fade-in-left delay-100 pulse-on-scroll" style="color: #040e40;">Schedule Appointment</a>
+                <a href="troubleshoot.html" class="border-2 bg-red-600 hover:bg-red-700 text-white px-6 sm:px-8 py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 text-center scroll-animate fade-in-right delay-200">
                     Try AI Troubleshooting
                 </a>
             </div>
@@ -2009,11 +2010,11 @@
                     <div class="bg-white rounded-2xl p-8 shadow-lg">
                         <h3 class="text-xl font-bold text-gray-900 mb-4">Quick Actions</h3>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <a href="book-appointment.html" class="bg-primary-600 text-white p-4 rounded-lg text-center hover:bg-primary-700 transition-colors duration-300">
+                            <a href="book-appointment.html" class="bg-red-600 hover:bg-red-700 text-white p-4 rounded-lg text-center transition-colors duration-300">
                                 <i class="fas fa-calendar-plus mb-2 text-lg block"></i>
                                 Book Repair
                             </a>
-                            <a href="track-repair.html" class="bg-gray-600 text-white p-4 rounded-lg text-center hover:bg-gray-700 transition-colors duration-300">
+                            <a href="track-repair.html" class="text-white p-4 rounded-lg text-center transition-colors duration-300" style="background-color: #040e40;" onmouseover="this.style.backgroundColor='#1e3a8a'" onmouseout="this.style.backgroundColor='#040e40'">
                                 <i class="fas fa-search mb-2 text-lg block"></i>
                                 Track Repair
                             </a>
@@ -2219,7 +2220,7 @@
                         <input type="hidden" name="_next" value="https://itservicesfreetown.com/index.html#contact">
 
                         <button type="submit" id="submitBtn" 
-                                class="w-full bg-primary-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-primary-700 focus:ring-4 focus:ring-primary-200 transition-all duration-300 transform hover:scale-105">
+                                class="w-full text-white py-4 px-6 rounded-lg font-semibold focus:ring-4 focus:ring-red-200 transition-all duration-300 transform hover:scale-105" style="background-color: #dc2626;" onmouseover="this.style.backgroundColor='#b91c1c'" onmouseout="this.style.backgroundColor='#dc2626'">
                             <span class="submit-text">
                                 <i class="fas fa-paper-plane mr-2"></i>Send Message
                             </span>
@@ -2337,7 +2338,7 @@
                 </div>
                 <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
                     <button onclick="openCookieSettings()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">Settings</button>
-                    <button onclick="acceptCookies()" class="px-6 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors">Accept All</button>
+                    <button onclick="acceptCookies()" class="px-6 py-2 text-sm font-medium text-white rounded-lg transition-colors" style="background-color: #dc2626;" onmouseover="this.style.backgroundColor='#b91c1c'" onmouseout="this.style.backgroundColor='#dc2626'">Accept All</button>
                 </div>
             </div>
         </div>
@@ -2438,7 +2439,7 @@
                 </div>
                 <div class="flex space-x-3 mt-8">
                     <button onclick="savePreferences()" class="flex-1 bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors">Save Preferences</button>
-                    <button onclick="acceptAllCookies()" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors">Accept All</button>
+                    <button onclick="acceptAllCookies()" class="flex-1 text-white py-3 rounded-lg font-medium transition-colors" style="background-color: #040e40;" onmouseover="this.style.backgroundColor='#1e3a8a'" onmouseout="this.style.backgroundColor='#040e40'">Accept All</button>
                 </div>
             </div>
         </div>
@@ -3416,7 +3417,7 @@
         
         function showUpdateNotification(registration) {
             const updateDiv = document.createElement('div');
-            updateDiv.className = 'fixed bottom-4 left-4 right-4 bg-blue-600 text-white p-4 rounded-lg shadow-lg z-50 max-w-md mx-auto';
+            updateDiv.className = 'fixed bottom-4 left-4 right-4 text-white p-4 rounded-lg shadow-lg z-50 max-w-md mx-auto' + ' ' + 'bg-red-600';
             updateDiv.innerHTML = `
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-3">
