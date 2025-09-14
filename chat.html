@@ -436,7 +436,7 @@
             top: 0;
             left: 0;
             right: 0;
-            z-index: 9999;
+            z-index: 50;
             box-shadow: 0 2px 10px rgba(255, 140, 0, 0.3);
             overflow: hidden;
             border-bottom: 2px solid #ff6b00;
@@ -485,7 +485,7 @@
             padding-top: 3rem;
         }
         
-        /* Ensure navigation is properly positioned after banner */
+        /* Ensure navigation is properly positioned and sticky */
         nav {
             margin-top: 0;
         }
@@ -499,6 +499,10 @@
             
             body {
                 padding-top: 2.5rem;
+            }
+            
+            nav {
+                top: 10px !important;
             }
             
             .notification-content {
@@ -545,7 +549,7 @@
     </div>
 
     <!-- Navigation -->
-    <nav class="bg-white/95 backdrop-blur-md shadow-lg sticky top-12 z-50 border-b border-white/20">
+    <nav class="bg-white/95 backdrop-blur-md shadow-lg sticky top-12 z-40 border-b border-white/20" style="position: -webkit-sticky; position: sticky;">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-14 sm:h-16">
                 <div class="flex items-center">
