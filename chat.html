@@ -862,7 +862,9 @@
                         addMessage(response, 'agent');
                     }
                 } else {
+                    console.log('Getting AI response for message:', message);
                     const response = await getAIResponse(message);
+                    console.log('Received response:', response);
                     addMessage(response, 'ai');
                 }
             }, 1500 + Math.random() * 1000);
@@ -899,55 +901,40 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        // AI responses - now connected to Gemini API
+        // AI responses - now connected to Gemini API via backend
         async function getAIResponse(message) {
             try {
-                const apiKey = 'AIzaSyDO4p7vpNbUuiTbvUIJYhUWnfLZOAzwQiU';
-                const prompt = `You are a helpful IT support assistant for IT Services Freetown, a computer and mobile phone repair service in Sierra Leone. 
-
-Customer message: "${message}"
-
-Please provide helpful, professional responses about:
-- Computer repair services
-- Mobile phone repair
-- Data recovery
-- Network setup
-- Software support
-- Hardware troubleshooting
-- IT consultation
-
-Keep responses concise but informative. Always be friendly and professional. If you cannot help with a specific technical issue, recommend booking an appointment or visiting the shop.
-
-Device context: ${localStorage.getItem('deviceType') || 'unknown'} ${localStorage.getItem('deviceModel') || ''}
-
-Response:`;
-
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+                console.log('Sending message to AI:', message);
+                
+                const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        contents: [{
-                            parts: [{
-                                text: prompt
-                            }]
-                        }]
+                        message: message,
+                        deviceType: localStorage.getItem('deviceType') || 'unknown',
+                        deviceModel: localStorage.getItem('deviceModel') || '',
+                        sessionId: generateSessionId()
                     })
                 });
 
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const data = await response.json();
+                console.log('API Response:', data);
                 
-                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                    const aiResponse = data.candidates[0].content.parts[0].text;
-                    console.log('Gemini AI Response:', aiResponse);
-                    return aiResponse;
+                if (data.success && data.response) {
+                    return data.response;
                 } else {
-                    console.warn('Unexpected Gemini response format:', data);
+                    console.warn('Unexpected API response format:', data);
                     return getFallbackResponse(message);
                 }
             } catch (error) {
-                console.error('Gemini AI API Error:', error);
+                console.error('Chat API Error:', error);
+                console.log('Falling back to predefined responses');
                 return getFallbackResponse(message);
             }
         }
@@ -956,13 +943,68 @@ Response:`;
         function getFallbackResponse(message) {
             const lowerMessage = message.toLowerCase();
             
-            for (const [key, response] of Object.entries(aiResponses)) {
-                if (key !== 'default' && lowerMessage.includes(key.split(' ')[0])) {
-                    return response;
-                }
+            // Greeting responses
+            if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+                return 'Hello! Welcome to IT Services Freetown chat support. I\'m here to help with your computer or mobile device issues. What can I assist you with today?';
             }
             
-            return aiResponses.default;
+            // Computer issues
+            if (lowerMessage.includes('computer') || lowerMessage.includes('laptop') || lowerMessage.includes('pc')) {
+                if (lowerMessage.includes('won\'t start') || lowerMessage.includes('not starting') || lowerMessage.includes('dead')) {
+                    return 'Let\'s troubleshoot your computer startup issue! First, check if the power cable is securely connected and the power outlet is working. Try holding the power button for 10 seconds, then press it again. If you see any lights or hear fans, let me know!';
+                }
+                if (lowerMessage.includes('slow') || lowerMessage.includes('freeze') || lowerMessage.includes('hang')) {
+                    return 'Slow computers can be frustrating! This could be due to: 1) Too many startup programs, 2) Low storage space, 3) Malware, or 4) Hardware issues. Try restarting your computer first. If the problem persists, I recommend bringing it to our shop for a free diagnostic.';
+                }
+                if (lowerMessage.includes('virus') || lowerMessage.includes('malware')) {
+                    return 'Virus infections can be serious! Don\'t enter any personal information until it\'s cleaned. We offer professional virus removal services with a guarantee. Our shop is located at 1 Regent Highway, Jui Junction. Would you like to schedule an appointment?';
+                }
+                return 'I can help with computer issues! Whether it\'s hardware problems, software glitches, or performance issues, our technicians have experience with all major brands. What specific problem are you experiencing?';
+            }
+            
+            // Mobile phone issues
+            if (lowerMessage.includes('phone') || lowerMessage.includes('mobile') || lowerMessage.includes('cell')) {
+                if (lowerMessage.includes('battery') || lowerMessage.includes('drain') || lowerMessage.includes('charge')) {
+                    return 'Battery issues are common! Try these steps: 1) Close background apps, 2) Lower screen brightness, 3) Turn off location services temporarily, 4) Restart your phone. If your battery drains very quickly or won\'t charge, you might need a battery replacement. We stock original batteries for most phone models.';
+                }
+                if (lowerMessage.includes('screen') || lowerMessage.includes('crack') || lowerMessage.includes('broken')) {
+                    return 'We specialize in screen repairs! We can fix cracked screens, display issues, and touch problems for most phone brands. We use high-quality replacement parts with a 1-month warranty. Typical repair time is 2-4 hours. Would you like to book an appointment?';
+                }
+                if (lowerMessage.includes('water') || lowerMessage.includes('wet') || lowerMessage.includes('liquid')) {
+                    return 'Water damage needs immediate attention! Turn off your phone RIGHT NOW and don\'t try to charge it. Remove the battery if possible. Bring it to our shop ASAP - we have specialized equipment for water damage recovery. Time is critical for saving your data and device!';
+                }
+                return 'I can help with mobile phone repairs! We fix screens, batteries, charging ports, cameras, and more. We work on iPhones, Samsung, Tecno, Infinix, and other popular brands. What\'s wrong with your phone?';
+            }
+            
+            // Service inquiries
+            if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('how much')) {
+                return 'Repair costs vary depending on the device and issue. We offer free diagnostics to give you an accurate quote. Common repairs: Phone screen replacement (Le 200,000-400,000), Computer virus removal (Le 150,000), Battery replacement (Le 100,000-250,000). Visit us for a free estimate!';
+            }
+            
+            if (lowerMessage.includes('appointment') || lowerMessage.includes('book') || lowerMessage.includes('schedule')) {
+                return 'You can book an appointment online through our website or call us at +232 33 399 391. We\'re open Monday-Saturday, 8AM-6PM. Walk-ins are welcome, but appointments get priority service. What type of repair do you need?';
+            }
+            
+            if (lowerMessage.includes('location') || lowerMessage.includes('where') || lowerMessage.includes('address')) {
+                return 'We\'re located at 1 Regent Highway, Jui Junction, Freetown. We\'re easy to find - look for our IT Services sign. Open Monday-Saturday, 8AM-6PM. You can also call us at +232 33 399 391 for directions.';
+            }
+            
+            if (lowerMessage.includes('warranty') || lowerMessage.includes('guarantee')) {
+                return 'All our repairs come with a 1-month warranty covering parts and labor. If the same issue occurs within 30 days, we\'ll fix it free of charge. We use quality replacement parts and stand behind our work!';
+            }
+            
+            // Human agent request
+            if (lowerMessage.includes('human') || lowerMessage.includes('agent') || lowerMessage.includes('person') || lowerMessage.includes('technician')) {
+                return 'I\'ll connect you with one of our human technicians right away. Please hold while I transfer you to a live agent who can provide personalized assistance.';
+            }
+            
+            // Data recovery
+            if (lowerMessage.includes('data') || lowerMessage.includes('files') || lowerMessage.includes('recover') || lowerMessage.includes('lost')) {
+                return 'Data recovery is one of our specialties! Whether it\'s a crashed hard drive, deleted files, or corrupted storage, we have professional tools and expertise. Success rates are highest when you stop using the device immediately. Bring it in for a free evaluation.';
+            }
+            
+            // Default response
+            return 'I\'m here to help with your IT needs! I can assist with computer repairs, mobile phone issues, troubleshooting, and booking appointments. Could you tell me more about the specific problem you\'re experiencing? If you need immediate assistance, I can also connect you with a human technician.';
         }
 
         // Generate unique session ID
