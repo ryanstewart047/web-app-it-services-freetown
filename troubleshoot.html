@@ -238,104 +238,10 @@
         #menu-icon.hide {
             display: none !important;
         }
-        
-        /* Notification Banner Styles */
-        .notification-banner {
-            background: linear-gradient(135deg, #ff8c00 0%, #ff6b00 50%, #ff8c00 100%);
-            color: white;
-            padding: 0.75rem 0;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 9999;
-            box-shadow: 0 2px 10px rgba(255, 140, 0, 0.3);
-            overflow: hidden;
-            border-bottom: 2px solid #ff6b00;
-        }
-        
-        .notification-content {
-            white-space: nowrap;
-            animation: scrollText 30s linear infinite;
-            display: inline-block;
-            font-weight: 600;
-            font-size: 0.95rem;
-            padding-left: 100%;
-        }
-        
-        @keyframes scrollText {
-            0% {
-                transform: translateX(0);
-            }
-            100% {
-                transform: translateX(-100%);
-            }
-        }
-        
-        .notification-banner:hover .notification-content {
-            animation-play-state: paused;
-        }
-        
-        .banner-icon {
-            margin-right: 0.5rem;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-            50% {
-                opacity: 0.8;
-                transform: scale(1.1);
-            }
-        }
-        
-        /* Adjust body padding to account for fixed banner */
-        body {
-            padding-top: 3rem;
-        }
-        
-        /* Mobile responsive banner */
-        @media (max-width: 768px) {
-            .notification-banner {
-                padding: 0.5rem 0;
-                font-size: 0.85rem;
-            }
-            
-            body {
-                padding-top: 2.5rem;
-            }
-            
-            .notification-content {
-                animation-duration: 25s;
-            }
-        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <!-- Notification Banner -->
-    <div class="notification-banner">
-        <div class="notification-content">
-            <i class="fas fa-bullhorn banner-icon"></i>
-            🔧 SPECIAL OFFER: 20% OFF All Mobile Screen Repairs This Week! 
-            <i class="fas fa-mobile-alt"></i>
-            📱 Professional Repair Services Available 
-            <i class="fas fa-tools"></i>
-            💻 Free Diagnostics on All Computer Repairs 
-            <i class="fas fa-laptop"></i>
-            🎯 Same Day Service Available 
-            <i class="fas fa-clock"></i>
-            📞 Call +232 33 399 391 for Immediate Support 
-            <i class="fas fa-phone"></i>
-            🏆 Trusted by 1000+ Customers in Freetown 
-            <i class="fas fa-star"></i>
-            ⚡ Quick Turnaround Time Guaranteed 
-            <i class="fas fa-bolt"></i>
-            🛡️ 6 Month Warranty on All Repairs 
-        </div>
-    </div>
+
 
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay">
