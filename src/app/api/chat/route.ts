@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { prisma } from '@/lib/prisma'
+import { knowledgeBase } from '@/lib/knowledge-base'
 
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
@@ -18,37 +19,51 @@ export async function POST(request: NextRequest) {
 
     // Check if we have API key configured
     if (!process.env.GEMINI_API_KEY) {
+      // Try knowledge base first for contextual response
+      const contextualResponse = knowledgeBase.getContextualResponse(message, deviceType)
+      if (contextualResponse) {
+        return NextResponse.json({
+          success: true,
+          response: contextualResponse,
+          isAI: false,
+          source: 'knowledge_base'
+        })
+      }
+      
       return NextResponse.json({
         success: true,
         response: getFallbackResponse(message),
-        isAI: false
+        isAI: false,
+        source: 'fallback'
       })
     }
 
     try {
+      // Get knowledge base context for the query
+      const knowledgeContext = knowledgeBase.generateAIContext(message, deviceType)
+      
       // Create system prompt based on context
       let systemPrompt = `You are a helpful IT support assistant for IT Services Freetown, a computer and mobile repair shop in Freetown, Sierra Leone. 
-      
-      You specialize in:
-      - Computer repairs (desktops, laptops)
-      - Mobile device repairs (smartphones, tablets)
-      - Basic troubleshooting
-      - Hardware diagnostics
-      - Software issues
-      
-      Guidelines:
-      - Be friendly, professional, and empathetic
-      - Provide practical, step-by-step troubleshooting advice
-      - If the issue seems complex or requires physical inspection, suggest booking an appointment
-      - If you can't help or the customer needs immediate assistance, offer to connect them with a human agent
-      - Keep responses concise but helpful (under 200 words)
-      - Use simple language that non-technical users can understand
-      
-      Business information:
-      - Location: 1 Regent Highway, Jui Junction, Freetown
-      - Phone: +232 33 399 391
-      - Email: support@itservicesfreetown.com
-      - Hours: Mon-Sat 8AM-6PM`
+
+You have access to a comprehensive knowledge base with frequently asked questions, troubleshooting guides, and business information. Use this information to provide accurate, helpful responses.
+
+${knowledgeContext}
+
+Guidelines:
+- Use the knowledge base information provided above when relevant
+- Be friendly, professional, and empathetic
+- Provide practical, step-by-step troubleshooting advice
+- If the issue seems complex or requires physical inspection, suggest booking an appointment
+- If you can't help or the customer needs immediate assistance, offer to connect them with a human agent
+- Keep responses concise but helpful (under 300 words)
+- Use simple language that non-technical users can understand
+- When referencing business information, use the exact details provided in the knowledge base
+
+Business information:
+- Location: 1 Regent Highway, Jui Junction, Freetown
+- Phone: +232 33 399 391
+- Email: support@itservicesfreetown.com
+- Hours: Mon-Sat 8AM-6PM`
 
       if (deviceType && deviceModel) {
         systemPrompt += `\n\nCustomer's device: ${deviceType} - ${deviceModel}`
@@ -129,11 +144,23 @@ export async function POST(request: NextRequest) {
     } catch (geminiError) {
       console.error('Gemini API error:', geminiError)
       
-      // Return fallback response if Gemini fails
+      // Try knowledge base first for contextual response
+      const contextualResponse = knowledgeBase.getContextualResponse(message, deviceType)
+      if (contextualResponse) {
+        return NextResponse.json({
+          success: true,
+          response: contextualResponse,
+          isAI: false,
+          source: 'knowledge_base'
+        })
+      }
+      
+      // Return fallback response if Gemini fails and no knowledge base match
       return NextResponse.json({
         success: true,
         response: getFallbackResponse(message),
-        isAI: false
+        isAI: false,
+        source: 'fallback'
       })
     }
 

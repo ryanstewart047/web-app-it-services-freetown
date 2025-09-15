@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { knowledgeBase } from '@/lib/knowledge-base';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
@@ -15,18 +16,60 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if we have a direct troubleshooting guide in our knowledge base
+    const troubleshootingGuide = knowledgeBase.getTroubleshootingGuide(deviceType, issue)
+    if (troubleshootingGuide && !process.env.GEMINI_API_KEY) {
+      // Return structured troubleshooting guide from knowledge base
+      let response = `# Troubleshooting Guide: ${deviceType}\n\n`
+      response += `## Issue: ${issue}\n\n`
+      response += `**Safety Level:** ${troubleshootingGuide.safety_level}\n`
+      response += `**Difficulty:** ${troubleshootingGuide.difficulty}\n`
+      if (troubleshootingGuide.tools_needed.length > 0) {
+        response += `**Tools Needed:** ${troubleshootingGuide.tools_needed.join(', ')}\n`
+      }
+      response += `\n## Troubleshooting Steps\n\n`
+      
+      troubleshootingGuide.steps.forEach(step => {
+        response += `${step.step}. **${step.action}**\n`
+        response += `   ${step.description}\n`
+        if (step.warning) {
+          response += `   ⚠️ **Warning:** ${step.warning}\n`
+        }
+        response += '\n'
+      })
+      
+      response += `## When to Stop\n${troubleshootingGuide.when_to_stop}\n\n`
+      response += `## Professional Help Needed\n${troubleshootingGuide.professional_help_needed}`
+      
+      return NextResponse.json({
+        success: true,
+        deviceType,
+        issue,
+        troubleshootingSteps: response,
+        timestamp: new Date().toISOString(),
+        source: 'knowledge_base'
+      })
+    }
+
     // Initialize Gemini model
     const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
+    // Get knowledge base context
+    const knowledgeContext = knowledgeBase.generateAIContext(issue, deviceType)
+
     // Create detailed prompt for troubleshooting
     const prompt = `
-As an expert IT technician specializing in ${deviceType} repairs, provide troubleshooting steps for the following issue:
+As an expert IT technician for IT Services Freetown specializing in ${deviceType} repairs, provide troubleshooting steps for the following issue.
+
+You have access to our comprehensive knowledge base with proven troubleshooting procedures:
+
+${knowledgeContext}
 
 Device Type: ${deviceType}
 Issue: ${issue}
 ${symptoms ? `Symptoms: ${symptoms}` : ''}
 
-Please provide:
+Using the knowledge base information above when relevant, please provide:
 1. Initial diagnosis of the likely cause
 2. Step-by-step troubleshooting instructions (numbered list)
 3. What tools or materials might be needed
@@ -35,6 +78,7 @@ Please provide:
 
 Keep the response practical, clear, and focused on actionable steps.
 Format the response with clear headings and bullet points.
+Reference our shop (IT Services Freetown, 1 Regent Highway, Jui Junction, Freetown, +232 33 399 391) for professional assistance when needed.
 `;
 
     const result = await model.generateContent(prompt);
