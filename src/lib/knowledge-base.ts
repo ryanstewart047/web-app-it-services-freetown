@@ -53,10 +53,16 @@ class KnowledgeBase {
     try {
       const knowledgePath = path.join(process.cwd(), 'knowledge')
       
+      // Clear any potential cache and reload files
+      delete require.cache[path.join(knowledgePath, 'faq.json')]
+      delete require.cache[path.join(knowledgePath, 'business_info.json')]
+      
       // Load FAQ data
       const faqPath = path.join(knowledgePath, 'faq.json')
       if (fs.existsSync(faqPath)) {
-        this.faqData = JSON.parse(fs.readFileSync(faqPath, 'utf8'))
+        const faqContent = fs.readFileSync(faqPath, 'utf8')
+        this.faqData = JSON.parse(faqContent)
+        console.log('Loaded FAQ data with', this.faqData.categories?.length || 0, 'categories')
       }
 
       // Load business info
@@ -83,28 +89,156 @@ class KnowledgeBase {
   public searchFAQ(query: string): KnowledgeBaseItem[] {
     if (!this.faqData) return []
 
-    const results: KnowledgeBaseItem[] = []
+    const results: Array<KnowledgeBaseItem & { score: number }> = []
     const queryLower = query.toLowerCase()
+    const queryWords = queryLower.split(/\s+/).map(word => word.replace(/[^\w]/g, '')).filter(word => word.length > 2)
 
     for (const category of this.faqData.categories) {
       for (const item of category.items) {
-        // Check if query matches keywords or question
-        const matchesKeywords = item.keywords.some((keyword: string) => 
+        let score = 0
+
+        // Check for exact question match (highest priority)
+        if (item.question.toLowerCase() === queryLower) {
+          score += 100
+        }
+
+        // Enhanced keyword matching with specificity prioritization
+        const keywordMatches = item.keywords.filter((keyword: string) => 
           queryLower.includes(keyword.toLowerCase()) || keyword.toLowerCase().includes(queryLower)
         )
-        const matchesQuestion = item.question.toLowerCase().includes(queryLower)
-        const matchesAnswer = item.answer.toLowerCase().includes(queryLower)
+        score += keywordMatches.length * 10
 
-        if (matchesKeywords || matchesQuestion || matchesAnswer) {
+        // Question title matches get high score
+        if (item.question.toLowerCase().includes(queryLower)) {
+          score += 15
+        }
+
+        // Partial question matches
+        queryWords.forEach(word => {
+          if (item.question.toLowerCase().includes(word)) {
+            score += 4
+          }
+        })
+
+        // Answer content matches get lower score
+        queryWords.forEach(word => {
+          if (item.answer.toLowerCase().includes(word)) {
+            score += 1
+          }
+        })
+
+        // Detect if query is asking about specific device/service
+        const specificTerms = ['phone', 'phones', 'mobile', 'smartphone', 'cell', 'tablet', 'ipad', 'computer', 'laptop', 'pc', 'mac']
+        const repairTerms = ['repair', 'fix', 'broken', 'issue', 'problem']
+        const queryHasSpecific = specificTerms.some(term => queryLower.includes(term))
+        const queryHasRepair = repairTerms.some(term => queryLower.includes(term))
+        
+        // Check if this FAQ item is about specific devices/services
+        const itemIsSpecific = item.keywords.some((k: string) => 
+          specificTerms.some(term => k.toLowerCase().includes(term))
+        )
+        
+        // Check if this FAQ item is about repair services
+        const itemIsRepair = item.keywords.some((k: string) => 
+          repairTerms.some(term => k.toLowerCase().includes(term)) ||
+          k.toLowerCase().includes('repair') ||
+          k.toLowerCase().includes('fix')
+        )
+        
+        // Check if this FAQ item is general (services overview)
+        const generalTerms = ['services', 'what do you do', 'offer', 'what services']
+        const itemIsGeneral = item.keywords.some((k: string) => 
+          generalTerms.some(term => k.toLowerCase().includes(term))
+        )
+        
+        // Check if this FAQ item is contact-related
+        const itemIsContact = item.keywords.some((k: string) => 
+          k.toLowerCase().includes('contact') || k.toLowerCase().includes('call') ||
+          k.toLowerCase().includes('reach') || k.toLowerCase().includes('email')
+        )
+
+        // If query asks about REPAIRING specific device and this item is about REPAIRING that device, boost heavily
+        if (queryHasSpecific && queryHasRepair && itemIsSpecific) {
+          // Check for exact device type match with repair context
+          if (queryWords.some(word => ['phone', 'phones', 'mobile', 'smartphone', 'cell'].includes(word))) {
+            if (item.keywords.some((k: string) => 
+              k.toLowerCase().includes('phone repair') || 
+              k.toLowerCase().includes('mobile repair') || 
+              k.toLowerCase().includes('fix phone') || 
+              k.toLowerCase().includes('repair mobile') ||
+              k.toLowerCase().includes('cell phone')
+            )) {
+              score += 100 // Massive boost for phone repair questions
+            }
+          }
+          
+          if (queryWords.some(word => ['tablet', 'ipad'].includes(word))) {
+            if (item.keywords.some((k: string) => 
+              k.toLowerCase().includes('tablet') || 
+              k.toLowerCase().includes('ipad')
+            )) {
+              score += 100 // Massive boost for tablet questions
+            }
+          }
+          
+          if (queryWords.some(word => ['computer', 'laptop', 'pc', 'mac'].includes(word))) {
+            if (item.keywords.some((k: string) => 
+              (k.toLowerCase().includes('computer') || 
+               k.toLowerCase().includes('laptop') || 
+               k.toLowerCase().includes('pc') || 
+               k.toLowerCase().includes('mac')) &&
+              (k.toLowerCase().includes('repair') || k.toLowerCase().includes('fix'))
+            )) {
+              score += 100 // Massive boost for computer questions
+            }
+          }
+        }
+
+        // Heavy penalty for contact answers when asking about repair
+        if (queryHasRepair && itemIsContact) {
+          score -= 60 // Heavy penalty for contact info when asking about repairs
+        }
+
+        // Heavy penalty for general answers when specific device is mentioned in query
+        if (queryHasSpecific && itemIsGeneral) {
+          score -= 50 // Heavy penalty to push general answers down
+        }
+
+        // Boost for other specific question types
+        if (queryWords.some(word => ['cost', 'price', 'pricing', 'much'].includes(word))) {
+          if (item.keywords.some((k: string) => ['cost', 'price', 'pricing', 'expensive', 'cheap'].includes(k.toLowerCase()))) {
+            score += 25
+          }
+        }
+
+        if (queryWords.some(word => ['hours', 'open', 'closed', 'time'].includes(word))) {
+          if (item.keywords.some((k: string) => ['hours', 'open', 'closed', 'time', 'schedule'].includes(k.toLowerCase()))) {
+            score += 25
+          }
+        }
+
+        if (queryWords.some(word => ['location', 'where', 'address'].includes(word))) {
+          if (item.keywords.some((k: string) => ['location', 'address', 'where', 'find', 'directions'].includes(k.toLowerCase()))) {
+            score += 25
+          }
+        }
+
+        if (score > 0) {
           results.push({
             ...item,
-            category: category.name
+            category: category.name,
+            score
           })
         }
       }
     }
 
-    return results.slice(0, 5) // Return top 5 results
+    // Sort by score (highest first) and return top 5
+    const sortedResults = results.sort((a, b) => b.score - a.score)
+    
+    return sortedResults
+      .slice(0, 5)
+      .map(({ score, ...item }) => item) // Remove score from final result
   }
 
   public getTroubleshootingGuide(deviceType: string, issue: string): TroubleshootingGuide | null {
