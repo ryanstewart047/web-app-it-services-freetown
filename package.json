@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "npm run build-css-prod",
+    "build": "next build",
     "build-css": "tailwindcss -i ./src/input.css -o ./assets/css/output.css --watch",
     "build-css-prod": "tailwindcss -i ./src/input.css -o ./assets/css/output.css --minify",
-    "dev": "npm run build-css",
-    "start": "python3 -m http.server 8000 2>/dev/null || python -m http.server 8000 2>/dev/null || npx serve .",
-    "preview": "npx serve ."
+    "dev": "next dev",
+    "start": "next start",
+    "preview": "npx serve .",
+    "static": "python3 -m http.server 8000 2>/dev/null || python -m http.server 8000 2>/dev/null || npx serve ."
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

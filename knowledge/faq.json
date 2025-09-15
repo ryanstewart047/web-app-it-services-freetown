@@ -101,6 +101,12 @@
       "name": "Mobile Device Services",
       "items": [
         {
+          "question": "Do you repair mobile phones and tablets?",
+          "answer": "Yes! We repair all types of mobile devices including smartphones, tablets, and iPads. Our mobile repair services include:\n\n📱 **Screen replacement** - For all brands including iPhone, Samsung, Tecno, Infinix\n🔋 **Battery replacement** - Quick battery swaps for better performance\n🔧 **Charging port repair** - Fix charging issues\n💧 **Water damage recovery** - Professional liquid damage treatment\n🔓 **Mobile unlocking** - FRP, iCloud, network unlocks\n📷 **Camera repair** - Front and rear camera fixes\n🔊 **Speaker/microphone repair** - Audio issue solutions\n\nWe work on all major brands: iPhone, Samsung, Tecno, Infinix, Motorola, Oppo, LG, Huawei, and more. Same-day service available for most repairs.",
+          "keywords": ["phone repair", "mobile repair", "smartphone", "tablet", "ipad", "fix phone", "repair mobile", "cell phone"],
+          "difficulty": "info"
+        },
+        {
           "question": "What mobile unlock services do you provide?",
           "answer": "We provide comprehensive mobile unlock services including:\n\n🔓 **FRP (Factory Reset Protection) removal** for Android devices\n📱 **iCloud lock removal** for iOS devices\n🌐 **Network unlock** to use any carrier\n🔢 **Pattern/PIN unlock** for forgotten codes\n📲 **All mobile lock types**\n\nWe support all major brands: Tecno, Samsung, Infinix, Motorola, Oppo, LG, Huawei, and more. Our experienced technicians have a high success rate with various unlocking techniques.",
           "keywords": ["unlock", "frp", "icloud", "locked", "pattern", "pin", "network unlock"],
