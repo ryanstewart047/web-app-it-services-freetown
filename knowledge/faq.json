@@ -1,0 +1,202 @@
+{
+  "categories": [
+    {
+      "id": "business_info",
+      "name": "Business Information",
+      "items": [
+        {
+          "question": "Where are you located?",
+          "answer": "We are located at No. 1 Regent Highway, Jui Junction, Freetown - opposite Freetown Teachers College (FTC), Jui, in the western part of Freetown, Sierra Leone. You can find us easily using our Google Maps link: https://maps.app.goo.gl/FHCthxNEvNYxB4tJ7",
+          "keywords": ["location", "address", "where", "find", "directions", "jui", "ftc"],
+          "difficulty": "info"
+        },
+        {
+          "question": "What are your business hours?",
+          "answer": "We are open Monday to Friday from 8:00 AM to 6:00 PM. We're closed on weekends but may be available by appointment on Saturdays for urgent matters. For any inquiries outside business hours, you can call +232 33 399 391 and leave a message.",
+          "keywords": ["hours", "open", "closed", "time", "schedule", "weekend"],
+          "difficulty": "info"
+        },
+        {
+          "question": "How can I contact you?",
+          "answer": "You can reach us in several ways:\n📞 Phone: +232 33 399 391\n📧 Email: support@itservicesfreetown.com or itservicesfreetown@gmail.com\n🌐 Website: www.itservicesfreetown.com\n📍 Visit us in person at No. 1 Regent Highway, Jui Junction, Freetown\n\nYou can also find us on social media:\n• Facebook: www.facebook.com/itservicefreetown\n• Instagram: www.instagram.com/itservicesfreetown\n• Twitter: www.twitter.com/itservicesfreetown",
+          "keywords": ["contact", "phone", "email", "reach", "call", "message"],
+          "difficulty": "info"
+        },
+        {
+          "question": "Who is the owner or lead technician?",
+          "answer": "Our lead technician is Ryan Josiah Stewart, an IT graduate from Amity University in India with a wealth of experience in IT services. Ryan specializes in computer repair, mobile repair, web development, graphics design, and networking. Our team consists of reputable personnel with extensive experience in various IT fields.",
+          "keywords": ["owner", "ryan", "technician", "experience", "staff", "team", "qualifications"],
+          "difficulty": "info"
+        },
+        {
+          "question": "What makes IT Services Freetown special?",
+          "answer": "IT Services Freetown is one of the best repair shops in Freetown, Sierra Leone. We are dedicated to delivering Quality, Expertise, and Innovative solutions. Whether you're a business owner, a tech enthusiast, or someone looking for reliable solutions, we're your go-to destination. We serve individuals, businesses, and institutions with fast, affordable, and effective IT support.",
+          "keywords": ["special", "best", "quality", "why choose", "reputation", "reliable"],
+          "difficulty": "info"
+        }
+      ]
+    },
+    {
+      "id": "services_overview",
+      "name": "Services Overview", 
+      "items": [
+        {
+          "question": "What services do you offer?",
+          "answer": "We offer a comprehensive range of IT services:\n\n🖥️ **Computer Repair** - Windows and Mac systems\n📱 **Mobile Repair** - All smartphone and tablet brands\n🔓 **Mobile Unlock** - FRP, iCloud, and all lock types\n🌐 **Office and Home Networking** - Setup and troubleshooting\n🎨 **Graphics Design** - Professional design services\n💻 **Web Development** - Modern websites and applications\n🏪 **POS Software Installation** - Point of Sale systems\n💾 **Data Recovery** - Retrieve lost or corrupted files\n🏠 **On-Site Service** - We come to your location",
+          "keywords": ["services", "what do you do", "repair", "unlock", "networking", "design", "web"],
+          "difficulty": "info"
+        },
+        {
+          "question": "Do you provide on-site service?",
+          "answer": "Yes! We provide repair services at your desired location - whether it's your home, office, or even on the beach! 😎 This is especially useful for network setup, troubleshooting, system installation, and situations where bringing the device to our shop isn't convenient.",
+          "keywords": ["on-site", "home service", "office visit", "location", "come to me"],
+          "difficulty": "info"
+        },
+        {
+          "question": "What is POS software and do you install it?",
+          "answer": "POS stands for Point of Sale. It's software used by businesses to manage sales transactions, track inventory, process payments, and generate reports. POS systems help streamline operations, improve accuracy, enable better inventory management, offer insights into sales trends, and enhance customer experience. Yes, we specialize in POS software installation and setup for retail businesses, restaurants, and service providers.",
+          "keywords": ["pos", "point of sale", "business software", "sales", "inventory"],
+          "difficulty": "info"
+        }
+      ]
+    },
+    {
+      "id": "computer_services",
+      "name": "Computer Services",
+      "items": [
+        {
+          "question": "Do you repair both Windows and Mac computers?",
+          "answer": "Yes! We have expertise in repairing both Windows and Mac computers. Our skilled technicians are well-versed in working with various operating systems and hardware configurations. Whether you have a desktop or laptop, Windows or Mac, we can help with hardware and software issues.",
+          "keywords": ["windows", "mac", "apple", "pc", "laptop", "desktop", "operating system"],
+          "difficulty": "info"
+        },
+        {
+          "question": "Can you help with forgotten computer passwords?",
+          "answer": "Absolutely! We provide PC password recovery and reset services for forgotten or locked accounts. Whether you've forgotten your Windows login password or need to reset user accounts, our technicians can help you regain access to your computer safely.",
+          "keywords": ["password", "forgot password", "locked out", "login", "account", "reset"],
+          "difficulty": "medium"
+        },
+        {
+          "question": "My computer won't turn on",
+          "answer": "Let's troubleshoot this step by step:\n1. Check if the power cable is securely connected to both the computer and wall outlet\n2. Look for any power lights on the computer case\n3. Try a different power outlet\n4. If it's a laptop, ensure the battery isn't completely drained\n5. Hold the power button for 10 seconds to discharge static electricity, then try again\n\nIf none of these work, it could be a hardware issue requiring professional repair. Bring it to our shop for a free diagnostic.",
+          "keywords": ["won't turn on", "not starting", "no power", "dead", "boot"],
+          "difficulty": "easy"
+        },
+        {
+          "question": "My computer is running very slowly",
+          "answer": "Slow computer performance can be improved with these steps:\n1. Restart your computer to clear temporary files\n2. Check for Windows/Mac updates and install them\n3. Run Disk Cleanup to free up space\n4. Close unnecessary programs running in the background\n5. Check if your hard drive is nearly full (should have at least 15% free space)\n6. Run a virus scan\n7. Consider upgrading RAM if your computer is older\n\nIf the problem persists, bring it to our shop for professional diagnostic and optimization.",
+          "keywords": ["slow", "sluggish", "performance", "lag", "freeze"],
+          "difficulty": "easy"
+        },
+        {
+          "question": "I think my computer has a virus",
+          "answer": "If you suspect malware, here's what to do:\n1. Don't panic and avoid entering passwords or sensitive information\n2. Disconnect from the internet if possible\n3. Run a full system scan with your antivirus software\n4. If you don't have antivirus, download Windows Defender offline scanner\n5. Boot from a rescue disk if available\n6. Change all passwords after cleaning\n\nFor complete malware removal and security setup, visit our shop. We offer professional virus removal and prevention services.",
+          "keywords": ["virus", "malware", "infected", "popup", "slow", "suspicious"],
+          "difficulty": "medium"
+        }
+      ]
+    },
+    {
+      "id": "mobile_services", 
+      "name": "Mobile Device Services",
+      "items": [
+        {
+          "question": "What mobile unlock services do you provide?",
+          "answer": "We provide comprehensive mobile unlock services including:\n\n🔓 **FRP (Factory Reset Protection) removal** for Android devices\n📱 **iCloud lock removal** for iOS devices\n🌐 **Network unlock** to use any carrier\n🔢 **Pattern/PIN unlock** for forgotten codes\n📲 **All mobile lock types**\n\nWe support all major brands: Tecno, Samsung, Infinix, Motorola, Oppo, LG, Huawei, and more. Our experienced technicians have a high success rate with various unlocking techniques.",
+          "keywords": ["unlock", "frp", "icloud", "locked", "pattern", "pin", "network unlock"],
+          "difficulty": "professional"
+        },
+        {
+          "question": "My phone battery drains very quickly",
+          "answer": "To improve battery life, try these solutions:\n1. Check Battery Usage in Settings to identify power-hungry apps\n2. Enable Battery Saver or Low Power Mode\n3. Reduce screen brightness or enable auto-brightness\n4. Turn off location services for apps that don't need it\n5. Disable background app refresh for unnecessary apps\n6. Close apps you're not using\n7. Turn off push notifications for non-essential apps\n8. Check if your battery needs replacement (usually after 2-3 years)\n\nIf the battery is old or swollen, bring it to our shop for replacement.",
+          "keywords": ["battery", "drain", "dies quickly", "power", "charge"],
+          "difficulty": "easy"
+        },
+        {
+          "question": "My phone screen is cracked",
+          "answer": "For cracked screens:\n1. Immediately stop using the device to prevent cuts or further damage\n2. If the screen is still responsive, back up your important data\n3. Apply clear tape over small cracks to prevent glass from falling\n4. Don't attempt DIY repairs as this can cause more damage\n5. Bring your device to our shop for professional screen replacement\n\nWe offer professional screen repairs for all major brands with quality parts and reliable service.",
+          "keywords": ["cracked screen", "broken screen", "display", "glass"],
+          "difficulty": "professional"
+        },
+        {
+          "question": "My phone won't charge",
+          "answer": "Try these charging troubleshooting steps:\n1. Check if the charging cable and adapter are working with another device\n2. Try a different charging cable and wall adapter\n3. Clean the charging port gently with a dry toothbrush\n4. Check for lint or debris in the charging port\n5. Try wireless charging if your phone supports it\n6. Restart your phone\n7. Try charging while the phone is powered off\n\nIf none of these work, you may need a charging port replacement or battery service.",
+          "keywords": ["won't charge", "charging", "cable", "port", "battery"],
+          "difficulty": "easy"
+        }
+      ]
+    },
+    {
+      "id": "pricing_and_timing",
+      "name": "Pricing and Timing",
+      "items": [
+        {
+          "question": "How much do your services cost?",
+          "answer": "Our service costs vary based on the specific service or repair needed. We offer competitive and transparent pricing with no hidden fees. For the most accurate pricing:\n\n💬 **Contact us directly** at +232 33 399 391\n📧 **Email us** at support@itservicesfreetown.com\n🏪 **Visit our shop** for a free consultation and estimate\n\nWe provide honest advice and will let you know if a repair isn't cost-efficient before proceeding.",
+          "keywords": ["cost", "price", "how much", "expensive", "cheap", "pricing"],
+          "difficulty": "info"
+        },
+        {
+          "question": "How long do repairs take?",
+          "answer": "The time required for a repair varies depending on the issue:\n\n⚡ **Minor software problems** - May be resolved within a few hours\n🔧 **Standard hardware repairs** - Typically 1-3 days\n🛠️ **Complex repairs** - May take longer depending on parts availability\n\nOur technicians will provide you with an estimated turnaround time when you bring in your device. We always aim to complete repairs as quickly as possible while maintaining quality.",
+          "keywords": ["how long", "time", "duration", "turnaround", "fast", "quick"],
+          "difficulty": "info"
+        },
+        {
+          "question": "Do you provide warranties on repairs?",
+          "answer": "Yes! We provide warranties on our repair services. The warranty duration varies depending on the type of repair or service performed. Our technicians will provide you with specific warranty details when you bring in your device. We stand behind our work and want to ensure your satisfaction with our services.",
+          "keywords": ["warranty", "guarantee", "coverage", "protection"],
+          "difficulty": "info"
+        }
+      ]
+    },
+    {
+      "id": "data_and_security",
+      "name": "Data and Security",
+      "items": [
+        {
+          "question": "Is my data safe during repairs?",
+          "answer": "We take data security very seriously. While we make every effort to preserve your data during repairs, we strongly recommend backing up your important files before bringing in your device for repair. We also offer professional data recovery services in case of unexpected data loss. Our technicians follow strict protocols to protect your privacy and data.",
+          "keywords": ["data safe", "security", "privacy", "backup", "protect"],
+          "difficulty": "info"
+        },
+        {
+          "question": "Can you recover my lost data?",
+          "answer": "Yes! We offer professional data recovery services for various scenarios:\n\n� **Deleted files** - Accidentally deleted documents, photos, videos\n🛠️ **Corrupted hard drives** - Hardware failure recovery\n💧 **Liquid damage** - Water damage data retrieval\n🗂️ **Accidental formatting** - Formatted drive recovery\n💻 **System crashes** - Operating system failure recovery\n\nOur success rate is high, and we'll assess your situation to determine the best recovery approach.",
+          "keywords": ["data recovery", "lost files", "deleted", "corrupted", "format", "crash"],
+          "difficulty": "professional"
+        }
+      ]
+    },
+    {
+      "id": "web_and_design",
+      "name": "Web Development and Design",
+      "items": [
+        {
+          "question": "What web development technologies do you use?",
+          "answer": "Our web development services use modern, industry-standard technologies:\n\n🎨 **Frontend:** HTML, CSS, JavaScript, React, Angular, Vue\n⚙️ **Backend:** Python, Ruby, PHP, Node.js, Django, Ruby on Rails\n🗄️ **Databases:** MySQL, PostgreSQL, MongoDB\n\nWe create custom websites, e-commerce solutions, web applications, and provide ongoing maintenance and performance optimization.",
+          "keywords": ["web development", "technologies", "html", "css", "javascript", "react", "python"],
+          "difficulty": "info"
+        },
+        {
+          "question": "Do you offer graphics design services?",
+          "answer": "Yes! We provide professional graphics design services including:\n\n🎨 **Logo design** - Custom brand identity creation\n📊 **Branding materials** - Business cards, letterheads, brochures\n📱 **Marketing graphics** - Social media graphics, advertisements\n🖼️ **Digital artwork** - Custom illustrations and graphics\n🖨️ **Print design** - Flyers, posters, banners\n\nOur design team creates visually appealing and effective designs for businesses and individuals.",
+          "keywords": ["graphics design", "logo", "branding", "marketing", "artwork", "print"],
+          "difficulty": "info"
+        }
+      ]
+    },
+    {
+      "id": "beyond_repair",
+      "name": "Beyond Repair Situations",
+      "items": [
+        {
+          "question": "What if my device is beyond repair?",
+          "answer": "In cases where a device is beyond repair or would not be cost-efficient to fix, our technicians will provide you with honest advice and potential solutions. We can:\n\n� **Provide honest assessment** - No unnecessary repairs\n🔄 **Assist with replacement options** - Help you choose a new device\n⬆️ **Upgrade recommendations** - Suggest better alternatives\n💾 **Data recovery attempts** - Try to save your important files\n♻️ **Disposal advice** - Environmentally responsible disposal\n\nWe believe in transparency and will always give you the best advice for your situation.",
+          "keywords": ["beyond repair", "not worth fixing", "replacement", "upgrade", "honest advice"],
+          "difficulty": "info"
+        }
+      ]
+    }
+  ]
+}
