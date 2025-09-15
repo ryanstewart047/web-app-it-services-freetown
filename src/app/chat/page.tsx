@@ -33,24 +33,31 @@ export default function Chat() {
     scrollToBottom()
   }, [messages])
 
-  const simulateBotResponse = (userMessage: string) => {
+  const getBotResponse = async (userMessage: string) => {
     setIsTyping(true)
     
-    setTimeout(() => {
-      let response = "I understand. How else can I help you today?"
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: userMessage }),
+      })
       
-      // Simple keyword-based responses
-      if (userMessage.toLowerCase().includes('appointment') || userMessage.toLowerCase().includes('book')) {
-        response = "I can help you book an appointment. What type of device needs repair and what's the issue?"
-      } else if (userMessage.toLowerCase().includes('track') || userMessage.toLowerCase().includes('status')) {
-        response = "I can help you track your repair. Do you have your repair ID number?"
-      } else if (userMessage.toLowerCase().includes('price') || userMessage.toLowerCase().includes('cost')) {
-        response = "Our pricing depends on the type of repair. Computer repairs start from Le 2,500,000, mobile repairs from Le 1,500,000. Would you like a detailed quote?"
+      const data = await response.json()
+      
+      if (data.success) {
+        addMessage(data.response, 'bot')
+      } else {
+        addMessage("I'm sorry, I'm having trouble responding right now. Please try again or contact us directly.", 'bot')
       }
-      
-      addMessage(response, 'bot')
-      setIsTyping(false)
-    }, 1000 + Math.random() * 2000)
+    } catch (error) {
+      console.error('Error calling chat API:', error)
+      addMessage("I'm sorry, I'm having trouble responding right now. Please try again or contact us directly.", 'bot')
+    }
+    
+    setIsTyping(false)
   }
 
   const addMessage = (content: string, sender: 'user' | 'bot' | 'agent', type: 'text' | 'system' | 'transfer' = 'text') => {
@@ -71,7 +78,7 @@ export default function Chat() {
     const userMsg = inputMessage
     setInputMessage('')
     
-    simulateBotResponse(userMsg)
+    getBotResponse(userMsg)
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -168,7 +175,7 @@ export default function Chat() {
               <button
                 onClick={() => {
                   addMessage('I need help booking an appointment', 'user')
-                  simulateBotResponse('book appointment')
+                  getBotResponse('book appointment')
                 }}
                 className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200 transition-colors"
               >
@@ -177,7 +184,7 @@ export default function Chat() {
               <button
                 onClick={() => {
                   addMessage('I want to track my repair', 'user')
-                  simulateBotResponse('track repair')
+                  getBotResponse('track repair')
                 }}
                 className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200 transition-colors"
               >
