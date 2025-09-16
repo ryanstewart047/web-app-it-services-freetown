@@ -56,7 +56,7 @@ export default function CookiePopup() {
                 </div>
                 <div>
                   <h4 className="text-lg font-semibold text-gray-900 mb-1">We use cookies</h4>
-                  <p className="text-gray-600 text-sm mb-4">We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking "Accept All", you consent to our use of cookies.</p>
+                  <p className="text-gray-600 text-sm mb-4">We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking &quot;Accept All&quot;, you consent to our use of cookies.</p>
                 </div>
               </div>
             </div>

@@ -698,7 +698,7 @@ export default function BookAppointment() {
                 <i className="fas fa-clock text-white text-lg"></i>
               </div>
               <h3 className="font-bold text-gray-900 mb-2">Quick Response</h3>
-              <p className="text-gray-600 text-sm">We'll confirm your appointment within 2 hours during business hours</p>
+              <p className="text-gray-600 text-sm">We&apos;ll confirm your appointment within 2 hours during business hours</p>
             </div>
 
             <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
