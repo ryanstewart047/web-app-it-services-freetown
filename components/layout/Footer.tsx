@@ -3,9 +3,9 @@ import Image from 'next/image'
 
 export default function Footer() {
   return (
-    <footer className="bg-gradient-to-br from-[#040e40] via-[#040e40] to-gray-900 text-white">
+    <footer className="bg-gradient-to-br from-primary-950 via-primary-900 to-gray-900 text-white mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12">
           {/* Company Info */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-3 mb-4">
@@ -27,20 +27,20 @@ export default function Footer() {
             {/* Contact Info */}
             <div className="space-y-3 mb-6">
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-lg bg-primary-600/20 flex items-center justify-center">
-                  <i className="fas fa-phone text-primary-400 text-sm"></i>
+                <div className="w-8 h-8 rounded-lg bg-red-600/20 flex items-center justify-center">
+                  <i className="fas fa-phone text-red-400 text-sm"></i>
                 </div>
                 <span className="text-gray-300 text-sm">+232 33 399391</span>
               </div>
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-lg bg-primary-600/20 flex items-center justify-center">
-                  <i className="fas fa-envelope text-primary-400 text-sm"></i>
+                <div className="w-8 h-8 rounded-lg bg-red-600/20 flex items-center justify-center">
+                  <i className="fas fa-envelope text-red-400 text-sm"></i>
                 </div>
                 <span className="text-gray-300 text-sm">support@itservicesfreetown.com</span>
               </div>
               <div className="flex items-start space-x-3">
-                <div className="w-8 h-8 rounded-lg bg-primary-600/20 flex items-center justify-center mt-0.5">
-                  <i className="fas fa-map-marker-alt text-primary-400 text-sm"></i>
+                <div className="w-8 h-8 rounded-lg bg-red-600/20 flex items-center justify-center mt-0.5">
+                  <i className="fas fa-map-marker-alt text-red-400 text-sm"></i>
                 </div>
                 <span className="text-gray-300 text-sm">
                   #1 Regent Highway, Jui Junction<br />
@@ -175,32 +175,32 @@ export default function Footer() {
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-red-900/30 mt-8 pt-8">
+        <div className="border-t border-gray-700/50 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
-              <p className="text-gray-300 text-sm">
+              <p className="text-gray-300 text-sm text-center md:text-left">
                 © {new Date().getFullYear()} IT Services Freetown. All rights reserved.
               </p>
-              <div className="flex items-center space-x-4 text-xs text-gray-400">
-                <span className="flex items-center">
+              <div className="flex flex-wrap items-center justify-center md:justify-start space-x-4 text-xs text-gray-400">
+                <span className="flex items-center whitespace-nowrap">
                   <i className="fas fa-shield-alt mr-1 text-red-400"></i>
                   Genuine Parts
                 </span>
-                <span className="flex items-center">
+                <span className="flex items-center whitespace-nowrap">
                   <i className="fas fa-certificate mr-1 text-red-400"></i>
                   Certified Technicians
                 </span>
-                <span className="flex items-center">
+                <span className="flex items-center whitespace-nowrap">
                   <i className="fas fa-clock mr-1 text-red-400"></i>
                   Real-time Tracking
                 </span>
               </div>
             </div>
-            <div className="flex space-x-6">
-              <Link href="/privacy" className="text-gray-300 hover:text-red-400 text-sm transition-colors">
+            <div className="flex space-x-4 md:space-x-6">
+              <Link href="/privacy" className="text-gray-300 hover:text-red-400 text-sm transition-colors whitespace-nowrap">
                 Privacy Policy
               </Link>
-              <Link href="/terms" className="text-gray-300 hover:text-red-400 text-sm transition-colors">
+              <Link href="/terms" className="text-gray-300 hover:text-red-400 text-sm transition-colors whitespace-nowrap">
                 Terms of Service
               </Link>
             </div>
