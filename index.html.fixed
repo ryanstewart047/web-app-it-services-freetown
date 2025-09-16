@@ -1,1 +1,0 @@
-$(cat /Users/new/web-app-it-services-freetown-main/index.html | grep -v "Auto-scroll to top of popup content on mobile" | grep -v "content.scrollTop = 0;")
