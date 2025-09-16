@@ -8,5 +8,11 @@
     "src/app/api/**/*.ts": {
       "runtime": "nodejs18.x"
     }
-  }
+  },
+  "ignores": [
+    "*.php",
+    "api/*.php",
+    "backup-appointments.php",
+    "process-appointment.php"
+  ]
 }
