@@ -17,6 +17,108 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if user is asking to track repair
+    const trackingKeywords = ['track', 'tracking', 'status', 'repair status', 'where is my', 'check my repair', 'progress']
+    const isTrackingRequest = trackingKeywords.some(keyword => 
+      message.toLowerCase().includes(keyword.toLowerCase())
+    )
+
+    // Check if message contains a tracking ID pattern
+    const trackingIdMatch = message.match(/TRK-[\w\d]+/i)
+    
+    if (isTrackingRequest || trackingIdMatch) {
+      if (trackingIdMatch) {
+        // User provided tracking ID, fetch repair status
+        const trackingId = trackingIdMatch[0].toUpperCase()
+        try {
+          const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
+          const host = request.headers.get('host') || 'localhost:3001'
+          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL || `${protocol}://${host}`
+          const statusResponse = await fetch(`${baseUrl}/api/appointments/status/${trackingId}`)
+          
+          if (statusResponse.ok) {
+            const appointment = await statusResponse.json()
+            
+            return NextResponse.json({
+              success: true,
+              response: `📋 **Repair Status for ${trackingId}**
+
+🔧 **Device:** ${appointment.deviceType} - ${appointment.deviceModel}
+👤 **Customer:** ${appointment.customerName}
+📍 **Current Status:** ${appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1).replace('-', ' ')}
+
+${appointment.notes ? `📝 **Latest Update:** ${appointment.notes}` : ''}
+
+${appointment.estimatedCompletion ? `⏰ **Estimated Completion:** ${new Date(appointment.estimatedCompletion).toLocaleDateString()}` : ''}
+
+${appointment.cost ? `💰 **Estimated Cost:** Le ${appointment.cost.toLocaleString()}` : ''}
+
+Need help with your repair? You can also:
+📞 Call us: +232 33 399 391
+💬 WhatsApp: https://wa.me/23233399391?text=Hi, I need help with repair ${trackingId}
+
+Would you like me to help you with anything else regarding your repair?`,
+              isAI: false,
+              source: 'repair_tracking',
+              trackingData: appointment
+            })
+          } else {
+            return NextResponse.json({
+              success: true,
+              response: `❌ I couldn't find a repair with tracking ID **${trackingId}**.
+
+Please double-check your tracking ID and try again. Tracking IDs follow the format: **TRK-123456789**
+
+If you're sure your tracking ID is correct, please contact us:
+📞 Call: +232 33 399 391
+💬 WhatsApp: https://wa.me/23233399391
+
+You can also visit our track repair page: ${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/track-repair`,
+              isAI: false,
+              source: 'repair_tracking_error'
+            })
+          }
+        } catch (error) {
+          console.error('Error fetching repair status:', error)
+          return NextResponse.json({
+            success: true,
+            response: `⚠️ I'm having trouble accessing the repair tracking system right now.
+
+Please try again in a moment, or contact us directly:
+📞 Call: +232 33 399 391
+💬 WhatsApp: https://wa.me/23233399391
+
+You can also visit our track repair page: ${process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL || 'http://localhost:3000'}/track-repair`,
+            isAI: false,
+            source: 'repair_tracking_error'
+          })
+        }
+      } else {
+        // User wants to track but didn't provide tracking ID
+        return NextResponse.json({
+          success: true,
+          response: `📋 **Track Your Repair**
+
+To check your repair status, please provide your tracking ID. 
+
+Your tracking ID was sent to you via SMS or email when you booked your appointment. It looks like this: **TRK-123456789**
+
+Just type your tracking ID here and I'll get your current repair status immediately!
+
+Don't have your tracking ID? 
+📞 Call us: +232 33 399 391
+💬 WhatsApp: https://wa.me/23233399391
+🌐 Visit: ${process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL || 'http://localhost:3000'}/track-repair
+
+You can also try these demo tracking IDs:
+• **TRK-001** (iPhone 14 Screen Repair)
+• **TRK-002** (MacBook Pro Diagnosis)`,
+          isAI: false,
+          source: 'repair_tracking_prompt'
+        })
+      }
+    }
+
     // Check if we have API key configured
     if (!process.env.GEMINI_API_KEY) {
       // Try knowledge base first for contextual response
@@ -61,7 +163,9 @@ Guidelines:
 
 Business information:
 - Location: 1 Regent Highway, Jui Junction, Freetown
-- Phone: +232 33 399 391
+- Phone: +232 33 399391
+- Email: support@itservicesfreetown.com
+- Address: #1 Regent Highway, Jui Junction, Freetown
 - Email: support@itservicesfreetown.com
 - Hours: Mon-Sat 8AM-6PM`
 

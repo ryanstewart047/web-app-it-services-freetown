@@ -1,341 +1,149 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Search, Clock, CheckCircle, AlertCircle, Package, Wrench, Mail, Phone } from 'lucide-react'
-import toast from 'react-hot-toast'
-
-interface RepairStatus {
-  id: string
-  customerName: string
-  deviceType: string
-  deviceModel: string
-  issueDescription: string
-  status: 'received' | 'diagnostic' | 'parts-ordered' | 'in-repair' | 'testing' | 'completed' | 'ready-pickup'
-  estimatedCompletion: string
-  actualCompletion?: string
-  cost: number
-  timeline: {
-    step: string
-    status: 'completed' | 'current' | 'pending'
-    timestamp?: string
-    description: string
-  }[]
-  technician: {
-    name: string
-    email: string
-    phone: string
-  }
-  notes: string[]
-}
-
-const mockRepairData: RepairStatus = {
-  id: 'REP-2024-001',
-  customerName: 'John Doe',
-  deviceType: 'Laptop',
-  deviceModel: 'MacBook Pro 13" 2021',
-  issueDescription: 'Screen flickering and battery not charging properly',
-  status: 'in-repair',
-  estimatedCompletion: '2024-01-28',
-  cost: 150,
-  technician: {
-    name: 'Sarah Johnson',
-    email: 'sarah.johnson@itservicesfreetown.com',
-    phone: '+232 XX XXX XXXX'
-  },
-  timeline: [
-    {
-      step: 'Device Received',
-      status: 'completed',
-      timestamp: '2024-01-24 09:30',
-      description: 'Device received and logged into our system'
-    },
-    {
-      step: 'Initial Diagnostic',
-      status: 'completed',
-      timestamp: '2024-01-24 14:15',
-      description: 'Completed initial diagnostic - identified screen cable and battery issues'
-    },
-    {
-      step: 'Parts Ordered',
-      status: 'completed',
-      timestamp: '2024-01-25 10:00',
-      description: 'Ordered replacement screen cable and battery'
-    },
-    {
-      step: 'Repair in Progress',
-      status: 'current',
-      timestamp: '2024-01-26 09:00',
-      description: 'Currently replacing faulty components'
-    },
-    {
-      step: 'Quality Testing',
-      status: 'pending',
-      description: 'Comprehensive testing of all functions'
-    },
-    {
-      step: 'Ready for Pickup',
-      status: 'pending',
-      description: 'Device ready for customer pickup'
-    }
-  ],
-  notes: [
-    'Customer notified about parts ordering delay',
-    'Battery replacement will include 6-month warranty',
-    'Screen cable replacement completed successfully'
-  ]
-}
+import { useState } from 'react';
+import AppointmentStatus from '@/components/AppointmentStatus';
 
 export default function TrackRepair() {
-  const [trackingId, setTrackingId] = useState('')
-  const [repairData, setRepairData] = useState<RepairStatus | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [trackingId, setTrackingId] = useState('');
+  const [showStatus, setShowStatus] = useState(false);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!trackingId.trim()) {
-      toast.error('Please enter a tracking ID')
-      return
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (trackingId.trim()) {
+      setShowStatus(true);
     }
+  };
 
-    setIsLoading(true)
-    
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      // For demo purposes, return mock data for any ID
-      setRepairData(mockRepairData)
-      toast.success('Repair status found!')
-    } catch (error) {
-      toast.error('Repair not found. Please check your tracking ID.')
-      setRepairData(null)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'received':
-      case 'diagnostic':
-        return 'bg-blue-100 text-blue-800'
-      case 'parts-ordered':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'in-repair':
-        return 'bg-purple-100 text-purple-800'
-      case 'testing':
-        return 'bg-orange-100 text-orange-800'
-      case 'completed':
-      case 'ready-pickup':
-        return 'bg-green-100 text-green-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const getStatusIcon = (status: 'completed' | 'current' | 'pending') => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle className="w-5 h-5 text-green-500" />
-      case 'current':
-        return <Clock className="w-5 h-5 text-blue-500" />
-      case 'pending':
-        return <AlertCircle className="w-5 h-5 text-gray-400" />
-    }
-  }
+  const resetSearch = () => {
+    setTrackingId('');
+    setShowStatus(false);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+    <>
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-br from-red-600 via-red-500 to-red-700 text-white overflow-hidden" style={{background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #040e40 100%)'}}>
+        <div className="absolute inset-0 bg-black/20"></div>
+        
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-6">
+            <i className="fas fa-search text-3xl text-white"></i>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white to-red-100 bg-clip-text text-transparent">
             Track Your Repair
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Enter your tracking ID to get real-time updates on your device repair status
+          <p className="text-xl text-red-100 max-w-3xl mx-auto leading-relaxed">
+            Enter your tracking ID to see real-time updates on your device repair status
           </p>
-        </div>
-
-        {/* Search Form */}
-        <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <label htmlFor="trackingId" className="block text-sm font-medium text-gray-700 mb-2">
-                Tracking ID
-              </label>
-              <input
-                type="text"
-                id="trackingId"
-                value={trackingId}
-                onChange={(e) => setTrackingId(e.target.value)}
-                className="input-field"
-                placeholder="Enter your tracking ID (e.g., REP-2024-001)"
-              />
-            </div>
-            <div className="flex items-end">
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center px-6 py-3"
-              >
-                {isLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    Searching...
-                  </>
-                ) : (
-                  <>
-                    <Search className="w-5 h-5 mr-2" />
-                    Track Repair
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
-
-        {/* Repair Status Results */}
-        {repairData && (
-          <div className="space-y-8">
-            {/* Status Overview */}
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    Repair #{repairData.id}
-                  </h2>
-                  <p className="text-gray-600">{repairData.deviceType} - {repairData.deviceModel}</p>
-                </div>
-                <div className="mt-4 md:mt-0">
-                  <span className={`status-badge ${getStatusColor(repairData.status)}`}>
-                    {repairData.status.replace('-', ' ').toUpperCase()}
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Customer</h3>
-                  <p className="text-gray-600">{repairData.customerName}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Estimated Completion</h3>
-                  <p className="text-gray-600">{repairData.estimatedCompletion}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Estimated Cost</h3>
-                  <p className="text-gray-600">${repairData.cost}</p>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <h3 className="font-semibold text-gray-900 mb-2">Issue Description</h3>
-                <p className="text-gray-600">{repairData.issueDescription}</p>
-              </div>
-            </div>
-
-            {/* Timeline */}
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Repair Timeline</h2>
-              <div className="space-y-6">
-                {repairData.timeline.map((item, index) => (
-                  <div key={index} className="flex items-start space-x-4">
-                    <div className="flex-shrink-0">
-                      {getStatusIcon(item.status)}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <h3 className={`font-semibold ${
-                          item.status === 'completed' ? 'text-green-900' :
-                          item.status === 'current' ? 'text-blue-900' :
-                          'text-gray-500'
-                        }`}>
-                          {item.step}
-                        </h3>
-                        {item.timestamp && (
-                          <span className="text-sm text-gray-500">
-                            {item.timestamp}
-                          </span>
-                        )}
-                      </div>
-                      <p className={`text-sm ${
-                        item.status === 'pending' ? 'text-gray-500' : 'text-gray-700'
-                      }`}>
-                        {item.description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Technician Info */}
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Assigned Technician</h2>
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
-                  <span className="text-white font-semibold">
-                    {repairData.technician.name.split(' ').map(n => n[0]).join('')}
-                  </span>
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">{repairData.technician.name}</h3>
-                  <div className="flex flex-col sm:flex-row sm:space-x-6 text-sm text-gray-600">
-                    <div className="flex items-center space-x-1">
-                      <Mail className="w-4 h-4" />
-                      <span>{repairData.technician.email}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Phone className="w-4 h-4" />
-                      <span>{repairData.technician.phone}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Notes */}
-            {repairData.notes.length > 0 && (
-              <div className="bg-white rounded-lg shadow-lg p-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Repair Notes</h2>
-                <div className="space-y-3">
-                  {repairData.notes.map((note, index) => (
-                    <div key={index} className="flex items-start space-x-2">
-                      <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                      <p className="text-gray-700">{note}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Help Section */}
-        <div className="mt-12 bg-blue-50 rounded-lg p-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Need Help?</h2>
-          <p className="text-gray-700 mb-4">
-            Can&apos;t find your tracking ID or have questions about your repair?
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <a
-              href="/chat"
-              className="btn-primary inline-flex items-center justify-center"
-            >
-              <Package className="w-5 h-5 mr-2" />
-              Live Chat Support
-            </a>
-            <a
-              href="tel:+232XXXXXXXX"
-              className="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors duration-200 inline-flex items-center justify-center"
-            >
-              <Phone className="w-5 h-5 mr-2" />
-              Call Us
-            </a>
-          </div>
         </div>
       </div>
-    </div>
-  )
+
+      {/* Main Content */}
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-red-50 py-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          {!showStatus ? (
+            /* Search Form */
+            <div className="bg-white rounded-2xl p-8 md:p-12 shadow-2xl border border-gray-100">
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4" style={{background: '#040e40'}}>
+                  <i className="fas fa-clipboard-list text-white text-xl"></i>
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">Find Your Repair</h2>
+                <p className="text-gray-600">Enter the tracking ID we provided when you booked your appointment</p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <label htmlFor="trackingId" className="block text-sm font-semibold text-gray-700 mb-3">
+                    <i className="fas fa-hashtag mr-2" style={{color: '#040e40'}}></i>
+                    Tracking ID *
+                  </label>
+                  <input
+                    type="text"
+                    id="trackingId"
+                    value={trackingId}
+                    onChange={(e) => setTrackingId(e.target.value.toUpperCase())}
+                    className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl transition-all duration-300 text-lg placeholder-gray-400 font-mono"
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#040e40';
+                      e.target.style.boxShadow = '0 0 0 4px rgba(4, 14, 64, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#d1d5db';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                    placeholder="Enter tracking ID (e.g., TRK-001)"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    <i className="fas fa-info-circle mr-1"></i>
+                    Your tracking ID was provided via SMS or email when you booked
+                  </p>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-4 px-6 text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center text-lg"
+                  style={{background: 'linear-gradient(135deg, #ef4444 0%, #040e40 100%)'}}
+                >
+                  <i className="fas fa-search mr-3"></i>
+                  Track My Repair
+                </button>
+              </form>
+
+              {/* Demo Tracking IDs */}
+              <div className="mt-8 p-6 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg border">
+                <h4 className="font-semibold text-gray-900 mb-3">
+                  <i className="fas fa-flask mr-2 text-blue-500"></i>
+                  Try Demo Tracking IDs
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    onClick={() => setTrackingId('TRK-001')}
+                    className="text-left p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors duration-300 border"
+                  >
+                    <div className="font-mono text-sm text-blue-600">TRK-001</div>
+                    <div className="text-xs text-gray-600">iPhone 14 Screen Repair</div>
+                  </button>
+                  <button
+                    onClick={() => setTrackingId('TRK-002')}
+                    className="text-left p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors duration-300 border"
+                  >
+                    <div className="font-mono text-sm text-blue-600">TRK-002</div>
+                    <div className="text-xs text-gray-600">MacBook Pro Diagnosis</div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Status Display */
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={resetSearch}
+                  className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors duration-300"
+                >
+                  <i className="fas fa-arrow-left mr-2"></i>
+                  Search Again
+                </button>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="flex items-center px-4 py-2 text-blue-600 hover:text-blue-800 transition-colors duration-300"
+                >
+                  <i className="fas fa-sync-alt mr-2"></i>
+                  Refresh Status
+                </button>
+              </div>
+              
+              <AppointmentStatus trackingId={trackingId} />
+            </div>
+          )}
+
+          {/* Information Cards */}
+          {/* ...existing code... */}
+        </div>
+      </div>
+    </>
+  );
 }

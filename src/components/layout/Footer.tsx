@@ -15,6 +15,7 @@ export default function Footer() {
                 width={40} 
                 height={40} 
                 className="rounded-lg"
+                style={{ width: 'auto' }}
               />
               <span className="text-xl font-bold">IT Services Freetown</span>
             </div>
@@ -95,16 +96,16 @@ export default function Footer() {
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <i className="fas fa-phone text-primary"></i>
-                <span className="text-gray-300">+232 XX XXX XXXX</span>
+                <span className="text-gray-300">+232 33 399391</span>
               </div>
               <div className="flex items-center space-x-3">
                 <i className="fas fa-envelope text-primary"></i>
-                <span className="text-gray-300">info@itservicesfreetown.com</span>
+                <span className="text-gray-300">support@itservicesfreetown.com</span>
               </div>
               <div className="flex items-start space-x-3">
                 <i className="fas fa-map-marker-alt text-primary mt-1"></i>
                 <span className="text-gray-300">
-                  123 Main Street<br />
+                  #1 Regent Highway, Jui Junction<br />
                   Freetown, Sierra Leone
                 </span>
               </div>

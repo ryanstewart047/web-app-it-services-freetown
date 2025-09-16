@@ -78,7 +78,7 @@ Using the knowledge base information above when relevant, please provide:
 
 Keep the response practical, clear, and focused on actionable steps.
 Format the response with clear headings and bullet points.
-Reference our shop (IT Services Freetown, 1 Regent Highway, Jui Junction, Freetown, +232 33 399 391) for professional assistance when needed.
+Reference our shop (IT Services Freetown, #1 Regent Highway, Jui Junction, Freetown, +232 33 399391, support@itservicesfreetown.com) for professional assistance when needed.
 `;
 
     const result = await model.generateContent(prompt);

@@ -29,6 +29,35 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate date and time are not in the past
+    const appointmentDateTime = new Date(`${preferredDate}T${preferredTime}`)
+    const now = new Date()
+    
+    if (appointmentDateTime <= now) {
+      return NextResponse.json(
+        { error: 'Appointment date and time must be in the future' },
+        { status: 400 }
+      )
+    }
+
+    // Validate business hours (8 AM to 6 PM)
+    const hour = appointmentDateTime.getHours()
+    if (hour < 8 || hour >= 18) {
+      return NextResponse.json(
+        { error: 'Appointments are only available between 8:00 AM and 6:00 PM' },
+        { status: 400 }
+      )
+    }
+
+    // Validate weekdays only (Monday = 1, Friday = 5)
+    const dayOfWeek = appointmentDateTime.getDay()
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      return NextResponse.json(
+        { error: 'Appointments are only available Monday through Friday' },
+        { status: 400 }
+      )
+    }
+
     // Generate unique appointment ID
     const appointmentId = generateAppointmentId()
 
@@ -104,6 +133,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      trackingId: appointment.id,
       appointment: {
         id: appointment.id,
         status: appointment.status,
