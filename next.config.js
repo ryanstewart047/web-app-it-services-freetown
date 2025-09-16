@@ -3,6 +3,15 @@ const nextConfig = {
   output: 'export',
   trailingSlash: true,
   distDir: 'out',
+  // Configure webpack to prevent infinite compilation
+  webpack: (config) => {
+    config.watchOptions = {
+      poll: 3000,
+      aggregateTimeout: 300,
+      ignored: ['**/node_modules', '**/.next', '**/out']
+    }
+    return config
+  },
   images: {
     unoptimized: true,
     remotePatterns: [

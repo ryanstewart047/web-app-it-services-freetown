@@ -48,5 +48,11 @@ next-env.d.ts
 Thumbs.db
 ehthumbs.db
 
+# Server configuration backup
+_server-config-backup/
+
+# Static build files (development)
+static-build/
+
 # Server backup directory (keep in repo for future server deployment)
 # _server-backup/

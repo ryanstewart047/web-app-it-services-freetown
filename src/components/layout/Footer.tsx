@@ -12,12 +12,11 @@ export default function Footer() {
               <Image 
                 src="/assets/logo.png" 
                 alt="IT Services Freetown Logo" 
-                width={40} 
-                height={40} 
-                className="rounded-lg"
+                width={56} 
+                height={56} 
+                className="h-12 sm:h-14"
                 style={{ width: 'auto' }}
               />
-              <span className="text-xl font-bold text-white">IT Services Freetown</span>
             </div>
             <p className="text-gray-200 mb-6 max-w-md leading-relaxed">
               Professional computer and mobile repair services in Freetown, Sierra Leone. 
