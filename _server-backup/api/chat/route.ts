@@ -17,6 +17,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Auto-detect device type from message if not provided
+    let detectedDeviceType = deviceType
+    if (!detectedDeviceType) {
+      const messageLower = message.toLowerCase()
+      if (messageLower.includes('computer') || messageLower.includes('laptop') || 
+          messageLower.includes('desktop') || messageLower.includes('pc') ||
+          messageLower.includes('windows') || messageLower.includes('mac') ||
+          messageLower.includes('macbook')) {
+        detectedDeviceType = 'computer'
+      } else if (messageLower.includes('phone') || messageLower.includes('mobile') || 
+                 messageLower.includes('smartphone') || messageLower.includes('iphone') || 
+                 messageLower.includes('android') || messageLower.includes('samsung') ||
+                 messageLower.includes('huawei') || messageLower.includes('techno') ||
+                 messageLower.includes('infinix')) {
+        detectedDeviceType = 'mobile'
+      }
+    }
+
     // Check if user is asking to track repair
     const trackingKeywords = ['track', 'tracking', 'status', 'repair status', 'where is my', 'check my repair', 'progress']
     const isTrackingRequest = trackingKeywords.some(keyword => 
@@ -119,10 +137,20 @@ You can also try these demo tracking IDs:
       }
     }
 
+    // Check if this is a non-IT related question first
+    if (isNonITQuestion(message)) {
+      return NextResponse.json({
+        success: true,
+        response: getFallbackResponse(message),
+        isAI: false,
+        source: 'fallback'
+      })
+    }
+
     // Check if we have API key configured
     if (!process.env.GEMINI_API_KEY) {
       // Try knowledge base first for contextual response
-      const contextualResponse = knowledgeBase.getContextualResponse(message, deviceType)
+      const contextualResponse = knowledgeBase.getContextualResponse(message, detectedDeviceType)
       if (contextualResponse) {
         return NextResponse.json({
           success: true,
@@ -142,7 +170,7 @@ You can also try these demo tracking IDs:
 
     try {
       // Get knowledge base context for the query
-      const knowledgeContext = knowledgeBase.generateAIContext(message, deviceType)
+      const knowledgeContext = knowledgeBase.generateAIContext(message, detectedDeviceType)
       
       // Create system prompt based on context
       let systemPrompt = `You are a helpful IT support assistant for IT Services Freetown, a computer and mobile repair shop in Freetown, Sierra Leone. 
@@ -169,8 +197,8 @@ Business information:
 - Email: support@itservicesfreetown.com
 - Hours: Mon-Sat 8AM-6PM`
 
-      if (deviceType && deviceModel) {
-        systemPrompt += `\n\nCustomer's device: ${deviceType} - ${deviceModel}`
+      if (detectedDeviceType && deviceModel) {
+        systemPrompt += `\n\nCustomer's device: ${detectedDeviceType} - ${deviceModel}`
       }
 
       // Initialize Gemini model
@@ -249,7 +277,7 @@ Business information:
       console.error('Gemini API error:', geminiError)
       
       // Try knowledge base first for contextual response
-      const contextualResponse = knowledgeBase.getContextualResponse(message, deviceType)
+      const contextualResponse = knowledgeBase.getContextualResponse(message, detectedDeviceType)
       if (contextualResponse) {
         return NextResponse.json({
           success: true,
@@ -277,10 +305,39 @@ Business information:
   }
 }
 
+function isNonITQuestion(message: string): boolean {
+  const lowerMessage = message.toLowerCase()
+  
+  const nonITKeywords = [
+    'cooking', 'recipe', 'food', 'cake', 'bake', 'weather', 'sports', 'football', 'soccer',
+    'history', 'france', 'country', 'politics', 'medicine', 'health', 'doctor', 'quantum',
+    'physics', 'chemistry', 'biology', 'math', 'mathematics', 'travel', 'vacation',
+    'car', 'vehicle', 'driving', 'movie', 'film', 'music', 'song', 'book', 'reading',
+    'algorithm', 'algorithms', 'programming language', 'coding course', 'learn programming'
+  ]
+  
+  return nonITKeywords.some(keyword => lowerMessage.includes(keyword))
+}
+
 function getFallbackResponse(message: string): string {
   const lowerMessage = message.toLowerCase()
   
-  // Basic keyword matching for common issues
+  // Check if the question is clearly outside IT services scope
+  const nonITKeywords = [
+    'cooking', 'recipe', 'food', 'cake', 'bake', 'weather', 'sports', 'football', 'soccer',
+    'history', 'france', 'country', 'politics', 'medicine', 'health', 'doctor', 'quantum',
+    'physics', 'chemistry', 'biology', 'math', 'mathematics', 'travel', 'vacation',
+    'car', 'vehicle', 'driving', 'movie', 'film', 'music', 'song', 'book', 'reading',
+    'algorithm', 'algorithms', 'programming language', 'coding course', 'learn programming'
+  ]
+  
+  const isNonITQuestion = nonITKeywords.some(keyword => lowerMessage.includes(keyword))
+  
+  if (isNonITQuestion) {
+    return "I'm an IT support assistant specifically designed to help with computer and mobile device issues. I can't help with that particular topic, but I'd be happy to assist you with:\n\n• Computer repairs and troubleshooting\n• Mobile phone issues\n• Screen repairs\n• Software problems\n• Hardware diagnostics\n• Booking repair appointments\n\nIs there anything IT-related I can help you with today? 😊"
+  }
+  
+  // Basic keyword matching for common IT issues
   if (lowerMessage.includes('computer') && (lowerMessage.includes('start') || lowerMessage.includes('boot'))) {
     return "I can help you troubleshoot that! First, let's check if the power cable is securely connected. Can you confirm the power light is on? Also, try holding the power button for 10 seconds to fully shut down, then restart."
   }
@@ -313,6 +370,6 @@ function getFallbackResponse(message: string): string {
     return "Sorry to hear about your broken screen! For screen repairs, it's best to bring your device to our shop for proper assessment. We offer free diagnostics and can provide a quote for the repair. Our location is 1 Regent Highway, Jui Junction, Freetown."
   }
   
-  // Default response
-  return "I understand you need help with that. Let me see what I can do to assist you. Could you provide more details about the specific issue you're experiencing? Or would you like me to connect you with one of our human technicians?"
+  // Default response for unclear IT-related questions
+  return "I'm here to help with IT support! Could you be more specific about the technical issue you're experiencing? For example:\n\n• What type of device are you having trouble with?\n• What specific problem are you encountering?\n• Are you getting any error messages?\n\nOr feel free to ask about our services, pricing, or booking an appointment! 📞 +232 33 399 391"
 }

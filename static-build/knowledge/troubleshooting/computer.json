@@ -1,0 +1,176 @@
+{
+  "computer_troubleshooting": {
+    "startup_issues": {
+      "no_power": {
+        "symptoms": ["No lights", "No fan noise", "Completely dead"],
+        "difficulty": "easy",
+        "tools_needed": [],
+        "safety_level": "safe",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Check power cable connection",
+            "description": "Ensure power cable is firmly connected to both computer and wall outlet",
+            "warning": null
+          },
+          {
+            "step": 2,
+            "action": "Test wall outlet", 
+            "description": "Try plugging another device into the same outlet to verify it works",
+            "warning": null
+          },
+          {
+            "step": 3,
+            "action": "Try different power cable",
+            "description": "If available, test with a different power cable",
+            "warning": null
+          },
+          {
+            "step": 4,
+            "action": "Check power supply switch",
+            "description": "Look for a power switch on the back of the computer and ensure it's in the 'ON' position",
+            "warning": null
+          },
+          {
+            "step": 5,
+            "action": "Discharge static electricity",
+            "description": "Unplug computer, hold power button for 10 seconds, then try starting again",
+            "warning": null
+          }
+        ],
+        "when_to_stop": "If none of these steps work, the power supply or motherboard may be faulty",
+        "professional_help_needed": "Bring to repair shop for power supply testing and replacement"
+      },
+      "turns_on_but_no_display": {
+        "symptoms": ["Computer starts", "Fans spinning", "No display on monitor"],
+        "difficulty": "medium",
+        "tools_needed": [],
+        "safety_level": "safe",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Check monitor connection",
+            "description": "Ensure monitor cable is securely connected to both computer and monitor",
+            "warning": null
+          },
+          {
+            "step": 2,
+            "action": "Test monitor",
+            "description": "Try connecting monitor to another device or use a different monitor",
+            "warning": null
+          },
+          {
+            "step": 3,
+            "action": "Try different video port",
+            "description": "If computer has multiple video outputs (HDMI, VGA, DisplayPort), try each one",
+            "warning": null
+          },
+          {
+            "step": 4,
+            "action": "Reseat RAM",
+            "description": "Power off, unplug, open case, remove and reinstall RAM sticks",
+            "warning": "Handle RAM carefully by edges only. Ensure computer is unplugged."
+          },
+          {
+            "step": 5,
+            "action": "Remove all peripherals",
+            "description": "Disconnect all USB devices, printers, etc. and try starting with only keyboard and mouse",
+            "warning": null
+          }
+        ],
+        "when_to_stop": "If display still doesn't work after these steps",
+        "professional_help_needed": "May need graphics card, motherboard, or RAM replacement"
+      }
+    },
+    "performance_issues": {
+      "slow_performance": {
+        "symptoms": ["Takes long to start", "Programs load slowly", "General sluggishness"],
+        "difficulty": "easy",
+        "tools_needed": [],
+        "safety_level": "safe",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Restart computer",
+            "description": "A simple restart can resolve many temporary performance issues",
+            "warning": null
+          },
+          {
+            "step": 2,
+            "action": "Check available storage space",
+            "description": "Open 'This PC' and ensure C: drive has at least 15% free space",
+            "warning": null
+          },
+          {
+            "step": 3,
+            "action": "Run Disk Cleanup",
+            "description": "Search 'Disk Cleanup' in Start menu and run it on C: drive",
+            "warning": null
+          },
+          {
+            "step": 4,
+            "action": "Check startup programs",
+            "description": "Open Task Manager (Ctrl+Shift+Esc), go to Startup tab, disable unnecessary programs",
+            "warning": "Only disable programs you recognize and don't need at startup"
+          },
+          {
+            "step": 5,
+            "action": "Run virus scan",
+            "description": "Perform full system scan with your antivirus software",
+            "warning": null
+          },
+          {
+            "step": 6,
+            "action": "Check for Windows updates",
+            "description": "Go to Settings > Update & Security > Windows Update and install available updates",
+            "warning": null
+          }
+        ],
+        "when_to_stop": "If performance doesn't improve after these steps",
+        "professional_help_needed": "May need hardware upgrade (RAM, SSD) or deeper system analysis"
+      }
+    },
+    "software_issues": {
+      "virus_malware": {
+        "symptoms": ["Pop-up ads", "Slow performance", "Unknown programs", "Homepage changed"],
+        "difficulty": "medium",
+        "tools_needed": ["Antivirus software"],
+        "safety_level": "caution",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Disconnect from internet",
+            "description": "Unplug ethernet cable or disable Wi-Fi to prevent further damage",
+            "warning": "Do not enter passwords or access sensitive accounts until cleaned"
+          },
+          {
+            "step": 2,
+            "action": "Boot in Safe Mode",
+            "description": "Restart computer and press F8 repeatedly during startup, select Safe Mode",
+            "warning": null
+          },
+          {
+            "step": 3,
+            "action": "Run full antivirus scan",
+            "description": "Use your installed antivirus to perform complete system scan",
+            "warning": "This may take several hours"
+          },
+          {
+            "step": 4,
+            "action": "Use anti-malware tool",
+            "description": "Download and run Malwarebytes (on clean computer) for additional scanning",
+            "warning": null
+          },
+          {
+            "step": 5,
+            "action": "Check browser settings",
+            "description": "Reset browser to default settings and remove suspicious extensions",
+            "warning": "This will remove saved passwords and settings"
+          }
+        ],
+        "when_to_stop": "If malware persists or system becomes unstable",
+        "professional_help_needed": "Professional malware removal and system hardening recommended"
+      }
+    }
+  }
+}
