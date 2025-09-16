@@ -7,7 +7,7 @@ const fs = require('fs').promises;
 const path = require('path');
 
 // Configuration for emails
-const adminEmail = "info@itservicesfreetown.com"; // Change this to your email
+const adminEmail = "support@itservicesfreetown.com"; // Change this to your email
 const websiteName = "IT Services Freetown";
 const noReplyEmail = "no-reply@itservicesfreetown.com";
 
@@ -205,7 +205,7 @@ function createCustomerEmail(appointment, dateFormatted) {
                   <a href="https://itservicesfreetown.com/track-repair.html?id=${appointment.trackingId}" class="button">Track Your Repair</a>
               </p>
               
-              <p>If you have any questions or need to make changes to your appointment, please contact us at info@itservicesfreetown.com or call +232 33 399 391.</p>
+              <p>If you have any questions or need to make changes to your appointment, please contact us at support@itservicesfreetown.com or call +232 33 399391.</p>
               
               <p>Best regards,<br>The IT Services Freetown Team</p>
           </div>

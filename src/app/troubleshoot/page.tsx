@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Brain, Send, Smartphone, Monitor, HelpCircle, CheckCircle, AlertCircle, Lightbulb } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 
 interface TroubleshootingStep {
   id: string
@@ -89,6 +90,9 @@ const mockAIResponse: AIResponse = {
 }
 
 export default function Troubleshoot() {
+  // Initialize scroll animations
+  useScrollAnimations()
+  
   const [deviceType, setDeviceType] = useState<'computer' | 'mobile' | ''>('')
   const [deviceModel, setDeviceModel] = useState('')
   const [issueDescription, setIssueDescription] = useState('')

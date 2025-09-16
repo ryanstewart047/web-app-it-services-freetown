@@ -91,7 +91,7 @@ export default async function handler(req, res) {
         const adminEmailHTML = createAdminEmail(appointmentDetails);
 
         // Send emails
-        const adminEmail = process.env.ADMIN_EMAIL || 'info@itservicesfreetown.com';
+        const adminEmail = process.env.ADMIN_EMAIL || 'support@itservicesfreetown.com';
         
         // Send confirmation email to customer
         await transporter.sendMail({
@@ -178,7 +178,7 @@ function createCustomerEmail(details) {
                     <li>Use your tracking ID to monitor progress online</li>
                 </ul>
                 
-                <p>If you have any questions, please contact us at +232 33 399 391 or info@itservicesfreetown.com</p>
+                <p>If you have any questions, please contact us at +232 33 399391 or support@itservicesfreetown.com</p>
             </div>
             <div class="footer">
                 <p>© 2025 IT Services Freetown. All rights reserved.</p>
