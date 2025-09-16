@@ -64,7 +64,7 @@ function ContactForm() {
     <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
       <div className="text-center mb-8">
         <h3 className="text-2xl font-bold text-gray-900 mb-2">Send us a Message</h3>
-        <p className="text-gray-600">We'll get back to you within 24 hours</p>
+        <p className="text-gray-600">We&apos;ll get back to you within 24 hours</p>
       </div>
 
       {submitStatus === 'success' && (
@@ -73,7 +73,7 @@ function ContactForm() {
             <i className="fas fa-check-circle text-green-500 mr-3"></i>
             <div>
               <h4 className="text-green-800 font-semibold">Message Sent Successfully!</h4>
-              <p className="text-green-700 text-sm">We'll get back to you within 24 hours.</p>
+              <p className="text-green-700 text-sm">We&apos;ll get back to you within 24 hours.</p>
             </div>
           </div>
         </div>
