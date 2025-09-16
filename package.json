@@ -4,11 +4,11 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "build-css": "tailwindcss -i ./src/input.css -o ./assets/css/output.css --watch",
-    "build-css-prod": "tailwindcss -i ./src/input.css -o ./assets/css/output.css --minify",
     "dev": "next dev",
     "start": "next start",
     "export": "next build",
+    "build-static": "next build && touch out/.nojekyll",
+    "deploy": "npm run build-static && gh-pages -d out",
     "preview": "npx serve .",
     "static": "python3 -m http.server 8000 2>/dev/null || python -m http.server 8000 2>/dev/null || npx serve ."
   },

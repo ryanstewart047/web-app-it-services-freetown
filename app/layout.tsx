@@ -6,7 +6,8 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import CookiePopup from '@/components/CookiePopup'
 import BannerPopup from '@/components/BannerPopup'
-import ChatFloat from '@/components/ChatFloat'
+import ChatFloat from '@/components/StaticChatFloat'
+import StaticChatFloat from '@/components/StaticChatFloat'
 import Script from 'next/script'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -41,7 +42,7 @@ export default function RootLayout({
         </div>
         <CookiePopup />
         <BannerPopup />
-        <ChatFloat />
+        {process.env.NODE_ENV === 'production' ? <StaticChatFloat /> : <ChatFloat />}
         <Toaster position="top-right" />
       </body>
     </html>

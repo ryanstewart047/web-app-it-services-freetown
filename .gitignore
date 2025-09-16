@@ -47,3 +47,6 @@ next-env.d.ts
 # OS generated files
 Thumbs.db
 ehthumbs.db
+
+# Server backup directory (keep in repo for future server deployment)
+# _server-backup/
