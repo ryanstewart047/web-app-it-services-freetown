@@ -107,36 +107,36 @@ export default function Chat() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden h-[600px] flex flex-col">
+      <div className="max-w-4xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden h-[500px] sm:h-[600px] flex flex-col">
           {/* Chat Header */}
-          <div className="bg-gradient-to-r from-primary to-blue-600 text-white p-4">
+          <div className="bg-gradient-to-r from-primary to-blue-600 text-white p-3 sm:p-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                  <i className="fas fa-robot text-white"></i>
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-full flex items-center justify-center">
+                  <i className="fas fa-robot text-white text-sm sm:text-base"></i>
                 </div>
                 <div>
-                  <h3 className="font-semibold">AI Assistant</h3>
-                  <p className="text-sm opacity-90">Automated Support</p>
+                  <h3 className="font-semibold text-sm sm:text-base">AI Assistant</h3>
+                  <p className="text-xs sm:text-sm opacity-90">Automated Support</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                <span className="text-sm">Online</span>
+                <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full"></div>
+                <span className="text-xs sm:text-sm">Online</span>
               </div>
             </div>
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-3 sm:space-y-4">
             {messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
+                  className={`max-w-[280px] sm:max-w-xs lg:max-w-md px-3 sm:px-4 py-2 rounded-2xl ${
                     message.sender === 'user'
                       ? 'bg-primary text-white'
                       : message.sender === 'agent'
@@ -218,15 +218,15 @@ export default function Chat() {
           </div>
 
           {/* Quick Actions */}
-          <div className="border-t p-4">
-            <p className="text-sm text-gray-600 mb-3">Quick actions:</p>
-            <div className="flex flex-wrap gap-2">
+          <div className="border-t p-2 sm:p-4">
+            <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">Quick actions:</p>
+            <div className="flex flex-wrap gap-1 sm:gap-2">
               <button
                 onClick={() => {
                   addMessage('I need help booking an appointment', 'user')
                   getBotResponse('book appointment')
                 }}
-                className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200 transition-colors"
+                className="px-2 sm:px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs sm:text-sm hover:bg-blue-200 transition-colors"
               >
                 Book Appointment
               </button>
@@ -235,7 +235,7 @@ export default function Chat() {
                   addMessage('I want to track my repair', 'user')
                   getBotResponse('track my repair')
                 }}
-                className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm hover:bg-purple-200 transition-colors"
+                className="px-2 sm:px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs sm:text-sm hover:bg-purple-200 transition-colors"
               >
                 <i className="fas fa-search mr-1"></i>
                 Track Repair
@@ -245,7 +245,7 @@ export default function Chat() {
                   addMessage('TRK-001', 'user')
                   getBotResponse('TRK-001')
                 }}
-                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition-colors"
+                className="px-2 sm:px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs sm:text-sm hover:bg-gray-200 transition-colors"
               >
                 Demo: TRK-001
               </button>
@@ -257,7 +257,7 @@ export default function Chat() {
                     addMessage('Hi! I\'m Sarah, a senior technician. I\'m here to help you with your device issue.', 'agent')
                   }, 3000)
                 }}
-                className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm hover:bg-green-200 transition-colors"
+                className="px-2 sm:px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs sm:text-sm hover:bg-green-200 transition-colors"
               >
                 Connect to Agent
               </button>
@@ -265,7 +265,7 @@ export default function Chat() {
           </div>
 
           {/* Input */}
-          <div className="border-t p-4">
+          <div className="border-t p-2 sm:p-4">
             <div className="flex space-x-2">
               <input
                 type="text"
@@ -273,14 +273,14 @@ export default function Chat() {
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="flex-1 px-3 sm:px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm sm:text-base"
               />
               <button
                 onClick={sendMessage}
                 disabled={!inputMessage.trim()}
-                className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-9 h-9 sm:w-10 sm:h-10 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                <i className="fas fa-paper-plane"></i>
+                <i className="fas fa-paper-plane text-sm"></i>
               </button>
             </div>
           </div>

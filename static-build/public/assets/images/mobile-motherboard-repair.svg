@@ -1,7 +1,0 @@
-<!-- This is a placeholder for a mobile motherboard repair image -->
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="600" viewBox="0 0 1000 600">
-  <rect width="1000" height="600" fill="#040e40"/>
-  <text x="500" y="250" font-family="Arial" font-size="40" fill="white" text-anchor="middle">African Expert Repairing Mobile Motherboard</text>
-  <text x="500" y="320" font-family="Arial" font-size="20" fill="white" text-anchor="middle">(Placeholder image - Replace with actual photo)</text>
-  <path d="M500,400 C500,400 550,350 600,400 C650,450 700,400 700,400" stroke="white" fill="none" stroke-width="2"/>
-</svg>

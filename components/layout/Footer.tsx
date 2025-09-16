@@ -8,16 +8,14 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12">
           {/* Company Info */}
           <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center space-x-3 mb-4">
+            <div className="flex items-center mb-4">
               <Image 
                 src="/assets/logo.png" 
                 alt="IT Services Freetown Logo" 
-                width={40} 
-                height={40} 
-                className="rounded-lg"
-                style={{ width: 'auto' }}
+                width={32} 
+                height={32} 
+                className="rounded-lg w-8 h-8"
               />
-              <span className="text-xl font-bold text-white">IT Services Freetown</span>
             </div>
             <p className="text-gray-200 mb-6 max-w-md leading-relaxed">
               Professional computer and mobile repair services in Freetown, Sierra Leone. 
