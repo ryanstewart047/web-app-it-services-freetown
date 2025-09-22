@@ -522,3 +522,9 @@ nav {
 .chat-float-button:hover {
   transform: scale(1.1) !important;
 }
+
+/* Footer logo size fix */
+.footer-logo {
+  max-width: 64px;
+  height: auto;
+}

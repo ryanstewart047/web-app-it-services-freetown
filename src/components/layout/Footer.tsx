@@ -10,12 +10,12 @@ export default function Footer() {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-3 mb-4">
               <Image 
-                src="/assets/logo.png" 
-                alt="IT Services Freetown Logo" 
-                width={56} 
-                height={56} 
-                className="h-12 sm:h-14"
-                style={{ width: 'auto' }}
+             src="/assets/logo.png"
+             alt="IT Services Freetown Logo"
+             width={56}
+             height={56}
+             className="footer-logo"
+             style={{ width: 'auto' }}
               />
             </div>
             <p className="text-gray-200 mb-6 max-w-md leading-relaxed">
