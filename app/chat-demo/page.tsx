@@ -110,7 +110,7 @@ export default function ChatIntegrationDemo() {
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Smart Pre-filling</h3>
               <p className="text-sm text-gray-600">
-                Contextual messages based on where users click "Connect to Agent"
+                Contextual messages based on where users click &ldquo;Connect to Agent&rdquo;
               </p>
             </div>
             
@@ -158,15 +158,15 @@ export default function ChatIntegrationDemo() {
               <ul className="space-y-2 text-gray-600">
                 <li className="flex items-center">
                   <i className="fas fa-check-circle text-green-500 mr-2"></i>
-                  Chat Page - "Connect to Agent" button
+                  Chat Page - &ldquo;Connect to Agent&rdquo; button
                 </li>
                 <li className="flex items-center">
                   <i className="fas fa-check-circle text-green-500 mr-2"></i>
-                  Troubleshoot Page - "Start Chat" button
+                  Troubleshoot Page - &ldquo;Start Chat&rdquo; button
                 </li>
                 <li className="flex items-center">
                   <i className="fas fa-check-circle text-green-500 mr-2"></i>
-                  Contact Section - "Live Chat" buttons
+                  Contact Section - &ldquo;Live Chat&rdquo; buttons
                 </li>
                 <li className="flex items-center">
                   <i className="fas fa-check-circle text-green-500 mr-2"></i>
@@ -207,7 +207,7 @@ export default function ChatIntegrationDemo() {
           <p className="text-blue-700">
             Click any button above to see the chat float automatically open with a pre-filled message. 
             The chat float will appear in the bottom-right corner with a pulsing animation. 
-            Click "Send via WhatsApp" to be redirected to WhatsApp with the message ready to send!
+            Click &ldquo;Send via WhatsApp&rdquo; to be redirected to WhatsApp with the message ready to send!
           </p>
         </div>
       </div>
