@@ -3,9 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useScrollAnimations } from '@/hooks/useScrollAnimations';
+import { usePageLoader } from '@/hooks/usePageLoader';
+import LoadingOverlay from '@/components/LoadingOverlay';
 
 export default function BookAppointment() {
   const router = useRouter();
+  const { isLoading, progress } = usePageLoader({
+    minLoadTime: 1800
+  });
+  
   // Initialize scroll animations
   useScrollAnimations();
   const [formData, setFormData] = useState({
@@ -219,6 +225,10 @@ export default function BookAppointment() {
       dateInput.min = today;
     }
   }, []);
+
+  if (isLoading) {
+    return <LoadingOverlay progress={progress} variant="modern" />;
+  }
 
   return (
     <>

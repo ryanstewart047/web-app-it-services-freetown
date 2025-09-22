@@ -472,6 +472,30 @@ nav {
   transform: scale(1.1) !important;
 }
 
+/* Chat popup responsive styles */
+.chat-popup-mobile {
+  position: fixed !important;
+  bottom: 5rem !important;
+  left: 1rem !important;
+  right: 1rem !important;
+  max-width: calc(100vw - 2rem) !important;
+  margin: 0 auto !important;
+  z-index: 9998 !important;
+}
+
+@media (min-width: 640px) {
+  .chat-popup-mobile {
+    position: fixed !important;
+    bottom: 6rem !important;
+    left: auto !important;
+    right: 1.5rem !important;
+    width: 20rem !important;
+    max-width: 20rem !important;
+    margin: 0 !important;
+    z-index: 9998 !important;
+  }
+}
+
 @media (max-width: 639px) {
   .chat-float-button {
     min-width: 56px !important;

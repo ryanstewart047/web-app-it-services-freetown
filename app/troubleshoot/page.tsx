@@ -4,6 +4,9 @@ import { useState } from 'react'
 import { Brain, Send, Smartphone, Monitor, HelpCircle, CheckCircle, AlertCircle, Lightbulb } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
+import { usePageLoader } from '@/hooks/usePageLoader'
+import LoadingOverlay from '@/components/LoadingOverlay'
+import { openChatFloat } from '@/lib/chat-float-controller'
 
 interface TroubleshootingStep {
   id: string
@@ -90,6 +93,10 @@ const mockAIResponse: AIResponse = {
 }
 
 export default function Troubleshoot() {
+  const { isLoading: pageLoading, progress } = usePageLoader({
+    minLoadTime: 1700
+  });
+  
   // Initialize scroll animations
   useScrollAnimations()
   
@@ -99,6 +106,10 @@ export default function Troubleshoot() {
   const [aiResponse, setAiResponse] = useState<AIResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [completedSteps, setCompletedSteps] = useState<string[]>([])
+
+  if (pageLoading) {
+    return <LoadingOverlay progress={progress} variant="modern" />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -352,9 +363,12 @@ export default function Troubleshoot() {
                   <p className="text-gray-600 text-sm mb-4">
                     Get instant help from our support team through live chat.
                   </p>
-                  <a href="/chat" className="btn-secondary text-sm px-4 py-2 inline-block">
+                  <button 
+                    onClick={() => openChatFloat('Hi! I need help troubleshooting my device. Can you assist me?')} 
+                    className="btn-secondary text-sm px-4 py-2 inline-block"
+                  >
                     Start Chat
-                  </a>
+                  </button>
                 </div>
               </div>
             </div>

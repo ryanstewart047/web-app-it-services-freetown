@@ -1,10 +1,20 @@
 "use client"
 
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
+import { usePageLoader } from '@/hooks/usePageLoader'
+import LoadingOverlay from '@/components/LoadingOverlay'
 
 export default function LearnMore() {
+  const { isLoading, progress } = usePageLoader({
+    minLoadTime: 1500
+  });
+  
   // Initialize scroll animations
   useScrollAnimations()
+
+  if (isLoading) {
+    return <LoadingOverlay progress={progress} variant="modern" />;
+  }
 
   return (
     <>

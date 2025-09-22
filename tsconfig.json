@@ -34,10 +34,10 @@
         "./src/hooks/*"
       ],
       "@/lib/*": [
-        "./src/lib/*"
+        "./lib/*"
       ],
       "@/types/*": [
-        "./src/types/*"
+        "./types/*"
       ]
     }
   },

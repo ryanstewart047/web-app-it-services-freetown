@@ -1,6 +1,5 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import Hero from '@/components/sections/Hero'
 import Services from '@/components/sections/Services'
 import WhyChooseUs from '@/components/sections/WhyChooseUs'
@@ -10,23 +9,18 @@ import Contact from '@/components/sections/Contact'
 import PWAInstallBanner from '@/components/PWAInstallBanner'
 import LoadingOverlay from '@/components/LoadingOverlay'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
+import { usePageLoader } from '@/hooks/usePageLoader'
 
 export default function Home() {
-  const [loading, setLoading] = useState(true)
+  const { isLoading, progress } = usePageLoader({
+    minLoadTime: 2000
+  })
   
   // Initialize scroll animations
   useScrollAnimations()
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 1500)
-
-    return () => clearTimeout(timer)
-  }, [])
-
-  if (loading) {
-    return <LoadingOverlay />
+  if (isLoading) {
+    return <LoadingOverlay progress={progress} variant="modern" />
   }
 
   return (

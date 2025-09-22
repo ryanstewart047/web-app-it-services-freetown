@@ -77,13 +77,13 @@ If you need environment variables for any server-side functionality, add them in
 npm run build-css-prod
 
 # Check for missing files
-ls -la assets/css/output.css
+ls -la public/assets/css/output.css
 ```
 
 ### Deployment Issues
 1. Check `vercel.json` is properly formatted
 2. Ensure all HTML files are in root directory
-3. Verify `assets/css/output.css` exists
+3. Verify `public/assets/css/output.css` exists
 
 ### 404 Errors
 - Make sure routing in `vercel.json` is correct

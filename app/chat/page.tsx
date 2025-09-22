@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
+import { usePageLoader } from '@/hooks/usePageLoader'
+import LoadingOverlay from '@/components/LoadingOverlay'
+import { openChatFloat } from '@/lib/chat-float-controller'
 
 interface Message {
   id: string
@@ -13,6 +16,10 @@ interface Message {
 }
 
 export default function Chat() {
+  const { isLoading, progress } = usePageLoader({
+    minLoadTime: 1600
+  });
+  
   // Initialize scroll animations
   useScrollAnimations()
   
@@ -98,6 +105,10 @@ export default function Chat() {
       e.preventDefault()
       sendMessage()
     }
+  }
+
+  if (isLoading) {
+    return <LoadingOverlay progress={progress} variant="modern" />;
   }
 
   return (
@@ -257,10 +268,14 @@ export default function Chat() {
               <button
                 onClick={() => {
                   addMessage('I want to talk to a human agent', 'user')
-                  addMessage('Connecting you to a live agent...', 'bot', 'system')
+                  addMessage('Great! I\'ll connect you to WhatsApp where you can chat directly with our expert technicians.', 'bot', 'system')
+                  
+                  // Open chat float with pre-filled message after a brief delay
                   setTimeout(() => {
-                    addMessage('Hi! I\'m Sarah, a senior technician. I\'m here to help you with your device issue.', 'agent')
-                  }, 3000)
+                    const prefilledMessage = `Hi! I need to speak with a human agent about my device issue. I was chatting on your website and need further assistance.`
+                    addMessage('💬 Opening WhatsApp chat for direct communication with our experts...', 'bot', 'system')
+                    openChatFloat(prefilledMessage)
+                  }, 1500)
                 }}
                 className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm hover:bg-green-200 transition-colors"
               >

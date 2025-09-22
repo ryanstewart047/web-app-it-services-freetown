@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { openChatFloat } from '@/lib/chat-float-controller'
 
 function ContactForm() {
   const [formData, setFormData] = useState({
@@ -243,13 +244,13 @@ function ContactForm() {
             Need immediate assistance?
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
-            <Link 
-              href="/chat"
+            <button 
+              onClick={() => openChatFloat('Hi! I need immediate assistance with my IT issue. Can you help me?')}
               className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-medium transition-colors duration-300 flex items-center justify-center text-sm"
             >
               <i className="fas fa-comments mr-2"></i>
               Live Chat
-            </Link>
+            </button>
             <a 
               href="tel:+23233399391"
               className="flex-1 bg-red-50 hover:bg-red-100 text-red-700 py-3 px-4 rounded-lg font-medium transition-colors duration-300 flex items-center justify-center text-sm"
@@ -373,13 +374,13 @@ export default function Contact() {
                     <i className="fas fa-tools mr-2 text-gray-600"></i>
                     AI Troubleshoot
                   </Link>
-                  <Link 
-                    href="/chat" 
+                  <button 
+                    onClick={() => openChatFloat('Hi! I found your contact page and need support. Can you assist me?')}
                     className="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors duration-300"
                   >
                     <i className="fas fa-comments mr-2 text-gray-600"></i>
                     Live Chat
-                  </Link>
+                  </button>
                   <a 
                     href="tel:+23233399391" 
                     className="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors duration-300"

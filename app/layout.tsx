@@ -6,7 +6,6 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import CookiePopup from '@/components/CookiePopup'
 import BannerPopup from '@/components/BannerPopup'
-import ChatFloat from '@/components/StaticChatFloat'
 import StaticChatFloat from '@/components/StaticChatFloat'
 import Script from 'next/script'
 
@@ -42,7 +41,7 @@ export default function RootLayout({
         </div>
         <CookiePopup />
         <BannerPopup />
-        {process.env.NODE_ENV === 'production' ? <StaticChatFloat /> : <ChatFloat />}
+        <StaticChatFloat />
         <Toaster position="top-right" />
       </body>
     </html>
