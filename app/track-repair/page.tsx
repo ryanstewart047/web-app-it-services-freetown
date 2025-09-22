@@ -2,8 +2,14 @@
 
 import { useState } from 'react';
 import AppointmentStatus from '@/components/AppointmentStatus';
+import { usePageLoader } from '@/hooks/usePageLoader';
+import LoadingOverlay from '@/components/LoadingOverlay';
 
 export default function TrackRepair() {
+  const { isLoading, progress } = usePageLoader({
+    minLoadTime: 1400
+  });
+  
   const [trackingId, setTrackingId] = useState('');
   const [showStatus, setShowStatus] = useState(false);
 
@@ -18,6 +24,10 @@ export default function TrackRepair() {
     setTrackingId('');
     setShowStatus(false);
   };
+
+  if (isLoading) {
+    return <LoadingOverlay progress={progress} variant="modern" />;
+  }
 
   return (
     <>

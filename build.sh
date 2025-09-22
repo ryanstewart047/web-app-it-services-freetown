@@ -13,7 +13,7 @@ if [ ! -f "index.html" ]; then
 fi
 
 # Check if CSS was built
-if [ ! -f "assets/css/output.css" ]; then
+if [ ! -f "public/assets/css/output.css" ]; then
     echo "❌ Error: CSS build failed!"
     exit 1
 fi
@@ -26,8 +26,8 @@ echo "   - book-appointment.html"
 echo "   - track-repair.html"
 echo "   - chat.html"
 echo "   - troubleshoot.html"
-echo "   - assets/css/output.css"
-echo "   - assets/ (images, icons)"
+echo "   - public/assets/css/output.css"
+echo "   - public/assets/ (images, icons)"
 echo ""
 echo "🚀 Deploy to Vercel:"
 echo "   vercel --prod"
