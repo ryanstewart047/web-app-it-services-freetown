@@ -10,6 +10,37 @@ export default function StaticChatFloat() {
   const [isDesktop, setIsDesktop] = useState(false)
   const [justOpened, setJustOpened] = useState(false)
 
+  // Function to play notification sound
+  const playNotificationSound = () => {
+    try {
+      // Create a simple notification sound using Web Audio API
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const oscillator = audioContext.createOscillator()
+      const gainNode = audioContext.createGain()
+      
+      oscillator.connect(gainNode)
+      gainNode.connect(audioContext.destination)
+      
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime) // High frequency
+      oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1) // Lower frequency
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3)
+      
+      oscillator.start(audioContext.currentTime)
+      oscillator.stop(audioContext.currentTime + 0.3)
+    } catch (error) {
+      // Fallback: try to play a simple beep using HTML5 audio
+      try {
+        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+b2unQkBSuEzfLagSUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+b2unQkBSuEzfLagSUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+b2unQkBSuEzfLagSUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+b2unQkBSuEzfLagSUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+b2unQkBSuEzfLagSUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+b2unQkBSuEzfLagSUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+b2unQkBSuEzfLagSUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+b2unQkBSuEzfLagSUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+b2unQkBSuEzfLagSUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+b2unQkBSuEzfLagSUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+b2unQkBSuEzfLagSUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+b2unQkBSuEzfLagSUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+b2unQkBSuEzfLagSUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+b2unQkBSuEzfLagSUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+b2unQkBSuEzfLag==')
+        audio.volume = 0.3
+        audio.play()
+      } catch (fallbackError) {
+        console.log('Audio notification not available')
+      }
+    }
+  }
+
   useEffect(() => {
     const checkScreenSize = () => {
       setIsDesktop(window.innerWidth >= 640)
@@ -26,7 +57,14 @@ export default function StaticChatFloat() {
     const controller = ChatFloatController.getInstance()
     
     const unsubscribe = controller.subscribe((shouldOpen: boolean, prefilledMessage?: string) => {
+      const wasOpen = isOpen
       setIsOpen(shouldOpen)
+      
+      // Play sound when opening the chat (not when closing)
+      if (shouldOpen && !wasOpen) {
+        playNotificationSound()
+      }
+      
       if (prefilledMessage) {
         setMessage(prefilledMessage)
         setJustOpened(true)
@@ -36,7 +74,17 @@ export default function StaticChatFloat() {
     })
 
     return unsubscribe
-  }, [])
+  }, [isOpen])
+
+  const handleChatToggle = () => {
+    const newIsOpen = !isOpen
+    setIsOpen(newIsOpen)
+    
+    // Play sound when opening the chat (not when closing)
+    if (newIsOpen) {
+      playNotificationSound()
+    }
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -65,7 +113,7 @@ export default function StaticChatFloat() {
       {/* Chat Float Button */}
       <div className="chat-float-container">
         <button
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={handleChatToggle}
           className={`chat-float-button bg-red-600 hover:bg-red-700 text-white p-4 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center ${
             justOpened ? 'animate-pulse ring-4 ring-red-300' : ''
           }`}
