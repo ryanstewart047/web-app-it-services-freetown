@@ -112,7 +112,7 @@ export default function LoadingStatus() {
               <div>
                 <h3 className="font-semibold text-gray-900">Removed Brand Name</h3>
                 <p className="text-gray-600 text-sm">
-                  Removed "IT Services Freetown" from the LoadingOverlay component for a cleaner, more professional appearance.
+                  Removed &ldquo;IT Services Freetown&rdquo; from the LoadingOverlay component for a cleaner, more professional appearance.
                 </p>
               </div>
             </div>
@@ -124,7 +124,7 @@ export default function LoadingStatus() {
               <div>
                 <h3 className="font-semibold text-gray-900">Unified Loading Variant</h3>
                 <p className="text-gray-600 text-sm">
-                  Changed all pages to use the "modern" variant with progress bar for consistency across the entire application.
+                  Changed all pages to use the &ldquo;modern&rdquo; variant with progress bar for consistency across the entire application.
                 </p>
               </div>
             </div>

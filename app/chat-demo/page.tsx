@@ -82,7 +82,7 @@ export default function ChatIntegrationDemo() {
                 <div className="bg-gray-50 rounded-lg p-3 mb-4">
                   <p className="text-xs font-medium text-gray-500 mb-1">Pre-filled Message:</p>
                   <p className="text-sm text-gray-700 italic">
-                    "{testCase.message}"
+                    &ldquo;{testCase.message}&rdquo;
                   </p>
                 </div>
               </div>
