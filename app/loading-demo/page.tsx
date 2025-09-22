@@ -165,7 +165,7 @@ export default function LoadingDemo() {
               ✅ Current Implementation Status
             </h3>
             <p className="text-green-700">
-              <strong>All pages now use the consistent "Modern" variant</strong> with progress bar for a unified user experience. 
+              <strong>All pages now use the consistent &ldquo;Modern&rdquo; variant</strong> with progress bar for a unified user experience. 
               The brand name has been removed for a cleaner, more professional appearance.
             </p>
           </div>
