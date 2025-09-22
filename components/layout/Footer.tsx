@@ -10,11 +10,11 @@ export default function Footer() {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center mb-4">
               <Image 
-                src="/assets/logo.png" 
-                alt="IT Services Freetown Logo" 
-                width={32} 
-                height={32} 
-                className="rounded-lg w-8 h-8"
+             src="/assets/logo.png"
+             alt="IT Services Freetown Logo"
+             width={32}
+             height={32}
+             className="footer-logo"
               />
             </div>
             <p className="text-gray-200 mb-6 max-w-md leading-relaxed">
