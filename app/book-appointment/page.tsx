@@ -114,6 +114,11 @@ export default function BookAppointment() {
           preferredTime: '',
         });
         setCurrentStep(1);
+        
+        // Redirect to chat after 3 seconds to allow user to see the success message
+        setTimeout(() => {
+          window.location.href = 'https://itservicesfreetown.com/?openchat=true';
+        }, 3000);
       } else {
         const errorData = await response.json();
         alert(errorData.error || 'Failed to book appointment');
@@ -776,6 +781,23 @@ export default function BookAppointment() {
 
               {/* Action Buttons */}
               <div className="space-y-3">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                  <p className="text-blue-800 text-sm">
+                    <i className="fas fa-info-circle mr-2"></i>
+                    You&apos;ll be redirected to chat with our agents in a few seconds, or click below to go now.
+                  </p>
+                </div>
+                
+                <button
+                  onClick={() => {
+                    window.location.href = 'https://itservicesfreetown.com/?openchat=true';
+                  }}
+                  className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center"
+                >
+                  <i className="fas fa-comments mr-2"></i>
+                  Chat with Agent Now
+                </button>
+                
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(successData.trackingId);
