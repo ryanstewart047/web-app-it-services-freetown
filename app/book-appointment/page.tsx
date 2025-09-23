@@ -117,15 +117,25 @@ export default function BookAppointment() {
         
         // Redirect to chat after 3 seconds to allow user to see the success message
         setTimeout(() => {
-          window.location.href = 'https://itservicesfreetown.com/?openchat=true';
+          window.location.href = 'https://itservicesfreetown.com/?openchat=true&message=' + encodeURIComponent(`Hi! I just booked an appointment (Tracking ID: ${data.trackingId}). I'd like to discuss the details with an agent.`);
         }, 3000);
       } else {
         const errorData = await response.json();
         alert(errorData.error || 'Failed to book appointment');
+        
+        // Redirect to chat after error so customer can get help
+        setTimeout(() => {
+          window.location.href = 'https://itservicesfreetown.com/?openchat=true&message=' + encodeURIComponent('Hi! I had trouble booking an appointment on your website. Can you help me with the booking process?');
+        }, 2000);
       }
     } catch (error) {
       console.error('Error:', error);
       alert('There was an error booking your appointment. Please try again.');
+      
+      // Redirect to chat after error so customer can get help  
+      setTimeout(() => {
+        window.location.href = 'https://itservicesfreetown.com/?openchat=true&message=' + encodeURIComponent('Hi! I had trouble booking an appointment on your website. Can you help me with the booking process?');
+      }, 2000);
     } finally {
       setIsSubmitting(false);
     }
@@ -790,7 +800,7 @@ export default function BookAppointment() {
                 
                 <button
                   onClick={() => {
-                    window.location.href = 'https://itservicesfreetown.com/?openchat=true';
+                    window.location.href = 'https://itservicesfreetown.com/?openchat=true&message=' + encodeURIComponent(`Hi! I just booked an appointment (Tracking ID: ${successData.trackingId}). I'd like to discuss the details with an agent.`);
                   }}
                   className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center"
                 >

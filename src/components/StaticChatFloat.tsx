@@ -80,12 +80,17 @@ export default function StaticChatFloat() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     if (urlParams.get('openchat') === 'true') {
-      // Auto-open chat with agent connection message
+      // Get custom message if provided, otherwise use default
+      const customMessage = urlParams.get('message')
+      const defaultMessage = "Hi! I&apos;d like to connect with an agent for support."
+      const messageToUse = customMessage || defaultMessage
+      
+      // Auto-open chat with the appropriate message
       setTimeout(() => {
         const controller = ChatFloatController.getInstance()
-        controller.openChat("Hi! I&apos;d like to connect with an agent for support.")
+        controller.openChat(messageToUse)
         
-        // Clean up the URL parameter
+        // Clean up the URL parameters
         const newUrl = window.location.pathname
         window.history.replaceState({}, '', newUrl)
       }, 500)
