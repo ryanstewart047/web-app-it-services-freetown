@@ -76,6 +76,22 @@ export default function StaticChatFloat() {
     return unsubscribe
   }, [isOpen])
 
+  // Check for auto-open chat URL parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('openchat') === 'true') {
+      // Auto-open chat with agent connection message
+      setTimeout(() => {
+        const controller = ChatFloatController.getInstance()
+        controller.openChat("Hi! I&apos;d like to connect with an agent for support.")
+        
+        // Clean up the URL parameter
+        const newUrl = window.location.pathname
+        window.history.replaceState({}, '', newUrl)
+      }, 500)
+    }
+  }, [])
+
   const handleChatToggle = () => {
     const newIsOpen = !isOpen
     setIsOpen(newIsOpen)
