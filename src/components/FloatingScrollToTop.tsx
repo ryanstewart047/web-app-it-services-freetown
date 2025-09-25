@@ -35,12 +35,9 @@ export default function FloatingScrollToTop() {
   return (
     <button
       onClick={scrollToTop}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
       className={`
         fixed bottom-6 left-6 z-50
         w-12 h-12 rounded-full
-        bg-blue-600 hover:bg-blue-700
         text-white shadow-lg hover:shadow-xl
         transition-all duration-300 ease-in-out
         flex items-center justify-center
@@ -48,6 +45,11 @@ export default function FloatingScrollToTop() {
         ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}
         focus:outline-none focus:ring-4 focus:ring-blue-300
       `}
+      style={{
+        backgroundColor: isHovered ? '#030b35' : '#040e40'
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       aria-label="Scroll to top"
       title="Back to top"
     >
