@@ -122,13 +122,28 @@ export default function Troubleshoot() {
     setIsLoading(true)
     
     try {
-      // Simulate AI processing
-      await new Promise(resolve => setTimeout(resolve, 3000))
+      const response = await fetch('/api/troubleshoot', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          deviceType,
+          deviceModel: deviceModel || undefined,
+          issueDescription: issueDescription.trim()
+        }),
+      })
+
+      const result = await response.json()
       
-      // In a real app, this would call your AI service
-      setAiResponse(mockAIResponse)
-      toast.success('AI diagnosis completed!')
+      if (result.success && result.data) {
+        setAiResponse(result.data)
+        toast.success('AI diagnosis completed!')
+      } else {
+        toast.error('Failed to analyze the issue. Please try again.')
+      }
     } catch (error) {
+      console.error('Error calling troubleshoot API:', error)
       toast.error('Failed to analyze the issue. Please try again.')
     } finally {
       setIsLoading(false)
