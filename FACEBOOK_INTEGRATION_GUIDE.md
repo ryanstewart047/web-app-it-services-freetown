@@ -40,7 +40,7 @@ We've implemented professional Facebook integration with the following features:
 
 The integration is currently configured for:
 ```
-https://www.facebook.com/itservicefreetownfeed
+https://www.facebook.com/itservicefreetown
 ```
 
 If your Facebook page URL is different, update it in the components:

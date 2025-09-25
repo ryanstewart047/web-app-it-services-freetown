@@ -85,7 +85,7 @@ const SocialMediaSection: React.FC = () => {
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">
                 <a 
-                  href="https://www.facebook.com/itservicefreetownfeed"
+                  href="https://www.facebook.com/itservicefreetown"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1"
