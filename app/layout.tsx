@@ -38,7 +38,7 @@ export default function RootLayout({
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" 
         />
         
-        {/* PWA Meta Tags */}
+        {/* PWA Meta Tags - Updated */}
         <meta name="theme-color" content="#1e3a8a" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
