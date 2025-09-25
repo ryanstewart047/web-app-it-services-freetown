@@ -6,6 +6,11 @@
 const GOOGLE_API_KEY = process.env.GOOGLE_AI_API_KEY || 'AIzaSyAQ1FUxW3TaMO_6VsXwVvy9O9Sc0e0yDYA'
 const GOOGLE_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent'
 
+// Validate API key at startup
+if (!GOOGLE_API_KEY || GOOGLE_API_KEY === 'your-api-key-here') {
+  console.error('Google AI API key is not properly configured')
+}
+
 interface GoogleAIResponse {
   candidates: Array<{
     content: {
@@ -138,6 +143,8 @@ Provide a JSON response with this structure:
 Provide 3-6 troubleshooting steps. Be specific and practical.`
 
   try {
+    console.log('Calling Google AI API for troubleshooting:', { deviceType: context.deviceType, issueDescription: context.issueDescription })
+    
     const response = await fetch(`${GOOGLE_API_URL}?key=${GOOGLE_API_KEY}`, {
       method: 'POST',
       headers: {
@@ -152,29 +159,40 @@ Provide 3-6 troubleshooting steps. Be specific and practical.`
       })
     })
 
+    console.log('Google AI API response status:', response.status)
+
     if (!response.ok) {
-      throw new Error(`Google API error: ${response.status}`)
+      const errorText = await response.text()
+      console.error('Google API error response:', errorText)
+      throw new Error(`Google API error: ${response.status} - ${errorText}`)
     }
 
     const data: GoogleAIResponse = await response.json()
+    console.log('Google AI API response data:', JSON.stringify(data, null, 2))
     
     if (data.candidates && data.candidates.length > 0) {
       const responseText = data.candidates[0].content.parts[0].text
+      console.log('AI response text:', responseText)
       
       // Try to parse JSON response
       try {
         // Clean up the response text (remove markdown code blocks if present)
         const cleanResponse = responseText.replace(/```json\n?|\n?```/g, '').trim()
+        console.log('Cleaned response for parsing:', cleanResponse)
+        
         const parsedResponse = JSON.parse(cleanResponse)
         
         // Validate required fields
         if (!parsedResponse.diagnosis || !parsedResponse.steps || !Array.isArray(parsedResponse.steps)) {
+          console.error('Invalid response structure:', parsedResponse)
           throw new Error('Invalid response structure')
         }
         
+        console.log('Successfully parsed AI response:', parsedResponse)
         return parsedResponse
       } catch (parseError) {
         console.error('Error parsing JSON response:', parseError)
+        console.log('Original response text:', responseText)
         
         // Fallback response if JSON parsing fails
         return {
