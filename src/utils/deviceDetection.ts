@@ -115,7 +115,96 @@ export function isPWAInstalled(): boolean {
   // Check iOS specific standalone mode
   const isIOSStandalone = (navigator as any).standalone === true
   
-  return isStandalone || isIOSStandalone
+  const isInstalled = isStandalone || isIOSStandalone
+  
+  // Store installation state for comparison
+  if (typeof localStorage !== 'undefined') {
+    const wasInstalled = localStorage.getItem('pwa-was-installed') === 'true'
+    
+    if (isInstalled && !wasInstalled) {
+      // App was just installed
+      localStorage.setItem('pwa-was-installed', 'true')
+      localStorage.setItem('pwa-install-time', Date.now().toString())
+      console.log('PWA: App installed!')
+    } else if (!isInstalled && wasInstalled) {
+      // App was uninstalled
+      localStorage.removeItem('pwa-was-installed')
+      localStorage.removeItem('pwa-install-time')
+      localStorage.removeItem('pwa-banner-dismissed')
+      console.log('PWA: App uninstalled - resetting state')
+    }
+  }
+  
+  return isInstalled
+}
+
+/**
+ * Checks if the PWA install banner should be shown
+ * @returns boolean indicating if banner should be displayed
+ */
+export function shouldShowInstallBanner(): boolean {
+  if (typeof window === 'undefined') return false
+  
+  // Don't show if already installed
+  if (isPWAInstalled()) {
+    console.log('PWA Banner: Not showing - app is installed')
+    return false
+  }
+  
+  // Don't show if not mobile or not supported
+  if (!shouldShowPWAInstall() || !isPWASupported()) {
+    console.log('PWA Banner: Not showing - not mobile or not supported')
+    return false
+  }
+  
+  // Check if banner was dismissed this session (but allow showing after uninstall)
+  if (typeof sessionStorage !== 'undefined') {
+    const dismissed = sessionStorage.getItem('pwa-banner-dismissed')
+    if (dismissed === 'true') {
+      console.log('PWA Banner: Not showing - dismissed this session')
+      return false
+    }
+  }
+  
+  console.log('PWA Banner: Should show banner')
+  return true
+}
+
+/**
+ * Monitors PWA installation state changes
+ * @param callback Function to call when installation state changes
+ */
+export function monitorInstallationState(callback: (isInstalled: boolean) => void): () => void {
+  if (typeof window === 'undefined') return () => {}
+  
+  let lastState = isPWAInstalled()
+  
+  const checkState = () => {
+    const currentState = isPWAInstalled()
+    if (currentState !== lastState) {
+      console.log(`PWA Installation state changed: ${lastState} -> ${currentState}`)
+      lastState = currentState
+      callback(currentState)
+    }
+  }
+  
+  // Check every 5 seconds
+  const interval = setInterval(checkState, 5000)
+  
+  // Also check when visibility changes (user returns to browser)
+  const handleVisibilityChange = () => {
+    if (!document.hidden) {
+      setTimeout(checkState, 1000) // Small delay to allow state to settle
+    }
+  }
+  
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+  
+  // Return cleanup function
+  return () => {
+    clearInterval(interval)
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }
 }
 
 /**

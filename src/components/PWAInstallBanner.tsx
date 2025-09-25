@@ -5,9 +5,11 @@ import {
   shouldShowPWAInstall, 
   isPWASupported, 
   isPWAInstalled, 
+  shouldShowInstallBanner,
   getInstallInstructions,
   detectDevice,
-  logDeviceInfo 
+  logDeviceInfo,
+  monitorInstallationState
 } from '@/utils/deviceDetection'
 
 export default function PWAInstallBanner() {
@@ -25,14 +27,9 @@ export default function PWAInstallBanner() {
     // Log device info for debugging
     logDeviceInfo()
     
-    // Only proceed if mobile device and PWA is supported
-    if (!shouldShowPWAInstall() || !isPWASupported()) {
-      console.log('PWA Install Banner: Not showing - not mobile or not supported')
-      return
-    }
-
-    if (isPWAInstalled()) {
-      console.log('PWA Install Banner: Not showing - already installed')
+    // Check if we should show the banner
+    if (!shouldShowInstallBanner()) {
+      console.log('PWA Install Banner: Not showing banner based on current state')
       return
     }
 
@@ -45,27 +42,48 @@ export default function PWAInstallBanner() {
       setShowBanner(true)
     }
 
+    // Monitor installation state changes
+    const cleanupMonitor = monitorInstallationState((isInstalled) => {
+      if (isInstalled) {
+        console.log('PWA Install Banner: App was installed, hiding banner')
+        setShowBanner(false)
+      } else {
+        console.log('PWA Install Banner: App was uninstalled, allowing fresh install')
+        // Reset banner state to allow showing again
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.removeItem('pwa-banner-dismissed')
+        }
+        // Re-check if we should show banner after uninstall
+        if (shouldShowInstallBanner()) {
+          setShowBanner(true)
+        }
+      }
+    })
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
 
     // For iOS devices, show banner after a short delay since beforeinstallprompt doesn't fire
-    if (device.isIOS && !isPWAInstalled()) {
+    if (device.isIOS && shouldShowInstallBanner()) {
       console.log('PWA Install Banner: Setting timer for iOS device')
       const timer = setTimeout(() => {
-        console.log('PWA Install Banner: Showing banner for iOS')
-        setShowBanner(true)
+        if (shouldShowInstallBanner()) {
+          console.log('PWA Install Banner: Showing banner for iOS')
+          setShowBanner(true)
+        }
       }, 3000)
       
       return () => {
         window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
         clearTimeout(timer)
+        cleanupMonitor()
       }
     }
 
     // For Android devices, also show after delay if beforeinstallprompt doesn't fire
-    if (device.isAndroid && !isPWAInstalled()) {
+    if (device.isAndroid && shouldShowInstallBanner()) {
       console.log('PWA Install Banner: Setting fallback timer for Android device')
       const fallbackTimer = setTimeout(() => {
-        if (!deferredPrompt) {
+        if (!deferredPrompt && shouldShowInstallBanner()) {
           console.log('PWA Install Banner: Showing fallback banner for Android')
           setShowBanner(true)
         }
@@ -74,11 +92,13 @@ export default function PWAInstallBanner() {
       return () => {
         window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
         clearTimeout(fallbackTimer)
+        cleanupMonitor()
       }
     }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      cleanupMonitor()
     }
   }, [])
 
@@ -87,8 +107,10 @@ export default function PWAInstallBanner() {
       // Android Chrome - use the deferred prompt
       deferredPrompt.prompt()
       deferredPrompt.userChoice.then((choiceResult: any) => {
+        console.log('PWA Install result:', choiceResult.outcome)
         if (choiceResult.outcome === 'accepted') {
           console.log('User accepted the install prompt')
+          // The installation state monitoring will handle the banner hiding
         }
         setDeferredPrompt(null)
         setShowBanner(false)
@@ -111,16 +133,10 @@ export default function PWAInstallBanner() {
     }
   }
 
-  // Don't show banner if not mobile
-  if (!showBanner || !shouldShowPWAInstall()) {
-    console.log('PWA Install Banner: Not rendering - showBanner:', showBanner, 'shouldShow:', shouldShowPWAInstall())
+  // Don't show banner if conditions are not met
+  if (!showBanner || !shouldShowInstallBanner()) {
     return null
   }
-  
-  // For testing - temporarily disable session storage check
-  // if (typeof window !== 'undefined' && sessionStorage.getItem('pwa-banner-dismissed')) {
-  //   return null
-  // }
 
   console.log('PWA Install Banner: Rendering banner for device:', deviceInfo)
 
