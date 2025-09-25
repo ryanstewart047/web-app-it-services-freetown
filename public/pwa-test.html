@@ -65,6 +65,7 @@
     <h3>🎯 Actions</h3>
     <button onclick="checkInstallStatus()">Refresh Status</button>
     <button onclick="showConsoleLog()">View Console Log</button>
+    <button onclick="clearPWAData()">Clear PWA Data</button>
     <a href="/" style="text-decoration: none;">
         <button>← Back to Main Site</button>
     </a>
@@ -92,12 +93,20 @@
             const isIOSStandalone = navigator.standalone === true;
             const hasSW = 'serviceWorker' in navigator;
             
+            // Check localStorage state tracking
+            const wasInstalled = localStorage.getItem('pwa-was-installed') === 'true';
+            const installTime = localStorage.getItem('pwa-install-time');
+            const bannerDismissed = sessionStorage.getItem('pwa-banner-dismissed') === 'true';
+            
             return {
                 isInstalled: isStandalone || isIOSStandalone,
                 isStandalone,
                 isIOSStandalone,
                 hasServiceWorker: hasSW,
-                canInstall: hasSW && !isStandalone && !isIOSStandalone
+                canInstall: hasSW && !isStandalone && !isIOSStandalone,
+                wasInstalled: wasInstalled,
+                installTime: installTime ? new Date(parseInt(installTime)).toLocaleString() : null,
+                bannerDismissed: bannerDismissed
             };
         }
 
@@ -118,6 +127,16 @@
             console.log('=== PWA Install Test Debug ===');
             console.log('Device:', detectDevice());
             console.log('PWA Status:', checkPWAStatus());
+        }
+
+        function clearPWAData() {
+            if (confirm('Clear all PWA data (localStorage and sessionStorage)? This will reset install state.')) {
+                localStorage.removeItem('pwa-was-installed');
+                localStorage.removeItem('pwa-install-time');
+                sessionStorage.removeItem('pwa-banner-dismissed');
+                updateInfo();
+                alert('PWA data cleared! Refresh the main site to test fresh install behavior.');
+            }
         }
 
         // Initialize
