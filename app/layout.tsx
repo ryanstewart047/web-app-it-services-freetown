@@ -7,7 +7,7 @@ import Footer from '@/components/layout/Footer'
 import CookiePopup from '@/components/CookiePopup'
 import BannerPopup from '@/components/BannerPopup'
 import StaticChatFloat from '@/components/StaticChatFloat'
-import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
+import ServiceWorkerRegistration from '../src/components/ServiceWorkerRegistration'
 import Script from 'next/script'
 
 const inter = Inter({ subsets: ['latin'] })
