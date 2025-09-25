@@ -7,6 +7,7 @@ import Footer from '@/components/layout/Footer'
 import CookiePopup from '@/components/CookiePopup'
 import BannerPopup from '@/components/BannerPopup'
 import StaticChatFloat from '@/components/StaticChatFloat'
+import FloatingScrollToTop from '@/components/FloatingScrollToTop'
 import ServiceWorkerRegistration from '../src/components/ServiceWorkerRegistration'
 import PWAInstallBanner from '../src/components/PWAInstallBanner'
 import Script from 'next/script'
@@ -63,6 +64,7 @@ export default function RootLayout({
         <CookiePopup />
         <BannerPopup />
         <StaticChatFloat />
+        <FloatingScrollToTop />
         <PWAInstallBanner />
         <ServiceWorkerRegistration />
         <Toaster position="top-right" />
