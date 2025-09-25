@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { generateTroubleshootingResponse } from '@/lib/google-ai-service'
 
 export async function POST(request: NextRequest) {
+  let requestBody: any = {}
+  
   try {
-    const { deviceType, deviceModel, issueDescription } = await request.json()
+    requestBody = await request.json()
+    const { deviceType, deviceModel, issueDescription } = requestBody
 
     // Validate required fields
     if (!deviceType || !issueDescription) {
@@ -37,7 +40,7 @@ export async function POST(request: NextRequest) {
     
     // Fallback response for when AI service fails
     const fallbackResponse = {
-      diagnosis: `Based on your description of "${request.json().then(body => body.issueDescription).catch(() => 'the issue')}", this appears to be a common ${request.json().then(body => body.deviceType).catch(() => 'device')} problem that may require professional diagnosis.`,
+      diagnosis: `Based on your description of "${requestBody.issueDescription || 'the issue'}", this appears to be a common ${requestBody.deviceType || 'device'} problem that may require professional diagnosis.`,
       confidence: 60,
       steps: [
         {
