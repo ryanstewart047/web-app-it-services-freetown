@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scroll Animation Test - IT Services Freetown</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/scroll-animations.css">
+    <style>
+        /* Additional base styles */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        /* Make page tall enough to scroll */
+        .spacer {
+            height: 100vh;
+        }
+        
+        /* Demo section styling */
+        .demo-section {
+            min-height: 50vh;
+            padding: 4rem 2rem;
+        }
+        
+        /* Service card styling */
+        .service-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Ensure text is always visible */
+        * {
+            opacity: 1 !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Navigation spacer -->
+    <div class="h-20 bg-white shadow-sm flex items-center justify-center">
+        <h1 class="text-2xl font-bold text-gray-800">Scroll Animation Test</h1>
+    </div>
+    
+    <!-- Initial content - no animation -->
+    <section class="demo-section bg-blue-50">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-3xl font-bold mb-4 text-gray-800">Welcome to Animation Testing</h2>
+            <p class="text-lg text-gray-600">Scroll down to see the scroll-triggered animations in action</p>
+        </div>
+    </section>
+    
+    <!-- Spacer to force scrolling -->
+    <div class="spacer bg-gradient-to-b from-blue-50 to-purple-50"></div>
+    
+    <!-- Fade In Animation -->
+    <section class="demo-section bg-purple-50">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-3xl font-bold mb-8 scroll-fade-in">Fade In Animation</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="scroll-fade-in bg-white p-6 rounded-lg shadow-lg">
+                    <i class="fas fa-laptop text-4xl text-blue-600 mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">Computer Repair</h3>
+                    <p class="text-gray-600">Professional laptop and desktop services</p>
+                </div>
+                <div class="scroll-fade-in bg-white p-6 rounded-lg shadow-lg">
+                    <i class="fas fa-mobile-alt text-4xl text-red-600 mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">Mobile Repair</h3>
+                    <p class="text-gray-600">Smartphone and tablet repairs</p>
+                </div>
+                <div class="scroll-fade-in bg-white p-6 rounded-lg shadow-lg">
+                    <i class="fas fa-network-wired text-4xl text-green-600 mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">Network Setup</h3>
+                    <p class="text-gray-600">Professional network installation</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Spacer -->
+    <div class="spacer bg-gradient-to-b from-purple-50 to-green-50"></div>
+    
+    <!-- Slide Up Animation -->
+    <section class="demo-section bg-green-50">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-3xl font-bold mb-8 scroll-slide-up">Slide Up Animation</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="scroll-slide-up">
+                    <h3 class="text-xl font-semibold mb-4">Real-Time Tracking</h3>
+                    <p class="text-gray-600">Monitor your repair status with detailed progress updates</p>
+                </div>
+                <div class="scroll-slide-up">
+                    <h3 class="text-xl font-semibold mb-4">AI Support</h3>
+                    <p class="text-gray-600">Get intelligent troubleshooting assistance</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Spacer -->
+    <div class="spacer bg-gradient-to-b from-green-50 to-red-50"></div>
+    
+    <!-- Slide Left & Right Animations -->
+    <section class="demo-section bg-red-50">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold mb-8 text-center scroll-fade-in">Side Slide Animations</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="scroll-slide-left service-card">
+                    <h3 class="text-xl font-semibold mb-4">Slide from Left</h3>
+                    <p class="text-gray-600">This content slides in from the left side of the screen</p>
+                </div>
+                <div class="scroll-slide-right service-card">
+                    <h3 class="text-xl font-semibold mb-4">Slide from Right</h3>
+                    <p class="text-gray-600">This content slides in from the right side of the screen</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Spacer -->
+    <div class="spacer bg-gradient-to-b from-red-50 to-blue-50"></div>
+    
+    <!-- Scale In Animation -->
+    <section class="demo-section bg-blue-50">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-3xl font-bold mb-8 scroll-scale-in">Scale In Animation</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="scroll-scale-in">
+                    <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-clock text-white text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Fast Service</h3>
+                    <p class="text-sm text-gray-600">Quick turnaround times</p>
+                </div>
+                <div class="scroll-scale-in">
+                    <div class="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-shield-alt text-white text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Quality Assured</h3>
+                    <p class="text-sm text-gray-600">Guaranteed workmanship</p>
+                </div>
+                <div class="scroll-scale-in">
+                    <div class="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-tools text-white text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Expert Tech</h3>
+                    <p class="text-sm text-gray-600">Certified technicians</p>
+                </div>
+                <div class="scroll-scale-in">
+                    <div class="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-handshake text-white text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Satisfaction</h3>
+                    <p class="text-sm text-gray-600">100% guaranteed</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="max-w-4xl mx-auto text-center">
+            <h3 class="text-xl font-semibold mb-4">Animation Test Complete!</h3>
+            <p class="text-gray-300">All animations should have triggered as you scrolled down the page.</p>
+        </div>
+    </footer>
+    
+    <!-- Include the animation JavaScript -->
+    <script src="../assets/js/scroll-animations.js"></script>
+</body>
+</html>

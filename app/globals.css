@@ -399,59 +399,75 @@ nav {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
-/* Simple Animation Classes - No Hidden Content */
-.scroll-animate {
+/* Modern Scroll Animations - Content visible by default */
+.scroll-fade-in,
+.scroll-slide-up,
+.scroll-slide-left,
+.scroll-slide-right,
+.scroll-scale-in {
   opacity: 1;
   transform: translateY(0);
+  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-.fade-in-scale {
-  opacity: 1;
-  transform: scale(1);
+/* Only animate specific classes when JavaScript is ready */
+.scroll-animations-ready .scroll-fade-in,
+.scroll-animations-ready .scroll-slide-up,
+.scroll-animations-ready .scroll-slide-left,
+.scroll-animations-ready .scroll-slide-right,
+.scroll-animations-ready .scroll-scale-in {
+  opacity: 0;
+  transform: translateY(30px);
 }
 
-.fade-in-up {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.section-title {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.service-card {
+/* Ensure important content is always visible */
+.service-card,
+.section-title,
+h2:not(.animate-on-scroll), 
+h3:not(.animate-on-scroll),
+.card:not(.animate-on-scroll),
+.hero-stat {
   opacity: 1;
   transform: translateY(0);
   transition: all 0.3s ease;
 }
 
-.service-card:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+.scroll-animations-ready .scroll-slide-left {
+  transform: translateX(-50px);
 }
 
-/* Keep only hover animations, no scroll animations */
-@keyframes fadeInUp {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.scroll-animations-ready .scroll-slide-right {
+  transform: translateX(50px);
 }
 
-@keyframes fadeInScale {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+.scroll-animations-ready .scroll-scale-in {
+  transform: scale(0.9);
+}
+
+/* Animation states */
+.animate-fade-in {
+  opacity: 1;
+  transform: translateY(0) translateX(0) scale(1);
+}
+
+.animate-slide-up {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.animate-slide-left {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.animate-slide-right {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.animate-scale-in {
+  opacity: 1;
+  transform: scale(1);
 }
 
 /* PWA Install Banner */
@@ -699,4 +715,18 @@ nav {
 .footer-logo {
   max-width: 64px;
   height: auto;
+}
+
+/* Failsafe: Ensure all text content is visible */
+h1, h2, h3, h4, h5, h6, p, span, div, li, a {
+  opacity: 1 !important;
+}
+
+/* Only animation classes can be hidden temporarily */
+.scroll-animations-ready .scroll-fade-in:not(.animate-fade-in),
+.scroll-animations-ready .scroll-slide-up:not(.animate-slide-up),
+.scroll-animations-ready .scroll-slide-left:not(.animate-slide-left),
+.scroll-animations-ready .scroll-slide-right:not(.animate-slide-right),
+.scroll-animations-ready .scroll-scale-in:not(.animate-scale-in) {
+  opacity: 0;
 }
