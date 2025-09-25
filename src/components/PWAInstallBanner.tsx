@@ -26,11 +26,20 @@ export default function PWAInstallBanner() {
     logDeviceInfo()
     
     // Only proceed if mobile device and PWA is supported
-    if (!shouldShowPWAInstall() || !isPWASupported() || isPWAInstalled()) {
+    if (!shouldShowPWAInstall() || !isPWASupported()) {
+      console.log('PWA Install Banner: Not showing - not mobile or not supported')
       return
     }
 
+    if (isPWAInstalled()) {
+      console.log('PWA Install Banner: Not showing - already installed')
+      return
+    }
+
+    console.log('PWA Install Banner: Initializing for device:', device)
+
     const handleBeforeInstallPrompt = (e: any) => {
+      console.log('PWA Install Banner: beforeinstallprompt event fired')
       e.preventDefault()
       setDeferredPrompt(e)
       setShowBanner(true)
@@ -40,13 +49,31 @@ export default function PWAInstallBanner() {
 
     // For iOS devices, show banner after a short delay since beforeinstallprompt doesn't fire
     if (device.isIOS && !isPWAInstalled()) {
+      console.log('PWA Install Banner: Setting timer for iOS device')
       const timer = setTimeout(() => {
+        console.log('PWA Install Banner: Showing banner for iOS')
         setShowBanner(true)
-      }, 2000)
+      }, 3000)
       
       return () => {
         window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
         clearTimeout(timer)
+      }
+    }
+
+    // For Android devices, also show after delay if beforeinstallprompt doesn't fire
+    if (device.isAndroid && !isPWAInstalled()) {
+      console.log('PWA Install Banner: Setting fallback timer for Android device')
+      const fallbackTimer = setTimeout(() => {
+        if (!deferredPrompt) {
+          console.log('PWA Install Banner: Showing fallback banner for Android')
+          setShowBanner(true)
+        }
+      }, 5000)
+      
+      return () => {
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+        clearTimeout(fallbackTimer)
       }
     }
 
@@ -84,13 +111,18 @@ export default function PWAInstallBanner() {
     }
   }
 
-  // Don't show banner if not mobile or if dismissed in this session
-  if (!showBanner || !shouldShowPWAInstall()) return null
-  
-  // Check if banner was dismissed in this session
-  if (typeof window !== 'undefined' && sessionStorage.getItem('pwa-banner-dismissed')) {
+  // Don't show banner if not mobile
+  if (!showBanner || !shouldShowPWAInstall()) {
+    console.log('PWA Install Banner: Not rendering - showBanner:', showBanner, 'shouldShow:', shouldShowPWAInstall())
     return null
   }
+  
+  // For testing - temporarily disable session storage check
+  // if (typeof window !== 'undefined' && sessionStorage.getItem('pwa-banner-dismissed')) {
+  //   return null
+  // }
+
+  console.log('PWA Install Banner: Rendering banner for device:', deviceInfo)
 
   return (
     <div className="pwa-install-banner fixed top-0 left-0 right-0 bg-blue-900 text-white p-3 z-50 shadow-lg">

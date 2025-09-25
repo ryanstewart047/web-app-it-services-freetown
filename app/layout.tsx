@@ -8,6 +8,7 @@ import CookiePopup from '@/components/CookiePopup'
 import BannerPopup from '@/components/BannerPopup'
 import StaticChatFloat from '@/components/StaticChatFloat'
 import ServiceWorkerRegistration from '../src/components/ServiceWorkerRegistration'
+import PWAInstallBanner from '../src/components/PWAInstallBanner'
 import Script from 'next/script'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -62,6 +63,7 @@ export default function RootLayout({
         <CookiePopup />
         <BannerPopup />
         <StaticChatFloat />
+        <PWAInstallBanner />
         <ServiceWorkerRegistration />
         <Toaster position="top-right" />
       </body>
