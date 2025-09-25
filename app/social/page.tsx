@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import FacebookPagePlugin from '../../src/components/FacebookPagePlugin';
+import { openChatFloat } from '../../lib/chat-float-controller';
 
 const SocialPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'timeline' | 'events' | 'full'>('full');
@@ -26,26 +27,26 @@ const SocialPage: React.FC = () => {
                   Follow our latest updates, tech tips, and community news
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <a 
-                    href="https://www.facebook.com/itservicefreetownfeed"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center px-8 py-3 bg-white text-blue-600 rounded-lg hover:bg-blue-50 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-                  >
+                                  <a 
+                  href="https://www.facebook.com/itservicefreetown"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center px-8 py-3 bg-white text-blue-600 rounded-lg hover:bg-blue-50 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                >
                     <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                     </svg>
                     Follow on Facebook
                   </a>
-                  <a 
-                    href="/connect-agent"
+                  <button 
+                    onClick={() => openChatFloat('Hi! I found you through your Facebook page. I need help with my device.')}
                     className="inline-flex items-center justify-center px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                   >
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
                     Contact Us Direct
-                  </a>
+                  </button>
                 </div>
               </div>
             </div>
@@ -152,15 +153,15 @@ const SocialPage: React.FC = () => {
               Don&apos;t wait for a social media response - get instant help now!
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a 
-                href="/connect-agent"
+              <button 
+                onClick={() => openChatFloat('Hi! I need immediate technical support for my device.')}
                 className="inline-flex items-center justify-center px-8 py-4 bg-white text-green-600 rounded-lg hover:bg-gray-100 transition-all duration-200 font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
                 <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a2 2 0 01-2-2v-6a2 2 0 012-2h2m-4 0V4a2 2 0 012-2h6a2 2 0 012 2v4"/>
                 </svg>
                 Connect with Agent
-              </a>
+              </button>
               <a 
                 href="/troubleshoot"
                 className="inline-flex items-center justify-center px-8 py-4 bg-yellow-500 text-yellow-900 rounded-lg hover:bg-yellow-400 transition-all duration-200 font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-1"
@@ -184,7 +185,7 @@ const SocialPage: React.FC = () => {
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <a 
-                  href="https://www.facebook.com/itservicefreetownfeed"
+                  href="https://www.facebook.com/itservicefreetown"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex flex-col items-center p-4 bg-white rounded-lg hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1"
@@ -197,8 +198,8 @@ const SocialPage: React.FC = () => {
                   <span className="font-medium text-gray-800">Facebook</span>
                 </a>
                 
-                <a 
-                  href="/chat"
+                <button 
+                  onClick={() => openChatFloat('Hi! I want to start a live chat session.')}
                   className="flex flex-col items-center p-4 bg-white rounded-lg hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1"
                 >
                   <div className="w-12 h-12 bg-green-600 text-white rounded-full flex items-center justify-center mb-3">
@@ -207,7 +208,7 @@ const SocialPage: React.FC = () => {
                     </svg>
                   </div>
                   <span className="font-medium text-gray-800">Live Chat</span>
-                </a>
+                </button>
 
                 <a 
                   href="tel:+1234567890"

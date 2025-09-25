@@ -16,7 +16,7 @@ interface FacebookFeedProps {
 }
 
 const FacebookFeed: React.FC<FacebookFeedProps> = ({
-  pageUrl = 'https://www.facebook.com/itservicefreetownfeed',
+  pageUrl = 'https://www.facebook.com/itservicefreetown',
   width = 500,
   height = 700,
   showPosts = true,

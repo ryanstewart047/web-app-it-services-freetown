@@ -18,7 +18,7 @@ interface FacebookPagePluginProps {
 }
 
 const FacebookPagePlugin: React.FC<FacebookPagePluginProps> = ({
-  pageUrl = 'https://www.facebook.com/itservicefreetownfeed',
+  pageUrl = 'https://www.facebook.com/itservicefreetown',
   variant = 'full',
   width = 500,
   height = 700,
