@@ -146,28 +146,13 @@ document.addEventListener('DOMContentLoaded', function() {
         initSlider();
     }
 
-    // Scroll Animation Initialization
-    const scrollAnimateElements = document.querySelectorAll('.scroll-animate');
+    // Initialize modern scroll animations
+    initScrollAnimations();
     
-    // Create an observer
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('animate');
-            } else {
-                // Optional: remove the class when out of view for re-animation
-                // entry.target.classList.remove('animate');
-            }
-        });
-    }, {
-        threshold: 0.1, // Trigger when 10% of the element is visible
-        rootMargin: '0px 0px -50px 0px' // Adjust the trigger point
-    });
-    
-    // Observe all elements with the scroll-animate class
-    scrollAnimateElements.forEach(el => {
-        observer.observe(el);
-    });
+    // Initialize the new comprehensive animation system
+    if (typeof window.ScrollAnimations !== 'undefined') {
+        window.ScrollAnimations.init();
+    }
 
     // Counter Animation
     const counters = document.querySelectorAll('.counter');
@@ -307,4 +292,69 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Hide loader after content is loaded
     setTimeout(hideLoader, 1000);
+    
+
+    // Enhanced scroll animation system
+    function initScrollAnimations() {
+        // Add ready class to <html> for CSS transitions
+        document.documentElement.classList.add('scroll-animations-ready');
+
+        // Only animate elements with explicit animation classes
+        const animatedElements = document.querySelectorAll(
+            '.scroll-fade-in, .scroll-slide-up, .scroll-slide-left, .scroll-slide-right, .scroll-scale-in'
+        );
+
+        // Fallback: If IntersectionObserver is not supported, show all content immediately
+        if (!('IntersectionObserver' in window)) {
+            animatedElements.forEach(el => {
+                el.style.opacity = '1';
+                el.style.transform = 'none';
+            });
+            return;
+        }
+
+        const scrollObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // Only animate once
+                    if (!entry.target.classList.contains('scroll-animated')) {
+                        entry.target.classList.add('scroll-animated');
+                        // Add animation class based on element type
+                        if (entry.target.classList.contains('scroll-fade-in')) {
+                            entry.target.classList.add('animate-fade-in');
+                        } else if (entry.target.classList.contains('scroll-slide-up')) {
+                            entry.target.classList.add('animate-slide-up');
+                        } else if (entry.target.classList.contains('scroll-slide-left')) {
+                            entry.target.classList.add('animate-slide-left');
+                        } else if (entry.target.classList.contains('scroll-slide-right')) {
+                            entry.target.classList.add('animate-slide-right');
+                        } else if (entry.target.classList.contains('scroll-scale-in')) {
+                            entry.target.classList.add('animate-scale-in');
+                        } else {
+                            entry.target.classList.add('animate-slide-up');
+                        }
+                        // Add stagger delay for elements in the same container
+                        const container = entry.target.parentElement;
+                        if (container) {
+                            const siblings = Array.from(container.children);
+                            const index = siblings.indexOf(entry.target);
+                            entry.target.style.animationDelay = `${index * 0.1}s`;
+                        }
+                        // Optional: callback for animation end
+                        entry.target.addEventListener('animationend', () => {
+                            entry.target.style.animationDelay = '';
+                        }, { once: true });
+                    }
+                }
+            });
+        }, {
+            threshold: 0.15,
+            rootMargin: '0px 0px -100px 0px'
+        });
+
+        // Observe all elements
+        animatedElements.forEach(element => {
+            scrollObserver.observe(element);
+        });
+    }
 });
