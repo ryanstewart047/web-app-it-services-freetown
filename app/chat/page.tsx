@@ -5,6 +5,12 @@ import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
 import { openChatFloat } from '@/lib/chat-float-controller'
+import { 
+  generateChatResponseClient, 
+  isRepairTrackingQueryClient, 
+  handleRepairTrackingClient, 
+  isStaticDeployment 
+} from '@/lib/google-ai-client'
 
 interface Message {
   id: string
@@ -54,24 +60,49 @@ export default function Chat() {
     setIsTyping(true)
     
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: userMessage }),
-      })
+      // Check if we're in a static deployment (GitHub Pages)
+      const useClientSide = isStaticDeployment()
+      console.log('Using client-side AI for chat:', useClientSide)
       
-      const data = await response.json()
-      
-      if (data.success) {
-        const messageType = data.source === 'repair_tracking' ? 'tracking' : 'text'
-        addMessage(data.response, 'bot', messageType, data.trackingData)
+      if (useClientSide) {
+        // Handle repair tracking queries first (client-side)
+        if (isRepairTrackingQueryClient(userMessage)) {
+          const trackingResult = handleRepairTrackingClient(userMessage)
+          addMessage(trackingResult.response, 'bot', 
+            trackingResult.source === 'repair_tracking' ? 'tracking' : 'text', 
+            trackingResult.trackingData)
+          setIsTyping(false)
+          return
+        }
+
+        // Use client-side Google AI API for static deployments
+        const aiResponse = await generateChatResponseClient({
+          userMessage,
+          systemContext: 'chat_support'
+        })
+        
+        addMessage(aiResponse, 'bot')
       } else {
-        addMessage("I'm sorry, I'm having trouble responding right now. Please try again or contact us directly.", 'bot')
+        // Use server-side API for full Next.js deployments
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ message: userMessage }),
+        })
+        
+        const data = await response.json()
+        
+        if (data.success) {
+          const messageType = data.source === 'repair_tracking' ? 'tracking' : 'text'
+          addMessage(data.response, 'bot', messageType, data.trackingData)
+        } else {
+          addMessage("I'm sorry, I'm having trouble responding right now. Please try again or contact us directly.", 'bot')
+        }
       }
     } catch (error) {
-      console.error('Error calling chat API:', error)
+      console.error('Error calling chat:', error)
       addMessage("I'm sorry, I'm having trouble responding right now. Please try again or contact us directly.", 'bot')
     }
     

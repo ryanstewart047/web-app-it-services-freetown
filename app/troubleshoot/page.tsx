@@ -7,6 +7,7 @@ import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
 import { openChatFloat } from '@/lib/chat-float-controller'
+import { generateTroubleshootingResponseClient, isStaticDeployment } from '@/lib/google-ai-client'
 
 interface TroubleshootingStep {
   id: string
@@ -122,28 +123,45 @@ export default function Troubleshoot() {
     setIsLoading(true)
     
     try {
-      const response = await fetch('/api/troubleshoot', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Check if we're in a static deployment (GitHub Pages)
+      const useClientSide = isStaticDeployment()
+      console.log('Using client-side AI:', useClientSide)
+      
+      if (useClientSide) {
+        // Use client-side Google AI API for static deployments
+        const troubleshootingResult = await generateTroubleshootingResponseClient({
           deviceType,
           deviceModel: deviceModel || undefined,
           issueDescription: issueDescription.trim()
-        }),
-      })
-
-      const result = await response.json()
-      
-      if (result.success && result.data) {
-        setAiResponse(result.data)
+        })
+        
+        setAiResponse(troubleshootingResult)
         toast.success('AI diagnosis completed!')
       } else {
-        toast.error('Failed to analyze the issue. Please try again.')
+        // Use server-side API for full Next.js deployments
+        const response = await fetch('/api/troubleshoot', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            deviceType,
+            deviceModel: deviceModel || undefined,
+            issueDescription: issueDescription.trim()
+          }),
+        })
+
+        const result = await response.json()
+        
+        if (result.success && result.data) {
+          setAiResponse(result.data)
+          toast.success('AI diagnosis completed!')
+        } else {
+          toast.error('Failed to analyze the issue. Please try again.')
+        }
       }
     } catch (error) {
-      console.error('Error calling troubleshoot API:', error)
+      console.error('Error calling troubleshoot:', error)
       toast.error('Failed to analyze the issue. Please try again.')
     } finally {
       setIsLoading(false)
