@@ -4,7 +4,7 @@
  */
 
 interface FacebookSDKConfig {
-  appId: string;
+  appId?: string; // Made optional to handle cases without valid App ID
   version: string;
   cookie: boolean;
   xfbml: boolean;
@@ -44,6 +44,14 @@ class FacebookService {
   }
 
   /**
+   * Check if we have a valid App ID configured
+   */
+  private hasValidAppId(): boolean {
+    const appId = this.config.appId;
+    return !!(appId && appId !== '1234567890' && appId !== 'your-app-id-here' && appId.length > 10);
+  }
+
+  /**
    * Initialize Facebook SDK
    */
   async init(): Promise<void> {
@@ -76,9 +84,14 @@ class FacebookService {
         document.body.appendChild(fbRoot);
       }
 
-      // Load SDK script
+      // Load SDK script - use a minimal config if App ID is invalid
       const script = document.createElement('script');
-      script.src = `https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=${this.config.version}&appId=${this.config.appId}`;
+      if (this.hasValidAppId()) {
+        script.src = `https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=${this.config.version}&appId=${this.config.appId}`;
+      } else {
+        // Load SDK without App ID for basic page plugin functionality
+        script.src = `https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=${this.config.version}`;
+      }
       script.async = true;
       script.defer = true;
       script.crossOrigin = 'anonymous';
@@ -86,16 +99,22 @@ class FacebookService {
 
       script.onload = () => {
         if (window.FB) {
-          window.FB.init({
-            appId: this.config.appId,
+          const initConfig: FacebookSDKConfig = {
             cookie: this.config.cookie,
             xfbml: this.config.xfbml,
             version: this.config.version,
             autoLogAppEvents: this.config.autoLogAppEvents,
-          });
+          };
+
+          // Only include appId if it's valid
+          if (this.hasValidAppId()) {
+            initConfig.appId = this.config.appId;
+          }
+
+          window.FB.init(initConfig);
 
           this.isInitialized = true;
-          console.log('✅ Facebook SDK initialized successfully');
+          console.log(`✅ Facebook SDK initialized ${this.hasValidAppId() ? 'with' : 'without'} App ID`);
           resolve();
         } else {
           reject(new Error('Facebook SDK failed to initialize'));
@@ -125,6 +144,12 @@ class FacebookService {
    */
   async getPageInfo(pageId: string): Promise<FacebookPageInfo | null> {
     try {
+      // Skip API calls if we don't have a valid App ID
+      if (!this.hasValidAppId()) {
+        console.log('⚠️ Skipping Facebook API call - invalid or missing App ID');
+        return null;
+      }
+
       await this.init();
       
       return new Promise((resolve) => {
