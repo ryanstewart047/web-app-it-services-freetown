@@ -5,7 +5,7 @@ import FacebookPagePlugin from '../../src/components/FacebookPagePlugin';
 import { openChatFloat } from '../../lib/chat-float-controller';
 
 const SocialPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'timeline' | 'events' | 'full'>('full');
+  const [activeTab, setActiveTab] = useState<'timeline' | 'events' | 'full'>('timeline');
 
   return (
     <>      

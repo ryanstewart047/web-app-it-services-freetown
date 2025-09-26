@@ -1,0 +1,104 @@
+/* Facebook Feed Mobile Optimizations */
+
+/* Base Facebook feed styling */
+.facebook-mobile-container .fb-page {
+  font-size: 14px;
+}
+
+/* Tablet and smaller screens */
+@media (max-width: 768px) {
+  .facebook-mobile-container .fb-page {
+    font-size: 12px;
+  }
+  
+  /* Target Facebook iframe content */
+  .facebook-mobile-container iframe {
+    font-size: 12px !important;
+  }
+  
+  /* Additional Facebook plugin selectors */
+  .facebook-mobile-container .fb_iframe_widget,
+  .facebook-mobile-container .fb_iframe_widget iframe {
+    font-size: 12px !important;
+  }
+}
+
+/* Mobile phones */
+@media (max-width: 480px) {
+  .facebook-mobile-container .fb-page {
+    font-size: 11px;
+    transform: scale(0.9);
+    transform-origin: top center;
+  }
+  
+  /* Target Facebook iframe content for mobile */
+  .facebook-mobile-container iframe {
+    font-size: 11px !important;
+  }
+  
+  /* Additional Facebook plugin selectors for mobile */
+  .facebook-mobile-container .fb_iframe_widget,
+  .facebook-mobile-container .fb_iframe_widget iframe {
+    font-size: 11px !important;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 360px) {
+  .facebook-mobile-container .fb-page {
+    font-size: 10px;
+    transform: scale(0.85);
+    transform-origin: top center;
+  }
+  
+  .facebook-mobile-container iframe {
+    font-size: 10px !important;
+  }
+  
+  .facebook-mobile-container .fb_iframe_widget,
+  .facebook-mobile-container .fb_iframe_widget iframe {
+    font-size: 10px !important;
+  }
+}
+
+/* Facebook feed responsiveness improvements */
+.facebook-mobile-container {
+  width: 100%;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .facebook-mobile-container {
+    padding: 0 5px;
+  }
+  
+  .facebook-mobile-container .fb-page {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Ensure Facebook content doesn't break container on small screens */
+@media (max-width: 480px) {
+  .facebook-mobile-container {
+    padding: 0;
+  }
+  
+  .facebook-mobile-container .fb-page {
+    margin: 0 auto;
+    display: block;
+  }
+}
+
+/* Loading state improvements for mobile */
+@media (max-width: 768px) {
+  .facebook-mobile-container .animate-pulse {
+    transform: scale(0.95);
+  }
+}
+
+@media (max-width: 480px) {
+  .facebook-mobile-container .animate-pulse {
+    transform: scale(0.9);
+  }
+}
