@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useForm, ValidationError } from '@formspree/react'
 import { Brain, Send, Smartphone, Monitor, HelpCircle, CheckCircle, AlertCircle, Lightbulb } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
@@ -101,18 +102,22 @@ export default function Troubleshoot() {
   // Initialize scroll animations
   useScrollAnimations()
   
+  // Formspree integration for support tracking
+  const [state, handleFormspreeSubmit] = useForm("mpwjnwrz");
+  
   const [deviceType, setDeviceType] = useState<'computer' | 'mobile' | ''>('')
   const [deviceModel, setDeviceModel] = useState('')
   const [issueDescription, setIssueDescription] = useState('')
   const [aiResponse, setAiResponse] = useState<AIResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [completedSteps, setCompletedSteps] = useState<string[]>([])
+  const [submitToSupport, setSubmitToSupport] = useState(false)
 
   if (pageLoading) {
     return <LoadingOverlay progress={progress} variant="modern" />;
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
     if (!deviceType || !issueDescription.trim()) {
@@ -160,6 +165,20 @@ export default function Troubleshoot() {
           toast.error('Failed to analyze the issue. Please try again.')
         }
       }
+      
+      // If user opted to submit to support, also send to Formspree
+      if (submitToSupport) {
+        try {
+          await handleFormspreeSubmit(e);
+          if (state.succeeded) {
+            toast.success('Support ticket also created!');
+          }
+        } catch (error) {
+          console.error('Error submitting to support:', error);
+          toast.error('AI diagnosis completed, but failed to create support ticket.');
+        }
+      }
+      
     } catch (error) {
       console.error('Error calling troubleshoot:', error)
       toast.error('Failed to analyze the issue. Please try again.')
@@ -218,6 +237,9 @@ export default function Troubleshoot() {
         {/* Troubleshooting Form */}
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Hidden inputs for Formspree submission */}
+            <input type="hidden" name="formType" value="troubleshoot" />
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label htmlFor="deviceType" className="block text-sm font-medium text-gray-700 mb-2">
@@ -225,6 +247,7 @@ export default function Troubleshoot() {
                 </label>
                 <select
                   id="deviceType"
+                  name="deviceType"
                   value={deviceType}
                   onChange={(e) => setDeviceType(e.target.value as 'computer' | 'mobile' | '')}
                   className="input-field"
@@ -234,6 +257,12 @@ export default function Troubleshoot() {
                   <option value="computer">Computer/Laptop</option>
                   <option value="mobile">Mobile/Tablet</option>
                 </select>
+                <ValidationError 
+                  prefix="Device Type" 
+                  field="deviceType"
+                  errors={state.errors}
+                  className="text-red-600 text-sm mt-1"
+                />
               </div>
               <div>
                 <label htmlFor="deviceModel" className="block text-sm font-medium text-gray-700 mb-2">
@@ -242,6 +271,7 @@ export default function Troubleshoot() {
                 <input
                   type="text"
                   id="deviceModel"
+                  name="deviceModel"
                   value={deviceModel}
                   onChange={(e) => setDeviceModel(e.target.value)}
                   className="input-field"
@@ -256,6 +286,7 @@ export default function Troubleshoot() {
               </label>
               <textarea
                 id="issueDescription"
+                name="issueDescription"
                 value={issueDescription}
                 onChange={(e) => setIssueDescription(e.target.value)}
                 rows={4}
@@ -263,6 +294,27 @@ export default function Troubleshoot() {
                 placeholder="Please describe the problem you're experiencing in detail..."
                 required
               />
+              <ValidationError 
+                prefix="Issue Description" 
+                field="issueDescription"
+                errors={state.errors}
+                className="text-red-600 text-sm mt-1"
+              />
+            </div>
+
+            {/* Support ticket option */}
+            <div className="flex items-center space-x-3 bg-blue-50 p-4 rounded-lg">
+              <input
+                type="checkbox"
+                id="submitToSupport"
+                name="submitToSupport"
+                checked={submitToSupport}
+                onChange={(e) => setSubmitToSupport(e.target.checked)}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label htmlFor="submitToSupport" className="text-sm text-gray-700">
+                Also create a support ticket for human assistance (optional)
+              </label>
             </div>
 
             <button

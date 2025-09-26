@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useForm, ValidationError } from '@formspree/react';
 import { useScrollAnimations } from '@/hooks/useScrollAnimations';
 import { usePageLoader } from '@/hooks/usePageLoader';
 import LoadingOverlay from '@/components/LoadingOverlay';
@@ -14,6 +15,10 @@ export default function BookAppointment() {
   
   // Initialize scroll animations
   useScrollAnimations();
+  
+  // Formspree integration
+  const [state, handleFormspreeSubmit] = useForm("mpwjnwrz");
+  
   const [formData, setFormData] = useState({
     customerName: '',
     email: '',
@@ -30,6 +35,57 @@ export default function BookAppointment() {
   const [currentStep, setCurrentStep] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successData, setSuccessData] = useState<any>(null);
+
+  // Generate a more detailed tracking ID
+  const generateTrackingId = () => {
+    const prefix = 'APT';
+    const date = new Date();
+    const year = date.getFullYear().toString().slice(-2);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const random = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
+    return `${prefix}-${year}${month}${day}-${random}`;
+  };
+
+  // Handle Formspree success
+  useEffect(() => {
+    if (state.succeeded && !showSuccess) {
+      const trackingId = generateTrackingId();
+      const successData = {
+        trackingId,
+        customerName: formData.customerName,
+        email: formData.email,
+        preferredDate: formData.preferredDate,
+        preferredTime: formData.preferredTime
+      };
+      
+      setSuccessData(successData);
+      setShowSuccess(true);
+      
+      // Show tracking ID popup
+      alert(`✅ Appointment Booked Successfully!\n\nYour Tracking ID: ${trackingId}\n\n📝 Please save this ID for tracking your appointment.\n🔍 Use it in our "Track Repair" section to monitor your service status.\n\n💬 You'll be redirected to chat with our support team shortly.`);
+      
+      // Reset form
+      setFormData({
+        customerName: '',
+        email: '',
+        phone: '',
+        address: '',
+        deviceType: '',
+        deviceModel: '',
+        serviceType: '',
+        issueDescription: '',
+        preferredDate: '',
+        preferredTime: '',
+      });
+      setCurrentStep(1);
+      
+      // Redirect to chat after showing the tracking ID
+      setTimeout(() => {
+        window.location.href = 'https://itservicesfreetown.com/?openchat=true&message=' + encodeURIComponent(`Hi! I just booked an appointment (Tracking ID: ${trackingId}). I'd like to discuss the details with an agent.`);
+      }, 3000);
+    }
+  }, [state.succeeded, showSuccess, formData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -75,59 +131,19 @@ export default function BookAppointment() {
     return true;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     // Validate date and time before submission
     if (!validateDateTime()) {
-      setIsSubmitting(false);
       return;
     }
     
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/appointments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setSuccessData(data);
-        setShowSuccess(true);
-        
-        // Reset form
-        setFormData({
-          customerName: '',
-          email: '',
-          phone: '',
-          address: '',
-          deviceType: '',
-          deviceModel: '',
-          serviceType: '',
-          issueDescription: '',
-          preferredDate: '',
-          preferredTime: '',
-        });
-        setCurrentStep(1);
-        
-        // Redirect to chat after 3 seconds to allow user to see the success message
-        setTimeout(() => {
-          window.location.href = 'https://itservicesfreetown.com/?openchat=true&message=' + encodeURIComponent(`Hi! I just booked an appointment (Tracking ID: ${data.trackingId}). I'd like to discuss the details with an agent.`);
-        }, 3000);
-      } else {
-        const errorData = await response.json();
-        alert(errorData.error || 'Failed to book appointment');
-        
-        // Redirect to chat after error so customer can get help
-        setTimeout(() => {
-          window.location.href = 'https://itservicesfreetown.com/?openchat=true&message=' + encodeURIComponent('Hi! I had trouble booking an appointment on your website. Can you help me with the booking process?');
-        }, 2000);
-      }
+      // Submit to Formspree
+      await handleFormspreeSubmit(e);
     } catch (error) {
       console.error('Error:', error);
       alert('There was an error booking your appointment. Please try again.');
@@ -348,6 +364,12 @@ export default function BookAppointment() {
                         onChange={handleChange}
                         required
                       />
+                      <ValidationError 
+                        prefix="Name" 
+                        field="customerName"
+                        errors={state.errors}
+                        className="text-red-600 text-sm mt-1"
+                      />
                     </div>
 
                     <div>
@@ -372,6 +394,12 @@ export default function BookAppointment() {
                         value={formData.email}
                         onChange={handleChange}
                         required
+                      />
+                      <ValidationError 
+                        prefix="Email" 
+                        field="email"
+                        errors={state.errors}
+                        className="text-red-600 text-sm mt-1"
                       />
                     </div>
 
@@ -757,35 +785,44 @@ export default function BookAppointment() {
               <p className="text-gray-600 mb-6">Your appointment has been successfully scheduled.</p>
               
               {/* Tracking ID Display */}
-              <div className="bg-gradient-to-r from-red-50 to-blue-50 rounded-lg p-6 mb-6 border-2 border-dashed border-red-200">
-                <h4 className="font-semibold text-gray-900 mb-2">Your Tracking ID</h4>
-                <div className="bg-white rounded-lg p-3 border">
-                  <span className="font-mono text-xl font-bold text-red-600">{successData.trackingId}</span>
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6 mb-6 border-2 border-dashed border-green-300">
+                <div className="flex items-center justify-center mb-2">
+                  <i className="fas fa-qrcode text-green-600 mr-2"></i>
+                  <h4 className="font-semibold text-gray-900">Your Tracking ID</h4>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">Save this ID to track your repair progress</p>
+                <div className="bg-white rounded-lg p-4 border-2 border-green-200 mb-3">
+                  <span className="font-mono text-2xl font-bold text-green-700 tracking-wider">{successData.trackingId}</span>
+                </div>
+                <div className="flex items-center justify-center space-x-4 text-xs">
+                  <button
+                    onClick={() => navigator.clipboard.writeText(successData.trackingId)}
+                    className="flex items-center text-green-600 hover:text-green-800 transition-colors"
+                  >
+                    <i className="fas fa-copy mr-1"></i>
+                    Copy ID
+                  </button>
+                  <span className="text-gray-400">|</span>
+                  <span className="text-gray-600">💾 Save this ID for tracking</span>
+                </div>
               </div>
 
               {/* Appointment Details */}
               <div className="text-left bg-gray-50 rounded-lg p-4 mb-6 space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Customer:</span>
-                  <span className="font-semibold">{successData.appointment?.customerName}</span>
+                  <span className="font-semibold">{successData.customerName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Device:</span>
-                  <span className="font-semibold">{successData.appointment?.deviceType}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Model:</span>
-                  <span className="font-semibold">{successData.appointment?.deviceModel}</span>
+                  <span className="text-gray-600">Email:</span>
+                  <span className="font-semibold">{successData.email}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Date:</span>
-                  <span className="font-semibold">{successData.appointment?.preferredDate}</span>
+                  <span className="font-semibold">{successData.preferredDate}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Time:</span>
-                  <span className="font-semibold">{successData.appointment?.preferredTime}</span>
+                  <span className="font-semibold">{successData.preferredTime}</span>
                 </div>
               </div>
 
