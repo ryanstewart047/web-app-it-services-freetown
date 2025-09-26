@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import '../styles/facebook-mobile.css';
 
 interface FacebookFeedProps {
   pageUrl?: string;
@@ -89,8 +90,7 @@ const FacebookFeed: React.FC<FacebookFeedProps> = ({
 
   const tabs = [];
   if (showPosts) tabs.push('timeline');
-  if (showPosts) tabs.push('events');
-  if (showPosts) tabs.push('messages');
+  // Only show timeline - removed events and messages for cleaner mobile experience
 
   if (error) {
     return (
@@ -119,7 +119,7 @@ const FacebookFeed: React.FC<FacebookFeedProps> = ({
   }
 
   return (
-    <div className={`facebook-feed-container ${className}`} ref={containerRef}>
+    <div className={`facebook-feed-container facebook-mobile-container ${className}`} ref={containerRef}>
       {isLoading && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 animate-pulse">
           <div className="flex items-center justify-center space-x-3">

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import facebookService from '../../lib/facebook-service';
+import '../styles/facebook-mobile.css';
 
 interface FacebookPagePluginProps {
   pageUrl?: string;
@@ -19,7 +20,7 @@ interface FacebookPagePluginProps {
 
 const FacebookPagePlugin: React.FC<FacebookPagePluginProps> = ({
   pageUrl = 'https://www.facebook.com/itservicefreetown',
-  variant = 'full',
+  variant = 'timeline', // Changed default to timeline only
   width = 500,
   height = 700,
   showHeader = true,
@@ -45,7 +46,7 @@ const FacebookPagePlugin: React.FC<FacebookPagePluginProps> = ({
         return ['messages'];
       case 'full':
       default:
-        return ['timeline', 'events', 'messages'];
+        return ['timeline']; // Only timeline for cleaner mobile experience
     }
   };
 
@@ -199,7 +200,7 @@ const FacebookPagePlugin: React.FC<FacebookPagePluginProps> = ({
       )}
 
       {/* Facebook Page Plugin */}
-      <div className={`${showHeader ? 'rounded-b-xl' : 'rounded-xl'} overflow-hidden shadow-lg`}>
+      <div className={`${showHeader ? 'rounded-b-xl' : 'rounded-xl'} overflow-hidden shadow-lg facebook-mobile-container`}>
         <div
           className="fb-page"
           data-href={pageUrl}
