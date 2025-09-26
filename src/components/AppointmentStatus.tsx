@@ -38,19 +38,106 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
 
   const fetchAppointmentStatus = async () => {
     try {
-      const response = await fetch(`/api/appointments/status/${trackingId}`)
-      if (response.ok) {
-        const data = await response.json()
-        setAppointment(data)
+      // Mock data for demonstration - supports both ITS and TRK formats
+      const mockAppointments: Record<string, AppointmentStatus> = {
+        'ITS-250926-1001': {
+          id: 'ITS-250926-1001',
+          customerName: 'John Smith',
+          deviceType: 'iPhone 14',
+          deviceModel: 'iPhone 14 Pro',
+          status: 'in-progress',
+          estimatedCompletion: 'Tomorrow, 2:00 PM',
+          notes: 'Screen replacement in progress. High-quality OLED display being installed.',
+          cost: 299.99,
+          createdAt: '2025-09-26T10:00:00Z',
+          updatedAt: '2025-09-26T14:30:00Z'
+        },
+        'ITS-250926-1002': {
+          id: 'ITS-250926-1002',
+          customerName: 'Sarah Johnson',
+          deviceType: 'MacBook Pro',
+          deviceModel: 'MacBook Pro 13" 2023',
+          status: 'diagnosed',
+          estimatedCompletion: 'Friday, 4:00 PM',
+          notes: 'Diagnosis complete. Logic board issue identified. Awaiting customer approval.',
+          cost: 450.00,
+          createdAt: '2025-09-26T09:15:00Z',
+          updatedAt: '2025-09-26T13:45:00Z'
+        },
+        'ITS-250926-1003': {
+          id: 'ITS-250926-1003',
+          customerName: 'Michael Brown',
+          deviceType: 'Samsung Galaxy',
+          deviceModel: 'Galaxy S23 Ultra',
+          status: 'completed',
+          estimatedCompletion: 'Ready for pickup',
+          notes: 'Battery replacement completed successfully. Device tested and ready.',
+          cost: 129.99,
+          createdAt: '2025-09-25T14:20:00Z',
+          updatedAt: '2025-09-26T11:00:00Z'
+        },
+        'ITS-250926-1004': {
+          id: 'ITS-250926-1004',
+          customerName: 'Emily Davis',
+          deviceType: 'Dell Laptop',
+          deviceModel: 'Dell XPS 15',
+          status: 'ready-for-pickup',
+          estimatedCompletion: 'Ready now',
+          notes: 'RAM upgrade completed. Performance significantly improved.',
+          cost: 180.00,
+          createdAt: '2025-09-24T16:30:00Z',
+          updatedAt: '2025-09-26T09:15:00Z'
+        },
+        // Legacy TRK format for backward compatibility
+        'TRK-001': {
+          id: 'TRK-001',
+          customerName: 'Demo User',
+          deviceType: 'iPhone 14',
+          deviceModel: 'iPhone 14 Pro',
+          status: 'in-progress',
+          estimatedCompletion: 'Tomorrow, 2:00 PM',
+          notes: 'Screen replacement in progress.',
+          cost: 299.99,
+          createdAt: '2025-09-26T10:00:00Z',
+          updatedAt: '2025-09-26T14:30:00Z'
+        },
+        'TRK-002': {
+          id: 'TRK-002',
+          customerName: 'Demo User 2',
+          deviceType: 'MacBook Pro',
+          deviceModel: 'MacBook Pro 13"',
+          status: 'diagnosed',
+          estimatedCompletion: 'Friday, 4:00 PM',
+          notes: 'Diagnosis in progress.',
+          cost: 450.00,
+          createdAt: '2025-09-26T09:15:00Z',
+          updatedAt: '2025-09-26T13:45:00Z'
+        }
+      };
+
+      // Check if we have mock data for this tracking ID
+      const mockData = mockAppointments[trackingId];
+      if (mockData) {
+        setAppointment(mockData);
+        setError('');
       } else {
-        setError('Appointment not found. Please check your tracking ID.')
+        // Try to fetch from API (for real tracking IDs)
+        const response = await fetch(`/api/appointments/status/${trackingId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setAppointment(data);
+          setError('');
+        } else {
+          setError('Appointment not found. Please check your tracking ID and try again.');
+        }
       }
     } catch (err) {
-      setError('Failed to fetch appointment status. Please try again.')
+      // If API is not available (static deployment), show appropriate error
+      setError('Appointment not found. Please check your tracking ID and try again.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const getCurrentStepIndex = () => {
     if (!appointment) return 0
