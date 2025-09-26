@@ -34,17 +34,33 @@ export default function BookAppointment() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showThankYou, setShowThankYou] = useState(false);
   const [successData, setSuccessData] = useState<any>(null);
 
-  // Generate a more detailed tracking ID
+  // Generate a more detailed tracking ID with ITS prefix
   const generateTrackingId = () => {
-    const prefix = 'APT';
+    const prefix = 'ITS';
     const date = new Date();
     const year = date.getFullYear().toString().slice(-2);
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
     const random = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
     return `${prefix}-${year}${month}${day}-${random}`;
+  };
+
+  // Handle user choice for chat redirect
+  const handleChatChoice = (openChat: boolean) => {
+    if (openChat) {
+      window.location.href = 'https://itservicesfreetown.com/?openchat=true&message=' + encodeURIComponent(`Hi! I just booked an appointment (Tracking ID: ${successData?.trackingId}). I'd like to discuss the details with an agent.`);
+    } else {
+      // Show thank you message
+      setShowSuccess(false);
+      setShowThankYou(true);
+      // Hide thank you message after 3 seconds
+      setTimeout(() => {
+        setShowThankYou(false);
+      }, 3000);
+    }
   };
 
   // Handle Formspree success
@@ -62,9 +78,6 @@ export default function BookAppointment() {
       setSuccessData(successData);
       setShowSuccess(true);
       
-      // Show tracking ID popup
-      alert(`✅ Appointment Booked Successfully!\n\nYour Tracking ID: ${trackingId}\n\n📝 Please save this ID for tracking your appointment.\n🔍 Use it in our "Track Repair" section to monitor your service status.\n\n💬 You'll be redirected to chat with our support team shortly.`);
-      
       // Reset form
       setFormData({
         customerName: '',
@@ -80,10 +93,7 @@ export default function BookAppointment() {
       });
       setCurrentStep(1);
       
-      // Redirect to chat after showing the tracking ID
-      setTimeout(() => {
-        window.location.href = 'https://itservicesfreetown.com/?openchat=true&message=' + encodeURIComponent(`Hi! I just booked an appointment (Tracking ID: ${trackingId}). I'd like to discuss the details with an agent.`);
-      }, 3000);
+      // No automatic redirect - user will choose manually
     }
   }, [state.succeeded, showSuccess, formData]);
 
@@ -785,18 +795,18 @@ export default function BookAppointment() {
               <p className="text-gray-600 mb-6">Your appointment has been successfully scheduled.</p>
               
               {/* Tracking ID Display */}
-              <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6 mb-6 border-2 border-dashed border-green-300">
+              <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-lg p-6 mb-6 border-2 border-dashed border-red-300">
                 <div className="flex items-center justify-center mb-2">
-                  <i className="fas fa-qrcode text-green-600 mr-2"></i>
+                  <i className="fas fa-qrcode text-red-600 mr-2"></i>
                   <h4 className="font-semibold text-gray-900">Your Tracking ID</h4>
                 </div>
-                <div className="bg-white rounded-lg p-4 border-2 border-green-200 mb-3">
-                  <span className="font-mono text-2xl font-bold text-green-700 tracking-wider">{successData.trackingId}</span>
+                <div className="bg-white rounded-lg p-4 border-2 border-red-200 mb-3">
+                  <span className="font-mono text-2xl font-bold text-red-700 tracking-wider">{successData.trackingId}</span>
                 </div>
                 <div className="flex items-center justify-center space-x-4 text-xs">
                   <button
                     onClick={() => navigator.clipboard.writeText(successData.trackingId)}
-                    className="flex items-center text-green-600 hover:text-green-800 transition-colors"
+                    className="flex items-center text-red-600 hover:text-red-800 transition-colors"
                   >
                     <i className="fas fa-copy mr-1"></i>
                     Copy ID
@@ -827,49 +837,97 @@ export default function BookAppointment() {
               </div>
 
               {/* Action Buttons */}
-              <div className="space-y-3">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                  <p className="text-blue-800 text-sm">
-                    <i className="fas fa-info-circle mr-2"></i>
-                    You&apos;ll be redirected to chat with our agents in a few seconds, or click below to go now.
+              <div className="space-y-4">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                  <p className="text-red-800 text-sm text-center">
+                    <i className="fas fa-comments mr-2"></i>
+                    Would you like to chat with our support team about your appointment?
                   </p>
                 </div>
                 
-                <button
-                  onClick={() => {
-                    window.location.href = 'https://itservicesfreetown.com/?openchat=true&message=' + encodeURIComponent(`Hi! I just booked an appointment (Tracking ID: ${successData.trackingId}). I'd like to discuss the details with an agent.`);
-                  }}
-                  className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center"
-                >
-                  <i className="fas fa-comments mr-2"></i>
-                  Chat with Agent Now
-                </button>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => handleChatChoice(true)}
+                    className="flex-1 py-4 px-6 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg font-semibold hover:from-red-600 hover:to-red-700 transition-all duration-300 flex items-center justify-center shadow-lg"
+                  >
+                    <i className="fas fa-check mr-2"></i>
+                    Yes, Open Chat
+                  </button>
+                  
+                  <button
+                    onClick={() => handleChatChoice(false)}
+                    className="flex-1 py-4 px-6 bg-white text-gray-700 border-2 border-gray-300 rounded-lg font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 flex items-center justify-center"
+                    style={{
+                      backgroundColor: '#040e40',
+                      color: 'white',
+                      borderColor: '#040e40'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#0a1a5e';
+                      e.currentTarget.style.borderColor = '#0a1a5e';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#040e40';
+                      e.currentTarget.style.borderColor = '#040e40';
+                    }}
+                  >
+                    <i className="fas fa-times mr-2"></i>
+                    No, Thank You
+                  </button>
+                </div>
                 
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(successData.trackingId);
-                    alert('Tracking ID copied to clipboard!');
-                  }}
-                  className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-300 flex items-center justify-center"
-                >
-                  <i className="fas fa-copy mr-2"></i>
-                  Copy Tracking ID
-                </button>
-                
-                <button
-                  onClick={() => router.push(`/track-repair`)}
-                  className="w-full py-3 px-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg font-semibold hover:from-red-600 hover:to-red-700 transition-all duration-300 flex items-center justify-center"
-                >
-                  <i className="fas fa-search mr-2"></i>
-                  Track My Repair
-                </button>
-                
-                <button
-                  onClick={() => setShowSuccess(false)}
-                  className="w-full py-3 px-4 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition-all duration-300"
-                >
-                  Close
-                </button>
+                <div className="border-t pt-4 mt-4">
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(successData.trackingId);
+                      alert('Tracking ID copied to clipboard!');
+                    }}
+                    className="w-full py-3 px-4 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-all duration-300 flex items-center justify-center border"
+                  >
+                    <i className="fas fa-copy mr-2"></i>
+                    Copy Tracking ID to Clipboard
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Thank You Modal */}
+      {showThankYou && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all animate-pulse-once">
+            <div className="text-center">
+              <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i className="fas fa-heart text-white text-3xl"></i>
+              </div>
+              <h3 className="text-3xl font-bold text-gray-900 mb-4">Thank You!</h3>
+              
+              <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-6 mb-6 border-2 border-green-200">
+                <p className="text-green-800 text-lg font-semibold mb-2">
+                  🎉 Your appointment has been successfully booked!
+                </p>
+                <p className="text-green-700 text-sm">
+                  We&apos;ve received your request and will contact you soon with confirmation details.
+                </p>
+              </div>
+              
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <p className="text-red-800 text-sm">
+                  <i className="fas fa-bookmark mr-2"></i>
+                  <strong>Don&apos;t forget to save your tracking ID:</strong>
+                </p>
+                <p className="font-mono text-lg font-bold text-red-700 mt-2">
+                  {successData?.trackingId}
+                </p>
+              </div>
+              
+              <div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
+                <p>
+                  <i className="fas fa-search mr-2" style={{color: '#040e40'}}></i>
+                  Use this ID in our <strong>&quot;Track Repair&quot;</strong> section to monitor your service status.
+                </p>
               </div>
             </div>
           </div>
