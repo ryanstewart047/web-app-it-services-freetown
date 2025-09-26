@@ -2,9 +2,11 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { useForm, ValidationError } from '@formspree/react'
 import { openChatFloat } from '@/lib/chat-float-controller'
 
 function ContactForm() {
+  const [state, handleSubmit] = useForm("mpwjnwrz")
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -13,8 +15,6 @@ function ContactForm() {
     message: '',
     serviceType: ''
   })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
 
   const serviceTypes = [
     'General Inquiry',
@@ -35,16 +35,9 @@ function ContactForm() {
     }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    setSubmitStatus('idle')
-
-    try {
-      // Simulate API call - replace with actual implementation
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // Reset form on success
+  // Reset form after successful submission
+  if (state.succeeded) {
+    setTimeout(() => {
       setFormData({
         name: '',
         email: '',
@@ -53,12 +46,7 @@ function ContactForm() {
         message: '',
         serviceType: ''
       })
-      setSubmitStatus('success')
-    } catch (error) {
-      setSubmitStatus('error')
-    } finally {
-      setIsSubmitting(false)
-    }
+    }, 100)
   }
 
   return (
@@ -68,7 +56,7 @@ function ContactForm() {
         <p className="text-gray-600">We&apos;ll get back to you within 24 hours</p>
       </div>
 
-      {submitStatus === 'success' && (
+      {state.succeeded && (
         <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
           <div className="flex items-center">
             <i className="fas fa-check-circle text-green-500 mr-3"></i>
@@ -80,13 +68,13 @@ function ContactForm() {
         </div>
       )}
 
-      {submitStatus === 'error' && (
+      {state.errors && Object.keys(state.errors).length > 0 && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
           <div className="flex items-center">
             <i className="fas fa-exclamation-circle text-red-500 mr-3"></i>
             <div>
               <h4 className="text-red-800 font-semibold">Error Sending Message</h4>
-              <p className="text-red-700 text-sm">Please try again or contact us directly.</p>
+              <p className="text-red-700 text-sm">Please fix the errors below and try again.</p>
             </div>
           </div>
         </div>
@@ -112,6 +100,12 @@ function ContactForm() {
                 placeholder="Enter your full name"
               />
             </div>
+            <ValidationError 
+              prefix="Name" 
+              field="name"
+              errors={state.errors}
+              className="text-red-600 text-sm mt-1"
+            />
           </div>
 
           <div>
@@ -131,6 +125,12 @@ function ContactForm() {
                 placeholder="Enter your email"
               />
             </div>
+            <ValidationError 
+              prefix="Email" 
+              field="email"
+              errors={state.errors}
+              className="text-red-600 text-sm mt-1"
+            />
           </div>
         </div>
 
@@ -152,6 +152,12 @@ function ContactForm() {
                 placeholder="+232 XX XXX XXX"
               />
             </div>
+            <ValidationError 
+              prefix="Phone" 
+              field="phone"
+              errors={state.errors}
+              className="text-red-600 text-sm mt-1"
+            />
           </div>
 
           <div>
@@ -174,6 +180,12 @@ function ContactForm() {
               </select>
               <i className="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
             </div>
+            <ValidationError 
+              prefix="Service Type" 
+              field="serviceType"
+              errors={state.errors}
+              className="text-red-600 text-sm mt-1"
+            />
           </div>
         </div>
 
@@ -195,6 +207,12 @@ function ContactForm() {
               placeholder="Brief description of your inquiry"
             />
           </div>
+          <ValidationError 
+            prefix="Subject" 
+            field="subject"
+            errors={state.errors}
+            className="text-red-600 text-sm mt-1"
+          />
         </div>
 
         {/* Message */}
@@ -215,16 +233,22 @@ function ContactForm() {
               placeholder="Please describe your issue or inquiry in detail..."
             />
           </div>
+          <ValidationError 
+            prefix="Message" 
+            field="message"
+            errors={state.errors}
+            className="text-red-600 text-sm mt-1"
+          />
         </div>
 
         {/* Submit Button */}
         <div className="pt-4">
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={state.submitting}
             className="w-full bg-gradient-to-r from-blue-900 to-blue-700 hover:from-blue-800 hover:to-blue-600 disabled:from-gray-400 disabled:to-gray-500 text-white py-4 px-6 rounded-lg font-semibold transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg disabled:hover:scale-100 disabled:hover:shadow-none flex items-center justify-center"
           >
-            {isSubmitting ? (
+            {state.submitting ? (
               <>
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
                 Sending Message...

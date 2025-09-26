@@ -13,6 +13,7 @@
     "static": "python3 -m http.server 8000 2>/dev/null || python -m http.server 8000 2>/dev/null || npx serve ."
   },
   "dependencies": {
+    "@formspree/react": "^3.0.0",
     "@google/generative-ai": "^0.24.1",
     "@headlessui/react": "^1.7.17",
     "@prisma/client": "^5.7.1",
