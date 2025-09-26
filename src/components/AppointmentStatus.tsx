@@ -115,8 +115,39 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
         }
       };
 
-      // Check if we have mock data for this tracking ID
-      const mockData = mockAppointments[trackingId];
+      // Check if we have specific mock data for this tracking ID
+      let mockData = mockAppointments[trackingId];
+      
+      // If not found but follows ITS format, generate mock data
+      if (!mockData && trackingId.startsWith('ITS-')) {
+        const randomStatuses = ['received', 'diagnosed', 'in-progress', 'completed', 'ready-for-pickup'] as const;
+        const randomStatus = randomStatuses[Math.floor(Math.random() * randomStatuses.length)];
+        const deviceTypes = ['iPhone', 'Samsung Galaxy', 'MacBook Pro', 'Dell Laptop', 'HP Laptop', 'iPad'];
+        const randomDevice = deviceTypes[Math.floor(Math.random() * deviceTypes.length)];
+        const costs = [99.99, 149.99, 199.99, 299.99, 399.99, 499.99];
+        const randomCost = costs[Math.floor(Math.random() * costs.length)];
+        
+        mockData = {
+          id: trackingId,
+          customerName: 'Customer',
+          deviceType: randomDevice,
+          deviceModel: `${randomDevice} Model`,
+          status: randomStatus,
+          estimatedCompletion: randomStatus === 'ready-for-pickup' ? 'Ready now' : 
+                              randomStatus === 'completed' ? 'Ready for pickup' :
+                              randomStatus === 'in-progress' ? 'Tomorrow, 3:00 PM' :
+                              randomStatus === 'diagnosed' ? 'Friday, 5:00 PM' : 'Being processed',
+          notes: `${randomDevice} repair ${randomStatus === 'completed' ? 'completed successfully' : 
+                                          randomStatus === 'in-progress' ? 'in progress' :
+                                          randomStatus === 'diagnosed' ? 'diagnosed - awaiting parts' :
+                                          randomStatus === 'ready-for-pickup' ? 'ready for pickup' :
+                                          'received and being processed'}.`,
+          cost: randomCost,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+      }
+
       if (mockData) {
         setAppointment(mockData);
         setError('');
