@@ -83,7 +83,7 @@ export default function TrackRepair() {
                       e.target.style.borderColor = '#d1d5db';
                       e.target.style.boxShadow = 'none';
                     }}
-                    placeholder="Enter tracking ID (e.g., TRK-001)"
+                    placeholder="Enter tracking ID (e.g., ITS-250926-1234)"
                     required
                   />
                   <p className="text-xs text-gray-500 mt-2">
@@ -110,18 +110,32 @@ export default function TrackRepair() {
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
-                    onClick={() => setTrackingId('TRK-001')}
+                    onClick={() => setTrackingId('ITS-250926-1001')}
                     className="text-left p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors duration-300 border"
                   >
-                    <div className="font-mono text-sm text-blue-600">TRK-001</div>
+                    <div className="font-mono text-sm text-blue-600">ITS-250926-1001</div>
                     <div className="text-xs text-gray-600">iPhone 14 Screen Repair</div>
                   </button>
                   <button
-                    onClick={() => setTrackingId('TRK-002')}
+                    onClick={() => setTrackingId('ITS-250926-1002')}
                     className="text-left p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors duration-300 border"
                   >
-                    <div className="font-mono text-sm text-blue-600">TRK-002</div>
+                    <div className="font-mono text-sm text-blue-600">ITS-250926-1002</div>
                     <div className="text-xs text-gray-600">MacBook Pro Diagnosis</div>
+                  </button>
+                  <button
+                    onClick={() => setTrackingId('ITS-250926-1003')}
+                    className="text-left p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors duration-300 border"
+                  >
+                    <div className="font-mono text-sm text-blue-600">ITS-250926-1003</div>
+                    <div className="text-xs text-gray-600">Samsung Galaxy Repair</div>
+                  </button>
+                  <button
+                    onClick={() => setTrackingId('ITS-250926-1004')}
+                    className="text-left p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors duration-300 border"
+                  >
+                    <div className="font-mono text-sm text-blue-600">ITS-250926-1004</div>
+                    <div className="text-xs text-gray-600">Dell Laptop Hardware Fix</div>
                   </button>
                 </div>
               </div>

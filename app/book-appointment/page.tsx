@@ -35,6 +35,7 @@ export default function BookAppointment() {
   const [currentStep, setCurrentStep] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showThankYou, setShowThankYou] = useState(false);
+  const [thankYouCountdown, setThankYouCountdown] = useState(15);
   const [successData, setSuccessData] = useState<any>(null);
 
   // Generate a more detailed tracking ID with ITS prefix
@@ -53,14 +54,29 @@ export default function BookAppointment() {
     if (openChat) {
       window.location.href = 'https://itservicesfreetown.com/?openchat=true&message=' + encodeURIComponent(`Hi! I just booked an appointment (Tracking ID: ${successData?.trackingId}). I'd like to discuss the details with an agent.`);
     } else {
-      // Show thank you message
+      // Show thank you message with 15-second countdown
       setShowSuccess(false);
       setShowThankYou(true);
-      // Hide thank you message after 3 seconds
-      setTimeout(() => {
-        setShowThankYou(false);
-      }, 3000);
+      setThankYouCountdown(15);
+      
+      // Start countdown timer
+      const countdown = setInterval(() => {
+        setThankYouCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdown);
+            setShowThankYou(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     }
+  };
+
+  // Handle manual close of thank you popup
+  const handleCloseThankYou = () => {
+    setShowThankYou(false);
+    setThankYouCountdown(15);
   };
 
   // Handle Formspree success
@@ -786,7 +802,16 @@ export default function BookAppointment() {
       {/* Success Modal */}
       {showSuccess && successData && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all relative">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowSuccess(false)}
+              className="absolute top-4 right-4 w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors"
+              title="Close"
+            >
+              <i className="fas fa-times text-gray-600"></i>
+            </button>
+            
             <div className="text-center">
               <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i className="fas fa-check text-white text-2xl"></i>
@@ -897,8 +922,22 @@ export default function BookAppointment() {
       {/* Thank You Modal */}
       {showThankYou && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all animate-pulse-once">
-            <div className="text-center">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all animate-pulse-once relative">
+            {/* Close Button */}
+            <button
+              onClick={handleCloseThankYou}
+              className="absolute top-4 right-4 w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors"
+              title="Close"
+            >
+              <i className="fas fa-times text-gray-600"></i>
+            </button>
+            
+            {/* Countdown Badge */}
+            <div className="absolute top-4 left-4 bg-red-500 text-white text-sm px-3 py-1 rounded-full font-semibold">
+              Auto-close: {thankYouCountdown}s
+            </div>
+            
+            <div className="text-center mt-4">
               <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i className="fas fa-heart text-white text-3xl"></i>
               </div>
@@ -921,6 +960,15 @@ export default function BookAppointment() {
                 <p className="font-mono text-lg font-bold text-red-700 mt-2">
                   {successData?.trackingId}
                 </p>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(successData?.trackingId);
+                    alert('Tracking ID copied to clipboard!');
+                  }}
+                  className="mt-3 px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition-colors"
+                >
+                  <i className="fas fa-copy mr-2"></i>Copy ID
+                </button>
               </div>
               
               <div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
