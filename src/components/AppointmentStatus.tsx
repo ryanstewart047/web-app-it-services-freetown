@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { getBookingByTrackingId, BookingData } from '@/lib/booking-storage'
 
 interface AppointmentStatusProps {
   trackingId: string
@@ -38,7 +39,32 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
 
   const fetchAppointmentStatus = async () => {
     try {
-      // Mock data for demonstration - supports both ITS and TRK formats
+      setLoading(true);
+      
+      // First check if we have real booking data
+      const realBooking = getBookingByTrackingId(trackingId);
+      
+      if (realBooking) {
+        // Convert BookingData to AppointmentStatus format
+        const appointmentStatus: AppointmentStatus = {
+          id: realBooking.trackingId,
+          customerName: realBooking.customerName,
+          deviceType: realBooking.deviceType,
+          deviceModel: realBooking.deviceModel,
+          status: realBooking.status,
+          estimatedCompletion: realBooking.estimatedCompletion,
+          notes: realBooking.notes,
+          cost: realBooking.cost,
+          createdAt: realBooking.createdAt,
+          updatedAt: realBooking.updatedAt
+        };
+        
+        setAppointment(appointmentStatus);
+        setError('');
+        return;
+      }
+
+      // Fallback: Check predefined mock data for demo purposes
       const mockAppointments: Record<string, AppointmentStatus> = {
         'ITS-250926-1001': {
           id: 'ITS-250926-1001',
@@ -115,56 +141,18 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
         }
       };
 
-      // Check if we have specific mock data for this tracking ID
-      let mockData = mockAppointments[trackingId];
+      // Check predefined mock data
+      const mockData = mockAppointments[trackingId];
       
-      // If not found but follows ITS format, generate mock data
-      if (!mockData && trackingId.startsWith('ITS-')) {
-        const randomStatuses = ['received', 'diagnosed', 'in-progress', 'completed', 'ready-for-pickup'] as const;
-        const randomStatus = randomStatuses[Math.floor(Math.random() * randomStatuses.length)];
-        const deviceTypes = ['iPhone', 'Samsung Galaxy', 'MacBook Pro', 'Dell Laptop', 'HP Laptop', 'iPad'];
-        const randomDevice = deviceTypes[Math.floor(Math.random() * deviceTypes.length)];
-        const costs = [99.99, 149.99, 199.99, 299.99, 399.99, 499.99];
-        const randomCost = costs[Math.floor(Math.random() * costs.length)];
-        
-        mockData = {
-          id: trackingId,
-          customerName: 'Customer',
-          deviceType: randomDevice,
-          deviceModel: `${randomDevice} Model`,
-          status: randomStatus,
-          estimatedCompletion: randomStatus === 'ready-for-pickup' ? 'Ready now' : 
-                              randomStatus === 'completed' ? 'Ready for pickup' :
-                              randomStatus === 'in-progress' ? 'Tomorrow, 3:00 PM' :
-                              randomStatus === 'diagnosed' ? 'Friday, 5:00 PM' : 'Being processed',
-          notes: `${randomDevice} repair ${randomStatus === 'completed' ? 'completed successfully' : 
-                                          randomStatus === 'in-progress' ? 'in progress' :
-                                          randomStatus === 'diagnosed' ? 'diagnosed - awaiting parts' :
-                                          randomStatus === 'ready-for-pickup' ? 'ready for pickup' :
-                                          'received and being processed'}.`,
-          cost: randomCost,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-      }
-
       if (mockData) {
         setAppointment(mockData);
         setError('');
       } else {
-        // Try to fetch from API (for real tracking IDs)
-        const response = await fetch(`/api/appointments/status/${trackingId}`);
-        if (response.ok) {
-          const data = await response.json();
-          setAppointment(data);
-          setError('');
-        } else {
-          setError('Appointment not found. Please check your tracking ID and try again.');
-        }
+        // No real booking data and no mock data - invalid tracking ID
+        setError('Invalid tracking ID. Please check your tracking ID and try again. Make sure you use a tracking ID from a booking made on this website.');
       }
     } catch (err) {
-      // If API is not available (static deployment), show appropriate error
-      setError('Appointment not found. Please check your tracking ID and try again.');
+      setError('Unable to fetch appointment status. Please try again later.');
     } finally {
       setLoading(false);
     }
