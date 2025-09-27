@@ -28,10 +28,29 @@ export function getAllBookings(): BookingData[] {
   if (typeof window === 'undefined') return [];
   
   try {
+    // Check if localStorage is available (some mobile browsers have issues)
+    if (typeof Storage === 'undefined' || !window.localStorage) {
+      console.warn('localStorage not available on this browser');
+      return [];
+    }
+    
     const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    if (!data) {
+      console.log('No bookings found in localStorage');
+      return [];
+    }
+    
+    const bookings = JSON.parse(data);
+    console.log('Retrieved bookings from localStorage:', bookings.length, 'items');
+    return bookings;
   } catch (error) {
     console.error('Error reading bookings from localStorage:', error);
+    // Try to clear corrupted data
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (clearError) {
+      console.error('Error clearing corrupted localStorage data:', clearError);
+    }
     return [];
   }
 }
@@ -61,8 +80,36 @@ export function saveBooking(bookingData: Omit<BookingData, 'createdAt' | 'update
 
 // Get a booking by tracking ID
 export function getBookingByTrackingId(trackingId: string): BookingData | null {
+  console.log('Looking for tracking ID:', trackingId);
+  
   const bookings = getAllBookings();
-  return bookings.find(booking => booking.trackingId === trackingId) || null;
+  console.log('Total bookings available:', bookings.length);
+  
+  if (bookings.length > 0) {
+    console.log('Available tracking IDs:', bookings.map(b => b.trackingId));
+  }
+  
+  // Try exact match first
+  let booking = bookings.find(booking => booking.trackingId === trackingId);
+  
+  if (!booking) {
+    // Try case-insensitive match as fallback
+    booking = bookings.find(booking => 
+      booking.trackingId.toLowerCase() === trackingId.toLowerCase()
+    );
+    
+    if (booking) {
+      console.log('Found booking with case-insensitive match');
+    }
+  } else {
+    console.log('Found booking with exact match');
+  }
+  
+  if (!booking) {
+    console.log('No booking found for tracking ID:', trackingId);
+  }
+  
+  return booking || null;
 }
 
 // Check if a tracking ID exists
