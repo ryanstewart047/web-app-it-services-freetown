@@ -822,10 +822,10 @@ export default function BookAppointment() {
             {/* Close Button */}
             <button
               onClick={() => setShowSuccess(false)}
-              className="absolute top-4 right-4 w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors"
+              className="absolute top-3 right-3 w-10 h-10 bg-red-100 hover:bg-red-200 rounded-full flex items-center justify-center transition-colors z-10 shadow-md border-2 border-white"
               title="Close"
             >
-              <i className="fas fa-times text-gray-600"></i>
+              <i className="fas fa-times text-red-600 font-bold"></i>
             </button>
             
             <div className="text-center">
@@ -842,11 +842,11 @@ export default function BookAppointment() {
                   <h4 className="font-semibold text-gray-900">Your Tracking ID</h4>
                 </div>
                 <div className="bg-white rounded-lg p-4 border-2 border-red-200 mb-3">
-                  <span className="font-mono text-2xl font-bold text-red-700 tracking-wider">{successData.trackingId}</span>
+                  <span className="font-mono text-2xl font-bold text-red-700 tracking-wider">{currentTrackingId}</span>
                 </div>
                 <div className="flex items-center justify-center space-x-4 text-xs">
                   <button
-                    onClick={() => navigator.clipboard.writeText(successData.trackingId)}
+                    onClick={() => navigator.clipboard.writeText(currentTrackingId)}
                     className="flex items-center text-red-600 hover:text-red-800 transition-colors"
                   >
                     <i className="fas fa-copy mr-1"></i>
@@ -920,7 +920,7 @@ export default function BookAppointment() {
                 <div className="border-t pt-4 mt-4">
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(successData.trackingId);
+                      navigator.clipboard.writeText(currentTrackingId);
                       alert('Tracking ID copied to clipboard!');
                     }}
                     className="w-full py-3 px-4 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-all duration-300 flex items-center justify-center border"
