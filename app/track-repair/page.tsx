@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AppointmentStatus from '@/components/AppointmentStatus';
+import TrackingDebug from '@/components/TrackingDebug';
 import { usePageLoader } from '@/hooks/usePageLoader';
 import LoadingOverlay from '@/components/LoadingOverlay';
 
@@ -12,10 +13,29 @@ export default function TrackRepair() {
   
   const [trackingId, setTrackingId] = useState('');
   const [showStatus, setShowStatus] = useState(false);
+  const [browserSupport, setBrowserSupport] = useState(true);
+
+  // Check browser support for localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hasLocalStorage = typeof Storage !== 'undefined' && !!window.localStorage;
+      setBrowserSupport(hasLocalStorage);
+      
+      if (!hasLocalStorage) {
+        console.warn('localStorage not supported on this device/browser');
+      }
+    }
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (trackingId.trim()) {
+      // Add mobile debugging
+      console.log('Submitting tracking ID:', trackingId);
+      console.log('localStorage available:', typeof Storage !== 'undefined');
+      console.log('User agent:', navigator.userAgent);
+      
       setShowStatus(true);
     }
   };
@@ -64,6 +84,22 @@ export default function TrackRepair() {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Browser Support Warning */}
+                {!browserSupport && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                    <div className="flex items-start">
+                      <i className="fas fa-exclamation-triangle text-yellow-500 mt-1 mr-3"></i>
+                      <div>
+                        <h4 className="text-yellow-800 font-semibold text-sm">Browser Compatibility Issue</h4>
+                        <p className="text-yellow-700 text-sm mt-1">
+                          Your browser may have limited support for tracking data storage. If you experience issues, 
+                          try using a different browser or enabling JavaScript/cookies.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label htmlFor="trackingId" className="block text-sm font-semibold text-gray-700 mb-3">
                     <i className="fas fa-hashtag mr-2" style={{color: '#040e40'}}></i>
@@ -168,6 +204,9 @@ export default function TrackRepair() {
           {/* ...existing code... */}
         </div>
       </div>
+
+      {/* Debug Component for Mobile Testing */}
+      <TrackingDebug />
     </>
   );
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getBookingByTrackingId, BookingData } from '@/lib/booking-storage'
+import { getBookingByTrackingId, getAllBookings, BookingData } from '@/lib/booking-storage'
 
 interface AppointmentStatusProps {
   trackingId: string
@@ -40,11 +40,16 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
   const fetchAppointmentStatus = async () => {
     try {
       setLoading(true);
+      setError('');
+      
+      // Debug logging for mobile issues
+      console.log('Searching for tracking ID:', trackingId);
       
       // First check if we have real booking data
       const realBooking = getBookingByTrackingId(trackingId);
       
       if (realBooking) {
+        console.log('Real booking found:', realBooking);
         // Convert BookingData to AppointmentStatus format
         const appointmentStatus: AppointmentStatus = {
           id: realBooking.trackingId,
@@ -62,6 +67,11 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
         setAppointment(appointmentStatus);
         setError('');
         return;
+      } else {
+        console.log('No real booking found for:', trackingId);
+        // Debug: Log all available booking IDs
+        const allBookings = getAllBookings();
+        console.log('Available booking IDs:', allBookings.map(b => b.trackingId));
       }
 
       // Fallback: Check predefined mock data for demo purposes
