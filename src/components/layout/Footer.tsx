@@ -202,6 +202,9 @@ export default function Footer() {
               <Link href="/terms" className="text-gray-300 hover:text-red-400 text-sm transition-colors">
                 Terms of Service
               </Link>
+              <Link href="/admin" className="text-gray-400 hover:text-red-400 text-xs transition-colors opacity-60 hover:opacity-100">
+                <i className="fas fa-shield-alt mr-1"></i>Admin
+              </Link>
             </div>
           </div>
         </div>
