@@ -6,6 +6,7 @@ import { useForm, ValidationError } from '@formspree/react';
 import { useScrollAnimations } from '@/hooks/useScrollAnimations';
 import { usePageLoader } from '@/hooks/usePageLoader';
 import LoadingOverlay from '@/components/LoadingOverlay';
+import { saveBooking } from '@/lib/booking-storage';
 
 export default function BookAppointment() {
   const router = useRouter();
@@ -112,6 +113,22 @@ export default function BookAppointment() {
     if (state.succeeded && !showSuccess && !currentTrackingId) {
       const trackingId = generateTrackingId();
       setCurrentTrackingId(trackingId); // Store tracking ID in state
+      
+      // Save booking to localStorage for tracking
+      const savedBooking = saveBooking({
+        trackingId,
+        customerName: formData.customerName,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        deviceType: formData.deviceType,
+        deviceModel: formData.deviceModel,
+        serviceType: formData.serviceType,
+        issueDescription: formData.issueDescription,
+        preferredDate: formData.preferredDate,
+        preferredTime: formData.preferredTime
+      });
+      
       const successData = {
         trackingId,
         customerName: formData.customerName,
