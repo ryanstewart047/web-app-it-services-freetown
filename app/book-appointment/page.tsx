@@ -157,7 +157,7 @@ export default function BookAppointment() {
       
       // No automatic redirect - user will choose manually
     }
-  }, [state.succeeded, showSuccess, currentTrackingId, formData.customerName, formData.email, formData.preferredDate, formData.preferredTime]);
+  }, [state.succeeded, showSuccess, currentTrackingId, formData.customerName, formData.email, formData.preferredDate, formData.preferredTime, formData.address, formData.deviceModel, formData.deviceType, formData.issueDescription, formData.phone, formData.serviceType]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
