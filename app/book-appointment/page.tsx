@@ -50,6 +50,15 @@ export default function BookAppointment() {
     return `${prefix}-${year}${month}${day}-${random}`;
   };
 
+  // Reset all booking states for a fresh start
+  const resetBookingStates = () => {
+    setShowSuccess(false);
+    setShowThankYou(false);
+    setCurrentTrackingId('');
+    setSuccessData(null);
+    setThankYouCountdown(15);
+  };
+
   // Handle user choice for chat redirect
   const handleChatChoice = (openChat: boolean) => {
     if (openChat) {
@@ -80,9 +89,27 @@ export default function BookAppointment() {
     setThankYouCountdown(15);
   };
 
+  // Handle starting a new booking (clears everything)
+  const handleNewBooking = () => {
+    resetBookingStates();
+    setFormData({
+      customerName: '',
+      email: '',
+      phone: '',
+      address: '',
+      deviceType: '',
+      deviceModel: '',
+      serviceType: '',
+      issueDescription: '',
+      preferredDate: '',
+      preferredTime: '',
+    });
+    setCurrentStep(1);
+  };
+
   // Handle Formspree success
   useEffect(() => {
-    if (state.succeeded && !showSuccess) {
+    if (state.succeeded && !showSuccess && !currentTrackingId) {
       const trackingId = generateTrackingId();
       setCurrentTrackingId(trackingId); // Store tracking ID in state
       const successData = {
@@ -113,7 +140,7 @@ export default function BookAppointment() {
       
       // No automatic redirect - user will choose manually
     }
-  }, [state.succeeded, showSuccess, formData]);
+  }, [state.succeeded, showSuccess, currentTrackingId, formData.customerName, formData.email, formData.preferredDate, formData.preferredTime]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -987,11 +1014,22 @@ export default function BookAppointment() {
                 </button>
               </div>
               
-              <div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
+              <div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3 mb-4">
                 <p>
                   <i className="fas fa-search mr-2" style={{color: '#040e40'}}></i>
                   Use this ID in our <strong>&quot;Track Repair&quot;</strong> section to monitor your service status.
                 </p>
+              </div>
+              
+              {/* Book Another Appointment Button */}
+              <div className="border-t pt-4">
+                <button
+                  onClick={handleNewBooking}
+                  className="w-full py-3 px-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg font-semibold hover:from-red-600 hover:to-red-700 transition-all duration-300 flex items-center justify-center"
+                >
+                  <i className="fas fa-plus mr-2"></i>
+                  Book Another Appointment
+                </button>
               </div>
             </div>
           </div>
