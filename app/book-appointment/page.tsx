@@ -37,6 +37,7 @@ export default function BookAppointment() {
   const [showThankYou, setShowThankYou] = useState(false);
   const [thankYouCountdown, setThankYouCountdown] = useState(15);
   const [successData, setSuccessData] = useState<any>(null);
+  const [currentTrackingId, setCurrentTrackingId] = useState<string>('');
 
   // Generate a more detailed tracking ID with ITS prefix
   const generateTrackingId = () => {
@@ -52,7 +53,7 @@ export default function BookAppointment() {
   // Handle user choice for chat redirect
   const handleChatChoice = (openChat: boolean) => {
     if (openChat) {
-      window.location.href = 'https://itservicesfreetown.com/?openchat=true&message=' + encodeURIComponent(`Hi! I just booked an appointment (Tracking ID: ${successData?.trackingId}). I'd like to discuss the details with an agent.`);
+      window.location.href = 'https://itservicesfreetown.com/?openchat=true&message=' + encodeURIComponent(`Hi! I just booked an appointment (Tracking ID: ${currentTrackingId}). I'd like to discuss the details with an agent.`);
     } else {
       // Show thank you message with 15-second countdown
       setShowSuccess(false);
@@ -83,6 +84,7 @@ export default function BookAppointment() {
   useEffect(() => {
     if (state.succeeded && !showSuccess) {
       const trackingId = generateTrackingId();
+      setCurrentTrackingId(trackingId); // Store tracking ID in state
       const successData = {
         trackingId,
         customerName: formData.customerName,
@@ -350,6 +352,20 @@ export default function BookAppointment() {
           {/* Main Form Card */}
           <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
             <form onSubmit={handleSubmit} className="p-8 md:p-12">
+              
+              {/* Hidden inputs for Formspree - ensures all data is captured */}
+              <input type="hidden" name="customerName" value={formData.customerName} />
+              <input type="hidden" name="email" value={formData.email} />
+              <input type="hidden" name="phone" value={formData.phone} />
+              <input type="hidden" name="address" value={formData.address} />
+              <input type="hidden" name="deviceType" value={formData.deviceType} />
+              <input type="hidden" name="deviceModel" value={formData.deviceModel} />
+              <input type="hidden" name="serviceType" value={formData.serviceType} />
+              <input type="hidden" name="issueDescription" value={formData.issueDescription} />
+              <input type="hidden" name="preferredDate" value={formData.preferredDate} />
+              <input type="hidden" name="preferredTime" value={formData.preferredTime} />
+              <input type="hidden" name="formType" value="appointment-booking" />
+              <input type="hidden" name="trackingId" value={currentTrackingId} />
               
               {/* Step 1: Personal Information */}
               {currentStep === 1 && (
@@ -958,11 +974,11 @@ export default function BookAppointment() {
                   <strong>Don&apos;t forget to save your tracking ID:</strong>
                 </p>
                 <p className="font-mono text-lg font-bold text-red-700 mt-2">
-                  {successData?.trackingId}
+                  {currentTrackingId}
                 </p>
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText(successData?.trackingId);
+                    navigator.clipboard.writeText(currentTrackingId);
                     alert('Tracking ID copied to clipboard!');
                   }}
                   className="mt-3 px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition-colors"
