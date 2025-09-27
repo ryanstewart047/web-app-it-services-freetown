@@ -150,10 +150,10 @@ export default function AdminDataSync({ onSyncComplete }: DataSyncProps) {
               How to Use
             </h4>
             <ol className="text-yellow-700 text-sm space-y-1 list-decimal list-inside">
-              <li>On the device with bookings: Click "Export Bookings"</li>
+              <li>On the device with bookings: Click &quot;Export Bookings&quot;</li>
               <li>Copy the exported data</li>
-              <li>On the admin device: Paste data in "Import Data" section</li>
-              <li>Click "Import Bookings" to merge the data</li>
+              <li>On the admin device: Paste data in &quot;Import Data&quot; section</li>
+              <li>Click &quot;Import Bookings&quot; to merge the data</li>
               <li>Refresh the admin dashboard to see all bookings</li>
             </ol>
           </div>
