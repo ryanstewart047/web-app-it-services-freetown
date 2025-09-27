@@ -6,7 +6,7 @@ import { useForm, ValidationError } from '@formspree/react';
 import { useScrollAnimations } from '@/hooks/useScrollAnimations';
 import { usePageLoader } from '@/hooks/usePageLoader';
 import LoadingOverlay from '@/components/LoadingOverlay';
-import { saveBooking } from '@/lib/booking-storage';
+import { saveBooking } from '@/lib/unified-booking-storage';
 
 export default function BookAppointment() {
   const router = useRouter();

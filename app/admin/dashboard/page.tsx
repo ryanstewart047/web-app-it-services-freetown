@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAdminLoggedIn, getAdminSession, adminLogout } from '@/lib/admin-auth';
-import { getAllBookings, updateBookingStatus, type BookingData } from '@/lib/booking-storage';
+import { getAllBookings, updateBookingStatus, type BookingData } from '@/lib/unified-booking-storage';
+import AdminDataSync from '@/components/AdminDataSync';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -11,6 +12,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState<BookingData | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [showSyncModal, setShowSyncModal] = useState(false);
 
   // Check authentication on mount
   useEffect(() => {
@@ -200,13 +202,16 @@ export default function AdminDashboard() {
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900">All Bookings</h2>
-              <button
-                onClick={loadBookings}
-                className="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm transition-colors flex items-center"
-              >
-                <i className="fas fa-refresh mr-2"></i>
-                Refresh
-              </button>
+              <div className="flex space-x-3">
+                <AdminDataSync onSyncComplete={loadBookings} />
+                <button
+                  onClick={loadBookings}
+                  className="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm transition-colors flex items-center"
+                >
+                  <i className="fas fa-refresh mr-2"></i>
+                  Refresh
+                </button>
+              </div>
             </div>
           </div>
 

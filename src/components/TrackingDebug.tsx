@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getAllBookings } from '@/lib/booking-storage';
+import { getAllBookings } from '@/lib/unified-booking-storage';
 
 export default function TrackingDebug() {
   const [debugInfo, setDebugInfo] = useState<any>({});
