@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getBookingByTrackingId, getAllBookings, BookingData } from '@/lib/booking-storage'
+import { getBookingByTrackingId, getAllBookings, BookingData } from '@/lib/unified-booking-storage'
 
 interface AppointmentStatusProps {
   trackingId: string
