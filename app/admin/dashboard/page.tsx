@@ -27,16 +27,19 @@ export default function AdminDashboard() {
       loadBookings();
       try {
         setSyncMessage('Checking for new bookings...');
+        console.log('🔍 Checking cloud for new bookings...');
         const result = await autoSyncDown();
         if (result.success && result.newBookings.length > 0) {
+          console.log('✅ Found', result.newBookings.length, 'new bookings from cloud');
           setSyncMessage(`Auto-synced ${result.newBookings.length} new bookings from cloud`);
           loadBookings(); // Refresh the bookings list
           setTimeout(() => setSyncMessage(null), 5000);
         } else {
+          console.log('ℹ️ No new bookings found in cloud');
           setSyncMessage(null);
         }
       } catch (error) {
-        console.log('Auto-sync on load failed:', error);
+        console.error('❌ Auto-sync on load failed:', error);
         setSyncMessage(null);
       }
     };
