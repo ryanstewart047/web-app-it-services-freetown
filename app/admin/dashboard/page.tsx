@@ -433,46 +433,6 @@ export default function AdminDashboard() {
             )}
           </div>
         )}
-                  {bookings.map((booking) => (
-                    <tr key={booking.trackingId} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-mono text-gray-900">{booking.trackingId}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{booking.customerName}</div>
-                          <div className="text-sm text-gray-500">{booking.email}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{booking.deviceType}</div>
-                        <div className="text-sm text-gray-500">{booking.deviceModel}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{booking.serviceType}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {getStatusBadge(booking.status)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(booking.createdAt)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => openEditModal(booking)}
-                          className="text-red-600 hover:text-red-900 flex items-center"
-                        >
-                          <i className="fas fa-edit mr-1"></i>
-                          Edit
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
       </main>
 
       {/* Edit Modal */}

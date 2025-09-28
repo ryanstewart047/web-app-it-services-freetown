@@ -152,10 +152,10 @@ function exportToXLSX(bookings: BookingData[], options: ExportOptions): any {
       
       // Format dates for Excel
       if ((field === 'createdAt' || field === 'updatedAt' || field === 'estimatedCompletion') && value) {
-        value = new Date(value as string);
+        row[field] = new Date(value as string);
+      } else {
+        row[field] = value || '';
       }
-      
-      row[field] = value || '';
     });
     
     return row;
