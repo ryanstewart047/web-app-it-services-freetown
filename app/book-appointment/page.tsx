@@ -134,10 +134,11 @@ export default function BookAppointment() {
       const tryAutoSync = async () => {
         try {
           const allBookings = JSON.parse(localStorage.getItem('its_bookings') || '[]');
-          await autoSyncUp(allBookings);
-          console.log('Booking automatically synced to cloud');
+          console.log('Attempting to sync', allBookings.length, 'bookings to cloud...');
+          const result = await autoSyncUp(allBookings);
+          console.log('✅ Booking automatically synced to cloud successfully');
         } catch (error) {
-          console.log('Auto-sync failed, booking saved locally:', error);
+          console.error('❌ Auto-sync failed, booking saved locally only:', error);
         }
       };
       tryAutoSync();
