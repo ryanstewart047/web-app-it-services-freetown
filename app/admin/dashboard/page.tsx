@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAdminLoggedIn, getAdminSession, adminLogout } from '@/lib/admin-auth';
 import { getAllBookings, updateBookingStatus, type BookingData } from '@/lib/unified-booking-storage';
-import AdminDataSync from '@/components/AdminDataSync';
+import CloudSyncSetup from '@/components/CloudSyncSetup';
+import { autoSyncDown, autoSyncUp } from '@/lib/cloud-sync';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -13,14 +14,34 @@ export default function AdminDashboard() {
   const [selectedBooking, setSelectedBooking] = useState<BookingData | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [showSyncModal, setShowSyncModal] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
-  // Check authentication on mount
+  // Check authentication on mount and auto-sync
   useEffect(() => {
     if (!isAdminLoggedIn()) {
       router.push('/admin/login');
       return;
     }
-    loadBookings();
+    
+    const loadAndSync = async () => {
+      loadBookings();
+      try {
+        setSyncMessage('Checking for new bookings...');
+        const result = await autoSyncDown();
+        if (result.success && result.newBookings.length > 0) {
+          setSyncMessage(`Auto-synced ${result.newBookings.length} new bookings from cloud`);
+          loadBookings(); // Refresh the bookings list
+          setTimeout(() => setSyncMessage(null), 5000);
+        } else {
+          setSyncMessage(null);
+        }
+      } catch (error) {
+        console.log('Auto-sync on load failed:', error);
+        setSyncMessage(null);
+      }
+    };
+    
+    loadAndSync();
   }, [router]);
 
   const loadBookings = () => {
@@ -52,7 +73,7 @@ export default function AdminDashboard() {
     setIsEditModalOpen(false);
   };
 
-  const handleUpdateBooking = (updatedBooking: BookingData) => {
+  const handleUpdateBooking = async (updatedBooking: BookingData) => {
     const success = updateBookingStatus(
       updatedBooking.trackingId,
       updatedBooking.status,
@@ -64,6 +85,15 @@ export default function AdminDashboard() {
     if (success) {
       loadBookings(); // Refresh the list
       closeEditModal();
+      
+      // Auto-sync the updated booking to cloud
+      try {
+        const allBookings = getAllBookings();
+        await autoSyncUp(allBookings);
+        console.log('Booking update automatically synced to cloud');
+      } catch (error) {
+        console.log('Auto-sync after update failed:', error);
+      }
     } else {
       alert('Failed to update booking. Please try again.');
     }
@@ -197,13 +227,25 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+        {/* Cloud Sync Setup */}
+        <CloudSyncSetup onSyncComplete={loadBookings} />
+
+        {/* Sync Message */}
+        {syncMessage && (
+          <div className="bg-blue-100 border border-blue-300 text-blue-800 px-4 py-3 rounded-lg">
+            <div className="flex items-center">
+              <i className="fas fa-info-circle mr-2"></i>
+              {syncMessage}
+            </div>
+          </div>
+        )}
+
         {/* Bookings Table */}
         <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900">All Bookings</h2>
               <div className="flex space-x-3">
-                <AdminDataSync onSyncComplete={loadBookings} />
                 <button
                   onClick={loadBookings}
                   className="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm transition-colors flex items-center"

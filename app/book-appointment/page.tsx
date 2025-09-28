@@ -7,6 +7,7 @@ import { useScrollAnimations } from '@/hooks/useScrollAnimations';
 import { usePageLoader } from '@/hooks/usePageLoader';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import { saveBooking } from '@/lib/unified-booking-storage';
+import { autoSyncUp } from '@/lib/cloud-sync';
 
 export default function BookAppointment() {
   const router = useRouter();
@@ -128,6 +129,18 @@ export default function BookAppointment() {
         preferredDate: formData.preferredDate,
         preferredTime: formData.preferredTime
       });
+      
+      // Auto-sync to cloud after saving booking
+      const tryAutoSync = async () => {
+        try {
+          const allBookings = JSON.parse(localStorage.getItem('its_bookings') || '[]');
+          await autoSyncUp(allBookings);
+          console.log('Booking automatically synced to cloud');
+        } catch (error) {
+          console.log('Auto-sync failed, booking saved locally:', error);
+        }
+      };
+      tryAutoSync();
       
       const successData = {
         trackingId,
