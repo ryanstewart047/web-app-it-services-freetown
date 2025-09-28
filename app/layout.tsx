@@ -47,11 +47,15 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="IT Services Freetown" />
         
-        {/* Apple Touch Icons */}
-        <link rel="apple-touch-icon" href="/assets/favicon-52x52.png" />
-        <link rel="apple-touch-icon" sizes="152x152" href="/assets/favicon-52x52.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon-52x52.png" />
-        <link rel="apple-touch-icon" sizes="167x167" href="/assets/favicon-52x52.png" />
+        {/* Favicon - Using Site Logo */}
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        
+        {/* Apple Touch Icons - Using Site Logo */}
+        <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.svg" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon.svg" />
+        <link rel="apple-touch-icon" sizes="167x167" href="/apple-touch-icon.svg" />
       </head>
       <body className={`${inter.className} bg-gray-50 min-h-screen`}>
         <div className="min-h-screen flex flex-col">
