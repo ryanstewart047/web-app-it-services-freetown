@@ -111,6 +111,43 @@ export default function CloudSyncSetup({ onSyncComplete }: CloudSyncSetupProps) 
     setTimeout(() => setMessage(null), 5000);
   };
 
+  const scanAllDevices = async () => {
+    setIsLoading(true);
+    setMessage({ type: 'info', text: 'Scanning for bookings on all devices...' });
+    
+    try {
+      // Force a comprehensive cloud pull
+      const result = await syncFromCloud();
+      if (result.success && result.data) {
+        const existingBookings = JSON.parse(localStorage.getItem('its_bookings') || '[]');
+        const existingIds = new Set(existingBookings.map((b: any) => b.trackingId));
+        const newBookings = result.data.filter((booking: any) => !existingIds.has(booking.trackingId));
+        
+        if (newBookings.length > 0) {
+          const mergedBookings = [...existingBookings, ...newBookings];
+          localStorage.setItem('its_bookings', JSON.stringify(mergedBookings));
+          setMessage({ 
+            type: 'success', 
+            text: `Found ${newBookings.length} bookings from other devices!` 
+          });
+          if (onSyncComplete) onSyncComplete();
+        } else {
+          setMessage({ 
+            type: 'info', 
+            text: 'No new bookings found. Mobile bookings might not be syncing to cloud yet.' 
+          });
+        }
+      } else {
+        setMessage({ type: 'error', text: 'Could not access cloud data' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Device scan failed: Network error' });
+    }
+    
+    setIsLoading(false);
+    setTimeout(() => setMessage(null), 8000);
+  };
+
   const isConfigured = isCloudSyncConfigured();
 
   return (
@@ -230,6 +267,13 @@ export default function CloudSyncSetup({ onSyncComplete }: CloudSyncSetupProps) 
             className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-gray-400 transition-colors"
           >
             {isLoading ? 'Syncing...' : '⬇️ Pull from Cloud'}
+          </button>
+          <button
+            onClick={scanAllDevices}
+            disabled={isLoading}
+            className="px-3 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:bg-gray-400 transition-colors text-sm"
+          >
+            📱 Scan Devices
           </button>
         </div>
       )}

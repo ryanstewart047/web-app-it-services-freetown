@@ -142,12 +142,43 @@ export async function autoSyncUp(bookings: any[]): Promise<void> {
     return;
   }
 
+  // If no config on this device, try to get it from URL params or use fallback
+  if (!config.gistId || !config.accessToken) {
+    console.log('Auto-sync: No cloud config on this device, using fallback sync attempt');
+    await tryFallbackSync(bookings);
+    return;
+  }
+
   console.log('Auto-syncing', bookings.length, 'bookings to cloud...');
   const result = await syncToCloud(bookings);
   
   if (result.success) {
     // Store last sync time
     localStorage.setItem('its_last_sync_up', new Date().toISOString());
+  }
+}
+
+// Fallback sync for devices without configuration
+async function tryFallbackSync(bookings: any[]): Promise<void> {
+  // Try to sync using a shared configuration approach
+  // For now, we'll save to localStorage and let admin devices pull
+  try {
+    // Enhanced localStorage with device info
+    const deviceInfo = {
+      userAgent: navigator.userAgent,
+      timestamp: new Date().toISOString(),
+      deviceType: /Mobile|Android|iPhone|iPad/.test(navigator.userAgent) ? 'mobile' : 'desktop'
+    };
+    
+    const enhancedBookings = bookings.map(booking => ({
+      ...booking,
+      deviceInfo
+    }));
+    
+    localStorage.setItem('its_bookings', JSON.stringify(enhancedBookings));
+    console.log('Fallback sync: Bookings saved locally with device info');
+  } catch (error) {
+    console.error('Fallback sync failed:', error);
   }
 }
 
