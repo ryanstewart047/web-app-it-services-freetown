@@ -7,7 +7,6 @@ import { useScrollAnimations } from '@/hooks/useScrollAnimations';
 import { usePageLoader } from '@/hooks/usePageLoader';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import { saveBooking } from '@/lib/unified-booking-storage';
-import { autoSyncUp } from '@/lib/cloud-sync';
 
 export default function BookAppointment() {
   const router = useRouter();
@@ -130,18 +129,45 @@ export default function BookAppointment() {
         preferredTime: formData.preferredTime
       });
       
-      // Auto-sync to cloud after saving booking
-      const tryAutoSync = async () => {
+      // Auto-sync to cloud via server API - works for all customers
+      const tryServerSync = async () => {
         try {
-          const allBookings = JSON.parse(localStorage.getItem('its_bookings') || '[]');
-          console.log('Attempting to sync', allBookings.length, 'bookings to cloud...');
-          const result = await autoSyncUp(allBookings);
-          console.log('✅ Booking automatically synced to cloud successfully');
+          const response = await fetch('/api/sync', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              action: 'sync_booking',
+              booking: {
+                trackingId,
+                customerName: formData.customerName,
+                email: formData.email,
+                phone: formData.phone,
+                address: formData.address,
+                deviceType: formData.deviceType,
+                deviceModel: formData.deviceModel,
+                serviceType: formData.serviceType,
+                issueDescription: formData.issueDescription,
+                preferredDate: formData.preferredDate,
+                preferredTime: formData.preferredTime,
+                createdAt: new Date().toISOString(),
+                status: 'received'
+              }
+            })
+          });
+          
+          const result = await response.json();
+          if (result.success) {
+            console.log('✅ Booking automatically synced via server');
+          } else {
+            console.log('⚠️ Server sync failed, saved locally:', result.message);
+          }
         } catch (error) {
-          console.error('❌ Auto-sync failed, booking saved locally only:', error);
+          console.log('⚠️ Server sync failed, booking saved locally:', error);
         }
       };
-      tryAutoSync();
+      tryServerSync();
       
       const successData = {
         trackingId,

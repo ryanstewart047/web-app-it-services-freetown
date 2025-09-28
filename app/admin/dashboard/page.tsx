@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { isAdminLoggedIn, getAdminSession, adminLogout } from '@/lib/admin-auth';
 import { getAllBookings, updateBookingStatus, type BookingData } from '@/lib/unified-booking-storage';
 import CloudSyncSetup from '@/components/CloudSyncSetup';
-import { autoSyncDown, autoSyncUp } from '@/lib/cloud-sync';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -27,19 +26,41 @@ export default function AdminDashboard() {
       loadBookings();
       try {
         setSyncMessage('Checking for new bookings...');
-        console.log('🔍 Checking cloud for new bookings...');
-        const result = await autoSyncDown();
-        if (result.success && result.newBookings.length > 0) {
-          console.log('✅ Found', result.newBookings.length, 'new bookings from cloud');
-          setSyncMessage(`Auto-synced ${result.newBookings.length} new bookings from cloud`);
-          loadBookings(); // Refresh the bookings list
-          setTimeout(() => setSyncMessage(null), 5000);
+        console.log('🔍 Checking server for new bookings...');
+        
+        const response = await fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get_bookings' })
+        });
+        
+        const result = await response.json();
+        if (result.success && result.bookings.length > 0) {
+          // Merge with local bookings
+          const localBookings = getAllBookings();
+          const localIds = new Set(localBookings.map(b => b.trackingId));
+          const newBookings = result.bookings.filter((b: any) => !localIds.has(b.trackingId));
+          
+          if (newBookings.length > 0) {
+            // Save new bookings locally
+            newBookings.forEach((booking: any) => {
+              localStorage.setItem('its_bookings', JSON.stringify([...localBookings, ...newBookings]));
+            });
+            
+            console.log('✅ Found', newBookings.length, 'new bookings from server');
+            setSyncMessage(`Auto-synced ${newBookings.length} new bookings from server`);
+            loadBookings(); // Refresh the bookings list
+            setTimeout(() => setSyncMessage(null), 5000);
+          } else {
+            console.log('ℹ️ No new bookings found on server');
+            setSyncMessage(null);
+          }
         } else {
-          console.log('ℹ️ No new bookings found in cloud');
+          console.log('ℹ️ No bookings found on server');
           setSyncMessage(null);
         }
       } catch (error) {
-        console.error('❌ Auto-sync on load failed:', error);
+        console.error('❌ Server sync on load failed:', error);
         setSyncMessage(null);
       }
     };
@@ -89,13 +110,28 @@ export default function AdminDashboard() {
       loadBookings(); // Refresh the list
       closeEditModal();
       
-      // Auto-sync the updated booking to cloud
+      // Auto-sync the updated booking to server
       try {
-        const allBookings = getAllBookings();
-        await autoSyncUp(allBookings);
-        console.log('Booking update automatically synced to cloud');
+        const response = await fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'sync_booking',
+            booking: {
+              ...updatedBooking,
+              createdAt: updatedBooking.createdAt || new Date().toISOString()
+            }
+          })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          console.log('✅ Booking update automatically synced via server');
+        } else {
+          console.log('⚠️ Server sync failed:', result.message);
+        }
       } catch (error) {
-        console.log('Auto-sync after update failed:', error);
+        console.log('⚠️ Server sync after update failed:', error);
       }
     } else {
       alert('Failed to update booking. Please try again.');
