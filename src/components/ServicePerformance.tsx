@@ -276,7 +276,7 @@ export default function ServicePerformance({ analytics, bookings }: ServicePerfo
             <p>• Fast average completion time of {formatTime(analytics.averageCompletionTime)}</p>
           )}
           {analytics.popularServices[0] && (
-            <p>• "{analytics.popularServices[0].service}" is your most requested service</p>
+            <p>• &ldquo;{analytics.popularServices[0].service}&rdquo; is your most requested service</p>
           )}
           <p>• Busiest time is {performanceMetrics.busyHour}:00 on {performanceMetrics.busiestDay}s</p>
           {performanceMetrics.bottlenecks.length > 0 && (

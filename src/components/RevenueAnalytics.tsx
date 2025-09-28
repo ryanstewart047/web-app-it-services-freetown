@@ -211,10 +211,10 @@ export default function RevenueAnalytics({ analytics, bookings }: RevenueAnalyti
             <p>• Average order value is {formatCurrency(analytics.averageOrderValue)}</p>
           )}
           {analytics.popularServices[0] && (
-            <p>• "{analytics.popularServices[0].service}" is your top revenue service</p>
+            <p>• &ldquo;{analytics.popularServices[0].service}&rdquo; is your top revenue service</p>
           )}
           {analytics.dailyRevenue > analytics.monthlyRevenue / 30 && (
-            <p>• Today's revenue is above the monthly average</p>
+            <p>• Today&rsquo;s revenue is above the monthly average</p>
           )}
         </div>
       </div>
