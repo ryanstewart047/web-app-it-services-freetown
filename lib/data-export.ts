@@ -4,7 +4,7 @@ import { BookingData } from './unified-booking-storage';
 import { DashboardAnalytics } from './dashboard-analytics';
 
 export interface ExportOptions {
-  format: 'csv' | 'json' | 'xlsx';
+  format: 'csv' | 'json' | 'excel-csv';
   dateRange?: {
     start: Date;
     end: Date;
@@ -28,11 +28,10 @@ export function exportBookings(bookings: BookingData[], options: ExportOptions):
   switch (options.format) {
     case 'csv':
       return exportToCSV(filteredBookings, options);
+    case 'excel-csv':
+      return exportToExcelCSV(filteredBookings, options);
     case 'json':
       return exportToJSON(filteredBookings, options);
-    case 'xlsx':
-      // For XLSX, we'll return a formatted object that can be used with a library like SheetJS
-      return exportToXLSX(filteredBookings, options);
     default:
       throw new Error(`Unsupported export format: ${options.format}`);
   }
@@ -120,6 +119,84 @@ function exportToCSV(bookings: BookingData[], options: ExportOptions): string {
   return [header, ...rows].join('\n');
 }
 
+// Excel-compatible CSV export with BOM for proper UTF-8 handling
+function exportToExcelCSV(bookings: BookingData[], options: ExportOptions): string {
+  if (bookings.length === 0) {
+    return 'No data to export';
+  }
+
+  // Define all possible fields with Excel-friendly headers
+  const fieldMapping = {
+    trackingId: 'Tracking ID',
+    customerName: 'Customer Name',
+    email: 'Email Address',
+    phone: 'Phone Number',
+    address: 'Address',
+    deviceType: 'Device Type',
+    deviceModel: 'Device Model',
+    serviceType: 'Service Type',
+    issueDescription: 'Issue Description',
+    preferredDate: 'Preferred Date',
+    preferredTime: 'Preferred Time',
+    status: 'Status',
+    createdAt: 'Date Created',
+    updatedAt: 'Last Updated',
+    cost: 'Cost (SLL)',
+    estimatedCompletion: 'Estimated Completion',
+    notes: 'Notes'
+  };
+
+  // Use selected fields or all fields
+  const fields = options.includeFields.length > 0 ? options.includeFields : Object.keys(fieldMapping);
+
+  // Create Excel-friendly header
+  const header = fields.map(field => fieldMapping[field as keyof typeof fieldMapping] || field).join(',');
+
+  // Create CSV rows with proper Excel formatting
+  const rows = bookings.map(booking => {
+    return fields.map(field => {
+      let value = booking[field as keyof BookingData] || '';
+      
+      // Format dates for Excel
+      if ((field === 'createdAt' || field === 'updatedAt' || field === 'estimatedCompletion') && value) {
+        const date = new Date(value as string);
+        value = date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        }) + ' ' + date.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        });
+      }
+      
+      // Format currency
+      if (field === 'cost' && typeof value === 'number') {
+        value = value.toFixed(2);
+      }
+      
+      // Format status to be more readable
+      if (field === 'status' && typeof value === 'string') {
+        value = value.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
+      }
+      
+      // Escape commas, quotes, and newlines for Excel
+      if (typeof value === 'string') {
+        if (value.includes(',') || value.includes('"') || value.includes('\n') || value.includes('\r')) {
+          value = `"${value.replace(/"/g, '""').replace(/\n/g, ' ').replace(/\r/g, ' ')}"`;
+        }
+      }
+      
+      return value;
+    }).join(',');
+  });
+
+  // Add BOM for proper UTF-8 encoding in Excel
+  const BOM = '\uFEFF';
+  return BOM + [header, ...rows].join('\r\n'); // Use Windows line endings for Excel
+}
+
 // JSON Export Functions
 function exportToJSON(bookings: BookingData[], options: ExportOptions): string {
   const exportData = {
@@ -138,38 +215,6 @@ function exportToJSON(bookings: BookingData[], options: ExportOptions): string {
   };
 
   return JSON.stringify(exportData, null, 2);
-}
-
-// XLSX Export (returns structured data for use with SheetJS or similar)
-function exportToXLSX(bookings: BookingData[], options: ExportOptions): any {
-  const worksheetData = bookings.map(booking => {
-    const row: any = {};
-    
-    const fields = options.includeFields.length > 0 ? options.includeFields : Object.keys(booking);
-    
-    fields.forEach(field => {
-      let value = booking[field as keyof BookingData];
-      
-      // Format dates for Excel
-      if ((field === 'createdAt' || field === 'updatedAt' || field === 'estimatedCompletion') && value) {
-        row[field] = new Date(value as string);
-      } else {
-        row[field] = value || '';
-      }
-    });
-    
-    return row;
-  });
-
-  return {
-    SheetName: 'Bookings Export',
-    Data: worksheetData,
-    ExportInfo: {
-      date: new Date(),
-      totalRecords: bookings.length,
-      dateRange: options.dateRange
-    }
-  };
 }
 
 // Helper Functions
@@ -274,14 +319,28 @@ export function downloadFile(content: string | Blob, filename: string, contentTy
 // Generate filename with timestamp
 export function generateFilename(prefix: string, format: string): string {
   const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
-  return `${prefix}_${timestamp}.${format}`;
+  const extension = format === 'excel-csv' ? 'csv' : format;
+  return `${prefix}_${timestamp}.${extension}`;
+}
+
+// Get content type for download
+export function getContentType(format: string): string {
+  switch (format) {
+    case 'csv':
+    case 'excel-csv':
+      return 'text/csv;charset=utf-8';
+    case 'json':
+      return 'application/json;charset=utf-8';
+    default:
+      return 'text/plain;charset=utf-8';
+  }
 }
 
 // Preset export configurations
 export const exportPresets = {
-  // Complete booking export
+  // Complete booking export (Excel-friendly)
   complete: {
-    format: 'csv' as const,
+    format: 'excel-csv' as const,
     includeFields: [
       'trackingId', 'customerName', 'email', 'phone', 'deviceType', 
       'deviceModel', 'serviceType', 'status', 'createdAt', 'cost'
@@ -289,9 +348,9 @@ export const exportPresets = {
     groupBy: 'none' as const
   },
   
-  // Financial report
+  // Financial report (Excel-friendly)
   financial: {
-    format: 'csv' as const,
+    format: 'excel-csv' as const,
     includeFields: [
       'trackingId', 'customerName', 'serviceType', 'status', 
       'createdAt', 'cost', 'estimatedCompletion'
@@ -299,9 +358,9 @@ export const exportPresets = {
     groupBy: 'month' as const
   },
   
-  // Customer report
+  // Customer report (Excel-friendly)
   customer: {
-    format: 'csv' as const,
+    format: 'excel-csv' as const,
     includeFields: [
       'customerName', 'email', 'phone', 'address', 'deviceType', 
       'serviceType', 'createdAt', 'status'
@@ -309,9 +368,9 @@ export const exportPresets = {
     groupBy: 'none' as const
   },
   
-  // Service performance report
+  // Service performance report (Excel-friendly)
   service: {
-    format: 'csv' as const,
+    format: 'excel-csv' as const,
     includeFields: [
       'serviceType', 'deviceType', 'status', 'createdAt', 
       'estimatedCompletion', 'cost'

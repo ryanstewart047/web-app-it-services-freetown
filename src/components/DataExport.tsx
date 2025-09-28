@@ -8,6 +8,7 @@ import {
   exportAnalytics, 
   downloadFile, 
   generateFilename, 
+  getContentType,
   exportPresets,
   ExportOptions
 } from '@/lib/data-export';
@@ -19,7 +20,7 @@ interface DataExportProps {
 
 export default function DataExport({ bookings, analytics }: DataExportProps) {
   const [isExporting, setIsExporting] = useState(false);
-  const [selectedFormat, setSelectedFormat] = useState<'csv' | 'json' | 'xlsx'>('csv');
+  const [selectedFormat, setSelectedFormat] = useState<'csv' | 'json' | 'excel-csv'>('excel-csv');
   const [selectedPreset, setSelectedPreset] = useState<string>('complete');
   const [customDateRange, setCustomDateRange] = useState({
     start: '',
@@ -36,9 +37,10 @@ export default function DataExport({ bookings, analytics }: DataExportProps) {
       let contentType: string;
 
       if (type === 'analytics') {
-        content = exportAnalytics(analytics, selectedFormat === 'xlsx' ? 'json' : selectedFormat);
-        filename = generateFilename('analytics', selectedFormat === 'xlsx' ? 'json' : selectedFormat);
-        contentType = selectedFormat === 'json' ? 'application/json' : 'text/csv';
+        const analyticsFormat = selectedFormat === 'excel-csv' ? 'csv' : selectedFormat;
+        content = exportAnalytics(analytics, analyticsFormat);
+        filename = generateFilename('analytics', selectedFormat);
+        contentType = getContentType(selectedFormat);
       } else {
         const options: ExportOptions = preset ? 
           { ...exportPresets[preset as keyof typeof exportPresets], format: selectedFormat } :
@@ -110,10 +112,13 @@ export default function DataExport({ bookings, analytics }: DataExportProps) {
 
   const getContentType = (format: string): string => {
     switch (format) {
-      case 'csv': return 'text/csv';
-      case 'json': return 'application/json';
-      case 'xlsx': return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-      default: return 'text/plain';
+      case 'csv':
+      case 'excel-csv':
+        return 'text/csv;charset=utf-8';
+      case 'json':
+        return 'application/json;charset=utf-8';
+      default:
+        return 'text/plain;charset=utf-8';
     }
   };
 
@@ -198,7 +203,7 @@ export default function DataExport({ bookings, analytics }: DataExportProps) {
       <div className="mb-6">
         <h4 className="text-md font-semibold text-gray-900 mb-3">Export Format</h4>
         <div className="flex space-x-4">
-          {(['csv', 'json', 'xlsx'] as const).map((format) => (
+          {(['csv', 'json', 'excel-csv'] as const).map((format) => (
             <button
               key={format}
               onClick={() => setSelectedFormat(format)}
@@ -208,14 +213,14 @@ export default function DataExport({ bookings, analytics }: DataExportProps) {
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              {format.toUpperCase()}
+              {format === 'excel-csv' ? 'EXCEL CSV' : format.toUpperCase()}
             </button>
           ))}
         </div>
         <p className="text-xs text-gray-500 mt-2">
-          {selectedFormat === 'csv' && 'Spreadsheet compatible format, good for Excel'}
+          {selectedFormat === 'csv' && 'Standard CSV format for general use'}
           {selectedFormat === 'json' && 'Structured data format, good for developers'}
-          {selectedFormat === 'xlsx' && 'Excel format (experimental)'}
+          {selectedFormat === 'excel-csv' && 'Excel-optimized CSV with proper encoding and formatting'}
         </p>
       </div>
 
@@ -288,11 +293,12 @@ export default function DataExport({ bookings, analytics }: DataExportProps) {
           Export Tips
         </h5>
         <ul className="text-sm text-blue-800 space-y-1">
-          <li>• CSV files can be opened in Excel or Google Sheets</li>
+          <li>• Excel CSV files open directly in Excel with proper formatting</li>
+          <li>• Standard CSV files work with most spreadsheet applications</li>
           <li>• JSON files are perfect for developers and data analysis</li>
           <li>• Use date ranges to export specific time periods</li>
           <li>• Analytics exports include all calculated metrics</li>
-          <li>• All exports include data privacy compliance</li>
+          <li>• All exports include proper UTF-8 encoding</li>
         </ul>
       </div>
     </div>
