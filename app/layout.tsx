@@ -10,6 +10,7 @@ import StaticChatFloat from '@/components/StaticChatFloat'
 import FloatingScrollToTop from '@/components/FloatingScrollToTop'
 import ServiceWorkerRegistration from '../src/components/ServiceWorkerRegistration'
 import PWAInstallBanner from '../src/components/PWAInstallBanner'
+import NetworkMonitor from '../src/components/NetworkMonitor'
 import Script from 'next/script'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -70,6 +71,7 @@ export default function RootLayout({
         <StaticChatFloat />
         <FloatingScrollToTop />
         <PWAInstallBanner />
+        <NetworkMonitor />
         <ServiceWorkerRegistration />
         <Toaster position="top-right" />
       </body>
