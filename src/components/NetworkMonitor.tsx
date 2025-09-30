@@ -14,10 +14,16 @@ export default function NetworkMonitor() {
   })
   const [showPopup, setShowPopup] = useState(false)
   const [popupType, setPopupType] = useState<'offline' | 'online'>('offline')
+  const [isClient, setIsClient] = useState(false)
+
+  // Handle client-side rendering
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   useEffect(() => {
     // Check if we're in browser environment
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined' || !isClient) return
 
     // Check initial online status
     const initialStatus = navigator.onLine
@@ -68,7 +74,7 @@ export default function NetworkMonitor() {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
     }
-  }, [])
+  }, [isClient])
 
   // Debug functions for testing
   const forceOffline = () => {
@@ -88,16 +94,17 @@ export default function NetworkMonitor() {
 
   // Add to window for testing
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && isClient) {
       (window as any).networkTest = { forceOffline, forceOnline }
     }
-  }, [])
+  }, [isClient])
 
   const handleClosePopup = () => {
     setShowPopup(false)
   }
 
-  if (!showPopup) return null
+  // Don't render on server or before client hydration
+  if (!isClient || !showPopup) return null
 
   return (
     <div

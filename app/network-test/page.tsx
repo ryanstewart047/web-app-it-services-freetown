@@ -78,7 +78,7 @@ export default function NetworkTestPage() {
             <div className="space-y-3 text-gray-700">
               <div className="flex items-start space-x-3">
                 <span className="bg-red-100 text-red-600 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">1</span>
-                <p><strong>Manual Testing:</strong> Use the "Simulate Offline" button to trigger the offline popup</p>
+                <p><strong>Manual Testing:</strong> Use the &ldquo;Simulate Offline&rdquo; button to trigger the offline popup</p>
               </div>
               <div className="flex items-start space-x-3">
                 <span className="bg-green-100 text-green-600 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">2</span>
@@ -86,7 +86,7 @@ export default function NetworkTestPage() {
               </div>
               <div className="flex items-start space-x-3">
                 <span className="bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">3</span>
-                <p><strong>Reconnection:</strong> Reconnect to internet to see the "Back online!" popup</p>
+                <p><strong>Reconnection:</strong> Reconnect to internet to see the &ldquo;Back online!&rdquo; popup</p>
               </div>
             </div>
           </div>
