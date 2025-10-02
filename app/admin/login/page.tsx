@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { adminLogin } from '@/lib/admin-auth';
 
 export default function AdminLogin() {
@@ -116,16 +115,6 @@ export default function AdminLogin() {
             )}
           </button>
         </form>
-
-        <div className="mt-4 text-center">
-          <Link
-            href="/admin/forgot-password"
-            className="text-red-600 hover:text-red-700 text-sm font-medium transition-colors"
-          >
-            <i className="fas fa-key mr-1"></i>
-            Forgot Password?
-          </Link>
-        </div>
 
         <div className="mt-6 pt-6 border-t border-gray-200 text-center">
           <p className="text-xs text-gray-500">

@@ -437,95 +437,10 @@ h1, h2, h3, h4, h5, h6, p, span, div, li, a {
 
 /* PWA Install Banner */
 .pwa-install-banner {
-  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #dc2626 100%);
+  background: linear-gradient(135deg, #040e40 0%, #1e3a8a 100%);
   color: white;
   padding: 1rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
-  border-bottom: 4px solid rgba(255, 255, 255, 0.2);
-  animation: slideDown 0.5s ease-out;
-}
-
-.pwa-install-banner .pwa-banner-icon {
-  transition: all 0.3s ease;
-}
-
-.pwa-install-banner .pwa-banner-icon:hover {
-  transform: scale(1.1) rotate(5deg);
-}
-
-.pwa-install-btn {
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.pwa-install-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
-}
-
-.pwa-close-btn {
-  transition: all 0.3s ease;
-}
-
-.pwa-close-btn:hover {
-  transform: scale(1.1);
-  background: rgba(255, 255, 255, 0.1);
-}
-
-@keyframes slideDown {
-  from {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-/* Network Status Popup */
-.network-status-popup {
-  animation: networkSlideIn 0.5s ease-out;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-}
-
-.network-status-icon {
-  transition: all 0.3s ease;
-}
-
-.network-status-icon:hover {
-  transform: scale(1.1) rotate(5deg);
-}
-
-.network-status-close {
-  transition: all 0.3s ease;
-}
-
-.network-status-close:hover {
-  transform: scale(1.1);
-}
-
-@keyframes networkSlideIn {
-  from {
-    transform: translate(-50%, -100%);
-    opacity: 0;
-    scale: 0.9;
-  }
-  to {
-    transform: translate(-50%, 0);
-    opacity: 1;
-    scale: 1;
-  }
-}
-
-@keyframes networkPulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 /* Loading animations */
