@@ -129,8 +129,17 @@ export default function BookAppointment() {
         preferredTime: formData.preferredTime
       });
       
-      // Auto-sync to cloud via server API - works for all customers
+      // Auto-sync to cloud via server API - works for all customers (if server available)
       const tryServerSync = async () => {
+        // Check if we're on GitHub Pages (no server API available)
+        const isGitHubPages = window.location.hostname.includes('github.io') || 
+                             window.location.hostname === 'itservicesfreetown.com';
+        
+        if (isGitHubPages) {
+          console.log('ℹ️ GitHub Pages detected - server sync not available');
+          return;
+        }
+        
         try {
           const response = await fetch('/api/sync', {
             method: 'POST',
@@ -157,6 +166,10 @@ export default function BookAppointment() {
             })
           });
           
+          if (!response.ok) {
+            throw new Error(`Server responded with ${response.status}`);
+          }
+          
           const result = await response.json();
           if (result.success) {
             console.log('✅ Booking automatically synced via server');
@@ -164,7 +177,7 @@ export default function BookAppointment() {
             console.log('⚠️ Server sync failed, saved locally:', result.message);
           }
         } catch (error) {
-          console.log('⚠️ Server sync failed, booking saved locally:', error);
+          console.log('ℹ️ Server sync not available (GitHub Pages mode), booking saved locally');
         }
       };
       tryServerSync();
