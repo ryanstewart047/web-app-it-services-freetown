@@ -17,24 +17,36 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setMounted(true);
     // Load theme from localStorage
-    const savedTheme = localStorage.getItem('its_admin_theme') as Theme;
-    if (savedTheme) {
-      setTheme(savedTheme);
-    } else {
-      // Check system preference
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      setTheme(systemTheme);
+    try {
+      const savedTheme = localStorage.getItem('its_admin_theme') as Theme;
+      if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+        setTheme(savedTheme);
+      } else {
+        // Check system preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          setTheme('dark');
+        } else {
+          setTheme('light');
+        }
+      }
+    } catch (error) {
+      console.log('Theme loading error:', error);
+      setTheme('light');
     }
   }, []);
 
   useEffect(() => {
     if (mounted) {
-      // Apply theme to document
-      document.documentElement.classList.remove('light', 'dark');
-      document.documentElement.classList.add(theme);
-      
-      // Save to localStorage
-      localStorage.setItem('its_admin_theme', theme);
+      try {
+        // Apply theme to document
+        document.documentElement.classList.remove('light', 'dark');
+        document.documentElement.classList.add(theme);
+        
+        // Save to localStorage
+        localStorage.setItem('its_admin_theme', theme);
+      } catch (error) {
+        console.log('Theme saving error:', error);
+      }
     }
   }, [theme, mounted]);
 
@@ -42,9 +54,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
-  // Prevent hydration mismatch
+  // Prevent hydration mismatch by showing a basic layout during SSR
   if (!mounted) {
-    return <div className="min-h-screen bg-gray-50">{children}</div>;
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {children}
+      </div>
+    );
   }
 
   return (
