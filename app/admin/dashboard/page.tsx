@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { isAdminLoggedIn, getAdminSession, adminLogout } from '@/lib/admin-auth';
 import { getAllBookings, updateBookingStatus, type BookingData } from '@/lib/unified-booking-storage';
 import CloudSyncSetup from '@/components/CloudSyncSetup';
+import { ThemeProvider, ThemeToggle } from '@/components/ThemeProvider';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -199,24 +200,26 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <i className="fas fa-shield-alt text-red-600 text-xl"></i>
-                <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+    <ThemeProvider>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+        {/* Header */}
+        <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <i className="fas fa-shield-alt text-red-600 text-xl"></i>
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
+                </div>
+                <span className="text-gray-500 dark:text-gray-400">|</span>
+                <p className="text-gray-600 dark:text-gray-300">IT Services Freetown</p>
               </div>
-              <span className="text-gray-500">|</span>
-              <p className="text-gray-600">IT Services Freetown</p>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              {adminSession && (
-                <div className="text-sm text-gray-600">
-                  <i className="fas fa-user mr-1"></i>
+              
+              <div className="flex items-center space-x-4">
+                <ThemeToggle />
+                {adminSession && (
+                  <div className="text-sm text-gray-600 dark:text-gray-300">
+                    <i className="fas fa-user mr-1"></i>
                   Welcome, {adminSession.username}
                 </div>
               )}
@@ -236,54 +239,54 @@ export default function AdminDashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <i className="fas fa-clipboard-list text-blue-600 text-2xl"></i>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Bookings</p>
-                <p className="text-2xl font-semibold text-gray-900">{bookings.length}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Bookings</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">{bookings.length}</p>
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <i className="fas fa-tools text-orange-600 text-2xl"></i>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">In Progress</p>
-                <p className="text-2xl font-semibold text-gray-900">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">In Progress</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                   {bookings.filter(b => b.status === 'in-progress').length}
                 </p>
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <i className="fas fa-check text-green-600 text-2xl"></i>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-2xl font-semibold text-gray-900">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Completed</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                   {bookings.filter(b => b.status === 'completed' || b.status === 'ready-for-pickup').length}
                 </p>
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <i className="fas fa-clock text-yellow-600 text-2xl"></i>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Pending</p>
-                <p className="text-2xl font-semibold text-gray-900">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Pending</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                   {bookings.filter(b => b.status === 'received' || b.status === 'diagnosed').length}
                 </p>
               </div>
@@ -296,7 +299,7 @@ export default function AdminDashboard() {
 
         {/* Sync Message */}
         {syncMessage && (
-          <div className="bg-blue-100 border border-blue-300 text-blue-800 px-4 py-3 rounded-lg">
+          <div className="bg-blue-100 dark:bg-blue-900 border border-blue-300 dark:border-blue-700 text-blue-800 dark:text-blue-200 px-4 py-3 rounded-lg">
             <div className="flex items-center">
               <i className="fas fa-info-circle mr-2"></i>
               {syncMessage}
@@ -305,14 +308,14 @@ export default function AdminDashboard() {
         )}
 
         {/* Bookings Table */}
-        <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">All Bookings</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">All Bookings</h2>
               <div className="flex space-x-3">
                 <button
                   onClick={loadBookings}
-                  className="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm transition-colors flex items-center"
+                  className="px-3 py-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-200 rounded-lg text-sm transition-colors flex items-center"
                 >
                   <i className="fas fa-refresh mr-2"></i>
                   Refresh
@@ -324,47 +327,47 @@ export default function AdminDashboard() {
           {bookings.length === 0 ? (
             <div className="px-6 py-12 text-center">
               <i className="fas fa-inbox text-gray-400 text-4xl mb-4"></i>
-              <p className="text-gray-600 text-lg mb-2">No bookings yet</p>
-              <p className="text-gray-500">Bookings will appear here when customers make appointments</p>
+              <p className="text-gray-600 dark:text-gray-300 text-lg mb-2">No bookings yet</p>
+              <p className="text-gray-500 dark:text-gray-400">Bookings will appear here when customers make appointments</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       Tracking ID
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       Customer
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       Device
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       Service
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Date
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {bookings.map((booking) => (
-                    <tr key={booking.trackingId} className="hover:bg-gray-50">
+                    <tr key={booking.trackingId} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-mono text-gray-900">{booking.trackingId}</div>
+                        <div className="text-sm font-mono text-gray-900 dark:text-white">{booking.trackingId}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{booking.customerName}</div>
-                          <div className="text-sm text-gray-500">{booking.email}</div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">{booking.customerName}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">{booking.email}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -406,7 +409,8 @@ export default function AdminDashboard() {
           onUpdate={handleUpdateBooking}
         />
       )}
-    </div>
+      </div>
+    </ThemeProvider>
   );
 }
 
