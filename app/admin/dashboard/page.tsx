@@ -4,25 +4,16 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAdminLoggedIn, getAdminSession, adminLogout } from '@/lib/admin-auth';
 import { getAllBookings, updateBookingStatus, type BookingData } from '@/lib/unified-booking-storage';
-import { generateDashboardAnalytics, getQuickStats, type DashboardAnalytics } from '@/lib/dashboard-analytics';
 import CloudSyncSetup from '@/components/CloudSyncSetup';
-import RevenueAnalytics from '../../../src/components/RevenueAnalytics';
-import CustomerAnalytics from '../../../src/components/CustomerAnalytics';
-import ServicePerformance from '../../../src/components/ServicePerformance';
-import ActivityFeed from '../../../src/components/ActivityFeed';
-import DataExport from '../../../src/components/DataExport';
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [bookings, setBookings] = useState<BookingData[]>([]);
-  const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
-  const [quickStats, setQuickStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState<BookingData | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'revenue' | 'customers' | 'services' | 'activity' | 'export'>('overview');
 
   // Check authentication on mount and auto-sync
   useEffect(() => {
@@ -33,6 +24,17 @@ export default function AdminDashboard() {
     
     const loadAndSync = async () => {
       loadBookings();
+      
+      // Only try server sync if we're not on GitHub Pages
+      const isGitHubPages = window.location.hostname.includes('github.io') || 
+                           !window.location.pathname.startsWith('/api/');
+      
+      if (isGitHubPages) {
+        console.log('ℹ️ GitHub Pages detected - server sync not available');
+        setSyncMessage(null);
+        return;
+      }
+      
       try {
         setSyncMessage('Checking for new bookings...');
         console.log('🔍 Checking server for new bookings...');
@@ -43,6 +45,10 @@ export default function AdminDashboard() {
           body: JSON.stringify({ action: 'get_bookings' })
         });
         
+        if (!response.ok) {
+          throw new Error(`Server responded with ${response.status}`);
+        }
+        
         const result = await response.json();
         if (result.success && result.bookings.length > 0) {
           // Merge with local bookings
@@ -51,10 +57,9 @@ export default function AdminDashboard() {
           const newBookings = result.bookings.filter((b: any) => !localIds.has(b.trackingId));
           
           if (newBookings.length > 0) {
-            // Save new bookings locally
-            newBookings.forEach((booking: any) => {
-              localStorage.setItem('its_bookings', JSON.stringify([...localBookings, ...newBookings]));
-            });
+            // Save new bookings locally - fix the forEach logic
+            const mergedBookings = [...localBookings, ...newBookings];
+            localStorage.setItem('its_bookings', JSON.stringify(mergedBookings));
             
             console.log('✅ Found', newBookings.length, 'new bookings from server');
             setSyncMessage(`Auto-synced ${newBookings.length} new bookings from server`);
@@ -69,7 +74,7 @@ export default function AdminDashboard() {
           setSyncMessage(null);
         }
       } catch (error) {
-        console.error('❌ Server sync on load failed:', error);
+        console.log('ℹ️ Server sync not available (GitHub Pages mode):', error);
         setSyncMessage(null);
       }
     };
@@ -84,14 +89,6 @@ export default function AdminDashboard() {
       // Sort by creation date (newest first)
       allBookings.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setBookings(allBookings);
-      
-      // Generate analytics
-      const analyticsData = generateDashboardAnalytics(allBookings);
-      setAnalytics(analyticsData);
-      
-      // Generate quick stats
-      const quickStatsData = getQuickStats(allBookings);
-      setQuickStats(quickStatsData);
     } catch (error) {
       console.error('Error loading bookings:', error);
     } finally {
@@ -127,28 +124,39 @@ export default function AdminDashboard() {
       loadBookings(); // Refresh the list
       closeEditModal();
       
-      // Auto-sync the updated booking to server
-      try {
-        const response = await fetch('/api/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'sync_booking',
-            booking: {
-              ...updatedBooking,
-              createdAt: updatedBooking.createdAt || new Date().toISOString()
+      // Auto-sync the updated booking to server (if available)
+      const isGitHubPages = window.location.hostname.includes('github.io') || 
+                           !window.location.pathname.startsWith('/api/');
+      
+      if (!isGitHubPages) {
+        try {
+          const response = await fetch('/api/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'sync_booking',
+              booking: {
+                ...updatedBooking,
+                createdAt: updatedBooking.createdAt || new Date().toISOString()
+              }
+            })
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+              console.log('✅ Booking update automatically synced via server');
+            } else {
+              console.log('⚠️ Server sync failed:', result.message);
             }
-          })
-        });
-        
-        const result = await response.json();
-        if (result.success) {
-          console.log('✅ Booking update automatically synced via server');
-        } else {
-          console.log('⚠️ Server sync failed:', result.message);
+          } else {
+            console.log('⚠️ Server sync failed: HTTP', response.status);
+          }
+        } catch (error) {
+          console.log('ℹ️ Server sync not available (GitHub Pages mode):', error);
         }
-      } catch (error) {
-        console.log('⚠️ Server sync after update failed:', error);
+      } else {
+        console.log('ℹ️ GitHub Pages mode - server sync not available');
       }
     } else {
       alert('Failed to update booking. Please try again.');
@@ -226,97 +234,69 @@ export default function AdminDashboard() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Enhanced Stats Cards with Quick Stats */}
-        {quickStats && (
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
-            <div className="bg-white rounded-lg p-4 shadow-sm border">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <i className="fas fa-clipboard-list text-blue-600 text-xl"></i>
-                </div>
-                <div className="ml-3">
-                  <p className="text-xs font-medium text-gray-600">Total</p>
-                  <p className="text-lg font-semibold text-gray-900">{bookings.length}</p>
-                </div>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-lg p-6 shadow-sm border">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <i className="fas fa-clipboard-list text-blue-600 text-2xl"></i>
               </div>
-            </div>
-            
-            <div className="bg-white rounded-lg p-4 shadow-sm border">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <i className="fas fa-calendar-day text-green-600 text-xl"></i>
-                </div>
-                <div className="ml-3">
-                  <p className="text-xs font-medium text-gray-600">Today</p>
-                  <p className="text-lg font-semibold text-gray-900">{quickStats.todayBookings}</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-lg p-4 shadow-sm border">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <i className="fas fa-tools text-orange-600 text-xl"></i>
-                </div>
-                <div className="ml-3">
-                  <p className="text-xs font-medium text-gray-600">In Progress</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {bookings.filter(b => b.status === 'in-progress').length}
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-lg p-4 shadow-sm border">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <i className="fas fa-exclamation-triangle text-red-600 text-xl"></i>
-                </div>
-                <div className="ml-3">
-                  <p className="text-xs font-medium text-gray-600">Urgent</p>
-                  <p className="text-lg font-semibold text-gray-900">{quickStats.urgentBookings}</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-lg p-4 shadow-sm border">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <i className="fas fa-dollar-sign text-green-600 text-xl"></i>
-                </div>
-                <div className="ml-3">
-                  <p className="text-xs font-medium text-gray-600">Today Revenue</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {new Intl.NumberFormat('en-SL', {
-                      style: 'currency',
-                      currency: 'SLL',
-                      minimumFractionDigits: 0
-                    }).format(quickStats.todayRevenue)}
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-lg p-4 shadow-sm border">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <i className="fas fa-chart-line text-purple-600 text-xl"></i>
-                </div>
-                <div className="ml-3">
-                  <p className="text-xs font-medium text-gray-600">This Month</p>
-                  <p className="text-lg font-semibold text-gray-900">{quickStats.monthlyBookings}</p>
-                </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Bookings</p>
+                <p className="text-2xl font-semibold text-gray-900">{bookings.length}</p>
               </div>
             </div>
           </div>
-        )}
+          
+          <div className="bg-white rounded-lg p-6 shadow-sm border">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <i className="fas fa-tools text-orange-600 text-2xl"></i>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">In Progress</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {bookings.filter(b => b.status === 'in-progress').length}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-lg p-6 shadow-sm border">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <i className="fas fa-check text-green-600 text-2xl"></i>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Completed</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {bookings.filter(b => b.status === 'completed' || b.status === 'ready-for-pickup').length}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-lg p-6 shadow-sm border">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <i className="fas fa-clock text-yellow-600 text-2xl"></i>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Pending</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {bookings.filter(b => b.status === 'received' || b.status === 'diagnosed').length}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Cloud Sync Setup */}
         <CloudSyncSetup onSyncComplete={loadBookings} />
 
         {/* Sync Message */}
         {syncMessage && (
-          <div className="bg-blue-100 border border-blue-300 text-blue-800 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-blue-100 border border-blue-300 text-blue-800 px-4 py-3 rounded-lg">
             <div className="flex items-center">
               <i className="fas fa-info-circle mr-2"></i>
               {syncMessage}
@@ -324,115 +304,98 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Tab Navigation */}
-        <div className="bg-white rounded-lg shadow-sm border mb-6">
-          <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 px-6">
-              {[
-                { id: 'overview', label: 'Overview', icon: 'fa-tachometer-alt' },
-                { id: 'revenue', label: 'Revenue', icon: 'fa-chart-line' },
-                { id: 'customers', label: 'Customers', icon: 'fa-users' },
-                { id: 'services', label: 'Services', icon: 'fa-cogs' },
-                { id: 'activity', label: 'Activity', icon: 'fa-stream' },
-                { id: 'export', label: 'Export', icon: 'fa-download' }
-              ].map(tab => (
+        {/* Bookings Table */}
+        <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">All Bookings</h2>
+              <div className="flex space-x-3">
                 <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${
-                    activeTab === tab.id
-                      ? 'border-indigo-500 text-indigo-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                  onClick={loadBookings}
+                  className="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm transition-colors flex items-center"
                 >
-                  <i className={`fas ${tab.icon} mr-2`}></i>
-                  {tab.label}
+                  <i className="fas fa-refresh mr-2"></i>
+                  Refresh
                 </button>
-              ))}
-            </nav>
-          </div>
-        </div>
-
-        {/* Tab Content */}
-        {analytics && (
-          <div>
-            {activeTab === 'overview' && (
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div className="xl:col-span-2 space-y-6">
-                  {/* Bookings Table */}
-                  <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-200">
-                      <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-semibold text-gray-900">Recent Bookings</h2>
-                        <div className="flex space-x-3">
-                          <button
-                            onClick={loadBookings}
-                            className="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm transition-colors flex items-center"
-                          >
-                            <i className="fas fa-refresh mr-2"></i>
-                            Refresh
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="max-h-96 overflow-y-auto">
-                      {bookings.length === 0 ? (
-                        <div className="px-6 py-12 text-center">
-                          <i className="fas fa-inbox text-gray-400 text-4xl mb-4"></i>
-                          <p className="text-gray-600 text-lg mb-2">No bookings yet</p>
-                          <p className="text-gray-500">Bookings will appear here when customers make appointments</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-2 p-4">
-                          {bookings.slice(0, 10).map((booking) => (
-                            <div key={booking.trackingId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                              <div className="flex items-center space-x-4">
-                                <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                                  <i className="fas fa-mobile-alt text-indigo-600"></i>
-                                </div>
-                                <div>
-                                  <p className="font-medium text-gray-900">{booking.customerName}</p>
-                                  <p className="text-sm text-gray-600">{booking.deviceType} - {booking.serviceType}</p>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                {getStatusBadge(booking.status)}
-                                <p className="text-xs text-gray-500 mt-1">{formatDate(booking.createdAt)}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <ActivityFeed bookings={bookings} maxItems={15} />
-                </div>
               </div>
-            )}
-
-            {activeTab === 'revenue' && (
-              <RevenueAnalytics analytics={analytics} bookings={bookings} />
-            )}
-
-            {activeTab === 'customers' && (
-              <CustomerAnalytics analytics={analytics} bookings={bookings} />
-            )}
-
-            {activeTab === 'services' && (
-              <ServicePerformance analytics={analytics} bookings={bookings} />
-            )}
-
-            {activeTab === 'activity' && (
-              <ActivityFeed bookings={bookings} maxItems={50} />
-            )}
-
-            {activeTab === 'export' && (
-              <DataExport bookings={bookings} analytics={analytics} />
-            )}
+            </div>
           </div>
-        )}
+
+          {bookings.length === 0 ? (
+            <div className="px-6 py-12 text-center">
+              <i className="fas fa-inbox text-gray-400 text-4xl mb-4"></i>
+              <p className="text-gray-600 text-lg mb-2">No bookings yet</p>
+              <p className="text-gray-500">Bookings will appear here when customers make appointments</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Tracking ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Customer
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Device
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Service
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {bookings.map((booking) => (
+                    <tr key={booking.trackingId} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-mono text-gray-900">{booking.trackingId}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{booking.customerName}</div>
+                          <div className="text-sm text-gray-500">{booking.email}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{booking.deviceType}</div>
+                        <div className="text-sm text-gray-500">{booking.deviceModel}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{booking.serviceType}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getStatusBadge(booking.status)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatDate(booking.createdAt)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button
+                          onClick={() => openEditModal(booking)}
+                          className="text-red-600 hover:text-red-900 flex items-center"
+                        >
+                          <i className="fas fa-edit mr-1"></i>
+                          Edit
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </main>
 
       {/* Edit Modal */}
