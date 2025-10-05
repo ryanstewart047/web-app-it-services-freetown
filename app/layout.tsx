@@ -10,6 +10,8 @@ import StaticChatFloat from '@/components/StaticChatFloat'
 import FloatingScrollToTop from '@/components/FloatingScrollToTop'
 import ServiceWorkerRegistration from '../src/components/ServiceWorkerRegistration'
 import PWAInstallBanner from '../src/components/PWAInstallBanner'
+import NetworkMonitor from '../src/components/NetworkMonitor'
+import { AnalyticsProvider } from '../src/components/AnalyticsTracker'
 import Script from 'next/script'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -47,27 +49,42 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="IT Services Freetown" />
         
-        {/* Apple Touch Icons */}
-        <link rel="apple-touch-icon" href="/assets/favicon-52x52.png" />
-        <link rel="apple-touch-icon" sizes="152x152" href="/assets/favicon-52x52.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon-52x52.png" />
-        <link rel="apple-touch-icon" sizes="167x167" href="/assets/favicon-52x52.png" />
+        {/* Favicon - Using Site Logo */}
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        
+        {/* Apple Touch Icons - Using Site Logo */}
+        <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.svg" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon.svg" />
+        <link rel="apple-touch-icon" sizes="167x167" href="/apple-touch-icon.svg" />
       </head>
       <body className={`${inter.className} bg-gray-50 min-h-screen`}>
-        <div className="min-h-screen flex flex-col">
-          <Navbar />
-          <main className="flex-1 main-content">
-            {children}
-          </main>
-          <Footer />
-        </div>
-        <CookiePopup />
-        <BannerPopup />
-        <StaticChatFloat />
-        <FloatingScrollToTop />
-        <PWAInstallBanner />
-        <ServiceWorkerRegistration />
-        <Toaster position="top-right" />
+        <AnalyticsProvider config={{
+          enabled: true,
+          trackPageViews: true,
+          trackClicks: true,
+          trackFormInteractions: true,
+          trackErrors: true,
+          trackPerformance: true,
+          sessionTimeout: 30
+        }}>
+          <div className="min-h-screen flex flex-col">
+            <Navbar />
+            <main className="flex-1 main-content">
+              {children}
+            </main>
+            <Footer />
+          </div>
+          <CookiePopup />
+          <BannerPopup />
+          <StaticChatFloat />
+          <FloatingScrollToTop />
+          <PWAInstallBanner />
+          <NetworkMonitor />
+          <ServiceWorkerRegistration />
+          <Toaster position="top-right" />
+        </AnalyticsProvider>
       </body>
     </html>
   )

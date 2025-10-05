@@ -128,6 +128,26 @@ export default function BookAppointment() {
         preferredDate: formData.preferredDate,
         preferredTime: formData.preferredTime
       });
+
+      // Also save to repair tracking system for admin management
+      try {
+        const repairs = JSON.parse(localStorage.getItem('its_repairs') || '[]');
+        repairs.push({
+          trackingId,
+          customerName: formData.customerName,
+          email: formData.email,
+          phone: formData.phone,
+          deviceType: formData.deviceType,
+          issue: `${formData.serviceType}: ${formData.issueDescription}`,
+          status: 'received',
+          dateReceived: new Date().toISOString(),
+          estimatedCompletion: formData.preferredDate,
+          notes: `Device Model: ${formData.deviceModel}, Preferred Time: ${formData.preferredTime}`
+        });
+        localStorage.setItem('its_repairs', JSON.stringify(repairs));
+      } catch (error) {
+        console.error('Error saving to repair system:', error);
+      }
       
       // Auto-sync to cloud via server API - works for all customers (if server available)
       const tryServerSync = async () => {

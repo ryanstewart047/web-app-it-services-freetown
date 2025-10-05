@@ -221,6 +221,21 @@ export default function Hero() {
               </Link>
             </div>
             
+            {/* Admin Quick Access */}
+            <div className="mt-6 flex justify-start">
+              <Link 
+                href="/simple-admin/" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-red-600/90 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 inline-flex items-center space-x-2 shadow-md hover:shadow-lg backdrop-blur-sm border border-red-500/50"
+                title="Access Analytics Dashboard"
+              >
+                <i className="fas fa-chart-line text-sm"></i>
+                <span>Admin Dashboard</span>
+                <i className="fas fa-external-link-alt text-xs opacity-70"></i>
+              </Link>
+            </div>
+            
             {/* Enhanced Quick Stats */}
             <div className="grid grid-cols-3 gap-6 mt-12 pt-8 border-t border-white/20">
               <div className="text-center">

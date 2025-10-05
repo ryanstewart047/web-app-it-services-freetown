@@ -141,46 +141,64 @@ export default function PWAInstallBanner() {
   console.log('PWA Install Banner: Rendering banner for device:', deviceInfo)
 
   return (
-    <div className="pwa-install-banner fixed top-0 left-0 right-0 bg-blue-900 text-white p-3 z-50 shadow-lg">
-      <div className="pwa-banner-content flex items-center justify-between max-w-4xl mx-auto">
-        <div className="flex items-center space-x-3">
-          <div className="pwa-banner-icon text-2xl">
-            {deviceInfo.isIOS ? '🍎' : deviceInfo.isAndroid ? '🤖' : '📱'}
+    <div className="pwa-install-banner fixed top-0 left-0 right-0 bg-gradient-to-r from-blue-900 via-blue-800 to-red-600 text-white p-4 z-50 shadow-2xl border-b-4 border-white/20">
+      <div className="pwa-banner-content flex items-center justify-between max-w-6xl mx-auto">
+        <div className="flex items-center space-x-4">
+          {/* Site Logo */}
+          <div className="pwa-banner-icon bg-white/10 p-3 rounded-xl backdrop-blur-sm">
+            <img 
+              src="/assets/logo.png" 
+              alt="IT Services Freetown" 
+              className="w-10 h-10 object-contain"
+              onError={(e) => {
+                // Fallback to SVG if PNG fails
+                (e.target as HTMLImageElement).src = "/assets/logo.svg"
+              }}
+            />
           </div>
+          
           <div className="pwa-banner-text">
-            <div className="pwa-banner-title font-semibold">
-              {deviceInfo.isIOS ? 'Add to Home Screen' : 'Install Our App'}
+            <div className="pwa-banner-title font-bold text-lg">
+              IT Services Freetown
             </div>
-            <div className="pwa-banner-subtitle text-sm opacity-90">
+            <div className="pwa-banner-subtitle text-sm opacity-90 font-medium">
               {deviceInfo.isIOS 
-                ? 'Tap Share → Add to Home Screen' 
-                : 'Get faster access and work offline'
+                ? 'Add to Home Screen for quick access to our services' 
+                : 'Install our app for faster access and offline capabilities'
               }
             </div>
+            {deviceInfo.isIOS && (
+              <div className="text-xs opacity-75 mt-1">
+                Tap <span className="font-semibold">Share</span> → <span className="font-semibold">Add to Home Screen</span>
+              </div>
+            )}
           </div>
         </div>
-        <div className="pwa-banner-buttons flex items-center space-x-2">
+        
+        <div className="pwa-banner-buttons flex items-center space-x-3">
           {deviceInfo.isAndroid && deferredPrompt && (
             <button 
               onClick={handleInstall}
-              className="pwa-install-btn bg-white text-blue-900 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+              className="pwa-install-btn bg-white text-blue-900 px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-2"
             >
-              Install
+              <i className="fas fa-download text-sm"></i>
+              <span>Install App</span>
             </button>
           )}
           {deviceInfo.isIOS && (
             <button 
               onClick={handleInstall}
-              className="pwa-install-btn bg-white text-blue-900 px-3 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-sm"
+              className="pwa-install-btn bg-white/20 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-white/30 transition-all duration-300 backdrop-blur-sm border border-white/30 flex items-center space-x-2"
             >
-              Got it
+              <i className="fas fa-check text-sm"></i>
+              <span>Got it</span>
             </button>
           )}
           <button 
             onClick={handleClose}
-            className="pwa-close-btn text-white hover:text-gray-300 text-xl p-2"
+            className="pwa-close-btn text-white/80 hover:text-white hover:bg-white/10 text-xl p-2 rounded-lg transition-all duration-300"
           >
-            ✕
+            <i className="fas fa-times"></i>
           </button>
         </div>
       </div>
