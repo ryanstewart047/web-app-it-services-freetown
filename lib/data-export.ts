@@ -1,7 +1,7 @@
 'use client';
 
 import { BookingData } from './unified-booking-storage';
-import { DashboardAnalytics } from './dashboard-analytics';
+// import { AnalyticsData } from './analytics-types';
 
 export interface ExportOptions {
   format: 'csv' | 'json' | 'excel-csv';
@@ -38,6 +38,7 @@ export function exportBookings(bookings: BookingData[], options: ExportOptions):
 }
 
 // Export analytics data
+/* Temporarily disabled for static export
 export function exportAnalytics(analytics: DashboardAnalytics, format: 'csv' | 'json' = 'json'): string {
   const analyticsData = {
     export_date: new Date().toISOString(),
@@ -76,6 +77,7 @@ export function exportAnalytics(analytics: DashboardAnalytics, format: 'csv' | '
 
   return JSON.stringify(analyticsData, null, 2);
 }
+*/
 
 // CSV Export Functions
 function exportToCSV(bookings: BookingData[], options: ExportOptions): string {

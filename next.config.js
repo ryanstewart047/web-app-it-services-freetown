@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // output: 'export', // Disabled for development to enable API routes
+  output: 'export', // Enable static export for GitHub Pages
   trailingSlash: true,
   distDir: 'out',
   // Disable ESLint during builds to prevent failures

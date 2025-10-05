@@ -50,6 +50,7 @@
   ],
   "exclude": [
     "node_modules",
-    "_server-config-backup"
+    "_server-config-backup",
+    "server-side-backup"
   ]
 }

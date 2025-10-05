@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { BookingData } from '@/lib/unified-booking-storage';
-import { DashboardAnalytics } from '@/lib/dashboard-analytics';
+// import { DashboardAnalytics } from '@/lib/dashboard-analytics';
 import { 
   exportBookings, 
-  exportAnalytics, 
+  // exportAnalytics, 
   downloadFile, 
   generateFilename, 
   getContentType,
@@ -15,7 +15,7 @@ import {
 
 interface DataExportProps {
   bookings: BookingData[];
-  analytics: DashboardAnalytics;
+  analytics: any; // DashboardAnalytics;
 }
 
 export default function DataExport({ bookings, analytics }: DataExportProps) {
@@ -38,7 +38,8 @@ export default function DataExport({ bookings, analytics }: DataExportProps) {
 
       if (type === 'analytics') {
         const analyticsFormat = selectedFormat === 'excel-csv' ? 'csv' : selectedFormat;
-        content = exportAnalytics(analytics, analyticsFormat);
+        // content = exportAnalytics(analytics, analyticsFormat);
+        content = JSON.stringify(analytics, null, 2); // Temporary fallback
         filename = generateFilename('analytics', selectedFormat);
         contentType = getContentType(selectedFormat);
       } else {

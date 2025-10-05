@@ -1,11 +1,11 @@
 'use client';
 
 import { useMemo } from 'react';
-import { DashboardAnalytics } from '@/lib/dashboard-analytics';
+// import { DashboardAnalytics } from '@/lib/dashboard-analytics';
 import { BookingData } from '@/lib/unified-booking-storage';
 
 interface CustomerAnalyticsProps {
-  analytics: DashboardAnalytics;
+  analytics: any; // DashboardAnalytics;
   bookings: BookingData[];
 }
 
@@ -179,7 +179,7 @@ export default function CustomerAnalytics({ analytics, bookings }: CustomerAnaly
       <div className="mb-6">
         <h4 className="text-md font-semibold text-gray-900 mb-3">Popular Device Types</h4>
         <div className="space-y-3">
-          {analytics.popularDeviceTypes.slice(0, 6).map((device, index) => (
+          {analytics.popularDeviceTypes.slice(0, 6).map((device: any, index: number) => (
             <div key={device.type} className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-full flex items-center justify-center">

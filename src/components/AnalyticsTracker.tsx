@@ -129,7 +129,7 @@ class AnalyticsTracker {
     else if (userAgent.includes('iOS')) os = 'iOS';
 
     return {
-      type: isTablet ? 'tablet' : isMobile ? 'mobile' : 'desktop',
+      type: (isTablet ? 'tablet' : isMobile ? 'mobile' : 'desktop') as 'desktop' | 'mobile' | 'tablet',
       browser,
       os,
       screenResolution: `${screen.width}x${screen.height}`
@@ -347,13 +347,29 @@ class AnalyticsTracker {
     if (typeof window === 'undefined') return;
 
     try {
-      await fetch(endpoint, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
+      // Store analytics data in localStorage instead of sending to API
+      const dataType = endpoint.split('/').pop() || 'general';
+      const storageKey = `analytics_${dataType}`;
+      
+      const existing = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      existing.push({
+        ...data,
+        timestamp: new Date().toISOString(),
+        method
       });
+      
+      // Keep only the latest 1000 entries per type
+      if (existing.length > 1000) {
+        existing.splice(0, existing.length - 1000);
+      }
+      
+      localStorage.setItem(storageKey, JSON.stringify(existing));
+      
+      // Update aggregate counters
+      if (dataType === 'visitor') {
+        const totalVisitors = parseInt(localStorage.getItem('totalVisitors') || '0') + 1;
+        localStorage.setItem('totalVisitors', totalVisitors.toString());
+      }
     } catch (error) {
       console.warn('Analytics tracking failed:', error);
     }
