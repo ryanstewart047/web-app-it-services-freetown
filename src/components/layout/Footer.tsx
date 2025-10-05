@@ -203,7 +203,7 @@ export default function Footer() {
                 Terms of Service
               </Link>
               <Link 
-                href="/admin" 
+                href="/simple-admin/" 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-300 hover:text-red-400 text-sm transition-colors border border-gray-500 hover:border-red-400 px-2 py-1 rounded"
