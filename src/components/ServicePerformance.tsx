@@ -1,18 +1,18 @@
 'use client';
 
 import { useMemo } from 'react';
-import { DashboardAnalytics } from '@/lib/dashboard-analytics';
+// import { DashboardAnalytics } from '@/lib/dashboard-analytics';
 import { BookingData } from '@/lib/unified-booking-storage';
 
 interface ServicePerformanceProps {
-  analytics: DashboardAnalytics;
+  analytics: any; // DashboardAnalytics;
   bookings: BookingData[];
 }
 
 export default function ServicePerformance({ analytics, bookings }: ServicePerformanceProps) {
   const performanceMetrics = useMemo(() => {
     // Calculate service efficiency scores
-    const serviceScores = analytics.popularServices.map(service => {
+    const serviceScores = analytics.popularServices.map((service: any) => {
       const serviceBookings = bookings.filter(b => b.serviceType === service.service);
       const completed = serviceBookings.filter(b => b.status === 'completed' || b.status === 'ready-for-pickup').length;
       const completionRate = serviceBookings.length > 0 ? (completed / serviceBookings.length) * 100 : 0;
@@ -35,8 +35,8 @@ export default function ServicePerformance({ analytics, bookings }: ServicePerfo
 
     // Find bottlenecks (services with low completion rates or long times)
     const bottlenecks = serviceScores
-      .filter(service => service.completionRate < 80 || service.averageTime > 7)
-      .sort((a, b) => a.efficiencyScore - b.efficiencyScore);
+      .filter((service: any) => service.completionRate < 80 || service.averageTime > 7)
+      .sort((a: any, b: any) => a.efficiencyScore - b.efficiencyScore);
 
     // Calculate busy times and workload distribution
     const hourlyDistribution = new Array(24).fill(0);
@@ -163,7 +163,7 @@ export default function ServicePerformance({ analytics, bookings }: ServicePerfo
         <h4 className="text-md font-semibold text-gray-900 mb-4">Service Efficiency Scores</h4>
         <div className="overflow-x-auto">
           <div className="space-y-3">
-            {performanceMetrics.serviceScores.slice(0, 8).map((service, index) => (
+            {performanceMetrics.serviceScores.slice(0, 8).map((service: any, index: number) => (
               <div key={service.service} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center space-x-4 flex-1">
                   <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
@@ -217,7 +217,7 @@ export default function ServicePerformance({ analytics, bookings }: ServicePerfo
       <div className="mb-6">
         <h4 className="text-md font-semibold text-gray-900 mb-3">Current Status Distribution</h4>
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-          {analytics.statusDistribution.map((status) => (
+          {analytics.statusDistribution.map((status: any) => (
             <div key={status.status} className="text-center p-3 bg-gray-50 rounded-lg">
               <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 flex items-center justify-center">
                 <i className={`fas ${getStatusIcon(status.status)} text-blue-600`}></i>
@@ -240,7 +240,7 @@ export default function ServicePerformance({ analytics, bookings }: ServicePerfo
             Performance Bottlenecks
           </h4>
           <div className="space-y-2">
-            {performanceMetrics.bottlenecks.slice(0, 3).map((service) => (
+            {performanceMetrics.bottlenecks.slice(0, 3).map((service: any) => (
               <div key={service.service} className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>

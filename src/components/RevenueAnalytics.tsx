@@ -2,10 +2,10 @@
 
 import { useState, useMemo } from 'react';
 import { BookingData } from '@/lib/unified-booking-storage';
-import { DashboardAnalytics } from '@/lib/dashboard-analytics';
+// import { DashboardAnalytics } from '@/lib/dashboard-analytics';
 
 interface RevenueAnalyticsProps {
-  analytics: DashboardAnalytics;
+  analytics: any; // DashboardAnalytics;
   bookings: BookingData[];
 }
 
@@ -173,7 +173,7 @@ export default function RevenueAnalytics({ analytics, bookings }: RevenueAnalyti
       <div>
         <h4 className="text-md font-semibold text-gray-900 mb-3">Top Revenue Services</h4>
         <div className="space-y-2">
-          {analytics.popularServices.slice(0, 5).map((service, index) => (
+          {analytics.popularServices.slice(0, 5).map((service: any, index: number) => (
             <div key={service.service} className="flex items-center justify-between py-2">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
