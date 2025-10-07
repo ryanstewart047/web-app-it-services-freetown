@@ -13,6 +13,7 @@ import PWAInstallBanner from '../src/components/PWAInstallBanner'
 import NetworkMonitor from '../src/components/NetworkMonitor'
 import { AnalyticsProvider } from '../src/components/AnalyticsTracker'
 import Script from 'next/script'
+import ConditionalLayout from '@/components/ConditionalLayout'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -69,20 +70,9 @@ export default function RootLayout({
           trackPerformance: true,
           sessionTimeout: 30
         }}>
-          <div className="min-h-screen flex flex-col">
-            <Navbar />
-            <main className="flex-1 main-content">
-              {children}
-            </main>
-            <Footer />
-          </div>
-          <CookiePopup />
-          <BannerPopup />
-          <StaticChatFloat />
-          <FloatingScrollToTop />
-          <PWAInstallBanner />
-          <NetworkMonitor />
-          <ServiceWorkerRegistration />
+          <ConditionalLayout>
+            {children}
+          </ConditionalLayout>
           <Toaster position="top-right" />
         </AnalyticsProvider>
       </body>

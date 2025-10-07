@@ -200,6 +200,21 @@ Add OpenAI API key:
 OPENAI_API_KEY="your-openai-api-key"
 ```
 
+### Persistent Analytics & Repair Storage
+By default, analytics snapshots and repair bookings are saved to `data/app-analytics.json` on the server. Configure these environment variables to control where data lives and optionally sync with GitHub Gists for shared hosting environments:
+
+```
+# Override the filesystem path for the analytics JSON file (optional)
+APP_DATA_FILE="/absolute/path/to/app-analytics.json"
+
+# Enable GitHub Gist sync (optional)
+GITHUB_GIST_ID="your-gist-id"
+GITHUB_TOKEN="ghp_yourPersonalAccessToken"
+GITHUB_GIST_FILENAME="its-analytics.json" # defaults to this name when omitted
+```
+
+When `GITHUB_GIST_ID` and `GITHUB_TOKEN` are set, the APIs automatically read/write analytics and repair data from that gist—ideal for platforms without persistent disk. Without those variables, data is written to the local file specified by `APP_DATA_FILE` (or `data/app-analytics.json`).
+
 ## Contributing
 
 1. Fork the repository

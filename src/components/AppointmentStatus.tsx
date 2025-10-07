@@ -44,6 +44,13 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
       
       // Debug logging for mobile issues
       console.log('Searching for tracking ID:', trackingId);
+      const apiAppointment = await fetchFromApi(trackingId);
+
+      if (apiAppointment) {
+        setAppointment(apiAppointment);
+        setError('');
+        return;
+      }
       
       // First check if we have real booking data
       const realBooking = getBookingByTrackingId(trackingId);
@@ -166,6 +173,44 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchFromApi = async (id: string): Promise<AppointmentStatus | null> => {
+    try {
+      const response = await fetch(`/api/analytics/repairs?trackingId=${encodeURIComponent(id)}`, {
+        cache: 'no-store'
+      });
+
+      if (response.status === 404) {
+        return null;
+      }
+
+      if (!response.ok) {
+        console.warn('Repair lookup API error:', response.status);
+        return null;
+      }
+
+      const repair = await response.json();
+      return transformRepairToAppointment(repair);
+    } catch (error) {
+      console.warn('Repair lookup API failed:', error);
+      return null;
+    }
+  };
+
+  const transformRepairToAppointment = (repair: any): AppointmentStatus => {
+    return {
+      id: repair.trackingId,
+      customerName: repair.customerName,
+      deviceType: repair.deviceType,
+      deviceModel: repair.deviceModel || '—',
+      status: (repair.status || 'received') as AppointmentStatus['status'],
+      estimatedCompletion: repair.estimatedCompletion,
+      notes: repair.notes,
+      cost: typeof repair.totalCost === 'number' ? repair.totalCost : undefined,
+      createdAt: repair.submissionDate || new Date().toISOString(),
+      updatedAt: repair.lastUpdated || repair.submissionDate || new Date().toISOString()
+    };
   };
 
   const getCurrentStepIndex = () => {

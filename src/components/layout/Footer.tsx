@@ -203,14 +203,11 @@ export default function Footer() {
                 Terms of Service
               </Link>
               <Link 
-                href="/simple-admin/" 
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/admin" 
                 className="text-gray-300 hover:text-red-400 text-sm transition-colors border border-gray-500 hover:border-red-400 px-2 py-1 rounded"
-                title="Open Admin Panel in new tab"
+                title="Access Admin Dashboard"
               >
                 <i className="fas fa-shield-alt mr-1"></i>Admin Panel
-                <i className="fas fa-external-link-alt ml-1 text-xs"></i>
               </Link>
             </div>
           </div>
