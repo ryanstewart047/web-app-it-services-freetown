@@ -12,6 +12,7 @@ module.exports = {
     './*.html',
     './assets/**/*.{js,html}',
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {

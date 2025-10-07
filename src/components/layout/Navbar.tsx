@@ -39,18 +39,6 @@ export default function Navbar() {
             <Link href="/chat" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Chat Support</Link>
             <Link href="/social" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Social</Link>
             
-            {/* Admin Panel Access Button */}
-            <Link 
-              href="/simple-admin/" 
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-1 shadow-md hover:shadow-lg border border-red-500"
-              title="Open Admin Dashboard"
-            >
-              <i className="fas fa-chart-line text-xs"></i>
-              <span>Admin</span>
-            </Link>
-            
             <Link href="/book-appointment" className="btn-primary text-sm px-4 py-2">Book Now</Link>
           </div>
           {/* Mobile menu button */}
@@ -74,19 +62,6 @@ export default function Navbar() {
             <Link href="/troubleshoot" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Troubleshoot</Link>
             <Link href="/chat" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Chat Support</Link>
             <Link href="/social" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Social</Link>
-            
-            {/* Admin Panel Access Button - Mobile */}
-            <Link 
-              href="/simple-admin/" 
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center space-x-2 mx-3 mt-2 shadow-md border border-red-500"
-              title="Open Admin Dashboard"
-              onClick={closeMobileMenu}
-            >
-              <i className="fas fa-chart-line"></i>
-              <span>Admin Dashboard</span>
-            </Link>
             
             <Link href="/book-appointment" className="btn-primary text-sm px-4 py-2 w-full text-center mt-4" onClick={closeMobileMenu}>Book Now</Link>
           </div>

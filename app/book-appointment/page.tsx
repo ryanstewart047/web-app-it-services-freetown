@@ -108,25 +108,73 @@ export default function BookAppointment() {
     setCurrentStep(1);
   };
 
+  const submitBookingToServer = async (trackingId: string, payload: typeof formData) => {
+    try {
+      const response = await fetch('/api/analytics/forms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          type: 'submission',
+          formType: 'repair-booking',
+          trackingId,
+          fields: {
+            trackingId,
+            customerName: payload.customerName,
+            name: payload.customerName,
+            email: payload.email,
+            phone: payload.phone,
+            address: payload.address,
+            deviceType: payload.deviceType,
+            deviceModel: payload.deviceModel,
+            serviceType: payload.serviceType,
+            issueDescription: payload.issueDescription,
+            issue: payload.issueDescription,
+            preferredDate: payload.preferredDate,
+            preferredTime: payload.preferredTime,
+            notes: `Preferred time: ${payload.preferredTime}`
+          },
+          page: '/book-appointment'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result?.trackingId && result.trackingId !== trackingId) {
+        setCurrentTrackingId(result.trackingId);
+      }
+
+      console.log('Booking synced to server', result);
+    } catch (error) {
+      console.warn('Unable to sync booking to server API:', error);
+    }
+  };
+
   // Handle Formspree success
   useEffect(() => {
     if (state.succeeded && !showSuccess && !currentTrackingId) {
+      const bookingSnapshot = { ...formData };
       const trackingId = generateTrackingId();
       setCurrentTrackingId(trackingId); // Store tracking ID in state
       
       // Save booking to localStorage for tracking
       const savedBooking = saveBooking({
         trackingId,
-        customerName: formData.customerName,
-        email: formData.email,
-        phone: formData.phone,
-        address: formData.address,
-        deviceType: formData.deviceType,
-        deviceModel: formData.deviceModel,
-        serviceType: formData.serviceType,
-        issueDescription: formData.issueDescription,
-        preferredDate: formData.preferredDate,
-        preferredTime: formData.preferredTime
+        customerName: bookingSnapshot.customerName,
+        email: bookingSnapshot.email,
+        phone: bookingSnapshot.phone,
+        address: bookingSnapshot.address,
+        deviceType: bookingSnapshot.deviceType,
+        deviceModel: bookingSnapshot.deviceModel,
+        serviceType: bookingSnapshot.serviceType,
+        issueDescription: bookingSnapshot.issueDescription,
+        preferredDate: bookingSnapshot.preferredDate,
+        preferredTime: bookingSnapshot.preferredTime
       });
 
       // Also save to repair tracking system for admin management
@@ -134,20 +182,22 @@ export default function BookAppointment() {
         const repairs = JSON.parse(localStorage.getItem('its_repairs') || '[]');
         repairs.push({
           trackingId,
-          customerName: formData.customerName,
-          email: formData.email,
-          phone: formData.phone,
-          deviceType: formData.deviceType,
-          issue: `${formData.serviceType}: ${formData.issueDescription}`,
+          customerName: bookingSnapshot.customerName,
+          email: bookingSnapshot.email,
+          phone: bookingSnapshot.phone,
+          deviceType: bookingSnapshot.deviceType,
+          issue: `${bookingSnapshot.serviceType}: ${bookingSnapshot.issueDescription}`,
           status: 'received',
           dateReceived: new Date().toISOString(),
-          estimatedCompletion: formData.preferredDate,
-          notes: `Device Model: ${formData.deviceModel}, Preferred Time: ${formData.preferredTime}`
+          estimatedCompletion: bookingSnapshot.preferredDate,
+          notes: `Device Model: ${bookingSnapshot.deviceModel}, Preferred Time: ${bookingSnapshot.preferredTime}`
         });
         localStorage.setItem('its_repairs', JSON.stringify(repairs));
       } catch (error) {
         console.error('Error saving to repair system:', error);
       }
+
+      void submitBookingToServer(trackingId, bookingSnapshot);
       
       // Auto-sync to cloud via server API - works for all customers (if server available)
       const tryServerSync = async () => {
@@ -204,10 +254,10 @@ export default function BookAppointment() {
       
       const successData = {
         trackingId,
-        customerName: formData.customerName,
-        email: formData.email,
-        preferredDate: formData.preferredDate,
-        preferredTime: formData.preferredTime
+        customerName: bookingSnapshot.customerName,
+        email: bookingSnapshot.email,
+        preferredDate: bookingSnapshot.preferredDate,
+        preferredTime: bookingSnapshot.preferredTime
       };
       
       setSuccessData(successData);

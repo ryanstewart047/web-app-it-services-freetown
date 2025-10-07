@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export', // Enable static export for GitHub Pages
+  // Remove output: 'export' to enable API routes for Vercel
   trailingSlash: true,
-  distDir: 'out',
   // Disable ESLint during builds to prevent failures
   eslint: {
     ignoreDuringBuilds: true,
