@@ -1,101 +1,44 @@
-'use client'
-
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 
 interface UsePageLoaderOptions {
-  minLoadTime?: number
-  dependencies?: any[]
-  skipLoading?: boolean
+  minLoadTime?: number;
 }
 
-export function usePageLoader({
-  minLoadTime = 1500,
-  dependencies = [],
-  skipLoading = false
-}: UsePageLoaderOptions = {}) {
-  const [isLoading, setIsLoading] = useState(!skipLoading)
-  const [progress, setProgress] = useState(0)
+interface UsePageLoaderReturn {
+  isLoading: boolean;
+  progress: number;
+}
+
+export function usePageLoader(options: UsePageLoaderOptions = {}): UsePageLoaderReturn {
+  const { minLoadTime = 1000 } = options;
+  const [isLoading, setIsLoading] = useState(true);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    if (skipLoading) {
-      setIsLoading(false)
-      return
-    }
-
-    const startTime = Date.now()
-    
-    // Simulate progressive loading
+    // Simulate loading progress
     const progressInterval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 95) return prev
-        return prev + Math.random() * 10
-      })
-    }, 150)
+      setProgress((prev) => {
+        if (prev >= 90) {
+          clearInterval(progressInterval);
+          return 90;
+        }
+        return prev + 10;
+      });
+    }, minLoadTime / 10);
 
-    // Wait for minimum load time and dependencies
-    const loadTimer = setTimeout(() => {
-      const elapsedTime = Date.now() - startTime
-      const remainingTime = Math.max(0, minLoadTime - elapsedTime)
-      
+    // Complete loading after minimum time
+    const loadTimeout = setTimeout(() => {
+      setProgress(100);
       setTimeout(() => {
-        setProgress(100)
-        setTimeout(() => {
-          setIsLoading(false)
-        }, 300) // Allow progress to reach 100% before hiding
-      }, remainingTime)
-    }, 100)
+        setIsLoading(false);
+      }, 200);
+    }, minLoadTime);
 
     return () => {
-      clearInterval(progressInterval)
-      clearTimeout(loadTimer)
-    }
-  }, [minLoadTime, skipLoading, ...dependencies])
+      clearInterval(progressInterval);
+      clearTimeout(loadTimeout);
+    };
+  }, [minLoadTime]);
 
-  return {
-    isLoading,
-    progress: Math.min(progress, 100)
-  }
-}
-
-// Hook for simulating API loading states
-export function useAsyncLoader<T>(
-  asyncFunction: () => Promise<T>,
-  dependencies: any[] = []
-) {
-  const [isLoading, setIsLoading] = useState(true)
-  const [data, setData] = useState<T | null>(null)
-  const [error, setError] = useState<Error | null>(null)
-
-  useEffect(() => {
-    let isMounted = true
-    
-    const loadData = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-        
-        const result = await asyncFunction()
-        
-        if (isMounted) {
-          setData(result)
-        }
-      } catch (err) {
-        if (isMounted) {
-          setError(err instanceof Error ? err : new Error('Unknown error'))
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false)
-        }
-      }
-    }
-
-    loadData()
-
-    return () => {
-      isMounted = false
-    }
-  }, dependencies)
-
-  return { isLoading, data, error }
+  return { isLoading, progress };
 }
