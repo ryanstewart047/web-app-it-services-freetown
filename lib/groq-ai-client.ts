@@ -4,9 +4,24 @@
  */
 
 // Groq API Configuration
-// Get your free API key from: https://console.groq.com/keys
-// Sign up is free and no credit card required!
-const GROQ_API_KEY = ''  // REPLACE THIS: Get your key from https://console.groq.com/keys
+// SECURITY NOTE: For GitHub Pages / static deployments, the API key will be visible in browser
+// This is acceptable for Groq's free tier, but monitor your usage at https://console.groq.com
+
+// Option 1: Set via environment variable (recommended for server deployments)
+// Option 2: Import from local config file (not committed to git)
+// Option 3: Hardcode here for static deployments only
+
+let GROQ_API_KEY = ''
+
+// Try to load from environment or local config
+if (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_GROQ_API_KEY) {
+  GROQ_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY
+} else {
+  // For static GitHub Pages: Uncomment and add your key below
+  // GROQ_API_KEY = 'your_groq_api_key_here'
+  GROQ_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY || ''
+}
+
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 const GROQ_MODEL = 'llama-3.1-8b-instant'  // Fast, free, and excellent for chat support
 
