@@ -8,7 +8,7 @@ import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
 import { openChatFloat } from '@/lib/chat-float-controller'
-import { generateTroubleshootingResponseClient, isStaticDeployment } from '@/lib/google-ai-client'
+import { generateTroubleshootingResponseClient, isStaticDeployment } from '@/lib/groq-ai-client'
 
 interface TroubleshootingStep {
   id: string
