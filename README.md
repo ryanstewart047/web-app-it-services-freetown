@@ -17,7 +17,17 @@ A comprehensive IT services web application for computer and mobile repairs in F
 - **Database**: SQLite (development), PostgreSQL (production)
 - **Real-time**: Socket.io for live features
 - **Email**: Nodemailer for automated notifications
-- **AI**: OpenAI API for troubleshooting suggestions
+- **AI**: Groq API (Llama 3.1) - FREE, ultra-fast AI chat and troubleshooting
+
+### 🤖 AI Setup (Required for Chat & Troubleshooting)
+**NEW!** We've switched to Groq for faster, free AI responses!
+
+👉 **[Quick Start Guide](./QUICK_START_GROQ.md)** - Get your AI running in 2 minutes!
+- Get free API key from https://console.groq.com/keys
+- Add it to `lib/groq-ai-client.ts`
+- No credit card required, 100% free!
+
+📚 **[Detailed Setup Guide](./GROQ_API_SETUP.md)** - Full documentation and troubleshooting
 
 ## 🚀 Deployment Options
 
