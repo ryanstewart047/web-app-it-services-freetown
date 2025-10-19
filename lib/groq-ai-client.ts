@@ -17,9 +17,8 @@ let GROQ_API_KEY = ''
 if (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_GROQ_API_KEY) {
   GROQ_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY
 } else {
-  // For static GitHub Pages: Uncomment and add your key below
-  // GROQ_API_KEY = 'your_groq_api_key_here'
-  GROQ_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY || ''
+  // Hardcoded for static GitHub Pages deployment (itservicesfreetown.com)
+  GROQ_API_KEY = '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'
 }
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
