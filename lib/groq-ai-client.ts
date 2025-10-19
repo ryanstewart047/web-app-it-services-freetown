@@ -1,19 +1,32 @@
 /**
- * Client-side Google AI API Integration Service
+ * Client-side AI API Integration Service (Using Groq)
  * Works directly in the browser for static deployments
  */
 
-const GOOGLE_API_KEY = 'AIzaSyAQ1FUxW3TaMO_6VsXwVvy9O9Sc0e0yDYA'
-const GOOGLE_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent'
+// Groq API Configuration
+// Get your free API key from: https://console.groq.com/keys
+// Sign up is free and no credit card required!
+const GROQ_API_KEY = ''  // REPLACE THIS: Get your key from https://console.groq.com/keys
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
+const GROQ_MODEL = 'llama-3.1-8b-instant'  // Fast, free, and excellent for chat support
 
-interface GoogleAIResponse {
-  candidates: Array<{
-    content: {
-      parts: Array<{
-        text: string
-      }>
+interface GroqMessage {
+  role: 'system' | 'user' | 'assistant'
+  content: string
+}
+
+interface GroqAPIResponse {
+  choices: Array<{
+    message: {
+      content: string
     }
+    finish_reason: string
   }>
+  usage?: {
+    prompt_tokens: number
+    completion_tokens: number
+    total_tokens: number
+  }
 }
 
 interface ChatContext {
@@ -49,7 +62,7 @@ function isStaticDeployment(): boolean {
  * Generate AI response for chat support (client-side)
  */
 export async function generateChatResponseClient(context: ChatContext): Promise<string> {
-  const systemPrompt = `You are a helpful IT support assistant for "IT Services Freetown" - a computer and mobile repair service in Freetown, Sierra Leone. 
+  const systemMessage = `You are a helpful IT support assistant for "IT Services Freetown" - a computer and mobile repair service in Freetown, Sierra Leone. 
 
 Your role:
 - Provide technical support and troubleshooting advice
@@ -68,51 +81,61 @@ Guidelines:
 
 Business info:
 - Location: Freetown, Sierra Leone
+- Phone: +23233399391
 - Services: Computer repair, mobile repair, data recovery, virus removal
 - Same-day service available
-- 1-month warranty on all repairs
-
-User message: ${context.userMessage}
-
-Please provide a helpful response:`
+- 1-month warranty on all repairs`
 
   try {
-    console.log('🔍 [CLIENT-SIDE] Calling Google AI API for chat:', context.userMessage)
-    console.log('🔑 [CLIENT-SIDE] API Key available:', GOOGLE_API_KEY ? 'Yes' : 'No')
-    console.log('🌐 [CLIENT-SIDE] API URL:', GOOGLE_API_URL)
+    console.log('🔍 [CLIENT-SIDE] Calling Groq AI API for chat:', context.userMessage)
+    console.log('🔑 [CLIENT-SIDE] API Key available:', GROQ_API_KEY ? 'Yes' : 'No')
+    console.log('🌐 [CLIENT-SIDE] API URL:', GROQ_API_URL)
+    console.log('🤖 [CLIENT-SIDE] Model:', GROQ_MODEL)
+    
+    const messages: GroqMessage[] = [
+      { role: 'system', content: systemMessage },
+      { role: 'user', content: context.userMessage }
+    ]
     
     const requestBody = {
-      contents: [{
-        parts: [{
-          text: systemPrompt
-        }]
-      }]
+      model: GROQ_MODEL,
+      messages: messages,
+      temperature: 0.7,
+      max_tokens: 500,
+      top_p: 1,
+      stream: false
     }
-    console.log('📤 [CLIENT-SIDE] Request body:', JSON.stringify(requestBody, null, 2))
     
-    const response = await fetch(`${GOOGLE_API_URL}?key=${GOOGLE_API_KEY}`, {
+    console.log('📤 [CLIENT-SIDE] Request preview:', { 
+      model: GROQ_MODEL, 
+      messageCount: messages.length,
+      userMessage: context.userMessage.substring(0, 50) + '...'
+    })
+    
+    const response = await fetch(GROQ_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify(requestBody)
     })
 
-    console.log('📥 [CLIENT-SIDE] Google AI API response status:', response.status)
-    console.log('📥 [CLIENT-SIDE] Response headers:', Object.fromEntries(response.headers.entries()))
+    console.log('📥 [CLIENT-SIDE] Groq AI API response status:', response.status)
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('❌ [CLIENT-SIDE] Google API error response:', errorText)
-      throw new Error(`Google API error: ${response.status} - ${errorText}`)
+      console.error('❌ [CLIENT-SIDE] Groq API error response:', errorText)
+      throw new Error(`Groq API error: ${response.status} - ${errorText}`)
     }
 
-    const data: GoogleAIResponse = await response.json()
-    console.log('✅ [CLIENT-SIDE] Google AI API response data:', data)
+    const data: GroqAPIResponse = await response.json()
+    console.log('✅ [CLIENT-SIDE] Groq AI API response received')
+    console.log('💬 [CLIENT-SIDE] Tokens used:', data.usage)
     
-    if (data.candidates && data.candidates.length > 0) {
-      const responseText = data.candidates[0].content.parts[0].text
-      console.log('💬 [CLIENT-SIDE] AI chat response:', responseText)
+    if (data.choices && data.choices.length > 0) {
+      const responseText = data.choices[0].message.content
+      console.log('💬 [CLIENT-SIDE] AI chat response:', responseText.substring(0, 100) + '...')
       return responseText
     }
     
@@ -229,7 +252,7 @@ export async function generateTroubleshootingResponseClient(context: Troubleshoo
   estimatedTime: string
   difficulty: 'easy' | 'medium' | 'hard'
 }> {
-  const systemPrompt = `You are an expert IT technician for "IT Services Freetown" providing diagnostic analysis and troubleshooting steps.
+  const systemMessage = `You are an expert IT technician for "IT Services Freetown" providing diagnostic analysis and troubleshooting steps.
 
 Your task:
 - Analyze device issues and provide structured troubleshooting steps
@@ -258,56 +281,68 @@ Provide a JSON response with this structure:
   "difficulty": "easy"
 }
 
-Provide 3-6 troubleshooting steps. Be specific and practical. Response must be valid JSON only.`
+Provide 3-6 troubleshooting steps. Be specific and practical. Response must be valid JSON only. Do not include any markdown formatting or code blocks.`
 
   try {
-    console.log('🔍 [CLIENT-SIDE] Calling Google AI API for troubleshooting:', context)
-    console.log('🔑 [CLIENT-SIDE] API Key available:', GOOGLE_API_KEY ? 'Yes' : 'No')
+    console.log('🔍 [CLIENT-SIDE] Calling Groq AI API for troubleshooting:', context)
+    console.log('🔑 [CLIENT-SIDE] API Key available:', GROQ_API_KEY ? 'Yes' : 'No')
+    
+    const messages: GroqMessage[] = [
+      { role: 'system', content: systemMessage },
+      { role: 'user', content: `Please analyze this ${context.deviceType} issue and provide troubleshooting steps in JSON format: ${context.issueDescription}` }
+    ]
     
     const requestBody = {
-      contents: [{
-        parts: [{
-          text: systemPrompt
-        }]
-      }]
+      model: GROQ_MODEL,
+      messages: messages,
+      temperature: 0.5,
+      max_tokens: 1000,
+      top_p: 1,
+      stream: false,
+      response_format: { type: "json_object" }  // Request JSON response
     }
+    
     console.log('📤 [CLIENT-SIDE] Request body preview:', {
       deviceType: context.deviceType,
       issue: context.issueDescription,
-      promptLength: systemPrompt.length
+      model: GROQ_MODEL
     })
     
-    const response = await fetch(`${GOOGLE_API_URL}?key=${GOOGLE_API_KEY}`, {
+    const response = await fetch(GROQ_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify(requestBody)
     })
 
-    console.log('📥 [CLIENT-SIDE] Google AI API response status:', response.status)
+    console.log('📥 [CLIENT-SIDE] Groq AI API response status:', response.status)
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('❌ [CLIENT-SIDE] Google API error response:', errorText)
+      console.error('❌ [CLIENT-SIDE] Groq API error response:', errorText)
       
       // Check for specific error types
-      if (response.status === 403) {
-        console.error('🚫 [CLIENT-SIDE] API Key may be invalid or lacks permissions')
+      if (response.status === 401) {
+        console.error('🚫 [CLIENT-SIDE] API Key is invalid or expired')
       } else if (response.status === 400) {
         console.error('📝 [CLIENT-SIDE] Bad request - check API format')
+      } else if (response.status === 429) {
+        console.error('⏱️ [CLIENT-SIDE] Rate limit exceeded')
       } else {
         console.error('🌐 [CLIENT-SIDE] Network or CORS error likely')
       }
       
-      throw new Error(`Google API error: ${response.status} - ${errorText}`)
+      throw new Error(`Groq API error: ${response.status} - ${errorText}`)
     }
 
-    const data: GoogleAIResponse = await response.json()
-    console.log('✅ [CLIENT-SIDE] Google AI API response received:', !!data.candidates)
+    const data: GroqAPIResponse = await response.json()
+    console.log('✅ [CLIENT-SIDE] Groq AI API response received')
+    console.log('💬 [CLIENT-SIDE] Tokens used:', data.usage)
     
-    if (data.candidates && data.candidates.length > 0) {
-      const responseText = data.candidates[0].content.parts[0].text
+    if (data.choices && data.choices.length > 0) {
+      const responseText = data.choices[0].message.content
       console.log('🛠️ [CLIENT-SIDE] AI troubleshooting response length:', responseText.length)
       
       // Try to parse JSON response

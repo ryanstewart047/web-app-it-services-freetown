@@ -10,7 +10,7 @@ import {
   isRepairTrackingQueryClient, 
   handleRepairTrackingClient, 
   isStaticDeployment 
-} from '@/lib/google-ai-client'
+} from '@/lib/groq-ai-client'
 
 interface Message {
   id: string
