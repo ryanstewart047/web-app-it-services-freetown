@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Remove output: 'export' to enable API routes for Vercel
+  output: 'export', // Enable static export for GitHub Pages
   trailingSlash: true,
   // Disable ESLint during builds to prevent failures
   eslint: {
