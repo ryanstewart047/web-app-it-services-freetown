@@ -145,7 +145,7 @@ function generateFallbackChatResponse(userMessage: string): string {
 
 For thorough diagnosis and professional repair, visit IT Services Freetown. We offer same-day service with a 1-month warranty!
 
-Need immediate help? Call us or visit our location in Freetown.`
+Need immediate help? Call **+23233399391** or visit our location in Freetown.`
   }
   
   // Won't turn on issues
@@ -186,7 +186,7 @@ We make it easy to get your device fixed:
 • Competitive pricing
 
 To book your appointment:
-📞 Call us directly
+📞 Call **+23233399391**
 📍 Visit our location in Freetown
 💬 Use the chat button on our website
 
@@ -206,7 +206,7 @@ I'm here to help with your tech issues. While I'm having trouble with my advance
 • Same-day service with 1-month warranty
 
 📞 **Get Immediate Help:**
-• Call us directly for urgent issues
+• Call **+23233399391** for urgent issues
 • Visit our location in Freetown
 • Use our troubleshooting tool for step-by-step guidance
 
