@@ -58,19 +58,13 @@ interface TroubleshootingContext {
 }
 
 /**
- * Detect if we're in a static deployment (GitHub Pages)
+ * Detect if we should use client-side AI
+ * For static exports, we always use client-side AI
  */
 function isStaticDeployment(): boolean {
-  if (typeof window === 'undefined') return false
-  
-  // Check if we're on GitHub Pages or other static hosting
-  const hostname = window.location.hostname
-  return hostname.includes('github.io') || 
-         hostname.includes('pages.dev') || 
-         hostname.includes('netlify.app') ||
-         hostname.includes('vercel.app') ||
-         // Add your custom domain here
-         hostname === 'itservicesfreetown.com'
+  // Always use client-side AI for static export deployments
+  // This includes local dev, GitHub Pages, and custom domains
+  return true
 }
 
 /**
