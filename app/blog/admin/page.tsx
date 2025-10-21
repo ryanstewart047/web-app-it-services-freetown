@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
-import { ArrowLeft, Save, Eye, Upload, X, Image as ImageIcon, Video, Lock } from 'lucide-react'
+import { ArrowLeft, Save, Eye, Upload, X, Image as ImageIcon, Video, Lock, Sparkles, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface MediaItem {
@@ -42,6 +42,9 @@ export default function BlogAdminPage() {
   const [preview, setPreview] = useState(false)
   const [media, setMedia] = useState<MediaItem[]>([])
   const [uploadingMedia, setUploadingMedia] = useState(false)
+  const [generatingContent, setGeneratingContent] = useState(false)
+  const [contentPrompt, setContentPrompt] = useState('')
+  const [showAIHelper, setShowAIHelper] = useState(false)
 
   useScrollAnimations()
 
@@ -111,11 +114,82 @@ export default function BlogAdminPage() {
     setTitle('')
     setContent('')
     setMedia([])
+    setContentPrompt('')
     
     // Redirect to blog page after a short delay
     setTimeout(() => {
       router.push('/blog')
     }, 1500)
+  }
+
+  const generateAIContent = async () => {
+    if (!contentPrompt.trim() && !title.trim()) {
+      toast.error('Please provide a topic or title first')
+      return
+    }
+
+    setGeneratingContent(true)
+
+    try {
+      const GROQ_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY || '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'
+      const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
+
+      const topic = contentPrompt.trim() || title.trim()
+      
+      const response = await fetch(GROQ_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${GROQ_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-8b-instant',
+          messages: [
+            {
+              role: 'system',
+              content: `You are a professional tech blog writer for IT Services Freetown, a computer and mobile repair service. Write engaging, informative blog posts that help customers understand tech issues and solutions. Include practical tips, clear explanations, and always mention contacting IT Services Freetown at +23233399391 or visiting 37 Kissy Road when professional help is needed. Keep the tone friendly but professional.`
+            },
+            {
+              role: 'user',
+              content: `Write a detailed blog post about: "${topic}". 
+
+Requirements:
+- Write 300-500 words
+- Use clear paragraphs (no markdown formatting)
+- Include practical tips or steps
+- Make it engaging and easy to understand
+- Add a call-to-action mentioning IT Services Freetown contact: +23233399391
+- Focus on helping customers solve problems or learn about tech
+
+Write the content now:`
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 800
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate content')
+      }
+
+      const data = await response.json()
+      const generatedContent = data.choices[0]?.message?.content || ''
+
+      if (generatedContent) {
+        setContent(generatedContent)
+        toast.success('AI content generated successfully!')
+        setShowAIHelper(false)
+        setContentPrompt('')
+      } else {
+        throw new Error('No content generated')
+      }
+    } catch (error) {
+      console.error('Error generating content:', error)
+      toast.error('Failed to generate content. Please try again.')
+    } finally {
+      setGeneratingContent(false)
+    }
   }
 
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
@@ -312,9 +386,77 @@ export default function BlogAdminPage() {
 
             {/* Content */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Post Content
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Post Content
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowAIHelper(!showAIHelper)}
+                  className="flex items-center px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
+                  style={{ 
+                    background: showAIHelper ? 'linear-gradient(135deg, #9333ea 0%, #7c3aed 100%)' : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                    color: 'white'
+                  }}
+                >
+                  <Sparkles className="w-4 h-4 mr-1" />
+                  {showAIHelper ? 'Hide AI Helper' : 'AI Writer'}
+                </button>
+              </div>
+
+              {/* AI Content Generator */}
+              {showAIHelper && (
+                <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200">
+                  <div className="flex items-start space-x-2 mb-3">
+                    <Sparkles className="w-5 h-5 text-purple-600 mt-0.5" />
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-1">AI Content Generator</h3>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Describe what you want to write about, and AI will create professional blog content for you.
+                      </p>
+                      <input
+                        type="text"
+                        value={contentPrompt}
+                        onChange={(e) => setContentPrompt(e.target.value)}
+                        placeholder="E.g., 'Tips for preventing malware on phones' or 'How to backup iPhone data'"
+                        className="w-full px-4 py-2 border-2 border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent mb-3"
+                        disabled={generatingContent}
+                      />
+                      <div className="flex space-x-2">
+                        <button
+                          type="button"
+                          onClick={generateAIContent}
+                          disabled={generatingContent}
+                          className="flex-1 flex items-center justify-center px-4 py-2 rounded-lg font-semibold text-white transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                          style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' }}
+                        >
+                          {generatingContent ? (
+                            <>
+                              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-4 h-4 mr-2" />
+                              Generate Content
+                            </>
+                          )}
+                        </button>
+                        {content && (
+                          <button
+                            type="button"
+                            onClick={() => setContent('')}
+                            className="px-4 py-2 rounded-lg font-semibold text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 transition-all duration-300"
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
@@ -330,7 +472,7 @@ Tips:
                 required
               />
               <p className="text-sm text-gray-500 mt-2">
-                💡 Tip: Use markdown-style formatting like **bold** and bullet points for better readability
+                💡 Tip: Use the AI Writer to generate professional content instantly, or write manually
               </p>
             </div>
 
