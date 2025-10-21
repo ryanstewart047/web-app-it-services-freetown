@@ -289,69 +289,96 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-20">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-16 scroll-animate">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: '#040e40' }}>
-            Tech Tips & News
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Stay updated with the latest tech tips, repair guides, and device care advice
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Hero Header */}
+      <header className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-900 via-indigo-900 to-purple-900 opacity-95"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
+        
+        <div className="relative max-w-7xl mx-auto px-6 py-20 md:py-28">
+          <div className="text-center">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 text-white">
+              Tech Tips & <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300">Innovation</span>
+            </h1>
+            <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
+              Discover the latest insights, tutorials, and news in technology and IT services
+            </p>
+            <div className="mt-8 flex items-center justify-center gap-4 text-blue-200">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-sm">Auto-updating every 30s</span>
+              </div>
+            </div>
+          </div>
         </div>
+      </header>
 
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-6 py-12 md:py-16">
         {/* Blog Posts */}
-        <div className="space-y-8">
-          {posts.length === 0 ? (
-            <div className="text-center py-16 scroll-animate">
-              <p className="text-gray-500 text-lg">No posts yet. Check back soon!</p>
+        <div className="space-y-8">{posts.length === 0 ? (
+            <div className="text-center py-20 scroll-animate">
+              <div className="bg-white rounded-3xl shadow-lg p-12 max-w-md mx-auto">
+                <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto mb-6 flex items-center justify-center">
+                  <MessageCircle className="w-10 h-10 text-white" />
+                </div>
+                <p className="text-gray-600 text-lg mb-2">No posts yet</p>
+                <p className="text-gray-400">Check back soon for exciting content!</p>
+              </div>
             </div>
           ) : (
             posts.map((post) => (
               <article 
                 key={post.id} 
-                className="bg-white rounded-2xl shadow-lg overflow-hidden scroll-animate hover:shadow-xl transition-shadow duration-300"
+                className="group bg-white rounded-3xl shadow-lg overflow-hidden scroll-animate hover:shadow-2xl transition-all duration-500 border border-gray-100"
               >
-                {/* Post Header */}
-                <div className="p-6 md:p-8">
-                  <div className="flex items-center text-sm text-gray-500 mb-4">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    <span>{formatDate(post.date)}</span>
-                    <span className="mx-2">•</span>
-                    <User className="w-4 h-4 mr-2" />
-                    <span>{post.author}</span>
+                {/* Post Header with Gradient Bar */}
+                <div className="h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+                
+                <div className="p-8 md:p-10">
+                  {/* Meta Info */}
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-6">
+                    <div className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-full">
+                      <Calendar className="w-4 h-4 text-blue-600" />
+                      <span className="font-medium text-blue-900">{formatDate(post.date)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-purple-50 px-3 py-1.5 rounded-full">
+                      <User className="w-4 h-4 text-purple-600" />
+                      <span className="font-medium text-purple-900">{post.author}</span>
+                    </div>
                   </div>
 
-                  <h2 className="text-2xl md:text-3xl font-bold mb-4" style={{ color: '#040e40' }}>
+                  {/* Title */}
+                  <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-900 via-purple-900 to-pink-900 bg-clip-text text-transparent leading-tight group-hover:scale-[1.02] transition-transform duration-300">
                     {post.title}
                   </h2>
 
-                  <div className="prose max-w-none text-gray-700 whitespace-pre-wrap mb-6">
+                  {/* Content */}
+                  <div className="prose prose-lg max-w-none text-gray-700 whitespace-pre-wrap mb-8 leading-relaxed">
                     {post.content}
                   </div>
 
                   {/* Media Display */}
                   {post.media && post.media.length > 0 && (
-                    <div className="mt-6 space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="mt-8 space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {post.media.map((item) => (
-                          <div key={item.id} className="rounded-lg overflow-hidden">
+                          <div key={item.id} className="rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
                             {item.type === 'image' ? (
                               <img 
                                 src={item.url} 
                                 alt={item.caption || 'Post image'} 
-                                className="w-full h-auto object-cover rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300"
+                                className="w-full h-auto object-cover"
                               />
                             ) : (
                               <video 
                                 src={item.url} 
                                 controls 
-                                className="w-full h-auto rounded-lg shadow-md"
+                                className="w-full h-auto"
                               />
                             )}
                             {item.caption && (
-                              <p className="text-sm text-gray-600 mt-2 italic">{item.caption}</p>
+                              <p className="text-sm text-gray-600 mt-3 px-2 italic">{item.caption}</p>
                             )}
                           </div>
                         ))}
@@ -361,73 +388,76 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                 </div>
 
                 {/* Engagement Bar */}
-                <div className="border-t px-6 py-4 bg-gray-50">
+                <div className="border-t border-gray-100 px-8 md:px-10 py-6 bg-gradient-to-r from-gray-50 to-slate-50">
                   <div className="flex items-center justify-between flex-wrap gap-4">
                     {/* Like/Dislike Buttons */}
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center gap-3">
                       <button
                         onClick={() => handleLike(post.id)}
-                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 ${
+                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm ${
                           userVotes[post.id] === 'like'
-                            ? 'bg-blue-100 text-blue-600'
-                            : 'bg-white text-gray-600 hover:bg-blue-50'
+                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-blue-200'
+                            : 'bg-white text-gray-600 hover:bg-blue-50 hover:text-blue-600 hover:shadow-md'
                         }`}
                       >
                         <ThumbsUp className="w-5 h-5" />
-                        <span className="font-semibold">{post.likes}</span>
+                        <span className="font-bold">{post.likes}</span>
                       </button>
 
                       <button
                         onClick={() => handleDislike(post.id)}
-                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 ${
+                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm ${
                           userVotes[post.id] === 'dislike'
-                            ? 'bg-red-100 text-red-600'
-                            : 'bg-white text-gray-600 hover:bg-red-50'
+                            ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-red-200'
+                            : 'bg-white text-gray-600 hover:bg-red-50 hover:text-red-600 hover:shadow-md'
                         }`}
                       >
                         <ThumbsDown className="w-5 h-5" />
-                        <span className="font-semibold">{post.dislikes}</span>
+                        <span className="font-bold">{post.dislikes}</span>
                       </button>
                     </div>
 
                     {/* Comments Button */}
                     <button
                       onClick={() => toggleComments(post.id)}
-                      className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-white text-gray-600 hover:bg-gray-100 transition-all duration-300"
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition-all duration-300 shadow-sm hover:shadow-md font-medium"
                     >
                       <MessageCircle className="w-5 h-5" />
-                      <span className="font-semibold">{post.comments.length} Comments</span>
+                      <span className="font-bold">{post.comments.length}</span>
+                      <span className="hidden sm:inline">Comments</span>
                     </button>
                   </div>
                 </div>
 
                 {/* Comments Section */}
                 {showComments[post.id] && (
-                  <div className="border-t px-6 py-6 bg-white">
+                  <div className="border-t border-gray-100 px-8 md:px-10 py-8 bg-gradient-to-br from-gray-50 to-slate-50">
                     {/* Add Comment Form */}
-                    <div className="mb-6">
-                      <h3 className="font-semibold text-gray-900 mb-4">Leave a Comment</h3>
-                      <div className="space-y-3">
+                    <div className="mb-8">
+                      <h3 className="font-bold text-xl text-gray-900 mb-6 flex items-center gap-2">
+                        <MessageCircle className="w-6 h-6 text-purple-600" />
+                        Leave a Comment
+                      </h3>
+                      <div className="space-y-4">
                         <input
                           type="text"
                           placeholder="Your name"
                           value={commentAuthors[post.id] || ''}
                           onChange={(e) => setCommentAuthors({ ...commentAuthors, [post.id]: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-5 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white shadow-sm"
                         />
-                        <div className="flex space-x-2">
+                        <div className="flex gap-3">
                           <input
                             type="text"
                             placeholder="Write a comment..."
                             value={commentInputs[post.id] || ''}
                             onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
                             onKeyPress={(e) => e.key === 'Enter' && handleAddComment(post.id)}
-                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="flex-1 px-5 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white shadow-sm"
                           />
                           <button
                             onClick={() => handleAddComment(post.id)}
-                            className="px-6 py-2 rounded-lg font-semibold text-white transition-all duration-300 hover:scale-105"
-                            style={{ background: 'linear-gradient(135deg, #ef4444 0%, #040e40 100%)' }}
+                            className="px-6 py-3 rounded-xl font-bold text-white transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg bg-gradient-to-r from-purple-600 to-pink-600"
                           >
                             <Send className="w-5 h-5" />
                           </button>
@@ -438,15 +468,22 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                     {/* Comments List */}
                     <div className="space-y-4">
                       {post.comments.length === 0 ? (
-                        <p className="text-gray-500 text-center py-4">No comments yet. Be the first to comment!</p>
+                        <div className="text-center py-8">
+                          <p className="text-gray-400">No comments yet. Be the first to comment!</p>
+                        </div>
                       ) : (
                         post.comments.map((comment) => (
-                          <div key={comment.id} className="bg-gray-50 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="font-semibold text-gray-900">{comment.author}</span>
-                              <span className="text-sm text-gray-500">{formatCommentDate(comment.timestamp)}</span>
+                          <div key={comment.id} className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                                  {comment.author.charAt(0).toUpperCase()}
+                                </div>
+                                <span className="font-bold text-gray-900">{comment.author}</span>
+                              </div>
+                              <span className="text-sm text-gray-400">{formatCommentDate(comment.timestamp)}</span>
                             </div>
-                            <p className="text-gray-700">{comment.content}</p>
+                            <p className="text-gray-700 ml-12">{comment.content}</p>
                           </div>
                         ))
                       )}
@@ -458,24 +495,33 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
           )}
         </div>
 
-        {/* Footer with Admin Link */}
-        <div className="mt-16 pt-8 border-t border-gray-200 text-center scroll-animate">
-          <a 
-            href="/blog/admin" 
-            className="inline-flex items-center px-6 py-3 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105 shadow-lg"
-            style={{ 
-              background: 'linear-gradient(135deg, #040e40 0%, #ef4444 100%)',
-              color: 'white'
-            }}
-          >
-            <User className="w-5 h-5 mr-2" />
-            Admin: Create New Post
-          </a>
-          <p className="text-gray-500 text-sm mt-4">
-            Posts automatically refresh from GitHub Issues
-          </p>
-        </div>
-      </div>
+        {/* Modern Footer with Admin Link */}
+        <footer className="mt-20 pt-12 border-t border-gray-200">
+          <div className="text-center space-y-6">
+            {/* Admin Button */}
+            <a 
+              href="/blog/admin" 
+              className="inline-flex items-center gap-3 px-8 py-4 text-base font-bold rounded-2xl transition-all duration-300 hover:scale-105 shadow-xl hover:shadow-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white group"
+            >
+              <User className="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" />
+              Admin: Create New Post
+            </a>
+            
+            {/* Auto-refresh Indicator */}
+            <div className="flex items-center justify-center gap-3 text-gray-500">
+              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium">Auto-updating every 30s</span>
+              </div>
+            </div>
+            
+            {/* Copyright */}
+            <p className="text-gray-400 text-sm">
+              © 2025 IT Services Freetown. All rights reserved.
+            </p>
+          </div>
+        </footer>
+      </main>
     </div>
   )
 }
