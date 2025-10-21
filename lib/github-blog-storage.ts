@@ -293,9 +293,11 @@ export async function addReaction(
  * Format post body with metadata
  */
 function formatPostBody(content: string, author: string, media?: any[]): string {
+  console.log('formatPostBody called with media:', media)
+  
   let body = `<!-- METADATA
 Author: ${author}
-Media: ${media ? JSON.stringify(media) : '[]'}
+Media: ${media && media.length > 0 ? JSON.stringify(media) : '[]'}
 -->\n\n`
 
   body += content
@@ -315,6 +317,7 @@ Media: ${media ? JSON.stringify(media) : '[]'}
     })
   }
 
+  console.log('Formatted body length:', body.length)
   return body
 }
 
@@ -326,30 +329,42 @@ function extractMetadata(body: string): {
   author?: string
   media?: any[]
 } {
+  console.log('extractMetadata called, body length:', body.length)
+  
   const metadataMatch = body.match(/<!-- METADATA\n([\s\S]*?)\n-->/m)
   
   if (!metadataMatch) {
+    console.log('No metadata found in body')
     return { content: body }
   }
 
   const metadataText = metadataMatch[1]
+  console.log('Metadata text:', metadataText)
+  
   const authorMatch = metadataText.match(/Author: (.+)/)
-  const mediaMatch = metadataText.match(/Media: (.+)/)
+  const mediaMatch = metadataText.match(/Media: ([\s\S]+?)(?:\n|$)/)
 
   let media: any[] = []
   if (mediaMatch) {
     try {
-      media = JSON.parse(mediaMatch[1])
+      const mediaJson = mediaMatch[1].trim()
+      console.log('Media JSON to parse:', mediaJson)
+      media = JSON.parse(mediaJson)
+      console.log('Parsed media:', media)
     } catch (e) {
+      console.error('Error parsing media JSON:', e)
       media = []
     }
+  } else {
+    console.log('No media match found')
   }
 
-  // Remove metadata section from content
-  const content = body.replace(/<!-- METADATA[\s\S]*?-->\n\n/, '')
+  // Remove metadata section AND the media display section from content
+  let content = body.replace(/<!-- METADATA[\s\S]*?-->\n\n/, '')
+  content = content.replace(/\n\n---\n### Media\n\n[\s\S]*$/, '')
 
   return {
-    content,
+    content: content.trim(),
     author: authorMatch?.[1],
     media: media.length > 0 ? media : undefined
   }
