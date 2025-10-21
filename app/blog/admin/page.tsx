@@ -141,41 +141,47 @@ export default function BlogAdminPage() {
   }
 
   const saveToLocalStorage = () => {
-    // Load existing posts
-    const savedPosts = localStorage.getItem('blog_posts')
-    const posts: BlogPost[] = savedPosts ? JSON.parse(savedPosts) : []
+    try {
+      // Load existing posts
+      const savedPosts = localStorage.getItem('blog_posts')
+      const posts: BlogPost[] = savedPosts ? JSON.parse(savedPosts) : []
 
-    // Create new post
-    const newPost: BlogPost = {
-      id: Date.now().toString(),
-      title: title.trim(),
-      content: content.trim(),
-      author: author.trim(),
-      date: new Date().toISOString().split('T')[0],
-      likes: 0,
-      dislikes: 0,
-      comments: [],
-      media: media.length > 0 ? media : undefined
+      // Create new post WITHOUT media to avoid quota issues
+      // Media is stored in GitHub, not localStorage
+      const newPost: BlogPost = {
+        id: Date.now().toString(),
+        title: title.trim(),
+        content: content.trim(),
+        author: author.trim(),
+        date: new Date().toISOString().split('T')[0],
+        likes: 0,
+        dislikes: 0,
+        comments: []
+        // Note: media excluded to prevent localStorage quota errors
+      }
+
+      // Add to beginning of posts array (newest first)
+      posts.unshift(newPost)
+
+      // Save to localStorage (without media)
+      localStorage.setItem('blog_posts', JSON.stringify(posts))
+
+      toast.success('Blog post saved locally!')
+      
+      // Reset form
+      setTitle('')
+      setContent('')
+      setMedia([])
+      setContentPrompt('')
+      
+      // Redirect to blog page after a short delay
+      setTimeout(() => {
+        router.push('/blog')
+      }, 1500)
+    } catch (error) {
+      console.error('localStorage error:', error)
+      toast.error('Failed to save locally - localStorage is full. Please clear your browser data.')
     }
-
-    // Add to beginning of posts array (newest first)
-    posts.unshift(newPost)
-
-    // Save to localStorage
-    localStorage.setItem('blog_posts', JSON.stringify(posts))
-
-    toast.success('Blog post saved locally!')
-    
-    // Reset form
-    setTitle('')
-    setContent('')
-    setMedia([])
-    setContentPrompt('')
-    
-    // Redirect to blog page after a short delay
-    setTimeout(() => {
-      router.push('/blog')
-    }, 1500)
   }
 
   const generateAIContent = async () => {
