@@ -195,7 +195,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
         setPosts(postsWithComments)
         localStorage.setItem('blog_posts', JSON.stringify(postsWithComments))
         toast.dismiss()
-        toast.success('✅ Posts refreshed from GitHub!')
+        toast.success('✅ Posts refreshed successfully')
       } else {
         toast.dismiss()
         toast.error('No posts found on GitHub')
