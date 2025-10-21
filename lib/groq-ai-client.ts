@@ -708,16 +708,30 @@ export function isRepairTrackingQueryClient(message: string): boolean {
  * Extract tracking ID from message
  */
 export function extractTrackingIdClient(message: string): string | null {
-  // Look for patterns like TRK-001, TRK001, or similar
-  const trackingPattern = /\b(TRK[-]?\d+)\b/i
-  const match = message.match(trackingPattern)
-  return match ? match[1].toUpperCase() : null
+  // Look for patterns like ITS-250926-1001, ITS-XXXXXX-XXXX, or old TRK-001 format
+  const newPattern = /\b(ITS[-]\d{6}[-]\d{4})\b/i
+  const oldPattern = /\b(TRK[-]?\d+)\b/i
+  
+  const newMatch = message.match(newPattern)
+  if (newMatch) return newMatch[1].toUpperCase()
+  
+  const oldMatch = message.match(oldPattern)
+  return oldMatch ? oldMatch[1].toUpperCase() : null
 }
 
 /**
  * Mock repair tracking data
  */
 const mockRepairDataClient: Record<string, any> = {
+  'ITS-250926-1001': {
+    trackingId: 'ITS-250926-1001',
+    device: 'iPhone 14',
+    issue: 'Screen replacement',
+    status: 'In Progress',
+    estimatedCompletion: '2025-10-25',
+    technician: 'John Doe',
+    notes: 'Parts have arrived. Screen replacement scheduled for tomorrow.'
+  },
   'TRK-001': {
     trackingId: 'TRK-001',
     device: 'iPhone 12',
@@ -773,12 +787,12 @@ Need more details? Call us or visit our location.`
     return {
       response: `❌ Sorry, I couldn't find a repair with tracking ID "${trackingId}". Please double-check the ID or contact us for assistance.
 
-Valid format examples: TRK-001, TRK-002, etc.`,
+Valid format examples: ITS-250926-1001, ITS-XXXXXX-XXXX`,
       source: 'repair_tracking'
     }
   } else {
     return {
-      response: `🔍 To track your repair, please provide your tracking ID (format: TRK-XXX).
+      response: `🔍 To track your repair, please provide your tracking ID (format: ITS-XXXXXX-XXXX).
 
 You can find this ID on your repair receipt or in the confirmation email we sent you.
 

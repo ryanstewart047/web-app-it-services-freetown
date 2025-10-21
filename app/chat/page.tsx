@@ -289,12 +289,12 @@ export default function Chat() {
               </button>
               <button
                 onClick={() => {
-                  addMessage('TRK-001', 'user')
-                  getBotResponse('TRK-001')
+                  addMessage('ITS-250926-1001', 'user')
+                  getBotResponse('ITS-250926-1001')
                 }}
                 className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition-colors"
               >
-                Demo: TRK-001
+                Demo: ITS-250926-1001
               </button>
               <button
                 onClick={() => {
