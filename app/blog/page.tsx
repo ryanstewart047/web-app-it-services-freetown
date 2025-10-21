@@ -14,6 +14,13 @@ interface Comment {
   timestamp: Date
 }
 
+interface MediaItem {
+  id: string
+  type: 'image' | 'video'
+  url: string
+  caption?: string
+}
+
 interface BlogPost {
   id: string
   title: string
@@ -21,6 +28,7 @@ interface BlogPost {
   author: string
   date: string
   image?: string
+  media?: MediaItem[]
   likes: number
   dislikes: number
   comments: Comment[]
@@ -291,9 +299,37 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                     {post.title}
                   </h2>
 
-                  <div className="prose max-w-none text-gray-700 whitespace-pre-wrap">
+                  <div className="prose max-w-none text-gray-700 whitespace-pre-wrap mb-6">
                     {post.content}
                   </div>
+
+                  {/* Media Display */}
+                  {post.media && post.media.length > 0 && (
+                    <div className="mt-6 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {post.media.map((item) => (
+                          <div key={item.id} className="rounded-lg overflow-hidden">
+                            {item.type === 'image' ? (
+                              <img 
+                                src={item.url} 
+                                alt={item.caption || 'Post image'} 
+                                className="w-full h-auto object-cover rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300"
+                              />
+                            ) : (
+                              <video 
+                                src={item.url} 
+                                controls 
+                                className="w-full h-auto rounded-lg shadow-md"
+                              />
+                            )}
+                            {item.caption && (
+                              <p className="text-sm text-gray-600 mt-2 italic">{item.caption}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Engagement Bar */}
