@@ -194,7 +194,14 @@ export default function ReceiptGenerator() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-slate-100">
       {/* Print Styles */}
       <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
         @media print {
+          @page {
+            size: A4 portrait;
+            margin: 0.5cm;
+          }
+          
           body * {
             visibility: hidden;
           }
@@ -207,9 +214,42 @@ export default function ReceiptGenerator() {
             left: 0;
             top: 0;
             width: 100%;
+            padding: 0;
+            margin: 0;
           }
           .no-print {
             display: none !important;
+          }
+          
+          /* Optimize for single page */
+          #receipt-print-area .bg-white {
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0.5cm !important;
+          }
+          
+          /* Professional fonts */
+          body {
+            font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+          }
+          
+          /* Prevent page breaks */
+          #receipt-print-area {
+            page-break-inside: avoid;
+          }
+          
+          /* Compact spacing for single page */
+          h1, h2, h3 {
+            margin-top: 0 !important;
+            margin-bottom: 0.3cm !important;
+          }
+          
+          p, div {
+            margin-bottom: 0.2cm !important;
+          }
+          
+          table {
+            page-break-inside: avoid;
           }
         }
       `}</style>
@@ -462,41 +502,50 @@ export default function ReceiptGenerator() {
       </div>
 
       {/* Receipt Preview - Printable */}
-      <div id="receipt-print-area" className="max-w-4xl mx-auto px-4 pb-12">
-        <div className="bg-white rounded-lg shadow-2xl p-8 md:p-12 border-2 border-gray-200">
+      <div id="receipt-print-area" className="max-w-4xl mx-auto px-4 pb-12" style={{ fontFamily: "'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" }}>
+        <div className="bg-white rounded-lg shadow-2xl p-6 border-2 border-gray-200">
           {/* Header with Logo */}
-          <div className="text-center mb-8 pb-6 border-b-2 border-gray-300">
-            <div className="mb-4">
-              <h1 className="text-4xl font-bold text-blue-900 mb-2">IT Services Freetown</h1>
-              <p className="text-lg text-gray-600">Professional Computer & Mobile Repair</p>
+          <div className="text-center mb-4 pb-4 border-b-2 border-gray-300">
+            <div className="flex justify-center mb-3">
+              <img 
+                src="/assets/logo.png" 
+                alt="IT Services Freetown" 
+                className="h-16 w-auto"
+                style={{ maxHeight: '64px' }}
+              />
             </div>
-            <div className="space-y-1 text-sm text-gray-600">
-              <p className="font-semibold">#1 Regent Highway Jui Junction</p>
-              <p>Phone: +232 33 399 391</p>
-              <p>Email: info@itservicesfreetown.com</p>
+            <h1 className="text-2xl font-bold text-blue-900 mb-1" style={{ fontSize: '22px', letterSpacing: '0.5px' }}>
+              IT Services Freetown
+            </h1>
+            <p className="text-sm text-gray-600 mb-2" style={{ fontSize: '12px' }}>
+              Professional Computer & Mobile Repair
+            </p>
+            <div className="space-y-0.5 text-xs text-gray-600" style={{ fontSize: '11px', lineHeight: '1.4' }}>
+              <p className="font-semibold">#1 Regent Highway Jui Junction, Freetown</p>
+              <p>Tel: +232 33 399 391 | Email: info@itservicesfreetown.com</p>
             </div>
           </div>
 
           {/* Receipt Type Banner */}
-          <div className="text-center mb-6">
-            <h2 className="inline-block px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-2xl font-bold rounded-lg">
+          <div className="text-center mb-3">
+            <h2 className="inline-block px-4 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-lg font-bold rounded" style={{ fontSize: '16px', letterSpacing: '1px' }}>
               {receiptType === 'purchase' ? 'PURCHASE RECEIPT' : 'REPAIR RECEIPT'}
             </h2>
           </div>
 
           {/* Receipt Info */}
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <div className="grid md:grid-cols-2 gap-4 mb-4" style={{ fontSize: '13px' }}>
             <div>
-              <h3 className="font-bold text-gray-700 mb-3 text-lg">Customer Information:</h3>
-              <div className="space-y-1 text-gray-600">
+              <h3 className="font-bold text-gray-700 mb-2 text-sm" style={{ fontSize: '13px' }}>Customer Information:</h3>
+              <div className="space-y-0.5 text-gray-600" style={{ fontSize: '12px', lineHeight: '1.5' }}>
                 <p><span className="font-semibold">Name:</span> {customerName || 'N/A'}</p>
                 <p><span className="font-semibold">Phone:</span> {customerPhone || 'N/A'}</p>
                 {customerEmail && <p><span className="font-semibold">Email:</span> {customerEmail}</p>}
               </div>
             </div>
             <div className="text-right">
-              <h3 className="font-bold text-gray-700 mb-3 text-lg">Receipt Details:</h3>
-              <div className="space-y-1 text-gray-600">
+              <h3 className="font-bold text-gray-700 mb-2 text-sm" style={{ fontSize: '13px' }}>Receipt Details:</h3>
+              <div className="space-y-0.5 text-gray-600" style={{ fontSize: '12px', lineHeight: '1.5' }}>
                 <p><span className="font-semibold">Receipt #:</span> {receiptNumber}</p>
                 <p><span className="font-semibold">Date:</span> {new Date(receiptDate).toLocaleDateString()}</p>
                 <p><span className="font-semibold">Payment:</span> {paymentMethod}</p>
@@ -505,23 +554,23 @@ export default function ReceiptGenerator() {
           </div>
 
           {/* Items Table */}
-          <div className="mb-8">
-            <table className="w-full">
+          <div className="mb-4">
+            <table className="w-full" style={{ fontSize: '12px' }}>
               <thead>
                 <tr className="bg-gray-100 border-b-2 border-gray-300">
-                  <th className="px-4 py-3 text-left font-bold text-gray-700">Description</th>
-                  <th className="px-4 py-3 text-center font-bold text-gray-700">Qty</th>
-                  <th className="px-4 py-3 text-right font-bold text-gray-700">Unit Price</th>
-                  <th className="px-4 py-3 text-right font-bold text-gray-700">Total</th>
+                  <th className="px-3 py-2 text-left font-bold text-gray-700" style={{ fontSize: '12px' }}>Description</th>
+                  <th className="px-3 py-2 text-center font-bold text-gray-700" style={{ fontSize: '12px' }}>Qty</th>
+                  <th className="px-3 py-2 text-right font-bold text-gray-700" style={{ fontSize: '12px' }}>Unit Price</th>
+                  <th className="px-3 py-2 text-right font-bold text-gray-700" style={{ fontSize: '12px' }}>Total</th>
                 </tr>
               </thead>
               <tbody>
                 {items.filter(item => item.description).map((item, index) => (
                   <tr key={item.id} className="border-b border-gray-200">
-                    <td className="px-4 py-3 text-gray-700">{item.description}</td>
-                    <td className="px-4 py-3 text-center text-gray-700">{item.quantity}</td>
-                    <td className="px-4 py-3 text-right text-gray-700">SLE {item.unitPrice.toFixed(2)}</td>
-                    <td className="px-4 py-3 text-right font-semibold text-gray-900">SLE {item.total.toFixed(2)}</td>
+                    <td className="px-3 py-2 text-gray-700" style={{ fontSize: '11px' }}>{item.description}</td>
+                    <td className="px-3 py-2 text-center text-gray-700" style={{ fontSize: '11px' }}>{item.quantity}</td>
+                    <td className="px-3 py-2 text-right text-gray-700" style={{ fontSize: '11px' }}>SLE {item.unitPrice.toFixed(2)}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-gray-900" style={{ fontSize: '11px' }}>SLE {item.total.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -529,36 +578,36 @@ export default function ReceiptGenerator() {
           </div>
 
           {/* Totals */}
-          <div className="flex justify-end mb-8">
-            <div className="w-full md:w-1/2 space-y-3">
-              <div className="flex justify-between items-center pb-3 border-b border-gray-300">
-                <span className="text-lg font-semibold text-gray-700">Subtotal:</span>
-                <span className="text-lg font-bold text-gray-900">SLE {calculateSubtotal().toFixed(2)}</span>
+          <div className="flex justify-end mb-4">
+            <div className="w-full md:w-1/2 space-y-2">
+              <div className="flex justify-between items-center pb-2 border-b border-gray-300" style={{ fontSize: '13px' }}>
+                <span className="font-semibold text-gray-700">Subtotal:</span>
+                <span className="font-bold text-gray-900">SLE {calculateSubtotal().toFixed(2)}</span>
               </div>
-              <div className="flex justify-between items-center pb-3 border-b border-gray-300">
-                <span className="text-lg font-semibold text-gray-700">Amount Paid:</span>
-                <span className="text-lg font-bold text-green-600">SLE {amountPaid.toFixed(2)}</span>
+              <div className="flex justify-between items-center pb-2 border-b border-gray-300" style={{ fontSize: '13px' }}>
+                <span className="font-semibold text-gray-700">Amount Paid:</span>
+                <span className="font-bold text-green-600">SLE {amountPaid.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between items-center pt-3 bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg">
-                <span className="text-xl font-bold text-gray-900">Change:</span>
-                <span className="text-xl font-bold text-blue-600">SLE {calculateChange().toFixed(2)}</span>
+              <div className="flex justify-between items-center pt-2 bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded" style={{ fontSize: '14px' }}>
+                <span className="font-bold text-gray-900">Change:</span>
+                <span className="font-bold text-blue-600">SLE {calculateChange().toFixed(2)}</span>
               </div>
             </div>
           </div>
 
           {/* Notes */}
           {notes && (
-            <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <h3 className="font-bold text-gray-700 mb-2">Notes:</h3>
-              <p className="text-gray-600 whitespace-pre-wrap">{notes}</p>
+            <div className="mb-3 p-3 bg-gray-50 rounded border border-gray-200">
+              <h3 className="font-bold text-gray-700 mb-1" style={{ fontSize: '12px' }}>Notes:</h3>
+              <p className="text-gray-600 whitespace-pre-wrap" style={{ fontSize: '11px', lineHeight: '1.4' }}>{notes}</p>
             </div>
           )}
 
           {/* Footer */}
-          <div className="text-center pt-6 border-t-2 border-gray-300 space-y-2">
-            <p className="text-gray-600 font-semibold">Thank you for your business!</p>
-            <p className="text-sm text-gray-500">This is a computer-generated receipt</p>
-            <p className="text-sm text-gray-500">For support, call +232 33 399 391 or visit #1 Regent Highway Jui Junction</p>
+          <div className="text-center pt-3 border-t-2 border-gray-300 space-y-1">
+            <p className="text-gray-600 font-semibold" style={{ fontSize: '13px' }}>Thank you for your business!</p>
+            <p className="text-gray-500" style={{ fontSize: '10px' }}>This is a computer-generated receipt</p>
+            <p className="text-gray-500" style={{ fontSize: '10px', lineHeight: '1.3' }}>For support, call +232 33 399 391 or visit #1 Regent Highway Jui Junction</p>
           </div>
         </div>
       </div>
