@@ -508,11 +508,27 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
             </a>
             
             {/* Auto-refresh Indicator */}
-            <div className="flex items-center justify-center gap-3 text-gray-500">
+            <div className="flex items-center justify-center gap-3 text-gray-500 flex-wrap">
               <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span className="text-sm font-medium">Auto-updating every 30s</span>
               </div>
+              
+              {/* Receipt Generator Link */}
+              <a 
+                href="/receipt" 
+                className="flex items-center gap-1 text-xs text-gray-400 hover:text-purple-600 transition-colors px-2 py-1"
+                title="Admin Receipt Generator"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                Receipt
+              </a>
             </div>
             
             {/* Copyright */}
