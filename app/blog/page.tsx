@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
-import { ThumbsUp, ThumbsDown, MessageCircle, Calendar, User, Send } from 'lucide-react'
+import { ThumbsUp, ThumbsDown, MessageCircle, Calendar, User, Send, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { fetchBlogPosts, fetchPostComments } from '@/lib/github-blog-storage'
 
 interface Comment {
   id: string
@@ -45,26 +46,57 @@ export default function BlogPage() {
   useScrollAnimations()
 
   useEffect(() => {
-    // Load posts from localStorage
-    const savedPosts = localStorage.getItem('blog_posts')
-    if (savedPosts) {
-      const parsedPosts = JSON.parse(savedPosts)
-      // Convert date strings back to Date objects
-      const postsWithDates = parsedPosts.map((post: any) => ({
-        ...post,
-        comments: post.comments.map((comment: any) => ({
-          ...comment,
-          timestamp: new Date(comment.timestamp)
+    const loadPosts = async () => {
+      try {
+        // Try to load posts from GitHub Issues first
+        const githubPosts = await fetchBlogPosts()
+        
+        if (githubPosts.length > 0) {
+          // Load comments for each post from GitHub
+          const postsWithComments = await Promise.all(
+            githubPosts.map(async (post) => {
+              const comments = await fetchPostComments(parseInt(post.id))
+              return {
+                ...post,
+                comments: comments.map(c => ({
+                  id: c.id.toString(),
+                  author: c.author,
+                  content: c.content,
+                  timestamp: c.timestamp
+                }))
+              }
+            })
+          )
+          setPosts(postsWithComments)
+          // Also save to localStorage as cache
+          localStorage.setItem('blog_posts', JSON.stringify(postsWithComments))
+          return
+        }
+      } catch (error) {
+        console.error('Failed to load posts from GitHub:', error)
+        toast.error('Loading posts from local cache')
+      }
+
+      // Fallback to localStorage if GitHub fails
+      const savedPosts = localStorage.getItem('blog_posts')
+      if (savedPosts) {
+        const parsedPosts = JSON.parse(savedPosts)
+        // Convert date strings back to Date objects
+        const postsWithDates = parsedPosts.map((post: any) => ({
+          ...post,
+          comments: post.comments.map((comment: any) => ({
+            ...comment,
+            timestamp: new Date(comment.timestamp)
+          }))
         }))
-      }))
-      setPosts(postsWithDates)
-    } else {
-      // Initialize with sample posts
-      const samplePosts: BlogPost[] = [
-        {
-          id: '1',
-          title: '5 Signs Your Device Needs Professional Repair',
-          content: `Is your device acting up? Here are the top 5 signs that indicate it's time to bring your device in for professional repair:
+        setPosts(postsWithDates)
+      } else {
+        // Initialize with sample posts if nothing in localStorage
+        const samplePosts: BlogPost[] = [
+          {
+            id: '1',
+            title: '5 Signs Your Device Needs Professional Repair',
+            content: `Is your device acting up? Here are the top 5 signs that indicate it's time to bring your device in for professional repair:
 
 1. **Slow Performance** - If your device is significantly slower than usual, it might be a hardware issue.
 
@@ -77,16 +109,16 @@ export default function BlogPage() {
 5. **Strange Noises** - Unusual sounds often indicate hardware problems.
 
 Don't wait until it's too late! Contact us at +23233399391 for a free diagnosis.`,
-          author: 'IT Services Freetown',
-          date: '2025-10-15',
-          likes: 12,
-          dislikes: 1,
-          comments: []
-        },
-        {
-          id: '2',
-          title: 'How to Protect Your Data Before Repair',
-          content: `Before bringing your device for repair, follow these essential steps to protect your data:
+            author: 'IT Services Freetown',
+            date: '2025-10-15',
+            likes: 12,
+            dislikes: 1,
+            comments: []
+          },
+          {
+            id: '2',
+            title: 'How to Protect Your Data Before Repair',
+            content: `Before bringing your device for repair, follow these essential steps to protect your data:
 
 **Step 1: Backup Everything**
 Use cloud services or external drives to backup your important files, photos, and documents.
@@ -104,16 +136,19 @@ Write down any passwords or settings you might need later.
 Turn off Find My Device, screen locks, and encryption (you can re-enable after repair).
 
 At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Road or call +23233399391.`,
-          author: 'IT Services Freetown',
-          date: '2025-10-10',
-          likes: 8,
-          dislikes: 0,
-          comments: []
-        }
-      ]
-      setPosts(samplePosts)
-      localStorage.setItem('blog_posts', JSON.stringify(samplePosts))
+            author: 'IT Services Freetown',
+            date: '2025-10-10',
+            likes: 8,
+            dislikes: 0,
+            comments: []
+          }
+        ]
+        setPosts(samplePosts)
+        localStorage.setItem('blog_posts', JSON.stringify(samplePosts))
+      }
     }
+
+    loadPosts()
 
     // Load user votes from localStorage
     const savedVotes = localStorage.getItem('blog_votes')
@@ -125,6 +160,41 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
   const savePosts = (updatedPosts: BlogPost[]) => {
     localStorage.setItem('blog_posts', JSON.stringify(updatedPosts))
     setPosts(updatedPosts)
+  }
+
+  const refreshPosts = async () => {
+    try {
+      toast.loading('Refreshing posts from GitHub...')
+      const githubPosts = await fetchBlogPosts()
+      
+      if (githubPosts.length > 0) {
+        const postsWithComments = await Promise.all(
+          githubPosts.map(async (post) => {
+            const comments = await fetchPostComments(parseInt(post.id))
+            return {
+              ...post,
+              comments: comments.map(c => ({
+                id: c.id.toString(),
+                author: c.author,
+                content: c.content,
+                timestamp: c.timestamp
+              }))
+            }
+          })
+        )
+        setPosts(postsWithComments)
+        localStorage.setItem('blog_posts', JSON.stringify(postsWithComments))
+        toast.dismiss()
+        toast.success('✅ Posts refreshed from GitHub!')
+      } else {
+        toast.dismiss()
+        toast.error('No posts found on GitHub')
+      }
+    } catch (error) {
+      toast.dismiss()
+      toast.error('Failed to refresh posts from GitHub')
+      console.error('Refresh error:', error)
+    }
   }
 
   const handleLike = (postId: string) => {
@@ -259,7 +329,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
         </div>
 
         {/* Admin Link */}
-        <div className="mb-8 text-center scroll-animate">
+        <div className="mb-8 flex justify-center items-center gap-4 scroll-animate">
           <a 
             href="/blog/admin" 
             className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
@@ -271,6 +341,18 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
             <User className="w-4 h-4 mr-2" />
             Admin: Create New Post
           </a>
+          
+          <button
+            onClick={refreshPosts}
+            className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105 border-2"
+            style={{ 
+              borderColor: '#040e40',
+              color: '#040e40'
+            }}
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh Posts
+          </button>
         </div>
 
         {/* Blog Posts */}
