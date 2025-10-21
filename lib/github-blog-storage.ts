@@ -6,7 +6,11 @@
 
 const GITHUB_OWNER = 'ryanstewart047'
 const GITHUB_REPO = 'web-app-it-services-freetown'
-const GITHUB_TOKEN = process.env.NEXT_PUBLIC_GITHUB_TOKEN || '' // Optional: improves rate limits
+
+// GitHub token for API access
+// In development: reads from .env.local
+// In production: uses hardcoded token (protected by admin password)
+const GITHUB_TOKEN = process.env.NEXT_PUBLIC_GITHUB_TOKEN || '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'
 
 interface GitHubIssue {
   number: number
