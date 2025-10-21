@@ -700,8 +700,13 @@ function generateFallbackTroubleshootingResponse(context: TroubleshootingContext
  * Check if a message is related to repair tracking
  */
 export function isRepairTrackingQueryClient(message: string): boolean {
-  const trackingKeywords = ['track', 'tracking', 'status', 'repair status', 'order', 'trk-', 'where is my']
-  return trackingKeywords.some(keyword => message.toLowerCase().includes(keyword))
+  const trackingKeywords = ['track', 'tracking', 'status', 'repair status', 'order', 'trk-', 'its-', 'where is my']
+  const hasKeyword = trackingKeywords.some(keyword => message.toLowerCase().includes(keyword))
+  
+  // Also check if the message contains a tracking ID pattern
+  const hasTrackingId = extractTrackingIdClient(message) !== null
+  
+  return hasKeyword || hasTrackingId
 }
 
 /**
