@@ -7,6 +7,7 @@ import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
 import { ArrowLeft, Save, Eye, Upload, X, Image as ImageIcon, Video, Lock, Sparkles, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { createBlogPost } from '@/lib/github-blog-storage'
 
 interface MediaItem {
   id: string
@@ -77,7 +78,7 @@ export default function BlogAdminPage() {
     toast.success('Logged out successfully')
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!title.trim() || !content.trim()) {
@@ -85,6 +86,41 @@ export default function BlogAdminPage() {
       return
     }
 
+    try {
+      // Try to create post in GitHub Issues first
+      const result = await createBlogPost(
+        title.trim(),
+        content.trim(),
+        author.trim(),
+        media.length > 0 ? media : undefined
+      )
+
+      if (result.success) {
+        toast.success('✅ Blog post published to GitHub Issues!')
+        
+        // Reset form
+        setTitle('')
+        setContent('')
+        setMedia([])
+        setContentPrompt('')
+        
+        // Redirect to blog page after a short delay
+        setTimeout(() => {
+          router.push('/blog')
+        }, 1500)
+      } else {
+        // Fallback to localStorage if GitHub fails
+        toast.error(result.error || 'GitHub publish failed, saving locally...')
+        saveToLocalStorage()
+      }
+    } catch (error) {
+      console.error('Error publishing to GitHub:', error)
+      toast.error('Failed to publish to GitHub, saving locally...')
+      saveToLocalStorage()
+    }
+  }
+
+  const saveToLocalStorage = () => {
     // Load existing posts
     const savedPosts = localStorage.getItem('blog_posts')
     const posts: BlogPost[] = savedPosts ? JSON.parse(savedPosts) : []
@@ -108,7 +144,7 @@ export default function BlogAdminPage() {
     // Save to localStorage
     localStorage.setItem('blog_posts', JSON.stringify(posts))
 
-    toast.success('Blog post published successfully!')
+    toast.success('Blog post saved locally!')
     
     // Reset form
     setTitle('')
