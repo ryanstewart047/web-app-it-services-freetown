@@ -93,8 +93,37 @@ export default function ReceiptGenerator() {
   }
 
   const handleShareWhatsApp = () => {
-    const message = `*${receiptType === 'purchase' ? 'PURCHASE' : 'REPAIR'} RECEIPT*%0A%0A*IT Services Freetown*%0AReceipt No: ${receiptNumber}%0ADate: ${new Date(receiptDate).toLocaleDateString()}%0ACustomer: ${customerName}%0A%0ATotal: SLE ${calculateSubtotal().toFixed(2)}%0APaid: SLE ${amountPaid.toFixed(2)}%0AChange: SLE ${calculateChange().toFixed(2)}%0A%0AThank you for your business!%0A%0A#1 Regent Highway Jui Junction%0A+232 33 399 391`
-    window.open(`https://wa.me/?text=${message}`, '_blank')
+    // Simplified message to avoid URL length issues
+    const message = `*${receiptType === 'purchase' ? 'PURCHASE' : 'REPAIR'} RECEIPT*
+    
+*IT Services Freetown*
+Receipt #: ${receiptNumber}
+Date: ${new Date(receiptDate).toLocaleDateString()}
+Customer: ${customerName}
+
+Total: SLE ${calculateSubtotal().toFixed(2)}
+Paid: SLE ${amountPaid.toFixed(2)}
+Change: SLE ${calculateChange().toFixed(2)}
+
+Thank you for your business!
+📍 #1 Regent Highway Jui Junction
+📞 +232 33 399 391`
+
+    // Use Web Share API if available (mobile devices)
+    if (navigator.share) {
+      navigator.share({
+        title: `Receipt ${receiptNumber}`,
+        text: message,
+      }).catch((error) => {
+        // Fallback to WhatsApp Web if share fails
+        const encodedMessage = encodeURIComponent(message)
+        window.open(`https://api.whatsapp.com/send?text=${encodedMessage}`, '_blank')
+      })
+    } else {
+      // Desktop fallback - use WhatsApp Web
+      const encodedMessage = encodeURIComponent(message)
+      window.open(`https://api.whatsapp.com/send?text=${encodedMessage}`, '_blank')
+    }
   }
 
   const handleShareEmail = () => {
