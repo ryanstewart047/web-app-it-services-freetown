@@ -46,6 +46,8 @@ export default function BlogAdminPage() {
   const [generatingContent, setGeneratingContent] = useState(false)
   const [contentPrompt, setContentPrompt] = useState('')
   const [showAIHelper, setShowAIHelper] = useState(false)
+  const [publishProgress, setPublishProgress] = useState(0)
+  const [isPublishing, setIsPublishing] = useState(false)
 
   useScrollAnimations()
 
@@ -86,8 +88,16 @@ export default function BlogAdminPage() {
       return
     }
 
+    setIsPublishing(true)
+    setPublishProgress(0)
+
     try {
+      // Simulate progress stages
+      setPublishProgress(20)
+      await new Promise(resolve => setTimeout(resolve, 300))
+
       // Try to create post in GitHub Issues first
+      setPublishProgress(40)
       const result = await createBlogPost(
         title.trim(),
         content.trim(),
@@ -95,7 +105,11 @@ export default function BlogAdminPage() {
         media.length > 0 ? media : undefined
       )
 
+      setPublishProgress(80)
+      await new Promise(resolve => setTimeout(resolve, 300))
+
       if (result.success) {
+        setPublishProgress(100)
         toast.success('✅ Blog post published to GitHub Issues!')
         
         // Reset form
@@ -106,15 +120,21 @@ export default function BlogAdminPage() {
         
         // Redirect to blog page after a short delay
         setTimeout(() => {
+          setIsPublishing(false)
+          setPublishProgress(0)
           router.push('/blog')
-        }, 1500)
+        }, 1000)
       } else {
         // Fallback to localStorage if GitHub fails
+        setPublishProgress(0)
+        setIsPublishing(false)
         toast.error(result.error || 'GitHub publish failed, saving locally...')
         saveToLocalStorage()
       }
     } catch (error) {
       console.error('Error publishing to GitHub:', error)
+      setPublishProgress(0)
+      setIsPublishing(false)
       toast.error('Failed to publish to GitHub, saving locally...')
       saveToLocalStorage()
     }
@@ -605,23 +625,46 @@ Tips:
               )}
             </div>
 
+            {/* Publishing Progress Bar */}
+            {isPublishing && (
+              <div className="mb-6 scroll-animate">
+                <div className="bg-gray-100 rounded-full h-3 overflow-hidden shadow-inner">
+                  <div 
+                    className="h-full transition-all duration-500 ease-out rounded-full"
+                    style={{ 
+                      width: `${publishProgress}%`,
+                      background: 'linear-gradient(90deg, #ef4444 0%, #040e40 100%)'
+                    }}
+                  />
+                </div>
+                <p className="text-center text-sm text-gray-600 mt-2">
+                  {publishProgress < 40 ? 'Preparing post...' : 
+                   publishProgress < 80 ? 'Publishing to GitHub...' : 
+                   publishProgress < 100 ? 'Finalizing...' : 
+                   'Published successfully!'}
+                </p>
+              </div>
+            )}
+
             {/* Action Buttons */}
-            <div className="flex space-x-4">
+            <div className="flex gap-4">
               <button
                 type="button"
                 onClick={() => setPreview(true)}
-                className="flex-1 px-6 py-4 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-300 flex items-center justify-center"
+                disabled={isPublishing}
+                className="flex-1 px-6 py-4 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Eye className="w-5 h-5 mr-2" />
                 Preview
               </button>
               <button
                 type="submit"
-                className="flex-1 px-6 py-4 rounded-xl font-semibold text-white transition-all duration-300 hover:scale-105 shadow-lg flex items-center justify-center"
+                disabled={isPublishing}
+                className="flex-1 px-6 py-4 rounded-xl font-semibold text-white transition-all duration-300 hover:scale-105 shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 style={{ background: 'linear-gradient(135deg, #ef4444 0%, #040e40 100%)' }}
               >
                 <Save className="w-5 h-5 mr-2" />
-                Publish Post
+                {isPublishing ? 'Publishing...' : 'Publish Post'}
               </button>
             </div>
           </form>
