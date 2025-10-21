@@ -93,9 +93,9 @@ export default function ReceiptGenerator() {
   }
 
   const handleShareWhatsApp = () => {
-    // Simplified message to avoid URL length issues
+    // Create a simple, clean message
     const message = `*${receiptType === 'purchase' ? 'PURCHASE' : 'REPAIR'} RECEIPT*
-    
+
 *IT Services Freetown*
 Receipt #: ${receiptNumber}
 Date: ${new Date(receiptDate).toLocaleDateString()}
@@ -106,23 +106,19 @@ Paid: SLE ${amountPaid.toFixed(2)}
 Change: SLE ${calculateChange().toFixed(2)}
 
 Thank you for your business!
-📍 #1 Regent Highway Jui Junction
-📞 +232 33 399 391`
+#1 Regent Highway Jui Junction
++232 33 399 391`
 
-    // Use Web Share API if available (mobile devices)
-    if (navigator.share) {
-      navigator.share({
-        title: `Receipt ${receiptNumber}`,
-        text: message,
-      }).catch((error) => {
-        // Fallback to WhatsApp Web if share fails
-        const encodedMessage = encodeURIComponent(message)
-        window.open(`https://api.whatsapp.com/send?text=${encodedMessage}`, '_blank')
-      })
-    } else {
-      // Desktop fallback - use WhatsApp Web
-      const encodedMessage = encodeURIComponent(message)
-      window.open(`https://api.whatsapp.com/send?text=${encodedMessage}`, '_blank')
+    // Direct WhatsApp link - works on both mobile and desktop
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`
+    
+    // Open in new window
+    const newWindow = window.open(whatsappUrl, '_blank', 'noopener,noreferrer')
+    
+    // Check if popup was blocked
+    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+      // If blocked, try direct navigation
+      window.location.href = whatsappUrl
     }
   }
 
