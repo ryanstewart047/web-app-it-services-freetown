@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
-import { ThumbsUp, ThumbsDown, MessageCircle, Calendar, User, Send, RefreshCw } from 'lucide-react'
+import { ThumbsUp, ThumbsDown, MessageCircle, Calendar, User, Send } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { fetchBlogPosts, fetchPostComments } from '@/lib/github-blog-storage'
 
@@ -74,7 +74,6 @@ export default function BlogPage() {
         }
       } catch (error) {
         console.error('Failed to load posts from GitHub:', error)
-        toast.error('Loading posts from local cache')
       }
 
       // Fallback to localStorage if GitHub fails
@@ -148,53 +147,27 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
       }
     }
 
+    // Load posts immediately
     loadPosts()
+
+    // Auto-refresh posts every 30 seconds
+    const refreshInterval = setInterval(() => {
+      loadPosts()
+    }, 30000) // 30 seconds
 
     // Load user votes from localStorage
     const savedVotes = localStorage.getItem('blog_votes')
     if (savedVotes) {
       setUserVotes(JSON.parse(savedVotes))
     }
+
+    // Cleanup interval on unmount
+    return () => clearInterval(refreshInterval)
   }, [])
 
   const savePosts = (updatedPosts: BlogPost[]) => {
     localStorage.setItem('blog_posts', JSON.stringify(updatedPosts))
     setPosts(updatedPosts)
-  }
-
-  const refreshPosts = async () => {
-    try {
-      toast.loading('Refreshing posts from GitHub...')
-      const githubPosts = await fetchBlogPosts()
-      
-      if (githubPosts.length > 0) {
-        const postsWithComments = await Promise.all(
-          githubPosts.map(async (post) => {
-            const comments = await fetchPostComments(parseInt(post.id))
-            return {
-              ...post,
-              comments: comments.map(c => ({
-                id: c.id.toString(),
-                author: c.author,
-                content: c.content,
-                timestamp: c.timestamp
-              }))
-            }
-          })
-        )
-        setPosts(postsWithComments)
-        localStorage.setItem('blog_posts', JSON.stringify(postsWithComments))
-        toast.dismiss()
-        toast.success('✅ Posts refreshed successfully')
-      } else {
-        toast.dismiss()
-        toast.error('No posts found on GitHub')
-      }
-    } catch (error) {
-      toast.dismiss()
-      toast.error('Failed to refresh posts from GitHub')
-      console.error('Refresh error:', error)
-    }
   }
 
   const handleLike = (postId: string) => {
@@ -326,33 +299,6 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Stay updated with the latest tech tips, repair guides, and device care advice
           </p>
-        </div>
-
-        {/* Admin Link */}
-        <div className="mb-8 flex justify-center items-center gap-4 scroll-animate">
-          <a 
-            href="/blog/admin" 
-            className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
-            style={{ 
-              background: 'linear-gradient(135deg, #040e40 0%, #ef4444 100%)',
-              color: 'white'
-            }}
-          >
-            <User className="w-4 h-4 mr-2" />
-            Admin: Create New Post
-          </a>
-          
-          <button
-            onClick={refreshPosts}
-            className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105 border-2"
-            style={{ 
-              borderColor: '#040e40',
-              color: '#040e40'
-            }}
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh Posts
-          </button>
         </div>
 
         {/* Blog Posts */}
@@ -510,6 +456,24 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
               </article>
             ))
           )}
+        </div>
+
+        {/* Footer with Admin Link */}
+        <div className="mt-16 pt-8 border-t border-gray-200 text-center scroll-animate">
+          <a 
+            href="/blog/admin" 
+            className="inline-flex items-center px-6 py-3 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105 shadow-lg"
+            style={{ 
+              background: 'linear-gradient(135deg, #040e40 0%, #ef4444 100%)',
+              color: 'white'
+            }}
+          >
+            <User className="w-5 h-5 mr-2" />
+            Admin: Create New Post
+          </a>
+          <p className="text-gray-500 text-sm mt-4">
+            Posts automatically refresh from GitHub Issues
+          </p>
         </div>
       </div>
     </div>
