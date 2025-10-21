@@ -37,6 +37,7 @@ export default function Navbar() {
             <Link href="/track-repair" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Track Repair</Link>
             <Link href="/troubleshoot" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Troubleshoot</Link>
             <Link href="/chat" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Chat Support</Link>
+            <Link href="/blog" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Blog</Link>
             <Link href="/social" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Social</Link>
             
             <Link href="/book-appointment" className="btn-primary text-sm px-4 py-2">Book Now</Link>
@@ -61,6 +62,7 @@ export default function Navbar() {
             <Link href="/track-repair" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Track Repair</Link>
             <Link href="/troubleshoot" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Troubleshoot</Link>
             <Link href="/chat" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Chat Support</Link>
+            <Link href="/blog" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Blog</Link>
             <Link href="/social" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Social</Link>
             
             <Link href="/book-appointment" className="btn-primary text-sm px-4 py-2 w-full text-center mt-4" onClick={closeMobileMenu}>Book Now</Link>
