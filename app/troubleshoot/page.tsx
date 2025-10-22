@@ -9,6 +9,7 @@ import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
 import { openChatFloat } from '@/lib/chat-float-controller'
 import { generateTroubleshootingResponseClient, isStaticDeployment } from '@/lib/groq-ai-client'
+import { DisplayAd, InArticleAd } from '@/components/AdSense'
 
 interface TroubleshootingStep {
   id: string
@@ -234,6 +235,11 @@ export default function Troubleshoot() {
           </p>
         </div>
 
+        {/* Top Ad */}
+        <div className="mb-8">
+          <DisplayAd />
+        </div>
+
         {/* Troubleshooting Form */}
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -374,6 +380,11 @@ export default function Troubleshoot() {
         {/* AI Response */}
         {aiResponse && (
           <div className="space-y-8">
+            {/* In-Article Ad before diagnosis */}
+            <div className="my-6">
+              <InArticleAd />
+            </div>
+
             {/* Diagnosis Overview */}
             <div className="bg-white rounded-lg shadow-lg p-8">
               <div className="flex items-center mb-6">
