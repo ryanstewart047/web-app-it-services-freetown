@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Lock, Printer, Download, Plus, Trash2, Save, FileText } from 'lucide-react'
+import { Lock, Printer, Download, Plus, Trash2, Save, FileText, Search, History } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 
@@ -12,6 +12,22 @@ interface ReceiptItem {
   quantity: number
   unitPrice: number
   total: number
+}
+
+interface SavedReceipt {
+  receiptNumber: string
+  receiptType: 'purchase' | 'repair'
+  customerName: string
+  customerPhone: string
+  customerEmail: string
+  receiptDate: string
+  items: ReceiptItem[]
+  notes: string
+  paymentMethod: string
+  amountPaid: number
+  subtotal: number
+  change: number
+  createdAt: string
 }
 
 export default function ReceiptGenerator() {
@@ -36,6 +52,125 @@ export default function ReceiptGenerator() {
   const [notes, setNotes] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('Cash')
   const [amountPaid, setAmountPaid] = useState(0)
+
+  // Receipt storage and search
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showSearchResults, setShowSearchResults] = useState(false)
+  const [searchResults, setSearchResults] = useState<SavedReceipt[]>([])
+  const [allReceipts, setAllReceipts] = useState<SavedReceipt[]>([])
+  const [showHistory, setShowHistory] = useState(false)
+
+  // Load all receipts on mount
+  useEffect(() => {
+    loadAllReceipts()
+  }, [])
+
+  const loadAllReceipts = () => {
+    const saved = localStorage.getItem('saved_receipts')
+    if (saved) {
+      const receipts = JSON.parse(saved)
+      setAllReceipts(receipts)
+    }
+  }
+
+  const saveReceipt = () => {
+    const receipt: SavedReceipt = {
+      receiptNumber,
+      receiptType,
+      customerName,
+      customerPhone,
+      customerEmail,
+      receiptDate,
+      items: items.filter(item => item.description), // Only save items with descriptions
+      notes,
+      paymentMethod,
+      amountPaid,
+      subtotal: calculateSubtotal(),
+      change: calculateChange(),
+      createdAt: new Date().toISOString()
+    }
+
+    // Get existing receipts
+    const saved = localStorage.getItem('saved_receipts')
+    let receipts: SavedReceipt[] = saved ? JSON.parse(saved) : []
+
+    // Check if receipt number already exists
+    const existingIndex = receipts.findIndex(r => r.receiptNumber === receiptNumber)
+    
+    if (existingIndex >= 0) {
+      // Update existing receipt
+      receipts[existingIndex] = receipt
+      alert(`Receipt ${receiptNumber} updated!`)
+    } else {
+      // Add new receipt
+      receipts.push(receipt)
+      alert(`Receipt ${receiptNumber} saved successfully!`)
+    }
+
+    // Save to localStorage
+    localStorage.setItem('saved_receipts', JSON.stringify(receipts))
+    loadAllReceipts()
+  }
+
+  const searchReceipts = () => {
+    if (!searchQuery.trim()) {
+      alert('Please enter a receipt number to search')
+      return
+    }
+
+    const saved = localStorage.getItem('saved_receipts')
+    if (!saved) {
+      alert('No saved receipts found')
+      return
+    }
+
+    const receipts: SavedReceipt[] = JSON.parse(saved)
+    const results = receipts.filter(receipt => 
+      receipt.receiptNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      receipt.customerName.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+
+    if (results.length === 0) {
+      alert(`No receipts found matching "${searchQuery}"`)
+      setShowSearchResults(false)
+    } else {
+      setSearchResults(results)
+      setShowSearchResults(true)
+    }
+  }
+
+  const loadReceipt = (receipt: SavedReceipt) => {
+    setReceiptNumber(receipt.receiptNumber)
+    setReceiptType(receipt.receiptType)
+    setCustomerName(receipt.customerName)
+    setCustomerPhone(receipt.customerPhone)
+    setCustomerEmail(receipt.customerEmail)
+    setReceiptDate(receipt.receiptDate)
+    setItems(receipt.items)
+    setNotes(receipt.notes)
+    setPaymentMethod(receipt.paymentMethod)
+    setAmountPaid(receipt.amountPaid)
+    setShowSearchResults(false)
+    setShowHistory(false)
+    alert(`Receipt ${receipt.receiptNumber} loaded!`)
+  }
+
+  const deleteReceipt = (receiptNumber: string) => {
+    if (!confirm(`Are you sure you want to delete receipt ${receiptNumber}?`)) {
+      return
+    }
+
+    const saved = localStorage.getItem('saved_receipts')
+    if (!saved) return
+
+    const receipts: SavedReceipt[] = JSON.parse(saved)
+    const filtered = receipts.filter(r => r.receiptNumber !== receiptNumber)
+    
+    localStorage.setItem('saved_receipts', JSON.stringify(filtered))
+    loadAllReceipts()
+    setSearchResults(searchResults.filter(r => r.receiptNumber !== receiptNumber))
+    alert(`Receipt ${receiptNumber} deleted!`)
+  }
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
@@ -181,6 +316,9 @@ Thank you for your business!
       
       pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
       
+      // Save receipt before downloading PDF
+      saveReceipt()
+      
       // Download the PDF
       pdf.save(`Receipt_${receiptNumber}_${customerName.replace(/\s+/g, '_')}.pdf`)
 
@@ -242,6 +380,11 @@ Thank you for your business!
   }
 
   const handleNewReceipt = () => {
+    // Save current receipt before creating new one
+    if (customerName && items.some(item => item.description)) {
+      saveReceipt()
+    }
+    
     setReceiptNumber(`RCP-${Date.now().toString().slice(-6)}`)
     setReceiptDate(new Date().toISOString().split('T')[0])
     setCustomerName('')
@@ -368,6 +511,12 @@ Thank you for your business!
           table {
             page-break-inside: avoid;
           }
+          
+          /* Remove link styling in print */
+          .no-print-link {
+            pointer-events: none;
+            text-decoration: none !important;
+          }
         }
       `}</style>
 
@@ -375,12 +524,117 @@ Thank you for your business!
       <div className="no-print">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-900 to-purple-900 bg-clip-text text-transparent mb-2">
-              Receipt Generator
-            </h1>
-            <p className="text-gray-600">Create professional receipts for purchases and repairs</p>
+          <div className="mb-8 flex items-center gap-4">
+            <a href="/" className="flex-shrink-0 hover:opacity-80 transition-opacity" title="Back to Homepage">
+              <img 
+                src="/assets/logo.png" 
+                alt="IT Services Freetown" 
+                className="h-12 w-auto"
+              />
+            </a>
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-900 to-purple-900 bg-clip-text text-transparent mb-2">
+                Receipt Generator
+              </h1>
+              <p className="text-gray-600">Create professional receipts for purchases and repairs</p>
+            </div>
           </div>
+
+          {/* Search Bar */}
+          <div className="mb-6 bg-white rounded-xl shadow-md p-4">
+            <div className="flex flex-col md:flex-row gap-3">
+              <div className="flex-1 flex gap-2">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && searchReceipts()}
+                  placeholder="Search by receipt number or customer name..."
+                  className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <button
+                  onClick={searchReceipts}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
+                >
+                  <Search className="w-5 h-5" />
+                  Search
+                </button>
+              </div>
+              <button
+                onClick={() => {
+                  setShowHistory(!showHistory)
+                  setShowSearchResults(false)
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all"
+              >
+                <History className="w-5 h-5" />
+                All Receipts ({allReceipts.length})
+              </button>
+            </div>
+          </div>
+
+          {/* Search Results */}
+          {(showSearchResults || showHistory) && (
+            <div className="mb-6 bg-white rounded-xl shadow-lg p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-900">
+                  {showHistory ? `All Receipts (${allReceipts.length})` : `Search Results (${searchResults.length})`}
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowSearchResults(false)
+                    setShowHistory(false)
+                    setSearchQuery('')
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕ Close
+                </button>
+              </div>
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {(showHistory ? allReceipts : searchResults).map((receipt) => (
+                  <div key={receipt.receiptNumber} className="border-2 border-gray-200 rounded-lg p-4 hover:border-blue-400 transition-all">
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="font-bold text-lg text-blue-600">{receipt.receiptNumber}</span>
+                          <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                            receipt.receiptType === 'purchase' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
+                          }`}>
+                            {receipt.receiptType.toUpperCase()}
+                          </span>
+                        </div>
+                        <p className="text-gray-700"><span className="font-semibold">Customer:</span> {receipt.customerName}</p>
+                        <p className="text-gray-600 text-sm"><span className="font-semibold">Phone:</span> {receipt.customerPhone}</p>
+                        <p className="text-gray-600 text-sm"><span className="font-semibold">Date:</span> {new Date(receipt.receiptDate).toLocaleDateString()}</p>
+                        <p className="text-gray-700 font-semibold mt-2">Total: SLE {receipt.subtotal.toFixed(2)}</p>
+                        <p className="text-gray-500 text-xs mt-1">Created: {new Date(receipt.createdAt).toLocaleString()}</p>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => loadReceipt(receipt)}
+                          className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-all"
+                        >
+                          Load
+                        </button>
+                        <button
+                          onClick={() => deleteReceipt(receipt.receiptNumber)}
+                          className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition-all"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {(showHistory ? allReceipts : searchResults).length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No receipts found</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="mb-6 flex flex-wrap gap-3">
@@ -390,6 +644,13 @@ Thank you for your business!
             >
               <Plus className="w-5 h-5" />
               New Receipt
+            </button>
+            <button
+              onClick={saveReceipt}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-md"
+            >
+              <Save className="w-5 h-5" />
+              Save Receipt
             </button>
             <button
               onClick={handleDownloadPDF}
@@ -663,12 +924,14 @@ Thank you for your business!
           {/* Header with Logo */}
           <div className="text-center mb-4 pb-4 border-b-2 border-gray-300">
             <div className="flex justify-center mb-4">
-              <img 
-                src="/assets/logo.png" 
-                alt="IT Services Freetown" 
-                className="h-20 w-auto"
-                style={{ maxHeight: '80px' }}
-              />
+              <a href="/" className="inline-block hover:opacity-80 transition-opacity no-print-link">
+                <img 
+                  src="/assets/logo.png" 
+                  alt="IT Services Freetown" 
+                  className="h-20 w-auto"
+                  style={{ maxHeight: '80px' }}
+                />
+              </a>
             </div>
             <div className="space-y-1 text-gray-700" style={{ fontSize: '15px', lineHeight: '1.6', fontWeight: '500' }}>
               <p className="font-bold text-lg" style={{ fontSize: '16px' }}>#1 Regent Highway Jui Junction, Freetown</p>
