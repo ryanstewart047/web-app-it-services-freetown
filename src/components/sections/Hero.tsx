@@ -7,6 +7,7 @@ import Image from 'next/image'
 export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [counters, setCounters] = useState({ customers: 0, hours: 0, success: 0 })
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Your custom uploaded images for IT Services Freetown
   const slides = [
@@ -86,6 +87,15 @@ export default function Hero() {
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index)
+  }
+
+  const refreshSlides = () => {
+    setIsRefreshing(true)
+    // Shuffle to a random slide
+    const randomSlide = Math.floor(Math.random() * slides.length)
+    setCurrentSlide(randomSlide)
+    // Reset refreshing state after animation
+    setTimeout(() => setIsRefreshing(false), 500)
   }
 
   return (
@@ -175,6 +185,17 @@ export default function Hero() {
                   />
                 ))}
               </div>
+              
+              {/* Refresh Button */}
+              <button 
+                className={`absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all duration-300 ${
+                  isRefreshing ? 'animate-spin' : ''
+                }`}
+                onClick={refreshSlides}
+                title="Refresh slides"
+              >
+                <i className="fas fa-sync-alt text-white"></i>
+              </button>
               
               {/* Navigation Arrows */}
               <button 
