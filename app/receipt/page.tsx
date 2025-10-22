@@ -544,58 +544,71 @@ Thank you for your business!
                 </button>
               </div>
 
-              <div className="space-y-3">
-                {items.map((item, index) => (
-                  <div key={item.id} className="grid grid-cols-12 gap-3 items-center bg-gray-50 p-3 rounded-lg">
-                    <div className="col-span-5">
-                      <input
-                        type="text"
-                        value={item.description}
-                        onChange={(e) => updateItem(item.id, 'description', e.target.value)}
-                        placeholder="Item description"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      />
+              {/* Mobile: Show scroll hint */}
+              <div className="md:hidden text-xs text-gray-500 mb-2 flex items-center gap-1">
+                <span>← Swipe to see all fields →</span>
+              </div>
+
+              {/* Scrollable container for mobile */}
+              <div className="overflow-x-auto -mx-2 px-2 pb-2">
+                <div className="space-y-3 min-w-[640px] md:min-w-0">
+                  {items.map((item, index) => (
+                    <div key={item.id} className="grid grid-cols-12 gap-3 items-center bg-gray-50 p-3 rounded-lg">
+                      <div className="col-span-5">
+                        <label className="text-xs text-gray-600 mb-1 block md:hidden">Description</label>
+                        <input
+                          type="text"
+                          value={item.description}
+                          onChange={(e) => updateItem(item.id, 'description', e.target.value)}
+                          placeholder="Item description"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="text-xs text-gray-600 mb-1 block md:hidden">Qty</label>
+                        <input
+                          type="number"
+                          value={item.quantity}
+                          onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 1)}
+                          min="1"
+                          placeholder="Qty"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="text-xs text-gray-600 mb-1 block md:hidden">Price</label>
+                        <input
+                          type="number"
+                          value={item.unitPrice}
+                          onChange={(e) => updateItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                          min="0"
+                          step="0.01"
+                          placeholder="Price"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="text-xs text-gray-600 mb-1 block md:hidden">Total</label>
+                        <input
+                          type="text"
+                          value={`SLE ${item.total.toFixed(2)}`}
+                          readOnly
+                          className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg font-semibold text-sm"
+                        />
+                      </div>
+                      <div className="col-span-1">
+                        <label className="text-xs text-gray-600 mb-1 block md:hidden opacity-0">Del</label>
+                        <button
+                          onClick={() => removeItem(item.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all w-full"
+                          disabled={items.length === 1}
+                        >
+                          <Trash2 className="w-5 h-5 mx-auto" />
+                        </button>
+                      </div>
                     </div>
-                    <div className="col-span-2">
-                      <input
-                        type="number"
-                        value={item.quantity}
-                        onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 1)}
-                        min="1"
-                        placeholder="Qty"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <input
-                        type="number"
-                        value={item.unitPrice}
-                        onChange={(e) => updateItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
-                        min="0"
-                        step="0.01"
-                        placeholder="Price"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <input
-                        type="text"
-                        value={`SLE ${item.total.toFixed(2)}`}
-                        readOnly
-                        className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg font-semibold"
-                      />
-                    </div>
-                    <div className="col-span-1">
-                      <button
-                        onClick={() => removeItem(item.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                        disabled={items.length === 1}
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
 
