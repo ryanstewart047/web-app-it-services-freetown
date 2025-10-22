@@ -139,13 +139,33 @@ Thank you for your business!
       const btn = document.activeElement as HTMLButtonElement
       if (btn) btn.textContent = 'Generating PDF...'
 
+      // Store original styles
+      const originalOverflow = document.body.style.overflow
+      const originalWidth = receiptElement.style.width
+      const originalMaxWidth = receiptElement.style.maxWidth
+      
+      // Temporarily set styles for full capture
+      document.body.style.overflow = 'visible'
+      receiptElement.style.width = '800px' // Fixed width for consistent PDF
+      receiptElement.style.maxWidth = 'none'
+      
+      // Wait a bit for layout to settle
+      await new Promise(resolve => setTimeout(resolve, 100))
+
       // Capture the receipt as canvas
       const canvas = await html2canvas(receiptElement, {
         scale: 2, // Higher quality
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        width: 800, // Fixed width
+        windowWidth: 800
       })
+
+      // Restore original styles
+      document.body.style.overflow = originalOverflow
+      receiptElement.style.width = originalWidth
+      receiptElement.style.maxWidth = originalMaxWidth
 
       // Create PDF
       const imgData = canvas.toDataURL('image/png')
@@ -169,6 +189,14 @@ Thank you for your business!
     } catch (error) {
       console.error('Error generating PDF:', error)
       alert('Failed to generate PDF. Please try again.')
+      
+      // Make sure to restore styles even on error
+      const receiptElement = document.getElementById('receipt-print-area')
+      if (receiptElement) {
+        receiptElement.style.width = ''
+        receiptElement.style.maxWidth = ''
+      }
+      document.body.style.overflow = ''
     }
   }
 
