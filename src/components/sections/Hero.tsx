@@ -7,128 +7,40 @@ import Image from 'next/image'
 export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [counters, setCounters] = useState({ customers: 0, hours: 0, success: 0 })
-  const [slides, setSlides] = useState<Array<{ src: string; alt: string }>>([])
-  const [isRefreshing, setIsRefreshing] = useState(false)
 
-  // Handpicked images specifically for IT Services Freetown's vision
-  const imagePool = [
-    // Computer Repair & Hardware
+  // Your custom uploaded images for IT Services Freetown
+  const slides = [
     {
-      src: "https://images.pexels.com/photos/3825582/pexels-photo-3825582.jpeg?auto=compress&cs=tinysrgb&w=1200",
-      alt: "Professional technician repairing computer motherboard - Expert hardware diagnostics"
+      src: "/assets/images/slide01.jpg",
+      alt: "IT Services Freetown - Professional Computer and Mobile Repair Services"
     },
     {
-      src: "https://images.pexels.com/photos/4144923/pexels-photo-4144923.jpeg?auto=compress&cs=tinysrgb&w=1200",
-      alt: "Computer repair workstation with diagnostic tools - Professional IT services"
+      src: "/assets/images/slide02.jpg",
+      alt: "Expert Phone Repair and Mobile Device Services in Freetown"
     },
     {
-      src: "https://images.pexels.com/photos/5380664/pexels-photo-5380664.jpeg?auto=compress&cs=tinysrgb&w=1200",
-      alt: "Laptop hardware repair and upgrade services - Expert computer maintenance"
-    },
-    
-    // Mobile Device Repair
-    {
-      src: "https://images.pexels.com/photos/4350276/pexels-photo-4350276.jpeg?auto=compress&cs=tinysrgb&w=1200",
-      alt: "Mobile phone repair and unlocking services - Screen replacement specialists"
+      src: "/assets/images/slide03.jpg",
+      alt: "Quality IT Solutions and Technology Services"
     },
     {
-      src: "https://images.pexels.com/photos/6804595/pexels-photo-6804595.jpeg?auto=compress&cs=tinysrgb&w=1200",
-      alt: "Smartphone screen replacement and mobile repair services"
+      src: "/assets/images/slider001.jpg",
+      alt: "Professional IT Support and Computer Maintenance"
     },
     {
-      src: "https://images.pexels.com/photos/3861972/pexels-photo-3861972.jpeg?auto=compress&cs=tinysrgb&w=1200",
-      alt: "Mobile device motherboard repair - Advanced smartphone diagnostics"
-    },
-    
-    // Web Development & Programming
-    {
-      src: "https://images.pexels.com/photos/270348/pexels-photo-270348.jpeg?auto=compress&cs=tinysrgb&w=1200",
-      alt: "Web development coding workspace - Custom website design and development"
+      src: "/assets/images/iphone-repair.jpg",
+      alt: "iPhone and Smartphone Repair Specialists"
     },
     {
-      src: "https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg?auto=compress&cs=tinysrgb&w=1200",
-      alt: "Professional web developer coding responsive websites"
-    },
-    {
-      src: "https://images.pexels.com/photos/574071/pexels-photo-574071.jpeg?auto=compress&cs=tinysrgb&w=1200",
-      alt: "Modern web development setup - E-commerce and business websites"
-    },
-    
-    // Graphic Design & Digital Services
-    {
-      src: "https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=1200",
-      alt: "Graphic design workspace - Logo design and brand identity services"
-    },
-    {
-      src: "https://images.pexels.com/photos/265685/pexels-photo-265685.jpeg?auto=compress&cs=tinysrgb&w=1200",
-      alt: "Creative graphic design studio - Digital marketing and branding"
-    },
-    
-    // Networking & IT Infrastructure
-    {
-      src: "https://images.pexels.com/photos/442150/pexels-photo-442150.jpeg?auto=compress&cs=tinysrgb&w=1200",
-      alt: "Network server maintenance - IT infrastructure and system administration"
-    },
-    {
-      src: "https://images.pexels.com/photos/1148820/pexels-photo-1148820.jpeg?auto=compress&cs=tinysrgb&w=1200",
-      alt: "Network cables and IT infrastructure setup - Professional networking services"
-    },
-    
-    // Data Recovery & Security
-    {
-      src: "https://images.pexels.com/photos/60504/security-protection-anti-virus-software-60504.jpeg?auto=compress&cs=tinysrgb&w=1200",
-      alt: "Data security and recovery services - Cybersecurity solutions"
-    },
-    {
-      src: "https://images.pexels.com/photos/1089438/pexels-photo-1089438.jpeg?auto=compress&cs=tinysrgb&w=1200",
-      alt: "Hard drive data recovery - Professional data restoration services"
-    },
-    
-    // Business IT Solutions
-    {
-      src: "https://images.pexels.com/photos/3568520/pexels-photo-3568520.jpeg?auto=compress&cs=tinysrgb&w=1200",
-      alt: "Business IT support and consultation - Enterprise technology solutions"
-    },
-    {
-      src: "https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?auto=compress&cs=tinysrgb&w=1200",
-      alt: "Circuit board analysis - Advanced electronic repair and diagnostics"
+      src: "/assets/images/mobile-unlock1.jpg",
+      alt: "Mobile Phone Unlocking and Network Services"
     }
   ]
 
-  // Function to get random unique slides
-  const getRandomSlides = (count: number = 3) => {
-    const shuffled = [...imagePool].sort(() => Math.random() - 0.5)
-    return shuffled.slice(0, count)
-  }
-
-  // Initialize random slides on component mount
+  // Auto-advance slides every 5 seconds
   useEffect(() => {
-    setSlides(getRandomSlides(3))
-  }, [])
-
-  // Auto-refresh slides with new random images every 30 seconds
-  useEffect(() => {
-    const autoRefreshInterval = setInterval(() => {
-      setIsRefreshing(true)
-      
-      // Add a slight delay for visual effect
-      setTimeout(() => {
-        setSlides(getRandomSlides(3))
-        setCurrentSlide(0) // Reset to first slide when refreshing
-        setIsRefreshing(false)
-      }, 500)
-    }, 30000) // 30 seconds
-
-    return () => clearInterval(autoRefreshInterval)
-  }, [])
-
-  // Auto-advance slides
-  useEffect(() => {
-    if (slides.length === 0) return
-    
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length)
-    }, 5000)
+    }, 5000) // 5 seconds
     return () => clearInterval(interval)
   }, [slides.length])
 
@@ -174,16 +86,6 @@ export default function Hero() {
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index)
-  }
-
-  const refreshSlides = () => {
-    setIsRefreshing(true)
-    
-    setTimeout(() => {
-      setSlides(getRandomSlides(3))
-      setCurrentSlide(0)
-      setIsRefreshing(false)
-    }, 500)
   }
 
   return (
@@ -240,91 +142,54 @@ export default function Hero() {
           
           {/* Right Side - Image Slider */}
           <div className="relative">
-            {slides.length > 0 && (
-              <div className={`image-slider-container relative w-full h-96 lg:h-[500px] rounded-2xl overflow-hidden transition-all duration-500 ${isRefreshing ? 'opacity-75 scale-95' : 'opacity-100 scale-100'}`}>
-                {/* Auto-refresh indicator */}
-                {isRefreshing && (
-                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center z-10">
-                    <div className="bg-white/90 rounded-full px-4 py-2 flex items-center space-x-2">
-                      <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                      <span className="text-sm font-medium text-gray-700">Loading new images...</span>
-                    </div>
-                  </div>
-                )}
-                
-                {slides.map((slide, index) => (
-                  <div
-                    key={`${slide.src}-${index}`}
-                    className={`image-slide absolute inset-0 transition-opacity duration-1000 ${
-                      index === currentSlide ? 'opacity-100' : 'opacity-0'
-                    }`}
-                  >
-                    <Image
-                      src={slide.src}
-                      alt={slide.alt}
-                      fill
-                      sizes="100vw"
-                      className="object-cover"
-                      priority={index === 0}
-                    />
-                  </div>
-                ))}
-                
-                {/* Navigation Dots */}
-                <div className="absolute bottom-4 right-4 flex space-x-2 items-center">
+            <div className="image-slider-container relative w-full h-96 lg:h-[500px] rounded-2xl overflow-hidden">
+              {slides.map((slide, index) => (
+                <div
+                  key={`${slide.src}-${index}`}
+                  className={`image-slide absolute inset-0 transition-opacity duration-1000 ${
+                    index === currentSlide ? 'opacity-100' : 'opacity-0'
+                  }`}
+                >
+                  <Image
+                    src={slide.src}
+                    alt={slide.alt}
+                    fill
+                    sizes="100vw"
+                    className="object-cover"
+                    priority={index === 0}
+                  />
+                </div>
+              ))}
+              
+              {/* Navigation Dots */}
+              <div className="absolute bottom-4 right-4 flex space-x-2 items-center">
+                {slides.map((_, index) => (
                   <button
-                    className={`w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all duration-300 group ${isRefreshing ? 'animate-spin' : ''}`}
-                    onClick={refreshSlides}
-                    disabled={isRefreshing}
-                    title="Get new random images"
-                  >
-                    <i className="fas fa-refresh text-white text-sm group-hover:rotate-180 transition-transform duration-300"></i>
-                  </button>
-                  
-                  {/* Auto-refresh timer indicator */}
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" title="Auto-refresh active"></div>
-                  
-                  {slides.map((_, index) => (
-                    <button
-                      key={index}
-                      className={`slider-dot w-3 h-3 rounded-full transition-all duration-300 ${
-                        index === currentSlide 
-                          ? 'bg-white shadow-lg' 
-                          : 'bg-white/50 hover:bg-white/75'
-                      }`}
-                      onClick={() => goToSlide(index)}
-                      disabled={isRefreshing}
-                    />
-                  ))}
-                </div>
-                
-                {/* Navigation Arrows */}
-                <button 
-                  className="slider-arrow slider-prev absolute left-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all duration-300 disabled:opacity-50"
-                  onClick={prevSlide}
-                  disabled={isRefreshing}
-                >
-                  <i className="fas fa-chevron-left text-white"></i>
-                </button>
-                <button 
-                  className="slider-arrow slider-next absolute right-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all duration-300 disabled:opacity-50"
-                  onClick={nextSlide}
-                  disabled={isRefreshing}
-                >
-                  <i className="fas fa-chevron-right text-white"></i>
-                </button>
+                    key={index}
+                    className={`slider-dot w-3 h-3 rounded-full transition-all duration-300 ${
+                      index === currentSlide 
+                        ? 'bg-white shadow-lg' 
+                        : 'bg-white/50 hover:bg-white/75'
+                    }`}
+                    onClick={() => goToSlide(index)}
+                  />
+                ))}
               </div>
-            )}
-            
-            {/* Loading placeholder while slides are being randomized */}
-            {slides.length === 0 && (
-              <div className="w-full h-96 lg:h-[500px] rounded-2xl bg-gray-300 animate-pulse flex items-center justify-center">
-                <div className="text-gray-500 text-center">
-                  <div className="w-8 h-8 border-2 border-gray-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                  <p>Loading fresh images...</p>
-                </div>
-              </div>
-            )}
+              
+              {/* Navigation Arrows */}
+              <button 
+                className="slider-arrow slider-prev absolute left-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all duration-300"
+                onClick={prevSlide}
+              >
+                <i className="fas fa-chevron-left text-white"></i>
+              </button>
+              <button 
+                className="slider-arrow slider-next absolute right-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all duration-300"
+                onClick={nextSlide}
+              >
+                <i className="fas fa-chevron-right text-white"></i>
+              </button>
+            </div>
           </div>
         </div>
       </div>
