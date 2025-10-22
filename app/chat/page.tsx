@@ -5,6 +5,7 @@ import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
 import { openChatFloat } from '@/lib/chat-float-controller'
+import { DisplayAd } from '@/components/AdSense'
 import { 
   generateChatResponseClient, 
   isRepairTrackingQueryClient, 
@@ -147,13 +148,17 @@ export default function Chat() {
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 py-6">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Live Chat Support</h1>
-            <p className="text-gray-600">Get instant help from our AI assistant or connect with a live technician</p>
-          </div>
+          <h1 className="text-3xl font-bold text-primary">AI Chat Support</h1>
+          <p className="text-gray-600 mt-2">Get instant help with your device issues</p>
         </div>
       </div>
 
+      {/* Ad Banner - Top */}
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        <DisplayAd />
+      </div>
+
+      {/* Chat Container */}
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden h-[600px] flex flex-col">
           {/* Chat Header */}

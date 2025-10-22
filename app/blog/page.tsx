@@ -7,6 +7,7 @@ import LoadingOverlay from '@/components/LoadingOverlay'
 import { ThumbsUp, ThumbsDown, MessageCircle, Calendar, User, Send } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { fetchBlogPosts, fetchPostComments } from '@/lib/github-blog-storage'
+import { DisplayAd, InFeedAd } from '@/components/AdSense'
 
 interface Comment {
   id: string
@@ -315,6 +316,11 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-12 md:py-16">
+        {/* Top Ad - Display Banner */}
+        <div className="mb-12 scroll-animate">
+          <DisplayAd className="max-w-4xl mx-auto" />
+        </div>
+
         {/* Blog Posts */}
         <div className="space-y-8">{posts.length === 0 ? (
             <div className="text-center py-20 scroll-animate">
@@ -327,11 +333,11 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
               </div>
             </div>
           ) : (
-            posts.map((post) => (
-              <article 
-                key={post.id} 
-                className="group bg-white rounded-3xl shadow-lg overflow-hidden scroll-animate hover:shadow-2xl transition-all duration-500 border border-gray-100"
-              >
+            posts.map((post, index) => (
+              <div key={post.id}>
+                <article 
+                  className="group bg-white rounded-3xl shadow-lg overflow-hidden scroll-animate hover:shadow-2xl transition-all duration-500 border border-gray-100"
+                >
                 {/* Post Header with Gradient Bar */}
                 <div className="h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
                 
@@ -491,8 +497,21 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                   </div>
                 )}
               </article>
+              
+              {/* Insert In-Feed Ad after every 2 posts */}
+              {(index + 1) % 2 === 0 && index < posts.length - 1 && (
+                <div className="my-8 scroll-animate">
+                  <InFeedAd />
+                </div>
+              )}
+            </div>
             ))
           )}
+        </div>
+
+        {/* Bottom Ad - Before Footer */}
+        <div className="mt-12 mb-8 scroll-animate">
+          <DisplayAd className="max-w-4xl mx-auto" />
         </div>
 
         {/* Modern Footer with Admin Link */}
