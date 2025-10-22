@@ -20,16 +20,16 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <div className="flex items-center">
+            <Link href="/" className="flex items-center">
               <Image 
                 src="/assets/logo.png" 
                 alt="IT Services Freetown Logo" 
                 width={56} 
                 height={56} 
-                className="h-12 sm:h-14"
+                className="h-12 sm:h-14 hover:opacity-80 transition-opacity cursor-pointer"
                 style={{ width: 'auto' }}
               />
-            </div>
+            </Link>
           </div>
           <div className="hidden md:flex items-center space-x-8">
             <Link href="/" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Home</Link>
