@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // Use Node.js runtime instead of Edge for better compatibility
+// Force clean build - Oct 23, 2025
 export const runtime = 'nodejs'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
