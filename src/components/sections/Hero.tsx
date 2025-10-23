@@ -16,14 +16,6 @@ export default function Hero() {
       alt: "IT Services Freetown - Professional Computer and Mobile Repair Services"
     },
     {
-      src: "/assets/images/slide02.jpg",
-      alt: "Expert Phone Repair and Mobile Device Services in Freetown"
-    },
-    {
-      src: "/assets/images/slide03.jpg",
-      alt: "Quality IT Solutions and Technology Services"
-    },
-    {
       src: "/assets/images/slider001.jpg",
       alt: "Professional IT Support and Computer Maintenance"
     },
