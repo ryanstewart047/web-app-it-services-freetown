@@ -193,9 +193,8 @@ export default function BlogAdminPage() {
     setGeneratingContent(true)
 
     try {
-      const GROQ_PROXY_URL = process.env.NEXT_PUBLIC_VERCEL_URL 
-        ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/groq-proxy`
-        : '/api/groq-proxy'
+      // Use local API route (works for Vercel deployment)
+      const GROQ_PROXY_URL = '/api/groq-proxy'
 
       const topic = contentPrompt.trim() || title.trim()
       

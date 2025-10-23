@@ -4,11 +4,9 @@
  */
 
 // API Endpoints
-// For GitHub Pages deployment, point to your Vercel backend URL
-// Replace 'YOUR_VERCEL_URL' with your actual Vercel deployment URL
-const GROQ_PROXY_URL = process.env.NEXT_PUBLIC_VERCEL_URL 
-  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/groq-proxy`
-  : '/api/groq-proxy'  // Local development or full Vercel deployment
+// Always use local API route when running on Vercel
+// Only use external URL if explicitly set for static GitHub Pages deployment
+const GROQ_PROXY_URL = '/api/groq-proxy'  // Use local API route (works for Vercel and local dev)
   
 const GROQ_MODEL = 'llama-3.1-8b-instant'  // Fast, free, and excellent for chat support
 
