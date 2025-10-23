@@ -1,27 +1,10 @@
 /**
- * Client-side AI API Integration Service (Using Groq)
- * Works directly in the browser for static deployments
+ * Client-side AI API Integration Service (Using Groq via Backend Proxy)
+ * SECURITY: API calls now go through backend proxy to protect the API key
  */
 
-// Groq API Configuration
-// SECURITY NOTE: For GitHub Pages / static deployments, the API key will be visible in browser
-// This is acceptable for Groq's free tier, but monitor your usage at https://console.groq.com
-
-// Option 1: Set via environment variable (recommended for server deployments)
-// Option 2: Import from local config file (not committed to git)
-// Option 3: Hardcode here for static deployments only
-
-let GROQ_API_KEY = ''
-
-// Try to load from environment or local config
-if (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_GROQ_API_KEY) {
-  GROQ_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY
-} else {
-  // Hardcoded for static GitHub Pages deployment (itservicesfreetown.com)
-  GROQ_API_KEY = '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'
-}
-
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
+// API Endpoints
+const GROQ_PROXY_URL = '/api/groq-proxy'  // Our secure backend proxy
 const GROQ_MODEL = 'llama-3.1-8b-instant'  // Fast, free, and excellent for chat support
 
 interface GroqMessage {
@@ -95,9 +78,7 @@ Business info:
 - 1-month warranty on all repairs`
 
   try {
-    console.log('🔍 [CLIENT-SIDE] Calling Groq AI API for chat:', context.userMessage)
-    console.log('🔑 [CLIENT-SIDE] API Key available:', GROQ_API_KEY ? 'Yes' : 'No')
-    console.log('🌐 [CLIENT-SIDE] API URL:', GROQ_API_URL)
+    console.log('🔍 [CLIENT-SIDE] Calling Groq AI via Backend Proxy:', context.userMessage)
     console.log('🤖 [CLIENT-SIDE] Model:', GROQ_MODEL)
     
     const messages: GroqMessage[] = [
@@ -120,25 +101,25 @@ Business info:
       userMessage: context.userMessage.substring(0, 50) + '...'
     })
     
-    const response = await fetch(GROQ_API_URL, {
+    // Call our secure backend proxy instead of Groq directly
+    const response = await fetch(GROQ_PROXY_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify(requestBody)
     })
 
-    console.log('📥 [CLIENT-SIDE] Groq AI API response status:', response.status)
+    console.log('📥 [CLIENT-SIDE] Backend proxy response status:', response.status)
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('❌ [CLIENT-SIDE] Groq API error response:', errorText)
-      throw new Error(`Groq API error: ${response.status} - ${errorText}`)
+      console.error('❌ [CLIENT-SIDE] Backend proxy error response:', errorText)
+      throw new Error(`Backend proxy error: ${response.status} - ${errorText}`)
     }
 
     const data: GroqAPIResponse = await response.json()
-    console.log('✅ [CLIENT-SIDE] Groq AI API response received')
+    console.log('✅ [CLIENT-SIDE] Groq AI response received via proxy')
     console.log('💬 [CLIENT-SIDE] Tokens used:', data.usage)
     
     if (data.choices && data.choices.length > 0) {
@@ -149,7 +130,7 @@ Business info:
     
     throw new Error('No response generated')
   } catch (error) {
-    console.error('❌ [CLIENT-SIDE] Error calling Google AI API:', error)
+    console.error('❌ [CLIENT-SIDE] Error calling Groq AI via proxy:', error)
     console.log('🔄 [CLIENT-SIDE] Using fallback response for:', context.userMessage)
     
     // Provide a contextual fallback response based on the user's message
@@ -292,8 +273,7 @@ Provide a JSON response with this structure:
 Provide 3-6 troubleshooting steps. Be specific and practical. Response must be valid JSON only. Do not include any markdown formatting or code blocks.`
 
   try {
-    console.log('🔍 [CLIENT-SIDE] Calling Groq AI API for troubleshooting:', context)
-    console.log('🔑 [CLIENT-SIDE] API Key available:', GROQ_API_KEY ? 'Yes' : 'No')
+    console.log('🔍 [CLIENT-SIDE] Calling Groq AI via Backend Proxy for troubleshooting:', context)
     
     const messages: GroqMessage[] = [
       { role: 'system', content: systemMessage },
@@ -316,20 +296,20 @@ Provide 3-6 troubleshooting steps. Be specific and practical. Response must be v
       model: GROQ_MODEL
     })
     
-    const response = await fetch(GROQ_API_URL, {
+    // Call our secure backend proxy instead of Groq directly
+    const response = await fetch(GROQ_PROXY_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify(requestBody)
     })
 
-    console.log('📥 [CLIENT-SIDE] Groq AI API response status:', response.status)
+    console.log('📥 [CLIENT-SIDE] Backend proxy response status:', response.status)
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('❌ [CLIENT-SIDE] Groq API error response:', errorText)
+      console.error('❌ [CLIENT-SIDE] Backend proxy error response:', errorText)
       
       // Check for specific error types
       if (response.status === 401) {
@@ -339,14 +319,14 @@ Provide 3-6 troubleshooting steps. Be specific and practical. Response must be v
       } else if (response.status === 429) {
         console.error('⏱️ [CLIENT-SIDE] Rate limit exceeded')
       } else {
-        console.error('🌐 [CLIENT-SIDE] Network or CORS error likely')
+        console.error('🌐 [CLIENT-SIDE] Network or backend error')
       }
       
-      throw new Error(`Groq API error: ${response.status} - ${errorText}`)
+      throw new Error(`Backend proxy error: ${response.status} - ${errorText}`)
     }
 
     const data: GroqAPIResponse = await response.json()
-    console.log('✅ [CLIENT-SIDE] Groq AI API response received')
+    console.log('✅ [CLIENT-SIDE] Groq AI response received via proxy')
     console.log('💬 [CLIENT-SIDE] Tokens used:', data.usage)
     
     if (data.choices && data.choices.length > 0) {
