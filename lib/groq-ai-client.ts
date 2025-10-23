@@ -4,7 +4,12 @@
  */
 
 // API Endpoints
-const GROQ_PROXY_URL = '/api/groq-proxy'  // Our secure backend proxy
+// For GitHub Pages deployment, point to your Vercel backend URL
+// Replace 'YOUR_VERCEL_URL' with your actual Vercel deployment URL
+const GROQ_PROXY_URL = process.env.NEXT_PUBLIC_VERCEL_URL 
+  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/groq-proxy`
+  : '/api/groq-proxy'  // Local development or full Vercel deployment
+  
 const GROQ_MODEL = 'llama-3.1-8b-instant'  // Fast, free, and excellent for chat support
 
 interface GroqMessage {
