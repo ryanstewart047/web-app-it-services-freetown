@@ -193,16 +193,14 @@ export default function BlogAdminPage() {
     setGeneratingContent(true)
 
     try {
-      const GROQ_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY || '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'
-      const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
+      const GROQ_PROXY_URL = '/api/groq-proxy'
 
       const topic = contentPrompt.trim() || title.trim()
       
-      const response = await fetch(GROQ_API_URL, {
+      const response = await fetch(GROQ_PROXY_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${GROQ_API_KEY}`
         },
         body: JSON.stringify({
           model: 'llama-3.1-8b-instant',
