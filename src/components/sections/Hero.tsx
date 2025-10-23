@@ -40,10 +40,13 @@ export default function Hero() {
   // Auto-advance slides every 5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length)
+      setCurrentSlide((prev) => {
+        const next = prev + 1
+        return next >= slides.length ? 0 : next
+      })
     }, 5000) // 5 seconds
     return () => clearInterval(interval)
-  }, [slides.length])
+  }, [])
 
   // Counter animation
   useEffect(() => {
