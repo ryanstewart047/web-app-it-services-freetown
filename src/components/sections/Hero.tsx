@@ -33,10 +33,11 @@ export default function Hero() {
   useEffect(() => {
     console.log('Setting up auto-advance interval')
     const interval = setInterval(() => {
-      console.log('Auto-advancing slide')
       setCurrentSlide((prev) => {
         const next = prev + 1
-        return next >= 4 ? 0 : next
+        const newSlide = next >= 4 ? 0 : next
+        console.log('Auto-advancing slide from', prev, 'to', newSlide)
+        return newSlide
       })
     }, 5000) // 5 seconds
     return () => {
@@ -44,6 +45,11 @@ export default function Hero() {
       clearInterval(interval)
     }
   }, [])
+
+  // Log current slide changes
+  useEffect(() => {
+    console.log('Current slide is now:', currentSlide)
+  }, [currentSlide])
 
   // Counter animation
   useEffect(() => {
@@ -159,10 +165,13 @@ export default function Hero() {
             <div className="image-slider-container relative w-full h-96 lg:h-[500px] rounded-2xl overflow-hidden">
               {slides.map((slide, index) => (
                 <div
-                  key={`${slide.src}-${index}`}
+                  key={index}
                   className={`image-slide absolute inset-0 transition-opacity duration-1000 ${
-                    index === currentSlide ? 'opacity-100' : 'opacity-0'
+                    index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
                   }`}
+                  style={{
+                    pointerEvents: index === currentSlide ? 'auto' : 'none'
+                  }}
                 >
                   <Image
                     src={slide.src}
@@ -171,6 +180,7 @@ export default function Hero() {
                     sizes="100vw"
                     className="object-cover"
                     priority={index === 0}
+                    loading={index === 0 ? 'eager' : 'lazy'}
                   />
                 </div>
               ))}
