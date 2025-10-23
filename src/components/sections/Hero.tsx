@@ -31,13 +31,18 @@ export default function Hero() {
 
   // Auto-advance slides every 5 seconds
   useEffect(() => {
+    console.log('Setting up auto-advance interval')
     const interval = setInterval(() => {
+      console.log('Auto-advancing slide')
       setCurrentSlide((prev) => {
         const next = prev + 1
-        return next >= slides.length ? 0 : next
+        return next >= 4 ? 0 : next
       })
     }, 5000) // 5 seconds
-    return () => clearInterval(interval)
+    return () => {
+      console.log('Cleaning up interval')
+      clearInterval(interval)
+    }
   }, [])
 
   // Counter animation
@@ -73,21 +78,25 @@ export default function Hero() {
   }, [])
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length)
+    console.log('Next slide clicked')
+    setCurrentSlide((prev) => (prev + 1) % 4)
   }
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
+    console.log('Previous slide clicked')
+    setCurrentSlide((prev) => (prev - 1 + 4) % 4)
   }
 
   const goToSlide = (index: number) => {
+    console.log('Go to slide:', index)
     setCurrentSlide(index)
   }
 
   const refreshSlides = () => {
+    console.log('Refresh clicked')
     setIsRefreshing(true)
     // Shuffle to a random slide
-    const randomSlide = Math.floor(Math.random() * slides.length)
+    const randomSlide = Math.floor(Math.random() * 4)
     setCurrentSlide(randomSlide)
     // Reset refreshing state after animation
     setTimeout(() => setIsRefreshing(false), 500)
@@ -171,6 +180,8 @@ export default function Hero() {
                 {slides.map((_, index) => (
                   <button
                     key={index}
+                    type="button"
+                    aria-label={`Go to slide ${index + 1}`}
                     className={`slider-dot w-3 h-3 rounded-full transition-all duration-300 ${
                       index === currentSlide 
                         ? 'bg-white shadow-lg' 
@@ -183,6 +194,8 @@ export default function Hero() {
               
               {/* Refresh Button */}
               <button 
+                type="button"
+                aria-label="Refresh slides"
                 className={`absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all duration-300 ${
                   isRefreshing ? 'animate-spin' : ''
                 }`}
@@ -194,12 +207,16 @@ export default function Hero() {
               
               {/* Navigation Arrows */}
               <button 
+                type="button"
+                aria-label="Previous slide"
                 className="slider-arrow slider-prev absolute left-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all duration-300"
                 onClick={prevSlide}
               >
                 <i className="fas fa-chevron-left text-white"></i>
               </button>
               <button 
+                type="button"
+                aria-label="Next slide"
                 className="slider-arrow slider-next absolute right-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all duration-300"
                 onClick={nextSlide}
               >
