@@ -26,6 +26,10 @@ export default function Hero() {
     {
       src: "/assets/images/mobile-unlock1.jpg",
       alt: "Mobile Phone Unlocking and Network Services"
+    },
+    {
+      src: "/assets/images/gallery-head.png",
+      alt: "IT Services Gallery - Professional Repair and Technology Services"
     }
   ]
 
@@ -35,7 +39,7 @@ export default function Hero() {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => {
         const next = prev + 1
-        const newSlide = next >= 4 ? 0 : next
+        const newSlide = next >= slides.length ? 0 : next
         console.log('Auto-advancing slide from', prev, 'to', newSlide)
         return newSlide
       })
@@ -85,12 +89,12 @@ export default function Hero() {
 
   const nextSlide = () => {
     console.log('Next slide clicked')
-    setCurrentSlide((prev) => (prev + 1) % 4)
+    setCurrentSlide((prev) => (prev + 1) % slides.length)
   }
 
   const prevSlide = () => {
     console.log('Previous slide clicked')
-    setCurrentSlide((prev) => (prev - 1 + 4) % 4)
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
   }
 
   const goToSlide = (index: number) => {
@@ -102,7 +106,7 @@ export default function Hero() {
     console.log('Refresh clicked')
     setIsRefreshing(true)
     // Shuffle to a random slide
-    const randomSlide = Math.floor(Math.random() * 4)
+    const randomSlide = Math.floor(Math.random() * slides.length)
     setCurrentSlide(randomSlide)
     // Reset refreshing state after animation
     setTimeout(() => setIsRefreshing(false), 500)
