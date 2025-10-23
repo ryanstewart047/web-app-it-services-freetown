@@ -41,9 +41,8 @@ prisma/migrations
 *.bak
 
 # Development files
-# Note: Do NOT ignore tsconfig.json - it's needed for module resolution
-tailwind.config.js
-postcss.config.js
+# Note: Tailwind and PostCSS configs are REQUIRED for CSS to work
+# Note: tsconfig.json is REQUIRED for module resolution
 
 # Documentation
 *.md
