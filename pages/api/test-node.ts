@@ -1,6 +1,11 @@
 // Using Pages Router API format which defaults to Node.js runtime
 import type { NextApiRequest, NextApiResponse } from 'next'
 
+// Explicitly disable Edge runtime
+export const config = {
+  runtime: 'nodejs',
+}
+
 export default function handler(
   req: NextApiRequest,
   res: NextApiResponse
