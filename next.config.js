@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Remove 'output: export' for Vercel - we need server-side features for API routes
+  // Force Node.js runtime for all API routes
+  experimental: {
+    runtime: 'nodejs',
+  },
   // Disable ESLint during builds to prevent failures
   eslint: {
     ignoreDuringBuilds: true,
