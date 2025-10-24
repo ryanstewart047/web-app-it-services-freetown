@@ -6,7 +6,7 @@
 // API Endpoints
 // Always use local API route when running on Vercel
 // Only use external URL if explicitly set for static GitHub Pages deployment
-const GROQ_PROXY_URL = '/api/groq-proxy'  // Use local API route (works for Vercel and local dev)
+const GROQ_PROXY_URL = '/api/groq'  // Use local API route (works for Vercel and local dev)
   
 const GROQ_MODEL = 'llama-3.1-8b-instant'  // Fast, free, and excellent for chat support
 
