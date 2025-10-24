@@ -73,6 +73,16 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// Handle GET for testing/health check
+export async function GET(request: NextRequest) {
+  return NextResponse.json({
+    status: 'ok',
+    message: 'Groq AI proxy is running',
+    hasApiKey: !!GROQ_API_KEY,
+    timestamp: new Date().toISOString()
+  })
+}
+
 // Handle OPTIONS for CORS preflight
 export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, {
