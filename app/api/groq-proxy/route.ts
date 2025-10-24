@@ -1,10 +1,12 @@
+// CRITICAL: Declare runtime FIRST before any imports
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // Use Node.js runtime instead of Edge for better compatibility
 // Force clean build - Oct 23, 2025
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
