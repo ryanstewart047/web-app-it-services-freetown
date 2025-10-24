@@ -296,38 +296,27 @@ Write the content now:`
     }
   }
 
-  const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
-    const files = e.target.files
-    if (!files || files.length === 0) return
+  const handleMediaUpload = (type: 'image' | 'video') => {
+    const url = prompt(`Enter ${type} URL:`)
+    if (!url) return
 
-    setUploadingMedia(true)
+    // Validate URL
+    try {
+      new URL(url)
+    } catch {
+      toast.error('Invalid URL')
+      return
+    }
 
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader()
-      
-      reader.onload = (event) => {
-        const newMediaItem: MediaItem = {
-          id: Date.now().toString() + Math.random(),
-          type,
-          url: event.target?.result as string,
-          caption: ''
-        }
-        
-        setMedia(prev => [...prev, newMediaItem])
-        setUploadingMedia(false)
-        toast.success(`${type === 'image' ? 'Image' : 'Video'} uploaded successfully!`)
-      }
-      
-      reader.onerror = () => {
-        toast.error('Failed to upload file')
-        setUploadingMedia(false)
-      }
-      
-      reader.readAsDataURL(file)
-    })
-
-    // Reset input
-    e.target.value = ''
+    const newMediaItem: MediaItem = {
+      id: Date.now().toString() + Math.random(),
+      type,
+      url: url,
+      caption: ''
+    }
+    
+    setMedia(prev => [...prev, newMediaItem])
+    toast.success(`${type === 'image' ? 'Image' : 'Video'} added successfully!`)
   }
 
   const removeMedia = (mediaId: string) => {
@@ -631,43 +620,35 @@ Tips:
                 Photos & Videos (Optional)
               </label>
               
-              {/* Upload Buttons */}
+              {/* Add Media Buttons */}
               <div className="flex space-x-4 mb-6">
-                <label className="flex-1 cursor-pointer">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={(e) => handleMediaUpload(e, 'image')}
-                    className="hidden"
-                    disabled={uploadingMedia}
-                  />
-                  <div className="flex items-center justify-center px-6 py-3 bg-blue-50 text-blue-600 rounded-xl font-semibold hover:bg-blue-100 transition-all duration-300">
-                    <ImageIcon className="w-5 h-5 mr-2" />
-                    Upload Images
-                  </div>
-                </label>
+                <button
+                  type="button"
+                  onClick={() => handleMediaUpload('image')}
+                  className="flex-1 flex items-center justify-center px-6 py-3 bg-blue-50 text-blue-600 rounded-xl font-semibold hover:bg-blue-100 transition-all duration-300"
+                  disabled={uploadingMedia}
+                >
+                  <ImageIcon className="w-5 h-5 mr-2" />
+                  Add Image URL
+                </button>
                 
-                <label className="flex-1 cursor-pointer">
-                  <input
-                    type="file"
-                    accept="video/*"
-                    multiple
-                    onChange={(e) => handleMediaUpload(e, 'video')}
-                    className="hidden"
-                    disabled={uploadingMedia}
-                  />
-                  <div className="flex items-center justify-center px-6 py-3 bg-purple-50 text-purple-600 rounded-xl font-semibold hover:bg-purple-100 transition-all duration-300">
-                    <Video className="w-5 h-5 mr-2" />
-                    Upload Videos
-                  </div>
-                </label>
+                <button
+                  type="button"
+                  onClick={() => handleMediaUpload('video')}
+                  className="flex-1 flex items-center justify-center px-6 py-3 bg-purple-50 text-purple-600 rounded-xl font-semibold hover:bg-purple-100 transition-all duration-300"
+                  disabled={uploadingMedia}
+                >
+                  <Video className="w-5 h-5 mr-2" />
+                  Add Video URL
+                </button>
               </div>
+              
+              <p className="text-xs text-gray-500 mb-4">💡 Tip: Upload images to <a href="https://imgur.com/upload" target="_blank" className="text-blue-600 hover:underline">Imgur</a> or <a href="https://postimages.org/" target="_blank" className="text-blue-600 hover:underline">PostImages</a>, then paste the URL here.</p>
 
               {/* Media Preview */}
               {media.length > 0 && (
                 <div className="space-y-4">
-                  <p className="text-sm text-gray-600 font-semibold">Uploaded Media ({media.length})</p>
+                  <p className="text-sm text-gray-600 font-semibold">Added Media ({media.length})</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {media.map((item) => (
                       <div key={item.id} className="relative bg-gray-50 rounded-lg overflow-hidden">
