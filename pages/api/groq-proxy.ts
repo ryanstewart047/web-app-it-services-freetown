@@ -1,6 +1,11 @@
 // Pages Router API - Always uses Node.js runtime
 import type { NextApiRequest, NextApiResponse } from 'next'
 
+// Explicitly disable Edge runtime
+export const config = {
+  runtime: 'nodejs',
+}
+
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
