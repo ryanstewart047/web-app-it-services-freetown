@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
-import { ThumbsUp, ThumbsDown, MessageCircle, Calendar, User, Send, Trash2, Shield } from 'lucide-react'
+import { ThumbsUp, ThumbsDown, MessageCircle, Calendar, User, Send } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { fetchBlogPosts, fetchPostComments, deleteBlogPost } from '@/lib/github-blog-storage'
+import { fetchBlogPosts, fetchPostComments } from '@/lib/github-blog-storage'
 import { DisplayAd, InFeedAd } from '@/components/AdSense'
 
 interface Comment {
@@ -43,9 +43,6 @@ export default function BlogPage() {
   const [commentAuthors, setCommentAuthors] = useState<{ [key: string]: string }>({})
   const [showComments, setShowComments] = useState<{ [key: string]: boolean }>({})
   const [userVotes, setUserVotes] = useState<{ [key: string]: 'like' | 'dislike' | null }>({})
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [adminPassword, setAdminPassword] = useState('')
-  const [showAdminLogin, setShowAdminLogin] = useState(false)
 
   useScrollAnimations()
 
@@ -265,42 +262,6 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
     toast.success('Comment added!')
   }
 
-  const handleAdminLogin = () => {
-    if (adminPassword === 'ITServices2025!') {
-      setIsAdmin(true)
-      setShowAdminLogin(false)
-      setAdminPassword('')
-      toast.success('Admin mode enabled!')
-    } else {
-      toast.error('Incorrect password')
-    }
-  }
-
-  const handleDeletePost = async (postId: string) => {
-    if (!isAdmin) {
-      toast.error('Admin access required')
-      return
-    }
-
-    if (!confirm('Are you sure you want to delete this post?')) {
-      return
-    }
-
-    try {
-      const result = await deleteBlogPost(parseInt(postId))
-      
-      if (result.success) {
-        setPosts(posts.filter(post => post.id !== postId))
-        toast.success('Post deleted successfully!')
-      } else {
-        toast.error(result.error || 'Failed to delete post')
-      }
-    } catch (error) {
-      console.error('Error deleting post:', error)
-      toast.error('Failed to delete post')
-    }
-  }
-
   const toggleComments = (postId: string) => {
     setShowComments({ ...showComments, [postId]: !showComments[postId] })
   }
@@ -337,23 +298,6 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
         
         <div className="relative max-w-7xl mx-auto px-6 py-20 md:py-28">
           <div className="text-center">
-            <div className="absolute top-4 right-6">
-              {!isAdmin ? (
-                <button
-                  onClick={() => setShowAdminLogin(!showAdminLogin)}
-                  className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all duration-300 backdrop-blur-sm border border-white/20"
-                >
-                  <Shield className="w-4 h-4" />
-                  <span className="text-sm font-medium">Admin</span>
-                </button>
-              ) : (
-                <div className="flex items-center gap-2 px-4 py-2 bg-green-500/20 text-green-200 rounded-lg backdrop-blur-sm border border-green-400/30">
-                  <Shield className="w-4 h-4" />
-                  <span className="text-sm font-medium">Admin Mode</span>
-                </div>
-              )}
-            </div>
-
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 text-white">
               Tech Tips & <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300">Innovation</span>
             </h1>
@@ -369,37 +313,6 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
           </div>
         </div>
       </header>
-
-      {/* Admin Login Modal */}
-      {showAdminLogin && !isAdmin && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
-            <h3 className="text-2xl font-bold mb-6 text-gray-900">Admin Login</h3>
-            <input
-              type="password"
-              placeholder="Enter admin password"
-              value={adminPassword}
-              onChange={(e) => setAdminPassword(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleAdminLogin()}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <div className="flex gap-3">
-              <button
-                onClick={handleAdminLogin}
-                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-              >
-                Login
-              </button>
-              <button
-                onClick={() => { setShowAdminLogin(false); setAdminPassword('') }}
-                className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-12 md:py-16">
@@ -430,26 +343,15 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                 
                 <div className="p-8 md:p-10">
                   {/* Meta Info */}
-                  <div className="flex flex-wrap items-center justify-between gap-4 text-sm text-gray-500 mb-6">
-                    <div className="flex flex-wrap items-center gap-4">
-                      <div className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-full">
-                        <Calendar className="w-4 h-4 text-blue-600" />
-                        <span className="font-medium text-blue-900">{formatDate(post.date)}</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-purple-50 px-3 py-1.5 rounded-full">
-                        <User className="w-4 h-4 text-purple-600" />
-                        <span className="font-medium text-purple-900">{post.author}</span>
-                      </div>
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-6">
+                    <div className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-full">
+                      <Calendar className="w-4 h-4 text-blue-600" />
+                      <span className="font-medium text-blue-900">{formatDate(post.date)}</span>
                     </div>
-                    {isAdmin && (
-                      <button
-                        onClick={() => handleDeletePost(post.id)}
-                        className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors border border-red-200"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        <span className="font-medium">Delete</span>
-                      </button>
-                    )}
+                    <div className="flex items-center gap-2 bg-purple-50 px-3 py-1.5 rounded-full">
+                      <User className="w-4 h-4 text-purple-600" />
+                      <span className="font-medium text-purple-900">{post.author}</span>
+                    </div>
                   </div>
 
                   {/* Title */}
