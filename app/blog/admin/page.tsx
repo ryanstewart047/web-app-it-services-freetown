@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
-import { ArrowLeft, Save, Eye, Upload, X, Image as ImageIcon, Video, Lock, Sparkles, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Save, Eye, Upload, X, Image as ImageIcon, Video, Lock, Sparkles, RefreshCw, Trash2, List } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { createBlogPost } from '@/lib/github-blog-storage'
+import { createBlogPost, fetchBlogPosts, deleteBlogPost } from '@/lib/github-blog-storage'
 
 interface MediaItem {
   id: string
@@ -48,6 +48,9 @@ export default function BlogAdminPage() {
   const [showAIHelper, setShowAIHelper] = useState(false)
   const [publishProgress, setPublishProgress] = useState(0)
   const [isPublishing, setIsPublishing] = useState(false)
+  const [showManagePosts, setShowManagePosts] = useState(false)
+  const [existingPosts, setExistingPosts] = useState<BlogPost[]>([])
+  const [loadingPosts, setLoadingPosts] = useState(false)
 
   useScrollAnimations()
 
@@ -78,6 +81,46 @@ export default function BlogAdminPage() {
     setIsAuthenticated(false)
     router.push('/blog')
     toast.success('Logged out successfully')
+  }
+
+  const loadPosts = async () => {
+    setLoadingPosts(true)
+    try {
+      const posts = await fetchBlogPosts()
+      setExistingPosts(posts)
+    } catch (error) {
+      console.error('Error loading posts:', error)
+      toast.error('Failed to load posts')
+    } finally {
+      setLoadingPosts(false)
+    }
+  }
+
+  const handleDeletePost = async (postId: string) => {
+    if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      const result = await deleteBlogPost(parseInt(postId))
+      
+      if (result.success) {
+        setExistingPosts(existingPosts.filter(post => post.id !== postId))
+        toast.success('Post deleted successfully!')
+      } else {
+        toast.error(result.error || 'Failed to delete post')
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error)
+      toast.error('Failed to delete post')
+    }
+  }
+
+  const toggleManagePosts = async () => {
+    if (!showManagePosts) {
+      await loadPosts()
+    }
+    setShowManagePosts(!showManagePosts)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -398,19 +441,64 @@ Write the content now:`
               <ArrowLeft className="w-5 h-5 mr-2" />
               Back to Blog
             </button>
-            <button
-              onClick={handleLogout}
-              className="flex items-center px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-            >
-              <Lock className="w-4 h-4 mr-2" />
-              Logout
-            </button>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={toggleManagePosts}
+                className="flex items-center px-4 py-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                <List className="w-4 h-4 mr-2" />
+                {showManagePosts ? 'Hide' : 'Manage'} Posts
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex items-center px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                <Lock className="w-4 h-4 mr-2" />
+                Logout
+              </button>
+            </div>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold" style={{ color: '#040e40' }}>
             Create New Blog Post
           </h1>
           <p className="text-gray-600 mt-2">Share tech tips and updates with your audience</p>
         </div>
+
+        {/* Manage Posts Section */}
+        {showManagePosts && (
+          <div className="mb-8 bg-white rounded-2xl shadow-lg p-6 scroll-animate">
+            <h2 className="text-2xl font-bold mb-4" style={{ color: '#040e40' }}>Existing Posts</h2>
+            {loadingPosts ? (
+              <div className="text-center py-8">
+                <RefreshCw className="w-8 h-8 animate-spin mx-auto text-blue-600 mb-2" />
+                <p className="text-gray-600">Loading posts...</p>
+              </div>
+            ) : existingPosts.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No posts found</p>
+            ) : (
+              <div className="space-y-4">
+                {existingPosts.map((post) => (
+                  <div key={post.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900">{post.title}</h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        By {post.author} • {post.date} • {post.likes} likes
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleDeletePost(post.id)}
+                      className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors ml-4"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Form */}
         {!preview ? (
