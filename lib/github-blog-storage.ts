@@ -399,3 +399,49 @@ export function storeUserReaction(issueNumber: number, reaction: '+1' | '-1' | n
   
   localStorage.setItem('github_blog_reactions', JSON.stringify(reactions))
 }
+
+/**
+ * Delete a blog post (Close GitHub Issue)
+ * Note: Requires GitHub token with repo scope
+ */
+export async function deleteBlogPost(
+  issueNumber: number
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!GITHUB_TOKEN) {
+      return {
+        success: false,
+        error: 'GitHub token required to delete posts'
+      }
+    }
+
+    // Close the issue (soft delete)
+    const response = await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/issues/${issueNumber}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          'Authorization': `token ${GITHUB_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          state: 'closed'
+        })
+      }
+    )
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.message || 'Failed to delete post')
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    console.error('Error deleting blog post:', error)
+    return {
+      success: false,
+      error: error.message || 'Failed to delete post'
+    }
+  }
+}
