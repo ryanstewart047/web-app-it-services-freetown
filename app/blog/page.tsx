@@ -6,7 +6,7 @@ import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
 import { ThumbsUp, ThumbsDown, MessageCircle, Calendar, User, Send } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { fetchBlogPosts, fetchPostComments } from '@/lib/github-blog-storage'
+import { fetchBlogPosts, fetchPostComments, addComment, addReaction } from '@/lib/github-blog-storage'
 import { DisplayAd, InFeedAd } from '@/components/AdSense'
 
 interface Comment {
@@ -171,69 +171,82 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
     setPosts(updatedPosts)
   }
 
-  const handleLike = (postId: string) => {
+  const handleLike = async (postId: string) => {
     const currentVote = userVotes[postId]
     
-    const updatedPosts = posts.map(post => {
-      if (post.id === postId) {
-        if (currentVote === 'like') {
-          // Remove like
-          return { ...post, likes: post.likes - 1 }
-        } else if (currentVote === 'dislike') {
-          // Change from dislike to like
-          return { ...post, likes: post.likes + 1, dislikes: post.dislikes - 1 }
-        } else {
-          // Add like
-          return { ...post, likes: post.likes + 1 }
-        }
-      }
-      return post
-    })
+    if (currentVote === 'like') {
+      toast.info('You already liked this post')
+      return
+    }
 
-    const newVote: 'like' | 'dislike' | null = currentVote === 'like' ? null : 'like'
-    const updatedVotes = { ...userVotes, [postId]: newVote }
-    
-    setUserVotes(updatedVotes as { [key: string]: 'like' | 'dislike' | null })
-    localStorage.setItem('blog_votes', JSON.stringify(updatedVotes))
-    savePosts(updatedPosts)
-    
-    if (newVote === 'like') {
-      toast.success('Thanks for liking this post!')
+    try {
+      const result = await addReaction(parseInt(postId), '+1')
+      
+      if (result.success) {
+        const updatedPosts = posts.map(post => {
+          if (post.id === postId) {
+            return { 
+              ...post, 
+              likes: post.likes + 1,
+              dislikes: currentVote === 'dislike' ? post.dislikes - 1 : post.dislikes
+            }
+          }
+          return post
+        })
+
+        const updatedVotes = { ...userVotes, [postId]: 'like' as const }
+        
+        setUserVotes(updatedVotes)
+        localStorage.setItem('blog_votes', JSON.stringify(updatedVotes))
+        setPosts(updatedPosts)
+        toast.success('Thanks for liking this post!')
+      } else {
+        toast.error('Failed to add like')
+      }
+    } catch (error) {
+      console.error('Error adding like:', error)
+      toast.error('Failed to add like')
     }
   }
 
-  const handleDislike = (postId: string) => {
+  const handleDislike = async (postId: string) => {
     const currentVote = userVotes[postId]
     
-    const updatedPosts = posts.map(post => {
-      if (post.id === postId) {
-        if (currentVote === 'dislike') {
-          // Remove dislike
-          return { ...post, dislikes: post.dislikes - 1 }
-        } else if (currentVote === 'like') {
-          // Change from like to dislike
-          return { ...post, likes: post.likes - 1, dislikes: post.dislikes + 1 }
-        } else {
-          // Add dislike
-          return { ...post, dislikes: post.dislikes + 1 }
-        }
-      }
-      return post
-    })
+    if (currentVote === 'dislike') {
+      toast.info('You already disliked this post')
+      return
+    }
 
-    const newVote: 'like' | 'dislike' | null = currentVote === 'dislike' ? null : 'dislike'
-    const updatedVotes = { ...userVotes, [postId]: newVote }
-    
-    setUserVotes(updatedVotes as { [key: string]: 'like' | 'dislike' | null })
-    localStorage.setItem('blog_votes', JSON.stringify(updatedVotes))
-    savePosts(updatedPosts)
-    
-    if (newVote === 'dislike') {
-      toast('Feedback noted', { icon: '👍' })
+    try {
+      const result = await addReaction(parseInt(postId), '-1')
+      
+      if (result.success) {
+        const updatedPosts = posts.map(post => {
+          if (post.id === postId) {
+            return { 
+              ...post, 
+              dislikes: post.dislikes + 1,
+              likes: currentVote === 'like' ? post.likes - 1 : post.likes
+            }
+          }
+          return post
+        })
+
+        const updatedVotes = { ...userVotes, [postId]: 'dislike' as const }
+        
+        setUserVotes(updatedVotes)
+        localStorage.setItem('blog_votes', JSON.stringify(updatedVotes))
+        setPosts(updatedPosts)
+      } else {
+        toast.error('Failed to add dislike')
+      }
+    } catch (error) {
+      console.error('Error adding dislike:', error)
+      toast.error('Failed to add dislike')
     }
   }
 
-  const handleAddComment = (postId: string) => {
+  const handleAddComment = async (postId: string) => {
     const content = commentInputs[postId]?.trim()
     const author = commentAuthors[postId]?.trim()
 
@@ -242,24 +255,30 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
       return
     }
 
-    const newComment: Comment = {
-      id: Date.now().toString(),
-      author,
-      content,
-      timestamp: new Date()
-    }
-
-    const updatedPosts = posts.map(post => {
-      if (post.id === postId) {
-        return { ...post, comments: [...post.comments, newComment] }
+    try {
+      const result = await addComment(parseInt(postId), content, author)
+      
+      if (result.success) {
+        // Refresh comments for this post
+        const comments = await fetchPostComments(parseInt(postId))
+        const updatedPosts = posts.map(post => {
+          if (post.id === postId) {
+            return { ...post, comments }
+          }
+          return post
+        })
+        
+        setPosts(updatedPosts)
+        setCommentInputs({ ...commentInputs, [postId]: '' })
+        setCommentAuthors({ ...commentAuthors, [postId]: '' })
+        toast.success('Comment added!')
+      } else {
+        toast.error('Failed to add comment')
       }
-      return post
-    })
-
-    savePosts(updatedPosts)
-    setCommentInputs({ ...commentInputs, [postId]: '' })
-    setCommentAuthors({ ...commentAuthors, [postId]: '' })
-    toast.success('Comment added!')
+    } catch (error) {
+      console.error('Error adding comment:', error)
+      toast.error('Failed to add comment')
+    }
   }
 
   const toggleComments = (postId: string) => {
