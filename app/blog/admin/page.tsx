@@ -194,7 +194,7 @@ export default function BlogAdminPage() {
 
     try {
       // Use local API route (works for Vercel deployment)
-      const GROQ_PROXY_URL = '/api/groq-proxy'
+      const GROQ_PROXY_URL = '/api/groq'
 
       const topic = contentPrompt.trim() || title.trim()
       
