@@ -8,6 +8,8 @@ export interface Offer {
   title: string
   description: string
   imageUrl: string
+  buttonText?: string
+  buttonLink?: string
   isActive: boolean
   createdAt: string
   updatedAt: string
@@ -106,12 +108,14 @@ export async function saveOffer(offer: Offer): Promise<boolean> {
   }
 }
 
-export async function createOffer(title: string, description: string, imageUrl: string): Promise<Offer> {
+export async function createOffer(title: string, description: string, imageUrl: string, buttonText?: string, buttonLink?: string): Promise<Offer> {
   const offer: Offer = {
     id: Date.now().toString(),
     title,
     description,
     imageUrl,
+    buttonText,
+    buttonLink,
     isActive: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),

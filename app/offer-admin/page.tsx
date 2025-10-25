@@ -9,6 +9,8 @@ export default function OfferAdminPage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [imageUrl, setImageUrl] = useState('')
+  const [buttonText, setButtonText] = useState('')
+  const [buttonLink, setButtonLink] = useState('')
   const [isActive, setIsActive] = useState(true)
   const [currentOffer, setCurrentOffer] = useState<any>(null)
   const [loading, setLoading] = useState(false)
@@ -28,6 +30,8 @@ export default function OfferAdminPage() {
         setTitle(data.offer.title)
         setDescription(data.offer.description)
         setImageUrl(data.offer.imageUrl)
+        setButtonText(data.offer.buttonText || '')
+        setButtonLink(data.offer.buttonLink || '')
         setIsActive(data.offer.isActive)
         setPreviewImage(data.offer.imageUrl)
       }
@@ -68,6 +72,8 @@ export default function OfferAdminPage() {
           title,
           description,
           imageUrl,
+          buttonText,
+          buttonLink,
           isActive,
         }),
       })
@@ -241,6 +247,37 @@ export default function OfferAdminPage() {
                   <p className="text-xs text-gray-500 mt-1">{description.length}/500 characters</p>
                 </div>
 
+                {/* Button Text */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Button Text (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={buttonText}
+                    onChange={(e) => setButtonText(e.target.value)}
+                    placeholder="e.g., Book Now, Learn More, Get Started"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    maxLength={30}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">{buttonText.length}/30 characters</p>
+                </div>
+
+                {/* Button Link */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Button Link (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={buttonLink}
+                    onChange={(e) => setButtonLink(e.target.value)}
+                    placeholder="e.g., /book-appointment, https://example.com"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Leave empty to hide button</p>
+                </div>
+
                 {/* Active Toggle */}
                 <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
                   <input
@@ -314,9 +351,17 @@ export default function OfferAdminPage() {
                     <h2 className="text-3xl font-bold text-gray-900 mb-3">
                       {title || 'Your Offer Title'}
                     </h2>
-                    <div className="text-gray-600 leading-relaxed whitespace-pre-line">
+                    <div className="text-gray-600 leading-relaxed whitespace-pre-line mb-6">
                       {description || 'Your offer description will appear here...'}
                     </div>
+                    {buttonText && buttonLink && (
+                      <a
+                        href={buttonLink}
+                        className="inline-block px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg"
+                      >
+                        {buttonText}
+                      </a>
+                    )}
                   </div>
                 </div>
               </div>
