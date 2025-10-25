@@ -6,6 +6,7 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import CookiePopup from '@/components/CookiePopup'
 import BannerPopup from '@/components/BannerPopup'
+import OfferPopup from '@/components/OfferPopup'
 import StaticChatFloat from '@/components/StaticChatFloat'
 import FloatingScrollToTop from '@/components/FloatingScrollToTop'
 import ServiceWorkerRegistration from '../src/components/ServiceWorkerRegistration'
@@ -254,6 +255,7 @@ export default function RootLayout({
           <ConditionalLayout>
             {children}
           </ConditionalLayout>
+          <OfferPopup delay={30000} />
           <Toaster position="top-right" />
         </AnalyticsProvider>
       </body>
