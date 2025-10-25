@@ -136,9 +136,10 @@ export async function createOffer(title: string, description: string, imageUrl: 
 }
 
 export async function updateOffer(updates: Partial<Offer>): Promise<boolean> {
-  const currentOffer = await getCurrentOffer()
+  const currentOffer = await getOfferForAdmin() // Use admin version to get inactive offers too
   
   if (!currentOffer) {
+    console.error('[Offer Storage] No offer found to update')
     return false
   }
 

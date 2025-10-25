@@ -84,7 +84,8 @@ export default function OfferAdminPage() {
         toast.success('Offer saved successfully!')
         loadCurrentOffer()
       } else {
-        toast.error('Failed to save offer')
+        console.error('Save failed:', data)
+        toast.error(data.error || 'Failed to save offer')
       }
     } catch (error) {
       console.error('Error saving offer:', error)
