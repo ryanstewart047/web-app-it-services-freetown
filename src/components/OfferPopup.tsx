@@ -58,7 +58,8 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
       {/* Popup Card */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
         <div 
-          className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden pointer-events-auto transform transition-all duration-300 animate-scale-in"
+          className="rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden pointer-events-auto transform transition-all duration-300 animate-scale-in"
+          style={{ backgroundColor: offer.backgroundColor || '#ffffff' }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Close Button */}
@@ -93,31 +94,45 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
                 <div className="inline-block px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-full mb-3">
                   TODAY'S OFFER
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-3">
+                <h2 
+                  className="text-3xl font-bold mb-3"
+                  style={{ color: offer.textColor || '#1f2937' }}
+                >
                   {offer.title}
                 </h2>
               </div>
               
-              <div className="text-gray-600 leading-relaxed whitespace-pre-line mb-6">
+              <div 
+                className="leading-relaxed whitespace-pre-line mb-6"
+                style={{ color: offer.textColor || '#1f2937' }}
+              >
                 {offer.description}
               </div>
 
-              <div className="flex flex-wrap gap-3">
-                {offer.buttonText && offer.buttonLink && (
-                  <a
-                    href={offer.buttonLink}
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-wrap gap-3">
+                  {offer.buttonText && offer.buttonLink && (
+                    <a
+                      href={offer.buttonLink}
+                      onClick={handleClose}
+                      className="px-6 py-3 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 hover:opacity-90"
+                      style={{ backgroundColor: offer.buttonColor || '#9333ea' }}
+                    >
+                      {offer.buttonText}
+                    </a>
+                  )}
+                  <button
                     onClick={handleClose}
-                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                    className={`px-6 py-3 ${offer.buttonText && offer.buttonLink ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-lg hover:shadow-xl transform hover:scale-105'} font-semibold rounded-xl transition-all duration-300`}
                   >
-                    {offer.buttonText}
-                  </a>
+                    {offer.buttonText && offer.buttonLink ? 'Maybe Later' : 'Got It!'}
+                  </button>
+                </div>
+                {offer.termsText && (
+                  <p className="text-xs text-gray-500 text-center mt-2">
+                    {offer.termsText}
+                  </p>
                 )}
-                <button
-                  onClick={handleClose}
-                  className={`px-6 py-3 ${offer.buttonText && offer.buttonLink ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-lg hover:shadow-xl transform hover:scale-105'} font-semibold rounded-xl transition-all duration-300`}
-                >
-                  {offer.buttonText && offer.buttonLink ? 'Maybe Later' : 'Got It!'}
-                </button>
               </div>
             </div>
           </div>
