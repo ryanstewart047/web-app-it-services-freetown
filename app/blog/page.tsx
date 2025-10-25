@@ -175,7 +175,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
     const currentVote = userVotes[postId]
     
     if (currentVote === 'like') {
-      toast.info('You already liked this post')
+      toast('You already liked this post')
       return
     }
 
@@ -213,7 +213,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
     const currentVote = userVotes[postId]
     
     if (currentVote === 'dislike') {
-      toast.info('You already disliked this post')
+      toast('You already disliked this post')
       return
     }
 
