@@ -85,6 +85,8 @@ export async function getOfferForAdmin(): Promise<Offer | null> {
 
 export async function saveOffer(offer: Offer): Promise<boolean> {
   try {
+    console.log('[Offer Storage] Attempting to save offer to Gist:', GITHUB_GIST_ID)
+    
     const response = await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}`, {
       method: 'PATCH',
       headers: {
@@ -101,9 +103,17 @@ export async function saveOffer(offer: Offer): Promise<boolean> {
       }),
     })
 
-    return response.ok
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('[Offer Storage] Failed to save offer:', response.status, response.statusText)
+      console.error('[Offer Storage] Error details:', errorText)
+      return false
+    }
+
+    console.log('[Offer Storage] Offer saved successfully')
+    return true
   } catch (error) {
-    console.error('Error saving offer:', error)
+    console.error('[Offer Storage] Error saving offer:', error)
     return false
   }
 }
