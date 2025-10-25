@@ -17,29 +17,38 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
     // Check if popup was already shown in this session
     const shownToday = sessionStorage.getItem('offer-popup-shown')
     
+    console.log('[OfferPopup] Component mounted, delay:', delay)
+    console.log('[OfferPopup] Already shown this session:', shownToday)
+    
     if (shownToday) {
       setHasShown(true)
       return
     }
 
     // Fetch current offer
+    console.log('[OfferPopup] Fetching offer from API...')
     fetch('/api/offer')
       .then(res => res.json())
       .then(data => {
+        console.log('[OfferPopup] API response:', data)
         if (data.offer) {
+          console.log('[OfferPopup] Offer found, setting timer for', delay, 'ms')
           setOffer(data.offer)
           
           // Show popup after delay
           const timer = setTimeout(() => {
+            console.log('[OfferPopup] Timer fired, showing popup')
             setIsVisible(true)
             sessionStorage.setItem('offer-popup-shown', 'true')
             setHasShown(true)
           }, delay)
 
           return () => clearTimeout(timer)
+        } else {
+          console.log('[OfferPopup] No offer available')
         }
       })
-      .catch(error => console.error('Error fetching offer:', error))
+      .catch(error => console.error('[OfferPopup] Error fetching offer:', error))
   }, [delay])
 
   const handleClose = () => {
