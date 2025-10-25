@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createOffer, updateOffer, deactivateOffer, getCurrentOffer } from '@/lib/offer-storage'
+import { createOffer, updateOffer, deactivateOffer, getOfferForAdmin } from '@/lib/offer-storage'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,8 +14,8 @@ export async function POST(request: Request) {
       )
     }
 
-    // Check if offer exists
-    const currentOffer = await getCurrentOffer()
+    // Check if offer exists (get for admin to see inactive offers too)
+    const currentOffer = await getOfferForAdmin()
 
     let success
     if (currentOffer) {

@@ -51,6 +51,36 @@ export async function getCurrentOffer(): Promise<Offer | null> {
   }
 }
 
+export async function getOfferForAdmin(): Promise<Offer | null> {
+  try {
+    const response = await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}`, {
+      headers: {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json',
+      },
+      cache: 'no-store',
+    })
+
+    if (!response.ok) {
+      console.error('[Offer Storage] Failed to fetch offer for admin:', response.status)
+      return null
+    }
+
+    const gist = await response.json()
+    const offerFile = gist.files[OFFER_FILENAME]
+
+    if (!offerFile) {
+      return null
+    }
+
+    const offer = JSON.parse(offerFile.content)
+    return offer // Return regardless of isActive status
+  } catch (error) {
+    console.error('[Offer Storage] Error fetching offer for admin:', error)
+    return null
+  }
+}
+
 export async function saveOffer(offer: Offer): Promise<boolean> {
   try {
     const response = await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}`, {

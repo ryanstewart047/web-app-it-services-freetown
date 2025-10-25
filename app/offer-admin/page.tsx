@@ -20,7 +20,7 @@ export default function OfferAdminPage() {
 
   const loadCurrentOffer = async () => {
     try {
-      const response = await fetch('/api/offer')
+      const response = await fetch('/api/offer/admin')
       const data = await response.json()
       
       if (data.offer) {

@@ -57,3 +57,4 @@ static-build/
 # Server backup directory (keep in repo for future server deployment)
 # _server-backup/
 .env.local
+.env.production
