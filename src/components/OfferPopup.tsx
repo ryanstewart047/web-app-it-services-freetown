@@ -114,12 +114,23 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
                 {offer.description}
               </div>
 
-              <button
-                onClick={handleClose}
-                className="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                Got It!
-              </button>
+              <div className="flex flex-wrap gap-3">
+                {offer.buttonText && offer.buttonLink && (
+                  <a
+                    href={offer.buttonLink}
+                    onClick={handleClose}
+                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  >
+                    {offer.buttonText}
+                  </a>
+                )}
+                <button
+                  onClick={handleClose}
+                  className={`px-6 py-3 ${offer.buttonText && offer.buttonLink ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-lg hover:shadow-xl transform hover:scale-105'} font-semibold rounded-xl transition-all duration-300`}
+                >
+                  {offer.buttonText && offer.buttonLink ? 'Maybe Later' : 'Got It!'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
