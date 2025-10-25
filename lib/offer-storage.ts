@@ -10,10 +10,6 @@ export interface Offer {
   imageUrl: string
   buttonText?: string
   buttonLink?: string
-  buttonColor?: string
-  backgroundColor?: string
-  textColor?: string
-  termsText?: string
   isActive: boolean
   createdAt: string
   updatedAt: string
@@ -89,8 +85,6 @@ export async function getOfferForAdmin(): Promise<Offer | null> {
 
 export async function saveOffer(offer: Offer): Promise<boolean> {
   try {
-    console.log('[Offer Storage] Attempting to save offer to Gist:', GITHUB_GIST_ID)
-    
     const response = await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}`, {
       method: 'PATCH',
       headers: {
@@ -107,22 +101,14 @@ export async function saveOffer(offer: Offer): Promise<boolean> {
       }),
     })
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('[Offer Storage] Failed to save offer:', response.status, response.statusText)
-      console.error('[Offer Storage] Error details:', errorText)
-      return false
-    }
-
-    console.log('[Offer Storage] Offer saved successfully')
-    return true
+    return response.ok
   } catch (error) {
-    console.error('[Offer Storage] Error saving offer:', error)
+    console.error('Error saving offer:', error)
     return false
   }
 }
 
-export async function createOffer(title: string, description: string, imageUrl: string, buttonText?: string, buttonLink?: string, buttonColor?: string, backgroundColor?: string, textColor?: string, termsText?: string): Promise<Offer> {
+export async function createOffer(title: string, description: string, imageUrl: string, buttonText?: string, buttonLink?: string): Promise<Offer> {
   const offer: Offer = {
     id: Date.now().toString(),
     title,
@@ -130,10 +116,6 @@ export async function createOffer(title: string, description: string, imageUrl: 
     imageUrl,
     buttonText,
     buttonLink,
-    buttonColor: buttonColor || '#9333ea',
-    backgroundColor: backgroundColor || '#ffffff',
-    textColor: textColor || '#1f2937',
-    termsText,
     isActive: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -144,10 +126,9 @@ export async function createOffer(title: string, description: string, imageUrl: 
 }
 
 export async function updateOffer(updates: Partial<Offer>): Promise<boolean> {
-  const currentOffer = await getOfferForAdmin() // Use admin version to get inactive offers too
+  const currentOffer = await getCurrentOffer()
   
   if (!currentOffer) {
-    console.error('[Offer Storage] No offer found to update')
     return false
   }
 

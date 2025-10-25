@@ -1,10 +1,9 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Save, Trash2, Eye, EyeOff, Image as ImageIcon, Download, Share2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { ArrowLeft, Save, Trash2, Eye, EyeOff, Image as ImageIcon } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'react-hot-toast'
-import html2canvas from 'html2canvas'
 
 export default function OfferAdminPage() {
   const [title, setTitle] = useState('')
@@ -12,15 +11,10 @@ export default function OfferAdminPage() {
   const [imageUrl, setImageUrl] = useState('')
   const [buttonText, setButtonText] = useState('')
   const [buttonLink, setButtonLink] = useState('')
-  const [buttonColor, setButtonColor] = useState('#9333ea')
-  const [backgroundColor, setBackgroundColor] = useState('#ffffff')
-  const [textColor, setTextColor] = useState('#1f2937')
-  const [termsText, setTermsText] = useState('All rights reserved. IT Services Freetown.')
   const [isActive, setIsActive] = useState(true)
   const [currentOffer, setCurrentOffer] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [previewImage, setPreviewImage] = useState('')
-  const previewRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     loadCurrentOffer()
@@ -38,10 +32,6 @@ export default function OfferAdminPage() {
         setImageUrl(data.offer.imageUrl)
         setButtonText(data.offer.buttonText || '')
         setButtonLink(data.offer.buttonLink || '')
-        setButtonColor(data.offer.buttonColor || '#9333ea')
-        setBackgroundColor(data.offer.backgroundColor || '#ffffff')
-        setTextColor(data.offer.textColor || '#1f2937')
-        setTermsText(data.offer.termsText || 'All rights reserved. IT Services Freetown.')
         setIsActive(data.offer.isActive)
         setPreviewImage(data.offer.imageUrl)
       }
@@ -84,10 +74,6 @@ export default function OfferAdminPage() {
           imageUrl,
           buttonText,
           buttonLink,
-          buttonColor,
-          backgroundColor,
-          textColor,
-          termsText,
           isActive,
         }),
       })
@@ -98,69 +84,13 @@ export default function OfferAdminPage() {
         toast.success('Offer saved successfully!')
         loadCurrentOffer()
       } else {
-        console.error('Save failed:', data)
-        toast.error(data.error || 'Failed to save offer')
+        toast.error('Failed to save offer')
       }
     } catch (error) {
       console.error('Error saving offer:', error)
       toast.error('Error saving offer')
     } finally {
       setLoading(false)
-    }
-  }
-
-  const handleDownload = async () => {
-    if (!previewRef.current) return
-    
-    try {
-      toast.loading('Generating image...')
-      const canvas = await html2canvas(previewRef.current, {
-        backgroundColor: null,
-        scale: 2,
-      })
-      
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob)
-          const link = document.createElement('a')
-          link.href = url
-          link.download = `offer-${Date.now()}.png`
-          link.click()
-          URL.revokeObjectURL(url)
-          toast.dismiss()
-          toast.success('Image downloaded!')
-        }
-      })
-    } catch (error) {
-      toast.dismiss()
-      toast.error('Failed to download image')
-      console.error('Download error:', error)
-    }
-  }
-
-  const handleShare = async () => {
-    const shareText = `${title}\n\n${description}\n\nVisit: https://www.itservicesfreetown.com`
-    const shareUrl = 'https://www.itservicesfreetown.com'
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: title,
-          text: shareText,
-          url: shareUrl,
-        })
-        toast.success('Shared successfully!')
-      } catch (error) {
-        console.error('Share error:', error)
-      }
-    } else {
-      // Fallback: copy to clipboard
-      try {
-        await navigator.clipboard.writeText(shareText + '\n' + shareUrl)
-        toast.success('Link copied to clipboard!')
-      } catch (error) {
-        toast.error('Failed to share')
-      }
     }
   }
 
@@ -211,7 +141,7 @@ export default function OfferAdminPage() {
         {/* Current Offer Status */}
         {currentOffer && (
           <div className={`mb-6 p-4 rounded-lg ${currentOffer.isActive ? 'bg-green-100 border border-green-300' : 'bg-gray-100 border border-gray-300'}`}>
-            <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {currentOffer.isActive ? (
                   <>
@@ -221,26 +151,13 @@ export default function OfferAdminPage() {
                 ) : (
                   <>
                     <EyeOff className="w-5 h-5 text-gray-600" />
-                    <span className="text-gray-800 font-medium">Offer is inactive</span>
+                    <span className="text-gray-800 font-medium">No active offer</span>
                   </>
                 )}
               </div>
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600">
-                  Last updated: {new Date(currentOffer.updatedAt).toLocaleDateString()}
-                </span>
-                {!currentOffer.isActive && (
-                  <button
-                    onClick={() => {
-                      setIsActive(true)
-                      toast.success('Click "Save Offer" to activate')
-                    }}
-                    className="px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition-colors"
-                  >
-                    Quick Activate
-                  </button>
-                )}
-              </div>
+              <span className="text-sm text-gray-600">
+                Last updated: {new Date(currentOffer.updatedAt).toLocaleDateString()}
+              </span>
             </div>
           </div>
         )}
@@ -361,208 +278,6 @@ export default function OfferAdminPage() {
                   <p className="text-xs text-gray-500 mt-1">Leave empty to hide button</p>
                 </div>
 
-                {/* Appearance Customization */}
-                <div className="border-t border-gray-200 pt-4 mt-6">
-                  <h4 className="text-md font-semibold text-gray-900 mb-4">🎨 Appearance Customization</h4>
-                  
-                  {/* Button Color */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Button Color
-                    </label>
-                    <div className="flex items-center gap-2 mb-2">
-                      <input
-                        type="color"
-                        value={buttonColor}
-                        onChange={(e) => setButtonColor(e.target.value)}
-                        className="w-12 h-12 rounded cursor-pointer border border-gray-300"
-                      />
-                      <input
-                        type="text"
-                        value={buttonColor}
-                        onChange={(e) => setButtonColor(e.target.value)}
-                        placeholder="#9333ea"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm"
-                        maxLength={7}
-                      />
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setButtonColor('#dc2626')}
-                        className="px-3 py-1 text-xs rounded-md border-2 hover:border-gray-400 transition-colors"
-                        style={{ backgroundColor: '#dc2626', color: '#ffffff' }}
-                      >
-                        Red
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setButtonColor('#040e40')}
-                        className="px-3 py-1 text-xs rounded-md border-2 hover:border-gray-400 transition-colors"
-                        style={{ backgroundColor: '#040e40', color: '#ffffff' }}
-                      >
-                        Navy
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setButtonColor('#000000')}
-                        className="px-3 py-1 text-xs rounded-md border-2 hover:border-gray-400 transition-colors"
-                        style={{ backgroundColor: '#000000', color: '#ffffff' }}
-                      >
-                        Black
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setButtonColor('#6b7280')}
-                        className="px-3 py-1 text-xs rounded-md border-2 hover:border-gray-400 transition-colors"
-                        style={{ backgroundColor: '#6b7280', color: '#ffffff' }}
-                      >
-                        Gray
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setButtonColor('#9333ea')}
-                        className="px-3 py-1 text-xs rounded-md border-2 hover:border-gray-400 transition-colors"
-                        style={{ backgroundColor: '#9333ea', color: '#ffffff' }}
-                      >
-                        Purple
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Background Color */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Background Color
-                    </label>
-                    <div className="flex items-center gap-2 mb-2">
-                      <input
-                        type="color"
-                        value={backgroundColor}
-                        onChange={(e) => setBackgroundColor(e.target.value)}
-                        className="w-12 h-12 rounded cursor-pointer border border-gray-300"
-                      />
-                      <input
-                        type="text"
-                        value={backgroundColor}
-                        onChange={(e) => setBackgroundColor(e.target.value)}
-                        placeholder="#ffffff"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm"
-                        maxLength={7}
-                      />
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setBackgroundColor('#ffffff')}
-                        className="px-3 py-1 text-xs rounded-md border-2 hover:border-gray-400 transition-colors"
-                        style={{ backgroundColor: '#ffffff', color: '#000000', border: '2px solid #d1d5db' }}
-                      >
-                        White
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setBackgroundColor('#f3f4f6')}
-                        className="px-3 py-1 text-xs rounded-md border-2 hover:border-gray-400 transition-colors"
-                        style={{ backgroundColor: '#f3f4f6', color: '#000000' }}
-                      >
-                        Light Gray
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setBackgroundColor('#fef3c7')}
-                        className="px-3 py-1 text-xs rounded-md border-2 hover:border-gray-400 transition-colors"
-                        style={{ backgroundColor: '#fef3c7', color: '#000000' }}
-                      >
-                        Light Yellow
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setBackgroundColor('#dbeafe')}
-                        className="px-3 py-1 text-xs rounded-md border-2 hover:border-gray-400 transition-colors"
-                        style={{ backgroundColor: '#dbeafe', color: '#000000' }}
-                      >
-                        Light Blue
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Text Color */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Text Color
-                    </label>
-                    <div className="flex items-center gap-2 mb-2">
-                      <input
-                        type="color"
-                        value={textColor}
-                        onChange={(e) => setTextColor(e.target.value)}
-                        className="w-12 h-12 rounded cursor-pointer border border-gray-300"
-                      />
-                      <input
-                        type="text"
-                        value={textColor}
-                        onChange={(e) => setTextColor(e.target.value)}
-                        placeholder="#1f2937"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm"
-                        maxLength={7}
-                      />
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setTextColor('#1f2937')}
-                        className="px-3 py-1 text-xs rounded-md border-2 hover:border-gray-400 transition-colors"
-                        style={{ backgroundColor: '#1f2937', color: '#ffffff' }}
-                      >
-                        Dark Gray
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setTextColor('#000000')}
-                        className="px-3 py-1 text-xs rounded-md border-2 hover:border-gray-400 transition-colors"
-                        style={{ backgroundColor: '#000000', color: '#ffffff' }}
-                      >
-                        Black
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setTextColor('#6b7280')}
-                        className="px-3 py-1 text-xs rounded-md border-2 hover:border-gray-400 transition-colors"
-                        style={{ backgroundColor: '#6b7280', color: '#ffffff' }}
-                      >
-                        Gray
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setTextColor('#ffffff')}
-                        className="px-3 py-1 text-xs rounded-md border-2 hover:border-gray-400 transition-colors"
-                        style={{ backgroundColor: '#ffffff', color: '#000000', border: '2px solid #d1d5db' }}
-                      >
-                        White
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Terms Text */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Terms & Conditions Text (Optional)
-                    </label>
-                    <textarea
-                      value={termsText}
-                      onChange={(e) => setTermsText(e.target.value)}
-                      placeholder="e.g., All rights reserved. IT Services Freetown reserves the right to modify offers."
-                      rows={3}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-sm"
-                      maxLength={200}
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      {termsText.length}/200 characters • Shown in small gray text below the button
-                    </p>
-                  </div>
-                </div>
-
                 {/* Active Toggle */}
                 <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
                   <input
@@ -591,26 +306,6 @@ export default function OfferAdminPage() {
               {loading ? 'Saving...' : 'Save Offer'}
             </button>
 
-            <button
-              onClick={handleDownload}
-              disabled={!title || !description}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              title={!title || !description ? 'Add title and description first' : 'Download as image for social media'}
-            >
-              <Download className="w-5 h-5" />
-              Download for Social Media
-            </button>
-
-            <button
-              onClick={handleShare}
-              disabled={!title || !description}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              title={!title || !description ? 'Add title and description first' : 'Share offer details'}
-            >
-              <Share2 className="w-5 h-5" />
-              Share Offer
-            </button>
-
             {currentOffer?.isActive && (
               <button
                 onClick={handleDeactivate}
@@ -631,11 +326,7 @@ export default function OfferAdminPage() {
             <p className="text-sm text-gray-600 mb-4">This is how your offer popup will look to visitors:</p>
             
             <div className="border-2 border-dashed border-gray-300 rounded-2xl p-4 bg-gray-50">
-              <div 
-                ref={previewRef}
-                className="rounded-2xl shadow-2xl max-w-2xl mx-auto overflow-hidden"
-                style={{ backgroundColor }}
-              >
+              <div className="bg-white rounded-2xl shadow-2xl max-w-2xl mx-auto overflow-hidden">
                 <div className="flex flex-col md:flex-row">
                   {/* Image Preview */}
                   <div className="md:w-2/5 relative bg-gradient-to-br from-purple-100 to-pink-100 min-h-[200px]">
@@ -657,27 +348,19 @@ export default function OfferAdminPage() {
                     <div className="inline-block px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-full mb-3">
                       TODAY'S OFFER
                     </div>
-                    <h2 className="text-3xl font-bold mb-3" style={{ color: textColor }}>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-3">
                       {title || 'Your Offer Title'}
                     </h2>
-                    <div className="leading-relaxed whitespace-pre-line mb-6" style={{ color: textColor }}>
+                    <div className="text-gray-600 leading-relaxed whitespace-pre-line mb-6">
                       {description || 'Your offer description will appear here...'}
                     </div>
                     {buttonText && buttonLink && (
-                      <div>
-                        <a
-                          href={buttonLink}
-                          className="inline-block px-6 py-3 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:opacity-90"
-                          style={{ backgroundColor: buttonColor }}
-                        >
-                          {buttonText}
-                        </a>
-                        {termsText && (
-                          <p className="text-xs text-gray-500 mt-3 text-center">
-                            {termsText}
-                          </p>
-                        )}
-                      </div>
+                      <a
+                        href={buttonLink}
+                        className="inline-block px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg"
+                      >
+                        {buttonText}
+                      </a>
                     )}
                   </div>
                 </div>

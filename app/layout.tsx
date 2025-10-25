@@ -255,7 +255,7 @@ export default function RootLayout({
           <ConditionalLayout>
             {children}
           </ConditionalLayout>
-          <OfferPopup delay={5000} />
+          <OfferPopup delay={30000} />
           <Toaster position="top-right" />
         </AnalyticsProvider>
       </body>
