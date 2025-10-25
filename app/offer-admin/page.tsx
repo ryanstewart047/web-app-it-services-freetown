@@ -141,7 +141,7 @@ export default function OfferAdminPage() {
         {/* Current Offer Status */}
         {currentOffer && (
           <div className={`mb-6 p-4 rounded-lg ${currentOffer.isActive ? 'bg-green-100 border border-green-300' : 'bg-gray-100 border border-gray-300'}`}>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-2">
                 {currentOffer.isActive ? (
                   <>
@@ -151,13 +151,26 @@ export default function OfferAdminPage() {
                 ) : (
                   <>
                     <EyeOff className="w-5 h-5 text-gray-600" />
-                    <span className="text-gray-800 font-medium">No active offer</span>
+                    <span className="text-gray-800 font-medium">Offer is inactive</span>
                   </>
                 )}
               </div>
-              <span className="text-sm text-gray-600">
-                Last updated: {new Date(currentOffer.updatedAt).toLocaleDateString()}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-600">
+                  Last updated: {new Date(currentOffer.updatedAt).toLocaleDateString()}
+                </span>
+                {!currentOffer.isActive && (
+                  <button
+                    onClick={() => {
+                      setIsActive(true)
+                      toast.success('Click "Save Offer" to activate')
+                    }}
+                    className="px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    Quick Activate
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}
