@@ -15,6 +15,9 @@ export interface Offer {
 
 export async function getCurrentOffer(): Promise<Offer | null> {
   try {
+    console.log('[Offer Storage] Fetching offer from Gist ID:', GITHUB_GIST_ID)
+    console.log('[Offer Storage] Using token:', GITHUB_TOKEN ? 'Token present' : 'No token')
+    
     const response = await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}`, {
       headers: {
         'Authorization': `token ${GITHUB_TOKEN}`,
@@ -24,21 +27,26 @@ export async function getCurrentOffer(): Promise<Offer | null> {
     })
 
     if (!response.ok) {
-      console.error('Failed to fetch offer:', response.status)
+      console.error('[Offer Storage] Failed to fetch offer:', response.status, response.statusText)
+      const errorText = await response.text()
+      console.error('[Offer Storage] Error details:', errorText)
       return null
     }
 
     const gist = await response.json()
+    console.log('[Offer Storage] Gist fetched, files:', Object.keys(gist.files))
     const offerFile = gist.files[OFFER_FILENAME]
 
     if (!offerFile) {
+      console.error('[Offer Storage] Offer file not found. Available files:', Object.keys(gist.files))
       return null
     }
 
     const offer = JSON.parse(offerFile.content)
+    console.log('[Offer Storage] Offer parsed:', { title: offer.title, isActive: offer.isActive })
     return offer.isActive ? offer : null
   } catch (error) {
-    console.error('Error fetching offer:', error)
+    console.error('[Offer Storage] Error fetching offer:', error)
     return null
   }
 }
