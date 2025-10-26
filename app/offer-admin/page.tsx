@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { ArrowLeft, Save, Trash2, Eye, EyeOff, Image as ImageIcon } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { ArrowLeft, Save, Trash2, Eye, EyeOff, Image as ImageIcon, Download, Share2 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'react-hot-toast'
+import html2canvas from 'html2canvas'
 
 export default function OfferAdminPage() {
   const [title, setTitle] = useState('')
@@ -11,10 +12,15 @@ export default function OfferAdminPage() {
   const [imageUrl, setImageUrl] = useState('')
   const [buttonText, setButtonText] = useState('')
   const [buttonLink, setButtonLink] = useState('')
+  const [buttonColor, setButtonColor] = useState('#9333ea')
+  const [backgroundColor, setBackgroundColor] = useState('#ffffff')
+  const [textColor, setTextColor] = useState('#1f2937')
+  const [termsText, setTermsText] = useState('')
   const [isActive, setIsActive] = useState(true)
   const [currentOffer, setCurrentOffer] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [previewImage, setPreviewImage] = useState('')
+  const previewRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     loadCurrentOffer()
@@ -32,6 +38,10 @@ export default function OfferAdminPage() {
         setImageUrl(data.offer.imageUrl)
         setButtonText(data.offer.buttonText || '')
         setButtonLink(data.offer.buttonLink || '')
+        setButtonColor(data.offer.buttonColor || '#9333ea')
+        setBackgroundColor(data.offer.backgroundColor || '#ffffff')
+        setTextColor(data.offer.textColor || '#1f2937')
+        setTermsText(data.offer.termsText || '')
         setIsActive(data.offer.isActive)
         setPreviewImage(data.offer.imageUrl)
       }
@@ -74,6 +84,10 @@ export default function OfferAdminPage() {
           imageUrl,
           buttonText,
           buttonLink,
+          buttonColor,
+          backgroundColor,
+          textColor,
+          termsText,
           isActive,
         }),
       })
@@ -91,6 +105,64 @@ export default function OfferAdminPage() {
       toast.error('Error saving offer')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDownload = async () => {
+    if (!previewRef.current) return
+    
+    try {
+      toast.loading('Generating image...')
+      const canvas = await html2canvas(previewRef.current, {
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: backgroundColor,
+        scale: 2,
+        logging: false,
+      })
+      
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob)
+          const link = document.createElement('a')
+          link.href = url
+          link.download = `offer-${Date.now()}.png`
+          link.click()
+          URL.revokeObjectURL(url)
+          toast.dismiss()
+          toast.success('Image downloaded!')
+        }
+      }, 'image/png')
+    } catch (error) {
+      toast.dismiss()
+      toast.error('Failed to download image')
+      console.error('Download error:', error)
+    }
+  }
+
+  const handleShare = async () => {
+    const shareText = `${title}\n\n${description}\n\nVisit: https://www.itservicesfreetown.com`
+    const shareUrl = 'https://www.itservicesfreetown.com'
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: title,
+          text: shareText,
+          url: shareUrl,
+        })
+        toast.success('Shared successfully!')
+      } catch (error) {
+        console.error('Share error:', error)
+      }
+    } else {
+      // Fallback: copy to clipboard
+      try {
+        await navigator.clipboard.writeText(shareText + '\n' + shareUrl)
+        toast.success('Link copied to clipboard!')
+      } catch (error) {
+        toast.error('Failed to share')
+      }
     }
   }
 
