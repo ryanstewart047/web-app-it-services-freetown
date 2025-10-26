@@ -103,7 +103,7 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
             {/* Text Section */}
             <div className="md:w-3/5 p-8">
               <div className="mb-4">
-                <div className="inline-block px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-full mb-3">
+                <div className="inline-block px-3 py-1 text-white text-xs font-bold rounded-full mb-3" style={{ background: offer.badgeColor || '#9333ea' }}>
                   TODAY'S OFFER
                 </div>
                 <h2 className="text-3xl font-bold mb-3" style={{ color: offer.textColor || '#1f2937' }}>

@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
   try {
-    const { title, description, imageUrl, buttonText, buttonLink, buttonColor, backgroundColor, textColor, termsText, isActive } = await request.json()
+    const { title, description, imageUrl, buttonText, buttonLink, buttonColor, backgroundColor, textColor, badgeColor, termsText, isActive } = await request.json()
 
     if (!title || !description) {
       return NextResponse.json(
@@ -29,12 +29,13 @@ export async function POST(request: Request) {
         buttonColor,
         backgroundColor,
         textColor,
+        badgeColor,
         termsText,
         isActive,
       })
     } else {
       // Create new offer
-      await createOffer(title, description, imageUrl, buttonText, buttonLink, buttonColor, backgroundColor, textColor, termsText)
+      await createOffer(title, description, imageUrl, buttonText, buttonLink, buttonColor, backgroundColor, textColor, badgeColor, termsText)
       success = true
     }
 
