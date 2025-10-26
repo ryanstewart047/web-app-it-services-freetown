@@ -10,6 +10,10 @@ export interface Offer {
   imageUrl: string
   buttonText?: string
   buttonLink?: string
+  buttonColor?: string
+  backgroundColor?: string
+  textColor?: string
+  termsText?: string
   isActive: boolean
   createdAt: string
   updatedAt: string
@@ -108,7 +112,7 @@ export async function saveOffer(offer: Offer): Promise<boolean> {
   }
 }
 
-export async function createOffer(title: string, description: string, imageUrl: string, buttonText?: string, buttonLink?: string): Promise<Offer> {
+export async function createOffer(title: string, description: string, imageUrl: string, buttonText?: string, buttonLink?: string, buttonColor?: string, backgroundColor?: string, textColor?: string, termsText?: string): Promise<Offer> {
   const offer: Offer = {
     id: Date.now().toString(),
     title,
@@ -116,6 +120,10 @@ export async function createOffer(title: string, description: string, imageUrl: 
     imageUrl,
     buttonText,
     buttonLink,
+    buttonColor: buttonColor || '#9333ea',
+    backgroundColor: backgroundColor || '#ffffff',
+    textColor: textColor || '#1f2937',
+    termsText,
     isActive: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
