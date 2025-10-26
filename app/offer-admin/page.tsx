@@ -553,6 +553,18 @@ export default function OfferAdminPage() {
                 Deactivate
               </button>
             )}
+
+            <a
+              href="/test-offer"
+              target="_blank"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gray-700 text-white font-semibold rounded-xl hover:bg-gray-800 transition-all duration-300"
+              title="Open debug page to test if offer API is working"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              </svg>
+              Debug API
+            </a>
           </div>
         </div>
 
