@@ -67,25 +67,25 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
       />
 
       {/* Popup Card */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 pointer-events-none">
         <div 
-          className="rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden pointer-events-auto transform transition-all duration-300 animate-scale-in"
+          className="rounded-xl md:rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden pointer-events-auto transform transition-all duration-300 animate-scale-in"
           style={{ backgroundColor: offer.backgroundColor || '#ffffff' }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Close Button */}
           <button
             onClick={handleClose}
-            className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/90 hover:bg-white shadow-lg transition-all hover:scale-110"
+            className="absolute top-2 right-2 md:top-4 md:right-4 z-10 p-1.5 md:p-2 rounded-full bg-white/90 hover:bg-white shadow-lg transition-all hover:scale-110"
             aria-label="Close popup"
           >
-            <X className="w-5 h-5 text-gray-600" />
+            <X className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
           </button>
 
           {/* Content */}
           <div className="flex flex-col md:flex-row">
             {/* Image Section */}
-            <div className="md:w-2/5 relative bg-gradient-to-br from-purple-100 to-pink-100 min-h-[200px] md:min-h-[300px]">
+            <div className="md:w-2/5 relative bg-gradient-to-br from-purple-100 to-pink-100 min-h-[150px] md:min-h-[300px]">
               {offer.imageUrl ? (
                 <img
                   src={offer.imageUrl}
@@ -94,33 +94,33 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <div className="text-6xl">🎉</div>
+                  <div className="text-4xl md:text-6xl">🎉</div>
                 </div>
               )}
             </div>
 
             {/* Text Section */}
-            <div className="md:w-3/5 p-8">
-              <div className="mb-4">
-                <div className="inline-block px-3 py-1 text-white text-xs font-bold rounded-full mb-3" style={{ background: offer.badgeColor || '#9333ea' }}>
+            <div className="md:w-3/5 p-4 md:p-8">
+              <div className="mb-3 md:mb-4">
+                <div className="inline-block px-2 py-0.5 md:px-3 md:py-1 text-white text-[10px] md:text-xs font-bold rounded-full mb-2 md:mb-3" style={{ background: offer.badgeColor || '#9333ea' }}>
                   TODAY'S OFFER
                 </div>
-                <h2 className="text-3xl font-bold mb-3" style={{ color: offer.textColor || '#1f2937' }}>
+                <h2 className="text-xl md:text-3xl font-bold mb-2 md:mb-3 leading-tight" style={{ color: offer.textColor || '#1f2937' }}>
                   {offer.title}
                 </h2>
               </div>
               
-              <div className="leading-relaxed whitespace-pre-line mb-6" style={{ color: offer.textColor || '#1f2937' }}>
+              <div className="text-sm md:text-base leading-relaxed whitespace-pre-line mb-4 md:mb-6" style={{ color: offer.textColor || '#1f2937' }}>
                 {offer.description}
               </div>
 
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-wrap gap-3">
+              <div className="flex flex-col gap-2 md:gap-3">
+                <div className="flex flex-wrap gap-2 md:gap-3">
                   {offer.buttonText && offer.buttonLink && (
                     <a
                       href={offer.buttonLink}
                       onClick={handleClose}
-                      className="px-6 py-3 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 hover:opacity-90"
+                      className="px-4 py-2 md:px-6 md:py-3 text-sm md:text-base text-white font-semibold rounded-lg md:rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 hover:opacity-90"
                       style={{ backgroundColor: offer.buttonColor || '#9333ea' }}
                     >
                       {offer.buttonText}
@@ -128,13 +128,13 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
                   )}
                   <button
                     onClick={handleClose}
-                    className={`px-6 py-3 ${offer.buttonText && offer.buttonLink ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-lg hover:shadow-xl transform hover:scale-105'} font-semibold rounded-xl transition-all duration-300`}
+                    className={`px-4 py-2 md:px-6 md:py-3 text-sm md:text-base ${offer.buttonText && offer.buttonLink ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-lg hover:shadow-xl transform hover:scale-105'} font-semibold rounded-lg md:rounded-xl transition-all duration-300`}
                   >
                     {offer.buttonText && offer.buttonLink ? 'Maybe Later' : 'Got It!'}
                   </button>
                 </div>
                 {offer.termsText && (
-                  <p className="text-xs text-gray-500 text-center mt-2">
+                  <p className="text-[10px] md:text-xs text-gray-500 text-center mt-1 md:mt-2">
                     {offer.termsText}
                   </p>
                 )}
