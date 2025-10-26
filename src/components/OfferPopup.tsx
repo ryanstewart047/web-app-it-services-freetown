@@ -11,20 +11,9 @@ interface OfferPopupProps {
 export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [offer, setOffer] = useState<any>(null)
-  const [hasShown, setHasShown] = useState(false)
 
   useEffect(() => {
-    // Check if popup was already shown in this session
-    const shownToday = sessionStorage.getItem('offer-popup-shown')
-    
     console.log('[OfferPopup] Component mounted, delay:', delay)
-    console.log('[OfferPopup] Already shown this session:', shownToday)
-    
-    if (shownToday) {
-      console.log('[OfferPopup] Popup already shown, skipping')
-      setHasShown(true)
-      return
-    }
 
     // Fetch current offer
     console.log('[OfferPopup] Fetching offer from API...')
@@ -44,7 +33,6 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
           const timer = setTimeout(() => {
             console.log('[OfferPopup] Timer fired, showing popup now')
             setIsVisible(true)
-            sessionStorage.setItem('offer-popup-shown', 'true')
           }, delay)
 
           return () => {
