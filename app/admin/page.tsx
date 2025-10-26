@@ -318,7 +318,7 @@ export default function AdminPage() {
             <OverviewStat label="Total visitors" value={analytics.totalVisitors ?? 0} accent="text-blue-500" />
             <OverviewStat label="Total repairs" value={repairs.totalRepairs ?? 0} accent="text-purple-500" />
             <OverviewStat label="Form submissions" value={forms.totalSubmissions ?? 0} accent="text-emerald-500" />
-            <OverviewStat label="Revenue" value={`$${(repairs.totalRevenue ?? 0).toLocaleString()}`} accent="text-orange-500" />
+            <OverviewStat label="Revenue" value={`Le ${(repairs.totalRevenue ?? 0).toLocaleString()}`} accent="text-orange-500" />
           </dl>
         </div>
 
@@ -601,7 +601,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
       <div className="grid gap-4 min-[480px]:grid-cols-2 xl:grid-cols-4">
         <StatPill label="Total repairs" value={repairs.totalRepairs ?? 0} />
         <StatPill label="Average completion" value={`${repairs.averageCompletionDays ?? 0} days`} />
-        <StatPill label="Live revenue" value={`$${(repairs.totalRevenue ?? 0).toLocaleString()}`} />
+        <StatPill label="Live revenue" value={`Le ${(repairs.totalRevenue ?? 0).toLocaleString()}`} />
         <StatPill label="Statuses tracked" value={statusSummary.length} />
       </div>
 
@@ -646,7 +646,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                     {repair.totalCost ? (
                       <>
                         <span>•</span>
-                        <span>${repair.totalCost}</span>
+                        <span>Le {repair.totalCost}</span>
                       </>
                     ) : null}
                     {repair.lastUpdated ? (
@@ -715,7 +715,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
               </label>
 
               <label className="space-y-2">
-                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Total cost (USD)</span>
+                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Total cost (Le)</span>
                 <input
                   type="number"
                   min="0"
