@@ -22,6 +22,7 @@ export default function OfferAdminPage() {
   const [loading, setLoading] = useState(false)
   const [previewImage, setPreviewImage] = useState('')
   const previewRef = useRef<HTMLDivElement>(null)
+  const exportRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     loadCurrentOffer()
@@ -112,57 +113,33 @@ export default function OfferAdminPage() {
   }
 
   const handleDownload = async () => {
-    if (!previewRef.current) return
+    if (!exportRef.current) return
     
     try {
       toast.loading('Generating 1080x1080 image for social media...')
       
-      // First, capture the element
-      const canvas = await html2canvas(previewRef.current, {
+      const canvas = await html2canvas(exportRef.current, {
         useCORS: true,
         allowTaint: true,
         backgroundColor: backgroundColor,
-        scale: 2,
+        width: 1080,
+        height: 1080,
+        scale: 1,
         logging: false,
       })
       
-      // Create a new 1080x1080 canvas
-      const socialCanvas = document.createElement('canvas')
-      socialCanvas.width = 1080
-      socialCanvas.height = 1080
-      const ctx = socialCanvas.getContext('2d')
-      
-      if (ctx) {
-        // Fill background
-        ctx.fillStyle = backgroundColor || '#ffffff'
-        ctx.fillRect(0, 0, 1080, 1080)
-        
-        // Calculate scaling to fit the content within 1080x1080
-        const scale = Math.min(1080 / canvas.width, 1080 / canvas.height)
-        const scaledWidth = canvas.width * scale
-        const scaledHeight = canvas.height * scale
-        
-        // Center the image
-        const x = (1080 - scaledWidth) / 2
-        const y = (1080 - scaledHeight) / 2
-        
-        // Draw the captured content centered
-        ctx.drawImage(canvas, x, y, scaledWidth, scaledHeight)
-        
-        // Convert to blob and download
-        socialCanvas.toBlob((blob) => {
-          if (blob) {
-            const url = URL.createObjectURL(blob)
-            const link = document.createElement('a')
-            link.href = url
-            link.download = `offer-1080x1080-${Date.now()}.png`
-            link.click()
-            URL.revokeObjectURL(url)
-            toast.dismiss()
-            toast.success('1080x1080 image downloaded!')
-          }
-        }, 'image/png')
-      }
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob)
+          const link = document.createElement('a')
+          link.href = url
+          link.download = `offer-1080x1080-${Date.now()}.png`
+          link.click()
+          URL.revokeObjectURL(url)
+          toast.dismiss()
+          toast.success('1080x1080 image downloaded!')
+        }
+      }, 'image/png')
     } catch (error) {
       toast.dismiss()
       toast.error('Failed to download image')
@@ -657,6 +634,59 @@ export default function OfferAdminPage() {
             </div>
           </div>
         )}
+
+        {/* Hidden 1080x1080 Export Version */}
+        <div 
+          ref={exportRef}
+          className="fixed -left-[9999px] top-0"
+          style={{ 
+            width: '1080px', 
+            height: '1080px',
+            backgroundColor: backgroundColor 
+          }}
+        >
+          <div className="w-full h-full flex flex-col justify-center p-16" style={{ backgroundColor }}>
+            {/* Image Section - Top Third */}
+            {previewImage && (
+              <div className="w-full h-[340px] mb-8 rounded-3xl overflow-hidden">
+                <img
+                  src={previewImage}
+                  alt={title}
+                  className="w-full h-full object-cover"
+                  crossOrigin="anonymous"
+                />
+              </div>
+            )}
+            
+            {/* Content Section */}
+            <div className="flex-1 flex flex-col justify-center text-center px-12">
+              <div className="inline-block mx-auto px-8 py-3 text-white text-2xl font-bold rounded-full mb-6" style={{ background: badgeColor }}>
+                TODAY'S OFFER
+              </div>
+              <h2 className="text-6xl font-bold mb-8 leading-tight" style={{ color: textColor }}>
+                {title || 'Your Offer Title'}
+              </h2>
+              <div className="text-3xl leading-relaxed mb-10" style={{ color: textColor }}>
+                {description || 'Your offer description will appear here...'}
+              </div>
+              {buttonText && buttonLink && (
+                <div className="flex flex-col items-center gap-4">
+                  <div
+                    className="inline-block px-16 py-6 text-white text-3xl font-bold rounded-2xl"
+                    style={{ backgroundColor: buttonColor }}
+                  >
+                    {buttonText}
+                  </div>
+                  {termsText && (
+                    <p className="text-xl text-gray-500">
+                      {termsText}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
