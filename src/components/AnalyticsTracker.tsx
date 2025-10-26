@@ -302,6 +302,8 @@ class AnalyticsTracker {
   public trackPageView(performance?: any) {
     if (!this.config.trackPageViews || typeof window === 'undefined') return;
 
+    console.log('[Analytics] Tracking page view:', window.location.pathname);
+
     const visitorData: VisitorData = {
       sessionId: this.sessionId,
       timestamp: new Date().toISOString(),
@@ -316,6 +318,7 @@ class AnalyticsTracker {
       }
     };
 
+    console.log('[Analytics] Sending visitor data:', visitorData);
     this.sendData('/api/analytics/visitor', visitorData);
   }
 
@@ -347,7 +350,16 @@ class AnalyticsTracker {
     if (typeof window === 'undefined') return;
 
     try {
-      // Store analytics data in localStorage instead of sending to API
+      // Send to API endpoint for server-side tracking
+      await fetch(endpoint, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      // Also store in localStorage as backup
       const dataType = endpoint.split('/').pop() || 'general';
       const storageKey = `analytics_${dataType}`;
       

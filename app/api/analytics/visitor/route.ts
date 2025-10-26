@@ -124,15 +124,18 @@ export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
 
+    // Extract device info
+    const deviceType = data.device?.type || 'Unknown';
+    
     // Create visitor record
     const visitor: VisitorRecord = {
       id: `visitor_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       sessionId: typeof data.sessionId === 'string' && data.sessionId.length ? data.sessionId : `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      page: typeof data.page === 'string' ? data.page : '/',
-      referrer: typeof data.referrer === 'string' ? data.referrer : 'direct',
-      userAgent: typeof data.userAgent === 'string' ? data.userAgent : 'unknown',
-      country: typeof data.country === 'string' ? data.country : 'Unknown',
-      device: typeof data.device === 'string' ? data.device : 'Unknown',
+      page: data.path || data.page || '/',
+      referrer: data.referrer || 'direct',
+      userAgent: data.userAgent || 'unknown',
+      country: data.country || 'Unknown',
+      device: deviceType,
       timestamp: new Date().toISOString(),
     };
 
