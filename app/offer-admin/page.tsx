@@ -115,7 +115,9 @@ export default function OfferAdminPage() {
     if (!previewRef.current) return
     
     try {
-      toast.loading('Generating image...')
+      toast.loading('Generating 1080x1080 image for social media...')
+      
+      // First, capture the element
       const canvas = await html2canvas(previewRef.current, {
         useCORS: true,
         allowTaint: true,
@@ -124,18 +126,43 @@ export default function OfferAdminPage() {
         logging: false,
       })
       
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob)
-          const link = document.createElement('a')
-          link.href = url
-          link.download = `offer-${Date.now()}.png`
-          link.click()
-          URL.revokeObjectURL(url)
-          toast.dismiss()
-          toast.success('Image downloaded!')
-        }
-      }, 'image/png')
+      // Create a new 1080x1080 canvas
+      const socialCanvas = document.createElement('canvas')
+      socialCanvas.width = 1080
+      socialCanvas.height = 1080
+      const ctx = socialCanvas.getContext('2d')
+      
+      if (ctx) {
+        // Fill background
+        ctx.fillStyle = backgroundColor || '#ffffff'
+        ctx.fillRect(0, 0, 1080, 1080)
+        
+        // Calculate scaling to fit the content within 1080x1080
+        const scale = Math.min(1080 / canvas.width, 1080 / canvas.height)
+        const scaledWidth = canvas.width * scale
+        const scaledHeight = canvas.height * scale
+        
+        // Center the image
+        const x = (1080 - scaledWidth) / 2
+        const y = (1080 - scaledHeight) / 2
+        
+        // Draw the captured content centered
+        ctx.drawImage(canvas, x, y, scaledWidth, scaledHeight)
+        
+        // Convert to blob and download
+        socialCanvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob)
+            const link = document.createElement('a')
+            link.href = url
+            link.download = `offer-1080x1080-${Date.now()}.png`
+            link.click()
+            URL.revokeObjectURL(url)
+            toast.dismiss()
+            toast.success('1080x1080 image downloaded!')
+          }
+        }, 'image/png')
+      }
     } catch (error) {
       toast.dismiss()
       toast.error('Failed to download image')
