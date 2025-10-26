@@ -1,5 +1,5 @@
 // Offer storage using GitHub Gist
-const GITHUB_TOKEN = process.env.NEXT_PUBLIC_GITHUB_TOKEN || process.env.GITHUB_TOKEN || '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'
+const GITHUB_TOKEN = process.env.NEXT_PUBLIC_GITHUB_TOKEN || process.env.GITHUB_TOKEN || ''
 const GITHUB_GIST_ID = process.env.OFFER_GIST_ID || process.env.GITHUB_GIST_ID || '741d3c2e3203df10a318d3dae1a94c66'
 const OFFER_FILENAME = 'current-offer.json'
 

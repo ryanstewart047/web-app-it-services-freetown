@@ -10,7 +10,7 @@ const GITHUB_REPO = 'web-app-it-services-freetown'
 // GitHub token for API access
 // In development: reads from .env.local
 // In production: uses hardcoded token (protected by admin password)
-const GITHUB_TOKEN = process.env.NEXT_PUBLIC_GITHUB_TOKEN || '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'
+const GITHUB_TOKEN = process.env.NEXT_PUBLIC_GITHUB_TOKEN || ''
 
 interface GitHubIssue {
   number: number
