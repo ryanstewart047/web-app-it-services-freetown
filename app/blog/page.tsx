@@ -379,9 +379,10 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                   </h2>
 
                   {/* Content */}
-                  <div className="prose prose-lg max-w-none text-gray-700 whitespace-pre-wrap mb-8 leading-relaxed">
-                    {post.content}
-                  </div>
+                  <div 
+                    className="prose prose-lg max-w-none text-gray-700 mb-8 leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: post.content }}
+                  />
 
                   {/* Media Display */}
                   {post.media && post.media.length > 0 && (

@@ -8,6 +8,11 @@ import LoadingOverlay from '@/components/LoadingOverlay'
 import { ArrowLeft, Save, Eye, Upload, X, Image as ImageIcon, Video, Lock, Sparkles, RefreshCw, Trash2, List } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { createBlogPost, fetchBlogPosts, deleteBlogPost } from '@/lib/github-blog-storage'
+import dynamic from 'next/dynamic'
+import 'react-quill/dist/quill.snow.css'
+
+// Dynamically import ReactQuill to avoid SSR issues
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false })
 
 interface MediaItem {
   id: string
@@ -30,6 +35,30 @@ interface BlogPost {
 
 // Admin password - In production, this should be in environment variables
 const ADMIN_PASSWORD = 'ITServices2025!'
+
+// Rich text editor configuration
+const quillModules = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'color': [] }, { 'background': [] }],
+    [{ 'font': [] }],
+    [{ 'align': [] }],
+    ['link'],
+    ['clean']
+  ],
+}
+
+const quillFormats = [
+  'header',
+  'bold', 'italic', 'underline', 'strike',
+  'list', 'bullet',
+  'color', 'background',
+  'font',
+  'align',
+  'link'
+]
 
 export default function BlogAdminPage() {
   const router = useRouter()
@@ -595,22 +624,25 @@ Write the content now:`
                 </div>
               )}
 
-              <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                placeholder="Write your blog post content here...
+              <div className="quill-wrapper">
+                <ReactQuill 
+                  theme="snow"
+                  value={content}
+                  onChange={setContent}
+                  modules={quillModules}
+                  formats={quillFormats}
+                  placeholder="Write your blog post content here...
 
 Tips:
-- Use **bold** for emphasis
+- Use the toolbar above for formatting
 - Keep paragraphs short and readable
 - Include actionable advice
 - Add contact information when relevant"
-                rows={15}
-                required
-              />
+                  style={{ height: '400px', marginBottom: '50px' }}
+                />
+              </div>
               <p className="text-sm text-gray-500 mt-2">
-                💡 Tip: Use the AI Writer to generate professional content instantly, or write manually
+                💡 Tip: Use the AI Writer to generate professional content instantly, or write manually with rich text formatting
               </p>
             </div>
 
@@ -756,9 +788,10 @@ Tips:
                 {title || 'Your Post Title'}
               </h2>
 
-              <div className="prose max-w-none text-gray-700 whitespace-pre-wrap mb-6">
-                {content || 'Your post content will appear here...'}
-              </div>
+              <div 
+                className="prose max-w-none text-gray-700 mb-6"
+                dangerouslySetInnerHTML={{ __html: content || '<p class="text-gray-400">Your post content will appear here...</p>' }}
+              />
 
               {/* Media Preview in Post */}
               {media.length > 0 && (
@@ -808,6 +841,58 @@ Tips:
           </div>
         )}
       </div>
+
+      <style jsx global>{`
+        .quill-wrapper .ql-container {
+          border-bottom-left-radius: 0.75rem;
+          border-bottom-right-radius: 0.75rem;
+          border: 2px solid #e5e7eb;
+          font-size: 16px;
+        }
+        
+        .quill-wrapper .ql-toolbar {
+          border-top-left-radius: 0.75rem;
+          border-top-right-radius: 0.75rem;
+          border: 2px solid #e5e7eb;
+          background: #f9fafb;
+        }
+        
+        .quill-wrapper .ql-editor {
+          min-height: 400px;
+          font-family: inherit;
+        }
+        
+        .quill-wrapper .ql-editor.ql-blank::before {
+          color: #9ca3af;
+          font-style: normal;
+        }
+        
+        .quill-wrapper .ql-toolbar .ql-stroke {
+          stroke: #374151;
+        }
+        
+        .quill-wrapper .ql-toolbar .ql-fill {
+          fill: #374151;
+        }
+        
+        .quill-wrapper .ql-toolbar button:hover,
+        .quill-wrapper .ql-toolbar button:focus,
+        .quill-wrapper .ql-toolbar button.ql-active {
+          color: #3b82f6;
+        }
+        
+        .quill-wrapper .ql-toolbar button:hover .ql-stroke,
+        .quill-wrapper .ql-toolbar button:focus .ql-stroke,
+        .quill-wrapper .ql-toolbar button.ql-active .ql-stroke {
+          stroke: #3b82f6;
+        }
+        
+        .quill-wrapper .ql-toolbar button:hover .ql-fill,
+        .quill-wrapper .ql-toolbar button:focus .ql-fill,
+        .quill-wrapper .ql-toolbar button.ql-active .ql-fill {
+          fill: #3b82f6;
+        }
+      `}</style>
     </div>
   )
 }
