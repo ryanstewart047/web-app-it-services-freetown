@@ -158,6 +158,9 @@ export async function createBlogPost(
     // Format body with metadata
     const body = formatPostBody(content, author, media)
 
+    console.log('[Blog Storage] Creating blog post with GitHub Issues API');
+    console.log('[Blog Storage] Repo:', `${GITHUB_OWNER}/${GITHUB_REPO}`);
+
     const response = await fetch(
       `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/issues`,
       {
@@ -176,11 +179,22 @@ export async function createBlogPost(
     )
 
     if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.message || 'Failed to create post')
+      const errorData = await response.json().catch(() => ({ message: response.statusText }))
+      console.error('[Blog Storage] GitHub API Error:', response.status, errorData);
+      
+      if (response.status === 404) {
+        throw new Error('Repository not found or token lacks access. Please check NEXT_PUBLIC_GITHUB_TOKEN has repo permissions.')
+      }
+      
+      if (response.status === 401) {
+        throw new Error('Invalid or expired GitHub token. Please update NEXT_PUBLIC_GITHUB_TOKEN in Vercel environment variables.')
+      }
+      
+      throw new Error(errorData.message || `GitHub API Error: ${response.status}`)
     }
 
     const issue = await response.json()
+    console.log('[Blog Storage] Blog post created successfully. Issue #' + issue.number);
 
     return {
       success: true,

@@ -62,6 +62,29 @@ export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
 
+    // Handle direct form submission data (compatibility mode)
+    if (!data.type) {
+      console.log('[Forms API] Received data without type field, treating as submission');
+      const formType = data.formType || 'contact';
+      const fields = data.fields || data;
+      
+      const { submission, repair } = await recordFormSubmission({
+        formType,
+        fields,
+        userAgent: data.userAgent,
+        page: data.page,
+        trackingId: data.trackingId
+      });
+
+      return NextResponse.json({
+        success: true,
+        submissionId: submission.id,
+        trackingId: repair?.trackingId ?? submission.trackingId,
+        repair,
+        message: 'Form submission recorded'
+      });
+    }
+
     if (data.type === 'view') {
       const formType = typeof data.formType === 'string' ? data.formType : 'contact';
       await recordFormView(formType);
