@@ -21,6 +21,7 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
     console.log('[OfferPopup] Already shown this session:', shownToday)
     
     if (shownToday) {
+      console.log('[OfferPopup] Popup already shown, skipping')
       setHasShown(true)
       return
     }
@@ -28,36 +29,46 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
     // Fetch current offer
     console.log('[OfferPopup] Fetching offer from API...')
     fetch('/api/offer')
-      .then(res => res.json())
+      .then(res => {
+        console.log('[OfferPopup] API status:', res.status)
+        return res.json()
+      })
       .then(data => {
         console.log('[OfferPopup] API response:', data)
-        if (data.offer) {
-          console.log('[OfferPopup] Offer found, setting timer for', delay, 'ms')
+        if (data.success && data.offer) {
+          console.log('[OfferPopup] Offer found:', data.offer.title)
+          console.log('[OfferPopup] Offer isActive:', data.offer.isActive)
           setOffer(data.offer)
           
           // Show popup after delay
           const timer = setTimeout(() => {
-            console.log('[OfferPopup] Timer fired, showing popup')
+            console.log('[OfferPopup] Timer fired, showing popup now')
             setIsVisible(true)
             sessionStorage.setItem('offer-popup-shown', 'true')
-            setHasShown(true)
           }, delay)
 
-          return () => clearTimeout(timer)
+          return () => {
+            console.log('[OfferPopup] Cleanup: clearing timer')
+            clearTimeout(timer)
+          }
         } else {
-          console.log('[OfferPopup] No offer available')
+          console.log('[OfferPopup] No offer available in response')
         }
       })
       .catch(error => console.error('[OfferPopup] Error fetching offer:', error))
   }, [delay])
 
   const handleClose = () => {
+    console.log('[OfferPopup] Closing popup')
     setIsVisible(false)
   }
 
-  if (!offer || !isVisible || hasShown) {
+  // Don't render if no offer or not visible
+  if (!offer || !isVisible) {
     return null
   }
+
+  console.log('[OfferPopup] Rendering popup for:', offer.title)
 
   return (
     <>
