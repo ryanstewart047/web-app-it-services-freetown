@@ -34,8 +34,21 @@ export default function DeviceDetectionPage() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [advancedInfo, setAdvancedInfo] = useState<any>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    // Check if device is mobile
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+      const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+      return mobileRegex.test(userAgent) || window.innerWidth < 768;
+    };
+
+    if (checkMobile()) {
+      setIsMobile(true);
+      return;
+    }
+
     // Check if WebUSB is supported
     if (!navigator.usb) {
       setIsSupported(false);
@@ -289,6 +302,57 @@ export default function DeviceDetectionPage() {
     return deviceClass !== undefined ? (classes[deviceClass] || `Class ${deviceClass}`) : 'Unknown';
   };
 
+  // Mobile device screen
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-12 px-4">
+        <div className="max-w-4xl mx-auto">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-8 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back to Home
+          </Link>
+
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-8 text-center">
+            <Smartphone className="w-16 h-16 text-orange-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-orange-700 mb-2">Desktop Required</h2>
+            <p className="text-orange-600 mb-4">
+              USB Device Detection is only available on desktop/laptop computers. This feature requires a physical USB connection and is not supported on mobile devices.
+            </p>
+            <div className="bg-white rounded-lg p-6 mt-6 text-left">
+              <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <Info className="w-5 h-5 text-orange-500" />
+                Why Desktop Only?
+              </h3>
+              <ul className="space-y-2 text-gray-600">
+                <li className="flex items-start gap-2">
+                  <span className="text-orange-500 font-bold">•</span>
+                  <span>Requires physical USB cable connection</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-orange-500 font-bold">•</span>
+                  <span>Uses WebUSB API (desktop browsers only)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-orange-500 font-bold">•</span>
+                  <span>Mobile devices cannot act as USB hosts for this purpose</span>
+                </li>
+              </ul>
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-700">
+                  <strong>To use this feature:</strong> Please visit this page from a desktop or laptop computer using Chrome, Edge, Opera, or Brave browser.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // WebUSB not supported screen
   if (!isSupported) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-12 px-4">
@@ -339,8 +403,11 @@ export default function DeviceDetectionPage() {
             <Usb className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">USB Device Detection</h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-2">
             Connect your Android device via USB to get detailed hardware and system information
+          </p>
+          <p className="text-sm text-orange-600 font-semibold">
+            ⚠️ Desktop/Laptop Only - Physical USB Connection Required
           </p>
         </div>
 
@@ -348,12 +415,13 @@ export default function DeviceDetectionPage() {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
           <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
             <Info className="w-5 h-5" />
-            Setup Instructions
+            Setup Instructions (Desktop Only)
           </h3>
           <ol className="list-decimal list-inside space-y-2 text-blue-800">
+            <li><strong>Use a Desktop/Laptop Computer</strong> (this feature does not work on mobile devices)</li>
             <li>Enable <strong>Developer Options</strong> on your Android device (tap Build Number 7 times in Settings → About Phone)</li>
             <li>Enable <strong>USB Debugging</strong> in Developer Options</li>
-            <li>Connect your device via USB cable</li>
+            <li>Connect your device via USB cable <strong>to your computer</strong></li>
             <li>Click the "Connect Device" button below</li>
             <li>Select your device from the popup</li>
             <li>Allow USB debugging when prompted on your device</li>
