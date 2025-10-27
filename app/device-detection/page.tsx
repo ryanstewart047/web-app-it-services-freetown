@@ -73,6 +73,7 @@ export default function DeviceDetectionPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [adbInfo, setAdbInfo] = useState<ADBDeviceInfo | null>(null);
   const [isReadingADB, setIsReadingADB] = useState(false);
+  const [showSupportedDevices, setShowSupportedDevices] = useState(false);
 
   useEffect(() => {
     // Check if device is mobile
@@ -515,6 +516,70 @@ export default function DeviceDetectionPage() {
               * "with auth" = Requires USB debugging authorization on device
             </p>
           </div>
+        </div>
+
+        {/* Supported Devices Dropdown */}
+        <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg mb-8 overflow-hidden">
+          <button
+            onClick={() => setShowSupportedDevices(!showSupportedDevices)}
+            className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              <h3 className="font-semibold text-gray-900">
+                Supported Devices - 15+ Major Android Brands
+              </h3>
+            </div>
+            <i className={`fas fa-chevron-${showSupportedDevices ? 'up' : 'down'} text-gray-600 transition-transform`}></i>
+          </button>
+          
+          {showSupportedDevices && (
+            <div className="px-6 pb-6 pt-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  { name: 'Samsung', vendorId: '0x04E8', models: 'Galaxy S, Note, A, M, Z series' },
+                  { name: 'Google Pixel', vendorId: '0x18D1', models: 'Pixel 1-8, Pro, Fold' },
+                  { name: 'Xiaomi', vendorId: '0x2717', models: 'Mi, Redmi, POCO' },
+                  { name: 'OnePlus', vendorId: '0x2A70', models: 'OnePlus 1-12, Nord' },
+                  { name: 'OPPO', vendorId: '0x22D9', models: 'Find X, Reno, A series' },
+                  { name: 'Vivo', vendorId: '0x2D95', models: 'V, Y, X, S series' },
+                  { name: 'Huawei', vendorId: '0x12D1', models: 'P, Mate, Nova series' },
+                  { name: 'Motorola', vendorId: '0x22B8', models: 'Moto G, Edge, Razr' },
+                  { name: 'LG', vendorId: '0x1004', models: 'G, V, Velvet series' },
+                  { name: 'Sony', vendorId: '0x0FCE', models: 'Xperia 1, 5, 10 series' },
+                  { name: 'HTC', vendorId: '0x0BB4', models: 'U, Desire, One series' },
+                  { name: 'Asus', vendorId: '0x0B05', models: 'ROG Phone, Zenfone' },
+                  { name: 'Lenovo', vendorId: '0x17EF', models: 'Legion, K series' },
+                  { name: 'ZTE', vendorId: '0x19D2', models: 'Axon, Blade series' },
+                  { name: 'MediaTek Devices', vendorId: '0x0E8D', models: 'Various MTK-powered phones' }
+                ].map((brand, idx) => (
+                  <div 
+                    key={idx}
+                    className="bg-white rounded-lg p-4 border border-gray-200 hover:border-green-400 hover:shadow-md transition-all"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Smartphone className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-gray-900 mb-1">{brand.name}</h4>
+                        <p className="text-xs text-gray-500 font-mono mb-1">{brand.vendorId}</p>
+                        <p className="text-sm text-gray-600 truncate">{brand.models}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm text-blue-800">
+                  <strong>💡 Tip:</strong> If your device brand is not listed, it may still work! 
+                  The tool supports any Android device with USB debugging enabled. 
+                  Click "Connect USB Device" to try.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Error Display */}

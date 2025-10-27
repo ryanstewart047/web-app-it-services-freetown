@@ -15,7 +15,8 @@ export default function Services() {
         'Performance optimization'
       ],
       gradientColors: 'from-blue-900 to-blue-950',
-      accentColor: 'blue'
+      accentColor: 'blue',
+      href: undefined
     },
     {
       icon: 'fas fa-mobile-alt', 
@@ -28,7 +29,8 @@ export default function Services() {
         'Software restoration'
       ],
       gradientColors: 'from-red-600 to-red-700',
-      accentColor: 'red'
+      accentColor: 'red',
+      href: undefined
     },
     {
       icon: 'fas fa-network-wired',
@@ -41,7 +43,22 @@ export default function Services() {
         'System integration'
       ],
       gradientColors: 'from-blue-900 to-blue-950',
-      accentColor: 'blue'
+      accentColor: 'blue',
+      href: undefined
+    },
+    {
+      icon: 'fas fa-usb',
+      title: 'Device Detection', 
+      description: 'Advanced USB device diagnostics for Android smartphones and tablets',
+      features: [
+        'Real-time device info',
+        'Support 15+ brands',
+        'USB diagnostics',
+        'Browser-based tool'
+      ],
+      gradientColors: 'from-green-600 to-green-700',
+      accentColor: 'green',
+      href: '/device-detection'
     }
   ]
 
@@ -61,7 +78,7 @@ export default function Services() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {services.map((service, index) => (
             <div 
               key={index}
@@ -88,17 +105,17 @@ export default function Services() {
                 <ul className="space-y-2 mb-6">
                   {service.features.map((feature, featureIndex) => (
                     <li key={featureIndex} className="flex items-center text-sm text-gray-700">
-                      <i className={`fas fa-check-circle text-${service.accentColor}-${service.accentColor === 'red' ? '500' : '600'} mr-2 group-hover:scale-110 transition-all duration-300`}></i>
+                      <i className={`fas fa-check-circle text-${service.accentColor}-${service.accentColor === 'red' || service.accentColor === 'green' ? '500' : '600'} mr-2 group-hover:scale-110 transition-all duration-300`}></i>
                       <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
                 
                 <Link 
-                  href="/learn-more"
+                  href={service.href || "/learn-more"}
                   className="rounded-full px-5 py-2.5 bg-white shadow-md font-medium transition-all duration-300 flex items-center justify-center group-hover:shadow-lg border-2 border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white"
                 >
-                  Learn More <i className="fas fa-arrow-right ml-2 transition-transform duration-300 group-hover:translate-x-1"></i>
+                  {service.href ? 'Try Now' : 'Learn More'} <i className="fas fa-arrow-right ml-2 transition-transform duration-300 group-hover:translate-x-1"></i>
                 </Link>
               </div>
             </div>
