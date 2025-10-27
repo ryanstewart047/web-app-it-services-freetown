@@ -720,7 +720,7 @@ export default function DeviceDetectionPage() {
                   <div className="bg-white rounded p-3 text-sm">
                     <p className="font-semibold text-gray-900 mb-2">📱 To Get Full Device Info (Like SamFw Tool):</p>
                     <ol className="list-decimal list-inside space-y-1 text-gray-700 ml-2">
-                      <li>Install <strong>ADB</strong> on your computer (<a href="https://developer.android.com/studio/releases/platform-tools" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download here</a>)</li>
+                      <li>Install <strong>ADB</strong> on your computer (<a href="/ADB_INSTALLATION_GUIDE.md" target="_blank" className="text-blue-600 hover:underline font-semibold">📖 See Full Installation Guide</a> or <a href="https://developer.android.com/studio/releases/platform-tools" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download here</a>)</li>
                       <li>Enable USB Debugging on your Android device</li>
                       <li>Connect device via USB</li>
                       <li>Open Command Prompt/Terminal and run:</li>
