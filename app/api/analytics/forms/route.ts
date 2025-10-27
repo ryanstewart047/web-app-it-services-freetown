@@ -112,6 +112,31 @@ export async function POST(request: NextRequest) {
           }, { status: 400 });
         }
       }
+
+      // SERVER-SIDE VALIDATION - Troubleshoot Form ✅
+      if (formType === 'troubleshoot') {
+        const required = ['deviceType', 'issueDescription'];
+        const missing = required.filter(field => !fields[field] || fields[field].toString().trim() === '');
+        
+        if (missing.length > 0) {
+          console.error('[Forms API] ❌ Troubleshoot validation failed - Missing:', missing);
+          return NextResponse.json({
+            success: false,
+            error: 'Validation failed',
+            message: `Required fields missing: ${missing.join(', ')}`,
+            missingFields: missing
+          }, { status: 400 });
+        }
+
+        // Validate issue description (min 10 characters)
+        if (fields.issueDescription.toString().trim().length < 10) {
+          return NextResponse.json({
+            success: false,
+            error: 'Invalid description',
+            message: 'Issue description must be at least 10 characters'
+          }, { status: 400 });
+        }
+      }
       
       const { submission, repair } = await recordFormSubmission({
         formType,

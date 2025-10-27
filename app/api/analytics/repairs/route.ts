@@ -87,17 +87,69 @@ export async function POST(request: NextRequest) {
     const data = await request.json();
 
     if (data.action === 'create') {
+      // SERVER-SIDE VALIDATION - Prevent invalid repair records ✅
+      const required = ['customerName', 'email', 'phone', 'deviceType', 'issueDescription'];
+      const missing = required.filter(field => !data[field] || data[field].toString().trim() === '');
+      
+      if (missing.length > 0) {
+        console.error('[Repairs API] ❌ Validation failed - Missing:', missing);
+        return NextResponse.json({
+          success: false,
+          error: 'Validation failed',
+          message: `Required fields missing: ${missing.join(', ')}`,
+          missingFields: missing
+        }, { status: 400 });
+      }
+
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(data.email)) {
+        return NextResponse.json({
+          success: false,
+          error: 'Invalid email',
+          message: 'Please provide a valid email address'
+        }, { status: 400 });
+      }
+
+      // Phone validation (min 8 digits)
+      const phoneDigits = data.phone.replace(/\D/g, '');
+      if (phoneDigits.length < 8) {
+        return NextResponse.json({
+          success: false,
+          error: 'Invalid phone',
+          message: 'Phone number must be at least 8 digits'
+        }, { status: 400 });
+      }
+
+      // Name validation (min 2 characters)
+      if (data.customerName.trim().length < 2) {
+        return NextResponse.json({
+          success: false,
+          error: 'Invalid name',
+          message: 'Customer name must be at least 2 characters'
+        }, { status: 400 });
+      }
+
+      // Issue description validation (min 10 characters)
+      if (data.issueDescription.trim().length < 10) {
+        return NextResponse.json({
+          success: false,
+          error: 'Invalid description',
+          message: 'Issue description must be at least 10 characters'
+        }, { status: 400 });
+      }
+
       const trackingId = typeof data.trackingId === 'string' && data.trackingId.trim()
         ? data.trackingId.trim()
         : generateTrackingId();
 
       const repair = await createRepair({
         trackingId,
-        customerName: data.customerName || 'Unknown',
-        email: data.email || '',
-        phone: data.phone || '',
-        deviceType: data.deviceType || 'Unknown Device',
-        issueDescription: data.issueDescription || 'No description provided',
+        customerName: data.customerName.trim(),
+        email: data.email.trim(),
+        phone: data.phone.trim(),
+        deviceType: data.deviceType.trim(),
+        issueDescription: data.issueDescription.trim(),
         notes: data.notes || '',
         totalCost: typeof data.totalCost === 'number' ? data.totalCost : undefined,
         estimatedCompletion: data.estimatedCompletion,
