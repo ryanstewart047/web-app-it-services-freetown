@@ -206,6 +206,15 @@ export default function DeviceDetectionPage() {
           { vendorId: 0x1D91 }, // OPPO
           { vendorId: 0x2D95 }, // Vivo
           { vendorId: 0x0E8D }, // MediaTek
+          { vendorId: 0x2A70 }, // OnePlus (alternative)
+          { vendorId: 0x0B05 }, // Asus
+          { vendorId: 0x17EF }, // Lenovo
+          { vendorId: 0x22D9 }, // OPPO (alternative)
+          { vendorId: 0x2207 }, // Tecno
+          { vendorId: 0x19D1 }, // Tecno Mobile (alternative)
+          { vendorId: 0x04C5 }, // iTel
+          { vendorId: 0x04E8 }, // Infinix (may use Samsung VID)
+          { vendorId: 0x201E }, // Infinix
           // Add more vendor IDs as needed
         ]
       });
@@ -527,7 +536,7 @@ export default function DeviceDetectionPage() {
             <div className="flex items-center gap-3">
               <CheckCircle className="w-5 h-5 text-green-600" />
               <h3 className="font-semibold text-gray-900">
-                Supported Devices - 15+ Major Android Brands
+                Supported Devices - 18+ Major Android Brands
               </h3>
             </div>
             <i className={`fas fa-chevron-${showSupportedDevices ? 'up' : 'down'} text-gray-600 transition-transform`}></i>
@@ -543,6 +552,9 @@ export default function DeviceDetectionPage() {
                   { name: 'OnePlus', vendorId: '0x2A70', models: 'OnePlus 1-12, Nord' },
                   { name: 'OPPO', vendorId: '0x22D9', models: 'Find X, Reno, A series' },
                   { name: 'Vivo', vendorId: '0x2D95', models: 'V, Y, X, S series' },
+                  { name: 'Tecno', vendorId: '0x2207', models: 'Spark, Camon, Phantom, Pova' },
+                  { name: 'iTel', vendorId: '0x04C5', models: 'A, P, S series' },
+                  { name: 'Infinix', vendorId: '0x201E', models: 'Hot, Note, Zero, Smart' },
                   { name: 'Huawei', vendorId: '0x12D1', models: 'P, Mate, Nova series' },
                   { name: 'Motorola', vendorId: '0x22B8', models: 'Moto G, Edge, Razr' },
                   { name: 'LG', vendorId: '0x1004', models: 'G, V, Velvet series' },
@@ -605,7 +617,7 @@ export default function DeviceDetectionPage() {
           </button>
           
           <div className="mt-4 text-sm text-gray-600">
-            <p>Supports: Samsung, Google, Motorola, Xiaomi, OnePlus, and 10+ more brands</p>
+            <p>Supports: Samsung, Google, Xiaomi, OnePlus, Tecno, iTel, Infinix, and 10+ more brands</p>
           </div>
         </div>
 
@@ -720,7 +732,7 @@ export default function DeviceDetectionPage() {
                   <div className="bg-white rounded p-3 text-sm">
                     <p className="font-semibold text-gray-900 mb-2">📱 To Get Full Device Info (Like SamFw Tool):</p>
                     <ol className="list-decimal list-inside space-y-1 text-gray-700 ml-2">
-                      <li>Install <strong>ADB</strong> on your computer (<a href="/ADB_INSTALLATION_GUIDE.md" target="_blank" className="text-blue-600 hover:underline font-semibold">📖 See Full Installation Guide</a> or <a href="https://developer.android.com/studio/releases/platform-tools" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download here</a>)</li>
+                      <li>Install <strong>ADB</strong> on your computer (<a href="/adb-guide" className="text-blue-600 hover:underline font-semibold">📖 See Full Installation Guide</a> or <a href="https://developer.android.com/studio/releases/platform-tools" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download here</a>)</li>
                       <li>Enable USB Debugging on your Android device</li>
                       <li>Connect device via USB</li>
                       <li>Open Command Prompt/Terminal and run:</li>
