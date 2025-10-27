@@ -329,8 +329,39 @@ export default function BookAppointment() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    // Validate date and time before submission
-    if (!validateDateTime()) {
+    // COMPREHENSIVE CLIENT-SIDE VALIDATION ✅
+    const errors: string[] = [];
+
+    // Validate customer info
+    if (!formData.customerName || formData.customerName.trim().length < 2) {
+      errors.push('Name must be at least 2 characters');
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email || !emailRegex.test(formData.email)) {
+      errors.push('Please provide a valid email address');
+    }
+    
+    const phoneDigits = formData.phone.replace(/\D/g, '');
+    if (phoneDigits.length < 8) {
+      errors.push('Phone number must be at least 8 digits');
+    }
+
+    // Validate device info
+    if (!formData.deviceType) errors.push('Please select a device type');
+    if (!formData.serviceType) errors.push('Please select service type');
+    if (!formData.issueDescription || formData.issueDescription.trim().length < 10) {
+      errors.push('Issue description must be at least 10 characters');
+    }
+
+    // Validate date/time
+    if (!formData.preferredDate) errors.push('Please select a preferred date');
+    if (!formData.preferredTime) errors.push('Please select a preferred time');
+    if (!validateDateTime()) errors.push('Selected date/time is invalid');
+
+    if (errors.length > 0) {
+      alert('Please fix these errors:\n\n' + errors.map((e, i) => `${i + 1}. ${e}`).join('\n'));
+      setIsSubmitting(false);
       return;
     }
     

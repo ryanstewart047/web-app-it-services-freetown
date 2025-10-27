@@ -68,6 +68,51 @@ export async function POST(request: NextRequest) {
       const formType = data.formType || 'contact';
       const fields = data.fields || data;
       
+      // SERVER-SIDE VALIDATION - Prevent empty submissions ✅
+      if (formType === 'repair-booking') {
+        const required = ['customerName', 'name', 'email', 'phone', 'deviceType', 'issueDescription'];
+        const missing = required.filter(field => !fields[field] || fields[field].toString().trim() === '');
+        
+        if (missing.length > 0) {
+          console.error('[Forms API] ❌ Validation failed - Missing:', missing);
+          return NextResponse.json({
+            success: false,
+            error: 'Validation failed',
+            message: `Required fields missing: ${missing.join(', ')}`,
+            missingFields: missing
+          }, { status: 400 });
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(fields.email)) {
+          return NextResponse.json({
+            success: false,
+            error: 'Invalid email',
+            message: 'Please provide a valid email address'
+          }, { status: 400 });
+        }
+
+        // Validate phone (at least 8 digits)
+        const phoneDigits = (fields.phone || '').replace(/\D/g, '');
+        if (phoneDigits.length < 8) {
+          return NextResponse.json({
+            success: false,
+            error: 'Invalid phone',
+            message: 'Phone number must be at least 8 digits'
+          }, { status: 400 });
+        }
+
+        // Validate name length
+        if (fields.customerName.length < 2 || fields.name.length < 2) {
+          return NextResponse.json({
+            success: false,
+            error: 'Invalid name',
+            message: 'Name must be at least 2 characters'
+          }, { status: 400 });
+        }
+      }
+      
       const { submission, repair } = await recordFormSubmission({
         formType,
         fields,
