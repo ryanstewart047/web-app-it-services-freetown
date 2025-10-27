@@ -315,55 +315,20 @@ export default function DeviceDetectionPage() {
     const deviceInfo: ADBDeviceInfo = {};
 
     try {
-      console.log('Starting ADB device info reading...');
+      console.log('Reading available device information...');
 
-      // ADB Shell commands to get device information
-      const commands = {
-        model: 'getprop ro.product.model',
-        manufacturer: 'getprop ro.product.manufacturer',
-        brand: 'getprop ro.product.brand',
-        device: 'getprop ro.product.device',
-        androidVersion: 'getprop ro.build.version.release',
-        sdkVersion: 'getprop ro.build.version.sdk',
-        buildId: 'getprop ro.build.id',
-        serialNumber: 'getprop ro.serialno',
-        securityPatch: 'getprop ro.build.version.security_patch',
-        bootloader: 'getprop ro.bootloader',
-        fingerprint: 'getprop ro.build.fingerprint',
-        cpuAbi: 'getprop ro.product.cpu.abi',
-        cpuAbi2: 'getprop ro.product.cpu.abi2',
-        screenDensity: 'getprop ro.sf.lcd_density',
-        imei: 'service call iphonesubinfo 1 | cut -c 52-66 | tr -d "." | tr -d " "',
-        simOperator: 'getprop gsm.operator.alpha',
-        simCountry: 'getprop gsm.operator.iso-country',
-        networkOperator: 'getprop gsm.sim.operator.alpha',
-        batteryLevel: 'dumpsys battery | grep level',
-        batteryStatus: 'dumpsys battery | grep status',
-        wifiMac: 'cat /sys/class/net/wlan0/address',
-        ipAddress: 'ip addr show wlan0 | grep "inet " | cut -d" " -f6 | cut -d/ -f1',
-        totalRam: 'cat /proc/meminfo | grep MemTotal',
-        totalStorage: 'df /data | tail -1 | awk \'{print $2}\'',
-        availableStorage: 'df /data | tail -1 | awk \'{print $4}\'',
-        screenResolution: 'wm size',
-      };
-
-      // Note: This is a simplified version. Full ADB implementation would require:
-      // 1. ADB protocol implementation
-      // 2. USB bulk transfer communication
-      // 3. Proper authentication/handshake
-      // 4. Shell command execution
-
-      // For now, we'll show a message that ADB access requires authorization
+      // WebUSB can only access USB descriptors, not ADB shell commands
+      // To get extended info, users need to use actual ADB tools
+      
       deviceInfo.model = device.productName || 'Unknown';
       deviceInfo.manufacturer = device.manufacturerName || 'Unknown';
       deviceInfo.serialNumber = device.serialNumber || 'Unknown';
 
-      // Show info message
-      setError('Note: Full ADB access requires USB debugging authorization on the device. Basic device information is shown from USB descriptors. For detailed system info (IMEI, Android version, etc.), please authorize "USB debugging" when prompted on your device.');
+      // Show realistic info message
+      setError(null); // Clear any previous errors
 
     } catch (err) {
-      console.error('Error reading ADB info:', err);
-      setError('Could not read detailed device information. Make sure USB debugging is enabled and authorized on your device.');
+      console.error('Error reading device info:', err);
     } finally {
       setIsReadingADB(false);
     }
@@ -655,41 +620,17 @@ export default function DeviceDetectionPage() {
               <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
                 <h3 className="font-semibold text-lg text-gray-800 mb-4 flex items-center gap-2">
                   <Smartphone className="w-5 h-5 text-blue-600" />
-                  Device System Information
+                  Available Device Information (WebUSB)
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-sm">
                   <InfoRow label="Model" value={adbInfo.model || selectedDevice.productName || 'N/A'} />
                   <InfoRow label="Manufacturer" value={adbInfo.manufacturer || selectedDevice.manufacturerName || 'N/A'} />
-                  <InfoRow label="Brand" value={adbInfo.brand || 'N/A'} />
-                  <InfoRow label="Device" value={adbInfo.device || 'N/A'} />
                   <InfoRow label="Serial Number" value={adbInfo.serialNumber || selectedDevice.serialNumber || 'N/A'} mono />
-                  <InfoRow label="IMEI" value={adbInfo.imei || 'Requires ADB auth'} mono />
-                  <InfoRow label="IMEI 2" value={adbInfo.imei2 || 'N/A'} mono />
-                  <InfoRow label="Android Version" value={adbInfo.androidVersion || 'Requires ADB auth'} />
-                  <InfoRow label="SDK Version" value={adbInfo.sdkVersion || 'N/A'} />
-                  <InfoRow label="Build ID" value={adbInfo.buildId || 'N/A'} mono />
-                  <InfoRow label="Security Patch" value={adbInfo.securityPatch || 'N/A'} />
-                  <InfoRow label="Bootloader" value={adbInfo.bootloader || 'N/A'} mono />
-                  <InfoRow label="FRP Status" value={adbInfo.frpStatus || 'Unknown'} valueClassName="font-bold text-orange-600" />
-                  <InfoRow label="Lock Status" value={adbInfo.lockStatus || 'Unknown'} />
-                  <InfoRow label="USB Mode" value={adbInfo.usbMode || 'N/A'} />
-                  <InfoRow label="Phone Number" value={adbInfo.phoneNumber || 'N/A'} />
-                  <InfoRow label="SIM Operator" value={adbInfo.simOperator || 'N/A'} />
-                  <InfoRow label="SIM Country" value={adbInfo.simCountry || 'N/A'} />
-                  <InfoRow label="Network Operator" value={adbInfo.networkOperator || 'N/A'} />
-                  <InfoRow label="Network Country" value={adbInfo.networkCountry || 'N/A'} />
-                  <InfoRow label="WiFi MAC" value={adbInfo.wifiMac || 'N/A'} mono />
-                  <InfoRow label="Bluetooth MAC" value={adbInfo.bluetoothMac || 'N/A'} mono />
-                  <InfoRow label="IP Address" value={adbInfo.ipAddress || 'N/A'} mono />
-                  <InfoRow label="Battery Level" value={adbInfo.batteryLevel || 'N/A'} />
-                  <InfoRow label="Battery Status" value={adbInfo.batteryStatus || 'N/A'} />
-                  <InfoRow label="Screen Density" value={adbInfo.screenDensity || 'N/A'} />
-                  <InfoRow label="Screen Resolution" value={adbInfo.screenResolution || 'N/A'} />
-                  <InfoRow label="CPU ABI" value={adbInfo.cpuAbi || 'N/A'} />
-                  <InfoRow label="CPU ABI 2" value={adbInfo.cpuAbi2 || 'N/A'} />
-                  <InfoRow label="Total RAM" value={adbInfo.totalRam || 'N/A'} />
-                  <InfoRow label="Total Storage" value={adbInfo.totalStorage || 'N/A'} />
-                  <InfoRow label="Available Storage" value={adbInfo.availableStorage || 'N/A'} />
+                  <InfoRow label="Vendor ID" value={`0x${selectedDevice.vendorId?.toString(16).toUpperCase().padStart(4, '0')}`} mono />
+                  <InfoRow label="Product ID" value={`0x${selectedDevice.productId?.toString(16).toUpperCase().padStart(4, '0')}`} mono />
+                  <InfoRow label="USB Version" value={`${selectedDevice.usbVersionMajor}.${selectedDevice.usbVersionMinor}`} />
+                  <InfoRow label="Device Class" value={getDeviceClassName(selectedDevice.deviceClass)} />
+                  <InfoRow label="Configurations" value={selectedDevice.configurations?.length.toString() || '0'} />
                 </div>
                 
                 {isReadingADB && (
@@ -701,10 +642,45 @@ export default function DeviceDetectionPage() {
                   </div>
                 )}
 
-                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
-                  <strong>Note:</strong> Full system information requires USB debugging authorization. 
-                  Currently showing basic USB descriptor data. To access IMEI, Android version, battery info, etc., 
-                  please enable USB debugging on your device and authorize this computer when prompted.
+                <div className="mt-6 p-4 bg-orange-50 border-l-4 border-orange-400 rounded">
+                  <h4 className="font-bold text-orange-900 mb-2 flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5" />
+                    WebUSB Limitations
+                  </h4>
+                  <p className="text-sm text-orange-800 mb-3">
+                    WebUSB can only access basic USB descriptor information. For detailed device info like IMEI, Android version, 
+                    battery status, etc., you need to use <strong>Android Debug Bridge (ADB)</strong> tools.
+                  </p>
+                  
+                  <div className="bg-white rounded p-3 text-sm">
+                    <p className="font-semibold text-gray-900 mb-2">📱 To Get Full Device Info (Like SamFw Tool):</p>
+                    <ol className="list-decimal list-inside space-y-1 text-gray-700 ml-2">
+                      <li>Install <strong>ADB</strong> on your computer (<a href="https://developer.android.com/studio/releases/platform-tools" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download here</a>)</li>
+                      <li>Enable USB Debugging on your Android device</li>
+                      <li>Connect device via USB</li>
+                      <li>Open Command Prompt/Terminal and run:</li>
+                    </ol>
+                    <div className="mt-2 bg-gray-900 text-green-400 p-3 rounded font-mono text-xs overflow-x-auto">
+                      <div className="mb-1"># Check device is connected</div>
+                      <div className="mb-2">adb devices</div>
+                      
+                      <div className="mb-1 mt-3"># Get detailed device info</div>
+                      <div>adb shell getprop ro.product.model</div>
+                      <div>adb shell getprop ro.build.version.release</div>
+                      <div>adb shell service call iphonesubinfo 1</div>
+                      <div>adb shell dumpsys battery</div>
+                      <div>adb shell df</div>
+                      
+                      <div className="mb-1 mt-3"># Get ALL properties at once</div>
+                      <div>adb shell getprop</div>
+                    </div>
+                    
+                    <p className="mt-3 text-xs text-gray-600">
+                      💡 <strong>Tip:</strong> Professional tools like <strong>SamFw Tool</strong>, <strong>Odin</strong>, 
+                      and <strong>Samsung Smart Switch</strong> use native ADB implementations to access this detailed information. 
+                      Web browsers have security limitations that prevent full ADB access.
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
