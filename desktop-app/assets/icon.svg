@@ -1,0 +1,33 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <rect width="512" height="512" rx="120" fill="url(#grad1)"/>
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e293b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Phone outline -->
+  <rect x="140" y="80" width="232" height="352" rx="24" ry="24" fill="none" stroke="#3b82f6" stroke-width="12"/>
+  
+  <!-- Phone screen -->
+  <rect x="160" y="120" width="192" height="272" rx="8" ry="8" fill="#1e293b"/>
+  
+  <!-- Screen content lines (representing data) -->
+  <line x1="180" y1="150" x2="332" y2="150" stroke="#10b981" stroke-width="6" stroke-linecap="round"/>
+  <line x1="180" y1="180" x2="280" y2="180" stroke="#10b981" stroke-width="6" stroke-linecap="round"/>
+  <line x1="180" y1="210" x2="310" y2="210" stroke="#10b981" stroke-width="6" stroke-linecap="round"/>
+  <line x1="180" y1="240" x2="260" y2="240" stroke="#10b981" stroke-width="6" stroke-linecap="round"/>
+  <line x1="180" y1="270" x2="320" y2="270" stroke="#3b82f6" stroke-width="6" stroke-linecap="round"/>
+  <line x1="180" y1="300" x2="290" y2="300" stroke="#3b82f6" stroke-width="6" stroke-linecap="round"/>
+  <line x1="180" y1="330" x2="310" y2="330" stroke="#3b82f6" stroke-width="6" stroke-linecap="round"/>
+  <line x1="180" y1="360" x2="270" y2="360" stroke="#3b82f6" stroke-width="6" stroke-linecap="round"/>
+  
+  <!-- Home button -->
+  <circle cx="256" cy="455" r="18" fill="none" stroke="#3b82f6" stroke-width="4"/>
+  
+  <!-- USB cable connector at bottom -->
+  <path d="M 236 452 L 236 485 L 276 485 L 276 452" fill="none" stroke="#10b981" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="244" y="485" width="24" height="12" rx="3" fill="#10b981"/>
+</svg>

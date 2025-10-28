@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Usb, Smartphone, Info, Cpu, HardDrive, Battery, Wifi, AlertCircle, CheckCircle, Copy, Check } from 'lucide-react';
+import { ArrowLeft, Usb, Smartphone, Info, Cpu, HardDrive, Battery, Wifi, AlertCircle, CheckCircle, Copy, Check, Download, Monitor } from 'lucide-react';
 
 interface DeviceInfo {
   productName?: string;
@@ -538,11 +538,40 @@ export default function DeviceDetectionPage() {
           </p>
         </div>
 
+        {/* Desktop App Promotion */}
+        <div className="bg-gradient-to-br from-purple-900 via-blue-900 to-purple-900 border-2 border-purple-500 rounded-xl p-6 mb-8 shadow-lg shadow-purple-900/50">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex-1">
+              <h3 className="font-bold text-white text-xl mb-2 flex items-center gap-2">
+                <Monitor className="w-6 h-6 text-purple-300" />
+                Want Full Device Details Including IMEI?
+              </h3>
+              <p className="text-purple-100 mb-3">
+                Download our <strong>FREE Desktop Application</strong> to get complete device information:
+              </p>
+              <ul className="text-purple-200 text-sm space-y-1 ml-4">
+                <li>✨ Full IMEI (both SIM slots)</li>
+                <li>✨ Complete hardware specs & battery info</li>
+                <li>✨ 50+ device properties in seconds</li>
+                <li>✨ Export data as JSON or TXT</li>
+                <li>✨ Works offline - 100% private</li>
+              </ul>
+            </div>
+            <a 
+              href="/download-app"
+              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-4 rounded-lg font-bold text-lg transition-all transform hover:scale-105 shadow-lg shadow-green-900/50 flex items-center gap-2 whitespace-nowrap"
+            >
+              <Download className="w-5 h-5" />
+              Download App
+            </a>
+          </div>
+        </div>
+
         {/* Instructions */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
           <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
             <Info className="w-5 h-5" />
-            Setup Instructions (Desktop Only)
+            Browser Detection (Limited) - Setup Instructions
           </h3>
           <ol className="list-decimal list-inside space-y-2 text-blue-800">
             <li><strong>Use a Desktop/Laptop Computer</strong> (this feature does not work on mobile devices)</li>
