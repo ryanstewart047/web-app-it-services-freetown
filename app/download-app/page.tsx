@@ -5,6 +5,14 @@ import { useState } from 'react';
 
 export default function DownloadAppPage() {
   const [os, setOS] = useState<'windows' | 'mac' | 'linux'>('windows');
+  const [downloadError, setDownloadError] = useState(false);
+
+  const handleDownload = (url: string) => {
+    // Track download attempt
+    setDownloadError(false);
+    // Open in new tab
+    window.open(url, '_blank');
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
@@ -83,8 +91,10 @@ export default function DownloadAppPage() {
               {os === 'windows' && (
                 <>
                   <a
-                    href="#download"
+                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT-Services-Device-Detector-Setup-1.0.0.exe"
                     className="flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-8 py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     <div className="flex items-center gap-3">
                       <Download className="w-6 h-6" />
@@ -96,8 +106,10 @@ export default function DownloadAppPage() {
                     <div className="text-sm text-blue-100">~85 MB</div>
                   </a>
                   <a
-                    href="#download"
+                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT-Services-Device-Detector-1.0.0-portable.exe"
                     className="flex items-center justify-between bg-gray-700 hover:bg-gray-600 text-white px-8 py-4 rounded-xl transition-all"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     <div className="flex items-center gap-3">
                       <Download className="w-6 h-6" />
@@ -113,8 +125,10 @@ export default function DownloadAppPage() {
               {os === 'mac' && (
                 <>
                   <a
-                    href="#download"
+                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT-Services-Device-Detector-1.0.0.dmg"
                     className="flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-8 py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     <div className="flex items-center gap-3">
                       <Download className="w-6 h-6" />
@@ -126,8 +140,10 @@ export default function DownloadAppPage() {
                     <div className="text-sm text-blue-100">~90 MB</div>
                   </a>
                   <a
-                    href="#download"
+                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT-Services-Device-Detector-1.0.0-mac.zip"
                     className="flex items-center justify-between bg-gray-700 hover:bg-gray-600 text-white px-8 py-4 rounded-xl transition-all"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     <div className="flex items-center gap-3">
                       <Download className="w-6 h-6" />
@@ -143,8 +159,10 @@ export default function DownloadAppPage() {
               {os === 'linux' && (
                 <>
                   <a
-                    href="#download"
+                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT-Services-Device-Detector-1.0.0.AppImage"
                     className="flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-8 py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     <div className="flex items-center gap-3">
                       <Download className="w-6 h-6" />
@@ -156,8 +174,10 @@ export default function DownloadAppPage() {
                     <div className="text-sm text-blue-100">~95 MB</div>
                   </a>
                   <a
-                    href="#download"
+                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/it-services-device-detector_1.0.0_amd64.deb"
                     className="flex items-center justify-between bg-gray-700 hover:bg-gray-600 text-white px-8 py-4 rounded-xl transition-all"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     <div className="flex items-center gap-3">
                       <Download className="w-6 h-6" />
@@ -172,7 +192,23 @@ export default function DownloadAppPage() {
               )}
             </div>
 
-            <div className="mt-6 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+            {/* Release Status Notice */}
+            <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+              <p className="text-blue-200 text-sm">
+                <strong>📦 First Time Setup:</strong> The installers are hosted on GitHub Releases. 
+                If download doesn&apos;t start, the release may not be published yet. 
+                <a 
+                  href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:text-blue-300 underline ml-1"
+                >
+                  Check releases →
+                </a>
+              </p>
+            </div>
+
+            <div className="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
               <p className="text-yellow-200 text-sm">
                 ⚠️ <strong>Important:</strong> ADB (Android Debug Bridge) must be installed separately. 
                 <a href="/adb-guide" className="text-yellow-400 hover:text-yellow-300 underline ml-1">
