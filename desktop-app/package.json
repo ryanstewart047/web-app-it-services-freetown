@@ -40,6 +40,7 @@
   "build": {
     "appId": "com.itservices.devicedetector",
     "productName": "IT Services Device Detector",
+    "publish": null,
     "directories": {
       "output": "dist"
     },

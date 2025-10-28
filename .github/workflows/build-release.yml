@@ -32,16 +32,22 @@ jobs:
         if: matrix.os == 'windows-latest'
         working-directory: ./desktop-app
         run: npm run build:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
       - name: Build macOS
         if: matrix.os == 'macos-latest'
         working-directory: ./desktop-app
         run: npm run build:mac
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
       - name: Build Linux
         if: matrix.os == 'ubuntu-latest'
         working-directory: ./desktop-app
         run: npm run build:linux
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
       - name: Upload Windows Artifacts
         if: matrix.os == 'windows-latest'
