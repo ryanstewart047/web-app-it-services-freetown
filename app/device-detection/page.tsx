@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Usb, Smartphone, Info, Cpu, HardDrive, Battery, Wifi, AlertCircle, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Usb, Smartphone, Info, Cpu, HardDrive, Battery, Wifi, AlertCircle, CheckCircle, Copy, Check } from 'lucide-react';
 
 interface DeviceInfo {
   productName?: string;
@@ -61,6 +61,55 @@ interface ADBDeviceInfo {
   frpStatus?: string;
   lockStatus?: string;
   usbMode?: string;
+}
+
+// Command Copy Box Component
+function CommandCopyBox({ label, command, description }: { label: string; command: string; description?: string }) {
+  const [copied, setCopied] = useState(false);
+  
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(command);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+  
+  return (
+    <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-300 transition-colors">
+      <div className="flex justify-between items-start mb-2">
+        <div className="flex-1">
+          <div className="font-semibold text-gray-900 mb-1">{label}</div>
+          {description && <div className="text-xs text-gray-500 mb-2">{description}</div>}
+        </div>
+        <button 
+          onClick={copyToClipboard}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+            copied 
+              ? 'bg-green-100 text-green-700 border border-green-300' 
+              : 'bg-blue-600 text-white hover:bg-blue-700'
+          }`}
+        >
+          {copied ? (
+            <>
+              <Check className="w-4 h-4" />
+              Copied!
+            </>
+          ) : (
+            <>
+              <Copy className="w-4 h-4" />
+              Copy
+            </>
+          )}
+        </button>
+      </div>
+      <code className="block text-xs text-gray-700 bg-gray-50 p-2 rounded font-mono overflow-x-auto">
+        {command}
+      </code>
+    </div>
+  );
 }
 
 export default function DeviceDetectionPage() {
@@ -731,31 +780,76 @@ export default function DeviceDetectionPage() {
                   
                   <div className="bg-white rounded p-3 text-sm">
                     <p className="font-semibold text-gray-900 mb-2">📱 To Get Full Device Info (Like SamFw Tool):</p>
-                    <ol className="list-decimal list-inside space-y-1 text-gray-700 ml-2">
-                      <li>Install <strong>ADB</strong> on your computer (<a href="/adb-guide" className="text-blue-600 hover:underline font-semibold">📖 See Full Installation Guide</a> or <a href="https://developer.android.com/studio/releases/platform-tools" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download here</a>)</li>
+                    <ol className="list-decimal list-inside space-y-1 text-gray-700 ml-2 mb-4">
+                      <li>Install <strong>ADB</strong> on your computer (<a href="/adb-guide" className="text-blue-600 hover:underline font-semibold">📖 See Full Installation Guide</a>)</li>
                       <li>Enable USB Debugging on your Android device</li>
-                      <li>Connect device via USB</li>
-                      <li>Open Command Prompt/Terminal and run:</li>
+                      <li>Connect device via USB and authorize</li>
+                      <li>Copy and run commands below in Command Prompt/Terminal:</li>
                     </ol>
-                    <div className="mt-2 bg-gray-900 text-green-400 p-3 rounded font-mono text-xs overflow-x-auto">
-                      <div className="mb-1"># Check device is connected</div>
-                      <div className="mb-2">adb devices</div>
-                      
-                      <div className="mb-1 mt-3"># Get detailed device info</div>
-                      <div>adb shell getprop ro.product.model</div>
-                      <div>adb shell getprop ro.build.version.release</div>
-                      <div>adb shell service call iphonesubinfo 1</div>
-                      <div>adb shell dumpsys battery</div>
-                      <div>adb shell df</div>
-                      
-                      <div className="mb-1 mt-3"># Get ALL properties at once</div>
-                      <div>adb shell getprop</div>
+
+                    {/* Quick Copy Commands Section */}
+                    <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200 mb-3">
+                      <h4 className="font-bold text-purple-900 mb-3 flex items-center gap-2">
+                        <Copy className="w-4 h-4" />
+                        Quick Copy Commands
+                      </h4>
+                      <div className="space-y-3">
+                        <CommandCopyBox 
+                          label="1. Check Device Connection"
+                          command="adb devices"
+                          description="Verify your device is detected and authorized"
+                        />
+                        <CommandCopyBox 
+                          label="2. Device Model"
+                          command="adb shell getprop ro.product.model"
+                          description="Get exact device model name"
+                        />
+                        <CommandCopyBox 
+                          label="3. Android Version"
+                          command="adb shell getprop ro.build.version.release"
+                          description="Get Android version number"
+                        />
+                        <CommandCopyBox 
+                          label="4. Manufacturer"
+                          command="adb shell getprop ro.product.manufacturer"
+                          description="Get device manufacturer name"
+                        />
+                        <CommandCopyBox 
+                          label="5. IMEI (Requires Authorization)"
+                          command="adb shell service call iphonesubinfo 1"
+                          description="Get device IMEI number"
+                        />
+                        <CommandCopyBox 
+                          label="6. Battery Information"
+                          command="adb shell dumpsys battery"
+                          description="Get battery level, status, temperature, etc."
+                        />
+                        <CommandCopyBox 
+                          label="7. Storage Information"
+                          command="adb shell df"
+                          description="Get storage capacity and usage"
+                        />
+                        <CommandCopyBox 
+                          label="8. RAM Information"
+                          command="adb shell cat /proc/meminfo"
+                          description="Get memory details"
+                        />
+                        <CommandCopyBox 
+                          label="9. Screen Resolution"
+                          command="adb shell wm size"
+                          description="Get device screen resolution"
+                        />
+                        <CommandCopyBox 
+                          label="10. Get ALL Properties"
+                          command="adb shell getprop"
+                          description="Get complete list of all device properties"
+                        />
+                      </div>
                     </div>
                     
                     <p className="mt-3 text-xs text-gray-600">
-                      💡 <strong>Tip:</strong> Professional tools like <strong>SamFw Tool</strong>, <strong>Odin</strong>, 
-                      and <strong>Samsung Smart Switch</strong> use native ADB implementations to access this detailed information. 
-                      Web browsers have security limitations that prevent full ADB access.
+                      💡 <strong>Tip:</strong> Click the "Copy" button next to each command, then paste into Command Prompt (Windows) or Terminal (Mac/Linux). 
+                      Professional tools like <strong>SamFw Tool</strong> and <strong>Odin</strong> use these same ADB commands internally.
                     </p>
                   </div>
                 </div>
