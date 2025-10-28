@@ -1,33 +1,49 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background gradient -->
-  <rect width="512" height="512" rx="120" fill="url(#grad1)"/>
   <defs>
-    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#040e40;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1c1891;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#1e293b;stop-opacity:1" />
       <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
     </linearGradient>
   </defs>
   
-  <!-- Phone outline -->
-  <rect x="140" y="80" width="232" height="352" rx="24" ry="24" fill="none" stroke="#3b82f6" stroke-width="12"/>
+  <!-- Rounded Background -->
+  <rect width="512" height="512" rx="120" fill="url(#bgGradient)"/>
   
-  <!-- Phone screen -->
-  <rect x="160" y="120" width="192" height="272" rx="8" ry="8" fill="#1e293b"/>
+  <!-- Main Logo Circle (scaled up from 40px to 400px, centered) -->
+  <circle cx="256" cy="256" r="180" fill="url(#logoGradient)" stroke="#fff" stroke-width="20"/>
   
-  <!-- Screen content lines (representing data) -->
-  <line x1="180" y1="150" x2="332" y2="150" stroke="#10b981" stroke-width="6" stroke-linecap="round"/>
-  <line x1="180" y1="180" x2="280" y2="180" stroke="#10b981" stroke-width="6" stroke-linecap="round"/>
-  <line x1="180" y1="210" x2="310" y2="210" stroke="#10b981" stroke-width="6" stroke-linecap="round"/>
-  <line x1="180" y1="240" x2="260" y2="240" stroke="#10b981" stroke-width="6" stroke-linecap="round"/>
-  <line x1="180" y1="270" x2="320" y2="270" stroke="#3b82f6" stroke-width="6" stroke-linecap="round"/>
-  <line x1="180" y1="300" x2="290" y2="300" stroke="#3b82f6" stroke-width="6" stroke-linecap="round"/>
-  <line x1="180" y1="330" x2="310" y2="330" stroke="#3b82f6" stroke-width="6" stroke-linecap="round"/>
-  <line x1="180" y1="360" x2="270" y2="360" stroke="#3b82f6" stroke-width="6" stroke-linecap="round"/>
+  <!-- Computer Monitor (scaled 10x) -->
+  <rect x="136" y="196" width="120" height="80" rx="10" fill="#fff" opacity="0.9"/>
+  <rect x="146" y="206" width="100" height="50" fill="#040e40" opacity="0.3"/>
+  <rect x="186" y="276" width="60" height="10" fill="#fff" opacity="0.7"/>
   
-  <!-- Home button -->
-  <circle cx="256" cy="455" r="18" fill="none" stroke="#3b82f6" stroke-width="4"/>
+  <!-- Mobile Phone (scaled 10x) -->
+  <rect x="296" y="176" width="80" height="120" rx="20" fill="#fff" opacity="0.9"/>
+  <rect x="306" y="186" width="60" height="80" fill="#040e40" opacity="0.3"/>
+  <circle cx="336" cy="281" r="8" fill="#fff" opacity="0.7"/>
   
-  <!-- USB cable connector at bottom -->
-  <path d="M 236 452 L 236 485 L 276 485 L 276 452" fill="none" stroke="#10b981" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="244" y="485" width="24" height="12" rx="3" fill="#10b981"/>
+  <!-- Repair Tools (scaled 10x) -->
+  <g opacity="0.8">
+    <!-- Screwdriver -->
+    <line x1="196" y1="336" x2="236" y2="376" stroke="#ff0000" stroke-width="15" stroke-linecap="round"/>
+    <circle cx="191" cy="331" r="10" fill="#ff0000"/>
+    
+    <!-- Wrench -->
+    <path d="M316 336 L356 376 L341 391 L301 351 Z" fill="#ff0000" opacity="0.8"/>
+  </g>
+  
+  <!-- Connection Lines (scaled 10x) -->
+  <line x1="256" y1="236" x2="296" y2="236" stroke="#fff" stroke-width="10" opacity="0.5" stroke-dasharray="20,10"/>
+  
+  <!-- Desktop Detection Badge (bottom right) -->
+  <g transform="translate(360, 380)">
+    <circle cx="40" cy="40" r="50" fill="#10b981" stroke="#0f172a" stroke-width="4"/>
+    <!-- USB Icon -->
+    <path d="M40 25 L40 50 M30 35 L40 25 L50 35 M30 50 L50 50 M30 50 L30 55 M50 50 L50 55" 
+          stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
 </svg>
