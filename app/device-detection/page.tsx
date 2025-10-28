@@ -78,18 +78,18 @@ function CommandCopyBox({ label, command, description }: { label: string; comman
   };
   
   return (
-    <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-300 transition-colors">
+    <div className="bg-gray-900 rounded-lg p-4 border border-gray-700 hover:border-green-500 transition-colors">
       <div className="flex justify-between items-start mb-2">
         <div className="flex-1">
-          <div className="font-semibold text-gray-900 mb-1">{label}</div>
-          {description && <div className="text-xs text-gray-500 mb-2">{description}</div>}
+          <div className="font-semibold text-green-400 mb-1">{label}</div>
+          {description && <div className="text-xs text-gray-400 mb-2">{description}</div>}
         </div>
         <button 
           onClick={copyToClipboard}
           className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
             copied 
-              ? 'bg-green-100 text-green-700 border border-green-300' 
-              : 'bg-blue-600 text-white hover:bg-blue-700'
+              ? 'bg-green-600 text-white border border-green-500' 
+              : 'bg-gray-800 text-green-400 border border-green-600 hover:bg-green-600 hover:text-white'
           }`}
         >
           {copied ? (
@@ -105,7 +105,7 @@ function CommandCopyBox({ label, command, description }: { label: string; comman
           )}
         </button>
       </div>
-      <code className="block text-xs text-gray-700 bg-gray-50 p-2 rounded font-mono overflow-x-auto">
+      <code className="block text-sm text-green-400 bg-black p-3 rounded font-mono overflow-x-auto border border-gray-800">
         {command}
       </code>
     </div>
@@ -788,10 +788,10 @@ export default function DeviceDetectionPage() {
                     </ol>
 
                     {/* Quick Copy Commands Section */}
-                    <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200 mb-3">
-                      <h4 className="font-bold text-purple-900 mb-3 flex items-center gap-2">
-                        <Copy className="w-4 h-4" />
-                        Quick Copy Commands
+                    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-lg p-5 border-2 border-green-600 mb-3 shadow-lg shadow-green-900/20">
+                      <h4 className="font-bold text-green-400 mb-4 flex items-center gap-2 text-lg">
+                        <Copy className="w-5 h-5" />
+                        Quick Copy Commands - Terminal Mode
                       </h4>
                       <div className="space-y-3">
                         <CommandCopyBox 
@@ -847,9 +847,9 @@ export default function DeviceDetectionPage() {
                       </div>
                     </div>
                     
-                    <p className="mt-3 text-xs text-gray-600">
-                      💡 <strong>Tip:</strong> Click the "Copy" button next to each command, then paste into Command Prompt (Windows) or Terminal (Mac/Linux). 
-                      Professional tools like <strong>SamFw Tool</strong> and <strong>Odin</strong> use these same ADB commands internally.
+                    <p className="mt-4 text-xs text-green-300 border-t border-gray-700 pt-3">
+                      💡 <strong className="text-green-400">Tip:</strong> Click the "Copy" button next to each command, then paste into Command Prompt (Windows) or Terminal (Mac/Linux). 
+                      Professional tools like <strong className="text-green-400">SamFw Tool</strong> and <strong className="text-green-400">Odin</strong> use these same ADB commands internally.
                     </p>
                   </div>
                 </div>
