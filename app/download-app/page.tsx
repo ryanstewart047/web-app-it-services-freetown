@@ -91,7 +91,7 @@ export default function DownloadAppPage() {
               {os === 'windows' && (
                 <>
                   <a
-                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT-Services-Device-Detector-Setup-1.0.0.exe"
+                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector.Setup.1.0.0.exe"
                     className="flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-8 py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -103,10 +103,10 @@ export default function DownloadAppPage() {
                         <div className="text-sm text-blue-100">Recommended - Full installation with shortcuts</div>
                       </div>
                     </div>
-                    <div className="text-sm text-blue-100">~85 MB</div>
+                    <div className="text-sm text-blue-100">~90 MB</div>
                   </a>
                   <a
-                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT-Services-Device-Detector-1.0.0-portable.exe"
+                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector.1.0.0.exe"
                     className="flex items-center justify-between bg-gray-700 hover:bg-gray-600 text-white px-8 py-4 rounded-xl transition-all"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -118,14 +118,14 @@ export default function DownloadAppPage() {
                         <div className="text-sm text-gray-300">No installation required - Run anywhere</div>
                       </div>
                     </div>
-                    <div className="text-sm text-gray-300">~85 MB</div>
+                    <div className="text-sm text-gray-300">~87 MB</div>
                   </a>
                 </>
               )}
               {os === 'mac' && (
                 <>
                   <a
-                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT-Services-Device-Detector-1.0.0.dmg"
+                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector-1.0.0-arm64.dmg"
                     className="flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-8 py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -133,14 +133,14 @@ export default function DownloadAppPage() {
                     <div className="flex items-center gap-3">
                       <Download className="w-6 h-6" />
                       <div className="text-left">
-                        <div className="font-bold text-lg">macOS DMG</div>
-                        <div className="text-sm text-blue-100">Recommended - Drag and drop installation</div>
+                        <div className="font-bold text-lg">macOS DMG (Apple Silicon)</div>
+                        <div className="text-sm text-blue-100">Recommended - For M1/M2/M3 Macs</div>
                       </div>
                     </div>
-                    <div className="text-sm text-blue-100">~90 MB</div>
+                    <div className="text-sm text-blue-100">~100 MB</div>
                   </a>
                   <a
-                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT-Services-Device-Detector-1.0.0-mac.zip"
+                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector-1.0.0-arm64-mac.zip"
                     className="flex items-center justify-between bg-gray-700 hover:bg-gray-600 text-white px-8 py-4 rounded-xl transition-all"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -148,18 +148,18 @@ export default function DownloadAppPage() {
                     <div className="flex items-center gap-3">
                       <Download className="w-6 h-6" />
                       <div className="text-left">
-                        <div className="font-bold">macOS ZIP</div>
-                        <div className="text-sm text-gray-300">Portable archive</div>
+                        <div className="font-bold">macOS ZIP (Apple Silicon)</div>
+                        <div className="text-sm text-gray-300">Portable archive for M1/M2/M3</div>
                       </div>
                     </div>
-                    <div className="text-sm text-gray-300">~90 MB</div>
+                    <div className="text-sm text-gray-300">~73 MB</div>
                   </a>
                 </>
               )}
               {os === 'linux' && (
                 <>
                   <a
-                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT-Services-Device-Detector-1.0.0.AppImage"
+                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector-1.0.0.AppImage"
                     className="flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-8 py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -171,7 +171,7 @@ export default function DownloadAppPage() {
                         <div className="text-sm text-blue-100">Recommended - Universal, run anywhere</div>
                       </div>
                     </div>
-                    <div className="text-sm text-blue-100">~95 MB</div>
+                    <div className="text-sm text-blue-100">~73 MB</div>
                   </a>
                   <a
                     href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/it-services-device-detector_1.0.0_amd64.deb"
@@ -186,54 +186,26 @@ export default function DownloadAppPage() {
                         <div className="text-sm text-gray-300">For Ubuntu, Debian, Linux Mint</div>
                       </div>
                     </div>
-                    <div className="text-sm text-gray-300">~95 MB</div>
+                    <div className="text-sm text-gray-300">~69 MB</div>
                   </a>
                 </>
               )}
             </div>
 
-            {/* Release Status Notice - Updated with Build from Source */}
-            <div className="mt-6 p-4 bg-orange-500/10 border-2 border-orange-500/50 rounded-lg">
+            {/* Release Status Notice */}
+            <div className="mt-6 p-4 bg-green-500/10 border-2 border-green-500/50 rounded-lg">
               <div className="flex items-start gap-3">
-                <div className="text-2xl">⚠️</div>
+                <div className="text-2xl">✅</div>
                 <div className="flex-1">
-                  <p className="text-orange-200 font-bold mb-2">
-                    Installers Not Yet Available (Getting 404?)
+                  <p className="text-green-200 font-bold mb-2">
+                    v1.0.0 Released - All Installers Available!
                   </p>
-                  <p className="text-orange-200 text-sm mb-3">
-                    The pre-built installers haven&apos;t been published to GitHub Releases yet. 
-                    You can either <strong>wait for the release</strong> or <strong>build from source now</strong>:
+                  <p className="text-green-200 text-sm mb-2">
+                    Pre-built installers for Windows, macOS, and Linux are now available on GitHub Releases.
                   </p>
-                  <div className="bg-black/30 rounded-lg p-4 mb-3">
-                    <p className="text-green-400 font-mono text-xs mb-2"># Quick Build Instructions:</p>
-                    <code className="text-green-300 font-mono text-xs block">
-                      git clone https://github.com/ryanstewart047/web-app-it-services-freetown.git<br/>
-                      cd web-app-it-services-freetown/desktop-app<br/>
-                      npm install<br/>
-                      npm start  # Run immediately (no build needed!)
-                    </code>
-                  </div>
-                  <div className="flex gap-3 flex-wrap">
-                    <a 
-                      href="https://github.com/ryanstewart047/web-app-it-services-freetown/tree/main/desktop-app" 
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all"
-                    >
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.840 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.430.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                      </svg>
-                      Build from Source
-                    </a>
-                    <a 
-                      href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases" 
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all"
-                    >
-                      Check Releases Status
-                    </a>
-                  </div>
+                  <p className="text-green-300 text-xs">
+                    Want to build from source? Check out our <a href="https://github.com/ryanstewart047/web-app-it-services-freetown/tree/main/desktop-app" className="underline hover:text-green-100" target="_blank" rel="noopener noreferrer">GitHub repository</a>
+                  </p>
                 </div>
               </div>
             </div>
