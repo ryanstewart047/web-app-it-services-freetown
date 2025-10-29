@@ -28,10 +28,14 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
-    fetchProduct();
-  }, [params.slug]);
+    if (params?.slug) {
+      fetchProduct();
+    }
+  }, [params?.slug]);
 
   const fetchProduct = async () => {
+    if (!params?.slug) return;
+    
     try {
       const res = await fetch('/api/products');
       const products = await res.json();
