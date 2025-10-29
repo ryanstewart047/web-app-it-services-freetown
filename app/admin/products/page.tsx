@@ -31,6 +31,7 @@ export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -45,10 +46,24 @@ export default function AdminProductsPage() {
   const fetchProducts = async () => {
     try {
       const res = await fetch('/api/products');
+      if (!res.ok) {
+        if (res.status === 500) {
+          setError('Database not configured. Please set up your database first.');
+        }
+        setProducts([]);
+        return;
+      }
       const data = await res.json();
-      setProducts(data);
+      if (Array.isArray(data)) {
+        setProducts(data);
+        setError(null);
+      } else {
+        setProducts([]);
+      }
     } catch (error) {
       console.error('Error fetching products:', error);
+      setError('Failed to connect to the server.');
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -57,10 +72,15 @@ export default function AdminProductsPage() {
   const fetchCategories = async () => {
     try {
       const res = await fetch('/api/categories');
+      if (!res.ok) {
+        setCategories([]);
+        return;
+      }
       const data = await res.json();
-      setCategories(data);
+      setCategories(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching categories:', error);
+      setCategories([]);
     }
   };
 
@@ -243,7 +263,30 @@ export default function AdminProductsPage() {
                 {loading ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
-                      Loading products...
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-2"></div>
+                      <p>Loading products...</p>
+                    </td>
+                  </tr>
+                ) : error ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12">
+                      <div className="text-center">
+                        <div className="w-16 h-16 bg-yellow-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <svg className="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
+                        </div>
+                        <h3 className="text-xl font-bold text-yellow-500 mb-2">Database Not Configured</h3>
+                        <p className="text-gray-300 mb-4">{error}</p>
+                        <a 
+                          href="https://github.com/ryanstewart047/web-app-it-services-freetown/blob/main/VERCEL_MARKETPLACE_SETUP.md" 
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                        >
+                          View Setup Guide →
+                        </a>
+                      </div>
                     </td>
                   </tr>
                 ) : filteredProducts.length === 0 ? (

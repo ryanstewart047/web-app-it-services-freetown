@@ -30,6 +30,7 @@ export default function MarketplacePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
@@ -51,10 +52,27 @@ export default function MarketplacePage() {
       params.append('status', 'active');
 
       const res = await fetch(`/api/products?${params}`);
+      if (!res.ok) {
+        console.error('Failed to fetch products:', res.status);
+        if (res.status === 500) {
+          setError('Database not configured. Please set up your database to start selling products.');
+        }
+        setProducts([]);
+        return;
+      }
       const data = await res.json();
-      setProducts(data);
+      // Ensure data is an array
+      if (Array.isArray(data)) {
+        setProducts(data);
+        setError(null);
+      } else {
+        setProducts([]);
+        setError('Failed to load products. Please try again later.');
+      }
     } catch (error) {
       console.error('Error fetching products:', error);
+      setError('Failed to connect to the server. Please check your connection.');
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -63,10 +81,17 @@ export default function MarketplacePage() {
   const fetchCategories = async () => {
     try {
       const res = await fetch('/api/categories');
+      if (!res.ok) {
+        console.error('Failed to fetch categories:', res.status);
+        setCategories([]);
+        return;
+      }
       const data = await res.json();
-      setCategories(data);
+      // Ensure data is an array
+      setCategories(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching categories:', error);
+      setCategories([]);
     }
   };
 
@@ -276,6 +301,33 @@ export default function MarketplacePage() {
               <div className="text-center py-20">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                 <p className="text-gray-400 mt-4">Loading products...</p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-20 bg-yellow-900/20 border border-yellow-600/50 rounded-xl p-8">
+                <div className="w-16 h-16 bg-yellow-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-yellow-500 mb-2">Database Not Configured</h3>
+                <p className="text-gray-300 mb-6 max-w-2xl mx-auto">{error}</p>
+                <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6 max-w-2xl mx-auto text-left">
+                  <h4 className="font-semibold text-white mb-3">Quick Setup Instructions:</h4>
+                  <ol className="text-sm text-gray-300 space-y-2 list-decimal list-inside">
+                    <li>Go to your Vercel Dashboard</li>
+                    <li>Navigate to Storage → Create Database → Postgres</li>
+                    <li>Connect the database to your project</li>
+                    <li>Redeploy your application</li>
+                  </ol>
+                  <a 
+                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/blob/main/VERCEL_MARKETPLACE_SETUP.md" 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                  >
+                    View Full Setup Guide →
+                  </a>
+                </div>
               </div>
             ) : filteredProducts.length === 0 ? (
               <div className="text-center py-20">
