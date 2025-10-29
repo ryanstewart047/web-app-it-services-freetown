@@ -131,3 +131,117 @@ model AITroubleshooting {
   escalated        Boolean  @default(false)
   createdAt        DateTime @default(now())
 }
+
+// Marketplace Models
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  icon        String?
+  image       String?
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+}
+
+model Product {
+  id          String         @id @default(cuid())
+  name        String
+  slug        String         @unique
+  description String
+  price       Float
+  comparePrice Float?        // Original price for showing discounts
+  categoryId  String
+  stock       Int            @default(0)
+  status      String         @default("active") // active, out_of_stock, discontinued
+  images      ProductImage[]
+  sku         String?        @unique
+  brand       String?
+  tags        String[]       // For search and filtering
+  featured    Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  category    Category       @relation(fields: [categoryId], references: [id])
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+  
+  @@index([categoryId])
+  @@index([status])
+  @@index([slug])
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  url       String
+  alt       String?
+  order     Int      @default(0) // For sorting images
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@index([productId])
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  sessionId String     @unique // For guest users
+  userId    String?    // For logged-in users
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  productId String
+  quantity  Int      @default(1)
+  price     Float    // Store price at time of adding to cart
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
+  
+  @@unique([cartId, productId])
+  @@index([cartId])
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique
+  customerName    String
+  customerEmail   String
+  customerPhone   String
+  customerAddress String
+  items           OrderItem[]
+  subtotal        Float
+  tax             Float       @default(0)
+  total           Float
+  paymentMethod   String      // mobile_money, cash
+  paymentStatus   String      @default("pending") // pending, paid, failed
+  orderStatus     String      @default("pending") // pending, processing, shipped, delivered, cancelled
+  mobileMoneyNumber String?
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  @@index([orderNumber])
+  @@index([customerEmail])
+  @@index([orderStatus])
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float    // Price at time of purchase
+  subtotal  Float
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
+  
+  @@index([orderId])
+}
