@@ -5,6 +5,65 @@ export default function Footer() {
   return (
     <footer className="bg-gradient-to-br from-[#040e40] via-[#040e40] to-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Admin Panel Section - Highlighted */}
+        <div className="bg-gradient-to-r from-red-900/40 to-blue-900/40 border-2 border-red-500/50 rounded-xl p-6 mb-8">
+          <h3 className="text-2xl font-bold mb-4 text-white flex items-center">
+            <i className="fas fa-shield-alt text-red-400 mr-3"></i>
+            Admin Dashboard
+          </h3>
+          <p className="text-gray-300 text-sm mb-6">Access the admin panel to manage your business operations</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Link 
+              href="/admin/products" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+            >
+              <i className="fas fa-box text-blue-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+              <h4 className="text-white font-semibold text-sm">Manage Products</h4>
+              <p className="text-gray-400 text-xs mt-1">Add, edit, delete products</p>
+            </Link>
+            <Link 
+              href="/admin/add-product" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+            >
+              <i className="fas fa-plus-circle text-green-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+              <h4 className="text-white font-semibold text-sm">Add Product</h4>
+              <p className="text-gray-400 text-xs mt-1">Quick add new product</p>
+            </Link>
+            <Link 
+              href="/admin/orders" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+            >
+              <i className="fas fa-shopping-cart text-yellow-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+              <h4 className="text-white font-semibold text-sm">View Orders</h4>
+              <p className="text-gray-400 text-xs mt-1">Track customer orders</p>
+            </Link>
+            <Link 
+              href="/admin/categories" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+            >
+              <i className="fas fa-tags text-purple-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+              <h4 className="text-white font-semibold text-sm">Manage Categories</h4>
+              <p className="text-gray-400 text-xs mt-1">Organize products</p>
+            </Link>
+            <Link 
+              href="/admin/bookings" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+            >
+              <i className="fas fa-calendar-alt text-red-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+              <h4 className="text-white font-semibold text-sm">View Bookings</h4>
+              <p className="text-gray-400 text-xs mt-1">Service appointments</p>
+            </Link>
+            <Link 
+              href="/admin" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+            >
+              <i className="fas fa-tachometer-alt text-cyan-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+              <h4 className="text-white font-semibold text-sm">Dashboard</h4>
+              <p className="text-gray-400 text-xs mt-1">Overview & analytics</p>
+            </Link>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="col-span-1 md:col-span-2">
@@ -196,18 +255,12 @@ export default function Footer() {
               </div>
             </div>
             <div className="flex space-x-6">
-              <Link href="/privacy" className="text-gray-300 hover:text-red-400 text-sm transition-colors">
+                            <Link href="/privacy" className="text-gray-400 hover:text-white">
                 Privacy Policy
               </Link>
-              <Link href="/terms" className="text-gray-300 hover:text-red-400 text-sm transition-colors">
+              <span className="text-gray-500">•</span>
+              <Link href="/terms" className="text-gray-400 hover:text-white">
                 Terms of Service
-              </Link>
-              <Link 
-                href="/admin" 
-                className="text-gray-300 hover:text-red-400 text-sm transition-colors border border-gray-500 hover:border-red-400 px-2 py-1 rounded"
-                title="Access Admin Dashboard"
-              >
-                <i className="fas fa-shield-alt mr-1"></i>Admin Panel
               </Link>
             </div>
           </div>
