@@ -375,10 +375,6 @@ export default function Footer() {
                 Privacy Policy
               </Link>
               <span className="text-gray-500">•</span>
-              <Link href="/terms" className="text-gray-400 hover:text-white text-sm">
-                Terms of Service
-              </Link>
-              <span className="text-gray-500">•</span>
               <button
                 onClick={() => setShowAdminPanel(true)}
                 className="text-gray-500 hover:text-gray-400 text-xs transition-colors"
@@ -386,6 +382,10 @@ export default function Footer() {
               >
                 <i className="fas fa-lock"></i>
               </button>
+              <span className="text-gray-500">•</span>
+              <Link href="/terms" className="text-gray-400 hover:text-white text-sm">
+                Terms of Service
+              </Link>
             </div>
           </div>
         </div>
