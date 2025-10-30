@@ -127,8 +127,8 @@ export default function AdminProductsPage() {
     const handleUpdateStatus = async (id: string, newStatus: string) => {
     console.log('Updating status:', { id, newStatus });
     try {
-      const response = await fetch(`/api/products/${id}`, {
-        method: 'PATCH',
+      const response = await fetch(`/api/products/${id}/status`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -138,8 +138,8 @@ export default function AdminProductsPage() {
       console.log('Response status:', response.status);
       
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Error response:', errorData);
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
         throw new Error('Failed to update status');
       }
       
