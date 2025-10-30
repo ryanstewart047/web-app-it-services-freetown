@@ -103,29 +103,53 @@ export default function AdminProductsPage() {
     }
   };
 
-  const handleUpdateStock = async (id: string, newStock: number) => {
+    const handleUpdateStock = async (id: string, newStock: number) => {
     try {
-      await fetch(`/api/products/${id}`, {
+      const response = await fetch(`/api/products/${id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stock: newStock })
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ stock: newStock }),
       });
-      fetchProducts();
+      
+      if (!response.ok) {
+        throw new Error('Failed to update stock');
+      }
+      
+      await fetchProducts();
     } catch (error) {
       console.error('Error updating stock:', error);
+      alert('Failed to update product stock. Please try again.');
     }
   };
 
-  const handleUpdateStatus = async (id: string, newStatus: string) => {
+    const handleUpdateStatus = async (id: string, newStatus: string) => {
+    console.log('Updating status:', { id, newStatus });
     try {
-      await fetch(`/api/products/${id}`, {
+      const response = await fetch(`/api/products/${id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
       });
-      fetchProducts();
+      
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
+        throw new Error('Failed to update status');
+      }
+      
+      const updatedProduct = await response.json();
+      console.log('Updated product:', updatedProduct);
+      
+      await fetchProducts();
     } catch (error) {
       console.error('Error updating status:', error);
+      alert('Failed to update product status. Please try again.');
     }
   };
 
@@ -339,8 +363,11 @@ export default function AdminProductsPage() {
                       <td className="px-6 py-4">
                         <select
                           value={product.status}
-                          onChange={(e) => handleUpdateStatus(product.id, e.target.value)}
-                          className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                          onChange={(e) => {
+                            console.log('Dropdown changed:', e.target.value);
+                            handleUpdateStatus(product.id, e.target.value);
+                          }}
+                          className={`px-3 py-2 rounded-lg text-sm font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                             product.status === 'active'
                               ? 'bg-green-500/20 text-green-400 border border-green-500/50'
                               : product.status === 'out_of_stock'
@@ -348,9 +375,9 @@ export default function AdminProductsPage() {
                               : 'bg-gray-500/20 text-gray-400 border border-gray-500/50'
                           }`}
                         >
-                          <option value="active">Active</option>
-                          <option value="out_of_stock">Out of Stock</option>
-                          <option value="discontinued">Discontinued</option>
+                          <option value="active" className="bg-gray-800 text-white">Active</option>
+                          <option value="out_of_stock" className="bg-gray-800 text-white">Out of Stock</option>
+                          <option value="discontinued" className="bg-gray-800 text-white">Discontinued</option>
                         </select>
                       </td>
                       <td className="px-6 py-4">
