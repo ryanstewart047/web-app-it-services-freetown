@@ -6,13 +6,38 @@ import { useState } from 'react'
 
 export default function Footer() {
   const [showAdminPanel, setShowAdminPanel] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+
+  // Admin password - Change this to your desired password
+  const ADMIN_PASSWORD = 'ITServices2025!'
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (password === ADMIN_PASSWORD) {
+      setIsAuthenticated(true)
+      setError('')
+      setPassword('')
+    } else {
+      setError('Incorrect password. Please try again.')
+      setPassword('')
+    }
+  }
+
+  const handleClose = () => {
+    setShowAdminPanel(false)
+    setIsAuthenticated(false)
+    setPassword('')
+    setError('')
+  }
 
   return (
     <footer className="bg-gradient-to-br from-[#040e40] via-[#040e40] to-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Admin Panel Modal */}
         {showAdminPanel && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowAdminPanel(false)}>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={handleClose}>
             <div className="bg-gradient-to-br from-[#040e40] via-[#040e40] to-gray-900 border-2 border-red-500/50 rounded-xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-bold text-white flex items-center">
@@ -20,18 +45,57 @@ export default function Footer() {
                   Admin Panels
                 </h3>
                 <button 
-                  onClick={() => setShowAdminPanel(false)}
+                  onClick={handleClose}
                   className="text-gray-400 hover:text-white text-2xl"
                 >
                   <i className="fas fa-times"></i>
                 </button>
               </div>
-              <p className="text-gray-300 text-sm mb-6">Access the admin panel to manage your business operations</p>
+
+              {!isAuthenticated ? (
+                // Password Input Form
+                <div className="max-w-md mx-auto">
+                  <div className="text-center mb-6">
+                    <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <i className="fas fa-lock text-red-400 text-3xl"></i>
+                    </div>
+                    <p className="text-gray-300 text-sm">Enter admin password to access admin panels</p>
+                  </div>
+                  <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                    <div>
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter admin password"
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        autoFocus
+                      />
+                      {error && (
+                        <p className="text-red-400 text-sm mt-2 flex items-center">
+                          <i className="fas fa-exclamation-circle mr-2"></i>
+                          {error}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      type="submit"
+                      className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-3 rounded-lg font-semibold transition-all hover:scale-105"
+                    >
+                      <i className="fas fa-sign-in-alt mr-2"></i>
+                      Access Admin Panels
+                    </button>
+                  </form>
+                </div>
+              ) : (
+                // Admin Panels Grid
+                <>
+                  <p className="text-gray-300 text-sm mb-6">Access the admin panel to manage your business operations</p>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <Link 
               href="/admin" 
               className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
-              onClick={() => setShowAdminPanel(false)}
+              onClick={handleClose}
             >
               <i className="fas fa-tachometer-alt text-cyan-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
               <h4 className="text-white font-semibold text-sm">Dashboard</h4>
@@ -40,7 +104,7 @@ export default function Footer() {
             <Link 
               href="/blog/admin" 
               className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
-              onClick={() => setShowAdminPanel(false)}
+              onClick={handleClose}
             >
               <i className="fas fa-blog text-orange-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
               <h4 className="text-white font-semibold text-sm">Blog Admin</h4>
@@ -49,7 +113,7 @@ export default function Footer() {
             <Link 
               href="/receipt" 
               className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
-              onClick={() => setShowAdminPanel(false)}
+              onClick={handleClose}
             >
               <i className="fas fa-receipt text-green-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
               <h4 className="text-white font-semibold text-sm">Receipt Generator</h4>
@@ -58,7 +122,7 @@ export default function Footer() {
             <Link 
               href="/offer-admin" 
               className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
-              onClick={() => setShowAdminPanel(false)}
+              onClick={handleClose}
             >
               <i className="fas fa-gift text-pink-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
               <h4 className="text-white font-semibold text-sm">Offer Admin</h4>
@@ -67,7 +131,7 @@ export default function Footer() {
             <Link 
               href="/admin/products" 
               className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
-              onClick={() => setShowAdminPanel(false)}
+              onClick={handleClose}
             >
               <i className="fas fa-box text-blue-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
               <h4 className="text-white font-semibold text-sm">Manage Products</h4>
@@ -76,7 +140,7 @@ export default function Footer() {
             <Link 
               href="/admin/add-product" 
               className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
-              onClick={() => setShowAdminPanel(false)}
+              onClick={handleClose}
             >
               <i className="fas fa-plus-circle text-green-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
               <h4 className="text-white font-semibold text-sm">Add Product</h4>
@@ -85,7 +149,7 @@ export default function Footer() {
             <Link 
               href="/admin/orders" 
               className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
-              onClick={() => setShowAdminPanel(false)}
+              onClick={handleClose}
             >
               <i className="fas fa-shopping-cart text-yellow-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
               <h4 className="text-white font-semibold text-sm">View Orders</h4>
@@ -94,7 +158,7 @@ export default function Footer() {
             <Link 
               href="/admin/categories" 
               className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
-              onClick={() => setShowAdminPanel(false)}
+              onClick={handleClose}
             >
               <i className="fas fa-tags text-purple-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
               <h4 className="text-white font-semibold text-sm">Categories</h4>
@@ -103,14 +167,16 @@ export default function Footer() {
             <Link 
               href="/admin/bookings" 
               className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
-              onClick={() => setShowAdminPanel(false)}
+              onClick={handleClose}
             >
               <i className="fas fa-calendar-alt text-red-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
               <h4 className="text-white font-semibold text-sm">Bookings</h4>
               <p className="text-gray-400 text-xs mt-1">Service appointments</p>
             </Link>
           </div>
-        </div>
+                </>
+              )}
+            </div>
           </div>
         )}
 
