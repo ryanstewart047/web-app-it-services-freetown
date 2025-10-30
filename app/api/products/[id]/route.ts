@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 // GET single product
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> | { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    // Await params for Next.js 15 compatibility
-    const resolvedParams = await Promise.resolve(params);
+    const { id } = context.params;
     const product = await prisma.product.findUnique({
-      where: { id: resolvedParams.id },
+      where: { id },
       include: {
         category: true,
         images: {
@@ -35,15 +36,16 @@ export async function GET(
 // PATCH update product
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> | { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    // Await params for Next.js 15 compatibility
-    const resolvedParams = await Promise.resolve(params);
+    const { id } = context.params;
     const body = await request.json();
     
+    console.log('PATCH request received for product:', id, 'with data:', body);
+    
     const product = await prisma.product.update({
-      where: { id: resolvedParams.id },
+      where: { id },
       data: body,
       include: {
         category: true,
@@ -61,13 +63,12 @@ export async function PATCH(
 // DELETE product
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> | { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    // Await params for Next.js 15 compatibility
-    const resolvedParams = await Promise.resolve(params);
+    const { id } = context.params;
     await prisma.product.delete({
-      where: { id: resolvedParams.id }
+      where: { id }
     });
 
     return NextResponse.json({ success: true });
