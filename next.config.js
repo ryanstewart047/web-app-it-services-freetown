@@ -8,11 +8,9 @@ const nextConfig = {
     // Temporarily ignore TypeScript errors during build
     ignoreBuildErrors: true,
   },
-  // Output configuration for Vercel
-  output: 'standalone',
-  // Disable static optimization that can cause chunk issues
-  generateBuildId: async () => {
-    return 'build-' + Date.now()
+  // Experimental features to fix chunk issues
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
   // Configure webpack to prevent infinite compilation and resolve modules properly
   webpack: (config, { isServer }) => {
@@ -31,13 +29,7 @@ const nextConfig = {
       tls: false,
     }
     
-    // Simplified chunk handling to prevent missing chunk errors
-    config.optimization = {
-      ...config.optimization,
-      moduleIds: 'deterministic',
-      runtimeChunk: isServer ? undefined : 'single',
-    }
-    
+    // Don't modify optimization - let Next.js handle it
     return config
   },
   images: {
