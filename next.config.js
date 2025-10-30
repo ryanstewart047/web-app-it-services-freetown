@@ -8,9 +8,9 @@ const nextConfig = {
     // Temporarily ignore TypeScript errors during build
     ignoreBuildErrors: true,
   },
-  // Experimental features to fix chunk issues
-  experimental: {
-    optimizePackageImports: ['lucide-react', 'framer-motion'],
+  // Generate unique build ID to prevent cache issues
+  generateBuildId: async () => {
+    return `build-${Date.now()}-${Math.random().toString(36).substring(7)}`
   },
   // Configure webpack to prevent infinite compilation and resolve modules properly
   webpack: (config, { isServer }) => {
@@ -29,7 +29,9 @@ const nextConfig = {
       tls: false,
     }
     
-    // Don't modify optimization - let Next.js handle it
+    // Disable caching that might cause chunk issues
+    config.cache = false
+    
     return config
   },
   images: {
@@ -55,8 +57,9 @@ const nextConfig = {
       },
     ],
   },
-  // Experimental features for better stability
+  // Experimental features
   experimental: {
+    optimizePackageImports: ['lucide-react', 'framer-motion'],
     optimizeCss: false,
   },
 }
