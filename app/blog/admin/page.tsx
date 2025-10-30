@@ -1,28 +1,23 @@
-export default function BlogAdminPage() {'use client'
+'use client'
 
-  return (
-
-    <div className="min-h-screen flex items-center justify-center">import { useState, useEffect } from 'react'
-
-      <div className="text-center">import { useRouter } from 'next/navigation'
-
-        <h1 className="text-2xl font-bold">Blog Admin - Temporarily Disabled</h1>import { useScrollAnimations } from '@/hooks/useScrollAnimations'
-
-        <p className="text-gray-600 mt-4">This page is being rebuilt.</p>import { usePageLoader } from '@/hooks/usePageLoader'
-
-      </div>import LoadingOverlay from '@/components/LoadingOverlay'
-
-    </div>import { ArrowLeft, Save, Eye, Upload, X, Image as ImageIcon, Video, Lock, Sparkles, RefreshCw, Trash2, List } from 'lucide-react'
-
-  )import toast from 'react-hot-toast'
-
-}import { createBlogPost, fetchBlogPosts, deleteBlogPost } from '@/lib/github-blog-storage'
-
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useScrollAnimations } from '@/hooks/useScrollAnimations'
+import { usePageLoader } from '@/hooks/usePageLoader'
+import LoadingOverlay from '@/components/LoadingOverlay'
+import { ArrowLeft, Save, Eye, Upload, X, Image as ImageIcon, Video, Lock, Sparkles, RefreshCw, Trash2, List } from 'lucide-react'
+import toast from 'react-hot-toast'
+import { createBlogPost, fetchBlogPosts, deleteBlogPost } from '@/lib/github-blog-storage'
 import dynamic from 'next/dynamic'
-import 'react-quill/dist/quill.snow.css'
 
-// Dynamically import ReactQuill to avoid SSR issues
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false })
+// Dynamically import ReactQuill to avoid SSR issues and build issues
+const ReactQuill = dynamic(
+  () => import('react-quill'),
+  { 
+    ssr: false,
+    loading: () => <div className="animate-pulse bg-gray-200 h-64 rounded">Loading editor...</div>
+  }
+)
 
 interface MediaItem {
   id: string
