@@ -4,11 +4,13 @@ import { prisma } from '@/lib/prisma';
 // GET single product
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
+    // Await params for Next.js 15 compatibility
+    const resolvedParams = await Promise.resolve(params);
     const product = await prisma.product.findUnique({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       include: {
         category: true,
         images: {
@@ -33,13 +35,15 @@ export async function GET(
 // PATCH update product
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
+    // Await params for Next.js 15 compatibility
+    const resolvedParams = await Promise.resolve(params);
     const body = await request.json();
     
     const product = await prisma.product.update({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       data: body,
       include: {
         category: true,
@@ -57,11 +61,13 @@ export async function PATCH(
 // DELETE product
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
+    // Await params for Next.js 15 compatibility
+    const resolvedParams = await Promise.resolve(params);
     await prisma.product.delete({
-      where: { id: params.id }
+      where: { id: resolvedParams.id }
     });
 
     return NextResponse.json({ success: true });
