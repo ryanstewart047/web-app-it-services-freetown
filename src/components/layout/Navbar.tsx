@@ -34,6 +34,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-8">
             <Link href="/" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Home</Link>
             <Link href="/marketplace" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Shop</Link>
+            <Link href="/blog" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Blog</Link>
             <Link href="/book-appointment" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Book Appointment</Link>
             <Link href="/track-repair" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Track Repair</Link>
             <Link href="/troubleshoot" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Troubleshoot</Link>
@@ -58,6 +59,7 @@ export default function Navbar() {
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
             <Link href="/" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Home</Link>
             <Link href="/marketplace" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Shop</Link>
+            <Link href="/blog" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Blog</Link>
             <Link href="/book-appointment" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Book Appointment</Link>
             <Link href="/track-repair" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Track Repair</Link>
             <Link href="/troubleshoot" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Troubleshoot</Link>
