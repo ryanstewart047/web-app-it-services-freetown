@@ -209,10 +209,10 @@ export default function ProductDetailPage() {
             {/* Price */}
             <div className="mb-6">
               <div className="flex items-center gap-4 mb-2">
-                <span className="text-4xl font-bold text-white">${product.price.toFixed(2)}</span>
+                <span className="text-4xl font-bold text-white">Le {product.price.toFixed(2)}</span>
                 {product.comparePrice && (
-                  <span className="text-2xl text-gray-500 line-through">
-                    ${product.comparePrice.toFixed(2)}
+                  <span className="text-gray-400 line-through ml-3">
+                    Le {product.comparePrice.toFixed(2)}
                   </span>
                 )}
                 {discount && (
@@ -308,7 +308,7 @@ export default function ProductDetailPage() {
                 <Truck className="w-6 h-6 text-blue-400 flex-shrink-0 mt-1" />
                 <div>
                   <h4 className="text-white font-semibold mb-1">Free Shipping</h4>
-                  <p className="text-gray-400 text-sm">On orders over $50 within Freetown</p>
+                  <p className="text-gray-400 text-sm">On orders over Le 500,000 within Freetown</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">

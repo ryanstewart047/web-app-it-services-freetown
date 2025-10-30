@@ -406,10 +406,10 @@ export default function MarketplacePage() {
 
                         {/* Price */}
                         <div className="flex items-center gap-2 mb-3">
-                          <span className="text-2xl font-bold text-white">${product.price.toFixed(2)}</span>
+                          <span className="text-2xl font-bold text-white">Le {product.price.toFixed(2)}</span>
                           {product.comparePrice && (
-                            <span className="text-gray-500 line-through text-sm">
-                              ${product.comparePrice.toFixed(2)}
+                            <span className="text-gray-400 line-through text-sm ml-2">
+                              Le {product.comparePrice.toFixed(2)}
                             </span>
                           )}
                         </div>
