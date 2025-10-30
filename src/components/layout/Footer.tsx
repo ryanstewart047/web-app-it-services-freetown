@@ -12,14 +12,46 @@ export default function Footer() {
             Admin Dashboard
           </h3>
           <p className="text-gray-300 text-sm mb-6">Access the admin panel to manage your business operations</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <Link 
+              href="/admin" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+            >
+              <i className="fas fa-tachometer-alt text-cyan-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+              <h4 className="text-white font-semibold text-sm">Dashboard</h4>
+              <p className="text-gray-400 text-xs mt-1">Overview & analytics</p>
+            </Link>
+            <Link 
+              href="/blog/admin" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+            >
+              <i className="fas fa-blog text-orange-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+              <h4 className="text-white font-semibold text-sm">Blog Admin</h4>
+              <p className="text-gray-400 text-xs mt-1">Manage blog posts</p>
+            </Link>
+            <Link 
+              href="/receipt" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+            >
+              <i className="fas fa-receipt text-green-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+              <h4 className="text-white font-semibold text-sm">Receipt Generator</h4>
+              <p className="text-gray-400 text-xs mt-1">Create receipts</p>
+            </Link>
+            <Link 
+              href="/offer-admin" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+            >
+              <i className="fas fa-gift text-pink-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+              <h4 className="text-white font-semibold text-sm">Offer Admin</h4>
+              <p className="text-gray-400 text-xs mt-1">Manage special offers</p>
+            </Link>
             <Link 
               href="/admin/products" 
               className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
             >
               <i className="fas fa-box text-blue-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
               <h4 className="text-white font-semibold text-sm">Manage Products</h4>
-              <p className="text-gray-400 text-xs mt-1">Add, edit, delete products</p>
+              <p className="text-gray-400 text-xs mt-1">Marketplace products</p>
             </Link>
             <Link 
               href="/admin/add-product" 
@@ -42,7 +74,7 @@ export default function Footer() {
               className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
             >
               <i className="fas fa-tags text-purple-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">Manage Categories</h4>
+              <h4 className="text-white font-semibold text-sm">Categories</h4>
               <p className="text-gray-400 text-xs mt-1">Organize products</p>
             </Link>
             <Link 
@@ -50,16 +82,8 @@ export default function Footer() {
               className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
             >
               <i className="fas fa-calendar-alt text-red-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">View Bookings</h4>
+              <h4 className="text-white font-semibold text-sm">Bookings</h4>
               <p className="text-gray-400 text-xs mt-1">Service appointments</p>
-            </Link>
-            <Link 
-              href="/admin" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
-            >
-              <i className="fas fa-tachometer-alt text-cyan-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">Dashboard</h4>
-              <p className="text-gray-400 text-xs mt-1">Overview & analytics</p>
             </Link>
           </div>
         </div>
