@@ -4,9 +4,10 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  // Use DATABASE_URL which should point to Prisma Accelerate URL
   url      = env("DATABASE_URL")
-  // Fallback for build-time when no database is needed
-  directUrl = env("DATABASE_URL")
+  // Use DIRECT_URL for migrations (direct database connection)
+  directUrl = env("DIRECT_URL")
 }
 
 model Customer {
