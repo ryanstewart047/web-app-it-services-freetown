@@ -1,0 +1,16 @@
+{
+  "buildCommand": "npm run vercel-build",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "env": {
+    "NODE_ENV": "production",
+    "VERCEL_FORCE_NO_BUILD_CACHE": "1"
+  },
+  "build": {
+    "env": {
+      "ENABLE_FILE_SYSTEM_API": "1",
+      "VERCEL_FORCE_NO_BUILD_CACHE": "1"
+    }
+  }
+}
