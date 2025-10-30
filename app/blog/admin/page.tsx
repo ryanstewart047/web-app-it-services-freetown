@@ -1,13 +1,23 @@
-'use client'
+export default function BlogAdminPage() {'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useScrollAnimations } from '@/hooks/useScrollAnimations'
-import { usePageLoader } from '@/hooks/usePageLoader'
-import LoadingOverlay from '@/components/LoadingOverlay'
-import { ArrowLeft, Save, Eye, Upload, X, Image as ImageIcon, Video, Lock, Sparkles, RefreshCw, Trash2, List } from 'lucide-react'
-import toast from 'react-hot-toast'
-import { createBlogPost, fetchBlogPosts, deleteBlogPost } from '@/lib/github-blog-storage'
+  return (
+
+    <div className="min-h-screen flex items-center justify-center">import { useState, useEffect } from 'react'
+
+      <div className="text-center">import { useRouter } from 'next/navigation'
+
+        <h1 className="text-2xl font-bold">Blog Admin - Temporarily Disabled</h1>import { useScrollAnimations } from '@/hooks/useScrollAnimations'
+
+        <p className="text-gray-600 mt-4">This page is being rebuilt.</p>import { usePageLoader } from '@/hooks/usePageLoader'
+
+      </div>import LoadingOverlay from '@/components/LoadingOverlay'
+
+    </div>import { ArrowLeft, Save, Eye, Upload, X, Image as ImageIcon, Video, Lock, Sparkles, RefreshCw, Trash2, List } from 'lucide-react'
+
+  )import toast from 'react-hot-toast'
+
+}import { createBlogPost, fetchBlogPosts, deleteBlogPost } from '@/lib/github-blog-storage'
+
 import dynamic from 'next/dynamic'
 import 'react-quill/dist/quill.snow.css'
 
