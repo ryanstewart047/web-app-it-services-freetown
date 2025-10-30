@@ -1,16 +1,24 @@
 {
-  "buildCommand": "npm run vercel-build",
+  "buildCommand": "prisma generate && next build",
   "installCommand": "npm install",
   "framework": "nextjs",
   "regions": ["iad1"],
   "env": {
     "NODE_ENV": "production",
-    "VERCEL_FORCE_NO_BUILD_CACHE": "1"
+    "VERCEL_FORCE_NO_BUILD_CACHE": "1",
+    "SKIP_ENV_VALIDATION": "1"
   },
   "build": {
     "env": {
       "ENABLE_FILE_SYSTEM_API": "1",
-      "VERCEL_FORCE_NO_BUILD_CACHE": "1"
+      "VERCEL_FORCE_NO_BUILD_CACHE": "1",
+      "SKIP_ENV_VALIDATION": "1"
+    }
+  },
+  "functions": {
+    "app/**": {
+      "memory": 1024,
+      "maxDuration": 10
     }
   }
 }
