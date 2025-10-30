@@ -371,13 +371,6 @@ export default function Footer() {
               </div>
             </div>
             <div className="flex items-center space-x-6">
-              <button
-                onClick={() => setShowAdminPanel(true)}
-                className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-6 py-2 rounded-lg font-semibold flex items-center space-x-2 transition-all hover:scale-105 shadow-lg"
-              >
-                <i className="fas fa-shield-alt"></i>
-                <span>Admin Panels</span>
-              </button>
               <Link href="/privacy" className="text-gray-400 hover:text-white text-sm">
                 Privacy Policy
               </Link>
@@ -385,6 +378,14 @@ export default function Footer() {
               <Link href="/terms" className="text-gray-400 hover:text-white text-sm">
                 Terms of Service
               </Link>
+              <span className="text-gray-500">•</span>
+              <button
+                onClick={() => setShowAdminPanel(true)}
+                className="text-gray-500 hover:text-gray-400 text-xs transition-colors"
+                title="Admin Access"
+              >
+                <i className="fas fa-lock"></i>
+              </button>
             </div>
           </div>
         </div>
