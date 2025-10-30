@@ -35,7 +35,7 @@ export default function CheckoutPage() {
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const tax = subtotal * 0; // No tax for now
-  const shipping = subtotal > 50 ? 0 : 10; // Free shipping over $50
+  const shipping = subtotal > 500000 ? 0 : 100000; // Free shipping over Le 500,000
   const total = subtotal + tax + shipping;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -297,11 +297,11 @@ export default function CheckoutPage() {
                     <div className="flex-1">
                       <h4 className="text-white font-semibold text-sm">{item.name}</h4>
                       <p className="text-gray-400 text-sm">
-                        ${item.price.toFixed(2)} × {item.quantity}
+                        Le {item.price.toFixed(2)} × {item.quantity}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-white font-semibold">${(item.price * item.quantity).toFixed(2)}</p>
+                      <p className="text-white font-semibold">Le {(item.price * item.quantity).toFixed(2)}</p>
                       <button
                         onClick={() => removeItem(item.productId)}
                         className="text-red-400 hover:text-red-300 text-sm"
@@ -317,21 +317,21 @@ export default function CheckoutPage() {
               <div className="border-t border-gray-700 pt-4 space-y-3">
                 <div className="flex justify-between text-gray-300">
                   <span>Subtotal</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>Le {subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-gray-300">
                   <span>Shipping</span>
-                  <span>{shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}</span>
+                  <span>{shipping === 0 ? 'FREE' : `Le ${shipping.toFixed(2)}`}</span>
                 </div>
                 {tax > 0 && (
                   <div className="flex justify-between text-gray-300">
                     <span>Tax</span>
-                    <span>${tax.toFixed(2)}</span>
+                    <span>Le {tax.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="border-t border-gray-700 pt-3 flex justify-between text-xl font-bold text-white">
                   <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>Le {total.toFixed(2)}</span>
                 </div>
               </div>
 

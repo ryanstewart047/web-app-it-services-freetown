@@ -320,10 +320,10 @@ export default function AdminProductsPage() {
                       <td className="px-6 py-4 text-gray-300">{product.category.name}</td>
                       <td className="px-6 py-4">
                         <div>
-                          <p className="text-white font-semibold">${product.price.toFixed(2)}</p>
+                          <p className="text-white font-semibold">Le {product.price.toFixed(2)}</p>
                           {product.comparePrice && (
                             <p className="text-gray-400 text-sm line-through">
-                              ${product.comparePrice.toFixed(2)}
+                              Le {product.comparePrice.toFixed(2)}
                             </p>
                           )}
                         </div>
