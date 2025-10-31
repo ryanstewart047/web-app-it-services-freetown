@@ -49,7 +49,7 @@ export default function OrderConfirmationPage() {
   const fetchOrder = async () => {
     try {
       console.log('[Order Confirmation] Fetching order:', orderNumber);
-      const response = await fetch(`/api/orders/${orderNumber}`);
+      const response = await fetch(`/api/orders/lookup?orderNumber=${encodeURIComponent(orderNumber)}`);
       console.log('[Order Confirmation] Response status:', response.status);
       
       if (response.ok) {
