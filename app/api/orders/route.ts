@@ -19,8 +19,13 @@ export async function POST(request: NextRequest) {
       notes
     } = body;
 
+    console.log('[Order Creation] Creating order for:', customerName);
+    console.log('[Order Creation] Items:', items.length);
+
     // Generate unique order number
     const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+    
+    console.log('[Order Creation] Generated order number:', orderNumber);
 
     // Create order with items
     const order = await prisma.order.create({
@@ -66,6 +71,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    console.log('[Order Creation] Order created successfully:', orderNumber);
     return NextResponse.json(order, { status: 201 });
   } catch (error) {
     console.error('Error creating order:', error);
