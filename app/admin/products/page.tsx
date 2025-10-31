@@ -104,17 +104,25 @@ export default function AdminProductsPage() {
   };
 
     const handleUpdateStock = async (id: string, newStock: number) => {
+    console.log('Updating stock:', { id, newStock });
+    
     try {
-      const response = await fetch(`/api/products/${id}`, {
-        method: 'PUT',
+      const response = await fetch('/api/products/update', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ stock: newStock }),
+        body: JSON.stringify({ 
+          id, 
+          updates: { stock: newStock }
+        }),
       });
       
+      const data = await response.json();
+      console.log('Stock update response:', data);
+      
       if (!response.ok) {
-        throw new Error('Failed to update stock');
+        throw new Error(data.error || 'Failed to update stock');
       }
       
       await fetchProducts();
@@ -133,26 +141,28 @@ export default function AdminProductsPage() {
     );
     
     try {
-      const response = await fetch(`/api/products/${id}/status`, {
+      const response = await fetch('/api/products/update', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ 
+          id, 
+          updates: { status: newStatus }
+        }),
       });
       
-      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('Status update response:', data);
       
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
+        console.error('Error response:', data);
         // Revert the optimistic update
         await fetchProducts();
-        throw new Error(`Failed to update status: ${response.status}`);
+        throw new Error(data.error || `Failed to update status: ${response.status}`);
       }
       
-      const updatedProduct = await response.json();
-      console.log('Updated product:', updatedProduct);
+      console.log('Status updated successfully:', data.product);
       
       // Refresh to ensure sync
       await fetchProducts();
