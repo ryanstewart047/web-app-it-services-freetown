@@ -48,6 +48,7 @@ export default function AdminPage() {
   const [analytics, setAnalytics] = useState<AnalyticsSnapshot>({});
   const [forms, setForms] = useState<FormSnapshot>({});
   const [repairs, setRepairs] = useState<RepairSnapshot>({});
+  const [deleting, setDeleting] = useState(false);
 
   // Check for saved session on mount
   useEffect(() => {
@@ -137,6 +138,33 @@ export default function AdminPage() {
       console.error('Error loading data:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const deleteSensitiveData = async () => {
+    if (!confirm('Are you sure you want to delete all form submissions containing passwords or sensitive data? This cannot be undone.')) {
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      const response = await fetch('/api/analytics/forms', {
+        method: 'DELETE'
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert(`✅ Successfully removed ${result.removedCount} sensitive submissions. ${result.remainingCount} submissions remain.`);
+        await loadData(); // Refresh the data
+      } else {
+        alert(`❌ Failed to clean data: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error deleting sensitive data:', error);
+      alert('❌ Error deleting sensitive data. Please try again.');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -325,7 +353,19 @@ export default function AdminPage() {
       </section>
 
       <section id="forms" className="space-y-6">
-        <SectionHeader title="Forms" description="Capture insights, track submissions, and monitor engagement across funnels." />
+        <div className="flex items-center justify-between">
+          <SectionHeader title="Forms" description="Capture insights, track submissions, and monitor engagement across funnels." />
+          <button
+            onClick={deleteSensitiveData}
+            disabled={deleting}
+            className="inline-flex items-center gap-2 rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            {deleting ? 'Deleting...' : 'Delete Sensitive Data'}
+          </button>
+        </div>
         <div className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6 dark:border-gray-800 dark:bg-gray-900">
           <div className="grid gap-4 min-[480px]:grid-cols-2 md:grid-cols-3">
             <StatPill label="Submissions" value={forms.totalSubmissions ?? 0} />

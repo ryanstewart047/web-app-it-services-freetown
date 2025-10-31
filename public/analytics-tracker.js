@@ -275,6 +275,14 @@
           return;
         }
         
+        // Skip admin/auth forms by checking path and form content
+        const currentPath = window.location.pathname.toLowerCase();
+        if (currentPath.includes('/admin') || 
+            currentPath.includes('/login') || 
+            currentPath.includes('/auth')) {
+          return;
+        }
+        
         const formId = form.id || form.className || 'unknown-form';
         const formData = {};
         
