@@ -5,7 +5,10 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
   try {
+    console.log('[Offer Manage] Starting offer save...')
     const { title, description, imageUrl, buttonText, buttonLink, buttonColor, backgroundColor, textColor, badgeColor, termsText, isActive } = await request.json()
+
+    console.log('[Offer Manage] Received data:', { title, isActive })
 
     // SERVER-SIDE VALIDATION - Prevent XSS and invalid data ✅
     
@@ -62,11 +65,14 @@ export async function POST(request: Request) {
     const sanitizedTermsText = termsText ? termsText.trim().replace(/[<>]/g, '') : termsText;
 
     // Check if offer exists (get for admin to see inactive offers too)
+    console.log('[Offer Manage] Checking for existing offer...')
     const currentOffer = await getOfferForAdmin()
+    console.log('[Offer Manage] Current offer exists:', !!currentOffer)
 
     let success
     if (currentOffer) {
       // Update existing offer (use sanitized values)
+      console.log('[Offer Manage] Updating existing offer...')
       success = await updateOffer({
         title: sanitizedTitle,
         description: sanitizedDescription,
@@ -80,24 +86,30 @@ export async function POST(request: Request) {
         termsText: sanitizedTermsText,
         isActive,
       })
+      console.log('[Offer Manage] Update result:', success)
     } else {
       // Create new offer (use sanitized values)
+      console.log('[Offer Manage] Creating new offer...')
       await createOffer(sanitizedTitle, sanitizedDescription, imageUrl, sanitizedButtonText, buttonLink, buttonColor, backgroundColor, textColor, badgeColor, sanitizedTermsText)
       success = true
+      console.log('[Offer Manage] Create completed')
     }
 
     if (success) {
+      console.log('[Offer Manage] ✅ Offer saved successfully')
       return NextResponse.json({ success: true })
     } else {
+      console.error('[Offer Manage] ❌ Save failed')
       return NextResponse.json(
-        { success: false, error: 'Failed to save offer' },
+        { success: false, error: 'Failed to save offer to storage' },
         { status: 500 }
       )
     }
   } catch (error) {
     console.error('Error in offer manage API:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: 'Internal server error', details: errorMessage },
       { status: 500 }
     )
   }

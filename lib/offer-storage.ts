@@ -90,6 +90,20 @@ export async function getOfferForAdmin(): Promise<Offer | null> {
 
 export async function saveOffer(offer: Offer): Promise<boolean> {
   try {
+    console.log('[Offer Storage] Saving offer to Gist...')
+    console.log('[Offer Storage] Gist ID:', GITHUB_GIST_ID)
+    console.log('[Offer Storage] Has token:', !!GITHUB_TOKEN)
+    
+    if (!GITHUB_TOKEN) {
+      console.error('[Offer Storage] ❌ No GitHub token available')
+      return false
+    }
+    
+    if (!GITHUB_GIST_ID) {
+      console.error('[Offer Storage] ❌ No Gist ID configured')
+      return false
+    }
+    
     const response = await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}`, {
       method: 'PATCH',
       headers: {
@@ -106,9 +120,16 @@ export async function saveOffer(offer: Offer): Promise<boolean> {
       }),
     })
 
-    return response.ok
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('[Offer Storage] ❌ Failed to save:', response.status, errorText)
+      return false
+    }
+    
+    console.log('[Offer Storage] ✅ Offer saved successfully')
+    return true
   } catch (error) {
-    console.error('Error saving offer:', error)
+    console.error('[Offer Storage] ❌ Error saving offer:', error)
     return false
   }
 }
