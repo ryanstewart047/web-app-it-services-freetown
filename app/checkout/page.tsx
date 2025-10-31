@@ -34,8 +34,8 @@ export default function CheckoutPage() {
   }, []);
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const tax = subtotal * 0; // No tax for now
-  const shipping = subtotal > 500000 ? 0 : 100000; // Free shipping over Le 500,000
+  const tax = subtotal * 0; // No tax
+  const shipping = 0; // Free shipping - cost included in product prices
   const total = subtotal + tax + shipping;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -328,9 +328,9 @@ export default function CheckoutPage() {
                   <span>Subtotal</span>
                   <span>Le {subtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-gray-300">
+                <div className="flex justify-between text-green-400 font-semibold">
                   <span>Shipping</span>
-                  <span>{shipping === 0 ? 'FREE' : `Le ${shipping.toFixed(2)}`}</span>
+                  <span>FREE</span>
                 </div>
                 {tax > 0 && (
                   <div className="flex justify-between text-gray-300">
