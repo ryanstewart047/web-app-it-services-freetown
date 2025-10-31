@@ -364,8 +364,24 @@ export default function AdminProductsPage() {
                       <td className="px-6 py-4">
                         <input
                           type="number"
-                          value={product.stock}
-                          onChange={(e) => handleUpdateStock(product.id, parseInt(e.target.value))}
+                          min="0"
+                          defaultValue={product.stock}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const newStock = parseInt((e.target as HTMLInputElement).value);
+                              if (!isNaN(newStock) && newStock >= 0) {
+                                handleUpdateStock(product.id, newStock);
+                              }
+                            }
+                          }}
+                          onBlur={(e) => {
+                            const newStock = parseInt(e.target.value);
+                            if (!isNaN(newStock) && newStock >= 0 && newStock !== product.stock) {
+                              handleUpdateStock(product.id, newStock);
+                            } else {
+                              e.target.value = product.stock.toString();
+                            }
+                          }}
                           className="w-20 px-2 py-1 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
                         />
                       </td>
