@@ -2,16 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-const DEFAULT_ADMIN_KEY = 'admin123';
-
-// Get the current admin key from localStorage or use default
-const getAdminKey = () => {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('admin-key') || DEFAULT_ADMIN_KEY;
-  }
-  return DEFAULT_ADMIN_KEY;
-};
-
 interface AnalyticsSnapshot {
   totalVisitors?: number;
   uniqueVisitors?: number;
@@ -58,82 +48,65 @@ export default function AdminPage() {
   const [analytics, setAnalytics] = useState<AnalyticsSnapshot>({});
   const [forms, setForms] = useState<FormSnapshot>({});
   const [repairs, setRepairs] = useState<RepairSnapshot>({});
-  
-  // Settings modal state
-  const [showSettings, setShowSettings] = useState(false);
-  const [currentKey, setCurrentKey] = useState('');
-  const [newKey, setNewKey] = useState('');
-  const [confirmKey, setConfirmKey] = useState('');
-  const [settingsError, setSettingsError] = useState('');
-  const [settingsSuccess, setSettingsSuccess] = useState('');
 
   // Check for saved session on mount
   useEffect(() => {
-    const savedAuth = localStorage.getItem('admin-authenticated');
-    if (savedAuth === 'true') {
-      setIsAuthenticated(true);
-      void loadData();
-    }
+    checkAuth();
   }, []);
 
-  const handleAuth = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError('');
-
-    if (password.trim() === getAdminKey().trim()) {
-      setIsAuthenticated(true);
-      localStorage.setItem('admin-authenticated', 'true');
-      void loadData();
-    } else {
-      setError('Invalid access key. Please try again.');
+  const checkAuth = async () => {
+    try {
+      const response = await fetch('/api/admin/auth');
+      if (response.ok) {
+        setIsAuthenticated(true);
+        void loadData();
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
     }
   };
 
-  const handleLogout = () => {
+  const handleAuth = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setIsAuthenticated(true);
+        setPassword('');
+        void loadData();
+      } else {
+        setError(data.error || 'Invalid credentials. Please try again.');
+      }
+    } catch (error) {
+      setError('Authentication failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      // Clear session cookie
+      await fetch('/api/admin/auth', { method: 'DELETE' });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+    
     setIsAuthenticated(false);
-    localStorage.removeItem('admin-authenticated');
     setPassword('');
     setAnalytics({});
     setForms({});
     setRepairs({});
-    setShowSettings(false);
-  };
-
-  const handleChangeKey = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSettingsError('');
-    setSettingsSuccess('');
-
-    // Verify current key
-    if (currentKey.trim() !== getAdminKey().trim()) {
-      setSettingsError('Current access key is incorrect.');
-      return;
-    }
-
-    // Validate new key
-    if (newKey.trim().length < 6) {
-      setSettingsError('New access key must be at least 6 characters long.');
-      return;
-    }
-
-    // Confirm keys match
-    if (newKey.trim() !== confirmKey.trim()) {
-      setSettingsError('New access key and confirmation do not match.');
-      return;
-    }
-
-    // Save new key
-    localStorage.setItem('admin-key', newKey.trim());
-    setSettingsSuccess('Access key changed successfully!');
-    
-    // Clear form
-    setTimeout(() => {
-      setCurrentKey('');
-      setNewKey('');
-      setConfirmKey('');
-      setShowSettings(false);
-      setSettingsSuccess('');
-    }, 2000);
   };
 
   const loadData = async () => {
@@ -290,16 +263,6 @@ export default function AdminPage() {
                   Manage Offers
                 </a>
                 <button
-                  onClick={() => setShowSettings(true)}
-                  className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-                >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Settings
-                </button>
-                <button
                   onClick={handleLogout}
                   className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-800 dark:bg-gray-800 dark:text-red-400 dark:hover:bg-gray-700"
                 >
@@ -414,129 +377,6 @@ export default function AdminPage() {
         <RepairManagement repairs={repairs} onUpdate={loadData} statusSummary={statusSummary} />
       </section>
 
-      {/* Settings Modal */}
-      {showSettings && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900">
-            <div className="bg-gradient-to-br from-gray-800 via-gray-900 to-black p-6 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.4em] text-gray-400">Security</p>
-                  <h2 className="mt-2 text-2xl font-semibold">Change Access Key</h2>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowSettings(false);
-                    setSettingsError('');
-                    setSettingsSuccess('');
-                    setCurrentKey('');
-                    setNewKey('');
-                    setConfirmKey('');
-                  }}
-                  className="rounded-xl p-2 text-gray-400 transition hover:bg-white/10 hover:text-white"
-                >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <p className="mt-2 text-sm text-gray-300">
-                Update your admin access key. You must verify your current key before setting a new one.
-              </p>
-            </div>
-
-            <form onSubmit={handleChangeKey} className="space-y-5 p-6">
-              <div className="space-y-2">
-                <label htmlFor="current-key" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Current Access Key
-                </label>
-                <input
-                  id="current-key"
-                  type="password"
-                  value={currentKey}
-                  onChange={(e) => setCurrentKey(e.target.value)}
-                  required
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 transition focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-red-400 dark:focus:ring-red-900/60"
-                  placeholder="Enter current key"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="new-key" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  New Access Key
-                </label>
-                <input
-                  id="new-key"
-                  type="password"
-                  value={newKey}
-                  onChange={(e) => setNewKey(e.target.value)}
-                  required
-                  minLength={6}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 transition focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-red-400 dark:focus:ring-red-900/60"
-                  placeholder="Enter new key (min. 6 characters)"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="confirm-key" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Confirm New Access Key
-                </label>
-                <input
-                  id="confirm-key"
-                  type="password"
-                  value={confirmKey}
-                  onChange={(e) => setConfirmKey(e.target.value)}
-                  required
-                  minLength={6}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 transition focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-red-400 dark:focus:ring-red-900/60"
-                  placeholder="Re-enter new key"
-                />
-              </div>
-
-              {settingsError && (
-                <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/30 dark:text-red-200">
-                  <svg className="mt-0.5 h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>{settingsError}</span>
-                </div>
-              )}
-
-              {settingsSuccess && (
-                <div className="flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-900/50 dark:bg-green-900/30 dark:text-green-200">
-                  <svg className="mt-0.5 h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>{settingsSuccess}</span>
-                </div>
-              )}
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowSettings(false);
-                    setSettingsError('');
-                    setSettingsSuccess('');
-                    setCurrentKey('');
-                    setNewKey('');
-                    setConfirmKey('');
-                  }}
-                  className="flex-1 rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 rounded-xl bg-gray-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-600 dark:hover:bg-red-500"
-                >
-                  Update Key
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
