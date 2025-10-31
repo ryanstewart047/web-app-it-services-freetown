@@ -62,21 +62,30 @@ export default function CheckoutPage() {
         notes: formData.notes
       };
 
+      console.log('[Checkout] Submitting order:', orderData);
+
       const response = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData)
       });
 
+      console.log('[Checkout] Response status:', response.status);
+
       if (response.ok) {
         const order = await response.json();
+        console.log('[Checkout] Order created:', order);
+        console.log('[Checkout] Redirecting to:', `/order-confirmation/${order.orderNumber}`);
+        
         localStorage.removeItem('cart');
         router.push(`/order-confirmation/${order.orderNumber}`);
       } else {
-        alert('Failed to place order. Please try again.');
+        const errorData = await response.json();
+        console.error('[Checkout] Error response:', errorData);
+        alert(`Failed to place order: ${errorData.error || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('Error placing order:', error);
+      console.error('[Checkout] Error placing order:', error);
       alert('An error occurred. Please try again.');
     } finally {
       setLoading(false);

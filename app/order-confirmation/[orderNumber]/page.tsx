@@ -48,13 +48,20 @@ export default function OrderConfirmationPage() {
 
   const fetchOrder = async () => {
     try {
+      console.log('[Order Confirmation] Fetching order:', orderNumber);
       const response = await fetch(`/api/orders/${orderNumber}`);
+      console.log('[Order Confirmation] Response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('[Order Confirmation] Order data received:', data);
         setOrder(data);
+      } else {
+        const errorData = await response.json();
+        console.error('[Order Confirmation] Error fetching order:', errorData);
       }
     } catch (error) {
-      console.error('Error fetching order:', error);
+      console.error('[Order Confirmation] Exception:', error);
     } finally {
       setLoading(false);
     }
