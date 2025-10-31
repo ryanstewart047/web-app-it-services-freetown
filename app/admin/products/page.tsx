@@ -126,9 +126,15 @@ export default function AdminProductsPage() {
 
     const handleUpdateStatus = async (id: string, newStatus: string) => {
     console.log('Updating status:', { id, newStatus });
+    
+    // Optimistically update the UI
+    setProducts(prevProducts => 
+      prevProducts.map(p => p.id === id ? { ...p, status: newStatus } : p)
+    );
+    
     try {
-      const response = await fetch(`/api/products/${id}`, {
-        method: 'PUT',
+      const response = await fetch(`/api/products/${id}/status`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -140,12 +146,15 @@ export default function AdminProductsPage() {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Error response:', errorText);
+        // Revert the optimistic update
+        await fetchProducts();
         throw new Error(`Failed to update status: ${response.status}`);
       }
       
       const updatedProduct = await response.json();
       console.log('Updated product:', updatedProduct);
       
+      // Refresh to ensure sync
       await fetchProducts();
     } catch (error) {
       console.error('Error updating status:', error);

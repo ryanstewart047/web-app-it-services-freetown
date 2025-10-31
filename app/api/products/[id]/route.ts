@@ -7,12 +7,11 @@ export const runtime = 'nodejs';
 // GET single product
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = context.params;
     const product = await prisma.product.findUnique({
-      where: { id },
+      where: { id: params.id },
       include: {
         category: true,
         images: {
@@ -37,16 +36,15 @@ export async function GET(
 // PUT update product (using PUT instead of PATCH)
 export async function PUT(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = context.params;
     const body = await request.json();
     
-    console.log('PUT request received for product:', id, 'with data:', body);
+    console.log('PUT request received for product:', params.id, 'with data:', body);
     
     const product = await prisma.product.update({
-      where: { id },
+      where: { id: params.id },
       data: body,
       include: {
         category: true,
@@ -65,16 +63,15 @@ export async function PUT(
 // PATCH update product (keeping for backward compatibility)
 export async function PATCH(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = context.params;
     const body = await request.json();
     
-    console.log('PATCH request received for product:', id, 'with data:', body);
+    console.log('PATCH request received for product:', params.id, 'with data:', body);
     
     const product = await prisma.product.update({
-      where: { id },
+      where: { id: params.id },
       data: body,
       include: {
         category: true,
@@ -93,12 +90,11 @@ export async function PATCH(
 // DELETE product
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = context.params;
     await prisma.product.delete({
-      where: { id }
+      where: { id: params.id }
     });
 
     return NextResponse.json({ success: true });
