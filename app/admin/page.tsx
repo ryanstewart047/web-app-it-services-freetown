@@ -99,17 +99,25 @@ export default function AdminPage() {
 
   const handleLogout = async () => {
     try {
-      // Clear session cookie
-      await fetch('/api/admin/auth', { method: 'DELETE' });
+      // Clear session cookie on server
+      const response = await fetch('/api/admin/auth', { method: 'DELETE' });
+      
+      if (!response.ok) {
+        console.error('Logout failed on server');
+      }
     } catch (error) {
       console.error('Logout error:', error);
     }
     
+    // Clear local state
     setIsAuthenticated(false);
     setPassword('');
     setAnalytics({});
     setForms({});
     setRepairs({});
+    
+    // Force page reload to clear any cached state
+    window.location.reload();
   };
 
   const loadData = async () => {

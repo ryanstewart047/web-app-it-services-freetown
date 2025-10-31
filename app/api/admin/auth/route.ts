@@ -146,3 +146,32 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ authenticated: false }, { status: 401 });
   }
 }
+
+// Logout endpoint
+export async function DELETE(request: NextRequest) {
+  try {
+    const response = NextResponse.json({
+      success: true,
+      message: 'Logged out successfully'
+    });
+    
+    // Clear the session cookie by setting it to expire immediately
+    response.cookies.set('admin_session', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 0, // Expire immediately
+      path: '/'
+    });
+    
+    console.log('[Admin Auth] User logged out');
+    
+    return response;
+  } catch (error) {
+    console.error('[Admin Auth] Logout error:', error);
+    return NextResponse.json(
+      { error: 'Logout failed' },
+      { status: 500 }
+    );
+  }
+}
