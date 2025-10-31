@@ -42,6 +42,7 @@ export async function GET() {
       .reverse()
       .map((submission) => ({
         ...submission,
+        originalTimestamp: submission.timestamp, // Keep original for deletion
         timestamp: new Date(submission.timestamp).toLocaleString()
       }));
 

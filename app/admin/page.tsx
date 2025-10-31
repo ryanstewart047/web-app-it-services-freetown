@@ -12,6 +12,7 @@ interface AnalyticsSnapshot {
 interface FormSubmission {
   formType?: string;
   timestamp?: string;
+  originalTimestamp?: string;
   fields?: Record<string, string>;
 }
 
@@ -168,8 +169,8 @@ export default function AdminPage() {
     }
   };
 
-  const deleteFormSubmission = async (timestamp: string, formType: string) => {
-    if (!confirm(`Delete this ${formType} submission from ${timestamp}?`)) {
+  const deleteFormSubmission = async (originalTimestamp: string, displayTimestamp: string, formType: string) => {
+    if (!confirm(`Delete this ${formType} submission from ${displayTimestamp}?`)) {
       return;
     }
 
@@ -177,7 +178,7 @@ export default function AdminPage() {
       const response = await fetch('/api/analytics/forms/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ timestamp, formType })
+        body: JSON.stringify({ timestamp: originalTimestamp, formType })
       });
 
       const result = await response.json();
@@ -429,7 +430,11 @@ export default function AdminPage() {
                       </td>
                       <td className="px-4 py-3">
                         <button
-                          onClick={() => deleteFormSubmission(submission.timestamp || '', submission.formType || 'unknown')}
+                          onClick={() => deleteFormSubmission(
+                            submission.originalTimestamp || submission.timestamp || '', 
+                            submission.timestamp || '',
+                            submission.formType || 'unknown'
+                          )}
                           className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50"
                         >
                           <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
