@@ -36,6 +36,7 @@ export default function MarketplacePage() {
   const [sortBy, setSortBy] = useState<string>('newest');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [cartCount, setCartCount] = useState(0);
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -351,19 +352,24 @@ export default function MarketplacePage() {
                       }`}
                     >
                       {/* Product Image */}
-                      <Link
-                        href={`/marketplace/${product.slug}`}
-                        className={`relative overflow-hidden ${viewMode === 'list' ? 'w-48 flex-shrink-0' : 'aspect-square'}`}
+                      <div
+                        className={`relative overflow-hidden cursor-pointer ${viewMode === 'list' ? 'w-40 flex-shrink-0' : 'aspect-[4/3]'}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (product.images[0]) {
+                            setZoomedImage(product.images[0].url);
+                          }
+                        }}
                       >
                         {product.images[0] ? (
                           <img
                             src={product.images[0].url}
                             alt={product.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
                         ) : (
                           <div className="w-full h-full bg-gray-700 flex items-center justify-center">
-                            <ShoppingCart className="w-16 h-16 text-gray-600" />
+                            <ShoppingCart className="w-12 h-12 text-gray-600" />
                           </div>
                         )}
 
@@ -382,10 +388,13 @@ export default function MarketplacePage() {
                         </div>
 
                         {/* Wishlist */}
-                        <button className="absolute top-2 right-2 p-2 bg-white/90 hover:bg-white rounded-full transition-all opacity-0 group-hover:opacity-100">
+                        <button 
+                          onClick={(e) => e.stopPropagation()}
+                          className="absolute top-2 right-2 p-2 bg-white/90 hover:bg-white rounded-full transition-all opacity-0 group-hover:opacity-100"
+                        >
                           <Heart className="w-5 h-5 text-gray-800" />
                         </button>
-                      </Link>
+                      </div>
 
                       {/* Product Info */}
                       <div className={`p-4 ${viewMode === 'list' ? 'flex-1' : ''}`}>
@@ -451,6 +460,31 @@ export default function MarketplacePage() {
           </div>
         </div>
       </div>
+
+      {/* Image Zoom Modal */}
+      {zoomedImage && (
+        <div 
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setZoomedImage(null)}
+        >
+          <div className="relative max-w-6xl max-h-[90vh] w-full h-full flex items-center justify-center">
+            <button
+              onClick={() => setZoomedImage(null)}
+              className="absolute top-4 right-4 p-3 bg-white/10 hover:bg-white/20 rounded-full transition-all z-10"
+            >
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <img
+              src={zoomedImage}
+              alt="Product zoom"
+              className="max-w-full max-h-full object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
