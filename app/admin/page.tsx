@@ -68,6 +68,7 @@ export default function AdminPage() {
 
   const handleAuth = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    event.stopPropagation(); // Prevent analytics tracking
     setError('');
     setLoading(true);
 
@@ -156,7 +157,7 @@ export default function AdminPage() {
             </p>
           </div>
 
-          <form onSubmit={handleAuth} className="space-y-6 bg-white px-8 py-10 dark:bg-gray-900">
+          <form onSubmit={handleAuth} className="space-y-6 bg-white px-8 py-10 dark:bg-gray-900" data-no-analytics="true">
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Admin Access Key

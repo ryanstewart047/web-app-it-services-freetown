@@ -269,6 +269,12 @@
     document.addEventListener('submit', (event) => {
       const form = event.target;
       if (form.tagName === 'FORM') {
+        // Skip forms explicitly marked to not track
+        if (form.hasAttribute('data-no-analytics') || 
+            form.closest('[data-no-analytics]')) {
+          return;
+        }
+        
         const formId = form.id || form.className || 'unknown-form';
         const formData = {};
         
@@ -279,7 +285,9 @@
             // Only track non-sensitive fields
             if (!key.toLowerCase().includes('password') && 
                 !key.toLowerCase().includes('token') &&
-                !key.toLowerCase().includes('secret')) {
+                !key.toLowerCase().includes('secret') &&
+                !key.toLowerCase().includes('key') &&
+                !key.toLowerCase().includes('auth')) {
               formData[key] = typeof value === 'string' ? value.substring(0, 100) : 'file';
             }
           }

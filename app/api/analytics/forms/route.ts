@@ -214,3 +214,62 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to record form view' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const fs = require('fs').promises;
+    const path = require('path');
+    
+    // Read analytics data file
+    const dataDir = path.join(process.cwd(), 'data');
+    const dataFile = path.join(dataDir, 'analytics.json');
+    
+    let data;
+    try {
+      const content = await fs.readFile(dataFile, 'utf-8');
+      data = JSON.parse(content);
+    } catch (error) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Could not read analytics file' 
+      }, { status: 500 });
+    }
+    
+    const originalCount = data.forms?.submissions?.length || 0;
+    
+    // Filter out submissions with password/sensitive fields
+    if (data.forms && data.forms.submissions) {
+      data.forms.submissions = data.forms.submissions.filter((submission: any) => {
+        const fieldsStr = JSON.stringify(submission.fields || {}).toLowerCase();
+        const formTypeStr = (submission.formType || '').toLowerCase();
+        
+        // Remove if contains password, auth, key fields or is from admin/auth forms
+        const hasSensitiveData = fieldsStr.includes('password') || 
+                                 fieldsStr.includes('"key"') ||
+                                 fieldsStr.includes('auth') ||
+                                 formTypeStr.includes('admin') ||
+                                 formTypeStr.includes('auth') ||
+                                 formTypeStr.includes('login');
+        
+        return !hasSensitiveData;
+      });
+    }
+    
+    const removedCount = originalCount - (data.forms?.submissions?.length || 0);
+    
+    // Write cleaned data back
+    await fs.writeFile(dataFile, JSON.stringify(data, null, 2), 'utf-8');
+    
+    console.log(`[Forms API] 🔒 Cleaned ${removedCount} submissions containing sensitive data`);
+    
+    return NextResponse.json({
+      success: true,
+      message: `Removed ${removedCount} sensitive submissions`,
+      removedCount,
+      remainingCount: data.forms?.submissions?.length || 0
+    });
+  } catch (error) {
+    console.error('Error cleaning form data:', error);
+    return NextResponse.json({ error: 'Failed to clean form data' }, { status: 500 });
+  }
+}
