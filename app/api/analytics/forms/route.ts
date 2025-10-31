@@ -217,23 +217,12 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const fs = require('fs').promises;
-    const path = require('path');
+    const GIST_ID = process.env.GITHUB_GIST_ID;
+    const GIST_TOKEN = process.env.GITHUB_TOKEN;
+    const GIST_FILENAME = process.env.GITHUB_GIST_FILENAME || 'its-analytics.json';
     
-    // Read analytics data file
-    const dataDir = path.join(process.cwd(), 'data');
-    const dataFile = path.join(dataDir, 'analytics.json');
-    
-    let data;
-    try {
-      const content = await fs.readFile(dataFile, 'utf-8');
-      data = JSON.parse(content);
-    } catch (error) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Could not read analytics file' 
-      }, { status: 500 });
-    }
+    // Get current analytics data
+    const data = await getAnalyticsData({ force: true });
     
     const originalCount = data.forms?.submissions?.length || 0;
     
@@ -257,8 +246,42 @@ export async function DELETE(request: NextRequest) {
     
     const removedCount = originalCount - (data.forms?.submissions?.length || 0);
     
-    // Write cleaned data back
-    await fs.writeFile(dataFile, JSON.stringify(data, null, 2), 'utf-8');
+    // Save back to storage (Gist or file)
+    if (GIST_ID && GIST_TOKEN) {
+      // Update GitHub Gist
+      const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `token ${GIST_TOKEN}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          files: {
+            [GIST_FILENAME]: {
+              content: JSON.stringify(data, null, 2)
+            }
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update Gist: ${response.statusText}`);
+      }
+    } else {
+      // Update local file
+      const fs = require('fs').promises;
+      const path = require('path');
+      const dataDir = path.join(process.cwd(), 'data');
+      const dataFile = path.join(dataDir, 'analytics.json');
+      
+      await fs.mkdir(dataDir, { recursive: true });
+      await fs.writeFile(dataFile, JSON.stringify(data, null, 2), 'utf-8');
+    }
+    
+    // Clear cache
+    const { clearCache } = await import('@/lib/server/analytics-store');
+    await clearCache();
     
     console.log(`[Forms API] 🔒 Cleaned ${removedCount} submissions containing sensitive data`);
     
@@ -270,6 +293,9 @@ export async function DELETE(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error cleaning form data:', error);
-    return NextResponse.json({ error: 'Failed to clean form data' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Failed to clean form data',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
