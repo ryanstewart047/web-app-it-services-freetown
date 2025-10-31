@@ -168,6 +168,32 @@ export default function AdminPage() {
     }
   };
 
+  const deleteFormSubmission = async (timestamp: string, formType: string) => {
+    if (!confirm(`Delete this ${formType} submission from ${timestamp}?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/analytics/forms/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timestamp, formType })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert('✅ Submission deleted successfully');
+        await loadData(); // Refresh the data
+      } else {
+        alert(`❌ Failed to delete: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error deleting submission:', error);
+      alert('❌ Error deleting submission. Please try again.');
+    }
+  };
+
   const statusSummary = useMemo(() => {
     const counts = repairs.statusCounts ?? {};
     return Object.entries(counts).map(([label, count]) => ({ label, count }));
@@ -381,6 +407,7 @@ export default function AdminPage() {
                     <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400">Form</th>
                     <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400">Submitted</th>
                     <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400">Key details</th>
+                    <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -399,6 +426,17 @@ export default function AdminPage() {
                                 </div>
                               ))
                           : 'No details captured'}
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => deleteFormSubmission(submission.timestamp || '', submission.formType || 'unknown')}
+                          className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50"
+                        >
+                          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   ))}
