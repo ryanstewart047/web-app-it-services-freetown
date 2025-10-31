@@ -136,7 +136,8 @@ export async function createOffer(title: string, description: string, imageUrl: 
 }
 
 export async function updateOffer(updates: Partial<Offer>): Promise<boolean> {
-  const currentOffer = await getCurrentOffer()
+  // Use getOfferForAdmin instead to get offer regardless of active status
+  const currentOffer = await getOfferForAdmin()
   
   if (!currentOffer) {
     return false
