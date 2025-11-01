@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Package, Search, Eye, Clock, Check, X, Truck, DollarSign, Phone, Mail, MapPin } from 'lucide-react';
+import { Package, Search, Eye, Clock, Check, X, Truck, DollarSign, Phone, Mail, MapPin, Trash2 } from 'lucide-react';
 
 interface OrderItem {
   id: string;
@@ -73,6 +73,32 @@ export default function AdminOrdersPage() {
       }
     } catch (error) {
       console.error('Error updating order status:', error);
+    }
+  };
+
+  const deleteOrder = async (orderId: string, orderNumber: string) => {
+    if (!confirm(`Are you sure you want to delete order ${orderNumber}? This will restore the stock and cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/orders/delete?orderId=${orderId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        alert('Order deleted successfully');
+        fetchOrders();
+        if (selectedOrder?.id === orderId) {
+          setSelectedOrder(null);
+        }
+      } else {
+        const error = await response.json();
+        alert(`Failed to delete order: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      alert('An error occurred while deleting the order');
     }
   };
 
@@ -276,13 +302,22 @@ export default function AdminOrdersPage() {
                         {new Date(order.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4">
-                        <button
-                          onClick={() => setSelectedOrder(order)}
-                          className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
-                          title="View Details"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setSelectedOrder(order)}
+                            className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
+                            title="View Details"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => deleteOrder(order.id, order.orderNumber)}
+                            className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all"
+                            title="Delete Order"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
