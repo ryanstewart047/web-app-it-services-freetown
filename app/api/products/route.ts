@@ -40,7 +40,11 @@ export async function GET(request: NextRequest) {
 // POST new product
 export async function POST(request: NextRequest) {
   try {
+    console.log('[Products API] POST - Starting product creation...');
+    
     const body = await request.json();
+    console.log('[Products API] Request body:', JSON.stringify(body, null, 2));
+    
     const {
       name,
       description,
@@ -56,11 +60,26 @@ export async function POST(request: NextRequest) {
       featured
     } = body;
 
+    // Validation
+    if (!name || !description || !price || !categoryId) {
+      console.error('[Products API] Validation failed - missing required fields');
+      return NextResponse.json(
+        { error: 'Missing required fields: name, description, price, categoryId' },
+        { status: 400 }
+      );
+    }
+
+    console.log('[Products API] Validation passed');
+    console.log('[Products API] Generating slug from name:', name);
+
     // Generate slug from name
     const slug = name
       .toLowerCase()
       .replace(/[^\w\s-]/g, '')
       .replace(/\s+/g, '-');
+
+    console.log('[Products API] Generated slug:', slug);
+    console.log('[Products API] Creating product in database...');
 
     const product = await prisma.product.create({
       data: {
@@ -70,10 +89,10 @@ export async function POST(request: NextRequest) {
         price: parseFloat(price),
         comparePrice: comparePrice ? parseFloat(comparePrice) : null,
         categoryId,
-        stock: parseInt(stock),
+        stock: parseInt(stock) || 0,
         status: status || 'active',
-        sku,
-        brand,
+        sku: sku || null,
+        brand: brand || null,
         tags: tags || [],
         featured: featured || false,
         images: {
@@ -90,9 +109,23 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    console.log('[Products API] ✅ Product created successfully:', product.id);
     return NextResponse.json(product, { status: 201 });
   } catch (error) {
-    console.error('Error creating product:', error);
-    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
+    console.error('[Products API] ❌ Error creating product:', error);
+    console.error('[Products API] Error details:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : 'No stack trace'
+    });
+    
+    // Return detailed error for debugging
+    return NextResponse.json(
+      { 
+        error: 'Failed to create product',
+        details: error instanceof Error ? error.message : String(error)
+      },
+      { status: 500 }
+    );
   }
 }
