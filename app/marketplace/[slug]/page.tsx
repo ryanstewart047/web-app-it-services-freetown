@@ -88,7 +88,7 @@ export default function ProductDetailPage() {
 
     const shareData: ShareData = {
       title: product.name,
-      text: `Check out ${product.name} - Le ${product.price.toLocaleString()}\n\n${product.description}`,
+      text: `${product.name} - Le ${product.price.toLocaleString()}`,
       url: window.location.href
     };
 
@@ -121,7 +121,7 @@ export default function ProductDetailPage() {
         console.log('Shared successfully');
       } else {
         // Fallback: copy to clipboard with image URL
-        const textToCopy = `${shareData.title}\n\n${shareData.text}\n\nImage: ${productImage}\n\n${shareData.url}`;
+        const textToCopy = `${product.name} - Le ${product.price.toLocaleString()}\n\nImage: ${productImage}\n\n${shareData.url}`;
         await navigator.clipboard.writeText(textToCopy);
         alert('Product details copied to clipboard (including image link)!');
       }
@@ -129,7 +129,7 @@ export default function ProductDetailPage() {
       console.error('Error sharing:', error);
       // If all else fails, try clipboard again
       try {
-        const textToCopy = `${shareData.title}\n\n${shareData.text}\n\nImage: ${productImage}\n\n${shareData.url}`;
+        const textToCopy = `${product.name} - Le ${product.price.toLocaleString()}\n\nImage: ${productImage}\n\n${shareData.url}`;
         await navigator.clipboard.writeText(textToCopy);
         alert('Product link copied to clipboard!');
       } catch (clipboardError) {
