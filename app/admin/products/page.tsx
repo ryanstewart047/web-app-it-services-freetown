@@ -445,25 +445,230 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
-      {/* Add/Edit Modal - We'll create a separate component for this */}
+      {/* Add/Edit Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-gray-800 rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-white mb-4">
-              {editingProduct ? 'Edit Product' : 'Add New Product'}
-            </h2>
-            <p className="text-gray-400 mb-6">
-              Click "Bulk Upload" for uploading multiple products at once
-            </p>
-            <button
-              onClick={() => {
-                setShowAddModal(false);
-                setEditingProduct(null);
-              }}
-              className="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"
-            >
-              Close
-            </button>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-white">
+                {editingProduct ? 'Edit Product' : 'Add New Product'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  setEditingProduct(null);
+                }}
+                className="text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const productData = {
+                name: formData.get('name'),
+                description: formData.get('description'),
+                price: parseFloat(formData.get('price') as string),
+                comparePrice: formData.get('comparePrice') ? parseFloat(formData.get('comparePrice') as string) : null,
+                stock: parseInt(formData.get('stock') as string),
+                categoryId: formData.get('categoryId'),
+                sku: formData.get('sku') || null,
+                brand: formData.get('brand') || null,
+                status: formData.get('status'),
+                featured: formData.get('featured') === 'on',
+                images: formData.get('imageUrl') ? [{ url: formData.get('imageUrl'), alt: formData.get('name'), order: 0 }] : []
+              };
+
+              try {
+                const url = editingProduct ? `/api/products/${editingProduct.id}` : '/api/products';
+                const method = editingProduct ? 'PUT' : 'POST';
+                const res = await fetch(url, {
+                  method,
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(productData)
+                });
+
+                if (res.ok) {
+                  alert(editingProduct ? 'Product updated successfully!' : 'Product created successfully!');
+                  setShowAddModal(false);
+                  setEditingProduct(null);
+                  fetchProducts();
+                } else {
+                  const error = await res.json();
+                  alert(`Error: ${error.error || 'Failed to save product'}`);
+                }
+              } catch (error) {
+                console.error('Error saving product:', error);
+                alert('Failed to save product');
+              }
+            }}>
+              <div className="space-y-4">
+                {/* Product Name */}
+                <div>
+                  <label className="block text-white mb-2">Product Name *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    defaultValue={editingProduct?.name}
+                    required
+                    className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-white mb-2">Description *</label>
+                  <textarea
+                    name="description"
+                    defaultValue={editingProduct?.description}
+                    required
+                    rows={4}
+                    className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                {/* Price and Compare Price */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-white mb-2">Price (Le) *</label>
+                    <input
+                      type="number"
+                      name="price"
+                      defaultValue={editingProduct?.price}
+                      required
+                      min="0"
+                      step="0.01"
+                      className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-white mb-2">Compare Price (Le)</label>
+                    <input
+                      type="number"
+                      name="comparePrice"
+                      defaultValue={editingProduct?.comparePrice}
+                      min="0"
+                      step="0.01"
+                      className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Stock and Category */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-white mb-2">Stock *</label>
+                    <input
+                      type="number"
+                      name="stock"
+                      defaultValue={editingProduct?.stock}
+                      required
+                      min="0"
+                      className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-white mb-2">Category *</label>
+                    <select
+                      name="categoryId"
+                      defaultValue={editingProduct?.categoryId}
+                      required
+                      className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select Category</option>
+                      {categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* SKU and Brand */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-white mb-2">SKU</label>
+                    <input
+                      type="text"
+                      name="sku"
+                      defaultValue={editingProduct?.sku}
+                      className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-white mb-2">Brand</label>
+                    <input
+                      type="text"
+                      name="brand"
+                      defaultValue={editingProduct?.brand}
+                      className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Image URL */}
+                <div>
+                  <label className="block text-white mb-2">Image URL *</label>
+                  <input
+                    type="url"
+                    name="imageUrl"
+                    defaultValue={editingProduct?.images?.[0]?.url}
+                    required
+                    placeholder="https://example.com/image.jpg"
+                    className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                {/* Status and Featured */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-white mb-2">Status *</label>
+                    <select
+                      name="status"
+                      defaultValue={editingProduct?.status || 'active'}
+                      required
+                      className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="active">Active</option>
+                      <option value="draft">Draft</option>
+                      <option value="archived">Archived</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="flex items-center text-white mt-8">
+                      <input
+                        type="checkbox"
+                        name="featured"
+                        defaultChecked={editingProduct?.featured}
+                        className="mr-2 w-5 h-5"
+                      />
+                      Featured Product
+                    </label>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-4 pt-4">
+                  <button
+                    type="submit"
+                    className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold"
+                  >
+                    {editingProduct ? 'Update Product' : 'Create Product'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddModal(false);
+                      setEditingProduct(null);
+                    }}
+                    className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -122,10 +122,21 @@ export default function MarketplacePage() {
     alert('Product added to cart!');
   };
 
-  // Filter and sort products
+  // Enhanced filter and search products
   let filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
+    // Enhanced search - searches in multiple fields
+    const searchLower = searchTerm.toLowerCase().trim();
+    const matchesSearch = searchLower === '' || (
+      product.name.toLowerCase().includes(searchLower) ||
+      product.description.toLowerCase().includes(searchLower) ||
+      product.brand?.toLowerCase().includes(searchLower) ||
+      product.category.name.toLowerCase().includes(searchLower) ||
+      // Search by price (e.g., user types "5000" to find products around that price)
+      (product.price.toString().includes(searchLower)) ||
+      // Match partial words (e.g., "lap" matches "laptop")
+      product.name.toLowerCase().split(' ').some(word => word.startsWith(searchLower)) ||
+      product.description.toLowerCase().split(' ').some(word => word.startsWith(searchLower))
+    );
     const matchesCategory = selectedCategory === 'all' || product.category.slug === selectedCategory;
     return matchesSearch && matchesCategory && product.stock > 0;
   });
@@ -331,10 +342,50 @@ export default function MarketplacePage() {
                 </div>
               </div>
             ) : filteredProducts.length === 0 ? (
-              <div className="text-center py-20">
-                <ShoppingCart className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+              <div className="text-center py-20 bg-gray-800/30 border border-gray-700 rounded-xl p-8">
+                <div className="w-20 h-20 bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Search className="w-10 h-10 text-gray-500" />
+                </div>
                 <h3 className="text-2xl font-bold text-white mb-2">No products found</h3>
-                <p className="text-gray-400">Try adjusting your search or filters</p>
+                <p className="text-gray-400 mb-6">
+                  {searchTerm ? `No results for "${searchTerm}"` : 'No products match your filters'}
+                </p>
+                
+                <div className="max-w-md mx-auto text-left bg-gray-800/50 border border-gray-700 rounded-lg p-6">
+                  <h4 className="font-semibold text-white mb-3">Try these tips:</h4>
+                  <ul className="text-sm text-gray-300 space-y-2">
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-400 mt-0.5">•</span>
+                      <span>Check your spelling or try different keywords</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-400 mt-0.5">•</span>
+                      <span>Use more general search terms (e.g., "laptop" instead of specific model)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-400 mt-0.5">•</span>
+                      <span>Try searching by brand, category, or price range</span>
+                    </li>
+                    {selectedCategory !== 'all' && (
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-400 mt-0.5">•</span>
+                        <span>Remove category filter to see more results</span>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+
+                {searchTerm && (
+                  <button
+                    onClick={() => {
+                      setSearchTerm('');
+                      setSelectedCategory('all');
+                    }}
+                    className="mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+                  >
+                    Clear Search & Filters
+                  </button>
+                )}
               </div>
             ) : (
               <div className={viewMode === 'grid' 

@@ -83,28 +83,53 @@ export default function ProductDetailPage() {
   const handleShare = async () => {
     if (!product) return;
 
-    const shareData = {
+    // Get the product's primary image
+    const productImage = product.images?.[0]?.url || '';
+
+    const shareData: ShareData = {
       title: product.name,
       text: `Check out ${product.name} - Le ${product.price.toLocaleString()}\n\n${product.description}`,
       url: window.location.href
     };
 
     try {
-      // Try native share API first (works on mobile)
+      // Try to fetch and share the product image if available
+      if (productImage && navigator.canShare) {
+        try {
+          const response = await fetch(productImage);
+          const blob = await response.blob();
+          const file = new File([blob], 'product.jpg', { type: blob.type });
+          const filesArray = [file];
+          
+          // Check if we can share files
+          if (navigator.canShare({ files: filesArray })) {
+            await navigator.share({
+              ...shareData,
+              files: filesArray
+            });
+            console.log('Shared successfully with image');
+            return;
+          }
+        } catch (imageError) {
+          console.log('Unable to share with image, falling back to text only');
+        }
+      }
+
+      // Try native share API (text only)
       if (navigator.share) {
         await navigator.share(shareData);
         console.log('Shared successfully');
       } else {
-        // Fallback: copy to clipboard
-        const textToCopy = `${shareData.title}\n\n${shareData.text}\n\n${shareData.url}`;
+        // Fallback: copy to clipboard with image URL
+        const textToCopy = `${shareData.title}\n\n${shareData.text}\n\nImage: ${productImage}\n\n${shareData.url}`;
         await navigator.clipboard.writeText(textToCopy);
-        alert('Product link copied to clipboard!');
+        alert('Product details copied to clipboard (including image link)!');
       }
     } catch (error) {
       console.error('Error sharing:', error);
       // If all else fails, try clipboard again
       try {
-        const textToCopy = `${shareData.title}\n\n${shareData.text}\n\n${shareData.url}`;
+        const textToCopy = `${shareData.title}\n\n${shareData.text}\n\nImage: ${productImage}\n\n${shareData.url}`;
         await navigator.clipboard.writeText(textToCopy);
         alert('Product link copied to clipboard!');
       } catch (clipboardError) {
