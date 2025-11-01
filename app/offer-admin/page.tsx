@@ -527,6 +527,15 @@ export default function OfferAdminPage() {
               {loading ? 'Saving...' : 'Save Offer'}
             </button>
 
+            <Link
+              href="/offer-test"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gray-600 text-white font-semibold rounded-xl hover:bg-gray-700 transition-all duration-300"
+              title="Test if offer system is working correctly"
+            >
+              <Eye className="w-5 h-5" />
+              Diagnostics
+            </Link>
+
             <button
               onClick={handleDownload}
               disabled={!title || !description}
