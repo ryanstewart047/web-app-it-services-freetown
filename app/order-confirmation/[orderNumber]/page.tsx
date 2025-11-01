@@ -31,7 +31,8 @@ interface Order {
   total: number;
   paymentMethod: string;
   mobileMoneyNumber?: string;
-  status: string;
+  paymentStatus: string;
+  orderStatus: string;
   createdAt: string;
   items: OrderItem[];
 }
@@ -252,8 +253,8 @@ export default function OrderConfirmationPage() {
           </ul>
         </div>
 
-        {/* Pay Now Button (if order is pending) */}
-        {order.status === 'pending' && (
+        {/* Pay Now Button (if payment is pending) */}
+        {order.paymentStatus === 'pending' && (
           <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-xl p-6 mb-8 text-center">
             <h2 className="text-xl font-bold text-white mb-3">Complete Your Payment</h2>
             <p className="text-green-100 mb-4">Click below to get payment instructions</p>
