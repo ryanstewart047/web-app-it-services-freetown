@@ -45,37 +45,34 @@ export async function POST(request: NextRequest) {
       }, { status: 404 });
     }
     
-    // Save back to storage (Gist or file)
-    if (GIST_ID && GIST_TOKEN) {
-      // Update GitHub Gist
-      const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `token ${GIST_TOKEN}`,
-          'Accept': 'application/vnd.github.v3+json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          files: {
-            [GIST_FILENAME]: {
-              content: JSON.stringify(data, null, 2)
-            }
-          }
-        })
-      });
+    // Save back to storage (Gist only - file system is read-only in production)
+    if (!GIST_ID || !GIST_TOKEN) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'GitHub Gist storage not configured. Please set GITHUB_GIST_ID and GITHUB_TOKEN environment variables in Vercel.' 
+      }, { status: 500 });
+    }
 
-      if (!response.ok) {
-        throw new Error(`Failed to update Gist: ${response.statusText}`);
-      }
-    } else {
-      // Update local file
-      const fs = require('fs').promises;
-      const path = require('path');
-      const dataDir = path.join(process.cwd(), 'data');
-      const dataFile = path.join(dataDir, 'analytics.json');
-      
-      await fs.mkdir(dataDir, { recursive: true });
-      await fs.writeFile(dataFile, JSON.stringify(data, null, 2), 'utf-8');
+    // Update GitHub Gist
+    const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `token ${GIST_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        files: {
+          [GIST_FILENAME]: {
+            content: JSON.stringify(data, null, 2)
+          }
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Failed to update Gist: ${response.statusText} - ${JSON.stringify(errorData)}`);
     }
     
     // Clear cache
