@@ -420,7 +420,7 @@ export default function AdminOrdersPage() {
                     </div>
                     {selectedOrder.tax > 0 && (
                       <div className="flex justify-between text-gray-300">
-                        <span>Tax</span>
+                        <span>GST (2%)</span>
                         <span>Le {selectedOrder.tax.toFixed(2)}</span>
                       </div>
                     )}

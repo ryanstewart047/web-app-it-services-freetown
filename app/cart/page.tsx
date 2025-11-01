@@ -57,8 +57,8 @@ export default function CartPage() {
 
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
-    const tax = subtotal * 0.05; // 5% tax
-    return subtotal + tax;
+    const gst = subtotal * 0.02; // 2% GST
+    return subtotal + gst;
   };
 
   if (loading) {
@@ -184,8 +184,8 @@ export default function CartPage() {
                   <span>Le {calculateSubtotal().toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-gray-300">
-                  <span>Tax (5%)</span>
-                  <span>Le {(calculateSubtotal() * 0.05).toLocaleString()}</span>
+                  <span>GST (2%)</span>
+                  <span>Le {(calculateSubtotal() * 0.02).toLocaleString()}</span>
                 </div>
                 <div className="border-t border-gray-700 pt-4">
                   <div className="flex justify-between text-white text-xl font-bold">

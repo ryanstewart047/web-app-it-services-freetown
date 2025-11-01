@@ -34,9 +34,9 @@ export default function CheckoutPage() {
   }, []);
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const tax = subtotal * 0; // No tax
+  const gst = subtotal * 0.02; // 2% GST
   const shipping = 0; // Free shipping - cost included in product prices
-  const total = subtotal + tax + shipping;
+  const total = subtotal + gst + shipping;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +55,7 @@ export default function CheckoutPage() {
           price: item.price
         })),
         subtotal,
-        tax,
+        tax: gst,
         total,
         paymentMethod,
         mobileMoneyNumber: paymentMethod === 'mobile_money' ? formData.mobileMoneyNumber : null,
@@ -332,10 +332,10 @@ export default function CheckoutPage() {
                   <span>Shipping</span>
                   <span>FREE</span>
                 </div>
-                {tax > 0 && (
+                {gst > 0 && (
                   <div className="flex justify-between text-gray-300">
-                    <span>Tax</span>
-                    <span>Le {tax.toFixed(2)}</span>
+                    <span>GST (2%)</span>
+                    <span>Le {gst.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="border-t border-gray-700 pt-3 flex justify-between text-xl font-bold text-white">

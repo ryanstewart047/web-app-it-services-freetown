@@ -222,7 +222,7 @@ export default function OrderConfirmationPage() {
               </div>
               {order.tax > 0 && (
                 <div className="flex justify-between text-gray-300">
-                  <span>Tax</span>
+                  <span>GST (2%)</span>
                   <span>Le {order.tax.toFixed(2)}</span>
                 </div>
               )}
