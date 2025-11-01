@@ -44,56 +44,56 @@ export default function PaymentInstructionsPopup({
       />
 
       {/* Popup Card */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 pointer-events-none">
         <div 
-          className="bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 border border-blue-500/30 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden pointer-events-auto transform transition-all duration-300 animate-scale-in"
+          className="bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 border border-blue-500/30 rounded-2xl shadow-2xl max-w-lg w-full max-h-[95vh] overflow-hidden pointer-events-auto transform transition-all duration-300 animate-scale-in flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 z-10 p-2 rounded-full bg-gray-800/80 hover:bg-gray-700 transition-all hover:scale-110"
+            className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 p-2 rounded-full bg-gray-800/80 hover:bg-gray-700 transition-all hover:scale-110"
             aria-label="Close popup"
           >
-            <X className="w-5 h-5 text-white" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </button>
 
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-center">
-            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3">
-              <Phone className="w-8 h-8 text-blue-600" />
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 sm:p-6 text-center flex-shrink-0">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+              <Phone className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">Complete Your Payment</h2>
-            <p className="text-blue-100">Mobile Money Payment Instructions</p>
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">Complete Your Payment</h2>
+            <p className="text-sm sm:text-base text-blue-100">Mobile Money Payment Instructions</p>
           </div>
 
-          {/* Content */}
-          <div className="p-6 space-y-6">
+          {/* Content - Scrollable */}
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto flex-1">
             {/* Order Details */}
-            <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-4">
+            <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-3 sm:p-4">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-400">Order Number:</span>
-                <span className="text-white font-bold">{orderNumber}</span>
+                <span className="text-gray-400 text-sm sm:text-base">Order Number:</span>
+                <span className="text-white font-bold text-sm sm:text-base">{orderNumber}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-400">Total Amount:</span>
-                <span className="text-green-400 font-bold text-xl">Le {totalAmount.toLocaleString()}</span>
+                <span className="text-gray-400 text-sm sm:text-base">Total Amount:</span>
+                <span className="text-green-400 font-bold text-lg sm:text-xl">Le {totalAmount.toLocaleString()}</span>
               </div>
             </div>
 
             {/* Payment Instructions */}
             <div>
-              <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-                <span className="flex items-center justify-center w-6 h-6 bg-blue-600 text-white text-sm rounded-full">1</span>
+              <h3 className="text-white font-semibold mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base">
+                <span className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 bg-blue-600 text-white text-xs sm:text-sm rounded-full">1</span>
                 Send Payment To:
               </h3>
               
               {/* Orange Money */}
-              <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4 mb-3">
+              <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3 sm:p-4 mb-2 sm:mb-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-orange-400 text-sm font-medium mb-1">Orange Money</p>
-                    <p className="text-white text-lg font-bold">{paymentDetails.orangeMoney}</p>
+                    <p className="text-orange-400 text-xs sm:text-sm font-medium mb-1">Orange Money</p>
+                    <p className="text-white text-base sm:text-lg font-bold">{paymentDetails.orangeMoney}</p>
                   </div>
                   <button
                     onClick={() => copyToClipboard(paymentDetails.orangeMoney, 'orange')}
@@ -101,20 +101,20 @@ export default function PaymentInstructionsPopup({
                     title="Copy number"
                   >
                     {copiedField === 'orange' ? (
-                      <CheckCircle className="w-5 h-5 text-green-400" />
+                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
                     ) : (
-                      <Copy className="w-5 h-5 text-orange-400" />
+                      <Copy className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400" />
                     )}
                   </button>
                 </div>
               </div>
 
               {/* AfriMoney */}
-              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 sm:p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-green-400 text-sm font-medium mb-1">AfriMoney</p>
-                    <p className="text-white text-lg font-bold">{paymentDetails.afriMoney}</p>
+                    <p className="text-green-400 text-xs sm:text-sm font-medium mb-1">AfriMoney</p>
+                    <p className="text-white text-base sm:text-lg font-bold">{paymentDetails.afriMoney}</p>
                   </div>
                   <button
                     onClick={() => copyToClipboard(paymentDetails.afriMoney, 'afri')}
@@ -122,9 +122,9 @@ export default function PaymentInstructionsPopup({
                     title="Copy number"
                   >
                     {copiedField === 'afri' ? (
-                      <CheckCircle className="w-5 h-5 text-green-400" />
+                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
                     ) : (
-                      <Copy className="w-5 h-5 text-green-400" />
+                      <Copy className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
                     )}
                   </button>
                 </div>
@@ -133,26 +133,26 @@ export default function PaymentInstructionsPopup({
 
             {/* Screenshot Instruction */}
             <div>
-              <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
-                <span className="flex items-center justify-center w-6 h-6 bg-blue-600 text-white text-sm rounded-full">2</span>
+              <h3 className="text-white font-semibold mb-2 flex items-center gap-2 text-sm sm:text-base">
+                <span className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 bg-blue-600 text-white text-xs sm:text-sm rounded-full">2</span>
                 Take Screenshot
               </h3>
-              <p className="text-gray-300 text-sm">
+              <p className="text-gray-300 text-xs sm:text-sm">
                 After making the payment, take a screenshot of your transaction confirmation.
               </p>
             </div>
 
             {/* WhatsApp Button */}
             <div>
-              <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
-                <span className="flex items-center justify-center w-6 h-6 bg-blue-600 text-white text-sm rounded-full">3</span>
+              <h3 className="text-white font-semibold mb-2 flex items-center gap-2 text-sm sm:text-base">
+                <span className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 bg-blue-600 text-white text-xs sm:text-sm rounded-full">3</span>
                 Send Confirmation
               </h3>
               <button
                 onClick={handleWhatsAppContact}
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                className="w-full flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-sm sm:text-base"
               >
-                <MessageCircle className="w-6 h-6" />
+                <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
                 <span>Send Payment Proof via WhatsApp</span>
               </button>
               <p className="text-gray-400 text-xs mt-2 text-center">
@@ -161,8 +161,8 @@ export default function PaymentInstructionsPopup({
             </div>
 
             {/* Additional Info */}
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-              <p className="text-blue-300 text-sm">
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 sm:p-4">
+              <p className="text-blue-300 text-xs sm:text-sm">
                 <strong>Note:</strong> Your order will be confirmed once we verify your payment. 
                 This usually takes a few minutes during business hours.
               </p>
