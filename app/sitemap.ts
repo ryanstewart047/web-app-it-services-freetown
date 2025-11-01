@@ -1,15 +1,27 @@
 import { MetadataRoute } from 'next';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 3600; // Revalidate every hour
 
 async function getProducts() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://itservicesfreetown.com'}/api/products`, {
-      cache: 'no-store'
+    // Direct database query instead of API call
+    const products = await prisma.product.findMany({
+      where: {
+        status: 'active',
+        stock: {
+          gt: 0
+        }
+      },
+      select: {
+        slug: true,
+        updatedAt: true,
+        createdAt: true,
+      },
+      take: 1000, // Limit to 1000 products
     });
-    
-    if (!res.ok) return [];
-    return await res.json();
+    return products;
   } catch (error) {
     console.error('Error fetching products for sitemap:', error);
     return [];
@@ -18,12 +30,13 @@ async function getProducts() {
 
 async function getCategories() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://itservicesfreetown.com'}/api/categories`, {
-      cache: 'no-store'
+    // Direct database query instead of API call
+    const categories = await prisma.category.findMany({
+      select: {
+        slug: true,
+      },
     });
-    
-    if (!res.ok) return [];
-    return await res.json();
+    return categories;
   } catch (error) {
     console.error('Error fetching categories for sitemap:', error);
     return [];
@@ -75,15 +88,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // Product pages
-  const productPages: MetadataRoute.Sitemap = products
-    .filter((product: any) => product.status === 'active' && product.stock > 0)
-    .map((product: any) => ({
-      url: `${baseUrl}/marketplace/${product.slug}`,
-      lastModified: new Date(product.updatedAt || product.createdAt),
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    }));
+  // Product pages - already filtered by status and stock in query
+  const productPages: MetadataRoute.Sitemap = products.map((product: any) => ({
+    url: `${baseUrl}/marketplace/${product.slug}`,
+    lastModified: new Date(product.updatedAt || product.createdAt),
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
+  }));
 
   // Category pages (if you have them)
   const categoryPages: MetadataRoute.Sitemap = categories.map((category: any) => ({
