@@ -56,21 +56,28 @@ export default function AddProductPage() {
         images: images.filter(img => img.url).map((img, index) => ({ ...img, order: index }))
       };
 
+      console.log('[Add Product] Submitting product data:', productData);
+
       const res = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(productData)
       });
 
+      console.log('[Add Product] Response status:', res.status);
+
       if (res.ok) {
         alert('Product added successfully!');
         router.push('/admin/products');
       } else {
-        alert('Failed to add product');
+        // Get detailed error message from API
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('[Add Product] Error response:', errorData);
+        alert(`Failed to add product: ${errorData.details || errorData.error || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('Error adding product:', error);
-      alert('Error adding product');
+      console.error('[Add Product] Error adding product:', error);
+      alert(`Error adding product: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
