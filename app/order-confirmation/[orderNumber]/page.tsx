@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Check, Package, Phone, Mail, MapPin, CreditCard, Clock, ArrowLeft, Wallet } from 'lucide-react';
 import PaymentInstructionsPopup from '@/components/PaymentInstructionsPopup';
+// Payment popup feature - mobile money instructions
 
 interface OrderItem {
   id: string;
