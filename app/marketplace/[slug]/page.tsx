@@ -80,6 +80,39 @@ export default function ProductDetailPage() {
     return Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100);
   };
 
+  const handleShare = async () => {
+    if (!product) return;
+
+    const shareData = {
+      title: product.name,
+      text: `Check out ${product.name} - Le ${product.price.toLocaleString()}\n\n${product.description}`,
+      url: window.location.href
+    };
+
+    try {
+      // Try native share API first (works on mobile)
+      if (navigator.share) {
+        await navigator.share(shareData);
+        console.log('Shared successfully');
+      } else {
+        // Fallback: copy to clipboard
+        const textToCopy = `${shareData.title}\n\n${shareData.text}\n\n${shareData.url}`;
+        await navigator.clipboard.writeText(textToCopy);
+        alert('Product link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      // If all else fails, try clipboard again
+      try {
+        const textToCopy = `${shareData.title}\n\n${shareData.text}\n\n${shareData.url}`;
+        await navigator.clipboard.writeText(textToCopy);
+        alert('Product link copied to clipboard!');
+      } catch (clipboardError) {
+        alert('Unable to share. Please copy the URL from your browser.');
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 flex items-center justify-center">
@@ -296,7 +329,10 @@ export default function ProductDetailPage() {
                 <Heart className="w-5 h-5" />
                 Add to Wishlist
               </button>
-              <button className="flex-1 flex items-center justify-center gap-2 py-3 border-2 border-gray-700 hover:border-blue-500 text-white rounded-lg transition-all">
+              <button 
+                onClick={handleShare}
+                className="flex-1 flex items-center justify-center gap-2 py-3 border-2 border-gray-700 hover:border-blue-500 hover:bg-blue-500/10 text-white rounded-lg transition-all"
+              >
                 <Share2 className="w-5 h-5" />
                 Share
               </button>
