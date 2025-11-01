@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Check, Package, Phone, Mail, MapPin, CreditCard, Clock, ArrowLeft } from 'lucide-react';
+import { Check, Package, Phone, Mail, MapPin, CreditCard, Clock, ArrowLeft, Wallet } from 'lucide-react';
+import PaymentInstructionsPopup from '@/components/PaymentInstructionsPopup';
 
 interface OrderItem {
   id: string;
@@ -39,6 +40,7 @@ export default function OrderConfirmationPage() {
   const orderNumber = params.orderNumber as string;
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showPaymentPopup, setShowPaymentPopup] = useState(false);
 
   useEffect(() => {
     if (orderNumber) {
@@ -249,6 +251,21 @@ export default function OrderConfirmationPage() {
           </ul>
         </div>
 
+        {/* Pay Now Button (if order is pending) */}
+        {order.status === 'pending' && (
+          <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-xl p-6 mb-8 text-center">
+            <h2 className="text-xl font-bold text-white mb-3">Complete Your Payment</h2>
+            <p className="text-green-100 mb-4">Click below to get payment instructions</p>
+            <button
+              onClick={() => setShowPaymentPopup(true)}
+              className="inline-flex items-center gap-3 px-8 py-4 bg-white hover:bg-green-50 text-green-700 font-bold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+            >
+              <Wallet className="w-6 h-6" />
+              Pay Now - Le {order.total.toLocaleString()}
+            </button>
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div className="flex gap-4 justify-center">
           <Link
@@ -266,6 +283,15 @@ export default function OrderConfirmationPage() {
           </Link>
         </div>
       </div>
+
+      {/* Payment Instructions Popup */}
+      {showPaymentPopup && (
+        <PaymentInstructionsPopup
+          orderNumber={order.orderNumber}
+          totalAmount={order.total}
+          onClose={() => setShowPaymentPopup(false)}
+        />
+      )}
     </div>
   );
 }
