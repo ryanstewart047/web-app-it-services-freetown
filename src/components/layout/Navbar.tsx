@@ -33,7 +33,21 @@ export default function Navbar() {
           </div>
           <div className="hidden md:flex items-center space-x-8">
             <Link href="/" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Home</Link>
-            <Link href="/marketplace" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Shop</Link>
+            
+            {/* Special Shop Button with Badge and Animation */}
+            <Link 
+              href="/marketplace" 
+              className="relative group inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-red-600 via-red-500 to-orange-500 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse hover:animate-none"
+            >
+              <i className="fas fa-shopping-bag text-white"></i>
+              <span>Shop Now</span>
+              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-xs font-bold text-red-900 animate-bounce">
+                🔥
+              </span>
+              {/* Glow effect */}
+              <span className="absolute inset-0 rounded-full bg-gradient-to-r from-red-600 to-orange-500 opacity-0 group-hover:opacity-75 blur-md transition-opacity duration-300"></span>
+            </Link>
+            
             <Link href="/blog" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Blog</Link>
             <Link href="/book-appointment" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Book Appointment</Link>
             <Link href="/track-repair" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Track Repair</Link>
@@ -58,7 +72,20 @@ export default function Navbar() {
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
             <Link href="/" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Home</Link>
-            <Link href="/marketplace" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Shop</Link>
+            
+            {/* Special Shop Button for Mobile */}
+            <Link 
+              href="/marketplace" 
+              className="relative flex items-center justify-center gap-2 mx-2 my-3 px-4 py-3 text-base font-bold text-white bg-gradient-to-r from-red-600 via-red-500 to-orange-500 rounded-xl shadow-lg transform active:scale-95 transition-all duration-300"
+              onClick={closeMobileMenu}
+            >
+              <i className="fas fa-shopping-bag text-white"></i>
+              <span>Shop Now</span>
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-yellow-400 text-sm font-bold">
+                🔥
+              </span>
+            </Link>
+            
             <Link href="/blog" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Blog</Link>
             <Link href="/book-appointment" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Book Appointment</Link>
             <Link href="/track-repair" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Track Repair</Link>
