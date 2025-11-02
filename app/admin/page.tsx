@@ -240,16 +240,12 @@ export default function AdminPage() {
   const bulkDeleteSubmissions = async () => {
     if (selectedSubmissions.size === 0) return;
 
-    // Capture submission details NOW before any state changes
-    const submissionsToDelete = (forms.recentSubmissions?.filter(sub => 
+    // Capture timestamps NOW before any state changes
+    const timestampsToDelete = (forms.recentSubmissions?.filter(sub => 
       selectedSubmissions.has(sub.originalTimestamp || sub.timestamp || '')
-    ) || []).map(sub => ({
-      timestamp: sub.originalTimestamp || sub.timestamp || '',
-      displayTimestamp: sub.timestamp || '',
-      formType: sub.formType || 'unknown'
-    }));
+    ) || []).map(sub => sub.originalTimestamp || sub.timestamp || '').filter(t => t);
 
-    const count = submissionsToDelete.length;
+    const count = timestampsToDelete.length;
     if (count === 0) return;
 
     if (!confirm(`Delete ${count} selected submission${count > 1 ? 's' : ''}?`)) {
@@ -257,42 +253,23 @@ export default function AdminPage() {
     }
 
     setBulkDeleting(true);
-    let successCount = 0;
-    let failCount = 0;
 
     try {
-      // Delete each submission using the captured data
-      for (const submission of submissionsToDelete) {
-        try {
-          const response = await fetch('/api/analytics/forms/delete', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              timestamp: submission.timestamp, 
-              formType: submission.formType
-            })
-          });
+      // Delete all submissions in a single API call
+      const response = await fetch('/api/analytics/forms/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          timestamps: timestampsToDelete
+        })
+      });
 
-          if (response.ok) {
-            successCount++;
-          } else {
-            const result = await response.json();
-            console.error(`Failed to delete ${submission.formType} from ${submission.displayTimestamp}:`, result.error);
-            failCount++;
-          }
-        } catch (error) {
-          console.error('Error deleting submission:', error);
-          failCount++;
-        }
-      }
+      const result = await response.json();
 
-      // Show result
-      if (successCount > 0 && failCount === 0) {
-        alert(`✅ Successfully deleted ${successCount} submission${successCount > 1 ? 's' : ''}`);
-      } else if (successCount > 0 && failCount > 0) {
-        alert(`⚠️ Deleted ${successCount} submission${successCount > 1 ? 's' : ''}, ${failCount} failed`);
+      if (response.ok) {
+        alert(`✅ ${result.message}`);
       } else {
-        alert(`❌ Failed to delete submissions`);
+        alert(`❌ Failed to delete: ${result.error}`);
       }
 
       // Clear selection and refresh
