@@ -52,11 +52,56 @@ export default function AdminPage() {
   const [deleting, setDeleting] = useState(false);
   const [selectedSubmissions, setSelectedSubmissions] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [lastActivity, setLastActivity] = useState(Date.now());
+  const [showIdleWarning, setShowIdleWarning] = useState(false);
 
   // Check for saved session on mount
   useEffect(() => {
     checkAuth();
   }, []);
+
+  // Auto-logout after 5 minutes of inactivity
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const IDLE_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
+    const WARNING_TIME = 30 * 1000; // Show warning 30 seconds before logout
+
+    // Update last activity on user interaction
+    const updateActivity = () => {
+      setLastActivity(Date.now());
+      setShowIdleWarning(false);
+    };
+
+    // Track user activity
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+    events.forEach(event => {
+      document.addEventListener(event, updateActivity, { passive: true });
+    });
+
+    // Check for inactivity every 10 seconds
+    const idleCheckInterval = setInterval(() => {
+      const timeSinceLastActivity = Date.now() - lastActivity;
+      
+      if (timeSinceLastActivity >= IDLE_TIMEOUT) {
+        // Auto-logout
+        console.log('[Admin] Auto-logout due to inactivity');
+        handleLogout();
+        alert('Session expired due to inactivity. Please log in again.');
+      } else if (timeSinceLastActivity >= IDLE_TIMEOUT - WARNING_TIME && !showIdleWarning) {
+        // Show warning
+        setShowIdleWarning(true);
+      }
+    }, 10000); // Check every 10 seconds
+
+    // Cleanup
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, updateActivity);
+      });
+      clearInterval(idleCheckInterval);
+    };
+  }, [isAuthenticated, lastActivity, showIdleWarning]);
 
   const checkAuth = async () => {
     try {
@@ -377,6 +422,23 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-8 sm:space-y-10 lg:space-y-12">
+      {/* Idle Warning Banner */}
+      {showIdleWarning && (
+        <div className="fixed top-4 right-4 z-50 max-w-md animate-pulse">
+          <div className="flex items-start gap-3 rounded-xl border-2 border-yellow-500 bg-yellow-50 p-4 shadow-lg dark:border-yellow-600 dark:bg-yellow-900/30">
+            <svg className="h-6 w-6 flex-shrink-0 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h4 className="font-semibold text-yellow-900 dark:text-yellow-100">Session Expiring Soon</h4>
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                You will be logged out in 30 seconds due to inactivity. Move your mouse or click to stay logged in.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <section id="overview" className="grid gap-6 lg:grid-cols-[1.15fr,0.85fr]">
         <div className="relative overflow-hidden rounded-3xl border border-gray-200/70 bg-white p-6 shadow-sm sm:p-8 dark:border-gray-800/70 dark:bg-gray-900">
           <div className="absolute right-0 top-0 h-48 w-48 translate-x-16 -translate-y-10 rounded-full bg-red-500/10 blur-3xl" aria-hidden="true" />
