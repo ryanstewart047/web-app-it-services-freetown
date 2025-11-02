@@ -84,19 +84,21 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
 
           {/* Content */}
           <div className="flex flex-col md:flex-row">
-            {/* Image Section */}
-            <div className="md:w-2/5 relative bg-gradient-to-br from-purple-100 to-pink-100 min-h-[150px] md:min-h-[300px]">
-              {offer.imageUrl ? (
-                <img
-                  src={offer.imageUrl}
-                  alt={offer.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="text-4xl md:text-6xl">🎉</div>
-                </div>
-              )}
+            {/* Image Section - Square aspect ratio 1:1 (1080x1080) */}
+            <div className="md:w-2/5 relative bg-gradient-to-br from-purple-100 to-pink-100">
+              <div className="aspect-square w-full">
+                {offer.imageUrl ? (
+                  <img
+                    src={offer.imageUrl}
+                    alt={offer.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="text-4xl md:text-6xl">🎉</div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Text Section */}

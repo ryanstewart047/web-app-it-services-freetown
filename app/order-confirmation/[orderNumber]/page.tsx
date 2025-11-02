@@ -31,7 +31,7 @@ interface Order {
   total: number;
   paymentMethod: string;
   mobileMoneyNumber?: string;
-  paymentStatus: string;
+    paymentStatus: string;
   orderStatus: string;
   createdAt: string;
   items: OrderItem[];
