@@ -237,12 +237,20 @@ class AnalyticsTracker {
     });
   }
 
+  private trackedForms = new Set<string>();
+
   private setupFormTracking() {
     if (typeof window === 'undefined') return;
 
     // Track form submissions
     document.addEventListener('submit', (event) => {
       const form = event.target as HTMLFormElement;
+      
+      // Skip tracking if form has data-no-analytics attribute
+      if (form.getAttribute('data-no-analytics') === 'true') {
+        return;
+      }
+      
       const formData = new FormData(form);
       const fields: Record<string, any> = {};
 
@@ -260,19 +268,32 @@ class AnalyticsTracker {
       });
     });
 
-    // Track form field interactions
+    // Track form view ONCE per form per session (on first interaction)
+    // This prevents excessive API calls while still tracking engagement
     document.addEventListener('focusin', (event) => {
       if (event.target instanceof HTMLInputElement || 
           event.target instanceof HTMLTextAreaElement || 
           event.target instanceof HTMLSelectElement) {
-        // Track form view
         const form = event.target.closest('form');
         if (form) {
-          const formType = form.getAttribute('data-form-type') || 'unknown';
-          this.sendData('/api/analytics/forms', { formType }, 'PUT');
+          // Skip tracking if form has data-no-analytics attribute
+          if (form.getAttribute('data-no-analytics') === 'true') {
+            return;
+          }
+          
+          const formType = form.getAttribute('data-form-type');
+          
+          // Only track if:
+          // 1. Form has a data-form-type attribute (intentional tracking)
+          // 2. We haven't tracked this form type in this session yet
+          // 3. Form type is not "unknown"
+          if (formType && formType !== 'unknown' && !this.trackedForms.has(formType)) {
+            this.trackedForms.add(formType);
+            this.sendData('/api/analytics/forms', { formType }, 'PUT');
+          }
         }
       }
-    });
+    }, { once: false });
   }
 
   private setupSessionManagement() {

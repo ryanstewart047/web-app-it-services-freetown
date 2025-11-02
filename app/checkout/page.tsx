@@ -144,7 +144,7 @@ export default function CheckoutPage() {
             <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
               <h2 className="text-2xl font-bold text-white mb-6">Customer Information</h2>
               
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4" data-no-analytics="true">
                 <div>
                   <label className="block text-white font-semibold mb-2">Full Name *</label>
                   <input

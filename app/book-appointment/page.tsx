@@ -549,7 +549,7 @@ export default function BookAppointment() {
           
           {/* Main Form Card */}
           <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
-            <form onSubmit={handleSubmit} className="p-8 md:p-12">
+            <form onSubmit={handleSubmit} className="p-8 md:p-12" data-form-type="repair-booking">
               
               {/* Hidden inputs for Formspree - ensures all data is captured */}
               <input type="hidden" name="customerName" value={formData.customerName} />

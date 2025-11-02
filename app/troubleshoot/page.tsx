@@ -242,7 +242,7 @@ export default function Troubleshoot() {
 
         {/* Troubleshooting Form */}
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6" data-form-type="troubleshoot">
             {/* Hidden inputs for Formspree submission */}
             <input type="hidden" name="formType" value="troubleshoot" />
             
