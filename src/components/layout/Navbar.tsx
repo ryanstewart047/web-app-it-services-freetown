@@ -37,15 +37,15 @@ export default function Navbar() {
             {/* Special Shop Button with Badge and Animation */}
             <Link 
               href="/marketplace" 
-              className="relative group inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse hover:animate-none"
+              className="relative group inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse hover:animate-none"
             >
               <i className="fas fa-shopping-bag text-white drop-shadow-lg"></i>
               <span className="drop-shadow-lg">Shop Now</span>
-              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-300 text-xs font-bold text-red-900 animate-bounce">
+              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-xs font-bold animate-bounce">
                 🔥
               </span>
               {/* Glow effect */}
-              <span className="absolute inset-0 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 opacity-0 group-hover:opacity-75 blur-md transition-opacity duration-300"></span>
+              <span className="absolute inset-0 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 opacity-0 group-hover:opacity-75 blur-md transition-opacity duration-300"></span>
             </Link>
             
             <Link href="/blog" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Blog</Link>
@@ -76,12 +76,12 @@ export default function Navbar() {
             {/* Special Shop Button for Mobile */}
             <Link 
               href="/marketplace" 
-              className="relative flex items-center justify-center gap-2 mx-2 my-3 px-4 py-3 text-base font-bold text-white bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 rounded-xl shadow-lg transform active:scale-95 transition-all duration-300"
+              className="relative inline-flex items-center justify-center gap-2 mx-2 my-2 px-3 py-2 text-sm font-bold text-white bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 rounded-lg shadow-md transform active:scale-95 transition-all duration-300"
               onClick={closeMobileMenu}
             >
-              <i className="fas fa-shopping-bag text-white drop-shadow-lg"></i>
+              <i className="fas fa-shopping-bag text-white drop-shadow-lg text-sm"></i>
               <span className="drop-shadow-lg">Shop Now</span>
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-yellow-300 text-sm font-bold">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-xs font-bold animate-bounce">
                 🔥
               </span>
             </Link>
