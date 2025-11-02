@@ -28,6 +28,6 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: 'https://itservicesfreetown.com/sitemap.xml',
+    sitemap: 'https://www.itservicesfreetown.com/sitemap.xml',
   };
 }

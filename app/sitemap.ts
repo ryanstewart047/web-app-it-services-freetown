@@ -44,7 +44,7 @@ async function getCategories() {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://itservicesfreetown.com';
+  const baseUrl = 'https://www.itservicesfreetown.com';
   const products = await getProducts();
   const categories = await getCategories();
 

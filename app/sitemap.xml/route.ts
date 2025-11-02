@@ -6,7 +6,7 @@ export const revalidate = 3600; // Cache for 1 hour
 
 export async function GET() {
   try {
-    const baseUrl = 'https://itservicesfreetown.com';
+    const baseUrl = 'https://www.itservicesfreetown.com';
 
     // Fetch products from database
     let products: any[] = [];
@@ -121,13 +121,13 @@ export async function GET() {
     const minimalSitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://itservicesfreetown.com</loc>
+    <loc>https://www.itservicesfreetown.com</loc>
     <lastmod>${new Date().toISOString()}</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://itservicesfreetown.com/marketplace</loc>
+    <loc>https://www.itservicesfreetown.com/marketplace</loc>
     <lastmod>${new Date().toISOString()}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
