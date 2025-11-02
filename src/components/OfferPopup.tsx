@@ -103,7 +103,7 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
             <div className="md:w-3/5 p-4 md:p-8">
               <div className="mb-3 md:mb-4">
                 <div className="inline-block px-2 py-0.5 md:px-3 md:py-1 text-white text-[10px] md:text-xs font-bold rounded-full mb-2 md:mb-3" style={{ background: offer.badgeColor || '#9333ea' }}>
-                  TODAY'S OFFER
+                  {offer.badgeText || "TODAY'S OFFER"}
                 </div>
                 <h2 className="text-xl md:text-3xl font-bold mb-2 md:mb-3 leading-tight" style={{ color: offer.textColor || '#1f2937' }}>
                   {offer.title}
