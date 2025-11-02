@@ -276,12 +276,12 @@ export default function Footer() {
               <li>
                 <Link 
                   href="/marketplace" 
-                  className="relative inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-red-600 via-red-500 to-orange-500 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 group"
+                  className="relative inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 group"
                 >
-                  <i className="fas fa-shopping-bag text-white"></i>
-                  <span>Shop Now</span>
+                  <i className="fas fa-shopping-bag text-white drop-shadow-lg"></i>
+                  <span className="drop-shadow-lg">Shop Now</span>
                   <span className="text-xs">🔥</span>
-                  <span className="absolute inset-0 rounded-lg bg-gradient-to-r from-red-600 to-orange-500 opacity-0 group-hover:opacity-50 blur-sm transition-opacity duration-300"></span>
+                  <span className="absolute inset-0 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 opacity-0 group-hover:opacity-50 blur-sm transition-opacity duration-300"></span>
                 </Link>
               </li>
               <li>
