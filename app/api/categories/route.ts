@@ -4,6 +4,17 @@ import { prisma } from '@/lib/prisma';
 // GET all categories
 export async function GET() {
   try {
+    // Check if database is configured
+    const dbUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+    if (!dbUrl || dbUrl.includes('YOUR_PASSWORD_HERE') || dbUrl.includes('YOUR_HOST_HERE')) {
+      console.error('❌ Database not configured. Please set up POSTGRES_URL or DATABASE_URL in .env.local');
+      return NextResponse.json({ 
+        error: 'Database not configured',
+        message: 'Please configure your database connection. See VERCEL_POSTGRES_SETUP.md for instructions.',
+        categories: [] // Return empty array for graceful fallback
+      }, { status: 503 });
+    }
+
     const categories = await prisma.category.findMany({
       where: { active: true },
       orderBy: { name: 'asc' },
@@ -17,7 +28,22 @@ export async function GET() {
     return NextResponse.json(categories);
   } catch (error) {
     console.error('Error fetching categories:', error);
-    return NextResponse.json({ error: 'Failed to fetch categories' }, { status: 500 });
+    
+    // Check if it's a connection error
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    if (errorMessage.includes('connect') || errorMessage.includes('ECONNREFUSED') || errorMessage.includes('timeout')) {
+      return NextResponse.json({ 
+        error: 'Database connection failed',
+        message: 'Cannot connect to database. Please check your POSTGRES_URL configuration.',
+        categories: [] // Return empty array for graceful fallback
+      }, { status: 503 });
+    }
+    
+    return NextResponse.json({ 
+      error: 'Failed to fetch categories',
+      message: errorMessage,
+      categories: [] // Return empty array for graceful fallback
+    }, { status: 500 });
   }
 }
 

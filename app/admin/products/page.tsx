@@ -72,14 +72,21 @@ export default function AdminProductsPage() {
   const fetchCategories = async () => {
     try {
       const res = await fetch('/api/categories');
+      const data = await res.json();
+      
       if (!res.ok) {
-        setCategories([]);
+        console.error('Failed to fetch categories:', data.error || 'Unknown error');
+        if (res.status === 503) {
+          setError(data.message || 'Database not configured. Please check your environment variables.');
+        }
+        setCategories(data.categories || []);
         return;
       }
-      const data = await res.json();
+      
       setCategories(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching categories:', error);
+      setError('Failed to connect to the server. Please check your connection.');
       setCategories([]);
     }
   };
