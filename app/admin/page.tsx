@@ -240,7 +240,18 @@ export default function AdminPage() {
   const bulkDeleteSubmissions = async () => {
     if (selectedSubmissions.size === 0) return;
 
-    const count = selectedSubmissions.size;
+    // Capture submission details NOW before any state changes
+    const submissionsToDelete = (forms.recentSubmissions?.filter(sub => 
+      selectedSubmissions.has(sub.originalTimestamp || sub.timestamp || '')
+    ) || []).map(sub => ({
+      timestamp: sub.originalTimestamp || sub.timestamp || '',
+      displayTimestamp: sub.timestamp || '',
+      formType: sub.formType || 'unknown'
+    }));
+
+    const count = submissionsToDelete.length;
+    if (count === 0) return;
+
     if (!confirm(`Delete ${count} selected submission${count > 1 ? 's' : ''}?`)) {
       return;
     }
@@ -250,26 +261,23 @@ export default function AdminPage() {
     let failCount = 0;
 
     try {
-      // Get submission details for each selected timestamp
-      const submissionsToDelete = forms.recentSubmissions?.filter(sub => 
-        selectedSubmissions.has(sub.originalTimestamp || sub.timestamp || '')
-      ) || [];
-
-      // Delete each submission
+      // Delete each submission using the captured data
       for (const submission of submissionsToDelete) {
         try {
           const response = await fetch('/api/analytics/forms/delete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-              timestamp: submission.originalTimestamp || submission.timestamp || '', 
-              formType: submission.formType || 'unknown'
+              timestamp: submission.timestamp, 
+              formType: submission.formType
             })
           });
 
           if (response.ok) {
             successCount++;
           } else {
+            const result = await response.json();
+            console.error(`Failed to delete ${submission.formType} from ${submission.displayTimestamp}:`, result.error);
             failCount++;
           }
         } catch (error) {
