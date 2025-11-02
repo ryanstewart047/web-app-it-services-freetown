@@ -5,8 +5,8 @@ const DATA_FILE_PATH = process.env.APP_DATA_FILE
 	? path.resolve(process.cwd(), process.env.APP_DATA_FILE)
 	: path.resolve(process.cwd(), 'data/app-analytics.json');
 
-const GIST_ID = process.env.GITHUB_GIST_ID;
-const GIST_TOKEN = process.env.ITS_FREETOWN_OFFER_TOKEN || process.env.ITS_GITHUB_TOKEN || process.env.GITHUB_TOKEN;
+const GIST_ID = process.env.GITHUB_GIST_ID || process.env.OFFER_GIST_ID || '741d3c2e3203df10a318d3dae1a94c66';
+const GIST_TOKEN = process.env.ITS_FREETOWN_OFFER_TOKEN || process.env.ITS_GITHUB_TOKEN || process.env.GITHUB_TOKEN || '';
 const GIST_FILENAME = process.env.GITHUB_GIST_FILENAME || 'its-analytics.json';
 
 const DEFAULT_DATA: AnalyticsData = {
