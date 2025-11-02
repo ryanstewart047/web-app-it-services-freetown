@@ -50,6 +50,8 @@ export default function AdminPage() {
   const [forms, setForms] = useState<FormSnapshot>({});
   const [repairs, setRepairs] = useState<RepairSnapshot>({});
   const [deleting, setDeleting] = useState(false);
+  const [selectedSubmissions, setSelectedSubmissions] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   // Check for saved session on mount
   useEffect(() => {
@@ -200,6 +202,99 @@ export default function AdminPage() {
     } catch (error) {
       console.error('Error deleting submission:', error);
       alert('❌ Error deleting submission. Please try again.');
+    }
+  };
+
+  const toggleSubmissionSelection = (timestamp: string) => {
+    setSelectedSubmissions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(timestamp)) {
+        newSet.delete(timestamp);
+      } else {
+        newSet.add(timestamp);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (!forms.recentSubmissions) return;
+    
+    const visibleSubmissions = forms.recentSubmissions.slice(0, 6);
+    const allSelected = visibleSubmissions.every(sub => 
+      selectedSubmissions.has(sub.originalTimestamp || sub.timestamp || '')
+    );
+
+    if (allSelected) {
+      setSelectedSubmissions(new Set());
+    } else {
+      const newSet = new Set<string>();
+      visibleSubmissions.forEach(sub => {
+        const timestamp = sub.originalTimestamp || sub.timestamp || '';
+        if (timestamp) newSet.add(timestamp);
+      });
+      setSelectedSubmissions(newSet);
+    }
+  };
+
+  const bulkDeleteSubmissions = async () => {
+    if (selectedSubmissions.size === 0) return;
+
+    const count = selectedSubmissions.size;
+    if (!confirm(`Delete ${count} selected submission${count > 1 ? 's' : ''}?`)) {
+      return;
+    }
+
+    setBulkDeleting(true);
+    let successCount = 0;
+    let failCount = 0;
+
+    try {
+      // Get submission details for each selected timestamp
+      const submissionsToDelete = forms.recentSubmissions?.filter(sub => 
+        selectedSubmissions.has(sub.originalTimestamp || sub.timestamp || '')
+      ) || [];
+
+      // Delete each submission
+      for (const submission of submissionsToDelete) {
+        try {
+          const response = await fetch('/api/analytics/forms/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              timestamp: submission.originalTimestamp || submission.timestamp || '', 
+              formType: submission.formType || 'unknown'
+            })
+          });
+
+          if (response.ok) {
+            successCount++;
+          } else {
+            failCount++;
+          }
+        } catch (error) {
+          console.error('Error deleting submission:', error);
+          failCount++;
+        }
+      }
+
+      // Show result
+      if (successCount > 0 && failCount === 0) {
+        alert(`✅ Successfully deleted ${successCount} submission${successCount > 1 ? 's' : ''}`);
+      } else if (successCount > 0 && failCount > 0) {
+        alert(`⚠️ Deleted ${successCount} submission${successCount > 1 ? 's' : ''}, ${failCount} failed`);
+      } else {
+        alert(`❌ Failed to delete submissions`);
+      }
+
+      // Clear selection and refresh
+      setSelectedSubmissions(new Set());
+      await loadData();
+    } catch (error) {
+      console.error('Error during bulk delete:', error);
+      alert('❌ Error deleting submissions. Please try again.');
+    } finally {
+      setBulkDeleting(false);
     }
   };
 
@@ -409,53 +504,98 @@ export default function AdminPage() {
           </div>
 
           {forms.recentSubmissions && forms.recentSubmissions.length > 0 ? (
-            <div className="mt-6 overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
-                <thead className="bg-gray-50 text-left uppercase tracking-wide dark:bg-gray-800/60">
-                  <tr>
-                    <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400">Form</th>
-                    <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400">Submitted</th>
-                    <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400">Key details</th>
-                    <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {forms.recentSubmissions.slice(0, 6).map((submission, index) => (
-                    <tr key={`${submission.timestamp ?? index}-${index}`} className="hover:bg-gray-50/70 dark:hover:bg-gray-800/60">
-                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">{submission.formType ?? 'Unknown form'}</td>
-                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{submission.timestamp ?? '—'}</td>
-                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
-                        {submission.fields
-                          ? Object.entries(submission.fields)
-                              .slice(0, 2)
-                              .map(([key, value]) => (
-                                <div key={key} className="truncate text-xs">
-                                  <span className="font-medium text-gray-600 dark:text-gray-300">{key}: </span>
-                                  <span>{value}</span>
-                                </div>
-                              ))
-                          : 'No details captured'}
-                      </td>
-                      <td className="px-4 py-3">
-                        <button
-                          onClick={() => deleteFormSubmission(
-                            submission.originalTimestamp || submission.timestamp || '', 
-                            submission.timestamp || '',
-                            submission.formType || 'unknown'
+            <>
+              {selectedSubmissions.size > 0 && (
+                <div className="mt-4 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3 dark:border-red-800 dark:bg-red-900/30">
+                  <span className="text-sm font-medium text-red-800 dark:text-red-200">
+                    {selectedSubmissions.size} submission{selectedSubmissions.size > 1 ? 's' : ''} selected
+                  </span>
+                  <button
+                    onClick={bulkDeleteSubmissions}
+                    disabled={bulkDeleting}
+                    className="inline-flex items-center gap-2 rounded-lg border border-red-300 bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-700 dark:bg-red-700 dark:hover:bg-red-800"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    {bulkDeleting ? 'Deleting...' : 'Delete Selected'}
+                  </button>
+                </div>
+              )}
+              <div className="mt-6 overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+                  <thead className="bg-gray-50 text-left uppercase tracking-wide dark:bg-gray-800/60">
+                    <tr>
+                      <th className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={forms.recentSubmissions.slice(0, 6).every(sub => 
+                            selectedSubmissions.has(sub.originalTimestamp || sub.timestamp || '')
                           )}
-                          className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50"
-                        >
-                          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          Delete
-                        </button>
-                      </td>
+                          onChange={toggleSelectAll}
+                          className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-800"
+                        />
+                      </th>
+                      <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400">Form</th>
+                      <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400">Submitted</th>
+                      <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400">Key details</th>
+                      <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                    {forms.recentSubmissions.slice(0, 6).map((submission, index) => {
+                      const timestamp = submission.originalTimestamp || submission.timestamp || '';
+                      const isSelected = selectedSubmissions.has(timestamp);
+                      
+                      return (
+                        <tr 
+                          key={`${submission.timestamp ?? index}-${index}`} 
+                          className={`hover:bg-gray-50/70 dark:hover:bg-gray-800/60 ${isSelected ? 'bg-red-50/50 dark:bg-red-900/20' : ''}`}
+                        >
+                          <td className="px-4 py-3">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleSubmissionSelection(timestamp)}
+                              className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-800"
+                            />
+                          </td>
+                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">{submission.formType ?? 'Unknown form'}</td>
+                          <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{submission.timestamp ?? '—'}</td>
+                          <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
+                            {submission.fields
+                              ? Object.entries(submission.fields)
+                                  .slice(0, 2)
+                                  .map(([key, value]) => (
+                                    <div key={key} className="truncate text-xs">
+                                      <span className="font-medium text-gray-600 dark:text-gray-300">{key}: </span>
+                                      <span>{value}</span>
+                                    </div>
+                                  ))
+                              : 'No details captured'}
+                          </td>
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => deleteFormSubmission(
+                                submission.originalTimestamp || submission.timestamp || '', 
+                                submission.timestamp || '',
+                                submission.formType || 'unknown'
+                              )}
+                              className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50"
+                            >
+                              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
           ) : (
             <p className="mt-6 rounded-2xl border border-dashed border-gray-300 px-4 py-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-500">
               No recent submissions to show. Once forms are submitted, they will appear here automatically.
