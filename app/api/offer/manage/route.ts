@@ -6,9 +6,9 @@ export const dynamic = 'force-dynamic'
 export async function POST(request: Request) {
   try {
     console.log('[Offer Manage] Starting offer save...')
-    const { title, description, imageUrl, buttonText, buttonLink, buttonColor, backgroundColor, textColor, badgeColor, termsText, isActive } = await request.json()
+    const { title, description, imageUrl, buttonText, buttonLink, buttonColor, backgroundColor, textColor, badgeColor, badgeText, termsText, isActive } = await request.json()
 
-    console.log('[Offer Manage] Received data:', { title, isActive })
+    console.log('[Offer Manage] Received data:', { title, badgeText, isActive })
 
     // SERVER-SIDE VALIDATION - Prevent XSS and invalid data ✅
     
@@ -62,6 +62,7 @@ export async function POST(request: Request) {
     const sanitizedTitle = title.trim().replace(/[<>]/g, '');
     const sanitizedDescription = description.trim().replace(/[<>]/g, '');
     const sanitizedButtonText = buttonText ? buttonText.trim().replace(/[<>]/g, '') : buttonText;
+    const sanitizedBadgeText = badgeText ? badgeText.trim().replace(/[<>]/g, '').toUpperCase() : "TODAY'S OFFER";
     const sanitizedTermsText = termsText ? termsText.trim().replace(/[<>]/g, '') : termsText;
 
     // Check if offer exists (get for admin to see inactive offers too)
@@ -83,6 +84,7 @@ export async function POST(request: Request) {
         backgroundColor,
         textColor,
         badgeColor,
+        badgeText: sanitizedBadgeText,
         termsText: sanitizedTermsText,
         isActive,
       })
@@ -90,7 +92,7 @@ export async function POST(request: Request) {
     } else {
       // Create new offer (use sanitized values)
       console.log('[Offer Manage] Creating new offer...')
-      await createOffer(sanitizedTitle, sanitizedDescription, imageUrl, sanitizedButtonText, buttonLink, buttonColor, backgroundColor, textColor, badgeColor, sanitizedTermsText)
+      await createOffer(sanitizedTitle, sanitizedDescription, imageUrl, sanitizedButtonText, buttonLink, buttonColor, backgroundColor, textColor, badgeColor, sanitizedBadgeText, sanitizedTermsText)
       success = true
       console.log('[Offer Manage] Create completed')
     }
