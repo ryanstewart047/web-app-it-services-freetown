@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "rm -rf .next && prisma generate && next build",
+    "build": "prisma generate && next build",
     "dev": "next dev",
     "start": "next start",
     "export": "next build",
@@ -12,7 +12,6 @@
     "preview": "npx serve .",
     "static": "python3 -m http.server 8000 2>/dev/null || python -m http.server 8000 2>/dev/null || npx serve .",
     "postinstall": "prisma generate",
-    "vercel-build": "rm -rf .next && prisma generate && next build",
     "db-push": "prisma db push --accept-data-loss"
   },
   "dependencies": {
