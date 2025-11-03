@@ -101,10 +101,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Google AdSense - Replace ca-pub-XXXXXXXXXXXXXXXX with your Publisher ID after approval */}
+        {/* Google AdSense */}
         <Script
           async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9989697800650646"
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
