@@ -101,13 +101,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Google AdSense */}
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9989697800650646"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
+        {/* Google AdSense Verification Meta Tag */}
+        <meta name="google-adsense-account" content="ca-pub-9989697800650646" />
         
         {/* Font Awesome */}
         <link 
