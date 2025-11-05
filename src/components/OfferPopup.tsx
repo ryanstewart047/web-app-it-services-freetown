@@ -104,7 +104,7 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
             {/* Text Section */}
             <div className="md:w-3/5 p-4 md:p-8">
               <div className="mb-3 md:mb-4">
-                <div className="inline-block px-2 py-0.5 md:px-3 md:py-1 text-white text-[10px] md:text-xs font-bold rounded-full mb-2 md:mb-3" style={{ background: offer.badgeColor || '#9333ea' }}>
+                <div className="inline-block px-2 py-0.5 md:px-3 md:py-1 text-white text-[10px] md:text-xs font-bold rounded-full mb-2 md:mb-3 animate-badge-pulse" style={{ background: offer.badgeColor || '#9333ea' }}>
                   {offer.badgeText || "TODAY'S OFFER"}
                 </div>
                 <h2 className="text-xl md:text-3xl font-bold mb-2 md:mb-3 leading-tight" style={{ color: offer.textColor || '#1f2937' }}>
@@ -159,6 +159,20 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
         }
         .animate-scale-in {
           animation: scale-in 0.3s ease-out;
+        }
+        
+        @keyframes badge-pulse {
+          0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.7);
+          }
+          50% {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 8px rgba(147, 51, 234, 0);
+          }
+        }
+        .animate-badge-pulse {
+          animation: badge-pulse 2s ease-in-out infinite;
         }
       `}</style>
     </>
