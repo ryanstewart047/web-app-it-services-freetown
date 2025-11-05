@@ -161,18 +161,40 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
           animation: scale-in 0.3s ease-out;
         }
         
-        @keyframes badge-pulse {
-          0%, 100% {
-            transform: scale(1);
-            box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.7);
+        @keyframes badge-shake {
+          0%, 90%, 100% {
+            transform: translateX(0) rotate(0deg);
           }
-          50% {
-            transform: scale(1.05);
-            box-shadow: 0 0 0 8px rgba(147, 51, 234, 0);
+          91% {
+            transform: translateX(-3px) rotate(-2deg);
+          }
+          92% {
+            transform: translateX(3px) rotate(2deg);
+          }
+          93% {
+            transform: translateX(-3px) rotate(-2deg);
+          }
+          94% {
+            transform: translateX(3px) rotate(2deg);
+          }
+          95% {
+            transform: translateX(-2px) rotate(-1deg);
+          }
+          96% {
+            transform: translateX(2px) rotate(1deg);
+          }
+          97% {
+            transform: translateX(-1px) rotate(-0.5deg);
+          }
+          98% {
+            transform: translateX(1px) rotate(0.5deg);
+          }
+          99% {
+            transform: translateX(0) rotate(0deg);
           }
         }
         .animate-badge-pulse {
-          animation: badge-pulse 2s ease-in-out infinite;
+          animation: badge-shake 2s ease-in-out infinite;
         }
       `}</style>
     </>
