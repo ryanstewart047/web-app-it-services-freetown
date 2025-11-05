@@ -119,7 +119,7 @@ export default function OfferAdminPage() {
     if (!exportRef.current) return
     
     try {
-      toast.loading('Generating 1080x1080 image for social media...')
+      toast.loading('Generating social media image...')
       
       const canvas = await html2canvas(exportRef.current, {
         useCORS: true,
@@ -136,11 +136,11 @@ export default function OfferAdminPage() {
           const url = URL.createObjectURL(blob)
           const link = document.createElement('a')
           link.href = url
-          link.download = `offer-1080x1080-${Date.now()}.png`
+          link.download = `offer-social-${Date.now()}.png`
           link.click()
           URL.revokeObjectURL(url)
           toast.dismiss()
-          toast.success('1080x1080 image downloaded!')
+          toast.success('Social media image downloaded!')
         }
       }, 'image/png')
     } catch (error) {
@@ -672,7 +672,7 @@ export default function OfferAdminPage() {
           </div>
         )}
 
-        {/* Hidden 1080x1080 Export Version */}
+        {/* Hidden Social Media Export Version (1080x1080 for Instagram/Facebook) */}
         <div 
           ref={exportRef}
           className="fixed -left-[9999px] top-0"

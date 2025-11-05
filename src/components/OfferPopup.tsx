@@ -69,7 +69,7 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
       {/* Popup Card */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 pointer-events-none">
         <div 
-          className="rounded-xl md:rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden pointer-events-auto transform transition-all duration-300 animate-scale-in"
+          className="rounded-xl md:rounded-2xl shadow-2xl max-w-sm md:max-w-2xl lg:max-w-3xl w-full overflow-hidden pointer-events-auto transform transition-all duration-300 animate-scale-in"
           style={{ backgroundColor: offer.backgroundColor || '#ffffff' }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -84,9 +84,9 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
 
           {/* Content */}
           <div className="flex flex-col md:flex-row">
-            {/* Image Section - Square aspect ratio 1:1 (1080x1080) */}
+            {/* Image Section - Flexible sizing */}
             <div className="md:w-2/5 relative bg-gradient-to-br from-purple-100 to-pink-100">
-              <div className="aspect-square w-full">
+              <div className="w-full h-48 md:h-full md:min-h-[300px]">
                 {offer.imageUrl ? (
                   <img
                     src={offer.imageUrl}
