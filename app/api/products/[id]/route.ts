@@ -43,12 +43,34 @@ export async function PUT(
     
     console.log('PUT request received for product:', params.id, 'with data:', body);
     
+    // Extract images from body
+    const { images, ...productData } = body;
+    
+    // First, delete existing images
+    await prisma.productImage.deleteMany({
+      where: { productId: params.id }
+    });
+    
+    // Then update the product with new images
     const product = await prisma.product.update({
       where: { id: params.id },
-      data: body,
+      data: {
+        ...productData,
+        images: images && images.length > 0 ? {
+          create: images.map((img: any, index: number) => ({
+            url: img.url,
+            alt: img.alt || productData.name,
+            order: img.order !== undefined ? img.order : index
+          }))
+        } : undefined
+      },
       include: {
         category: true,
-        images: true
+        images: {
+          orderBy: {
+            order: 'asc'
+          }
+        }
       }
     });
 

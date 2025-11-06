@@ -37,6 +37,7 @@ export default function AdminProductsPage() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [imageUrls, setImageUrls] = useState<string[]>(['']);
 
   useEffect(() => {
     fetchProducts();
@@ -238,7 +239,11 @@ export default function AdminProductsPage() {
                 Bulk Upload
               </button>
               <button
-                onClick={() => setShowAddModal(true)}
+                onClick={() => {
+                  setEditingProduct(null);
+                  setImageUrls(['']);
+                  setShowAddModal(true);
+                }}
                 className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
               >
                 <Plus className="w-5 h-5" />
@@ -427,6 +432,9 @@ export default function AdminProductsPage() {
                           <button
                             onClick={() => {
                               setEditingProduct(product);
+                              // Populate image URLs from the product
+                              const productImages = product.images?.map(img => img.url) || [''];
+                              setImageUrls(productImages.length > 0 ? productImages : ['']);
                               setShowAddModal(true);
                             }}
                             className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
@@ -464,6 +472,7 @@ export default function AdminProductsPage() {
                 onClick={() => {
                   setShowAddModal(false);
                   setEditingProduct(null);
+                  setImageUrls(['']);
                 }}
                 className="text-gray-400 hover:text-white"
               >
@@ -474,6 +483,16 @@ export default function AdminProductsPage() {
             <form onSubmit={async (e) => {
               e.preventDefault();
               const formData = new FormData(e.currentTarget);
+              
+              // Collect all non-empty image URLs
+              const images = imageUrls
+                .filter(url => url.trim() !== '')
+                .map((url, index) => ({
+                  url: url.trim(),
+                  alt: formData.get('name') as string,
+                  order: index
+                }));
+              
               const productData = {
                 name: formData.get('name'),
                 description: formData.get('description'),
@@ -485,12 +504,15 @@ export default function AdminProductsPage() {
                 brand: formData.get('brand') || null,
                 status: formData.get('status'),
                 featured: formData.get('featured') === 'on',
-                images: formData.get('imageUrl') ? [{ url: formData.get('imageUrl'), alt: formData.get('name'), order: 0 }] : []
+                images: images.length > 0 ? images : []
               };
 
               try {
                 const url = editingProduct ? `/api/products/${editingProduct.id}` : '/api/products';
                 const method = editingProduct ? 'PUT' : 'POST';
+                
+                console.log('Saving product:', productData);
+                
                 const res = await fetch(url, {
                   method,
                   headers: { 'Content-Type': 'application/json' },
@@ -498,12 +520,16 @@ export default function AdminProductsPage() {
                 });
 
                 if (res.ok) {
+                  const savedProduct = await res.json();
+                  console.log('Product saved successfully:', savedProduct);
                   alert(editingProduct ? 'Product updated successfully!' : 'Product created successfully!');
                   setShowAddModal(false);
                   setEditingProduct(null);
+                  setImageUrls(['']);
                   fetchProducts();
                 } else {
                   const error = await res.json();
+                  console.error('Save error:', error);
                   alert(`Error: ${error.error || 'Failed to save product'}`);
                 }
               } catch (error) {
@@ -614,17 +640,49 @@ export default function AdminProductsPage() {
                   </div>
                 </div>
 
-                {/* Image URL */}
+                {/* Image URLs */}
                 <div>
-                  <label className="block text-white mb-2">Image URL *</label>
-                  <input
-                    type="url"
-                    name="imageUrl"
-                    defaultValue={editingProduct?.images?.[0]?.url}
-                    required
-                    placeholder="https://example.com/image.jpg"
-                    className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
+                  <label className="block text-white mb-2">Product Images *</label>
+                  <div className="space-y-2">
+                    {imageUrls.map((url, index) => (
+                      <div key={index} className="flex gap-2">
+                        <input
+                          type="url"
+                          value={url}
+                          onChange={(e) => {
+                            const newUrls = [...imageUrls];
+                            newUrls[index] = e.target.value;
+                            setImageUrls(newUrls);
+                          }}
+                          placeholder="https://example.com/image.jpg"
+                          className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                        {imageUrls.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newUrls = imageUrls.filter((_, i) => i !== index);
+                              setImageUrls(newUrls);
+                            }}
+                            className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setImageUrls([...imageUrls, ''])}
+                      className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Another Image
+                    </button>
+                  </div>
+                  <p className="text-gray-400 text-sm mt-2">
+                    Add multiple image URLs. The first image will be the main product image.
+                  </p>
                 </div>
 
                 {/* Status and Featured */}
