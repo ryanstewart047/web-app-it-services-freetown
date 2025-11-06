@@ -413,7 +413,7 @@ Thank you for your business!
               </p>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form onSubmit={handleLogin} className="space-y-6" data-no-analytics="true">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Admin Password

@@ -174,7 +174,7 @@ export default function StaticChatFloat() {
                 <X size={18} />
               </button>
             </div>
-          </div>          <form onSubmit={handleSubmit} className="p-4">
+          </div>          <form onSubmit={handleSubmit} className="p-4" data-no-analytics="true">
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}

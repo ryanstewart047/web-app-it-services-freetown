@@ -69,6 +69,48 @@ export async function POST(request: NextRequest) {
       const formType = data.formType || 'contact';
       const fields = data.fields || data;
       
+      // CRITICAL FIX: Reject submissions with 'unknown' or missing formType
+      // This prevents tracking of admin forms and internal forms
+      if (!formType || formType === 'unknown' || formType.trim() === '') {
+        console.error('[Forms API] ❌ Rejected submission with invalid formType:', formType);
+        return NextResponse.json({
+          success: false,
+          error: 'Invalid form type',
+          message: 'Form submissions must have a valid data-form-type attribute'
+        }, { status: 400 });
+      }
+      
+      // Whitelist of allowed form types (security measure)
+      const allowedFormTypes = ['contact', 'repair-booking', 'troubleshoot', 'newsletter'];
+      if (!allowedFormTypes.includes(formType)) {
+        console.error('[Forms API] ❌ Rejected submission with disallowed formType:', formType);
+        return NextResponse.json({
+          success: false,
+          error: 'Form type not allowed',
+          message: `Form type "${formType}" is not in the allowed list`
+        }, { status: 403 });
+      }
+      
+      // Validate that we have actual field data
+      const fieldEntries = Object.entries(fields);
+      const hasRealData = fieldEntries.some(([key, value]) => {
+        // Skip metadata fields
+        if (['formType', 'userAgent', 'page', 'trackingId', 'sessionId', 'referrer', 'success', 'completionTime'].includes(key)) {
+          return false;
+        }
+        // Check if value has actual content
+        return value && value.toString().trim().length > 0;
+      });
+      
+      if (!hasRealData) {
+        console.error('[Forms API] ❌ Rejected empty form submission');
+        return NextResponse.json({
+          success: false,
+          error: 'Empty submission',
+          message: 'Form submission must contain actual field data'
+        }, { status: 400 });
+      }
+      
       // SERVER-SIDE VALIDATION - Prevent empty submissions ✅
       if (formType === 'repair-booking') {
         const required = ['customerName', 'name', 'email', 'phone', 'deviceType', 'issueDescription'];

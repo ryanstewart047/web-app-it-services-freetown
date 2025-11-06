@@ -38,6 +38,20 @@ export default function AdminProductsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [imageUrls, setImageUrls] = useState<string[]>(['']);
+  
+  // Form state - controlled components
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    price: '',
+    comparePrice: '',
+    stock: '',
+    categoryId: '',
+    sku: '',
+    brand: '',
+    status: 'active',
+    featured: false
+  });
 
   useEffect(() => {
     fetchProducts();
@@ -432,6 +446,19 @@ export default function AdminProductsPage() {
                           <button
                             onClick={() => {
                               setEditingProduct(product);
+                              // Populate form data from the product
+                              setFormData({
+                                name: product.name,
+                                description: product.description,
+                                price: product.price.toString(),
+                                comparePrice: product.comparePrice?.toString() || '',
+                                stock: product.stock.toString(),
+                                categoryId: product.categoryId,
+                                sku: product.sku || '',
+                                brand: product.brand || '',
+                                status: product.status,
+                                featured: product.featured
+                              });
                               // Populate image URLs from the product
                               const productImages = product.images?.map(img => img.url) || [''];
                               setImageUrls(productImages.length > 0 ? productImages : ['']);
@@ -473,6 +500,19 @@ export default function AdminProductsPage() {
                   setShowAddModal(false);
                   setEditingProduct(null);
                   setImageUrls(['']);
+                  // Reset form data
+                  setFormData({
+                    name: '',
+                    description: '',
+                    price: '',
+                    comparePrice: '',
+                    stock: '',
+                    categoryId: '',
+                    sku: '',
+                    brand: '',
+                    status: 'active',
+                    featured: false
+                  });
                 }}
                 className="text-gray-400 hover:text-white"
               >
@@ -480,7 +520,7 @@ export default function AdminProductsPage() {
               </button>
             </div>
 
-            <form onSubmit={async (e) => {
+            <form data-no-analytics="true" onSubmit={async (e) => {
               e.preventDefault();
               const formData = new FormData(e.currentTarget);
               

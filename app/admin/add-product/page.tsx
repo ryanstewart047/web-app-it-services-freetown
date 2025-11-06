@@ -113,7 +113,7 @@ export default function AddProductPage() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-8">
+        <form onSubmit={handleSubmit} className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-8" data-no-analytics="true">
           {/* Basic Info */}
           <div className="space-y-6">
             <div>

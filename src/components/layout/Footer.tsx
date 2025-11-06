@@ -61,7 +61,7 @@ export default function Footer() {
                     </div>
                     <p className="text-gray-300 text-sm">Enter admin password to access admin panels</p>
                   </div>
-                  <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                  <form onSubmit={handlePasswordSubmit} className="space-y-4" data-no-analytics="true">
                     <div>
                       <input
                         type="password"

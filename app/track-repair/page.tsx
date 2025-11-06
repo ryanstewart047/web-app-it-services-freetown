@@ -83,7 +83,7 @@ export default function TrackRepair() {
                 <p className="text-gray-600">Enter the tracking ID we provided when you booked your appointment</p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6" data-no-analytics="true">
                 {/* Browser Support Warning */}
                 {!browserSupport && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">

@@ -396,7 +396,7 @@ Write the content now:`
               </p>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form onSubmit={handleLogin} className="space-y-6" data-no-analytics="true">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Admin Password
@@ -525,7 +525,7 @@ Write the content now:`
 
         {/* Form */}
         {!preview ? (
-          <form onSubmit={handleSubmit} className="space-y-6 scroll-animate">
+          <form onSubmit={handleSubmit} className="space-y-6 scroll-animate" data-no-analytics="true">
             {/* Author */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <label className="block text-sm font-semibold text-gray-700 mb-2">

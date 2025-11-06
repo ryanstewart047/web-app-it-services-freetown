@@ -296,7 +296,7 @@ export default function AdminCategoriesPage() {
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
               {editingCategory ? 'Edit Category' : 'Add Category'}
             </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" data-no-analytics="true">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Name *

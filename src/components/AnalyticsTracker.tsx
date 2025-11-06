@@ -248,6 +248,24 @@ class AnalyticsTracker {
       
       // Skip tracking if form has data-no-analytics attribute
       if (form.getAttribute('data-no-analytics') === 'true') {
+        console.log('[Analytics] Skipping form (data-no-analytics)');
+        return;
+      }
+      
+      // CRITICAL FIX: Only track forms with explicit data-form-type
+      // This prevents tracking admin forms, login forms, and internal forms
+      const formType = form.getAttribute('data-form-type');
+      if (!formType || formType === 'unknown') {
+        console.log('[Analytics] Skipping form (no data-form-type attribute)');
+        return;
+      }
+      
+      // Additional security: Skip admin and internal forms by URL
+      const currentPath = window.location.pathname;
+      if (currentPath.includes('/admin') || 
+          currentPath.includes('/receipt') || 
+          currentPath.includes('/track-repair')) {
+        console.log('[Analytics] Skipping form (admin/internal path)');
         return;
       }
       
@@ -257,9 +275,20 @@ class AnalyticsTracker {
       formData.forEach((value, key) => {
         fields[key] = value;
       });
+      
+      // Validate that we have actual data before tracking
+      const hasData = Object.values(fields).some(value => 
+        value && value.toString().trim().length > 0
+      );
+      
+      if (!hasData) {
+        console.log('[Analytics] Skipping empty form submission');
+        return;
+      }
 
+      console.log('[Analytics] Tracking form submission:', formType);
       this.trackFormSubmission({
-        formType: form.getAttribute('data-form-type') || 'unknown',
+        formType,
         fields,
         success: true,
         completionTime: Date.now() - this.startTime,
