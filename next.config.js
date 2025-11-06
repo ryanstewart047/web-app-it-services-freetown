@@ -62,6 +62,71 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react', 'framer-motion'],
     optimizeCss: false,
   },
+  
+  // Redirects for common issues
+  async redirects() {
+    return [
+      // Redirect trailing slashes to non-trailing slash URLs
+      {
+        source: '/:path+/',
+        destination: '/:path+',
+        permanent: true,
+      },
+      // Redirect old blog URLs if any
+      {
+        source: '/blog.html',
+        destination: '/blog',
+        permanent: true,
+      },
+      // Redirect index.html to home
+      {
+        source: '/index.html',
+        destination: '/',
+        permanent: true,
+      },
+      // Redirect common misspellings
+      {
+        source: '/marketplace.html',
+        destination: '/marketplace',
+        permanent: true,
+      },
+      {
+        source: '/services.html',
+        destination: '/services',
+        permanent: true,
+      },
+      {
+        source: '/repair.html',
+        destination: '/repair',
+        permanent: true,
+      },
+      {
+        source: '/contact.html',
+        destination: '/contact',
+        permanent: true,
+      },
+      {
+        source: '/about.html',
+        destination: '/about',
+        permanent: true,
+      },
+    ];
+  },
+  
+  // Handle 404s properly
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'index, follow',
+          },
+        ],
+      },
+    ];
+  },
 }
 
 module.exports = nextConfig

@@ -45,10 +45,19 @@ async function getCategories() {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://www.itservicesfreetown.com';
-  const products = await getProducts();
-  const categories = await getCategories();
+  
+  let products: any[] = [];
+  let categories: any[] = [];
+  
+  try {
+    products = await getProducts();
+    categories = await getCategories();
+  } catch (error) {
+    console.error('Error generating sitemap:', error);
+    // Continue with empty arrays if database fails
+  }
 
-  // Static pages
+  // Static pages - only include pages that actually exist
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
@@ -85,6 +94,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.7,
     },
   ];
 
