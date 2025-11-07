@@ -14,6 +14,7 @@ interface Product {
   stock: number;
   status: string;
   condition: string;
+  videoUrl?: string;
   images: { url: string; alt?: string }[];
   category: { name: string; slug: string };
   brand?: string;

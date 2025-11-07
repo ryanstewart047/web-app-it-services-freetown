@@ -14,6 +14,7 @@ interface Product {
   comparePrice?: number;
   stock: number;
   condition: string;
+  videoUrl?: string;
   images: { url: string; alt?: string; order: number }[];
   category: { name: string; slug: string };
   brand?: string;
@@ -268,6 +269,38 @@ export default function ProductDetailPage() {
                     />
                   </button>
                 ))}
+              </div>
+            )}
+
+            {/* Product Video */}
+            {product.videoUrl && (
+              <div className="mt-4">
+                <h3 className="text-white text-lg font-semibold mb-3">Product Video</h3>
+                <div className="bg-gray-800 rounded-2xl overflow-hidden aspect-video">
+                  {product.videoUrl.includes('youtube.com') || product.videoUrl.includes('youtu.be') ? (
+                    <iframe
+                      src={product.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : product.videoUrl.includes('vimeo.com') ? (
+                    <iframe
+                      src={product.videoUrl.replace('vimeo.com/', 'player.vimeo.com/video/')}
+                      className="w-full h-full"
+                      allow="autoplay; fullscreen; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : (
+                    <video
+                      controls
+                      className="w-full h-full"
+                      src={product.videoUrl}
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  )}
+                </div>
               </div>
             )}
           </div>
