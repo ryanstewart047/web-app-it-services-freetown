@@ -41,25 +41,35 @@ export async function PUT(
   try {
     const body = await request.json();
     
-    console.log('PUT request received for product:', params.id, 'with data:', body);
+    console.log('PUT request received for product:', params.id, 'with data:', JSON.stringify(body, null, 2));
     
     // Extract images from body
     const { images, ...productData } = body;
     
+    // Ensure condition field is included (default to 'new' if not provided)
+    const updateData = {
+      ...productData,
+      condition: productData.condition || 'new'
+    };
+    
+    console.log('Update data prepared:', JSON.stringify(updateData, null, 2));
+    
     // First, delete existing images
-    await prisma.productImage.deleteMany({
-      where: { productId: params.id }
-    });
+    if (images && images.length > 0) {
+      await prisma.productImage.deleteMany({
+        where: { productId: params.id }
+      });
+    }
     
     // Then update the product with new images
     const product = await prisma.product.update({
       where: { id: params.id },
       data: {
-        ...productData,
+        ...updateData,
         images: images && images.length > 0 ? {
           create: images.map((img: any, index: number) => ({
             url: img.url,
-            alt: img.alt || productData.name,
+            alt: img.alt || updateData.name,
             order: img.order !== undefined ? img.order : index
           }))
         } : undefined
@@ -78,7 +88,11 @@ export async function PUT(
     return NextResponse.json(product);
   } catch (error) {
     console.error('Error updating product:', error);
-    return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
+    console.error('Error details:', error instanceof Error ? error.message : String(error));
+    return NextResponse.json({ 
+      error: 'Failed to update product',
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 });
   }
 }
 
@@ -90,11 +104,17 @@ export async function PATCH(
   try {
     const body = await request.json();
     
-    console.log('PATCH request received for product:', params.id, 'with data:', body);
+    console.log('PATCH request received for product:', params.id, 'with data:', JSON.stringify(body, null, 2));
+    
+    // Ensure condition field is included (default to 'new' if not provided)
+    const updateData = {
+      ...body,
+      condition: body.condition || 'new'
+    };
     
     const product = await prisma.product.update({
       where: { id: params.id },
-      data: body,
+      data: updateData,
       include: {
         category: true,
         images: true
@@ -105,7 +125,11 @@ export async function PATCH(
     return NextResponse.json(product);
   } catch (error) {
     console.error('Error updating product:', error);
-    return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
+    console.error('Error details:', error instanceof Error ? error.message : String(error));
+    return NextResponse.json({ 
+      error: 'Failed to update product',
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 });
   }
 }
 
