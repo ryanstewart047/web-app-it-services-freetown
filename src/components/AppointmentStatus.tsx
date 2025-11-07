@@ -12,7 +12,7 @@ interface AppointmentStatus {
   customerName: string
   deviceType: string
   deviceModel: string
-  status: 'received' | 'diagnosed' | 'in-progress' | 'completed' | 'ready-for-pickup'
+  status: 'received' | 'submitted' | 'diagnosed' | 'in-progress' | 'completed' | 'ready-for-pickup' | 'cancelled'
   estimatedCompletion?: string
   notes?: string
   cost?: number
@@ -22,10 +22,12 @@ interface AppointmentStatus {
 
 const statusSteps = [
   { key: 'received', label: 'Received', icon: 'fas fa-inbox', color: '#040e40' },
+  { key: 'submitted', label: 'Submitted', icon: 'fas fa-paper-plane', color: '#3b82f6' },
   { key: 'diagnosed', label: 'Diagnosed', icon: 'fas fa-search', color: '#ef4444' },
   { key: 'in-progress', label: 'In Progress', icon: 'fas fa-tools', color: '#ef4444' },
-  { key: 'completed', label: 'Completed', icon: 'fas fa-check', color: '#040e40' },
-  { key: 'ready-for-pickup', label: 'Ready for Pickup', icon: 'fas fa-bell', color: '#040e40' }
+  { key: 'completed', label: 'Completed', icon: 'fas fa-check', color: '#10b981' },
+  { key: 'ready-for-pickup', label: 'Ready for Pickup', icon: 'fas fa-bell', color: '#040e40' },
+  { key: 'cancelled', label: 'Cancelled', icon: 'fas fa-times-circle', color: '#ef4444' }
 ]
 
 export default function AppointmentStatus({ trackingId }: AppointmentStatusProps) {
@@ -250,6 +252,7 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
   if (!appointment) return null
 
   const currentStepIndex = getCurrentStepIndex()
+  const isCancelled = appointment.status === 'cancelled'
 
   return (
     <div className="bg-white rounded-2xl p-8 shadow-lg">
@@ -272,60 +275,80 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
         </div>
       </div>
 
-      {/* Status Timeline */}
-      <div className="mb-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-6">Repair Progress</h3>
-        <div className="relative">
-          {statusSteps.map((step, index) => {
-            const isCompleted = index <= currentStepIndex
-            const isCurrent = index === currentStepIndex
-            
-            return (
-              <div key={step.key} className="flex items-center mb-6 last:mb-0">
-                {/* Step Circle */}
-                <div className={`relative z-10 flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${
-                  isCompleted 
-                    ? 'text-white shadow-lg' 
-                    : 'bg-gray-200 text-gray-400'
-                }`}
-                style={isCompleted ? { backgroundColor: step.color } : {}}
-                >
-                  <i className={`${step.icon} text-lg`}></i>
-                </div>
+      {/* Cancelled Status Alert */}
+      {isCancelled && (
+        <div className="mb-8 bg-red-50 border-l-4 border-red-500 p-6 rounded-lg">
+          <div className="flex items-center mb-2">
+            <i className="fas fa-times-circle text-red-500 text-2xl mr-3"></i>
+            <h3 className="text-lg font-bold text-red-900">Repair Cancelled</h3>
+          </div>
+          <p className="text-red-800 ml-9">
+            This repair has been cancelled. If you have any questions, please contact us.
+          </p>
+          {appointment.notes && (
+            <div className="mt-3 ml-9 text-sm text-red-700 bg-red-100 p-3 rounded">
+              <strong>Cancellation reason:</strong> {appointment.notes}
+            </div>
+          )}
+        </div>
+      )}
 
-                {/* Connecting Line */}
-                {index < statusSteps.length - 1 && (
-                  <div 
-                    className={`absolute left-6 w-0.5 h-6 mt-12 transition-colors duration-300 ${
-                      index < currentStepIndex ? 'bg-gray-400' : 'bg-gray-200'
-                    }`}
-                  ></div>
-                )}
+      {/* Status Timeline - Only show if not cancelled */}
+      {!isCancelled && (
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">Repair Progress</h3>
+          <div className="relative">
+            {statusSteps.filter(step => step.key !== 'cancelled').map((step, index) => {
+              const isCompleted = index <= currentStepIndex
+              const isCurrent = index === currentStepIndex
+              
+              return (
+                <div key={step.key} className="flex items-center mb-6 last:mb-0">
+                  {/* Step Circle */}
+                  <div className={`relative z-10 flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${
+                    isCompleted 
+                      ? 'text-white shadow-lg' 
+                      : 'bg-gray-200 text-gray-400'
+                  }`}
+                  style={isCompleted ? { backgroundColor: step.color } : {}}
+                  >
+                    <i className={`${step.icon} text-lg`}></i>
+                  </div>
 
-                {/* Step Content */}
-                <div className="ml-6 flex-1">
-                  <div className={`font-semibold ${isCurrent ? 'text-gray-900' : isCompleted ? 'text-gray-700' : 'text-gray-400'}`}>
-                    {step.label}
-                    {isCurrent && (
-                      <span className="ml-2 text-xs bg-red-500 text-white px-2 py-1 rounded-full">
-                        Current
-                      </span>
+                  {/* Connecting Line */}
+                  {index < statusSteps.filter(s => s.key !== 'cancelled').length - 1 && (
+                    <div 
+                      className={`absolute left-6 w-0.5 h-6 mt-12 transition-colors duration-300 ${
+                        index < currentStepIndex ? 'bg-gray-400' : 'bg-gray-200'
+                      }`}
+                    ></div>
+                  )}
+
+                  {/* Step Content */}
+                  <div className="ml-6 flex-1">
+                    <div className={`font-semibold ${isCurrent ? 'text-gray-900' : isCompleted ? 'text-gray-700' : 'text-gray-400'}`}>
+                      {step.label}
+                      {isCurrent && (
+                        <span className="ml-2 text-xs bg-red-500 text-white px-2 py-1 rounded-full">
+                          Current
+                        </span>
+                      )}
+                    </div>
+                    {isCurrent && appointment.notes && (
+                      <p className="text-sm text-gray-600 mt-1">{appointment.notes}</p>
                     )}
                   </div>
-                  {isCurrent && appointment.notes && (
-                    <p className="text-sm text-gray-600 mt-1">{appointment.notes}</p>
-                  )}
-                </div>
 
-                {/* Timestamp */}
-                <div className="text-xs text-gray-500">
-                  {isCompleted && new Date(appointment.updatedAt).toLocaleDateString()}
+                  {/* Timestamp */}
+                  <div className="text-xs text-gray-500">
+                    {isCompleted && new Date(appointment.updatedAt).toLocaleDateString()}
+                  </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Additional Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
