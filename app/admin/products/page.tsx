@@ -546,6 +546,12 @@ export default function AdminProductsPage() {
             <form data-no-analytics="true" onSubmit={async (e) => {
               e.preventDefault();
               
+              // Validate required fields
+              if (!formData.name || !formData.description || !formData.price || !formData.stock || !formData.categoryId) {
+                alert('Please fill in all required fields:\n- Product Name\n- Description\n- Price\n- Stock\n- Category');
+                return;
+              }
+              
               // Collect all non-empty image URLs
               const images = imageUrls
                 .filter(url => url.trim() !== '')
@@ -607,11 +613,12 @@ export default function AdminProductsPage() {
                 } else {
                   const error = await res.json();
                   console.error('Save error:', error);
-                  alert(`Error: ${error.error || 'Failed to save product'}`);
+                  const errorMessage = error.details || error.error || 'Failed to save product';
+                  alert(`Error: ${errorMessage}\n\nPlease check:\n- All required fields are filled\n- Category is selected\n- Images have valid URLs`);
                 }
               } catch (error) {
                 console.error('Error saving product:', error);
-                alert('Failed to save product');
+                alert(`Failed to save product: ${error instanceof Error ? error.message : 'Unknown error'}`);
               }
             }}>
               <div className="space-y-4">
