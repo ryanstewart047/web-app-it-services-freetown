@@ -589,8 +589,14 @@ export default function AdminProductsPage() {
                 });
 
                 if (res.ok) {
-                  const savedProduct = await res.json();
-                  console.log('Product saved successfully:', savedProduct);
+                  let savedProduct;
+                  try {
+                    savedProduct = await res.json();
+                    console.log('Product saved successfully:', savedProduct);
+                  } catch (jsonError) {
+                    console.log('Response was successful but JSON parsing failed - this is OK, product was saved');
+                  }
+                  
                   alert(editingProduct ? 'Product updated successfully!' : 'Product created successfully!');
                   setShowAddModal(false);
                   setEditingProduct(null);
@@ -611,9 +617,15 @@ export default function AdminProductsPage() {
                   });
                   fetchProducts();
                 } else {
-                  const error = await res.json();
-                  console.error('Save error:', error);
-                  const errorMessage = error.details || error.error || 'Failed to save product';
+                  let errorMessage = 'Failed to save product';
+                  try {
+                    const error = await res.json();
+                    console.error('Save error:', error);
+                    errorMessage = error.details || error.error || errorMessage;
+                  } catch (jsonError) {
+                    // If we can't parse the error response, use status text
+                    errorMessage = `Failed to save product: ${res.status} ${res.statusText}`;
+                  }
                   alert(`Error: ${errorMessage}\n\nPlease check:\n- All required fields are filled\n- Category is selected\n- Images have valid URLs`);
                 }
               } catch (error) {
