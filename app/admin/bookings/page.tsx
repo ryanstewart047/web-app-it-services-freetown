@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Calendar, Clock, Smartphone, CheckCircle, XCircle, AlertCircle, Search } from 'lucide-react';
+import { useAdminSession } from '../../../src/hooks/useAdminSession';
 
 interface Appointment {
   id: string;
@@ -37,6 +38,12 @@ const statusIcons = {
 };
 
 export default function AdminBookingsPage() {
+  // Admin session management - auto-logout after 5 minutes of inactivity
+  const { showIdleWarning, getRemainingTime } = useAdminSession({
+    idleTimeout: 5 * 60 * 1000, // 5 minutes
+    warningTime: 30 * 1000 // 30 seconds warning
+  });
+
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -196,6 +203,18 @@ export default function AdminBookingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Idle Warning Banner */}
+      {showIdleWarning && (
+        <div className="bg-yellow-500 text-black px-6 py-3 rounded-lg mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <i className="fas fa-exclamation-triangle text-xl"></i>
+            <span className="font-semibold">
+              Your session will expire in {getRemainingTime()} seconds due to inactivity. Move your mouse to stay logged in.
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">

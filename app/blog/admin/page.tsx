@@ -9,6 +9,7 @@ import { ArrowLeft, Save, Eye, Upload, X, Image as ImageIcon, Video, Lock, Spark
 import toast from 'react-hot-toast'
 import { createBlogPost, fetchBlogPosts, deleteBlogPost } from '@/lib/github-blog-storage'
 import dynamic from 'next/dynamic'
+import { useAdminSession } from '../../../src/hooks/useAdminSession'
 
 // Dynamically import ReactQuill to avoid SSR issues and build issues
 const ReactQuill = dynamic(
@@ -66,6 +67,12 @@ const quillFormats = [
 ]
 
 export default function BlogAdminPage() {
+  // Admin session management - auto-logout after 5 minutes of inactivity
+  const { showIdleWarning, getRemainingTime } = useAdminSession({
+    idleTimeout: 5 * 60 * 1000, // 5 minutes
+    warningTime: 30 * 1000 // 30 seconds warning
+  });
+
   const router = useRouter()
   const { isLoading } = usePageLoader()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -454,6 +461,18 @@ Write the content now:`
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-20">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Idle Warning Banner */}
+        {showIdleWarning && (
+          <div className="bg-yellow-500 text-black px-6 py-3 rounded-lg mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <i className="fas fa-exclamation-triangle text-xl"></i>
+              <span className="font-semibold">
+                Your session will expire in {getRemainingTime()} seconds due to inactivity. Move your mouse to stay logged in.
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-8 scroll-animate">
           <div className="flex items-center justify-between mb-4">

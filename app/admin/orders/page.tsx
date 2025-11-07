@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Package, Search, Eye, Clock, Check, X, Truck, DollarSign, Phone, Mail, MapPin, Trash2 } from 'lucide-react';
+import { useAdminSession } from '../../../src/hooks/useAdminSession';
 
 interface OrderItem {
   id: string;
@@ -33,6 +34,12 @@ interface Order {
 }
 
 export default function AdminOrdersPage() {
+  // Admin session management - auto-logout after 5 minutes of inactivity
+  const { showIdleWarning, getRemainingTime } = useAdminSession({
+    idleTimeout: 5 * 60 * 1000, // 5 minutes
+    warningTime: 30 * 1000 // 30 seconds warning
+  });
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -209,6 +216,18 @@ export default function AdminOrdersPage() {
             </div>
           </div>
         </div>
+
+        {/* Idle Warning Banner */}
+        {showIdleWarning && (
+          <div className="bg-yellow-500 text-black px-6 py-3 rounded-lg mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <i className="fas fa-exclamation-triangle text-xl"></i>
+              <span className="font-semibold">
+                Your session will expire in {getRemainingTime()} seconds due to inactivity. Move your mouse to stay logged in.
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Filters */}
         <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 mb-6">

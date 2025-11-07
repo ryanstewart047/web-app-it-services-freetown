@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Lock, Printer, Download, Plus, Trash2, Save, FileText, Search, History } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
+import { useAdminSession } from '../../src/hooks/useAdminSession'
 
 interface ReceiptItem {
   id: string
@@ -31,6 +32,12 @@ interface SavedReceipt {
 }
 
 export default function ReceiptGenerator() {
+  // Admin session management - auto-logout after 5 minutes of inactivity
+  const { showIdleWarning, getRemainingTime } = useAdminSession({
+    idleTimeout: 5 * 60 * 1000, // 5 minutes
+    warningTime: 30 * 1000 // 30 seconds warning
+  });
+
   const router = useRouter()
   const printRef = useRef<HTMLDivElement>(null)
   
@@ -519,6 +526,18 @@ Thank you for your business!
           }
         }
       `}</style>
+
+      {/* Idle Warning Banner */}
+      {isAuthenticated && showIdleWarning && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-500 text-black px-6 py-3 flex items-center justify-center">
+          <div className="flex items-center gap-3">
+            <i className="fas fa-exclamation-triangle text-xl"></i>
+            <span className="font-semibold">
+              Your session will expire in {getRemainingTime()} seconds due to inactivity. Move your mouse to stay logged in.
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Editor Section - No Print */}
       <div className="no-print">

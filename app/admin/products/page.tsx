@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Upload, Search, Filter, DollarSign, Package, Image as ImageIcon } from 'lucide-react';
+import { useAdminSession } from '../../../src/hooks/useAdminSession';
 
 interface Product {
   id: string;
@@ -28,6 +29,12 @@ interface Category {
 }
 
 export default function AdminProductsPage() {
+  // Admin session management - auto-logout after 5 minutes of inactivity
+  const { showIdleWarning, getRemainingTime } = useAdminSession({
+    idleTimeout: 5 * 60 * 1000, // 5 minutes
+    warningTime: 30 * 1000 // 30 seconds warning
+  });
+
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -202,6 +209,18 @@ export default function AdminProductsPage() {
           <h1 className="text-4xl font-bold text-white mb-2">Product Management</h1>
           <p className="text-gray-300">Manage your marketplace inventory</p>
         </div>
+
+        {/* Idle Warning Banner */}
+        {showIdleWarning && (
+          <div className="bg-yellow-500 text-black px-6 py-3 rounded-lg mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <i className="fas fa-exclamation-triangle text-xl"></i>
+              <span className="font-semibold">
+                Your session will expire in {getRemainingTime()} seconds due to inactivity. Move your mouse to stay logged in.
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Action Bar */}
         <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 mb-6">
