@@ -14,6 +14,7 @@ interface Product {
   stock: number;
   status: string;
   condition: string;
+  videoUrl?: string;
   categoryId: string;
   images: { url: string; alt?: string; order: number }[];
   category: { name: string };
@@ -59,6 +60,7 @@ export default function AdminProductsPage() {
     brand: '',
     status: 'active',
     condition: 'new',
+    videoUrl: '',
     featured: false
   });
 
@@ -479,6 +481,7 @@ export default function AdminProductsPage() {
                                 brand: product.brand || '',
                                 status: product.status,
                                 condition: product.condition || 'new',
+                                videoUrl: product.videoUrl || '',
                                 featured: product.featured
                               });
                               // Populate image URLs from the product
@@ -534,6 +537,7 @@ export default function AdminProductsPage() {
                     brand: '',
                     status: 'active',
                     condition: 'new',
+                    videoUrl: '',
                     featured: false
                   });
                 }}
@@ -572,6 +576,7 @@ export default function AdminProductsPage() {
                 brand: formData.brand || null,
                 status: formData.status,
                 condition: formData.condition,
+                videoUrl: formData.videoUrl || null,
                 featured: formData.featured,
                 images: images.length > 0 ? images : []
               };
@@ -621,6 +626,7 @@ export default function AdminProductsPage() {
                     brand: '',
                     status: 'active',
                     condition: 'new',
+                    videoUrl: '',
                     featured: false
                   });
                   fetchProducts();
@@ -786,6 +792,21 @@ export default function AdminProductsPage() {
                   </div>
                   <p className="text-gray-400 text-sm mt-2">
                     Add multiple image URLs. The first image will be the main product image.
+                  </p>
+                </div>
+
+                {/* Video URL */}
+                <div>
+                  <label className="block text-white mb-2">Product Video URL (Optional)</label>
+                  <input
+                    type="url"
+                    value={formData.videoUrl}
+                    onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                    placeholder="https://www.youtube.com/watch?v=... or direct video URL"
+                    className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="text-gray-400 text-sm mt-2">
+                    YouTube, Vimeo, or direct video links (.mp4, .webm). Adds a video player to the product page.
                   </p>
                 </div>
 

@@ -161,6 +161,7 @@ model Product {
   status      String         @default("active") // active, out_of_stock, discontinued
   condition   String         @default("new") // new, used, used-like-new, refurbished
   images      ProductImage[]
+  videoUrl    String?        // Optional product video URL (YouTube, Vimeo, or direct link)
   sku         String?        @unique
   brand       String?
   tags        String[]       // For search and filtering
