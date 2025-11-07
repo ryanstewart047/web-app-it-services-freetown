@@ -21,46 +21,68 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Updates object is required' }, { status: 400 });
     }
     
+    // Extract images if provided
+    const { images, ...updateData } = updates;
+    
     // Validate stock if provided
-    if ('stock' in updates) {
-      const stock = parseInt(updates.stock);
+    if ('stock' in updateData) {
+      const stock = parseInt(updateData.stock);
       if (isNaN(stock) || stock < 0) {
-        console.error('[Product Update API] Invalid stock value:', updates.stock);
+        console.error('[Product Update API] Invalid stock value:', updateData.stock);
         return NextResponse.json({ error: 'Stock must be a non-negative number' }, { status: 400 });
       }
-      updates.stock = stock;
+      updateData.stock = stock;
       
       // Auto-update status based on stock
-      if (stock === 0 && !('status' in updates)) {
-        updates.status = 'out_of_stock';
+      if (stock === 0 && !('status' in updateData)) {
+        updateData.status = 'out_of_stock';
         console.log('[Product Update API] Auto-setting status to out_of_stock (stock is 0)');
-      } else if (stock > 0 && !('status' in updates)) {
+      } else if (stock > 0 && !('status' in updateData)) {
         // Get current status to check if we should reactivate
         const currentProduct = await prisma.product.findUnique({
           where: { id },
           select: { status: true }
         });
         if (currentProduct?.status === 'out_of_stock') {
-          updates.status = 'active';
+          updateData.status = 'active';
           console.log('[Product Update API] Auto-reactivating product (stock > 0)');
         }
       }
     }
     
     // Validate status if provided
-    if ('status' in updates) {
+    if ('status' in updateData) {
       const validStatuses = ['active', 'out_of_stock', 'discontinued'];
-      if (!validStatuses.includes(updates.status)) {
-        console.error('[Product Update API] Invalid status:', updates.status);
+      if (!validStatuses.includes(updateData.status)) {
+        console.error('[Product Update API] Invalid status:', updateData.status);
         return NextResponse.json({ error: 'Invalid status value' }, { status: 400 });
       }
     }
     
     console.log('[Product Update API] Updating product in database...');
     
+    // Handle images separately
+    let imageUpdates = {};
+    if (images && Array.isArray(images)) {
+      console.log('[Product Update API] Updating images...', images);
+      // Delete existing images and create new ones
+      imageUpdates = {
+        images: {
+          deleteMany: {},
+          create: images.map((url: string, index: number) => ({
+            url,
+            order: index
+          }))
+        }
+      };
+    }
+    
     const product = await prisma.product.update({
       where: { id },
-      data: updates,
+      data: {
+        ...updateData,
+        ...imageUpdates
+      },
       include: {
         category: true,
         images: {

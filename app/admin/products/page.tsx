@@ -577,15 +577,23 @@ export default function AdminProductsPage() {
               };
 
               try {
-                const url = editingProduct ? `/api/products/${editingProduct.id}` : '/api/products';
-                const method = editingProduct ? 'PUT' : 'POST';
+                // Use POST to /api/products/update for better compatibility with HTTPS/proxies
+                const url = editingProduct 
+                  ? '/api/products/update'  // Use update endpoint for edits
+                  : '/api/products';         // Use create endpoint for new products
+                const method = 'POST';
                 
-                console.log('Saving product:', productData);
+                // Prepare data based on whether we're editing or creating
+                const requestData = editingProduct
+                  ? { id: editingProduct.id, updates: productData }  // Update format
+                  : productData;  // Create format
+                
+                console.log('Saving product:', requestData);
                 
                 const res = await fetch(url, {
                   method,
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(productData)
+                  body: JSON.stringify(requestData)
                 });
 
                 if (res.ok) {
