@@ -63,16 +63,19 @@ export async function POST(request: NextRequest) {
     
     // Handle images separately
     let imageUpdates = {};
-    if (images && Array.isArray(images)) {
+    if (images && Array.isArray(images) && images.length > 0) {
       console.log('[Product Update API] Updating images...', images);
       // Delete existing images and create new ones
       imageUpdates = {
         images: {
           deleteMany: {},
-          create: images.map((url: string, index: number) => ({
-            url,
-            order: index
-          }))
+          create: images.map((img: any, index: number) => {
+            // Handle both string URLs and image objects
+            if (typeof img === 'string') {
+              return { url: img, order: index };
+            }
+            return { url: img.url, order: img.order ?? index };
+          })
         }
       };
     }
