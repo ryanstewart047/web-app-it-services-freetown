@@ -13,6 +13,7 @@ interface Product {
   comparePrice?: number;
   stock: number;
   status: string;
+  condition: string;
   categoryId: string;
   images: { url: string; alt?: string; order: number }[];
   category: { name: string };
@@ -57,6 +58,7 @@ export default function AdminProductsPage() {
     sku: '',
     brand: '',
     status: 'active',
+    condition: 'new',
     featured: false
   });
 
@@ -476,6 +478,7 @@ export default function AdminProductsPage() {
                                 sku: product.sku || '',
                                 brand: product.brand || '',
                                 status: product.status,
+                                condition: product.condition || 'new',
                                 featured: product.featured
                               });
                               // Populate image URLs from the product
@@ -530,6 +533,7 @@ export default function AdminProductsPage() {
                     sku: '',
                     brand: '',
                     status: 'active',
+                    condition: 'new',
                     featured: false
                   });
                 }}
@@ -541,28 +545,28 @@ export default function AdminProductsPage() {
 
             <form data-no-analytics="true" onSubmit={async (e) => {
               e.preventDefault();
-              const formData = new FormData(e.currentTarget);
               
               // Collect all non-empty image URLs
               const images = imageUrls
                 .filter(url => url.trim() !== '')
                 .map((url, index) => ({
                   url: url.trim(),
-                  alt: formData.get('name') as string,
+                  alt: formData.name,
                   order: index
                 }));
               
               const productData = {
-                name: formData.get('name'),
-                description: formData.get('description'),
-                price: parseFloat(formData.get('price') as string),
-                comparePrice: formData.get('comparePrice') ? parseFloat(formData.get('comparePrice') as string) : null,
-                stock: parseInt(formData.get('stock') as string),
-                categoryId: formData.get('categoryId'),
-                sku: formData.get('sku') || null,
-                brand: formData.get('brand') || null,
-                status: formData.get('status'),
-                featured: formData.get('featured') === 'on',
+                name: formData.name,
+                description: formData.description,
+                price: parseFloat(formData.price),
+                comparePrice: formData.comparePrice ? parseFloat(formData.comparePrice) : null,
+                stock: parseInt(formData.stock),
+                categoryId: formData.categoryId,
+                sku: formData.sku || null,
+                brand: formData.brand || null,
+                status: formData.status,
+                condition: formData.condition,
+                featured: formData.featured,
                 images: images.length > 0 ? images : []
               };
 
@@ -585,6 +589,20 @@ export default function AdminProductsPage() {
                   setShowAddModal(false);
                   setEditingProduct(null);
                   setImageUrls(['']);
+                  // Reset form data
+                  setFormData({
+                    name: '',
+                    description: '',
+                    price: '',
+                    comparePrice: '',
+                    stock: '',
+                    categoryId: '',
+                    sku: '',
+                    brand: '',
+                    status: 'active',
+                    condition: 'new',
+                    featured: false
+                  });
                   fetchProducts();
                 } else {
                   const error = await res.json();
@@ -602,8 +620,8 @@ export default function AdminProductsPage() {
                   <label className="block text-white mb-2">Product Name *</label>
                   <input
                     type="text"
-                    name="name"
-                    defaultValue={editingProduct?.name}
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
                     className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
@@ -613,8 +631,8 @@ export default function AdminProductsPage() {
                 <div>
                   <label className="block text-white mb-2">Description *</label>
                   <textarea
-                    name="description"
-                    defaultValue={editingProduct?.description}
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     required
                     rows={4}
                     className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -627,8 +645,8 @@ export default function AdminProductsPage() {
                     <label className="block text-white mb-2">Price (Le) *</label>
                     <input
                       type="number"
-                      name="price"
-                      defaultValue={editingProduct?.price}
+                      value={formData.price}
+                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                       required
                       min="0"
                       step="0.01"
@@ -639,8 +657,8 @@ export default function AdminProductsPage() {
                     <label className="block text-white mb-2">Compare Price (Le)</label>
                     <input
                       type="number"
-                      name="comparePrice"
-                      defaultValue={editingProduct?.comparePrice}
+                      value={formData.comparePrice}
+                      onChange={(e) => setFormData({ ...formData, comparePrice: e.target.value })}
                       min="0"
                       step="0.01"
                       className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -654,8 +672,8 @@ export default function AdminProductsPage() {
                     <label className="block text-white mb-2">Stock *</label>
                     <input
                       type="number"
-                      name="stock"
-                      defaultValue={editingProduct?.stock}
+                      value={formData.stock}
+                      onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
                       required
                       min="0"
                       className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -664,8 +682,8 @@ export default function AdminProductsPage() {
                   <div>
                     <label className="block text-white mb-2">Category *</label>
                     <select
-                      name="categoryId"
-                      defaultValue={editingProduct?.categoryId}
+                      value={formData.categoryId}
+                      onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
                       required
                       className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
@@ -683,8 +701,8 @@ export default function AdminProductsPage() {
                     <label className="block text-white mb-2">SKU</label>
                     <input
                       type="text"
-                      name="sku"
-                      defaultValue={editingProduct?.sku}
+                      value={formData.sku}
+                      onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                       className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -692,8 +710,8 @@ export default function AdminProductsPage() {
                     <label className="block text-white mb-2">Brand</label>
                     <input
                       type="text"
-                      name="brand"
-                      defaultValue={editingProduct?.brand}
+                      value={formData.brand}
+                      onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                       className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -744,13 +762,13 @@ export default function AdminProductsPage() {
                   </p>
                 </div>
 
-                {/* Status and Featured */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* Status, Condition and Featured */}
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="block text-white mb-2">Status *</label>
                     <select
-                      name="status"
-                      defaultValue={editingProduct?.status || 'active'}
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                       required
                       className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
@@ -760,11 +778,25 @@ export default function AdminProductsPage() {
                     </select>
                   </div>
                   <div>
+                    <label className="block text-white mb-2">Condition *</label>
+                    <select
+                      value={formData.condition}
+                      onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
+                      required
+                      className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="new">Brand New</option>
+                      <option value="refurbished">Refurbished</option>
+                      <option value="used-like-new">Used - Like New</option>
+                      <option value="used">Used</option>
+                    </select>
+                  </div>
+                  <div>
                     <label className="flex items-center text-white mt-8">
                       <input
                         type="checkbox"
-                        name="featured"
-                        defaultChecked={editingProduct?.featured}
+                        checked={formData.featured}
+                        onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
                         className="mr-2 w-5 h-5"
                       />
                       Featured Product

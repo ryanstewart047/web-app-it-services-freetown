@@ -159,6 +159,7 @@ model Product {
   categoryId  String
   stock       Int            @default(0)
   status      String         @default("active") // active, out_of_stock, discontinued
+  condition   String         @default("new") // new, used, used-like-new, refurbished
   images      ProductImage[]
   sku         String?        @unique
   brand       String?

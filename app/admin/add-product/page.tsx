@@ -25,6 +25,7 @@ export default function AddProductPage() {
     categoryId: '',
     sku: '',
     brand: '',
+    condition: 'new',
     featured: false,
     status: 'active'
   });
@@ -263,27 +264,47 @@ export default function AddProductPage() {
               ))}
             </div>
 
-            {/* Checkboxes */}
-            <div className="flex items-center gap-6">
-              <label className="flex items-center gap-2 text-white cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.featured}
-                  onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
-                  className="w-5 h-5 rounded"
-                />
-                Featured Product
-              </label>
+            {/* Status, Condition, and Featured */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-white font-medium mb-2">Status *</label>
+                <select
+                  required
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="active">Active (Visible)</option>
+                  <option value="draft">Draft (Hidden)</option>
+                </select>
+              </div>
 
-              <label className="flex items-center gap-2 text-white cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.status === 'active'}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.checked ? 'active' : 'draft' })}
-                  className="w-5 h-5 rounded"
-                />
-                Active (Visible in store)
-              </label>
+              <div>
+                <label className="block text-white font-medium mb-2">Condition *</label>
+                <select
+                  required
+                  value={formData.condition}
+                  onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="new">Brand New</option>
+                  <option value="refurbished">Refurbished</option>
+                  <option value="used-like-new">Used - Like New</option>
+                  <option value="used">Used</option>
+                </select>
+              </div>
+
+              <div className="flex items-end">
+                <label className="flex items-center gap-2 text-white cursor-pointer pb-3">
+                  <input
+                    type="checkbox"
+                    checked={formData.featured}
+                    onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+                    className="w-5 h-5 rounded"
+                  />
+                  Featured Product
+                </label>
+              </div>
             </div>
           </div>
 

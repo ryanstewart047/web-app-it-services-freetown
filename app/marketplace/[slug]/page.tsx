@@ -13,6 +13,7 @@ interface Product {
   price: number;
   comparePrice?: number;
   stock: number;
+  condition: string;
   images: { url: string; alt?: string; order: number }[];
   category: { name: string; slug: string };
   brand?: string;
@@ -183,7 +184,9 @@ export default function ProductDetailPage() {
       price: product.price,
       priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      itemCondition: 'https://schema.org/NewCondition',
+      itemCondition: product.condition === 'new' ? 'https://schema.org/NewCondition' :
+                     product.condition === 'refurbished' ? 'https://schema.org/RefurbishedCondition' :
+                     'https://schema.org/UsedCondition',
       seller: {
         '@type': 'Organization',
         name: 'IT Services Freetown',
@@ -294,6 +297,23 @@ export default function ProductDetailPage() {
             {product.sku && (
               <p className="text-gray-400 text-sm mb-4">SKU: {product.sku}</p>
             )}
+
+            {/* Condition Badge */}
+            <div className="mb-4">
+              <span className={`inline-block px-4 py-2 rounded-lg text-sm font-semibold ${
+                product.condition === 'new' ? 'bg-blue-500/20 text-blue-400' :
+                product.condition === 'refurbished' ? 'bg-green-500/20 text-green-400' :
+                product.condition === 'used-like-new' ? 'bg-purple-500/20 text-purple-400' :
+                'bg-gray-500/20 text-gray-400'
+              }`}>
+                Condition: {
+                  product.condition === 'new' ? 'Brand New' :
+                  product.condition === 'refurbished' ? 'Refurbished' :
+                  product.condition === 'used-like-new' ? 'Used - Like New' :
+                  'Used'
+                }
+              </span>
+            </div>
 
             {/* Rating (Placeholder) */}
             <div className="flex items-center gap-2 mb-6">

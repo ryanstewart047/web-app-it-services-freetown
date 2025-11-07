@@ -13,6 +13,7 @@ interface Product {
   comparePrice?: number;
   stock: number;
   status: string;
+  condition: string;
   images: { url: string; alt?: string }[];
   category: { name: string; slug: string };
   brand?: string;
@@ -434,6 +435,17 @@ export default function MarketplacePage() {
                           {discount && (
                             <span className="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full">
                               {discount}% OFF
+                            </span>
+                          )}
+                          {product.condition && product.condition !== 'new' && (
+                            <span className={`px-3 py-1 text-xs font-bold rounded-full ${
+                              product.condition === 'refurbished' ? 'bg-green-500 text-white' :
+                              product.condition === 'used-like-new' ? 'bg-blue-500 text-white' :
+                              'bg-gray-500 text-white'
+                            }`}>
+                              {product.condition === 'refurbished' ? 'Refurbished' :
+                               product.condition === 'used-like-new' ? 'Like New' :
+                               'Used'}
                             </span>
                           )}
                         </div>
