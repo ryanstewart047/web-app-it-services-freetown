@@ -158,6 +158,17 @@ export default function MarketplaceLayout({
                     '@type': 'Product',
                     name: 'Dell Laptops Freetown',
                     description: 'Genuine Dell laptops for sale in Freetown, Sierra Leone',
+                    brand: {
+                      '@type': 'Brand',
+                      name: 'Dell',
+                    },
+                  },
+                  price: '2500000',
+                  priceCurrency: 'SLL',
+                  availability: 'https://schema.org/InStock',
+                  seller: {
+                    '@type': 'Organization',
+                    name: 'IT Services Freetown',
                   },
                 },
                 {
@@ -166,6 +177,17 @@ export default function MarketplaceLayout({
                     '@type': 'Product',
                     name: 'HP Laptops Sierra Leone',
                     description: 'HP laptops with warranty in Freetown',
+                    brand: {
+                      '@type': 'Brand',
+                      name: 'HP',
+                    },
+                  },
+                  price: '2200000',
+                  priceCurrency: 'SLL',
+                  availability: 'https://schema.org/InStock',
+                  seller: {
+                    '@type': 'Organization',
+                    name: 'IT Services Freetown',
                   },
                 },
                 {
@@ -174,6 +196,17 @@ export default function MarketplaceLayout({
                     '@type': 'Product',
                     name: 'Lenovo Laptops Freetown',
                     description: 'Lenovo business laptops in Sierra Leone',
+                    brand: {
+                      '@type': 'Brand',
+                      name: 'Lenovo',
+                    },
+                  },
+                  price: '2000000',
+                  priceCurrency: 'SLL',
+                  availability: 'https://schema.org/InStock',
+                  seller: {
+                    '@type': 'Organization',
+                    name: 'IT Services Freetown',
                   },
                 },
                 {
@@ -182,6 +215,14 @@ export default function MarketplaceLayout({
                     '@type': 'Product',
                     name: 'Smartphones Freetown',
                     description: 'Latest smartphones and mobile phones in Freetown',
+                    category: 'Electronics',
+                  },
+                  price: '800000',
+                  priceCurrency: 'SLL',
+                  availability: 'https://schema.org/InStock',
+                  seller: {
+                    '@type': 'Organization',
+                    name: 'IT Services Freetown',
                   },
                 },
               ],
