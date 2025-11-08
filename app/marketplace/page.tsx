@@ -651,6 +651,57 @@ export default function MarketplacePage() {
           </div>
         </div>
       )}
+
+      {/* SEO Footer Content */}
+      <section className="bg-gray-800/30 border-t border-gray-700 mt-12">
+        <div className="container mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-gray-300">
+            <div>
+              <h2 className="text-xl font-bold text-white mb-4">Why Shop With Us?</h2>
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="text-green-400">✓</span>
+                  <span>100% Genuine products with warranty</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-400">✓</span>
+                  <span>Competitive prices in Freetown</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-400">✓</span>
+                  <span>Free delivery within Freetown</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-400">✓</span>
+                  <span>Expert technical support</span>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white mb-4">Popular Categories</h2>
+              <ul className="space-y-2">
+                <li><a href="/marketplace?category=laptops" className="hover:text-blue-400">Laptops & Computers</a></li>
+                <li><a href="/marketplace?category=phones" className="hover:text-blue-400">Mobile Phones</a></li>
+                <li><a href="/marketplace?category=accessories" className="hover:text-blue-400">Accessories</a></li>
+                <li><a href="/marketplace?category=networking" className="hover:text-blue-400">Networking Equipment</a></li>
+                <li><a href="/marketplace?category=storage" className="hover:text-blue-400">Storage Devices</a></li>
+              </ul>
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white mb-4">Contact Us</h2>
+              <div className="space-y-3">
+                <p><strong>Phone:</strong> +232 33 399 391</p>
+                <p><strong>Email:</strong> info@itservicesfreetown.com</p>
+                <p><strong>Location:</strong> #1 Regent Highway Jui Junction, Freetown</p>
+                <p><strong>Hours:</strong> Mon-Sat: 8:00 AM - 6:00 PM</p>
+              </div>
+            </div>
+          </div>
+          <div className="mt-8 pt-8 border-t border-gray-700 text-center text-gray-400">
+            <p>Serving Freetown and all of Sierra Leone with quality IT products since 2020. We accept cash, mobile money, and bank transfers.</p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
