@@ -1,4 +1,4 @@
-'use client';
+ 'use client';
 
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Upload, Search, Filter, DollarSign, Package, Image as ImageIcon } from 'lucide-react';
