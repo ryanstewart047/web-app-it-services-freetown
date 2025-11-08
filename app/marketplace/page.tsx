@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Filter, ShoppingCart, Grid, List, ChevronDown, Heart, Star } from 'lucide-react';
 import Link from 'next/link';
+import { getWishlistSessionId } from '@/src/utils/wishlistSession';
 
 interface Product {
   id: string;
@@ -39,11 +40,14 @@ export default function MarketplacePage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [cartCount, setCartCount] = useState(0);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const [wishlist, setWishlist] = useState<Set<string>>(new Set());
+  const [wishlistCounts, setWishlistCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     fetchProducts();
     fetchCategories();
     updateCartCount();
+    fetchWishlist();
   }, []);
 
   const fetchProducts = async () => {
@@ -102,6 +106,78 @@ export default function MarketplacePage() {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     setCartCount(cart.reduce((sum: number, item: any) => sum + item.quantity, 0));
   };
+
+  const fetchWishlist = async () => {
+    try {
+      const sessionId = getWishlistSessionId();
+      const res = await fetch(`/api/wishlist?sessionId=${sessionId}`);
+      if (res.ok) {
+        const data = await res.json();
+        const wishlistIds = new Set<string>(data.map((item: any) => item.productId));
+        setWishlist(wishlistIds);
+      }
+    } catch (error) {
+      console.error('Error fetching wishlist:', error);
+    }
+  };
+
+  const fetchWishlistCount = async (productId: string) => {
+    try {
+      const res = await fetch(`/api/wishlist/count/${productId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setWishlistCounts(prev => ({ ...prev, [productId]: data.count }));
+      }
+    } catch (error) {
+      console.error('Error fetching wishlist count:', error);
+    }
+  };
+
+  const toggleWishlist = async (productId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const sessionId = getWishlistSessionId();
+    const isInWishlist = wishlist.has(productId);
+
+    try {
+      if (isInWishlist) {
+        // Remove from wishlist
+        const res = await fetch(`/api/wishlist?sessionId=${sessionId}&productId=${productId}`, {
+          method: 'DELETE'
+        });
+        if (res.ok) {
+          setWishlist(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(productId);
+            return newSet;
+          });
+          await fetchWishlistCount(productId);
+        }
+      } else {
+        // Add to wishlist
+        const res = await fetch('/api/wishlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId, productId })
+        });
+        if (res.ok) {
+          setWishlist(prev => new Set(prev).add(productId));
+          await fetchWishlistCount(productId);
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+      alert('Failed to update wishlist');
+    }
+  };
+
+  // Fetch wishlist counts for all products when products change
+  useEffect(() => {
+    products.forEach(product => {
+      fetchWishlistCount(product.id);
+    });
+  }, [products]);
 
   const addToCart = (product: Product) => {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -453,10 +529,20 @@ export default function MarketplacePage() {
 
                         {/* Wishlist */}
                         <button 
-                          onClick={(e) => e.stopPropagation()}
-                          className="absolute top-2 right-2 p-2 bg-white/90 hover:bg-white rounded-full transition-all opacity-0 group-hover:opacity-100"
+                          onClick={(e) => toggleWishlist(product.id, e)}
+                          className="absolute top-2 right-2 p-2 bg-white/90 hover:bg-white rounded-full transition-all opacity-0 group-hover:opacity-100 flex items-center gap-1"
+                          title={wishlist.has(product.id) ? "Remove from wishlist" : "Add to wishlist"}
                         >
-                          <Heart className="w-5 h-5 text-gray-800" />
+                          <Heart 
+                            className={`w-5 h-5 transition-colors ${
+                              wishlist.has(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-800'
+                            }`} 
+                          />
+                          {wishlistCounts[product.id] > 0 && (
+                            <span className="text-xs font-bold text-gray-700">
+                              {wishlistCounts[product.id]}
+                            </span>
+                          )}
                         </button>
                       </div>
 

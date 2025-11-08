@@ -171,6 +171,7 @@ model Product {
   category    Category       @relation(fields: [categoryId], references: [id])
   cartItems   CartItem[]
   orderItems  OrderItem[]
+  wishlists   Wishlist[]
   
   @@index([categoryId])
   @@index([status])
@@ -249,4 +250,16 @@ model OrderItem {
   product   Product  @relation(fields: [productId], references: [id])
   
   @@index([orderId])
+}
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  sessionId String   // Unique session ID for tracking across devices
+  productId String
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@unique([sessionId, productId]) // Prevent duplicates
+  @@index([sessionId])
+  @@index([productId])
 }
