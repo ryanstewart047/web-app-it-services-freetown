@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Filter, ShoppingCart, Grid, List, ChevronDown, Heart, Star } from 'lucide-react';
 import Link from 'next/link';
-import { getWishlistSessionId } from '@/src/utils/wishlistSession';
+import { getWishlistSessionId } from '@/utils/wishlistSession';
 
 interface Product {
   id: string;
