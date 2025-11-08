@@ -1,33 +1,66 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Shop IT Products & Accessories | IT Services Freetown Marketplace',
-  description: 'Buy quality laptops, computers, mobile phones, accessories, and IT equipment in Freetown, Sierra Leone. Best prices, genuine products, warranty included. Free delivery available.',
+  title: 'Buy Laptops & IT Products in Freetown Sierra Leone | IT Services Marketplace',
+  description: 'Shop quality laptops, computers, phones & IT equipment in Freetown, Sierra Leone. Best prices on Dell, HP, Lenovo. Free delivery in Freetown. Genuine products with warranty. Serving all of Sierra Leone.',
   keywords: [
+    // Primary keywords
     'buy laptop Freetown',
-    'buy computer Sierra Leone',
-    'mobile phone shop Freetown',
-    'IT products Freetown',
-    'computer accessories Sierra Leone',
+    'buy laptop Freetown Sierra Leone',
     'laptop for sale Freetown',
-    'smartphone Freetown',
-    'technology shop Sierra Leone',
-    'computer parts Freetown',
+    'computer store Freetown',
+    'computer shop Freetown Sierra Leone',
+    'IT products Freetown',
     'electronics store Freetown',
-    'gaming laptop Sierra Leone',
-    'business laptop Freetown',
-    'iPhone Freetown',
-    'Samsung phone Sierra Leone',
+    
+    // Location-specific
+    'Freetown Sierra Leone',
+    'Sierra Leone',
+    'Freetown',
+    'IT services Freetown',
+    'technology shop Sierra Leone',
+    'computer accessories Freetown Sierra Leone',
+    
+    // Product-specific
     'Dell laptop Freetown',
     'HP laptop Sierra Leone',
+    'Lenovo laptop Freetown',
+    'buy smartphone Freetown',
+    'iPhone Freetown Sierra Leone',
+    'Samsung phone Freetown',
+    'gaming laptop Sierra Leone',
+    'business laptop Freetown',
+    
+    // Service-specific
+    'laptop dealer Freetown',
+    'authorized computer dealer Sierra Leone',
+    'genuine laptop Sierra Leone',
+    'warranty laptop Freetown',
+    'free delivery Freetown',
+    
+    // Accessories
+    'laptop charger Freetown',
+    'computer accessories Sierra Leone',
     'printer Freetown',
-    'router Freetown',
-    'hard drive Sierra Leone',
-    'SSD Freetown'
+    'router Freetown Sierra Leone',
+    'hard drive Freetown',
+    'SSD Freetown Sierra Leone',
+    'RAM Freetown',
+    'keyboard mouse Freetown',
+    
+    // Long-tail
+    'where to buy laptop in Freetown',
+    'best laptop store Sierra Leone',
+    'cheapest laptop Freetown',
+    'laptop repair and sales Freetown',
+    'second hand laptop Freetown Sierra Leone',
+    'new laptop Freetown',
+    'laptop with warranty Sierra Leone',
+    'mobile phone shop Freetown Sierra Leone',
   ],
   openGraph: {
-    title: 'Shop IT Products & Accessories - IT Services Freetown',
-    description: 'Buy quality laptops, computers, mobile phones, and IT equipment in Freetown. Best prices, genuine products, warranty included.',
+    title: 'Buy Laptops & IT Products in Freetown Sierra Leone | Best Prices',
+    description: 'Shop quality laptops, computers, and IT equipment in Freetown, Sierra Leone. Dell, HP, Lenovo. Free delivery. Genuine products with warranty.',
     url: 'https://www.itservicesfreetown.com/marketplace',
     siteName: 'IT Services Freetown',
     locale: 'en_SL',
@@ -37,14 +70,14 @@ export const metadata: Metadata = {
         url: 'https://www.itservicesfreetown.com/og-marketplace.jpg',
         width: 1200,
         height: 630,
-        alt: 'IT Services Freetown Marketplace - Shop Quality Tech Products',
+        alt: 'Buy Laptops and IT Products in Freetown Sierra Leone - IT Services Marketplace',
       }
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Shop IT Products & Accessories - IT Services Freetown',
-    description: 'Buy quality laptops, computers, mobile phones, and IT equipment in Freetown.',
+    title: 'Buy Laptops & IT Products in Freetown Sierra Leone',
+    description: 'Shop quality laptops, computers, phones in Freetown. Dell, HP, Lenovo. Free delivery in Sierra Leone.',
     images: ['https://www.itservicesfreetown.com/og-marketplace.jpg'],
   },
   alternates: {
@@ -77,30 +110,82 @@ export default function MarketplaceLayout({
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'Store',
-            name: 'IT Services Freetown Marketplace',
-            description: 'Buy quality laptops, computers, mobile phones, and electronics in Freetown, Sierra Leone',
+            name: 'IT Services Freetown - Computer & Laptop Store Sierra Leone',
+            description: 'Leading computer and laptop store in Freetown, Sierra Leone. Buy Dell, HP, Lenovo laptops, smartphones, and IT equipment. Best prices in Freetown with free delivery across Sierra Leone.',
             url: 'https://www.itservicesfreetown.com/marketplace',
             telephone: '+23233399391',
             address: {
               '@type': 'PostalAddress',
               streetAddress: '#1 Regent Highway Jui Junction',
               addressLocality: 'Freetown',
-              addressCountry: 'SL',
+              addressRegion: 'Western Area',
+              addressCountry: 'Sierra Leone',
+              postalCode: '00232',
             },
             geo: {
               '@type': 'GeoCoordinates',
               latitude: '8.4657',
               longitude: '-13.2317',
             },
+            areaServed: [
+              {
+                '@type': 'City',
+                name: 'Freetown',
+                '@id': 'https://en.wikipedia.org/wiki/Freetown',
+              },
+              {
+                '@type': 'Country',
+                name: 'Sierra Leone',
+                '@id': 'https://en.wikipedia.org/wiki/Sierra_Leone',
+              },
+            ],
             priceRange: 'Le 100,000 - Le 10,000,000',
-            currenciesAccepted: 'SLL',
-            paymentAccepted: ['Cash', 'Mobile Money', 'Bank Transfer'],
+            currenciesAccepted: 'SLL, USD',
+            paymentAccepted: ['Cash', 'Mobile Money', 'Bank Transfer', 'Orange Money', 'Afrimoney'],
             openingHours: 'Mo-Sa 08:00-18:00',
             image: 'https://www.itservicesfreetown.com/logo.png',
             sameAs: [
               'https://www.facebook.com/itservicesfreetown',
               'https://twitter.com/itservicesfreetown',
             ],
+            hasOfferCatalog: {
+              '@type': 'OfferCatalog',
+              name: 'Laptops and IT Products in Freetown Sierra Leone',
+              itemListElement: [
+                {
+                  '@type': 'Offer',
+                  itemOffered: {
+                    '@type': 'Product',
+                    name: 'Dell Laptops Freetown',
+                    description: 'Genuine Dell laptops for sale in Freetown, Sierra Leone',
+                  },
+                },
+                {
+                  '@type': 'Offer',
+                  itemOffered: {
+                    '@type': 'Product',
+                    name: 'HP Laptops Sierra Leone',
+                    description: 'HP laptops with warranty in Freetown',
+                  },
+                },
+                {
+                  '@type': 'Offer',
+                  itemOffered: {
+                    '@type': 'Product',
+                    name: 'Lenovo Laptops Freetown',
+                    description: 'Lenovo business laptops in Sierra Leone',
+                  },
+                },
+                {
+                  '@type': 'Offer',
+                  itemOffered: {
+                    '@type': 'Product',
+                    name: 'Smartphones Freetown',
+                    description: 'Latest smartphones and mobile phones in Freetown',
+                  },
+                },
+              ],
+            },
           }),
         }}
       />
