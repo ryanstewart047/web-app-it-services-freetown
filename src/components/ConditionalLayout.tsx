@@ -4,7 +4,6 @@ import { usePathname } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import CookiePopup from '@/components/CookiePopup';
-import BannerPopup from '@/components/BannerPopup';
 import StaticChatFloat from '@/components/StaticChatFloat';
 import FloatingScrollToTop from '@/components/FloatingScrollToTop';
 import PWAInstallBanner from '@/components/PWAInstallBanner';
@@ -41,7 +40,6 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
         <Footer />
       </div>
       <CookiePopup />
-      <BannerPopup />
       <StaticChatFloat />
       <FloatingScrollToTop />
       <PWAInstallBanner />
