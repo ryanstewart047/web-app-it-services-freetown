@@ -200,17 +200,7 @@ export default function RootLayout({
                       '@type': 'Service',
                       name: 'Computer Repair',
                       description: 'Professional computer and laptop repair services',
-                      provider: {
-                        '@type': 'LocalBusiness',
-                        name: 'IT Services Freetown',
-                      },
                     },
-                    priceSpecification: {
-                      '@type': 'PriceSpecification',
-                      priceCurrency: 'SLL',
-                      price: '50000',
-                    },
-                    availability: 'https://schema.org/InStock',
                   },
                   {
                     '@type': 'Offer',
@@ -218,17 +208,7 @@ export default function RootLayout({
                       '@type': 'Service',
                       name: 'Mobile Phone Repair',
                       description: 'Expert mobile phone and smartphone repair',
-                      provider: {
-                        '@type': 'LocalBusiness',
-                        name: 'IT Services Freetown',
-                      },
                     },
-                    priceSpecification: {
-                      '@type': 'PriceSpecification',
-                      priceCurrency: 'SLL',
-                      price: '30000',
-                    },
-                    availability: 'https://schema.org/InStock',
                   },
                   {
                     '@type': 'Offer',
@@ -236,17 +216,7 @@ export default function RootLayout({
                       '@type': 'Service',
                       name: 'Data Recovery',
                       description: 'Professional data recovery services',
-                      provider: {
-                        '@type': 'LocalBusiness',
-                        name: 'IT Services Freetown',
-                      },
                     },
-                    priceSpecification: {
-                      '@type': 'PriceSpecification',
-                      priceCurrency: 'SLL',
-                      price: '100000',
-                    },
-                    availability: 'https://schema.org/InStock',
                   },
                 ],
               },
