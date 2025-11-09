@@ -14,17 +14,13 @@ interface AdSenseProps {
  * Google AdSense Component
  * 
  * Setup Instructions:
- * 1. Apply for Google AdSense at https://www.google.com/adsense
- * 2. Once approved, replace 'ca-pub-XXXXXXXXXXXXXXXX' with your Publisher ID
- * 3. Replace the adSlot prop with your actual ad unit IDs
- * 4. Add the AdSense script to app/layout.tsx <head> section:
+ * 1. ✅ Applied for Google AdSense - Publisher ID: ca-pub-9989697800650646
+ * 2. ⏳ Waiting for approval (usually takes 1-2 weeks)
+ * 3. After approval: Get your ad slot IDs from AdSense dashboard
+ * 4. Replace the placeholder adSlot IDs below with your actual ad unit IDs
  * 
- *    <Script
- *      async
- *      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
- *      crossOrigin="anonymous"
- *      strategy="afterInteractive"
- *    />
+ * Current Status: Ready for automatic ads (Auto ads enabled via script tag)
+ * Once approved, ads will show automatically where Google determines best placement
  */
 
 export default function AdSense({
@@ -51,7 +47,7 @@ export default function AdSense({
       <ins
         className="adsbygoogle"
         style={adStyle}
-        data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" // Replace with your Publisher ID
+        data-ad-client="ca-pub-9989697800650646" // Your actual Publisher ID
         data-ad-slot={adSlot}
         data-ad-format={adFormat}
         data-ad-layout={adLayout}
