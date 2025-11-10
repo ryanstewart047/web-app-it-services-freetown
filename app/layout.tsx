@@ -24,19 +24,53 @@ export const metadata: Metadata = {
     default: 'IT Services Freetown - #1 Computer & Mobile Repair in Sierra Leone',
     template: '%s | IT Services Freetown'
   },
-  description: 'Freetown\'s #1 Computer & Mobile Repair Experts. Same-day service, 1-month warranty, 95% success rate. Professional laptop repair, phone repair, data recovery, and IT solutions in Sierra Leone. Book online now!',
+  description: 'Freetown\'s #1 Computer & Mobile Repair in Sierra Leone. iPhone repair, iCloud removal, FRP unlock, mobile unlocking. Professional laptop repair, home repair services. Same-day service, 1-month warranty, 95% success rate. Expert mobile technician in Freetown. Book online now!',
   keywords: [
+    // Primary repair services
     'computer repair Freetown',
-    'mobile repair Sierra Leone',
+    'computer repair in Freetown',
+    'mobile repair',
+    'mobile repair Freetown',
+    'mobile repair in Freetown',
+    'mobile technician',
+    'mobile technician Freetown',
+    
+    // Location-specific
+    'Freetown Sierra Leone',
     'IT services Freetown',
+    'home repair Freetown',
+    
+    // Device-specific
     'laptop repair Freetown',
-    'phone repair Sierra Leone',
+    'phone repair Freetown',
+    'iPhone repair',
     'iPhone repair Freetown',
     'screen replacement Freetown',
+    
+    // Unlocking services
+    'unlocking',
+    'mobile unlock',
+    'network unlocking',
+    'phone unlocking Freetown',
+    
+    // iCloud services
+    'iCloud removal',
+    'remove iCloud',
+    'iCloud unlock',
+    'iCloud bypass',
+    
+    // FRP services
+    'FRP',
+    'FRP removal',
+    'Google account FRP',
+    'remove FRP',
+    'FRP bypass',
+    'Google lock removal',
+    
+    // General services
     'data recovery Sierra Leone',
     'motherboard repair',
     'virus removal Freetown',
-    'network unlocking',
     'same day repair Freetown',
     'tech support Sierra Leone'
   ],

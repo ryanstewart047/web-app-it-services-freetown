@@ -6,8 +6,8 @@ export default function Services() {
   const services = [
     {
       icon: 'fas fa-laptop',
-      title: 'Computer Repair',
-      description: 'Expert laptop and desktop repair services for all major brands',
+      title: 'Computer Repair in Freetown',
+      description: 'Expert laptop and desktop repair services for all major brands in Freetown, Sierra Leone',
       features: [
         'Hardware diagnostics',
         'Software troubleshooting', 
@@ -20,13 +20,13 @@ export default function Services() {
     },
     {
       icon: 'fas fa-mobile-alt', 
-      title: 'Mobile Repair',
-      description: 'Smartphone and tablet repairs for all major brands and models',
+      title: 'Mobile Repair & Unlocking',
+      description: 'iPhone repair, mobile unlock, iCloud removal, FRP bypass. Professional mobile technician in Freetown',
       features: [
         'Screen replacement',
-        'Battery service',
-        'Water damage repair', 
-        'Software restoration'
+        'iCloud removal',
+        'FRP unlock & removal', 
+        'Network unlocking'
       ],
       gradientColors: 'from-red-600 to-red-700',
       accentColor: 'red',
@@ -34,8 +34,8 @@ export default function Services() {
     },
     {
       icon: 'fas fa-network-wired',
-      title: 'Network Setup', 
-      description: 'Professional network installation and configuration services',
+      title: 'Home Repair Services', 
+      description: 'Professional home repair and network installation services in Freetown',
       features: [
         'Wi-Fi setup',
         'Network security',
