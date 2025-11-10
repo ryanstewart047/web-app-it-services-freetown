@@ -92,6 +92,8 @@ export default function BlogAdminPage() {
   const [showManagePosts, setShowManagePosts] = useState(false)
   const [existingPosts, setExistingPosts] = useState<BlogPost[]>([])
   const [loadingPosts, setLoadingPosts] = useState(false)
+  const [editorMode, setEditorMode] = useState<'rich' | 'html'>('rich') // 'rich' for WYSIWYG, 'html' for HTML preview
+  const [htmlContent, setHtmlContent] = useState('')
 
   useScrollAnimations()
 
@@ -577,22 +579,58 @@ Write the content now:`
 
             {/* Content */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-4">
                 <label className="block text-sm font-semibold text-gray-700">
                   Post Content
                 </label>
-                <button
-                  type="button"
-                  onClick={() => setShowAIHelper(!showAIHelper)}
-                  className="flex items-center px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
-                  style={{ 
-                    background: showAIHelper ? 'linear-gradient(135deg, #9333ea 0%, #7c3aed 100%)' : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                    color: 'white'
-                  }}
-                >
-                  <Sparkles className="w-4 h-4 mr-1" />
-                  {showAIHelper ? 'Hide AI Helper' : 'AI Writer'}
-                </button>
+                <div className="flex items-center gap-3">
+                  {/* Editor Mode Toggle */}
+                  <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (editorMode === 'html') {
+                          setContent(htmlContent)
+                        }
+                        setEditorMode('rich')
+                      }}
+                      className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                        editorMode === 'rich' 
+                          ? 'bg-white text-blue-600 shadow-sm' 
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      📝 Rich Text
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHtmlContent(content)
+                        setEditorMode('html')
+                      }}
+                      className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                        editorMode === 'html' 
+                          ? 'bg-white text-purple-600 shadow-sm' 
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      👁️ HTML Preview
+                    </button>
+                  </div>
+                  
+                  <button
+                    type="button"
+                    onClick={() => setShowAIHelper(!showAIHelper)}
+                    className="flex items-center px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
+                    style={{ 
+                      background: showAIHelper ? 'linear-gradient(135deg, #9333ea 0%, #7c3aed 100%)' : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                      color: 'white'
+                    }}
+                  >
+                    <Sparkles className="w-4 h-4 mr-1" />
+                    {showAIHelper ? 'Hide AI Helper' : 'AI Writer'}
+                  </button>
+                </div>
               </div>
 
               {/* AI Content Generator */}
@@ -648,26 +686,136 @@ Write the content now:`
                 </div>
               )}
 
-              <div className="quill-wrapper">
-                <ReactQuill 
-                  theme="snow"
-                  value={content}
-                  onChange={setContent}
-                  modules={quillModules}
-                  formats={quillFormats}
-                  placeholder="Write your blog post content here...
+              {/* Rich Text Editor (Default Mode) */}
+              {editorMode === 'rich' && (
+                <>
+                  <div className="quill-wrapper">
+                    <ReactQuill 
+                      theme="snow"
+                      value={content}
+                      onChange={setContent}
+                      modules={quillModules}
+                      formats={quillFormats}
+                      placeholder="Write your blog post content here...
 
 Tips:
 - Use the toolbar above for formatting
 - Keep paragraphs short and readable
 - Include actionable advice
 - Add contact information when relevant"
-                  style={{ height: '400px', marginBottom: '50px' }}
-                />
-              </div>
-              <p className="text-sm text-gray-500 mt-2">
-                💡 Tip: Use the AI Writer to generate professional content instantly, or write manually with rich text formatting
-              </p>
+                      style={{ height: '400px', marginBottom: '50px' }}
+                    />
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">
+                    💡 Tip: Use the AI Writer to generate professional content instantly, or write manually with rich text formatting
+                  </p>
+                </>
+              )}
+
+              {/* HTML Preview Mode (Split Screen) */}
+              {editorMode === 'html' && (
+                <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
+                  {/* Preview Header */}
+                  <div className="bg-gray-50 px-4 py-3 border-b-2 border-gray-200 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-1.5">
+                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                      </div>
+                      <span className="text-sm font-medium text-gray-600 ml-2">HTML Preview</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(htmlContent)
+                          toast.success('HTML copied to clipboard!')
+                        }}
+                        className="px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                      >
+                        📋 Copy HTML
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const preview = document.getElementById('html-preview-content')
+                          if (preview) {
+                            navigator.clipboard.writeText(preview.innerText)
+                            toast.success('Plain text copied to clipboard!')
+                          }
+                        }}
+                        className="px-3 py-1 text-xs font-medium text-purple-600 hover:bg-purple-50 rounded transition-colors"
+                      >
+                        📋 Copy Text
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Split View Container */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-gray-200">
+                    {/* HTML Source Pane */}
+                    <div className="p-4 bg-gray-50">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                          <span>📄</span> HTML Source
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setContent(htmlContent)
+                            toast.success('Applied HTML changes!')
+                          }}
+                          className="px-3 py-1 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                        >
+                          ✓ Apply Changes
+                        </button>
+                      </div>
+                      <textarea
+                        value={htmlContent}
+                        onChange={(e) => setHtmlContent(e.target.value)}
+                        className="w-full h-[500px] p-4 font-mono text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none bg-white"
+                        placeholder="Paste your HTML content here..."
+                      />
+                      <p className="text-xs text-gray-500 mt-2">
+                        💡 Edit HTML directly and click "Apply Changes" to update
+                      </p>
+                    </div>
+
+                    {/* Live Preview Pane */}
+                    <div className="p-4 bg-white">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <span>👁️</span> Live Preview
+                      </h3>
+                      <div 
+                        id="html-preview-content"
+                        className="prose prose-sm max-w-none h-[500px] overflow-y-auto p-4 border border-gray-200 rounded-lg"
+                        dangerouslySetInnerHTML={{ __html: htmlContent || '<p class="text-gray-400 italic">Preview will appear here...</p>' }}
+                        style={{
+                          fontSize: '16px',
+                          lineHeight: '1.8'
+                        }}
+                      />
+                      <p className="text-xs text-gray-500 mt-2">
+                        👁️ This is how your content will look when published
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Quick Tips */}
+                  <div className="bg-blue-50 px-4 py-3 border-t-2 border-blue-200">
+                    <div className="flex items-start gap-2">
+                      <span className="text-blue-600 mt-0.5">💡</span>
+                      <div className="text-sm text-blue-900">
+                        <strong>HTML Tips:</strong> Use <code className="bg-blue-100 px-1 rounded">&lt;h2&gt;</code> for headers, 
+                        <code className="bg-blue-100 px-1 rounded mx-1">&lt;p&gt;</code> for paragraphs, 
+                        <code className="bg-blue-100 px-1 rounded mx-1">&lt;strong&gt;</code> for bold, 
+                        <code className="bg-blue-100 px-1 rounded mx-1">&lt;ul&gt;</code> for lists
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Media Upload */}
@@ -915,6 +1063,81 @@ Tips:
         .quill-wrapper .ql-toolbar button:focus .ql-fill,
         .quill-wrapper .ql-toolbar button.ql-active .ql-fill {
           fill: #3b82f6;
+        }
+
+        /* HTML Preview Styling */
+        #html-preview-content h1 {
+          color: #1a202c;
+          font-size: 2rem;
+          font-weight: bold;
+          margin-bottom: 1.5rem;
+          line-height: 1.2;
+        }
+
+        #html-preview-content h2 {
+          color: #2d3748;
+          font-size: 1.5rem;
+          font-weight: 600;
+          margin-top: 2rem;
+          margin-bottom: 1rem;
+          padding-bottom: 0.5rem;
+          border-bottom: 2px solid #667eea;
+        }
+
+        #html-preview-content h3 {
+          color: #2d3748;
+          font-size: 1.25rem;
+          font-weight: 600;
+          margin-top: 1.5rem;
+          margin-bottom: 0.75rem;
+        }
+
+        #html-preview-content p {
+          margin-bottom: 1rem;
+          line-height: 1.8;
+          color: #4a5568;
+        }
+
+        #html-preview-content strong {
+          color: #1a202c;
+          font-weight: 600;
+        }
+
+        #html-preview-content ul,
+        #html-preview-content ol {
+          margin: 1rem 0 1rem 1.5rem;
+          line-height: 1.8;
+        }
+
+        #html-preview-content li {
+          margin-bottom: 0.5rem;
+          color: #4a5568;
+        }
+
+        #html-preview-content a {
+          color: #667eea;
+          text-decoration: underline;
+        }
+
+        #html-preview-content a:hover {
+          color: #764ba2;
+        }
+
+        #html-preview-content code {
+          background: #f7fafc;
+          padding: 0.2rem 0.4rem;
+          border-radius: 0.25rem;
+          font-family: monospace;
+          font-size: 0.875rem;
+          color: #d73a49;
+        }
+
+        #html-preview-content blockquote {
+          border-left: 4px solid #667eea;
+          padding-left: 1rem;
+          margin: 1rem 0;
+          color: #718096;
+          font-style: italic;
         }
       `}</style>
     </div>
