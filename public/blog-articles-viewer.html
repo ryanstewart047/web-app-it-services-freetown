@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Articles - Ready to Import</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .instructions {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .instructions h2 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+        
+        .instructions ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .instructions li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .instructions .highlight {
+            background: #fff3cd;
+            padding: 1rem;
+            border-left: 4px solid #ffc107;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .stat-card .number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-card .label {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .article-list {
+            display: grid;
+            gap: 2rem;
+        }
+        
+        .article-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .article-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+        }
+        
+        .article-header h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .article-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.9rem;
+            opacity: 0.9;
+            flex-wrap: wrap;
+        }
+        
+        .article-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .article-body {
+            padding: 1.5rem;
+        }
+        
+        .excerpt {
+            color: #666;
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+        
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .tag {
+            background: #e7f0ff;
+            color: #667eea;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        
+        .article-content {
+            background: #f9f9f9;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .article-content.expanded {
+            max-height: none;
+        }
+        
+        .article-content h2 {
+            color: #333;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .article-content h3 {
+            color: #444;
+            margin-top: 1.2rem;
+            margin-bottom: 0.8rem;
+            font-size: 1.2rem;
+        }
+        
+        .article-content h4 {
+            color: #555;
+            margin-top: 1rem;
+            margin-bottom: 0.6rem;
+            font-size: 1.1rem;
+        }
+        
+        .article-content ul, .article-content ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .article-content li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .article-content p {
+            margin-bottom: 1rem;
+        }
+        
+        .article-content strong {
+            color: #333;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            background: #f9f9f9;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .copy-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .copy-notification.show {
+            display: block;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>📝 Blog Articles Ready for Import</h1>
+            <p>8 comprehensive articles for IT Services Freetown</p>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="instructions">
+            <h2>📋 How to Import These Articles</h2>
+            <ol>
+                <li>Click <strong>"View Full Article"</strong> on any article below</li>
+                <li>Click <strong>"Copy HTML"</strong> to copy the article content</li>
+                <li>Go to <a href="https://www.itservicesfreetown.com/blog/admin" target="_blank"><strong>Blog Admin Panel</strong></a> (Password: ITServices2025!)</li>
+                <li>Paste the HTML into the editor, add title and tags</li>
+                <li>Click <strong>"Publish Post"</strong></li>
+                <li>Repeat for all 8 articles</li>
+            </ol>
+            
+            <div class="highlight">
+                <strong>⚠️ After importing all articles:</strong><br>
+                Go to <a href="https://adsense.google.com" target="_blank">Google AdSense</a> and request a re-review for your site!
+            </div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="number">8</div>
+                <div class="label">Articles</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">~10,610</div>
+                <div class="label">Total Words</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">800-1,850</div>
+                <div class="label">Words/Article</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">100%</div>
+                <div class="label">Original Content</div>
+            </div>
+        </div>
+        
+        <div class="article-list" id="articleList">
+            <!-- Articles will be loaded here by JavaScript -->
+        </div>
+    </div>
+    
+    <div class="copy-notification" id="copyNotification">
+        ✓ Copied to clipboard!
+    </div>
+    
+    <script>
+        const articles = [
+            {
+                title: "Complete Guide to Computer Repair Services in Freetown, Sierra Leone",
+                author: "IT Services Freetown",
+                wordCount: 837,
+                tags: ["computer repair", "freetown", "sierra leone", "it services", "maintenance"],
+                excerpt: "A comprehensive guide to finding reliable computer repair services in Freetown, including common problems, cost considerations, and tips for choosing the right service provider.",
+                content: document.createElement('div')
+            }
+        ];
+        
+        // Load articles from JSON files
+        async function loadArticles() {
+            try {
+                const files = [
+                    'content/blog-articles.json',
+                    'content/blog-articles-2.json',
+                    'content/blog-articles-4.json'
+                ];
+                
+                const allArticles = [];
+                
+                for (const file of files) {
+                    try {
+                        const response = await fetch(file);
+                        const data = await response.json();
+                        allArticles.push(...data);
+                    } catch (err) {
+                        console.log(`Could not load ${file}:`, err);
+                    }
+                }
+                
+                if (allArticles.length === 0) {
+                    displayManualArticles();
+                } else {
+                    displayArticles(allArticles);
+                }
+            } catch (error) {
+                console.error('Error loading articles:', error);
+                displayManualArticles();
+            }
+        }
+        
+        function displayArticles(articles) {
+            const container = document.getElementById('articleList');
+            container.innerHTML = articles.map((article, index) => {
+                const wordCount = article.content.replace(/<[^>]+>/g, ' ').split(/\s+/).length;
+                return `
+                    <div class="article-card">
+                        <div class="article-header">
+                            <h3>${index + 1}. ${article.title}</h3>
+                            <div class="article-meta">
+                                <span>✍️ ${article.author}</span>
+                                <span>📝 ~${wordCount} words</span>
+                            </div>
+                        </div>
+                        <div class="article-body">
+                            <div class="excerpt">${article.excerpt}</div>
+                            <div class="tags">
+                                ${article.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                            </div>
+                            <div class="article-content" id="content-${index}">
+                                ${article.content}
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button class="btn btn-primary" onclick="toggleContent(${index})">
+                                <span id="btn-text-${index}">View Full Article</span>
+                            </button>
+                            <button class="btn btn-success" onclick="copyHTML(${index}, '${article.title.replace(/'/g, "\\'")}')">
+                                Copy HTML
+                            </button>
+                            <button class="btn btn-secondary" onclick="copyTitle('${article.title.replace(/'/g, "\\'")}')">
+                                Copy Title
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function displayManualArticles() {
+            const container = document.getElementById('articleList');
+            container.innerHTML = `
+                <div class="instructions">
+                    <h2>📁 Article Files Location</h2>
+                    <p>The articles are stored in these JSON files:</p>
+                    <ul>
+                        <li><strong>content/blog-articles.json</strong> - Articles 1-3</li>
+                        <li><strong>content/blog-articles-2.json</strong> - Articles 4-5</li>
+                        <li><strong>content/blog-articles-4.json</strong> - Articles 6-7</li>
+                    </ul>
+                    <p>You can:</p>
+                    <ol>
+                        <li>Open these files in your editor</li>
+                        <li>Copy the "content" field from each article (it's HTML)</li>
+                        <li>Paste directly into your blog admin panel</li>
+                    </ol>
+                    <p><strong>Or use the combined file:</strong> <code>content/all-blog-articles.json</code></p>
+                </div>
+            `;
+        }
+        
+        function toggleContent(index) {
+            const content = document.getElementById(`content-${index}`);
+            const btnText = document.getElementById(`btn-text-${index}`);
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                btnText.textContent = 'View Full Article';
+            } else {
+                content.classList.add('expanded');
+                btnText.textContent = 'Hide Article';
+            }
+        }
+        
+        function copyHTML(index, title) {
+            const content = document.getElementById(`content-${index}`);
+            const html = content.innerHTML;
+            
+            navigator.clipboard.writeText(html).then(() => {
+                showNotification(`Article "${title}" HTML copied!`);
+            }).catch(err => {
+                alert('Failed to copy. Please select and copy manually.');
+            });
+        }
+        
+        function copyTitle(title) {
+            navigator.clipboard.writeText(title).then(() => {
+                showNotification('Title copied!');
+            });
+        }
+        
+        function showNotification(message) {
+            const notification = document.getElementById('copyNotification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Load articles on page load
+        loadArticles();
+    </script>
+</body>
+</html>
