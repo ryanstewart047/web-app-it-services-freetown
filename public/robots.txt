@@ -1,11 +1,26 @@
-# Allow all crawlers
+# https://www.robotstxt.org/robotstxt.html
 User-agent: *
 Allow: /
 
-# Disallow admin pages
-User-agent: *
+# Block admin and API routes
 Disallow: /admin/
+Disallow: /blog/admin/
+Disallow: /offer-admin/
 Disallow: /api/
 
+# Block test/debug pages
+Disallow: /test-
+Disallow: /debug
+Disallow: /-test
+
+# Allow important pages explicitly
+Allow: /blog
+Allow: /marketplace
+Allow: /services
+Allow: /repair
+Allow: /about
+Allow: /contact
+
 # Sitemap location
+Sitemap: https://www.itservicesfreetown.com/sitemap.xml
 Sitemap: https://itservicesfreetown.com/sitemap.xml
