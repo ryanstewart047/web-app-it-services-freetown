@@ -122,9 +122,7 @@ export default function Hero() {
               Freetown&apos;s #1 Computer & Mobile Repair | iPhone Repair | iCloud Removal | FRP Unlock
             </h1>
             <p className="hero-subtitle">
-              🏆 Expert mobile technician in Freetown, Sierra Leone. 1000+ devices repaired with 95% success rate. 
-              iPhone repair, mobile unlock, iCloud removal, FRP bypass, computer repair in Freetown. Same-day service, 
-              1-month warranty, home repair available. From cracked screens to motherboard repairs - we fix it all!
+              🏆 Expert mobile technician with 1000+ devices repaired. Professional iPhone repair, iCloud removal, FRP unlock, and computer repair in Freetown - Same-day service with warranty.
             </p>
             
             {/* Enhanced Value Propositions */}
