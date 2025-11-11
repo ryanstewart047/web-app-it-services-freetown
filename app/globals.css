@@ -309,9 +309,9 @@ nav {
 }
 
 .hero-title {
-  font-size: 3.5rem;
+  font-size: 2.75rem;
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1.2;
   color: white;
   margin-bottom: 1.5rem;
   text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -319,7 +319,7 @@ nav {
 
 @media (max-width: 768px) {
   .hero-title {
-    font-size: 2.5rem;
+    font-size: 1.75rem;
   }
 }
 
