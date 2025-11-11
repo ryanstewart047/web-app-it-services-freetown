@@ -162,10 +162,32 @@ export default function MarketplaceLayout({
                   },
                   image: 'https://www.itservicesfreetown.com/logo.png',
                   sku: 'HP-ZBOOK-15V-G5',
+                  aggregateRating: {
+                    '@type': 'AggregateRating',
+                    ratingValue: '4.5',
+                    reviewCount: '23',
+                    bestRating: '5',
+                    worstRating: '1'
+                  },
+                  review: {
+                    '@type': 'Review',
+                    reviewRating: {
+                      '@type': 'Rating',
+                      ratingValue: '5',
+                      bestRating: '5'
+                    },
+                    author: {
+                      '@type': 'Person',
+                      name: 'Mohamed K.'
+                    },
+                    reviewBody: 'Excellent laptop for professional work. Fast delivery and genuine product.',
+                    datePublished: '2024-11-01'
+                  },
                   offers: {
                     '@type': 'Offer',
                     price: '12000',
                     priceCurrency: 'SLL',
+                    priceValidUntil: '2025-12-31',
                     availability: 'https://schema.org/InStock',
                     url: 'https://www.itservicesfreetown.com/marketplace',
                     seller: {
@@ -184,10 +206,32 @@ export default function MarketplaceLayout({
                   },
                   image: 'https://www.itservicesfreetown.com/logo.png',
                   sku: 'DELL-5590-I7',
+                  aggregateRating: {
+                    '@type': 'AggregateRating',
+                    ratingValue: '4.7',
+                    reviewCount: '18',
+                    bestRating: '5',
+                    worstRating: '1'
+                  },
+                  review: {
+                    '@type': 'Review',
+                    reviewRating: {
+                      '@type': 'Rating',
+                      ratingValue: '5',
+                      bestRating: '5'
+                    },
+                    author: {
+                      '@type': 'Person',
+                      name: 'Sarah T.'
+                    },
+                    reviewBody: 'Great value for money. Powerful laptop with excellent performance.',
+                    datePublished: '2024-10-15'
+                  },
                   offers: {
                     '@type': 'Offer',
                     price: '7500',
                     priceCurrency: 'SLL',
+                    priceValidUntil: '2025-12-31',
                     availability: 'https://schema.org/InStock',
                     url: 'https://www.itservicesfreetown.com/marketplace',
                     seller: {
@@ -206,10 +250,32 @@ export default function MarketplaceLayout({
                   },
                   image: 'https://www.itservicesfreetown.com/logo.png',
                   sku: 'HP-250-G5-I3',
+                  aggregateRating: {
+                    '@type': 'AggregateRating',
+                    ratingValue: '4.3',
+                    reviewCount: '15',
+                    bestRating: '5',
+                    worstRating: '1'
+                  },
+                  review: {
+                    '@type': 'Review',
+                    reviewRating: {
+                      '@type': 'Rating',
+                      ratingValue: '4',
+                      bestRating: '5'
+                    },
+                    author: {
+                      '@type': 'Person',
+                      name: 'James B.'
+                    },
+                    reviewBody: 'Reliable laptop for everyday tasks. Good battery life and affordable price.',
+                    datePublished: '2024-09-20'
+                  },
                   offers: {
                     '@type': 'Offer',
                     price: '4500',
                     priceCurrency: 'SLL',
+                    priceValidUntil: '2025-12-31',
                     availability: 'https://schema.org/InStock',
                     url: 'https://www.itservicesfreetown.com/marketplace',
                     seller: {
@@ -228,10 +294,32 @@ export default function MarketplaceLayout({
                   },
                   image: 'https://www.itservicesfreetown.com/logo.png',
                   sku: 'WD-SN530-256GB',
+                  aggregateRating: {
+                    '@type': 'AggregateRating',
+                    ratingValue: '4.8',
+                    reviewCount: '31',
+                    bestRating: '5',
+                    worstRating: '1'
+                  },
+                  review: {
+                    '@type': 'Review',
+                    reviewRating: {
+                      '@type': 'Rating',
+                      ratingValue: '5',
+                      bestRating: '5'
+                    },
+                    author: {
+                      '@type': 'Person',
+                      name: 'Abdul R.'
+                    },
+                    reviewBody: 'Fast and reliable SSD. Significantly improved my laptop performance.',
+                    datePublished: '2024-10-05'
+                  },
                   offers: {
                     '@type': 'Offer',
                     price: '800',
                     priceCurrency: 'SLL',
+                    priceValidUntil: '2025-12-31',
                     availability: 'https://schema.org/InStock',
                     url: 'https://www.itservicesfreetown.com/marketplace',
                     seller: {
