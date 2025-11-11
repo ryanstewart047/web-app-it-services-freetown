@@ -11,21 +11,53 @@ interface CartItem {
   price: number;
   image: string;
   quantity: number;
+  stock?: number; // Available stock from database
+  outOfStock?: boolean; // Flag to indicate if item is out of stock
 }
 
 export default function CartPage() {
   const router = useRouter();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasOutOfStock, setHasOutOfStock] = useState(false);
 
   useEffect(() => {
     loadCart();
   }, []);
 
-  const loadCart = () => {
+  const loadCart = async () => {
     try {
       const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-      setCartItems(cart);
+      
+      // Fetch current product stock information
+      if (cart.length > 0) {
+        const productIds = cart.map((item: CartItem) => item.productId);
+        const response = await fetch('/api/products');
+        
+        if (response.ok) {
+          const allProducts = await response.json();
+          
+          // Update cart items with current stock info
+          const updatedCart = cart.map((item: CartItem) => {
+            const product = allProducts.find((p: any) => p.id === item.productId);
+            return {
+              ...item,
+              stock: product?.stock || 0,
+              outOfStock: !product || product.stock === 0
+            };
+          });
+          
+          setCartItems(updatedCart);
+          
+          // Check if any items are out of stock
+          const hasOutOfStockItems = updatedCart.some((item: CartItem) => item.outOfStock);
+          setHasOutOfStock(hasOutOfStockItems);
+        } else {
+          setCartItems(cart);
+        }
+      } else {
+        setCartItems(cart);
+      }
     } catch (error) {
       console.error('Error loading cart:', error);
       setCartItems([]);
@@ -115,15 +147,34 @@ export default function CartPage() {
             {cartItems.map((item) => (
               <div
                 key={item.productId}
-                className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-blue-500/50 transition-all"
+                className={`bg-gray-800/50 backdrop-blur-sm border rounded-xl p-6 hover:border-blue-500/50 transition-all ${
+                  item.outOfStock ? 'border-red-500/50 opacity-75' : 'border-gray-700'
+                }`}
               >
+                {item.outOfStock && (
+                  <div className="mb-4 bg-red-500/20 border border-red-500 rounded-lg p-3">
+                    <p className="text-red-400 text-sm font-semibold flex items-center gap-2">
+                      <span className="text-lg">⚠️</span>
+                      This item is currently out of stock
+                    </p>
+                  </div>
+                )}
                 <div className="flex gap-4">
                   {/* Product Image */}
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-24 h-24 object-cover rounded-lg"
-                  />
+                  <div className="relative">
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className={`w-24 h-24 object-cover rounded-lg ${
+                        item.outOfStock ? 'grayscale' : ''
+                      }`}
+                    />
+                    {item.outOfStock && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
+                        <span className="text-red-400 font-bold text-xs">OUT OF STOCK</span>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Product Details */}
                   <div className="flex-1">
@@ -131,21 +182,27 @@ export default function CartPage() {
                     <p className="text-blue-400 font-bold text-lg mb-4">
                       Le {item.price.toLocaleString()}
                     </p>
+                    {!item.outOfStock && item.stock !== undefined && item.stock < 5 && (
+                      <p className="text-yellow-400 text-sm mb-2">
+                        Only {item.stock} left in stock
+                      </p>
+                    )}
 
                     {/* Quantity Controls */}
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-2 bg-gray-900 rounded-lg p-1">
                         <button
                           onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                          className="p-2 hover:bg-gray-700 rounded transition-colors"
-                          disabled={item.quantity <= 1}
+                          className="p-2 hover:bg-gray-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={item.quantity <= 1 || item.outOfStock}
                         >
                           <Minus className="w-4 h-4 text-white" />
                         </button>
                         <span className="text-white font-semibold px-4">{item.quantity}</span>
                         <button
                           onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                          className="p-2 hover:bg-gray-700 rounded transition-colors"
+                          className="p-2 hover:bg-gray-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={item.outOfStock}
                         >
                           <Plus className="w-4 h-4 text-white" />
                         </button>
@@ -195,11 +252,27 @@ export default function CartPage() {
                 </div>
               </div>
 
+              {hasOutOfStock && (
+                <div className="mb-4 bg-red-500/20 border border-red-500 rounded-lg p-4">
+                  <p className="text-red-400 text-sm font-semibold text-center">
+                    ⚠️ Cannot proceed: Some items are out of stock
+                  </p>
+                  <p className="text-red-300 text-xs text-center mt-2">
+                    Please remove out of stock items to continue
+                  </p>
+                </div>
+              )}
+
               <button
                 onClick={() => router.push('/checkout')}
-                className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg"
+                disabled={hasOutOfStock}
+                className={`w-full py-4 font-bold rounded-xl transition-all transform shadow-lg ${
+                  hasOutOfStock
+                    ? 'bg-gray-600 text-gray-400 cursor-not-allowed opacity-50'
+                    : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white hover:scale-105'
+                }`}
               >
-                Proceed to Checkout
+                {hasOutOfStock ? 'Cannot Proceed - Out of Stock Items' : 'Proceed to Checkout'}
               </button>
 
               <Link
