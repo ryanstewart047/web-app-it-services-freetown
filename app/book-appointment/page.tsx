@@ -492,6 +492,25 @@ export default function BookAppointment() {
       {/* Modern Hero Section */}
       <div className="relative bg-gradient-to-br from-red-600 via-red-500 to-red-700 text-white overflow-hidden" style={{background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #040e40 100%)'}}>
         <div className="absolute inset-0 bg-black/20"></div>
+        
+        {/* Tech Circuit Board Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="circuit-pattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+                <circle cx="20" cy="20" r="2" fill="#fff"/>
+                <circle cx="80" cy="80" r="2" fill="#fff"/>
+                <circle cx="50" cy="50" r="3" fill="#fff"/>
+                <line x1="20" y1="20" x2="50" y2="50" stroke="#fff" strokeWidth="0.5"/>
+                <line x1="50" y1="50" x2="80" y2="80" stroke="#fff" strokeWidth="0.5"/>
+                <rect x="45" y="15" width="10" height="10" fill="none" stroke="#fff" strokeWidth="0.5"/>
+                <rect x="70" y="70" width="8" height="8" fill="none" stroke="#fff" strokeWidth="0.5"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#circuit-pattern)"/>
+          </svg>
+        </div>
+        
         <div className="absolute inset-0 bg-gradient-to-r from-red-600/20 to-blue-900/20"></div>
         
         {/* Animated background elements */}

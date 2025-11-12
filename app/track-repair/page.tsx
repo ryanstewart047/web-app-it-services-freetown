@@ -55,6 +55,23 @@ export default function TrackRepair() {
       <div className="relative bg-gradient-to-br from-red-600 via-red-500 to-red-700 text-white overflow-hidden" style={{background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #040e40 100%)'}}>
         <div className="absolute inset-0 bg-black/20"></div>
         
+        {/* Tech Circuit Board Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="circuit-track" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+                <circle cx="10" cy="10" r="2" fill="#fff"/>
+                <circle cx="70" cy="70" r="2" fill="#fff"/>
+                <circle cx="40" cy="40" r="3" fill="#fff"/>
+                <path d="M10,10 L40,40 L70,70" stroke="#fff" strokeWidth="0.5" fill="none"/>
+                <rect x="35" y="10" width="10" height="10" fill="none" stroke="#fff" strokeWidth="0.5"/>
+                <rect x="5" y="60" width="8" height="8" fill="none" stroke="#fff" strokeWidth="0.5"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#circuit-track)"/>
+          </svg>
+        </div>
+        
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-6">
             <i className="fas fa-search text-3xl text-white"></i>
