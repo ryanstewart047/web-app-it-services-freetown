@@ -11,6 +11,8 @@ export async function POST(request: NextRequest) {
   try {
     const { timestamp, formType } = await request.json();
     
+    console.log(`[Forms Delete] Attempting to delete submission:`, { timestamp, formType });
+    
     if (!timestamp) {
       return NextResponse.json({ 
         success: false, 
@@ -29,19 +31,35 @@ export async function POST(request: NextRequest) {
     }
     
     const originalCount = data.forms.submissions.length;
+    console.log(`[Forms Delete] Total submissions before delete: ${originalCount}`);
+    
+    // Log a few timestamps for debugging
+    if (data.forms.submissions.length > 0) {
+      console.log(`[Forms Delete] Sample timestamps from data:`, 
+        data.forms.submissions.slice(0, 3).map((s: any) => s.timestamp)
+      );
+    }
     
     // Filter out the specific submission by timestamp
     data.forms.submissions = data.forms.submissions.filter((submission: any) => {
       const matches = submission.timestamp === timestamp;
+      if (matches) {
+        console.log(`[Forms Delete] Found matching submission:`, { 
+          timestamp: submission.timestamp, 
+          formType: submission.formType 
+        });
+      }
       return !matches;
     });
     
     const removedCount = originalCount - data.forms.submissions.length;
+    console.log(`[Forms Delete] Removed ${removedCount} submission(s)`);
     
     if (removedCount === 0) {
+      console.error(`[Forms Delete] ❌ Submission not found. Looking for: ${timestamp}`);
       return NextResponse.json({ 
         success: false, 
-        error: 'Submission not found' 
+        error: `Submission not found. Looking for timestamp: ${timestamp}` 
       }, { status: 404 });
     }
     

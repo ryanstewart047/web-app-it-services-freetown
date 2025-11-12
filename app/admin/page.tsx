@@ -229,6 +229,8 @@ export default function AdminPage() {
       return;
     }
 
+    console.log('[Admin] Deleting submission:', { originalTimestamp, displayTimestamp, formType });
+
     try {
       const response = await fetch('/api/analytics/forms/delete', {
         method: 'POST',
@@ -242,11 +244,12 @@ export default function AdminPage() {
         alert('✅ Submission deleted successfully');
         await loadData(); // Refresh the data
       } else {
-        alert(`❌ Failed to delete: ${result.error}`);
+        console.error('[Admin] Delete failed:', result);
+        alert(`❌ Failed to delete: ${result.error || 'Unknown error'}\n\nTimestamp sent: ${originalTimestamp}`);
       }
     } catch (error) {
       console.error('Error deleting submission:', error);
-      alert('❌ Error deleting submission. Please try again.');
+      alert('❌ Error deleting submission. Please check console for details.');
     }
   };
 
