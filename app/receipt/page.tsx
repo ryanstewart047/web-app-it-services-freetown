@@ -839,6 +839,19 @@ Thank you for your business!
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
+
+              {/* Balance to be Paid */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Balance to be Paid (SLE)
+                </label>
+                <input
+                  type="number"
+                  value={Math.max(0, calculateSubtotal() - amountPaid)}
+                  readOnly
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-700 font-semibold"
+                />
+              </div>
             </div>
 
             {/* Items Section */}
