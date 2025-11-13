@@ -165,7 +165,7 @@ export default function Hero() {
           
           {/* Right Side - Image Slider */}
           <div className="relative">
-            <div className="image-slider-container relative w-full h-96 lg:h-[500px] rounded-2xl overflow-hidden">
+            <div className="image-slider-container relative w-full rounded-2xl overflow-hidden" style={{ aspectRatio: '4/3', minHeight: '400px' }}>
               {slides.map((slide, index) => (
                 <div
                   key={index}
@@ -184,7 +184,7 @@ export default function Hero() {
                     className="object-cover"
                     priority={index === 0}
                     loading={index === 0 ? 'eager' : 'lazy'}
-                    quality={85}
+                    quality={75}
                   />
                 </div>
               ))}
