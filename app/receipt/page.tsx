@@ -72,7 +72,47 @@ export default function ReceiptGenerator() {
   // Load all receipts on mount
   useEffect(() => {
     loadAllReceipts()
+    migrateLocalStorageReceipts() // Migrate old receipts to database
   }, [])
+
+  const migrateLocalStorageReceipts = async () => {
+    const saved = localStorage.getItem('saved_receipts')
+    if (!saved) return
+
+    try {
+      const localReceipts: SavedReceipt[] = JSON.parse(saved)
+      if (localReceipts.length === 0) return
+
+      console.log(`Found ${localReceipts.length} receipts in localStorage. Migrating to database...`)
+      
+      let successCount = 0
+      for (const receipt of localReceipts) {
+        try {
+          const response = await fetch('/api/receipts', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(receipt)
+          })
+          
+          if (response.ok) {
+            successCount++
+          }
+        } catch (error) {
+          console.error(`Failed to migrate receipt ${receipt.receiptNumber}:`, error)
+        }
+      }
+      
+      if (successCount > 0) {
+        console.log(`✅ Successfully migrated ${successCount} receipts to database`)
+        // Keep localStorage as backup, don't delete it yet
+        loadAllReceipts() // Reload to show migrated receipts
+      }
+    } catch (error) {
+      console.error('Error migrating receipts:', error)
+    }
+  }
 
   const loadAllReceipts = async () => {
     try {
@@ -80,6 +120,15 @@ export default function ReceiptGenerator() {
       if (response.ok) {
         const receipts = await response.json()
         setAllReceipts(receipts)
+        
+        // If no receipts in database, show localStorage receipts
+        if (receipts.length === 0) {
+          const saved = localStorage.getItem('saved_receipts')
+          if (saved) {
+            const localReceipts = JSON.parse(saved)
+            setAllReceipts(localReceipts)
+          }
+        }
       }
     } catch (error) {
       console.error('Error loading receipts:', error)
@@ -654,6 +703,19 @@ Thank you for your business!
               >
                 <History className="w-5 h-5" />
                 All Receipts ({allReceipts.length})
+              </button>
+              <button
+                onClick={async () => {
+                  if (confirm('Migrate all receipts from this device to the database? This will make them accessible from all devices.')) {
+                    await migrateLocalStorageReceipts()
+                    alert('Migration complete! Check console for details.')
+                  }
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all"
+                title="Migrate localStorage receipts to database"
+              >
+                <FileText className="w-5 h-5" />
+                Migrate Old Receipts
               </button>
             </div>
           </div>
