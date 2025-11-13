@@ -820,6 +820,7 @@ Thank you for your business!
                   <option value="Mobile Money">Mobile Money</option>
                   <option value="Bank Transfer">Bank Transfer</option>
                   <option value="Card">Card</option>
+                  <option value="Installment Payment">Installment Payment</option>
                 </select>
               </div>
 
