@@ -155,26 +155,10 @@ export default function RootLayout({
           strategy="lazyOnload"
         />
         
-        {/* Font Awesome - Deferred loading */}
-        <link 
-          rel="preload"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-          as="style"
-        />
+        {/* Font Awesome */}
         <link 
           rel="stylesheet" 
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-          media="print"
-        />
-        <Script
-          id="load-font-awesome"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              const fontAwesome = document.querySelector('link[href*="font-awesome"]');
-              if (fontAwesome) fontAwesome.media = 'all';
-            `
-          }}
         />
         
         {/* PWA Meta Tags - Updated */}
