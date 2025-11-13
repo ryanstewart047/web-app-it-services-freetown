@@ -241,25 +241,6 @@ export default function MarketplacePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
-      {/* Tech Circuit Background Pattern */}
-      <div className="fixed inset-0 opacity-5 pointer-events-none">
-        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="circuit-marketplace" x="0" y="0" width="150" height="150" patternUnits="userSpaceOnUse">
-              <circle cx="25" cy="25" r="3" fill="#3b82f6"/>
-              <circle cx="125" cy="125" r="3" fill="#3b82f6"/>
-              <circle cx="75" cy="75" r="4" fill="#60a5fa"/>
-              <line x1="25" y1="25" x2="75" y2="75" stroke="#3b82f6" strokeWidth="1"/>
-              <line x1="75" y1="75" x2="125" y2="125" stroke="#3b82f6" strokeWidth="1"/>
-              <rect x="70" y="20" width="15" height="15" fill="none" stroke="#3b82f6" strokeWidth="1"/>
-              <rect x="115" y="115" width="12" height="12" fill="none" stroke="#3b82f6" strokeWidth="1"/>
-              <path d="M40,40 L75,75 L110,40" stroke="#60a5fa" strokeWidth="0.8" fill="none"/>
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#circuit-marketplace)"/>
-        </svg>
-      </div>
-      
       {/* Header */}
       <header className="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">

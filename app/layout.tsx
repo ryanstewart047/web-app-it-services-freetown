@@ -155,10 +155,10 @@ export default function RootLayout({
           strategy="lazyOnload"
         />
         
-        {/* Font Awesome - Load asynchronously */}
-        <Script
-          src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-          strategy="lazyOnload"
+        {/* Font Awesome */}
+        <link 
+          rel="stylesheet" 
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
         />
         
         {/* PWA Meta Tags - Updated */}
