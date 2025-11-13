@@ -15,6 +15,9 @@ export default function AddProductPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<{ url: string; alt: string }[]>([{ url: '', alt: '' }]);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoUrl, setVideoUrl] = useState('');
+  const [videoError, setVideoError] = useState('');
   
   const [formData, setFormData] = useState({
     name: '',
@@ -49,15 +52,24 @@ export default function AddProductPage() {
     setLoading(true);
 
     try {
+      // TODO: Upload video file to storage service (Cloudinary, AWS S3, etc.)
+      // For now, we just validate that the video is 30 seconds
+      // You'll need to implement video upload to a storage service
+      
       const productData = {
         ...formData,
         price: parseFloat(formData.price),
         comparePrice: formData.comparePrice ? parseFloat(formData.comparePrice) : undefined,
         stock: parseInt(formData.stock),
-        images: images.filter(img => img.url).map((img, index) => ({ ...img, order: index }))
+        images: images.filter(img => img.url).map((img, index) => ({ ...img, order: index })),
+        // videoUrl will be set after uploading to storage service
+        videoUrl: videoFile ? 'VIDEO_UPLOAD_PENDING' : undefined
       };
 
       console.log('[Add Product] Submitting product data:', productData);
+      if (videoFile) {
+        console.log('[Add Product] Video file ready for upload:', videoFile.name);
+      }
 
       const res = await fetch('/api/products', {
         method: 'POST',
@@ -96,6 +108,59 @@ export default function AddProductPage() {
     const newImages = [...images];
     newImages[index][field] = value;
     setImages(newImages);
+  };
+
+  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check if it's a video file
+    if (!file.type.startsWith('video/')) {
+      setVideoError('Please select a valid video file');
+      setVideoFile(null);
+      return;
+    }
+
+    // Check file size (max 50MB)
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (file.size > maxSize) {
+      setVideoError('Video file must be less than 50MB');
+      setVideoFile(null);
+      return;
+    }
+
+    // Create video element to check duration
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+
+    video.onloadedmetadata = () => {
+      window.URL.revokeObjectURL(video.src);
+      const duration = Math.round(video.duration);
+
+      if (duration !== 30) {
+        setVideoError(`Video must be exactly 30 seconds (current: ${duration}s)`);
+        setVideoFile(null);
+        e.target.value = ''; // Reset input
+      } else {
+        setVideoError('');
+        setVideoFile(file);
+        // Create a local URL for preview if needed
+        setVideoUrl(URL.createObjectURL(file));
+      }
+    };
+
+    video.onerror = () => {
+      setVideoError('Unable to read video file');
+      setVideoFile(null);
+    };
+
+    video.src = URL.createObjectURL(file);
+  };
+
+  const removeVideo = () => {
+    setVideoFile(null);
+    setVideoUrl('');
+    setVideoError('');
   };
 
   return (
@@ -262,6 +327,56 @@ export default function AddProductPage() {
                   )}
                 </div>
               ))}
+            </div>
+
+            {/* Video Upload */}
+            <div>
+              <label className="block text-white font-medium mb-2">
+                Product Video (Optional - Must be exactly 30 seconds)
+              </label>
+              <div className="space-y-3">
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={handleVideoChange}
+                  className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer"
+                />
+                
+                {videoError && (
+                  <div className="p-3 bg-red-500/20 border border-red-500 rounded-lg text-red-300 text-sm">
+                    {videoError}
+                  </div>
+                )}
+                
+                {videoFile && !videoError && (
+                  <div className="p-4 bg-green-500/20 border border-green-500 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-green-300 font-medium">✓ Video uploaded: {videoFile.name}</p>
+                        <p className="text-green-300/70 text-sm">Duration: 30 seconds</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={removeVideo}
+                        className="text-red-400 hover:text-red-300"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                    {videoUrl && (
+                      <video 
+                        src={videoUrl} 
+                        controls 
+                        className="mt-3 w-full max-w-md rounded-lg"
+                      />
+                    )}
+                  </div>
+                )}
+                
+                <p className="text-gray-400 text-sm">
+                  Upload a 30-second video to showcase your product. Accepted formats: MP4, MOV, AVI. Max size: 50MB.
+                </p>
+              </div>
             </div>
 
             {/* Status, Condition, and Featured */}
