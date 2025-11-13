@@ -77,17 +77,27 @@ export default function ReceiptGenerator() {
 
   const migrateLocalStorageReceipts = async () => {
     const saved = localStorage.getItem('saved_receipts')
-    if (!saved) return
+    if (!saved) {
+      console.log('No receipts found in localStorage')
+      return
+    }
 
     try {
       const localReceipts: SavedReceipt[] = JSON.parse(saved)
-      if (localReceipts.length === 0) return
+      if (localReceipts.length === 0) {
+        console.log('localStorage receipts array is empty')
+        return
+      }
 
       console.log(`Found ${localReceipts.length} receipts in localStorage. Migrating to database...`)
       
       let successCount = 0
+      let failCount = 0
+      const errors: string[] = []
+      
       for (const receipt of localReceipts) {
         try {
+          console.log(`Migrating receipt: ${receipt.receiptNumber}`)
           const response = await fetch('/api/receipts', {
             method: 'POST',
             headers: {
@@ -98,19 +108,32 @@ export default function ReceiptGenerator() {
           
           if (response.ok) {
             successCount++
+            console.log(`✅ Migrated: ${receipt.receiptNumber}`)
+          } else {
+            failCount++
+            const errorText = await response.text()
+            errors.push(`${receipt.receiptNumber}: ${response.status} - ${errorText}`)
+            console.error(`❌ Failed to migrate ${receipt.receiptNumber}:`, response.status, errorText)
           }
         } catch (error) {
-          console.error(`Failed to migrate receipt ${receipt.receiptNumber}:`, error)
+          failCount++
+          const errorMsg = error instanceof Error ? error.message : String(error)
+          errors.push(`${receipt.receiptNumber}: ${errorMsg}`)
+          console.error(`❌ Exception migrating receipt ${receipt.receiptNumber}:`, error)
         }
       }
       
       if (successCount > 0) {
         console.log(`✅ Successfully migrated ${successCount} receipts to database`)
-        // Keep localStorage as backup, don't delete it yet
-        loadAllReceipts() // Reload to show migrated receipts
+        await loadAllReceipts() // Reload to show migrated receipts
+        alert(`Migration complete!\n✅ Success: ${successCount}\n❌ Failed: ${failCount}`)
+      } else if (failCount > 0) {
+        console.error('Migration failed for all receipts:', errors)
+        alert(`Migration failed!\nAll ${failCount} receipts failed to migrate.\n\nCheck console for details or try manual migration button.`)
       }
     } catch (error) {
-      console.error('Error migrating receipts:', error)
+      console.error('Error parsing or migrating receipts:', error)
+      alert('Error migrating receipts. Check console for details.')
     }
   }
 

@@ -46,6 +46,8 @@ export async function POST(request: NextRequest) {
   try {
     const data = await request.json()
     
+    console.log('Attempting to save receipt:', data.receiptNumber)
+    
     // Check if receipt with this number already exists
     const existing = await prisma.receipt.findUnique({
       where: { receiptNumber: data.receiptNumber }
@@ -53,6 +55,7 @@ export async function POST(request: NextRequest) {
     
     if (existing) {
       // Update existing receipt
+      console.log('Updating existing receipt:', data.receiptNumber)
       const receipt = await prisma.receipt.update({
         where: { receiptNumber: data.receiptNumber },
         data: {
@@ -70,9 +73,11 @@ export async function POST(request: NextRequest) {
           change: data.change
         }
       })
+      console.log('✅ Receipt updated:', receipt.receiptNumber)
       return NextResponse.json(receipt)
     } else {
       // Create new receipt
+      console.log('Creating new receipt:', data.receiptNumber)
       const receipt = await prisma.receipt.create({
         data: {
           receiptNumber: data.receiptNumber,
@@ -90,12 +95,14 @@ export async function POST(request: NextRequest) {
           change: data.change
         }
       })
+      console.log('✅ Receipt created:', receipt.receiptNumber)
       return NextResponse.json(receipt, { status: 201 })
     }
   } catch (error) {
-    console.error('Error creating receipt:', error)
+    console.error('Error creating/updating receipt:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: 'Failed to create receipt' },
+      { error: 'Failed to create receipt', details: errorMessage },
       { status: 500 }
     )
   }
