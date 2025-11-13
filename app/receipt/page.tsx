@@ -268,7 +268,7 @@ Thank you for your business!
 
   const handleShareEmail = () => {
     const subject = `Receipt ${receiptNumber} - IT Services Freetown`
-    const body = `${receiptType === 'purchase' ? 'PURCHASE' : 'REPAIR'} RECEIPT\n\nIT Services Freetown\n#1 Regent Highway Jui Junction\nTel: +232 33 399 391\n\nReceipt No: ${receiptNumber}\nDate: ${new Date(receiptDate).toLocaleDateString()}\nCustomer: ${customerName}\nPhone: ${customerPhone}\n\nItems:\n${items.filter(i => i.description).map(i => `${i.description} - Qty: ${i.quantity} - SLE ${i.total.toFixed(2)}`).join('\n')}\n\nSubtotal: SLE ${calculateSubtotal().toFixed(2)}\nAmount Paid: SLE ${amountPaid.toFixed(2)}\nChange: SLE ${calculateChange().toFixed(2)}\n\nThank you for your business!`
+    const body = `${receiptType === 'purchase' ? 'PURCHASE' : 'REPAIR'} RECEIPT\n\nIT Services Freetown\n#1 Regent Highway Jui Junction\nTel: +232 33 399 391\n\nReceipt No: ${receiptNumber}\nDate: ${new Date(receiptDate).toLocaleDateString()}\nCustomer: ${customerName}\nPhone: ${customerPhone}\n\nItems:\n${items.filter(i => i.description).map(i => `${i.description} - Qty: ${i.quantity} - SLE ${i.total.toFixed(2)}`).join('\n')}\n\nSubtotal: SLE ${calculateSubtotal().toFixed(2)}\nAmount Paid: SLE ${amountPaid.toFixed(2)}${calculateSubtotal() > amountPaid ? `\nBalance to be Paid: SLE ${(calculateSubtotal() - amountPaid).toFixed(2)}` : ''}\nChange: SLE ${calculateChange().toFixed(2)}\n\nThank you for your business!`
     window.location.href = `mailto:${customerEmail || ''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
   }
 
@@ -1036,6 +1036,12 @@ Thank you for your business!
                 <span className="font-semibold text-gray-700">Amount Paid:</span>
                 <span className="font-bold text-green-600">SLE {amountPaid.toFixed(2)}</span>
               </div>
+              {calculateSubtotal() > amountPaid && (
+                <div className="flex justify-between items-center pb-2 border-b border-gray-300" style={{ fontSize: '13px' }}>
+                  <span className="font-semibold text-gray-700">Balance to be Paid:</span>
+                  <span className="font-bold text-red-600">SLE {(calculateSubtotal() - amountPaid).toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between items-center pt-2 bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded" style={{ fontSize: '14px' }}>
                 <span className="font-bold text-gray-900">Change:</span>
                 <span className="font-bold text-blue-600">SLE {calculateChange().toFixed(2)}</span>
