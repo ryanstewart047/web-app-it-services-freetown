@@ -222,24 +222,6 @@ export default function Troubleshoot() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 relative overflow-hidden">
-      {/* Tech Circuit Background Pattern */}
-      <div className="fixed inset-0 opacity-5 pointer-events-none">
-        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="circuit-troubleshoot" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-              <circle cx="15" cy="15" r="2" fill="#1e40af"/>
-              <circle cx="85" cy="85" r="2" fill="#1e40af"/>
-              <circle cx="50" cy="50" r="3" fill="#3b82f6"/>
-              <line x1="15" y1="15" x2="50" y2="50" stroke="#1e40af" strokeWidth="0.8"/>
-              <line x1="50" y1="50" x2="85" y2="85" stroke="#1e40af" strokeWidth="0.8"/>
-              <rect x="45" y="10" width="10" height="10" fill="none" stroke="#3b82f6" strokeWidth="0.8"/>
-              <rect x="75" y="75" width="12" height="12" fill="none" stroke="#1e40af" strokeWidth="0.8"/>
-              <path d="M30,30 Q50,50 70,30" stroke="#3b82f6" strokeWidth="0.6" fill="none"/>
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#circuit-troubleshoot)"/>
-        </svg>
-      </div>
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-12">
