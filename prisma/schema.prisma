@@ -263,3 +263,26 @@ model Wishlist {
   @@index([sessionId])
   @@index([productId])
 }
+
+model Receipt {
+  id             String   @id @default(cuid())
+  receiptNumber  String   @unique
+  receiptType    String   // 'purchase' or 'repair'
+  customerName   String
+  customerPhone  String
+  customerEmail  String?
+  customerAddress String?
+  receiptDate    String
+  items          Json     // Store items as JSON array
+  notes          String?
+  paymentMethod  String
+  amountPaid     Float
+  subtotal       Float
+  change         Float
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  @@index([receiptNumber])
+  @@index([customerName])
+  @@index([createdAt])
+}

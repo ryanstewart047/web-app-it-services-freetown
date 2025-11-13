@@ -490,8 +490,32 @@ export default function BookAppointment() {
   return (
     <>
       {/* Modern Hero Section */}
-      <div className="relative text-white overflow-hidden" style={{backgroundImage: 'url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQ0MCIgaGVpZ2h0PSI0NTAiIHZpZXdCb3g9IjAgMCAxNDQwIDQ1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE0NDAiIGhlaWdodD0iNDUwIiBmaWxsPSJ1cmwoI3BhaW50MF9saW5lYXJfMF8xKSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJwYWludDBfbGluZWFyXzBfMSIgeDE9IjcyMCIgeTE9IjAiIHgyPSI3MjAiIHkyPSI0NTAiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KPHN0b3Agc3RvcC1jb2xvcj0iIzBEMUIyQSIvPgo8c3RvcCBvZmZzZXQ9IjAuNSIgc3RvcC1jb2xvcj0iIzFBMjMzMyIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwRDBFMjgiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8L3N2Zz4K)', backgroundSize: 'cover', backgroundPosition: 'center'}}>
-        <div className="absolute inset-0 bg-gradient-to-r from-red-600/30 via-red-500/30 to-blue-900/30"></div>
+      <div className="relative bg-gradient-to-br from-red-600 via-red-500 to-red-700 text-white overflow-hidden" style={{background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #040e40 100%)'}}>
+        <div className="absolute inset-0 bg-black/20"></div>
+        
+        {/* Tech Circuit Board Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="circuit-pattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+                <circle cx="20" cy="20" r="2" fill="#fff"/>
+                <circle cx="80" cy="80" r="2" fill="#fff"/>
+                <circle cx="50" cy="50" r="3" fill="#fff"/>
+                <line x1="20" y1="20" x2="50" y2="50" stroke="#fff" strokeWidth="0.5"/>
+                <line x1="50" y1="50" x2="80" y2="80" stroke="#fff" strokeWidth="0.5"/>
+                <rect x="45" y="15" width="10" height="10" fill="none" stroke="#fff" strokeWidth="0.5"/>
+                <rect x="70" y="70" width="8" height="8" fill="none" stroke="#fff" strokeWidth="0.5"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#circuit-pattern)"/>
+          </svg>
+        </div>
+        
+        <div className="absolute inset-0 bg-gradient-to-r from-red-600/20 to-blue-900/20"></div>
+        
+        {/* Animated background elements */}
+        <div className="absolute top-0 left-0 w-72 h-72 bg-gradient-to-br from-red-400/10 to-transparent rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-blue-900/10 to-transparent rounded-full blur-3xl transform translate-x-1/2 translate-y-1/2"></div>
         
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
           <div className="mb-6">

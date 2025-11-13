@@ -52,8 +52,25 @@ export default function TrackRepair() {
   return (
     <>
       {/* Hero Section */}
-      <div className="relative text-white overflow-hidden" style={{backgroundImage: 'url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQ0MCIgaGVpZ2h0PSI0NTAiIHZpZXdCb3g9IjAgMCAxNDQwIDQ1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE0NDAiIGhlaWdodD0iNDUwIiBmaWxsPSJ1cmwoI3BhaW50MF9saW5lYXJfMF8xKSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJwYWludDBfbGluZWFyXzBfMSIgeDE9IjcyMCIgeTE9IjAiIHgyPSI3MjAiIHkyPSI0NTAiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KPHN0b3Agc3RvcC1jb2xvcj0iIzBEMUIyQSIvPgo8c3RvcCBvZmZzZXQ9IjAuNSIgc3RvcC1jb2xvcj0iIzFBMjMzMyIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwRDBFMjgiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8L3N2Zz4K)', backgroundSize: 'cover', backgroundPosition: 'center'}}>
-        <div className="absolute inset-0 bg-gradient-to-r from-red-600/30 via-red-500/30 to-blue-900/30"></div>
+      <div className="relative bg-gradient-to-br from-red-600 via-red-500 to-red-700 text-white overflow-hidden" style={{background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #040e40 100%)'}}>
+        <div className="absolute inset-0 bg-black/20"></div>
+        
+        {/* Tech Circuit Board Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="circuit-track" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+                <circle cx="10" cy="10" r="2" fill="#fff"/>
+                <circle cx="70" cy="70" r="2" fill="#fff"/>
+                <circle cx="40" cy="40" r="3" fill="#fff"/>
+                <path d="M10,10 L40,40 L70,70" stroke="#fff" strokeWidth="0.5" fill="none"/>
+                <rect x="35" y="10" width="10" height="10" fill="none" stroke="#fff" strokeWidth="0.5"/>
+                <rect x="5" y="60" width="8" height="8" fill="none" stroke="#fff" strokeWidth="0.5"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#circuit-track)"/>
+          </svg>
+        </div>
         
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-6">

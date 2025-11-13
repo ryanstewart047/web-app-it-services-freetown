@@ -311,8 +311,29 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Hero Header */}
-      <header className="relative overflow-hidden" style={{backgroundImage: 'url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQ0MCIgaGVpZ2h0PSI0NTAiIHZpZXdCb3g9IjAgMCAxNDQwIDQ1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE0NDAiIGhlaWdodD0iNDUwIiBmaWxsPSJ1cmwoI3BhaW50MF9saW5lYXJfMF8xKSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJwYWludDBfbGluZWFyXzBfMSIgeDE9IjcyMCIgeTE9IjAiIHgyPSI3MjAiIHkyPSI0NTAiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KPHN0b3Agc3RvcC1jb2xvcj0iIzBEMUIyQSIvPgo8c3RvcCBvZmZzZXQ9IjAuNSIgc3RvcC1jb2xvcj0iIzFBMjMzMyIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwRDBFMjgiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8L3N2Zz4K)', backgroundSize: 'cover', backgroundPosition: 'center'}}>
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-indigo-900/80 to-purple-900/80"></div>
+      <header className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-900 via-indigo-900 to-purple-900 opacity-95"></div>
+        
+        {/* Tech Circuit Board Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="circuit-blog" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
+                <circle cx="20" cy="20" r="2.5" fill="#fff"/>
+                <circle cx="100" cy="100" r="2.5" fill="#fff"/>
+                <circle cx="60" cy="60" r="3" fill="#fff"/>
+                <line x1="20" y1="20" x2="60" y2="60" stroke="#fff" strokeWidth="0.5"/>
+                <line x1="60" y1="60" x2="100" y2="100" stroke="#fff" strokeWidth="0.5"/>
+                <rect x="55" y="15" width="10" height="10" fill="none" stroke="#fff" strokeWidth="0.5"/>
+                <rect x="90" y="90" width="12" height="12" fill="none" stroke="#fff" strokeWidth="0.5"/>
+                <path d="M30,30 Q45,45 60,30" stroke="#fff" strokeWidth="0.5" fill="none"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#circuit-blog)"/>
+          </svg>
+        </div>
+        
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
         
         <div className="relative max-w-7xl mx-auto px-6 py-20 md:py-28">
           <div className="text-center">

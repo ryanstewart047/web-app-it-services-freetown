@@ -74,15 +74,25 @@ export default function ReceiptGenerator() {
     loadAllReceipts()
   }, [])
 
-  const loadAllReceipts = () => {
-    const saved = localStorage.getItem('saved_receipts')
-    if (saved) {
-      const receipts = JSON.parse(saved)
-      setAllReceipts(receipts)
+  const loadAllReceipts = async () => {
+    try {
+      const response = await fetch('/api/receipts')
+      if (response.ok) {
+        const receipts = await response.json()
+        setAllReceipts(receipts)
+      }
+    } catch (error) {
+      console.error('Error loading receipts:', error)
+      // Fallback to localStorage if API fails
+      const saved = localStorage.getItem('saved_receipts')
+      if (saved) {
+        const receipts = JSON.parse(saved)
+        setAllReceipts(receipts)
+      }
     }
   }
 
-  const saveReceipt = () => {
+  const saveReceipt = async () => {
     const receipt: SavedReceipt = {
       receiptNumber,
       receiptType,
@@ -100,52 +110,84 @@ export default function ReceiptGenerator() {
       createdAt: new Date().toISOString()
     }
 
-    // Get existing receipts
-    const saved = localStorage.getItem('saved_receipts')
-    let receipts: SavedReceipt[] = saved ? JSON.parse(saved) : []
+    try {
+      const response = await fetch('/api/receipts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(receipt)
+      })
 
-    // Check if receipt number already exists
-    const existingIndex = receipts.findIndex(r => r.receiptNumber === receiptNumber)
-    
-    if (existingIndex >= 0) {
-      // Update existing receipt
-      receipts[existingIndex] = receipt
-      alert(`Receipt ${receiptNumber} updated!`)
-    } else {
-      // Add new receipt
-      receipts.push(receipt)
-      alert(`Receipt ${receiptNumber} saved successfully!`)
+      if (response.ok) {
+        const savedReceipt = await response.json()
+        alert(`Receipt ${receiptNumber} saved successfully!`)
+        loadAllReceipts() // Reload all receipts
+      } else {
+        throw new Error('Failed to save receipt')
+      }
+    } catch (error) {
+      console.error('Error saving receipt:', error)
+      alert('Failed to save receipt. Please try again.')
+      
+      // Fallback to localStorage if API fails
+      const saved = localStorage.getItem('saved_receipts')
+      let receipts: SavedReceipt[] = saved ? JSON.parse(saved) : []
+      const existingIndex = receipts.findIndex(r => r.receiptNumber === receiptNumber)
+      
+      if (existingIndex >= 0) {
+        receipts[existingIndex] = receipt
+      } else {
+        receipts.push(receipt)
+      }
+      
+      localStorage.setItem('saved_receipts', JSON.stringify(receipts))
+      loadAllReceipts()
     }
-
-    // Save to localStorage
-    localStorage.setItem('saved_receipts', JSON.stringify(receipts))
-    loadAllReceipts()
   }
 
-  const searchReceipts = () => {
+  const searchReceipts = async () => {
     if (!searchQuery.trim()) {
       alert('Please enter a receipt number to search')
       return
     }
 
-    const saved = localStorage.getItem('saved_receipts')
-    if (!saved) {
-      alert('No saved receipts found')
-      return
-    }
+    try {
+      const response = await fetch(`/api/receipts?search=${encodeURIComponent(searchQuery)}`)
+      if (response.ok) {
+        const results = await response.json()
+        
+        if (results.length === 0) {
+          alert(`No receipts found matching "${searchQuery}"`)
+          setShowSearchResults(false)
+        } else {
+          setSearchResults(results)
+          setShowSearchResults(true)
+        }
+      }
+    } catch (error) {
+      console.error('Error searching receipts:', error)
+      
+      // Fallback to localStorage search
+      const saved = localStorage.getItem('saved_receipts')
+      if (!saved) {
+        alert('No saved receipts found')
+        return
+      }
 
-    const receipts: SavedReceipt[] = JSON.parse(saved)
-    const results = receipts.filter(receipt => 
-      receipt.receiptNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      receipt.customerName.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+      const receipts: SavedReceipt[] = JSON.parse(saved)
+      const results = receipts.filter(receipt => 
+        receipt.receiptNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        receipt.customerName.toLowerCase().includes(searchQuery.toLowerCase())
+      )
 
-    if (results.length === 0) {
-      alert(`No receipts found matching "${searchQuery}"`)
-      setShowSearchResults(false)
-    } else {
-      setSearchResults(results)
-      setShowSearchResults(true)
+      if (results.length === 0) {
+        alert(`No receipts found matching "${searchQuery}"`)
+        setShowSearchResults(false)
+      } else {
+        setSearchResults(results)
+        setShowSearchResults(true)
+      }
     }
   }
 
@@ -166,21 +208,38 @@ export default function ReceiptGenerator() {
     alert(`Receipt ${receipt.receiptNumber} loaded!`)
   }
 
-  const deleteReceipt = (receiptNumber: string) => {
+  const deleteReceipt = async (receiptNumber: string) => {
     if (!confirm(`Are you sure you want to delete receipt ${receiptNumber}?`)) {
       return
     }
 
-    const saved = localStorage.getItem('saved_receipts')
-    if (!saved) return
+    try {
+      const response = await fetch(`/api/receipts?receiptNumber=${encodeURIComponent(receiptNumber)}`, {
+        method: 'DELETE'
+      })
 
-    const receipts: SavedReceipt[] = JSON.parse(saved)
-    const filtered = receipts.filter(r => r.receiptNumber !== receiptNumber)
-    
-    localStorage.setItem('saved_receipts', JSON.stringify(filtered))
-    loadAllReceipts()
-    setSearchResults(searchResults.filter(r => r.receiptNumber !== receiptNumber))
-    alert(`Receipt ${receiptNumber} deleted!`)
+      if (response.ok) {
+        loadAllReceipts()
+        setSearchResults(searchResults.filter(r => r.receiptNumber !== receiptNumber))
+        alert(`Receipt ${receiptNumber} deleted!`)
+      } else {
+        throw new Error('Failed to delete receipt')
+      }
+    } catch (error) {
+      console.error('Error deleting receipt:', error)
+      alert('Failed to delete receipt. Please try again.')
+      
+      // Fallback to localStorage
+      const saved = localStorage.getItem('saved_receipts')
+      if (!saved) return
+
+      const receipts: SavedReceipt[] = JSON.parse(saved)
+      const filtered = receipts.filter(r => r.receiptNumber !== receiptNumber)
+      
+      localStorage.setItem('saved_receipts', JSON.stringify(filtered))
+      loadAllReceipts()
+      setSearchResults(searchResults.filter(r => r.receiptNumber !== receiptNumber))
+    }
   }
 
   const handleLogin = (e: React.FormEvent) => {
