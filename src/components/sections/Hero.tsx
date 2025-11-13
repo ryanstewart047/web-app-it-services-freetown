@@ -180,10 +180,11 @@ export default function Hero() {
                     src={slide.src}
                     alt={slide.alt}
                     fill
-                    sizes="100vw"
+                    sizes="(max-width: 768px) 100vw, 50vw"
                     className="object-cover"
                     priority={index === 0}
                     loading={index === 0 ? 'eager' : 'lazy'}
+                    quality={85}
                   />
                 </div>
               ))}

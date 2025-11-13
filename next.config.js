@@ -35,7 +35,11 @@ const nextConfig = {
     return config
   },
   images: {
-    unoptimized: true,
+    unoptimized: false, // Enable image optimization
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
     remotePatterns: [
       {
         protocol: 'https',
@@ -60,8 +64,10 @@ const nextConfig = {
   // Experimental features
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion'],
-    optimizeCss: false,
+    optimizeCss: true, // Enable CSS optimization
   },
+  // Enable compression
+  compress: true,
   
   // Redirects for common issues
   async redirects() {

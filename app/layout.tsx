@@ -16,7 +16,11 @@ import { AnalyticsProvider } from '../src/components/AnalyticsTracker'
 import Script from 'next/script'
 import ConditionalLayout from '@/components/ConditionalLayout'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap', // Add font-display swap
+  preload: true,
+})
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://itservicesfreetown.com'),
@@ -135,21 +139,26 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Preconnect to external resources */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+        <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
+        
         {/* Google AdSense Verification Meta Tag */}
         <meta name="google-adsense-account" content="ca-pub-9989697800650646" />
         
-        {/* Google AdSense Script */}
+        {/* Google AdSense Script - Lazy load for better performance */}
         <Script
-          async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9989697800650646"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
         
-        {/* Font Awesome */}
-        <link 
-          rel="stylesheet" 
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" 
+        {/* Font Awesome - Load asynchronously */}
+        <Script
+          src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+          strategy="lazyOnload"
         />
         
         {/* PWA Meta Tags - Updated */}

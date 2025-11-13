@@ -229,33 +229,37 @@ export default function Footer() {
                 href="https://facebook.com" 
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Visit our Facebook page"
                 className="w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-all duration-200 hover:scale-110"
               >
-                <i className="fab fa-facebook-f"></i>
+                <i className="fab fa-facebook-f" aria-hidden="true"></i>
               </a>
               <a 
                 href="https://twitter.com" 
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Follow us on Twitter"
                 className="w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-all duration-200 hover:scale-110"
               >
-                <i className="fab fa-twitter"></i>
+                <i className="fab fa-twitter" aria-hidden="true"></i>
               </a>
               <a 
                 href="https://instagram.com" 
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Follow us on Instagram"
                 className="w-10 h-10 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full flex items-center justify-center hover:from-red-600 hover:to-red-700 transition-all duration-200 hover:scale-110"
               >
-                <i className="fab fa-instagram"></i>
+                <i className="fab fa-instagram" aria-hidden="true"></i>
               </a>
               <a 
                 href="https://whatsapp.com" 
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Contact us on WhatsApp"
                 className="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center hover:bg-green-600 transition-all duration-200 hover:scale-110"
               >
-                <i className="fab fa-whatsapp"></i>
+                <i className="fab fa-whatsapp" aria-hidden="true"></i>
               </a>
             </div>
           </div>
