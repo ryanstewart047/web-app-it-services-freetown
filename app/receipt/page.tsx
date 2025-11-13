@@ -21,6 +21,7 @@ interface SavedReceipt {
   customerName: string
   customerPhone: string
   customerEmail: string
+  customerAddress: string
   receiptDate: string
   items: ReceiptItem[]
   notes: string
@@ -51,6 +52,7 @@ export default function ReceiptGenerator() {
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
   const [customerEmail, setCustomerEmail] = useState('')
+  const [customerAddress, setCustomerAddress] = useState('')
   const [receiptNumber, setReceiptNumber] = useState(`RCP-${Date.now().toString().slice(-6)}`)
   const [receiptDate, setReceiptDate] = useState(new Date().toISOString().split('T')[0])
   const [items, setItems] = useState<ReceiptItem[]>([
@@ -87,6 +89,7 @@ export default function ReceiptGenerator() {
       customerName,
       customerPhone,
       customerEmail,
+      customerAddress,
       receiptDate,
       items: items.filter(item => item.description), // Only save items with descriptions
       notes,
@@ -152,6 +155,7 @@ export default function ReceiptGenerator() {
     setCustomerName(receipt.customerName)
     setCustomerPhone(receipt.customerPhone)
     setCustomerEmail(receipt.customerEmail)
+    setCustomerAddress(receipt.customerAddress || '')
     setReceiptDate(receipt.receiptDate)
     setItems(receipt.items)
     setNotes(receipt.notes)
@@ -268,7 +272,7 @@ Thank you for your business!
 
   const handleShareEmail = () => {
     const subject = `Receipt ${receiptNumber} - IT Services Freetown`
-    const body = `${receiptType === 'purchase' ? 'PURCHASE' : 'REPAIR'} RECEIPT\n\nIT Services Freetown\n#1 Regent Highway Jui Junction\nTel: +232 33 399 391\n\nReceipt No: ${receiptNumber}\nDate: ${new Date(receiptDate).toLocaleDateString()}\nCustomer: ${customerName}\nPhone: ${customerPhone}\n\nItems:\n${items.filter(i => i.description).map(i => `${i.description} - Qty: ${i.quantity} - SLE ${i.total.toFixed(2)}`).join('\n')}\n\nSubtotal: SLE ${calculateSubtotal().toFixed(2)}\nAmount Paid: SLE ${amountPaid.toFixed(2)}${calculateSubtotal() > amountPaid ? `\nBalance to be Paid: SLE ${(calculateSubtotal() - amountPaid).toFixed(2)}` : ''}\nChange: SLE ${calculateChange().toFixed(2)}\n\nThank you for your business!`
+    const body = `${receiptType === 'purchase' ? 'PURCHASE' : 'REPAIR'} RECEIPT\n\nIT Services Freetown\n#1 Regent Highway Jui Junction\nTel: +232 33 399 391\n\nReceipt No: ${receiptNumber}\nDate: ${new Date(receiptDate).toLocaleDateString()}\nCustomer: ${customerName}\nPhone: ${customerPhone}${customerAddress ? `\nAddress: ${customerAddress}` : ''}\n\nItems:\n${items.filter(i => i.description).map(i => `${i.description} - Qty: ${i.quantity} - SLE ${i.total.toFixed(2)}`).join('\n')}\n\nSubtotal: SLE ${calculateSubtotal().toFixed(2)}\nAmount Paid: SLE ${amountPaid.toFixed(2)}${calculateSubtotal() > amountPaid ? `\nBalance to be Paid: SLE ${(calculateSubtotal() - amountPaid).toFixed(2)}` : ''}\nChange: SLE ${calculateChange().toFixed(2)}\n\nThank you for your business!`
     window.location.href = `mailto:${customerEmail || ''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
   }
 
@@ -360,6 +364,7 @@ Thank you for your business!
       customerName,
       customerPhone,
       customerEmail,
+      customerAddress,
       items,
       notes,
       paymentMethod,
@@ -377,6 +382,7 @@ Thank you for your business!
       setCustomerName(template.customerName || '')
       setCustomerPhone(template.customerPhone || '')
       setCustomerEmail(template.customerEmail || '')
+      setCustomerAddress(template.customerAddress || '')
       setItems(template.items || items)
       setNotes(template.notes || '')
       setPaymentMethod(template.paymentMethod || 'Cash')
@@ -397,6 +403,7 @@ Thank you for your business!
     setCustomerName('')
     setCustomerPhone('')
     setCustomerEmail('')
+    setCustomerAddress('')
     setItems([{ id: '1', description: '', quantity: 1, unitPrice: 0, total: 0 }])
     setNotes('')
     setAmountPaid(0)
@@ -806,6 +813,20 @@ Thank you for your business!
                 />
               </div>
 
+              {/* Customer Address */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Customer Address (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={customerAddress}
+                  onChange={(e) => setCustomerAddress(e.target.value)}
+                  placeholder="Enter customer address"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
               {/* Payment Method */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -848,8 +869,10 @@ Thank you for your business!
                 <input
                   type="number"
                   value={Math.max(0, calculateSubtotal() - amountPaid)}
-                  readOnly
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-700 font-semibold"
+                  min="0"
+                  step="0.01"
+                  className="w-full px-4 py-3 border-2 border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-green-50 text-gray-700 font-semibold"
+                  title="Auto-calculated: Subtotal - Amount Paid"
                 />
               </div>
             </div>
@@ -989,6 +1012,7 @@ Thank you for your business!
                 <p><span className="font-semibold">Name:</span> {customerName || 'N/A'}</p>
                 <p><span className="font-semibold">Phone:</span> {customerPhone || 'N/A'}</p>
                 {customerEmail && <p><span className="font-semibold">Email:</span> {customerEmail}</p>}
+                {customerAddress && <p><span className="font-semibold">Address:</span> {customerAddress}</p>}
               </div>
             </div>
             <div className="text-right">
