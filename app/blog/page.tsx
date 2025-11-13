@@ -315,7 +315,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
         <div className="absolute inset-0 bg-gradient-to-r from-blue-900 via-indigo-900 to-purple-900 opacity-95"></div>
         
         {/* Tech Circuit Board Pattern */}
-        <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 opacity-5">
           <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="circuit-blog" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">

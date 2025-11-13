@@ -494,7 +494,7 @@ export default function BookAppointment() {
         <div className="absolute inset-0 bg-black/20"></div>
         
         {/* Tech Circuit Board Pattern */}
-        <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 opacity-5">
           <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="circuit-pattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
