@@ -103,13 +103,17 @@ export default function ProductDetailPage() {
           const file = new File([blob], 'product.jpg', { type: blob.type });
           const filesArray = [file];
           
-          // Check if we can share files
-          if (navigator.canShare({ files: filesArray })) {
-            await navigator.share({
-              ...shareData,
-              files: filesArray
-            });
-            console.log('Shared successfully with image');
+          // Check if we can share files with text and URL
+          const shareWithFiles = {
+            title: shareData.title,
+            text: shareData.text,
+            url: shareData.url,
+            files: filesArray
+          };
+          
+          if (navigator.canShare(shareWithFiles)) {
+            await navigator.share(shareWithFiles);
+            console.log('Shared successfully with image and link');
             return;
           }
         } catch (imageError) {
