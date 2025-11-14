@@ -52,9 +52,29 @@ export default function AddProductPage() {
     setLoading(true);
 
     try {
-      // TODO: Upload video file to storage service (Cloudinary, AWS S3, etc.)
-      // For now, we just validate that the video is 30 seconds
-      // You'll need to implement video upload to a storage service
+      let uploadedVideoUrl = undefined;
+
+      // Upload video file if present
+      if (videoFile) {
+        console.log('[Add Product] Uploading video:', videoFile.name);
+        
+        const videoFormData = new FormData();
+        videoFormData.append('video', videoFile);
+
+        const uploadRes = await fetch('/api/upload-video', {
+          method: 'POST',
+          body: videoFormData
+        });
+
+        if (!uploadRes.ok) {
+          const errorData = await uploadRes.json();
+          throw new Error(`Video upload failed: ${errorData.error || 'Unknown error'}`);
+        }
+
+        const uploadData = await uploadRes.json();
+        uploadedVideoUrl = uploadData.videoUrl;
+        console.log('[Add Product] Video uploaded successfully:', uploadedVideoUrl);
+      }
       
       const productData = {
         ...formData,
@@ -62,14 +82,10 @@ export default function AddProductPage() {
         comparePrice: formData.comparePrice ? parseFloat(formData.comparePrice) : undefined,
         stock: parseInt(formData.stock),
         images: images.filter(img => img.url).map((img, index) => ({ ...img, order: index })),
-        // videoUrl will be set after uploading to storage service
-        videoUrl: videoFile ? 'VIDEO_UPLOAD_PENDING' : undefined
+        videoUrl: uploadedVideoUrl
       };
 
       console.log('[Add Product] Submitting product data:', productData);
-      if (videoFile) {
-        console.log('[Add Product] Video file ready for upload:', videoFile.name);
-      }
 
       const res = await fetch('/api/products', {
         method: 'POST',
