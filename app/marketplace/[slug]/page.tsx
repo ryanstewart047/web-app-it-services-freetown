@@ -87,37 +87,29 @@ export default function ProductDetailPage() {
 
     // Get the product's primary image with full URL
     const productImage = product.images?.[0]?.url || '';
+    console.log('Product image from data:', productImage);
+    
     const fullImageUrl = productImage.startsWith('http') 
       ? productImage 
       : `${window.location.origin}${productImage}`;
     
-    // Create short URL for sharing
-    let shareUrl = window.location.href;
-    try {
-      const shortenResponse = await fetch('/api/shorten', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: window.location.href })
-      });
-      
-      if (shortenResponse.ok) {
-        const { shortUrl, shortCode } = await shortenResponse.json();
-        shareUrl = shortUrl;
-        // Store in localStorage as backup
-        localStorage.setItem(`short_${shortCode}`, window.location.href);
-        console.log('Created short URL:', shortUrl);
-      }
-    } catch (error) {
-      console.log('Failed to create short URL, using full URL');
-    }
+    console.log('Full image URL:', fullImageUrl);
+    
+    // Create short URL using product slug
+    const shortCode = product.slug.substring(0, 8).toLowerCase();
+    const shortUrl = `${window.location.origin}/s/${shortCode}`;
+    
+    // Store mapping in localStorage for redirect
+    localStorage.setItem(`short_${shortCode}`, window.location.href);
+    console.log('Created short URL:', shortUrl);
 
     // Share text including the full image URL so it can be pasted properly
-    const shareText = `${product.name} - Le ${product.price.toLocaleString()}\n\n${shareUrl}\n\nImage: ${fullImageUrl}`;
+    const shareText = `${product.name} - Le ${product.price.toLocaleString()}\n\n${shortUrl}\n\nImage: ${fullImageUrl}`;
 
     const shareData: ShareData = {
       title: product.name,
       text: shareText,
-      url: shareUrl
+      url: shortUrl
     };
 
     try {
