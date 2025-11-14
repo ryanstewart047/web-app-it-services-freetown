@@ -87,11 +87,31 @@ export default function ProductDetailPage() {
 
     // Get the product's primary image
     const productImage = product.images?.[0]?.url || '';
+    
+    // Create short URL for sharing
+    let shareUrl = window.location.href;
+    try {
+      const shortenResponse = await fetch('/api/shorten', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: window.location.href })
+      });
+      
+      if (shortenResponse.ok) {
+        const { shortUrl, shortCode } = await shortenResponse.json();
+        shareUrl = shortUrl;
+        // Store in localStorage as backup
+        localStorage.setItem(`short_${shortCode}`, window.location.href);
+        console.log('Created short URL:', shortUrl);
+      }
+    } catch (error) {
+      console.log('Failed to create short URL, using full URL');
+    }
 
     const shareData: ShareData = {
       title: product.name,
       text: `${product.name} - Le ${product.price.toLocaleString()}`,
-      url: window.location.href
+      url: shareUrl
     };
 
     try {
@@ -127,15 +147,15 @@ export default function ProductDetailPage() {
         console.log('Shared successfully');
       } else {
         // Fallback: copy to clipboard with image URL
-        const textToCopy = `${product.name} - Le ${product.price.toLocaleString()}\n\nImage: ${productImage}\n\n${shareData.url}`;
+        const textToCopy = `${product.name} - Le ${product.price.toLocaleString()}\n\nImage: ${productImage}\n\n${shareUrl}`;
         await navigator.clipboard.writeText(textToCopy);
-        alert('Product details copied to clipboard (including image link)!');
+        alert('Product details copied to clipboard (including short link)!');
       }
     } catch (error) {
       console.error('Error sharing:', error);
       // If all else fails, try clipboard again
       try {
-        const textToCopy = `${product.name} - Le ${product.price.toLocaleString()}\n\nImage: ${productImage}\n\n${shareData.url}`;
+        const textToCopy = `${product.name} - Le ${product.price.toLocaleString()}\n\nImage: ${productImage}\n\n${shareUrl}`;
         await navigator.clipboard.writeText(textToCopy);
         alert('Product link copied to clipboard!');
       } catch (clipboardError) {
