@@ -47,6 +47,9 @@ export default function AdminProductsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [imageUrls, setImageUrls] = useState<string[]>(['']);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState('');
+  const [videoError, setVideoError] = useState('');
   
   // Form state - controlled components
   const [formData, setFormData] = useState({
@@ -115,6 +118,59 @@ export default function AdminProductsPage() {
       setError('Failed to connect to the server. Please check your connection.');
       setCategories([]);
     }
+  };
+
+  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check if it's a video file
+    if (!file.type.startsWith('video/')) {
+      setVideoError('Please select a valid video file');
+      setVideoFile(null);
+      return;
+    }
+
+    // Check file size (max 50MB)
+    const maxSize = 50 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setVideoError('Video file must be less than 50MB');
+      setVideoFile(null);
+      return;
+    }
+
+    // Create video element to check duration
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+
+    video.onloadedmetadata = () => {
+      window.URL.revokeObjectURL(video.src);
+      const duration = Math.round(video.duration);
+
+      if (duration > 30) {
+        setVideoError(`Video must be 30 seconds or less (current: ${duration}s)`);
+        setVideoFile(null);
+        e.target.value = '';
+      } else {
+        setVideoError('');
+        setVideoFile(file);
+        setVideoPreviewUrl(URL.createObjectURL(file));
+      }
+    };
+
+    video.onerror = () => {
+      setVideoError('Unable to read video file');
+      setVideoFile(null);
+    };
+
+    video.src = URL.createObjectURL(file);
+  };
+
+  const removeVideo = () => {
+    setVideoFile(null);
+    setVideoPreviewUrl('');
+    setVideoError('');
+    setFormData({ ...formData, videoUrl: '' });
   };
 
   const filteredProducts = products.filter(product => {
@@ -555,6 +611,31 @@ export default function AdminProductsPage() {
                 alert('Please fill in all required fields:\n- Product Name\n- Description\n- Price\n- Stock\n- Category');
                 return;
               }
+
+              try {
+                let uploadedVideoUrl = formData.videoUrl || null;
+
+                // Upload video file if present
+                if (videoFile) {
+                  console.log('Uploading video:', videoFile.name);
+                  
+                  const videoFormData = new FormData();
+                  videoFormData.append('video', videoFile);
+
+                  const uploadRes = await fetch('/api/upload-video', {
+                    method: 'POST',
+                    body: videoFormData
+                  });
+
+                  if (!uploadRes.ok) {
+                    const errorData = await uploadRes.json();
+                    throw new Error(`Video upload failed: ${errorData.error || 'Unknown error'}`);
+                  }
+
+                  const uploadData = await uploadRes.json();
+                  uploadedVideoUrl = uploadData.videoUrl;
+                  console.log('Video uploaded successfully:', uploadedVideoUrl);
+                }
               
               // Collect all non-empty image URLs
               const images = imageUrls
@@ -576,10 +657,10 @@ export default function AdminProductsPage() {
                 brand: formData.brand || null,
                 status: formData.status,
                 condition: formData.condition,
-                videoUrl: formData.videoUrl || null,
+                videoUrl: uploadedVideoUrl,
                 featured: formData.featured,
                 images: images.length > 0 ? images : []
-              };
+              }
 
               try {
                 // Use POST to /api/products/update for better compatibility with HTTPS/proxies
@@ -795,19 +876,55 @@ export default function AdminProductsPage() {
                   </p>
                 </div>
 
-                {/* Video URL */}
+                {/* Video Upload */}
                 <div>
-                  <label className="block text-white mb-2">Product Video URL (Optional)</label>
-                  <input
-                    type="url"
-                    value={formData.videoUrl}
-                    onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                    placeholder="https://www.youtube.com/watch?v=... or direct video URL"
-                    className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
-                  <p className="text-gray-400 text-sm mt-2">
-                    YouTube, Vimeo, or direct video links (.mp4, .webm). Adds a video player to the product page.
-                  </p>
+                  <label className="block text-white mb-2">
+                    Product Video (Optional - 30 seconds or less)
+                  </label>
+                  <div className="space-y-3">
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={handleVideoChange}
+                      className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer"
+                    />
+                    
+                    {videoError && (
+                      <div className="p-3 bg-red-500/20 border border-red-500 rounded-lg text-red-300 text-sm">
+                        {videoError}
+                      </div>
+                    )}
+                    
+                    {(videoFile || formData.videoUrl) && !videoError && (
+                      <div className="p-4 bg-green-500/20 border border-green-500 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-green-300 font-medium">
+                              ✓ {videoFile ? `New video: ${videoFile.name}` : `Current: ${formData.videoUrl}`}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={removeVideo}
+                            className="text-red-400 hover:text-red-300"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </div>
+                        {(videoPreviewUrl || formData.videoUrl) && (
+                          <video 
+                            src={videoPreviewUrl || formData.videoUrl} 
+                            controls 
+                            className="mt-3 w-full max-w-md rounded-lg"
+                          />
+                        )}
+                      </div>
+                    )}
+                    
+                    <p className="text-gray-400 text-sm">
+                      Upload a video up to 30 seconds to showcase your product. Accepted formats: MP4, MOV, AVI. Max size: 50MB.
+                    </p>
+                  </div>
                 </div>
 
                 {/* Status, Condition and Featured */}
