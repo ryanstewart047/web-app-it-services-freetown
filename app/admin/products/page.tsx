@@ -637,32 +637,31 @@ export default function AdminProductsPage() {
                   console.log('Video uploaded successfully:', uploadedVideoUrl);
                 }
               
-              // Collect all non-empty image URLs
-              const images = imageUrls
-                .filter(url => url.trim() !== '')
-                .map((url, index) => ({
-                  url: url.trim(),
-                  alt: formData.name,
-                  order: index
-                }));
-              
-              const productData = {
-                name: formData.name,
-                description: formData.description,
-                price: parseFloat(formData.price),
-                comparePrice: formData.comparePrice ? parseFloat(formData.comparePrice) : null,
-                stock: parseInt(formData.stock),
-                categoryId: formData.categoryId,
-                sku: formData.sku || null,
-                brand: formData.brand || null,
-                status: formData.status,
-                condition: formData.condition,
-                videoUrl: uploadedVideoUrl,
-                featured: formData.featured,
-                images: images.length > 0 ? images : []
-              }
+                // Collect all non-empty image URLs
+                const images = imageUrls
+                  .filter(url => url.trim() !== '')
+                  .map((url, index) => ({
+                    url: url.trim(),
+                    alt: formData.name,
+                    order: index
+                  }));
+                
+                const productData = {
+                  name: formData.name,
+                  description: formData.description,
+                  price: parseFloat(formData.price),
+                  comparePrice: formData.comparePrice ? parseFloat(formData.comparePrice) : null,
+                  stock: parseInt(formData.stock),
+                  categoryId: formData.categoryId,
+                  sku: formData.sku || null,
+                  brand: formData.brand || null,
+                  status: formData.status,
+                  condition: formData.condition,
+                  videoUrl: uploadedVideoUrl,
+                  featured: formData.featured,
+                  images: images.length > 0 ? images : []
+                };
 
-              try {
                 // Use POST to /api/products/update for better compatibility with HTTPS/proxies
                 const url = editingProduct 
                   ? '/api/products/update'  // Use update endpoint for edits
@@ -695,6 +694,9 @@ export default function AdminProductsPage() {
                   setShowAddModal(false);
                   setEditingProduct(null);
                   setImageUrls(['']);
+                  setVideoFile(null);
+                  setVideoPreviewUrl('');
+                  setVideoError('');
                   // Reset form data
                   setFormData({
                     name: '',
