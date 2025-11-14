@@ -943,46 +943,98 @@ export default function AdminProductsPage() {
                     Product Video (Optional - 30 seconds or less)
                   </label>
                   <div className="space-y-3">
-                    <input
-                      type="file"
-                      accept="video/*"
-                      onChange={handleVideoChange}
-                      disabled={uploadProgress === 'uploading'}
-                      className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                    />
-                    
-                    {/* Upload Progress Indicator */}
-                    {uploadProgress !== 'idle' && (
-                      <div className={`p-3 rounded-lg border flex items-center gap-3 ${
-                        uploadProgress === 'uploading' ? 'bg-blue-500/20 border-blue-500' :
-                        uploadProgress === 'success' ? 'bg-green-500/20 border-green-500' :
-                        'bg-red-500/20 border-red-500'
-                      }`}>
-                        {uploadProgress === 'uploading' && (
-                          <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                        )}
-                        {uploadProgress === 'success' && (
-                          <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                        )}
-                        {uploadProgress === 'error' && (
-                          <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
-                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </div>
-                        )}
-                        <span className={`text-sm font-medium ${
-                          uploadProgress === 'uploading' ? 'text-blue-300' :
-                          uploadProgress === 'success' ? 'text-green-300' :
-                          'text-red-300'
-                        }`}>
-                          {uploadMessage}
-                        </span>
+                    {/* Tab Selection */}
+                    <div className="flex gap-2 p-1 bg-gray-800 rounded-lg">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setVideoFile(null);
+                          setVideoPreviewUrl('');
+                          setVideoError('');
+                          setUploadProgress('idle');
+                        }}
+                        className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          !videoFile ? 'bg-blue-600 text-white' : 'bg-transparent text-gray-400 hover:text-white'
+                        }`}
+                      >
+                        YouTube/Vimeo Link
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, videoUrl: '' })}
+                        className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          videoFile ? 'bg-blue-600 text-white' : 'bg-transparent text-gray-400 hover:text-white'
+                        }`}
+                      >
+                        Upload File
+                      </button>
+                    </div>
+
+                    {/* YouTube/Vimeo URL Input */}
+                    {!videoFile && (
+                      <div>
+                        <input
+                          type="url"
+                          value={formData.videoUrl}
+                          onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                          placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/..."
+                          className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
+                        />
+                        <p className="text-gray-400 text-xs mt-2">
+                          Paste your YouTube or Vimeo video link here. Recommended for better performance.
+                        </p>
                       </div>
+                    )}
+
+                    {/* File Upload */}
+                    {videoFile !== null && (
+                      <>
+                        <input
+                          type="file"
+                          accept="video/*"
+                          onChange={handleVideoChange}
+                          disabled={uploadProgress === 'uploading'}
+                          className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        />
+                        
+                        {/* Upload Progress Indicator */}
+                        {uploadProgress !== 'idle' && (
+                          <div className={`p-3 rounded-lg border flex items-center gap-3 ${
+                            uploadProgress === 'uploading' ? 'bg-blue-500/20 border-blue-500' :
+                            uploadProgress === 'success' ? 'bg-green-500/20 border-green-500' :
+                            'bg-red-500/20 border-red-500'
+                          }`}>
+                            {uploadProgress === 'uploading' && (
+                              <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                            )}
+                            {uploadProgress === 'success' && (
+                              <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                            )}
+                            {uploadProgress === 'error' && (
+                              <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </div>
+                            )}
+                            <span className={`text-sm font-medium ${
+                              uploadProgress === 'uploading' ? 'text-blue-300' :
+                              uploadProgress === 'success' ? 'text-green-300' :
+                              'text-red-300'
+                            }`}>
+                              {uploadMessage}
+                            </span>
+                          </div>
+                        )}
+                        
+                        <p className="text-gray-400 text-xs">
+                          Direct file upload (for future use). Max: 10MB, 30 seconds.
+                        </p>
+                      </>
                     )}
                     
                     {videoError && (
@@ -996,7 +1048,7 @@ export default function AdminProductsPage() {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-green-300 font-medium">
-                              ✓ {videoFile ? `New video: ${videoFile.name}` : `Current: ${formData.videoUrl}`}
+                              ✓ {videoFile ? `New video: ${videoFile.name}` : `Video URL added`}
                             </p>
                           </div>
                           <button
@@ -1007,19 +1059,15 @@ export default function AdminProductsPage() {
                             <Trash2 className="w-5 h-5" />
                           </button>
                         </div>
-                        {(videoPreviewUrl || formData.videoUrl) && (
+                        {(videoPreviewUrl || formData.videoUrl) && videoFile && (
                           <video 
-                            src={videoPreviewUrl || formData.videoUrl} 
+                            src={videoPreviewUrl} 
                             controls 
                             className="mt-3 w-full max-w-md rounded-lg"
                           />
                         )}
                       </div>
                     )}
-                    
-                    <p className="text-gray-400 text-sm">
-                      Upload a video up to 30 seconds to showcase your product. Accepted formats: MP4, MOV, AVI. Max size: 10MB.
-                    </p>
                   </div>
                 </div>
 
