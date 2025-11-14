@@ -85,8 +85,11 @@ export default function ProductDetailPage() {
   const handleShare = async () => {
     if (!product) return;
 
-    // Get the product's primary image
+    // Get the product's primary image with full URL
     const productImage = product.images?.[0]?.url || '';
+    const fullImageUrl = productImage.startsWith('http') 
+      ? productImage 
+      : `${window.location.origin}${productImage}`;
     
     // Create short URL for sharing
     let shareUrl = window.location.href;
@@ -108,8 +111,8 @@ export default function ProductDetailPage() {
       console.log('Failed to create short URL, using full URL');
     }
 
-    // Share text including the image URL so it can be pasted properly
-    const shareText = `${product.name} - Le ${product.price.toLocaleString()}\n\n${shareUrl}\n\nImage: ${productImage}`;
+    // Share text including the full image URL so it can be pasted properly
+    const shareText = `${product.name} - Le ${product.price.toLocaleString()}\n\n${shareUrl}\n\nImage: ${fullImageUrl}`;
 
     const shareData: ShareData = {
       title: product.name,
