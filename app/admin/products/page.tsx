@@ -50,6 +50,8 @@ export default function AdminProductsPage() {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState('');
   const [videoError, setVideoError] = useState('');
+  const [uploadProgress, setUploadProgress] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
+  const [uploadMessage, setUploadMessage] = useState('');
   
   // Form state - controlled components
   const [formData, setFormData] = useState({
@@ -547,6 +549,8 @@ export default function AdminProductsPage() {
                               setVideoFile(null);
                               setVideoPreviewUrl('');
                               setVideoError('');
+                              setUploadProgress('idle');
+                              setUploadMessage('');
                               setShowAddModal(true);
                             }}
                             className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
@@ -621,24 +625,42 @@ export default function AdminProductsPage() {
 
                 // Upload video file if present
                 if (videoFile) {
-                  console.log('Uploading video:', videoFile.name);
+                  console.log('Uploading video:', videoFile.name, 'Size:', videoFile.size, 'Type:', videoFile.type);
+                  setUploadProgress('uploading');
+                  setUploadMessage('Uploading video...');
                   
-                  const videoFormData = new FormData();
-                  videoFormData.append('video', videoFile);
+                  try {
+                    const videoFormData = new FormData();
+                    videoFormData.append('video', videoFile);
 
-                  const uploadRes = await fetch('/api/upload-video', {
-                    method: 'POST',
-                    body: videoFormData
-                  });
+                    const uploadRes = await fetch('/api/upload-video', {
+                      method: 'POST',
+                      body: videoFormData
+                    });
 
-                  if (!uploadRes.ok) {
-                    const errorData = await uploadRes.json();
-                    throw new Error(`Video upload failed: ${errorData.error || 'Unknown error'}`);
+                    console.log('Video upload response:', uploadRes.status, uploadRes.statusText);
+
+                    if (!uploadRes.ok) {
+                      const errorData = await uploadRes.json();
+                      console.error('Video upload failed:', errorData);
+                      setUploadProgress('error');
+                      setUploadMessage(`Upload failed: ${errorData.error || 'Unknown error'}`);
+                      setTimeout(() => setUploadProgress('idle'), 3000);
+                      return;
+                    }
+
+                    const uploadData = await uploadRes.json();
+                    uploadedVideoUrl = uploadData.videoUrl;
+                    console.log('Video uploaded successfully:', uploadedVideoUrl);
+                    setUploadProgress('success');
+                    setUploadMessage('Video uploaded successfully!');
+                  } catch (videoError) {
+                    console.error('Video upload error:', videoError);
+                    setUploadProgress('error');
+                    setUploadMessage(`Upload failed: ${videoError instanceof Error ? videoError.message : 'Unknown error'}`);
+                    setTimeout(() => setUploadProgress('idle'), 3000);
+                    return;
                   }
-
-                  const uploadData = await uploadRes.json();
-                  uploadedVideoUrl = uploadData.videoUrl;
-                  console.log('Video uploaded successfully:', uploadedVideoUrl);
                 }
               
                 // Collect all non-empty image URLs
@@ -707,6 +729,8 @@ export default function AdminProductsPage() {
                   setVideoFile(null);
                   setVideoPreviewUrl('');
                   setVideoError('');
+                  setUploadProgress('idle');
+                  setUploadMessage('');
                   // Reset form data
                   setFormData({
                     name: '',
@@ -898,8 +922,43 @@ export default function AdminProductsPage() {
                       type="file"
                       accept="video/*"
                       onChange={handleVideoChange}
-                      className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer"
+                      disabled={uploadProgress === 'uploading'}
+                      className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     />
+                    
+                    {/* Upload Progress Indicator */}
+                    {uploadProgress !== 'idle' && (
+                      <div className={`p-3 rounded-lg border flex items-center gap-3 ${
+                        uploadProgress === 'uploading' ? 'bg-blue-500/20 border-blue-500' :
+                        uploadProgress === 'success' ? 'bg-green-500/20 border-green-500' :
+                        'bg-red-500/20 border-red-500'
+                      }`}>
+                        {uploadProgress === 'uploading' && (
+                          <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                        )}
+                        {uploadProgress === 'success' && (
+                          <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        )}
+                        {uploadProgress === 'error' && (
+                          <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </div>
+                        )}
+                        <span className={`text-sm font-medium ${
+                          uploadProgress === 'uploading' ? 'text-blue-300' :
+                          uploadProgress === 'success' ? 'text-green-300' :
+                          'text-red-300'
+                        }`}>
+                          {uploadMessage}
+                        </span>
+                      </div>
+                    )}
                     
                     {videoError && (
                       <div className="p-3 bg-red-500/20 border border-red-500 rounded-lg text-red-300 text-sm">
@@ -997,6 +1056,8 @@ export default function AdminProductsPage() {
                       setVideoFile(null);
                       setVideoPreviewUrl('');
                       setVideoError('');
+                      setUploadProgress('idle');
+                      setUploadMessage('');
                     }}
                     className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold"
                   >
