@@ -137,8 +137,8 @@ export default function AddProductPage() {
       window.URL.revokeObjectURL(video.src);
       const duration = Math.round(video.duration);
 
-      if (duration !== 30) {
-        setVideoError(`Video must be exactly 30 seconds (current: ${duration}s)`);
+      if (duration > 30) {
+        setVideoError(`Video must be 30 seconds or less (current: ${duration}s)`);
         setVideoFile(null);
         e.target.value = ''; // Reset input
       } else {
@@ -332,7 +332,7 @@ export default function AddProductPage() {
             {/* Video Upload */}
             <div>
               <label className="block text-white font-medium mb-2">
-                Product Video (Optional - Must be exactly 30 seconds)
+                Product Video (Optional - 30 seconds or less)
               </label>
               <div className="space-y-3">
                 <input
@@ -353,7 +353,7 @@ export default function AddProductPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-green-300 font-medium">✓ Video uploaded: {videoFile.name}</p>
-                        <p className="text-green-300/70 text-sm">Duration: 30 seconds</p>
+                        <p className="text-green-300/70 text-sm">Duration: {Math.round((videoUrl ? document.querySelector('video')?.duration : 0) || 0)} seconds</p>
                       </div>
                       <button
                         type="button"
@@ -374,7 +374,7 @@ export default function AddProductPage() {
                 )}
                 
                 <p className="text-gray-400 text-sm">
-                  Upload a 30-second video to showcase your product. Accepted formats: MP4, MOV, AVI. Max size: 50MB.
+                  Upload a video up to 30 seconds to showcase your product. Accepted formats: MP4, MOV, AVI. Max size: 50MB.
                 </p>
               </div>
             </div>
