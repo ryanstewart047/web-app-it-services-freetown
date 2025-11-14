@@ -125,6 +125,16 @@ const nextConfig = {
     ];
   },
   
+  // Rewrites for static files
+  async rewrites() {
+    return [
+      {
+        source: '/ads.txt',
+        destination: '/api/ads.txt',
+      },
+    ];
+  },
+  
   // Handle 404s properly
   async headers() {
     return [
