@@ -543,6 +543,10 @@ export default function AdminProductsPage() {
                               // Populate image URLs from the product
                               const productImages = product.images?.map(img => img.url) || [''];
                               setImageUrls(productImages.length > 0 ? productImages : ['']);
+                              // Reset video state
+                              setVideoFile(null);
+                              setVideoPreviewUrl('');
+                              setVideoError('');
                               setShowAddModal(true);
                             }}
                             className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
@@ -673,13 +677,19 @@ export default function AdminProductsPage() {
                   ? { id: editingProduct.id, updates: productData }  // Update format
                   : productData;  // Create format
                 
-                console.log('Saving product:', requestData);
+                console.log('Saving product:', {
+                  isEditing: !!editingProduct,
+                  url,
+                  requestData
+                });
                 
                 const res = await fetch(url, {
                   method,
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify(requestData)
                 });
+
+                console.log('Response status:', res.status, res.statusText);
 
                 if (res.ok) {
                   let savedProduct;
@@ -984,6 +994,9 @@ export default function AdminProductsPage() {
                     onClick={() => {
                       setShowAddModal(false);
                       setEditingProduct(null);
+                      setVideoFile(null);
+                      setVideoPreviewUrl('');
+                      setVideoError('');
                     }}
                     className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold"
                   >
