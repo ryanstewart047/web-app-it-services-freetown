@@ -157,8 +157,8 @@ export default function ProductDetailPage() {
       console.log('Failed to create short URL, using full URL', error);
     }
 
-    // Share text including the full image URL so it can be pasted properly
-    const shareText = `${product.name} - Le ${product.price.toLocaleString()}\n\n${shareUrl}\n\nImage: ${fullImageUrl}`;
+    // Share text without image URL (Open Graph meta tags handle the preview)
+    const shareText = `${product.name} - Le ${product.price.toLocaleString()}\n\n${shareUrl}`;
 
     const shareData: ShareData = {
       title: product.name,
