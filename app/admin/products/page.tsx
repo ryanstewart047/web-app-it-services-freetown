@@ -133,10 +133,10 @@ export default function AdminProductsPage() {
       return;
     }
 
-    // Check file size (max 50MB)
-    const maxSize = 50 * 1024 * 1024;
+    // Check file size (max 10MB for Vercel compatibility)
+    const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
-      setVideoError('Video file must be less than 50MB');
+      setVideoError('Video file must be less than 10MB');
       setVideoFile(null);
       return;
     }
@@ -1018,7 +1018,7 @@ export default function AdminProductsPage() {
                     )}
                     
                     <p className="text-gray-400 text-sm">
-                      Upload a video up to 30 seconds to showcase your product. Accepted formats: MP4, MOV, AVI. Max size: 50MB.
+                      Upload a video up to 30 seconds to showcase your product. Accepted formats: MP4, MOV, AVI. Max size: 10MB.
                     </p>
                   </div>
                 </div>

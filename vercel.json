@@ -7,6 +7,12 @@
       "VERCEL_FORCE_NO_BUILD_CACHE": "1"
     }
   },
+  "functions": {
+    "app/api/upload-video/route.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  },
   "headers": [
     {
       "source": "/api/(.*)",
