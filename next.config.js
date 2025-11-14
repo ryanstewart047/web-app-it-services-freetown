@@ -8,13 +8,6 @@ const nextConfig = {
     // Temporarily ignore TypeScript errors during build
     ignoreBuildErrors: true,
   },
-  // API route configuration for larger file uploads
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb',
-    },
-    responseLimit: '10mb',
-  },
   // Generate unique build ID to prevent cache issues
   generateBuildId: async () => {
     return `build-${Date.now()}-${Math.random().toString(36).substring(7)}`

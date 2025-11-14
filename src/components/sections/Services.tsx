@@ -69,10 +69,10 @@ export default function Services() {
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 scroll-fade-in">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6" data-animate="fade">
             Professional IT Services
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed scroll-slide-up">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed" data-animate="fade">
             From simple fixes to complex repairs, we provide comprehensive IT solutions 
             with cutting-edge technology and expert craftsmanship
           </p>
@@ -82,6 +82,7 @@ export default function Services() {
           {services.map((service, index) => (
             <div 
               key={index}
+              data-animate="zoom"
               className="service-card bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden transition-all duration-500 p-8 group cursor-pointer relative"
             >
               {/* Card accent decoration */}

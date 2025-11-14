@@ -43,11 +43,49 @@ export default function ProductDetailPage() {
       const products = await res.json();
       const found = products.find((p: Product) => p.slug === params.slug);
       setProduct(found);
+      
+      // Update meta tags for social sharing preview
+      if (found) {
+        updateMetaTags(found);
+      }
     } catch (error) {
       console.error('Error fetching product:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const updateMetaTags = (product: Product) => {
+    const imageUrl = product.images?.[0]?.url || '';
+    const fullImageUrl = imageUrl.startsWith('http') 
+      ? imageUrl 
+      : `${window.location.origin}${imageUrl}`;
+    
+    // Update or create meta tags for better link previews
+    const metaTags = [
+      { property: 'og:title', content: product.name },
+      { property: 'og:description', content: product.description },
+      { property: 'og:image', content: fullImageUrl },
+      { property: 'og:url', content: window.location.href },
+      { property: 'og:type', content: 'product' },
+      { name: 'twitter:card', content: 'summary_large_image' },
+      { name: 'twitter:image', content: fullImageUrl }
+    ];
+
+    metaTags.forEach(({ property, name, content }) => {
+      const attr = property ? 'property' : 'name';
+      const value = (property || name) as string;
+      let meta = document.querySelector(`meta[${attr}="${value}"]`);
+      
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute(attr, value);
+        document.head.appendChild(meta);
+      }
+      
+      meta.setAttribute('content', content);
+    });
+
   };
 
   const addToCart = () => {
@@ -95,21 +133,37 @@ export default function ProductDetailPage() {
     
     console.log('Full image URL:', fullImageUrl);
     
-    // Create short URL using product slug
-    const shortCode = product.slug.substring(0, 8).toLowerCase();
-    const shortUrl = `${window.location.origin}/s/${shortCode}`;
+    // Create short URL using API
+    let shareUrl = window.location.href;
+    let shortUrl = window.location.href;
     
-    // Store mapping in localStorage for redirect
-    localStorage.setItem(`short_${shortCode}`, window.location.href);
-    console.log('Created short URL:', shortUrl);
+    try {
+      const shortenResponse = await fetch('/api/shorten', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: window.location.href })
+      });
+      
+      if (shortenResponse.ok) {
+        const data = await shortenResponse.json();
+        shortUrl = data.shortUrl;
+        shareUrl = shortUrl;
+        // Also store in localStorage as backup for mobile
+        const shortCode = product.slug.substring(0, 8).toLowerCase();
+        localStorage.setItem(`short_${shortCode}`, window.location.href);
+        console.log('Created short URL:', shortUrl);
+      }
+    } catch (error) {
+      console.log('Failed to create short URL, using full URL', error);
+    }
 
     // Share text including the full image URL so it can be pasted properly
-    const shareText = `${product.name} - Le ${product.price.toLocaleString()}\n\n${shortUrl}\n\nImage: ${fullImageUrl}`;
+    const shareText = `${product.name} - Le ${product.price.toLocaleString()}\n\n${shareUrl}\n\nImage: ${fullImageUrl}`;
 
     const shareData: ShareData = {
       title: product.name,
       text: shareText,
-      url: shortUrl
+      url: shareUrl
     };
 
     try {
