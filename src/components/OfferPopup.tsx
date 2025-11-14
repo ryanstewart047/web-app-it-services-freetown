@@ -69,7 +69,7 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
       {/* Popup Card */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 pointer-events-none">
         <div 
-          className="rounded-xl md:rounded-2xl shadow-2xl max-w-sm md:max-w-2xl lg:max-w-3xl w-full overflow-hidden pointer-events-auto transform transition-all duration-300 animate-scale-in"
+          className="rounded-xl md:rounded-2xl shadow-2xl max-w-xs sm:max-w-sm md:max-w-2xl lg:max-w-3xl w-full overflow-hidden pointer-events-auto transform transition-all duration-300 animate-scale-in"
           style={{ backgroundColor: offer.backgroundColor || '#ffffff' }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -84,9 +84,9 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
 
           {/* Content */}
           <div className="flex flex-col md:flex-row">
-            {/* Image Section - Flexible sizing */}
+            {/* Image Section - Smaller on mobile */}
             <div className="md:w-2/5 relative bg-gradient-to-br from-purple-100 to-pink-100">
-              <div className="w-full h-48 md:h-full md:min-h-[300px]">
+              <div className="w-full h-32 sm:h-40 md:h-full md:min-h-[300px]">
                 {offer.imageUrl ? (
                   <img
                     src={offer.imageUrl}
@@ -95,24 +95,24 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <div className="text-4xl md:text-6xl">🎉</div>
+                    <div className="text-3xl sm:text-4xl md:text-6xl">🎉</div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Text Section */}
-            <div className="md:w-3/5 p-4 md:p-8">
-              <div className="mb-3 md:mb-4">
-                <div className="inline-block px-2 py-0.5 md:px-3 md:py-1 text-white text-[10px] md:text-xs font-bold rounded-full mb-2 md:mb-3 animate-badge-pulse" style={{ background: offer.badgeColor || '#9333ea' }}>
+            {/* Text Section - Compact on mobile */}
+            <div className="md:w-3/5 p-3 sm:p-4 md:p-8">
+              <div className="mb-2 md:mb-4">
+                <div className="inline-block px-2 py-0.5 md:px-3 md:py-1 text-white text-[10px] md:text-xs font-bold rounded-full mb-1.5 md:mb-3 animate-badge-pulse" style={{ background: offer.badgeColor || '#9333ea' }}>
                   {offer.badgeText || "TODAY'S OFFER"}
                 </div>
-                <h2 className="text-xl md:text-3xl font-bold mb-2 md:mb-3 leading-tight" style={{ color: offer.textColor || '#1f2937' }}>
+                <h2 className="text-lg sm:text-xl md:text-3xl font-bold mb-1.5 md:mb-3 leading-tight" style={{ color: offer.textColor || '#1f2937' }}>
                   {offer.title}
                 </h2>
               </div>
               
-              <div className="text-sm md:text-base leading-relaxed whitespace-pre-line mb-4 md:mb-6" style={{ color: offer.textColor || '#1f2937' }}>
+              <div className="text-xs sm:text-sm md:text-base leading-relaxed whitespace-pre-line mb-3 md:mb-6" style={{ color: offer.textColor || '#1f2937' }}>
                 {offer.description}
               </div>
 
@@ -122,7 +122,7 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
                     <a
                       href={offer.buttonLink}
                       onClick={handleClose}
-                      className="px-4 py-2 md:px-6 md:py-3 text-sm md:text-base text-white font-semibold rounded-lg md:rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 hover:opacity-90"
+                      className="px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-3 text-xs sm:text-sm md:text-base text-white font-semibold rounded-lg md:rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 hover:opacity-90"
                       style={{ backgroundColor: offer.buttonColor || '#9333ea' }}
                     >
                       {offer.buttonText}
@@ -130,13 +130,13 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
                   )}
                   <button
                     onClick={handleClose}
-                    className={`px-4 py-2 md:px-6 md:py-3 text-sm md:text-base ${offer.buttonText && offer.buttonLink ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-lg hover:shadow-xl transform hover:scale-105'} font-semibold rounded-lg md:rounded-xl transition-all duration-300`}
+                    className={`px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-3 text-xs sm:text-sm md:text-base ${offer.buttonText && offer.buttonLink ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-lg hover:shadow-xl transform hover:scale-105'} font-semibold rounded-lg md:rounded-xl transition-all duration-300`}
                   >
                     {offer.buttonText && offer.buttonLink ? 'Maybe Later' : 'Got It!'}
                   </button>
                 </div>
                 {offer.termsText && (
-                  <p className="text-[10px] md:text-xs text-gray-500 text-center mt-1 md:mt-2">
+                  <p className="text-[9px] sm:text-[10px] md:text-xs text-gray-500 text-center mt-1 md:mt-2">
                     {offer.termsText}
                   </p>
                 )}
