@@ -133,9 +133,9 @@ export default function ProductDetailPage() {
     
     console.log('Full image URL:', fullImageUrl);
     
-    // Create short URL using API
-    let shareUrl = window.location.href;
-    let shortUrl = window.location.href;
+    // Create short URL using API with fallback
+    const shortCode = product.slug.substring(0, 8).toLowerCase();
+    let shareUrl = `${window.location.origin}/s/${shortCode}`;
     
     try {
       const shortenResponse = await fetch('/api/shorten', {
@@ -146,15 +146,18 @@ export default function ProductDetailPage() {
       
       if (shortenResponse.ok) {
         const data = await shortenResponse.json();
-        shortUrl = data.shortUrl;
-        shareUrl = shortUrl;
-        // Also store in localStorage as backup for mobile
-        const shortCode = product.slug.substring(0, 8).toLowerCase();
-        localStorage.setItem(`short_${shortCode}`, window.location.href);
-        console.log('Created short URL:', shortUrl);
+        shareUrl = data.shortUrl;
+        console.log('✅ Created short URL:', shareUrl);
+      } else {
+        console.log('⚠️ API failed, using local short URL:', shareUrl);
       }
+      
+      // Always store in localStorage as backup for mobile
+      localStorage.setItem(`short_${shortCode}`, window.location.href);
     } catch (error) {
-      console.log('Failed to create short URL, using full URL', error);
+      console.log('⚠️ Failed to call API, using local short URL:', shareUrl, error);
+      // Still store in localStorage so redirect works
+      localStorage.setItem(`short_${shortCode}`, window.location.href);
     }
 
     // Share text without image URL (Open Graph meta tags handle the preview)
