@@ -108,55 +108,31 @@ export default function ProductDetailPage() {
       console.log('Failed to create short URL, using full URL');
     }
 
+    // Share text including the image URL so it can be pasted properly
+    const shareText = `${product.name} - Le ${product.price.toLocaleString()}\n\n${shareUrl}\n\nImage: ${productImage}`;
+
     const shareData: ShareData = {
       title: product.name,
-      text: `${product.name} - Le ${product.price.toLocaleString()}`,
+      text: shareText,
       url: shareUrl
     };
 
     try {
-      // Try to fetch and share the product image if available
-      if (productImage && navigator.canShare) {
-        try {
-          const response = await fetch(productImage);
-          const blob = await response.blob();
-          const file = new File([blob], 'product.jpg', { type: blob.type });
-          const filesArray = [file];
-          
-          // Check if we can share files with text and URL
-          const shareWithFiles = {
-            title: shareData.title,
-            text: shareData.text,
-            url: shareData.url,
-            files: filesArray
-          };
-          
-          if (navigator.canShare(shareWithFiles)) {
-            await navigator.share(shareWithFiles);
-            console.log('Shared successfully with image and link');
-            return;
-          }
-        } catch (imageError) {
-          console.log('Unable to share with image, falling back to text only');
-        }
-      }
-
-      // Try native share API (text only)
+      // Try native share API (text + URL only, no files)
+      // This ensures the URL is always pasteable on mobile
       if (navigator.share) {
         await navigator.share(shareData);
         console.log('Shared successfully');
       } else {
-        // Fallback: copy to clipboard with image URL
-        const textToCopy = `${product.name} - Le ${product.price.toLocaleString()}\n\nImage: ${productImage}\n\n${shareUrl}`;
-        await navigator.clipboard.writeText(textToCopy);
-        alert('Product details copied to clipboard (including short link)!');
+        // Fallback: copy to clipboard
+        await navigator.clipboard.writeText(shareText);
+        alert('Product details copied to clipboard!');
       }
     } catch (error) {
       console.error('Error sharing:', error);
       // If all else fails, try clipboard again
       try {
-        const textToCopy = `${product.name} - Le ${product.price.toLocaleString()}\n\nImage: ${productImage}\n\n${shareUrl}`;
-        await navigator.clipboard.writeText(textToCopy);
+        await navigator.clipboard.writeText(shareText);
         alert('Product link copied to clipboard!');
       } catch (clipboardError) {
         alert('Unable to share. Please copy the URL from your browser.');
