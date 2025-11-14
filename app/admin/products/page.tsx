@@ -52,6 +52,7 @@ export default function AdminProductsPage() {
   const [videoError, setVideoError] = useState('');
   const [uploadProgress, setUploadProgress] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const [uploadMessage, setUploadMessage] = useState('');
+  const [videoInputMode, setVideoInputMode] = useState<'link' | 'upload'>('link');
   
   // Form state - controlled components
   const [formData, setFormData] = useState({
@@ -551,6 +552,7 @@ export default function AdminProductsPage() {
                               setVideoError('');
                               setUploadProgress('idle');
                               setUploadMessage('');
+                              setVideoInputMode('link');
                               setShowAddModal(true);
                             }}
                             className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
@@ -756,6 +758,7 @@ export default function AdminProductsPage() {
                   setVideoError('');
                   setUploadProgress('idle');
                   setUploadMessage('');
+                  setVideoInputMode('link');
                   // Reset form data
                   setFormData({
                     name: '',
@@ -948,22 +951,26 @@ export default function AdminProductsPage() {
                       <button
                         type="button"
                         onClick={() => {
+                          setVideoInputMode('link');
                           setVideoFile(null);
                           setVideoPreviewUrl('');
                           setVideoError('');
                           setUploadProgress('idle');
                         }}
                         className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                          !videoFile ? 'bg-blue-600 text-white' : 'bg-transparent text-gray-400 hover:text-white'
+                          videoInputMode === 'link' ? 'bg-blue-600 text-white' : 'bg-transparent text-gray-400 hover:text-white'
                         }`}
                       >
                         YouTube/Vimeo Link
                       </button>
                       <button
                         type="button"
-                        onClick={() => setFormData({ ...formData, videoUrl: '' })}
+                        onClick={() => {
+                          setVideoInputMode('upload');
+                          setFormData({ ...formData, videoUrl: '' });
+                        }}
                         className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                          videoFile ? 'bg-blue-600 text-white' : 'bg-transparent text-gray-400 hover:text-white'
+                          videoInputMode === 'upload' ? 'bg-blue-600 text-white' : 'bg-transparent text-gray-400 hover:text-white'
                         }`}
                       >
                         Upload File
@@ -971,7 +978,7 @@ export default function AdminProductsPage() {
                     </div>
 
                     {/* YouTube/Vimeo URL Input */}
-                    {!videoFile && (
+                    {videoInputMode === 'link' && (
                       <div>
                         <input
                           type="url"
@@ -987,7 +994,7 @@ export default function AdminProductsPage() {
                     )}
 
                     {/* File Upload */}
-                    {videoFile !== null && (
+                    {videoInputMode === 'upload' && (
                       <>
                         <input
                           type="file"
@@ -1131,6 +1138,7 @@ export default function AdminProductsPage() {
                       setVideoError('');
                       setUploadProgress('idle');
                       setUploadMessage('');
+                      setVideoInputMode('link');
                     }}
                     className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold"
                   >
