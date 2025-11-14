@@ -641,15 +641,40 @@ export default function AdminProductsPage() {
                     console.log('Video upload response:', uploadRes.status, uploadRes.statusText);
 
                     if (!uploadRes.ok) {
-                      const errorData = await uploadRes.json();
-                      console.error('Video upload failed:', errorData);
+                      let errorMessage = 'Unknown error';
+                      try {
+                        const errorData = await uploadRes.json();
+                        errorMessage = errorData.error || errorData.details || errorMessage;
+                      } catch (parseError) {
+                        console.error('Failed to parse error response:', parseError);
+                        errorMessage = `Server returned ${uploadRes.status}: ${uploadRes.statusText}`;
+                      }
+                      console.error('Video upload failed:', errorMessage);
                       setUploadProgress('error');
-                      setUploadMessage(`Upload failed: ${errorData.error || 'Unknown error'}`);
-                      setTimeout(() => setUploadProgress('idle'), 3000);
+                      setUploadMessage(`Upload failed: ${errorMessage}`);
+                      setTimeout(() => setUploadProgress('idle'), 5000);
                       return;
                     }
 
-                    const uploadData = await uploadRes.json();
+                    let uploadData;
+                    try {
+                      uploadData = await uploadRes.json();
+                    } catch (parseError) {
+                      console.error('Failed to parse success response:', parseError);
+                      setUploadProgress('error');
+                      setUploadMessage('Upload failed: Invalid server response');
+                      setTimeout(() => setUploadProgress('idle'), 5000);
+                      return;
+                    }
+
+                    if (!uploadData.videoUrl) {
+                      console.error('No videoUrl in response:', uploadData);
+                      setUploadProgress('error');
+                      setUploadMessage('Upload failed: No video URL returned');
+                      setTimeout(() => setUploadProgress('idle'), 5000);
+                      return;
+                    }
+
                     uploadedVideoUrl = uploadData.videoUrl;
                     console.log('Video uploaded successfully:', uploadedVideoUrl);
                     setUploadProgress('success');
@@ -658,7 +683,7 @@ export default function AdminProductsPage() {
                     console.error('Video upload error:', videoError);
                     setUploadProgress('error');
                     setUploadMessage(`Upload failed: ${videoError instanceof Error ? videoError.message : 'Unknown error'}`);
-                    setTimeout(() => setUploadProgress('idle'), 3000);
+                    setTimeout(() => setUploadProgress('idle'), 5000);
                     return;
                   }
                 }
