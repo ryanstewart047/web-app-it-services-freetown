@@ -118,19 +118,18 @@ const nextConfig = {
     ];
   },
   
-  // Rewrites for static files
-  async rewrites() {
+  // Handle 404s and set proper headers
+  async headers() {
     return [
       {
         source: '/ads.txt',
-        destination: '/api/ads.txt',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'text/plain; charset=utf-8',
+          },
+        ],
       },
-    ];
-  },
-  
-  // Handle 404s properly
-  async headers() {
-    return [
       {
         source: '/:path*',
         headers: [
