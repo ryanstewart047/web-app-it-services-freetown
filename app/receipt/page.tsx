@@ -314,14 +314,32 @@ export default function ReceiptGenerator() {
     }
   }
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    const ADMIN_PASSWORD = 'ITServices2025!'
     
-    if (password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true)
-      setShowPasswordError(false)
-    } else {
+    try {
+      const response = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        setIsAuthenticated(true)
+        setShowPasswordError(false)
+      } else {
+        setShowPasswordError(true)
+        if (response.status === 429) {
+          alert(data.error || 'Too many login attempts. Please try again later.')
+        }
+        setTimeout(() => setShowPasswordError(false), 3000)
+      }
+    } catch (error) {
+      console.error('Login error:', error)
       setShowPasswordError(true)
       setTimeout(() => setShowPasswordError(false), 3000)
     }

@@ -10,17 +10,34 @@ export default function Footer() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
-  // Admin password - Change this to your desired password
-  const ADMIN_PASSWORD = 'ITServices2025!'
-
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true)
-      setError('')
-      setPassword('')
-    } else {
-      setError('Incorrect password. Please try again.')
+    
+    try {
+      const response = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        setIsAuthenticated(true)
+        setError('')
+        setPassword('')
+      } else {
+        if (response.status === 429) {
+          setError('Too many login attempts. Please try again later.')
+        } else {
+          setError('Incorrect password. Please try again.')
+        }
+        setPassword('')
+      }
+    } catch (error) {
+      setError('Login failed. Please try again.')
       setPassword('')
     }
   }

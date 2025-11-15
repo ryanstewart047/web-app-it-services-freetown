@@ -48,7 +48,7 @@ Your new **blog-articles-preview.html** file (104KB) includes:
 **Option A - Copy HTML for Blog Admin:**
 1. Click **"Copy HTML Content"** button
 2. Go to https://www.itservicesfreetown.com/blog/admin
-3. Login (password: `ITServices2025!`)
+3. Login with admin credentials
 4. Paste into the editor
 5. Add the tags shown
 6. Click "Publish Post"

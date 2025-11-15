@@ -8,7 +8,7 @@ The mobile booking isn't appearing because the cloud sync configuration is devic
 
 1. **On your mobile device**:
    - Go to: https://itservicesfreetown.com/admin/login
-   - Login with: `admin` / `itservices2025!`
+   - Login with admin credentials (set via environment variables)
    - This will load the cloud sync configuration on your mobile device
    - Go back to your admin dashboard on desktop - the booking should now appear
 

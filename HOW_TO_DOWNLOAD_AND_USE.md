@@ -44,7 +44,7 @@ You have two options:
 2. **For each article:**
    - Click the **"Copy Title"** button
    - Go to https://www.itservicesfreetown.com/blog/admin
-   - Login with password: `ITServices2025!`
+   - Login with admin password (contact administrator)
    - Paste the title
    - Go back to the HTML file
    - Click **"Copy HTML Content"** button

@@ -39,9 +39,6 @@ interface BlogPost {
   media?: MediaItem[]
 }
 
-// Admin password - In production, this should be in environment variables
-const ADMIN_PASSWORD = 'ITServices2025!'
-
 // Rich text editor configuration
 const quillModules = {
   toolbar: [
@@ -105,17 +102,37 @@ export default function BlogAdminPage() {
     }
   }, [])
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true)
-      localStorage.setItem('blog_admin_auth', 'authenticated')
-      toast.success('Welcome, Admin!')
-      setShowPasswordError(false)
-    } else {
+    try {
+      const response = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        setIsAuthenticated(true)
+        localStorage.setItem('blog_admin_auth', 'authenticated')
+        toast.success('Welcome, Admin!')
+        setShowPasswordError(false)
+      } else {
+        setShowPasswordError(true)
+        if (response.status === 429) {
+          toast.error(data.error || 'Too many login attempts. Please try again later.')
+        } else {
+          toast.error('Incorrect password')
+        }
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      toast.error('Login failed. Please try again.')
       setShowPasswordError(true)
-      toast.error('Incorrect password')
     }
   }
 

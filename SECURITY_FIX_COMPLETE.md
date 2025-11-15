@@ -79,7 +79,7 @@ Option B - Manual:
 ## 📋 Default Password (Temporary)
 
 **ONLY until you set ADMIN_PASSWORD_HASH environment variable:**
-- Default temporary password: `ITServices2025!Admin`
+- Admin password now stored as hash in environment variables (secure)
 - **CHANGE THIS IMMEDIATELY** by following steps above!
 
 ## 🛡️ Security Features Explained

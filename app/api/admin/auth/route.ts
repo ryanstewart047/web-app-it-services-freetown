@@ -3,9 +3,9 @@ import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
-// DO NOT store passwords in code! This is a hash of the password.
+// Admin password hash - MUST be set in environment variables
 // To generate: node -e "console.log(crypto.createHash('sha256').update('YOUR_PASSWORD').digest('hex'))"
-// Default password hash for "ITServices2025!Admin" - CHANGE THIS IMMEDIATELY
+// Use the setup-admin-password.sh script to generate credentials easily
 const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
 
 // Rate limiting store (in production, use Redis or database)

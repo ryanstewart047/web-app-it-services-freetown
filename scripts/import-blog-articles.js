@@ -78,7 +78,7 @@ console.log('=' .repeat(60));
 console.log('\n📋 HOW TO IMPORT THESE ARTICLES:\n');
 console.log('Option 1 - Manual Import via Admin Panel (Recommended):');
 console.log('1. Go to: https://www.itservicesfreetown.com/blog/admin');
-console.log('2. Login with password: ITServices2025!');
+console.log('2. Login with admin credentials (contact administrator)');
 console.log('3. For each article:');
 console.log('   - Copy the title');
 console.log('   - Copy the HTML content');

@@ -129,7 +129,7 @@ After DNS propagates and you visit `https://itservicesfreetown.com`:
 
 ### Pages to Test:
 - ✅ Homepage - Should show new features
-- ✅ `/admin` - Admin panel (password: ITServices2025!)
+- ✅ `/admin` - Admin panel (requires authentication)
 - ✅ `/blog` - Blog listing page
 - ✅ `/blog/admin` - Blog admin with AI generation
 - ✅ `/chat` - AI chat support

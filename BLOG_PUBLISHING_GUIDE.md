@@ -22,7 +22,7 @@
    - Navigate to: `http://localhost:3000/blog/admin`
    
 3. **Login:**
-   - Password: `ITServices2025!`
+   - Password: (Contact admin for credentials)
 
 4. **Copy the blog content:**
    ```bash

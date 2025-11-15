@@ -105,7 +105,7 @@ Click → [📋 Copy Title] button
 ### Step 4: Go to Blog Admin
 In blog admin page:
 ```
-1. Login (password: ITServices2025!)
+1. Login with admin credentials
 2. Paste title in "Post Title" field
 3. Keep author as "IT Services Freetown"
 ```

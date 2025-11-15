@@ -53,7 +53,7 @@ You need to create a GitHub Gist to store your offers:
 ### Access the Admin Interface
 
 1. Go to your main admin panel: https://www.itservicesfreetown.com/admin
-2. Login with password: `ITServices2025!`
+2. Login with admin credentials
 3. Click the **"Manage Offers"** button (orange) in Quick Controls
 
 ### Create/Update an Offer

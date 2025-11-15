@@ -23,7 +23,7 @@ Your blog admin at `/blog/admin` now includes a **dual-mode editor** with live H
 
 ### Step 1: Access Blog Admin
 1. Go to https://www.itservicesfreetown.com/blog/admin
-2. Login with password: `ITServices2025!`
+2. Login with admin credentials
 
 ### Step 2: Switch to HTML Preview
 1. Look for the editor mode toggle buttons (top right of content area)
@@ -221,7 +221,7 @@ Quick reference for HTML Preview mode:
    - Click "Copy HTML Content"
 
 3. **Switch to blog admin:**
-   - Login if needed (ITServices2025!)
+   - Login if needed (contact admin for credentials)
    - Add the article title in Title field
    - Click **"👁️ HTML Preview"** button
 

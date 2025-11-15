@@ -42,7 +42,7 @@ Located at: `/track-repair`
 
 ### 2. **Admin Dashboard** ✅ FULLY WORKING
 Located at: `/admin`
-Password: `ITServices2025!`
+Password: (Contact admin for credentials)
 
 **Features**:
 - ✅ **Repair Management**:
@@ -145,7 +145,7 @@ Currently using **JSON file storage** in:
 4. **See Updates**: View current status, notes, estimated completion
 
 ### For Admin (You):
-1. **Login**: Go to `/admin` with password `ITServices2025!`
+1. **Login**: Go to `/admin` with admin credentials
 2. **View Repairs**: Click "Repairs" tab to see all active repairs
 3. **Update Status**:
    - Click on a repair to open details

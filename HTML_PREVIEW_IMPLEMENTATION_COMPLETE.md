@@ -42,7 +42,7 @@ Your blog admin at `/blog/admin` now has a **GitHub-style HTML preview system** 
 
 ### Quick Import Workflow:
 1. Go to https://www.itservicesfreetown.com/blog/admin
-2. Login (password: `ITServices2025!`)
+2. Login with admin credentials
 3. Add article title
 4. Click **"👁️ HTML Preview"** button
 5. Paste HTML in left pane (from your blog-articles-preview.html)

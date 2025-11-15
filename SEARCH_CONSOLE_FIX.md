@@ -99,7 +99,7 @@ Wait 2-3 minutes for Vercel deployment.
 This is the most important step to fix soft 404s:
 
 1. Go to https://www.itservicesfreetown.com/blog/admin
-2. Login (password: `ITServices2025!`)
+2. Login with admin credentials
 3. Import all 7 articles using HTML Preview mode
 4. This adds real content to `/blog` page
 5. Google will see actual content instead of empty page

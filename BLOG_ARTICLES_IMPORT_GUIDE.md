@@ -46,7 +46,7 @@ I've created **8 comprehensive blog articles** for your IT Services Freetown web
 
 1. **Access the blog admin:**
    - Go to: https://www.itservicesfreetown.com/blog/admin
-   - Password: `ITServices2025!`
+   - Password: (Contact admin for credentials)
 
 2. **For each article:**
    - Open the JSON file from `content/` folder

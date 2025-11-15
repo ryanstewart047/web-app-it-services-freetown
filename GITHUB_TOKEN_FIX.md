@@ -82,7 +82,7 @@ If you want to publish the blog post **right now** without fixing GitHub:
 ### How to publish locally:
 
 1. Go to: http://localhost:3001/blog/admin
-2. Login with password: `ITServices2025!`
+2. Login with admin password (stored securely in environment variables)
 3. Paste your blog content
 4. Click "Publish"
 5. You'll see a message: "GitHub publish failed, saving locally..."

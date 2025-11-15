@@ -52,7 +52,7 @@ export default function ArticlesViewerPage() {
           <ol className="list-decimal list-inside space-y-2 mb-4">
             <li>Click <strong>"View Article"</strong> to expand the full content</li>
             <li>Click <strong>"Copy HTML"</strong> to copy the article content</li>
-            <li>Go to <a href="/blog/admin" className="text-blue-600 hover:underline font-semibold">Blog Admin Panel</a> (Password: ITServices2025!)</li>
+            <li>Go to <a href="/blog/admin" className="text-blue-600 hover:underline font-semibold">Blog Admin Panel</a> (requires authentication)</li>
             <li>Paste the HTML into the editor</li>
             <li>Click "Copy Title" and "Copy Tags" for easy filling</li>
             <li>Click <strong>"Publish Post"</strong></li>
