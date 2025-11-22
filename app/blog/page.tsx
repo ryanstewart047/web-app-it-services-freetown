@@ -43,6 +43,7 @@ export default function BlogPage() {
   const [commentAuthors, setCommentAuthors] = useState<{ [key: string]: string }>({})
   const [showComments, setShowComments] = useState<{ [key: string]: boolean }>({})
   const [userVotes, setUserVotes] = useState<{ [key: string]: 'like' | 'dislike' | null }>({})
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   useScrollAnimations()
 
@@ -165,6 +166,40 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
     // Cleanup interval on unmount
     return () => clearInterval(refreshInterval)
   }, [])
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true)
+    try {
+      const githubPosts = await fetchBlogPosts()
+      
+      if (githubPosts.length > 0) {
+        const postsWithComments = await Promise.all(
+          githubPosts.map(async (post) => {
+            const comments = await fetchPostComments(parseInt(post.id))
+            return {
+              ...post,
+              comments: comments.map(c => ({
+                id: c.id.toString(),
+                author: c.author,
+                content: c.content,
+                timestamp: c.timestamp
+              }))
+            }
+          })
+        )
+        setPosts(postsWithComments)
+        localStorage.setItem('blog_posts', JSON.stringify(postsWithComments))
+        toast.success('Blog posts refreshed!')
+      } else {
+        toast('No new posts available')
+      }
+    } catch (error) {
+      console.error('Failed to refresh posts:', error)
+      toast.error('Failed to refresh posts')
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
 
   const savePosts = (updatedPosts: BlogPost[]) => {
     localStorage.setItem('blog_posts', JSON.stringify(updatedPosts))
@@ -327,6 +362,22 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                 <span className="text-sm">Auto-updating every 30s</span>
               </div>
+              <button
+                onClick={handleManualRefresh}
+                disabled={isRefreshing}
+                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed border border-white/20 hover:border-white/30"
+                title="Manually refresh blog posts"
+              >
+                <svg 
+                  className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+              </button>
             </div>
           </div>
         </div>
