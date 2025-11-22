@@ -243,7 +243,7 @@ export default function Footer() {
             {/* Social Links */}
                         <div className="flex space-x-4">
               <a 
-                href="https://facebook.com" 
+                href="https://facebook.com/itservicefreetown" 
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Visit our Facebook page"
@@ -261,7 +261,7 @@ export default function Footer() {
                 <i className="fab fa-twitter" aria-hidden="true"></i>
               </a>
               <a 
-                href="https://instagram.com" 
+                href="https://instagram.com/itservicesfreetown" 
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Follow us on Instagram"
@@ -270,7 +270,16 @@ export default function Footer() {
                 <i className="fab fa-instagram" aria-hidden="true"></i>
               </a>
               <a 
-                href="https://whatsapp.com" 
+                href="https://youtube.com/itservicesfreetown" 
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Visit our YouTube channel"
+                className="w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-all duration-200 hover:scale-110"
+              >
+                <i className="fab fa-youtube" aria-hidden="true"></i>
+              </a>
+              <a 
+                href="https://wa.me/23233399391" 
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Contact us on WhatsApp"
