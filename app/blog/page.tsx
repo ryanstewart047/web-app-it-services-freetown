@@ -181,11 +181,66 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location.hash) {
       const postId = window.location.hash.replace('#post-', '')
-      const postElement = document.getElementById(`post-${postId}`)
-      if (postElement) {
-        setTimeout(() => {
-          postElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        }, 500)
+      const post = posts.find(p => p.id === postId)
+      
+      if (post) {
+        // Update meta tags for social sharing
+        const shareImage = post.media?.find(m => m.type === 'image')?.url || post.image
+        
+        // Update Open Graph tags
+        let ogImage = document.querySelector('meta[property="og:image"]')
+        if (!ogImage) {
+          ogImage = document.createElement('meta')
+          ogImage.setAttribute('property', 'og:image')
+          document.head.appendChild(ogImage)
+        }
+        if (shareImage) {
+          ogImage.setAttribute('content', shareImage)
+        }
+        
+        let ogTitle = document.querySelector('meta[property="og:title"]')
+        if (!ogTitle) {
+          ogTitle = document.createElement('meta')
+          ogTitle.setAttribute('property', 'og:title')
+          document.head.appendChild(ogTitle)
+        }
+        ogTitle.setAttribute('content', post.title)
+        
+        let ogDescription = document.querySelector('meta[property="og:description"]')
+        if (!ogDescription) {
+          ogDescription = document.createElement('meta')
+          ogDescription.setAttribute('property', 'og:description')
+          document.head.appendChild(ogDescription)
+        }
+        const contentPreview = post.content.replace(/<[^>]*>/g, '').substring(0, 200)
+        ogDescription.setAttribute('content', contentPreview)
+        
+        // Update Twitter Card tags
+        let twitterCard = document.querySelector('meta[name="twitter:card"]')
+        if (!twitterCard) {
+          twitterCard = document.createElement('meta')
+          twitterCard.setAttribute('name', 'twitter:card')
+          document.head.appendChild(twitterCard)
+        }
+        twitterCard.setAttribute('content', 'summary_large_image')
+        
+        let twitterImage = document.querySelector('meta[name="twitter:image"]')
+        if (!twitterImage) {
+          twitterImage = document.createElement('meta')
+          twitterImage.setAttribute('name', 'twitter:image')
+          document.head.appendChild(twitterImage)
+        }
+        if (shareImage) {
+          twitterImage.setAttribute('content', shareImage)
+        }
+        
+        // Scroll to post
+        const postElement = document.getElementById(`post-${postId}`)
+        if (postElement) {
+          setTimeout(() => {
+            postElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }, 500)
+        }
       }
     }
   }, [posts])
@@ -350,19 +405,43 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
   const handleShare = async (post: BlogPost) => {
     const shareUrl = `${window.location.origin}/blog#post-${post.id}`
     const shareTitle = post.title
-    const shareText = `Check out this article: ${post.title}`
     
     // Get the first image from media or fallback to post.image
     const shareImage = post.media?.find(m => m.type === 'image')?.url || post.image
+    
+    // Create a more detailed share text with image info
+    const contentPreview = post.content.replace(/<[^>]*>/g, '').substring(0, 150) + '...'
+    const shareText = shareImage 
+      ? `${post.title}\n\n${contentPreview}\n\nRead more at IT Services Freetown`
+      : `Check out this article: ${post.title}\n\n${contentPreview}`
 
     // Try native Web Share API first (mobile)
     if (navigator.share) {
       try {
-        await navigator.share({
+        // Web Share API supports files on some platforms
+        const shareData: any = {
           title: shareTitle,
           text: shareText,
           url: shareUrl,
-        })
+        }
+        
+        // Try to include image if available (works on some mobile browsers)
+        if (shareImage && navigator.canShare) {
+          try {
+            // Fetch the image and convert to blob
+            const response = await fetch(shareImage)
+            const blob = await response.blob()
+            const file = new File([blob], 'image.jpg', { type: blob.type })
+            
+            if (navigator.canShare({ files: [file] })) {
+              shareData.files = [file]
+            }
+          } catch (e) {
+            console.log('Could not include image in share:', e)
+          }
+        }
+        
+        await navigator.share(shareData)
         toast.success('Shared successfully!')
         return
       } catch (error) {
@@ -373,9 +452,13 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
       }
     }
 
-    // Fallback: Copy link to clipboard
+    // Fallback: Copy link to clipboard with additional info
     try {
-      await navigator.clipboard.writeText(shareUrl)
+      const clipboardText = shareImage 
+        ? `${shareTitle}\n\n${shareUrl}\n\n📸 View image: ${shareImage}`
+        : `${shareTitle}\n\n${shareUrl}`
+      
+      await navigator.clipboard.writeText(clipboardText)
       setCopiedPostId(post.id)
       toast.success('Link copied to clipboard!')
       setTimeout(() => setCopiedPostId(null), 2000)
