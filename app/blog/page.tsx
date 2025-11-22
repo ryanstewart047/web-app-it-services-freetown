@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
-import { ThumbsUp, ThumbsDown, MessageCircle, Calendar, User, Send } from 'lucide-react'
+import { ThumbsUp, ThumbsDown, MessageCircle, Calendar, User, Send, Share2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { fetchBlogPosts, fetchPostComments, addComment, addReaction } from '@/lib/github-blog-storage'
 import { DisplayAd, InFeedAd } from '@/components/AdSense'
@@ -44,6 +44,7 @@ export default function BlogPage() {
   const [showComments, setShowComments] = useState<{ [key: string]: boolean }>({})
   const [userVotes, setUserVotes] = useState<{ [key: string]: 'like' | 'dislike' | null }>({})
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [copiedPostId, setCopiedPostId] = useState<string | null>(null)
 
   useScrollAnimations()
 
@@ -175,6 +176,19 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
     // Cleanup interval on unmount
     return () => clearInterval(refreshInterval)
   }, [])
+
+  // Handle URL hash navigation for shared links
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const postId = window.location.hash.replace('#post-', '')
+      const postElement = document.getElementById(`post-${postId}`)
+      if (postElement) {
+        setTimeout(() => {
+          postElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }, 500)
+      }
+    }
+  }, [posts])
 
   const handleManualRefresh = async () => {
     setIsRefreshing(true)
@@ -333,6 +347,44 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
     setShowComments({ ...showComments, [postId]: !showComments[postId] })
   }
 
+  const handleShare = async (post: BlogPost) => {
+    const shareUrl = `${window.location.origin}/blog#post-${post.id}`
+    const shareTitle = post.title
+    const shareText = `Check out this article: ${post.title}`
+    
+    // Get the first image from media or fallback to post.image
+    const shareImage = post.media?.find(m => m.type === 'image')?.url || post.image
+
+    // Try native Web Share API first (mobile)
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl,
+        })
+        toast.success('Shared successfully!')
+        return
+      } catch (error) {
+        // User cancelled or share failed, fall back to copy link
+        if ((error as Error).name !== 'AbortError') {
+          console.log('Share failed, falling back to copy link')
+        }
+      }
+    }
+
+    // Fallback: Copy link to clipboard
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setCopiedPostId(post.id)
+      toast.success('Link copied to clipboard!')
+      setTimeout(() => setCopiedPostId(null), 2000)
+    } catch (error) {
+      console.error('Failed to copy:', error)
+      toast.error('Failed to copy link')
+    }
+  }
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -416,7 +468,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
             </div>
           ) : (
             posts.map((post, index) => (
-              <div key={post.id}>
+              <div key={post.id} id={`post-${post.id}`}>
                 <article 
                   className="group bg-white rounded-3xl shadow-lg overflow-hidden scroll-animate hover:shadow-2xl transition-all duration-500 border border-gray-100"
                 >
@@ -514,6 +566,19 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                       <MessageCircle className="w-5 h-5" />
                       <span className="font-bold">{post.comments.length}</span>
                       <span className="hidden sm:inline">Comments</span>
+                    </button>
+
+                    {/* Share Button */}
+                    <button
+                      onClick={() => handleShare(post)}
+                      className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm hover:shadow-md ${
+                        copiedPostId === post.id
+                          ? 'bg-gradient-to-r from-green-500 to-green-600 text-white'
+                          : 'bg-white text-gray-600 hover:bg-green-50 hover:text-green-600'
+                      }`}
+                    >
+                      <Share2 className="w-5 h-5" />
+                      <span className="hidden sm:inline">{copiedPostId === post.id ? 'Copied!' : 'Share'}</span>
                     </button>
                   </div>
                 </div>
