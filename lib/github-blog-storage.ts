@@ -65,12 +65,18 @@ export async function fetchBlogPosts(): Promise<BlogPost[]> {
     }
 
     const response = await fetch(
-      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/issues?labels=blog-post&state=open&sort=created&direction=desc`,
-      { headers }
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/issues?labels=blog-post&state=open&sort=created&direction=desc&per_page=100`,
+      { 
+        headers,
+        cache: 'no-store' // Ensure we get fresh data
+      }
     )
 
     if (!response.ok) {
-      throw new Error('Failed to fetch posts')
+      console.error(`GitHub API error: ${response.status} ${response.statusText}`)
+      const errorData = await response.text()
+      console.error('Error details:', errorData)
+      throw new Error(`Failed to fetch posts: ${response.status}`)
     }
 
     const issues: GitHubIssue[] = await response.json()
