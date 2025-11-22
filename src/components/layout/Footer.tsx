@@ -270,7 +270,7 @@ export default function Footer() {
                 <i className="fab fa-instagram" aria-hidden="true"></i>
               </a>
               <a 
-                href="https://youtube.com/itservicesfreetown" 
+                href="https://youtube.com/@itservicesfreetown" 
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Visit our YouTube channel"
