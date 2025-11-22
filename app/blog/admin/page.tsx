@@ -901,6 +901,66 @@ Tips:
               </label>
               
               {/* Add Media Buttons */}
+              {/* Free Stock Photo Resources */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 mb-6 border-2 border-blue-100">
+                <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                  📸 Free Quality Images
+                </h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                  <a 
+                    href="https://unsplash.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="px-3 py-2 bg-white hover:bg-blue-50 text-blue-600 font-semibold rounded-lg transition-all hover:shadow-md text-center"
+                  >
+                    🎨 Unsplash
+                  </a>
+                  <a 
+                    href="https://www.pexels.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="px-3 py-2 bg-white hover:bg-green-50 text-green-600 font-semibold rounded-lg transition-all hover:shadow-md text-center"
+                  >
+                    📷 Pexels
+                  </a>
+                  <a 
+                    href="https://pixabay.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="px-3 py-2 bg-white hover:bg-purple-50 text-purple-600 font-semibold rounded-lg transition-all hover:shadow-md text-center"
+                  >
+                    🖼️ Pixabay
+                  </a>
+                  <a 
+                    href="https://www.freepik.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="px-3 py-2 bg-white hover:bg-pink-50 text-pink-600 font-semibold rounded-lg transition-all hover:shadow-md text-center"
+                  >
+                    ✨ Freepik
+                  </a>
+                  <a 
+                    href="https://stocksnap.io" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="px-3 py-2 bg-white hover:bg-indigo-50 text-indigo-600 font-semibold rounded-lg transition-all hover:shadow-md text-center"
+                  >
+                    📸 StockSnap
+                  </a>
+                  <a 
+                    href="https://burst.shopify.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="px-3 py-2 bg-white hover:bg-orange-50 text-orange-600 font-semibold rounded-lg transition-all hover:shadow-md text-center"
+                  >
+                    🛍️ Burst
+                  </a>
+                </div>
+                <p className="text-xs text-gray-600 mt-3">
+                  💡 All sources offer free, high-quality images. Copy the image URL and paste below.
+                </p>
+              </div>
+
               <div className="flex space-x-4 mb-6">
                 <button
                   type="button"
@@ -923,7 +983,7 @@ Tips:
                 </button>
               </div>
               
-              <p className="text-xs text-gray-500 mb-4">💡 Tip: Upload images to <a href="https://imgur.com/upload" target="_blank" className="text-blue-600 hover:underline">Imgur</a> or <a href="https://postimages.org/" target="_blank" className="text-blue-600 hover:underline">PostImages</a>, then paste the URL here.</p>
+              <p className="text-xs text-gray-500 mb-4">📤 Upload your images to <a href="https://imgur.com/upload" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-semibold">Imgur</a> or <a href="https://postimages.org/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-semibold">PostImages</a>, then paste the URL here.</p>
 
               {/* Media Preview */}
               {media.length > 0 && (
