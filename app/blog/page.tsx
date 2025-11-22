@@ -50,8 +50,11 @@ export default function BlogPage() {
   useEffect(() => {
     const loadPosts = async () => {
       try {
+        console.log('Fetching blog posts from GitHub Issues...')
         // Try to load posts from GitHub Issues first
         const githubPosts = await fetchBlogPosts()
+        
+        console.log(`Fetched ${githubPosts.length} posts from GitHub`)
         
         if (githubPosts.length > 0) {
           // Load comments for each post from GitHub
@@ -69,16 +72,20 @@ export default function BlogPage() {
               }
             })
           )
+          console.log('Successfully loaded posts with comments from GitHub')
           setPosts(postsWithComments)
           // Also save to localStorage as cache
           localStorage.setItem('blog_posts', JSON.stringify(postsWithComments))
           return
+        } else {
+          console.warn('No posts returned from GitHub Issues API')
         }
       } catch (error) {
         console.error('Failed to load posts from GitHub:', error)
       }
 
       // Fallback to localStorage if GitHub fails
+      console.log('Attempting to load posts from localStorage...')
       const savedPosts = localStorage.getItem('blog_posts')
       if (savedPosts) {
         const parsedPosts = JSON.parse(savedPosts)
@@ -90,8 +97,10 @@ export default function BlogPage() {
             timestamp: new Date(comment.timestamp)
           }))
         }))
+        console.log(`Loaded ${postsWithDates.length} posts from localStorage`)
         setPosts(postsWithDates)
       } else {
+        console.log('No cached posts found, using sample posts')
         // Initialize with sample posts if nothing in localStorage
         const samplePosts: BlogPost[] = [
           {
@@ -170,7 +179,10 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
   const handleManualRefresh = async () => {
     setIsRefreshing(true)
     try {
+      console.log('Manual refresh: Fetching blog posts from GitHub...')
       const githubPosts = await fetchBlogPosts()
+      
+      console.log(`Manual refresh: Fetched ${githubPosts.length} posts`)
       
       if (githubPosts.length > 0) {
         const postsWithComments = await Promise.all(
@@ -189,8 +201,9 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
         )
         setPosts(postsWithComments)
         localStorage.setItem('blog_posts', JSON.stringify(postsWithComments))
-        toast.success('Blog posts refreshed!')
+        toast.success(`Refreshed! Loaded ${postsWithComments.length} blog posts`)
       } else {
+        console.warn('Manual refresh: No posts returned from GitHub')
         toast('No new posts available')
       }
     } catch (error) {
