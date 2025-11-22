@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
-import { ArrowLeft, Save, Eye, Upload, X, Image as ImageIcon, Video, Lock, Sparkles, RefreshCw, Trash2, List } from 'lucide-react'
+import { ArrowLeft, Save, Eye, Upload, X, Image as ImageIcon, Video, Lock, Sparkles, RefreshCw, Trash2, List, Edit } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { createBlogPost, fetchBlogPosts, deleteBlogPost } from '@/lib/github-blog-storage'
+import { createBlogPost, fetchBlogPosts, deleteBlogPost, updateBlogPost } from '@/lib/github-blog-storage'
 import dynamic from 'next/dynamic'
 import { useAdminSession } from '../../../src/hooks/useAdminSession'
 
@@ -91,6 +91,7 @@ export default function BlogAdminPage() {
   const [loadingPosts, setLoadingPosts] = useState(false)
   const [editorMode, setEditorMode] = useState<'rich' | 'html'>('rich') // 'rich' for WYSIWYG, 'html' for HTML preview
   const [htmlContent, setHtmlContent] = useState('')
+  const [editingPostId, setEditingPostId] = useState<string | null>(null)
 
   useScrollAnimations()
 
@@ -176,6 +177,28 @@ export default function BlogAdminPage() {
     }
   }
 
+  const handleEditPost = (post: BlogPost) => {
+    setEditingPostId(post.id)
+    setTitle(post.title)
+    setContent(post.content)
+    setAuthor(post.author)
+    setMedia(post.media || [])
+    setShowManagePosts(false)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    toast.success('Post loaded for editing')
+  }
+
+  const handleCancelEdit = () => {
+    if (confirm('Discard changes and clear the form?')) {
+      setEditingPostId(null)
+      setTitle('')
+      setContent('')
+      setAuthor('IT Services Freetown')
+      setMedia([])
+      toast.info('Edit cancelled')
+    }
+  }
+
   const toggleManagePosts = async () => {
     if (!showManagePosts) {
       await loadPosts()
@@ -199,27 +222,41 @@ export default function BlogAdminPage() {
       setPublishProgress(20)
       await new Promise(resolve => setTimeout(resolve, 300))
 
-      // Try to create post in GitHub Issues first
       setPublishProgress(40)
-      const result = await createBlogPost(
-        title.trim(),
-        content.trim(),
-        author.trim(),
-        media.length > 0 ? media : undefined
-      )
+      
+      let result
+      if (editingPostId) {
+        // Update existing post
+        result = await updateBlogPost(
+          parseInt(editingPostId),
+          title.trim(),
+          content.trim(),
+          author.trim(),
+          media.length > 0 ? media : undefined
+        )
+      } else {
+        // Create new post
+        result = await createBlogPost(
+          title.trim(),
+          content.trim(),
+          author.trim(),
+          media.length > 0 ? media : undefined
+        )
+      }
 
       setPublishProgress(80)
       await new Promise(resolve => setTimeout(resolve, 300))
 
       if (result.success) {
         setPublishProgress(100)
-        toast.success('✅ Blog post published to GitHub Issues!')
+        toast.success(editingPostId ? '✅ Blog post updated successfully!' : '✅ Blog post published to GitHub Issues!')
         
         // Reset form
         setTitle('')
         setContent('')
         setMedia([])
         setContentPrompt('')
+        setEditingPostId(null)
         
         // Redirect to blog page after a short delay
         setTimeout(() => {
@@ -231,8 +268,10 @@ export default function BlogAdminPage() {
         // Fallback to localStorage if GitHub fails
         setPublishProgress(0)
         setIsPublishing(false)
-        toast.error(result.error || 'GitHub publish failed, saving locally...')
-        saveToLocalStorage()
+        toast.error(result.error || 'GitHub operation failed, saving locally...')
+        if (!editingPostId) {
+          saveToLocalStorage()
+        }
       }
     } catch (error) {
       console.error('Error publishing to GitHub:', error)
@@ -521,9 +560,20 @@ Write the content now:`
             </div>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold" style={{ color: '#040e40' }}>
-            Create New Blog Post
+            {editingPostId ? 'Edit Blog Post' : 'Create New Blog Post'}
           </h1>
-          <p className="text-gray-600 mt-2">Share tech tips and updates with your audience</p>
+          <p className="text-gray-600 mt-2">
+            {editingPostId ? 'Update your published post' : 'Share tech tips and updates with your audience'}
+          </p>
+          {editingPostId && (
+            <button
+              onClick={handleCancelEdit}
+              className="mt-4 flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Cancel & Create New Post
+            </button>
+          )}
         </div>
 
         {/* Manage Posts Section */}
@@ -547,13 +597,22 @@ Write the content now:`
                         By {post.author} • {post.date} • {post.likes} likes
                       </p>
                     </div>
-                    <button
-                      onClick={() => handleDeletePost(post.id)}
-                      className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors ml-4"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Delete
-                    </button>
+                    <div className="flex items-center gap-2 ml-4">
+                      <button
+                        onClick={() => handleEditPost(post)}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeletePost(post.id)}
+                        className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -959,7 +1018,10 @@ Tips:
                 style={{ background: 'linear-gradient(135deg, #ef4444 0%, #040e40 100%)' }}
               >
                 <Save className="w-5 h-5 mr-2" />
-                {isPublishing ? 'Publishing...' : 'Publish Post'}
+                {isPublishing 
+                  ? (editingPostId ? 'Updating...' : 'Publishing...') 
+                  : (editingPostId ? 'Update Post' : 'Publish Post')
+                }
               </button>
             </div>
           </form>

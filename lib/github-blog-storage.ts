@@ -466,3 +466,56 @@ export async function deleteBlogPost(
     }
   }
 }
+
+/**
+ * Update an existing blog post (Edit GitHub Issue)
+ * Note: Requires GitHub token with repo scope
+ */
+export async function updateBlogPost(
+  issueNumber: number,
+  title: string,
+  content: string,
+  author: string,
+  media?: any[]
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!GITHUB_TOKEN) {
+      return {
+        success: false,
+        error: 'GitHub token required to update posts'
+      }
+    }
+
+    // Format body with metadata
+    const body = formatPostBody(content, author, media)
+
+    const response = await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/issues/${issueNumber}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          'Authorization': `token ${GITHUB_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title,
+          body
+        })
+      }
+    )
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.message || 'Failed to update post')
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    console.error('Error updating blog post:', error)
+    return {
+      success: false,
+      error: error.message || 'Failed to update post'
+    }
+  }
+}
