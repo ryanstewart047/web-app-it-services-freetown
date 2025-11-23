@@ -429,8 +429,13 @@ Write the content now:`
     ))
   }
 
-  // Save HTML draft to localStorage (accessible across devices via GitHub sync)
-  const saveDraft = () => {
+  // Save HTML draft to localStorage and GitHub (accessible across devices)
+  const saveDraft = async () => {
+    if (!title && !content && !htmlContent) {
+      toast.error('Nothing to save! Add some content first.')
+      return
+    }
+
     const draft = {
       title,
       content,
@@ -440,40 +445,90 @@ Write the content now:`
       timestamp: new Date().toISOString()
     }
     
-    // Save to localStorage
+    // Save to localStorage as backup
     localStorage.setItem('blog_draft', JSON.stringify(draft))
     
-    // Also save to GitHub Issues as a draft (with [DRAFT] prefix)
-    const saveDraftToGitHub = async () => {
-      try {
-        const draftTitle = `[DRAFT] ${title || 'Untitled Draft'}`
-        const draftContent = htmlContent || content || 'Empty draft'
-        
-        await createBlogPost(draftTitle, draftContent, author, media.length > 0 ? media : undefined)
-        toast.success('Draft saved to browser and synced to cloud!')
-      } catch (error) {
-        toast.success('Draft saved to browser only (will sync when you publish)')
-        console.error('Error syncing draft:', error)
+    // Save to GitHub Issues for cross-device access
+    try {
+      const draftTitle = `[DRAFT] ${title || 'Untitled Draft ' + new Date().toLocaleTimeString()}`
+      const draftContent = `<!-- DRAFT DATA START
+${JSON.stringify(draft, null, 2)}
+DRAFT DATA END -->
+
+${htmlContent || content || 'Empty draft'}`
+      
+      const result = await createBlogPost(draftTitle, draftContent, author, media.length > 0 ? media : undefined)
+      
+      if (result.success) {
+        // Store the draft issue ID
+        localStorage.setItem('blog_draft_issue_id', result.post?.id || '')
+        toast.success('✅ Draft saved and synced to cloud! Access from any device.')
+      } else {
+        toast.error('Draft saved locally only. Check your internet connection.')
       }
+    } catch (error) {
+      console.error('Error syncing draft:', error)
+      toast.error('Draft saved to this device only (no internet connection)')
     }
-    
-    saveDraftToGitHub()
   }
 
-  // Load draft from localStorage
-  const loadDraft = () => {
+  // Load draft from GitHub or localStorage
+  const loadDraft = async () => {
+    setLoadingPosts(true)
+    
+    try {
+      // First, try to load from GitHub
+      const posts = await fetchBlogPosts()
+      const draftPosts = posts.filter(p => p.title.startsWith('[DRAFT]'))
+      
+      if (draftPosts.length > 0) {
+        // Get the most recent draft
+        const latestDraft = draftPosts[0]
+        
+        // Try to extract the JSON data from the content
+        const jsonMatch = latestDraft.content.match(/<!-- DRAFT DATA START\n([\s\S]*?)\nDRAFT DATA END -->/)
+        
+        if (jsonMatch) {
+          const draftData = JSON.parse(jsonMatch[1])
+          setTitle(draftData.title?.replace('[DRAFT] ', '') || '')
+          setContent(draftData.content || '')
+          setHtmlContent(draftData.htmlContent || '')
+          setAuthor(draftData.author || 'IT Services Freetown')
+          setMedia(draftData.media || [])
+          toast.success(`📂 Draft loaded from cloud (${new Date(draftData.timestamp).toLocaleString()})`)
+          setLoadingPosts(false)
+          return
+        } else {
+          // Fallback: use the post content directly
+          setTitle(latestDraft.title.replace('[DRAFT] ', ''))
+          setContent(latestDraft.content.replace(/<!-- DRAFT DATA START[\s\S]*?DRAFT DATA END -->/, '').trim())
+          setHtmlContent(latestDraft.content.replace(/<!-- DRAFT DATA START[\s\S]*?DRAFT DATA END -->/, '').trim())
+          setAuthor(latestDraft.author)
+          setMedia(latestDraft.media || [])
+          toast.success(`📂 Draft loaded from cloud`)
+          setLoadingPosts(false)
+          return
+        }
+      }
+    } catch (error) {
+      console.error('Error loading from GitHub:', error)
+    }
+    
+    // Fallback to localStorage
     const savedDraft = localStorage.getItem('blog_draft')
     if (savedDraft) {
       const draft = JSON.parse(savedDraft)
-      setTitle(draft.title || '')
+      setTitle(draft.title?.replace('[DRAFT] ', '') || '')
       setContent(draft.content || '')
       setHtmlContent(draft.htmlContent || '')
       setAuthor(draft.author || 'IT Services Freetown')
       setMedia(draft.media || [])
-      toast.success(`Draft loaded from ${new Date(draft.timestamp).toLocaleString()}`)
+      toast.success(`📂 Draft loaded from this device (${new Date(draft.timestamp).toLocaleString()})`)
     } else {
-      toast.error('No saved draft found')
+      toast.error('No saved draft found on this device or cloud')
     }
+    
+    setLoadingPosts(false)
   }
 
   // Download content as Word document
@@ -734,33 +789,94 @@ Write the content now:`
             ) : existingPosts.length === 0 ? (
               <p className="text-gray-500 text-center py-8">No posts found</p>
             ) : (
-              <div className="space-y-4">
-                {existingPosts.map((post) => (
-                  <div key={post.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">{post.title}</h3>
-                      <p className="text-sm text-gray-600 mt-1">
-                        By {post.author} • {post.date} • {post.likes} likes
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 ml-4">
-                      <button
-                        onClick={() => handleEditPost(post)}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors"
-                      >
-                        <Edit className="w-4 h-4" />
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeletePost(post.id)}
-                        className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Delete
-                      </button>
+              <div className="space-y-6">
+                {/* Draft Posts Section */}
+                {existingPosts.filter(p => p.title.startsWith('[DRAFT]')).length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-orange-600 mb-3 flex items-center gap-2">
+                      📝 Drafts ({existingPosts.filter(p => p.title.startsWith('[DRAFT]')).length})
+                    </h3>
+                    <div className="space-y-4">
+                      {existingPosts.filter(p => p.title.startsWith('[DRAFT]')).map((post) => (
+                        <div key={post.id} className="flex items-center justify-between p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors border-l-4 border-orange-500">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900">{post.title.replace('[DRAFT] ', '')}</h3>
+                            <p className="text-sm text-gray-600 mt-1">
+                              By {post.author} • {post.date}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 ml-4">
+                            <button
+                              onClick={async () => {
+                                // Load this specific draft
+                                const jsonMatch = post.content.match(/<!-- DRAFT DATA START\n([\s\S]*?)\nDRAFT DATA END -->/)
+                                if (jsonMatch) {
+                                  const draftData = JSON.parse(jsonMatch[1])
+                                  setTitle(draftData.title?.replace('[DRAFT] ', '') || '')
+                                  setContent(draftData.content || '')
+                                  setHtmlContent(draftData.htmlContent || '')
+                                  setAuthor(draftData.author || 'IT Services Freetown')
+                                  setMedia(draftData.media || [])
+                                  toast.success('Draft loaded!')
+                                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                                } else {
+                                  handleEditPost(post)
+                                }
+                              }}
+                              className="flex items-center gap-2 px-4 py-2 bg-green-50 hover:bg-green-100 text-green-600 rounded-lg transition-colors"
+                            >
+                              📂 Load
+                            </button>
+                            <button
+                              onClick={() => handleDeletePost(post.id)}
+                              className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                ))}
+                )}
+
+                {/* Published Posts Section */}
+                {existingPosts.filter(p => !p.title.startsWith('[DRAFT]')).length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-green-600 mb-3 flex items-center gap-2">
+                      ✅ Published ({existingPosts.filter(p => !p.title.startsWith('[DRAFT]')).length})
+                    </h3>
+                    <div className="space-y-4">
+                      {existingPosts.filter(p => !p.title.startsWith('[DRAFT]')).map((post) => (
+                        <div key={post.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900">{post.title}</h3>
+                            <p className="text-sm text-gray-600 mt-1">
+                              By {post.author} • {post.date} • {post.likes} likes
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 ml-4">
+                            <button
+                              onClick={() => handleEditPost(post)}
+                              className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors"
+                            >
+                              <Edit className="w-4 h-4" />
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeletePost(post.id)}
+                              className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
