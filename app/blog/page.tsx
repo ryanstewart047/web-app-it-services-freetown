@@ -58,9 +58,13 @@ export default function BlogPage() {
         console.log(`Fetched ${githubPosts.length} posts from GitHub`)
         
         if (githubPosts.length > 0) {
-          // Load comments for each post from GitHub
+          // Filter out draft posts (those with [DRAFT] in title)
+          const publishedPosts = githubPosts.filter(post => !post.title.startsWith('[DRAFT]'))
+          console.log(`Filtered to ${publishedPosts.length} published posts (excluded ${githubPosts.length - publishedPosts.length} drafts)`)
+          
+          // Load comments for each published post from GitHub
           const postsWithComments = await Promise.all(
-            githubPosts.map(async (post) => {
+            publishedPosts.map(async (post) => {
               const comments = await fetchPostComments(parseInt(post.id))
               return {
                 ...post,
@@ -90,14 +94,16 @@ export default function BlogPage() {
       const savedPosts = localStorage.getItem('blog_posts')
       if (savedPosts) {
         const parsedPosts = JSON.parse(savedPosts)
-        // Convert date strings back to Date objects
-        const postsWithDates = parsedPosts.map((post: any) => ({
-          ...post,
-          comments: post.comments.map((comment: any) => ({
-            ...comment,
-            timestamp: new Date(comment.timestamp)
+        // Convert date strings back to Date objects and filter out drafts
+        const postsWithDates = parsedPosts
+          .filter((post: any) => !post.title.startsWith('[DRAFT]'))
+          .map((post: any) => ({
+            ...post,
+            comments: post.comments.map((comment: any) => ({
+              ...comment,
+              timestamp: new Date(comment.timestamp)
+            }))
           }))
-        }))
         console.log(`Loaded ${postsWithDates.length} posts from localStorage`)
         setPosts(postsWithDates)
       } else {
@@ -254,8 +260,12 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
       console.log(`Manual refresh: Fetched ${githubPosts.length} posts`)
       
       if (githubPosts.length > 0) {
+        // Filter out draft posts
+        const publishedPosts = githubPosts.filter(post => !post.title.startsWith('[DRAFT]'))
+        console.log(`Manual refresh: Filtered to ${publishedPosts.length} published posts`)
+        
         const postsWithComments = await Promise.all(
-          githubPosts.map(async (post) => {
+          publishedPosts.map(async (post) => {
             const comments = await fetchPostComments(parseInt(post.id))
             return {
               ...post,
