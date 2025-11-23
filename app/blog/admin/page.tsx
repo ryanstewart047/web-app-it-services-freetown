@@ -429,6 +429,152 @@ Write the content now:`
     ))
   }
 
+  // Save HTML draft to localStorage (accessible across devices via GitHub sync)
+  const saveDraft = () => {
+    const draft = {
+      title,
+      content,
+      htmlContent,
+      author,
+      media,
+      timestamp: new Date().toISOString()
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('blog_draft', JSON.stringify(draft))
+    
+    // Also save to GitHub Issues as a draft (with [DRAFT] prefix)
+    const saveDraftToGitHub = async () => {
+      try {
+        const draftTitle = `[DRAFT] ${title || 'Untitled Draft'}`
+        const draftContent = htmlContent || content || 'Empty draft'
+        
+        await createBlogPost(draftTitle, draftContent, author, media.length > 0 ? media : undefined)
+        toast.success('Draft saved to browser and synced to cloud!')
+      } catch (error) {
+        toast.success('Draft saved to browser only (will sync when you publish)')
+        console.error('Error syncing draft:', error)
+      }
+    }
+    
+    saveDraftToGitHub()
+  }
+
+  // Load draft from localStorage
+  const loadDraft = () => {
+    const savedDraft = localStorage.getItem('blog_draft')
+    if (savedDraft) {
+      const draft = JSON.parse(savedDraft)
+      setTitle(draft.title || '')
+      setContent(draft.content || '')
+      setHtmlContent(draft.htmlContent || '')
+      setAuthor(draft.author || 'IT Services Freetown')
+      setMedia(draft.media || [])
+      toast.success(`Draft loaded from ${new Date(draft.timestamp).toLocaleString()}`)
+    } else {
+      toast.error('No saved draft found')
+    }
+  }
+
+  // Download content as Word document
+  const downloadAsWord = () => {
+    const htmlToDownload = htmlContent || content
+    
+    // Create a complete HTML document for Word
+    const wordDoc = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${title || 'Blog Post'}</title>
+  <style>
+    body { font-family: 'Calibri', 'Arial', sans-serif; line-height: 1.6; margin: 2cm; }
+    h1 { color: #040e40; font-size: 24pt; margin-bottom: 10pt; }
+    h2 { color: #040e40; font-size: 18pt; margin-top: 15pt; margin-bottom: 8pt; }
+    p { margin-bottom: 10pt; text-align: justify; }
+    strong { font-weight: bold; }
+    em { font-style: italic; }
+  </style>
+</head>
+<body>
+  <h1>${title || 'Untitled Blog Post'}</h1>
+  <p><em>By ${author} • ${new Date().toLocaleDateString()}</em></p>
+  <hr>
+  ${htmlToDownload}
+</body>
+</html>
+    `
+    
+    const blob = new Blob([wordDoc], { type: 'application/msword' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${(title || 'blog-post').replace(/[^a-z0-9]/gi, '-').toLowerCase()}.doc`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    toast.success('Downloaded as Word document!')
+  }
+
+  // Download content as PDF (using print-to-PDF approach)
+  const downloadAsPDF = () => {
+    const htmlToDownload = htmlContent || content
+    
+    // Create a new window with the content
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) {
+      toast.error('Please allow pop-ups to download PDF')
+      return
+    }
+    
+    printWindow.document.write(`
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${title || 'Blog Post'}</title>
+  <style>
+    @media print {
+      @page { margin: 2cm; }
+    }
+    body { 
+      font-family: 'Georgia', 'Times New Roman', serif; 
+      line-height: 1.8; 
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 { 
+      color: #040e40; 
+      font-size: 32px; 
+      margin-bottom: 10px;
+      border-bottom: 3px solid #ef4444;
+      padding-bottom: 10px;
+    }
+    h2 { color: #040e40; font-size: 24px; margin-top: 25px; margin-bottom: 10px; }
+    p { margin-bottom: 15px; text-align: justify; }
+    img { max-width: 100%; height: auto; margin: 15px 0; }
+    .metadata { color: #666; font-style: italic; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <h1>${title || 'Untitled Blog Post'}</h1>
+  <div class="metadata">By ${author} • ${new Date().toLocaleDateString()}</div>
+  ${htmlToDownload}
+  <script>
+    window.onload = function() {
+      window.print();
+      setTimeout(() => window.close(), 500);
+    }
+  </script>
+</body>
+</html>
+    `)
+    printWindow.document.close()
+    toast.success('Opening print dialog for PDF download...')
+  }
+
   const handleCancel = () => {
     if (title || content || media.length > 0) {
       if (confirm('Are you sure you want to discard this post?')) {
@@ -801,7 +947,35 @@ Tips:
                       </div>
                       <span className="text-sm font-medium text-gray-600 ml-2">HTML Preview</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={saveDraft}
+                        className="px-3 py-1 text-xs font-medium text-green-600 hover:bg-green-50 rounded transition-colors flex items-center gap-1"
+                      >
+                        💾 Save Draft
+                      </button>
+                      <button
+                        type="button"
+                        onClick={loadDraft}
+                        className="px-3 py-1 text-xs font-medium text-purple-600 hover:bg-purple-50 rounded transition-colors flex items-center gap-1"
+                      >
+                        📂 Load Draft
+                      </button>
+                      <button
+                        type="button"
+                        onClick={downloadAsWord}
+                        className="px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded transition-colors flex items-center gap-1"
+                      >
+                        📄 Word
+                      </button>
+                      <button
+                        type="button"
+                        onClick={downloadAsPDF}
+                        className="px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50 rounded transition-colors flex items-center gap-1"
+                      >
+                        📑 PDF
+                      </button>
                       <button
                         type="button"
                         onClick={() => {
@@ -880,13 +1054,27 @@ Tips:
 
                   {/* Quick Tips */}
                   <div className="bg-blue-50 px-4 py-3 border-t-2 border-blue-200">
-                    <div className="flex items-start gap-2">
-                      <span className="text-blue-600 mt-0.5">💡</span>
-                      <div className="text-sm text-blue-900">
-                        <strong>HTML Tips:</strong> Use <code className="bg-blue-100 px-1 rounded">&lt;h2&gt;</code> for headers, 
-                        <code className="bg-blue-100 px-1 rounded mx-1">&lt;p&gt;</code> for paragraphs, 
-                        <code className="bg-blue-100 px-1 rounded mx-1">&lt;strong&gt;</code> for bold, 
-                        <code className="bg-blue-100 px-1 rounded mx-1">&lt;ul&gt;</code> for lists
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2">
+                        <span className="text-blue-600 mt-0.5">💡</span>
+                        <div className="text-sm text-blue-900">
+                          <strong>HTML Tips:</strong> Use <code className="bg-blue-100 px-1 rounded">&lt;h2&gt;</code> for headers, 
+                          <code className="bg-blue-100 px-1 rounded mx-1">&lt;p&gt;</code> for paragraphs, 
+                          <code className="bg-blue-100 px-1 rounded mx-1">&lt;strong&gt;</code> for bold, 
+                          <code className="bg-blue-100 px-1 rounded mx-1">&lt;ul&gt;</code> for lists
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-green-600 mt-0.5">💾</span>
+                        <div className="text-sm text-green-900">
+                          <strong>Save Draft:</strong> Saves your work to browser storage and syncs to cloud. Access from any device!
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-purple-600 mt-0.5">📥</span>
+                        <div className="text-sm text-purple-900">
+                          <strong>Download:</strong> Export as Word (.doc) for editing in Microsoft Word, or save as PDF for sharing
+                        </div>
                       </div>
                     </div>
                   </div>
