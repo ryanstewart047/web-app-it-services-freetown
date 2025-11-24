@@ -647,6 +647,34 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                     {post.title}
                   </h2>
 
+                  {/* Media Display - Show first image right after title */}
+                  {post.media && post.media.length > 0 && (
+                    <div className="mb-8">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {post.media.map((item) => (
+                          <div key={item.id} className="rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
+                            {item.type === 'image' ? (
+                              <img 
+                                src={item.url} 
+                                alt={item.caption || 'Post image'} 
+                                className="w-full h-auto object-cover"
+                              />
+                            ) : (
+                              <video 
+                                src={item.url} 
+                                controls 
+                                className="w-full h-auto"
+                              />
+                            )}
+                            {item.caption && (
+                              <p className="text-sm text-gray-600 mt-3 px-2 italic">{item.caption}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Content with Read More */}
                   <div className="mb-8">
                     <div 
@@ -696,34 +724,6 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                       </button>
                     )}
                   </div>
-
-                  {/* Media Display - Only show when expanded or if content is short */}
-                  {(expandedPosts[post.id] || !isContentLong(post.content)) && post.media && post.media.length > 0 && (
-                    <div className="mt-8 space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {post.media.map((item) => (
-                          <div key={item.id} className="rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
-                            {item.type === 'image' ? (
-                              <img 
-                                src={item.url} 
-                                alt={item.caption || 'Post image'} 
-                                className="w-full h-auto object-cover"
-                              />
-                            ) : (
-                              <video 
-                                src={item.url} 
-                                controls 
-                                className="w-full h-auto"
-                              />
-                            )}
-                            {item.caption && (
-                              <p className="text-sm text-gray-600 mt-3 px-2 italic">{item.caption}</p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 {/* Engagement Bar */}
