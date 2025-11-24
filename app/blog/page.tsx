@@ -933,7 +933,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <a
-                  href="https://facebook.com/itservicesfreetown"
+                  href="https://facebook.com/itservicefreetown"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm p-3 rounded-lg transition-all"
@@ -960,7 +960,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                   <span className="text-sm font-medium">Instagram</span>
                 </a>
                 <a
-                  href="https://wa.me/23233399391"
+                  href="https://chat.whatsapp.com/FuS9EBvCF455geNHqQl3Iz"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm p-3 rounded-lg transition-all"
