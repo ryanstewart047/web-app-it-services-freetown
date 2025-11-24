@@ -205,13 +205,13 @@ export default function OfferAdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-gray-50 to-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <Link
             href="/admin"
-            className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-medium mb-4 transition-colors"
+            className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 font-medium mb-4 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Admin
@@ -252,7 +252,7 @@ export default function OfferAdminPage() {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Offer Image</h3>
               
               {/* Image Preview */}
-              <div className="mb-4 relative bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl overflow-hidden aspect-square">
+              <div className="mb-4 relative bg-gradient-to-br from-red-100 to-gray-100 rounded-xl overflow-hidden aspect-square">
                 {previewImage ? (
                   <img
                     src={previewImage}
@@ -273,7 +273,7 @@ export default function OfferAdminPage() {
               <div className="space-y-3">
                 <button
                   onClick={handleAddImageUrl}
-                  className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                  className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
                 >
                   Add Image URL
                 </button>
@@ -287,7 +287,7 @@ export default function OfferAdminPage() {
                 />
                 
                 <p className="text-xs text-gray-500">
-                  Upload to <a href="https://imgur.com" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">Imgur</a> or <a href="https://postimages.org" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">PostImages</a>
+                  Upload to <a href="https://imgur.com" target="_blank" rel="noopener noreferrer" className="text-red-600 hover:underline">Imgur</a> or <a href="https://postimages.org" target="_blank" rel="noopener noreferrer" className="text-red-600 hover:underline">PostImages</a>
                 </p>
               </div>
             </div>
@@ -534,7 +534,7 @@ export default function OfferAdminPage() {
                     id="isActive"
                     checked={isActive}
                     onChange={(e) => setIsActive(e.target.checked)}
-                    className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
+                    className="w-5 h-5 text-red-600 rounded focus:ring-red-500"
                   />
                   <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
                     Show this offer to visitors
@@ -549,7 +549,7 @@ export default function OfferAdminPage() {
             <button
               onClick={handleSave}
               disabled={loading}
-              className="flex-1 min-w-[200px] inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 min-w-[200px] inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-[#040e40] text-white font-semibold rounded-xl hover:from-red-700 hover:to-[#030b30] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save className="w-5 h-5" />
               {loading ? 'Saving...' : 'Save Offer'}
@@ -567,7 +567,7 @@ export default function OfferAdminPage() {
             <button
               onClick={handleDownload}
               disabled={!title || !description}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               title={!title || !description ? 'Add title and description first' : 'Download as image for social media'}
             >
               <Download className="w-5 h-5" />
@@ -623,7 +623,7 @@ export default function OfferAdminPage() {
               >
                 <div className="flex flex-col md:flex-row">
                   {/* Image Preview */}
-                  <div className="md:w-2/5 relative bg-gradient-to-br from-purple-100 to-pink-100 min-h-[200px]">
+                  <div className="md:w-2/5 relative bg-gradient-to-br from-red-100 to-gray-100 min-h-[200px]">
                     {previewImage ? (
                       <img
                         src={previewImage}

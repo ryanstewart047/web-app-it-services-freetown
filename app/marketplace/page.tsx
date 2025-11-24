@@ -295,7 +295,7 @@ export default function MarketplacePage() {
       </header>
 
       {/* SEO Content Section */}
-      <section className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border-b border-gray-700">
+      <section className="bg-gradient-to-r from-red-900/30 to-[#040e40]/50 border-b border-gray-700">
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Shop Quality IT Products & Electronics in Freetown
@@ -328,7 +328,7 @@ export default function MarketplacePage() {
                   }}
                   className={`w-full text-left px-4 py-3 rounded-lg transition-all ${
                     selectedCategory === 'all'
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-red-600 text-white'
                       : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
                   }`}
                 >
@@ -347,7 +347,7 @@ export default function MarketplacePage() {
                     }}
                     className={`w-full text-left px-4 py-3 rounded-lg transition-all ${
                       selectedCategory === category.slug
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-red-600 text-white'
                         : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
                     }`}
                   >
@@ -387,13 +387,13 @@ export default function MarketplacePage() {
                   <div className="flex bg-gray-700 rounded-lg p-1">
                     <button
                       onClick={() => setViewMode('grid')}
-                      className={`p-2 rounded ${viewMode === 'grid' ? 'bg-blue-600' : 'hover:bg-gray-600'}`}
+                      className={`p-2 rounded ${viewMode === 'grid' ? 'bg-red-600' : 'hover:bg-gray-600'}`}
                     >
                       <Grid className="w-5 h-5 text-white" />
                     </button>
                     <button
                       onClick={() => setViewMode('list')}
-                      className={`p-2 rounded ${viewMode === 'list' ? 'bg-blue-600' : 'hover:bg-gray-600'}`}
+                      className={`p-2 rounded ${viewMode === 'list' ? 'bg-red-600' : 'hover:bg-gray-600'}`}
                     >
                       <List className="w-5 h-5 text-white" />
                     </button>
@@ -405,7 +405,7 @@ export default function MarketplacePage() {
             {/* Products Grid */}
             {loading ? (
               <div className="text-center py-20">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
                 <p className="text-gray-400 mt-4">Loading products...</p>
               </div>
             ) : error ? (
@@ -429,7 +429,7 @@ export default function MarketplacePage() {
                     href="https://github.com/ryanstewart047/web-app-it-services-freetown/blob/main/VERCEL_MARKETPLACE_SETUP.md" 
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-block mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                    className="inline-block mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
                   >
                     View Full Setup Guide →
                   </a>
@@ -449,20 +449,20 @@ export default function MarketplacePage() {
                   <h4 className="font-semibold text-white mb-3">Try these tips:</h4>
                   <ul className="text-sm text-gray-300 space-y-2">
                     <li className="flex items-start gap-2">
-                      <span className="text-blue-400 mt-0.5">•</span>
+                      <span className="text-red-400 mt-0.5">•</span>
                       <span>Check your spelling or try different keywords</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-blue-400 mt-0.5">•</span>
+                      <span className="text-red-400 mt-0.5">•</span>
                       <span>Use more general search terms (e.g., "laptop" instead of specific model)</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-blue-400 mt-0.5">•</span>
+                      <span className="text-red-400 mt-0.5">•</span>
                       <span>Try searching by brand, category, or price range</span>
                     </li>
                     {selectedCategory !== 'all' && (
                       <li className="flex items-start gap-2">
-                        <span className="text-blue-400 mt-0.5">•</span>
+                        <span className="text-red-400 mt-0.5">•</span>
                         <span>Remove category filter to see more results</span>
                       </li>
                     )}
@@ -475,7 +475,7 @@ export default function MarketplacePage() {
                       setSearchTerm('');
                       setSelectedCategory('all');
                     }}
-                    className="mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+                    className="mt-6 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors"
                   >
                     Clear Search & Filters
                   </button>

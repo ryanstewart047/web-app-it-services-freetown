@@ -151,7 +151,7 @@ export default function DataExport({ bookings, analytics }: DataExportProps) {
             <div className="flex items-center justify-between mb-3">
               <div>
                 <h5 className="font-medium text-gray-900 flex items-center">
-                  <i className="fas fa-chart-bar text-blue-600 mr-2"></i>
+                  <i className="fas fa-chart-bar text-red-600 mr-2"></i>
                   Analytics Report
                 </h5>
                 <p className="text-sm text-gray-600">Complete business analytics and insights</p>
@@ -160,7 +160,7 @@ export default function DataExport({ bookings, analytics }: DataExportProps) {
             <button
               onClick={() => handleQuickExport('analytics')}
               disabled={isExporting}
-              className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              className="w-full py-2 px-4 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
             >
               {isExporting ? (
                 <i className="fas fa-spinner fa-spin mr-2"></i>

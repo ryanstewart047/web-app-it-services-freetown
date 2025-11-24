@@ -59,12 +59,12 @@ export default function PaymentInstructionsPopup({
           </button>
 
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 sm:p-6 text-center flex-shrink-0">
+          <div className="bg-gradient-to-r from-red-600 to-[#040e40] p-4 sm:p-6 text-center flex-shrink-0">
             <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
-              <Phone className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
+              <Phone className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">Complete Your Payment</h2>
-            <p className="text-sm sm:text-base text-blue-100">Mobile Money Payment Instructions</p>
+            <p className="text-sm sm:text-base text-red-100">Mobile Money Payment Instructions</p>
           </div>
 
           {/* Content - Scrollable */}
@@ -84,7 +84,7 @@ export default function PaymentInstructionsPopup({
             {/* Payment Instructions */}
             <div>
               <h3 className="text-white font-semibold mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base">
-                <span className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 bg-blue-600 text-white text-xs sm:text-sm rounded-full">1</span>
+                <span className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 bg-red-600 text-white text-xs sm:text-sm rounded-full">1</span>
                 Send Payment To:
               </h3>
               
@@ -134,7 +134,7 @@ export default function PaymentInstructionsPopup({
             {/* Screenshot Instruction */}
             <div>
               <h3 className="text-white font-semibold mb-2 flex items-center gap-2 text-sm sm:text-base">
-                <span className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 bg-blue-600 text-white text-xs sm:text-sm rounded-full">2</span>
+                <span className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 bg-red-600 text-white text-xs sm:text-sm rounded-full">2</span>
                 Take Screenshot
               </h3>
               <p className="text-gray-300 text-xs sm:text-sm">
@@ -145,7 +145,7 @@ export default function PaymentInstructionsPopup({
             {/* WhatsApp Button */}
             <div>
               <h3 className="text-white font-semibold mb-2 flex items-center gap-2 text-sm sm:text-base">
-                <span className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 bg-blue-600 text-white text-xs sm:text-sm rounded-full">3</span>
+                <span className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 bg-red-600 text-white text-xs sm:text-sm rounded-full">3</span>
                 Send Confirmation
               </h3>
               <button
@@ -161,8 +161,8 @@ export default function PaymentInstructionsPopup({
             </div>
 
             {/* Additional Info */}
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 sm:p-4">
-              <p className="text-blue-300 text-xs sm:text-sm">
+            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 sm:p-4">
+              <p className="text-red-300 text-xs sm:text-sm">
                 <strong>Note:</strong> Your order will be confirmed once we verify your payment. 
                 This usually takes a few minutes during business hours.
               </p>

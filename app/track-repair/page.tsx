@@ -149,28 +149,28 @@ export default function TrackRepair() {
                     onClick={() => setTrackingId('ITS-250926-1001')}
                     className="text-left p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors duration-300 border"
                   >
-                    <div className="font-mono text-sm text-blue-600">ITS-250926-1001</div>
+                    <div className="font-mono text-sm text-red-600">ITS-250926-1001</div>
                     <div className="text-xs text-gray-600">iPhone 14 Screen Repair</div>
                   </button>
                   <button
                     onClick={() => setTrackingId('ITS-250926-1002')}
                     className="text-left p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors duration-300 border"
                   >
-                    <div className="font-mono text-sm text-blue-600">ITS-250926-1002</div>
+                    <div className="font-mono text-sm text-red-600">ITS-250926-1002</div>
                     <div className="text-xs text-gray-600">MacBook Pro Diagnosis</div>
                   </button>
                   <button
                     onClick={() => setTrackingId('ITS-250926-1003')}
                     className="text-left p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors duration-300 border"
                   >
-                    <div className="font-mono text-sm text-blue-600">ITS-250926-1003</div>
+                    <div className="font-mono text-sm text-red-600">ITS-250926-1003</div>
                     <div className="text-xs text-gray-600">Samsung Galaxy Repair</div>
                   </button>
                   <button
                     onClick={() => setTrackingId('ITS-250926-1004')}
                     className="text-left p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors duration-300 border"
                   >
-                    <div className="font-mono text-sm text-blue-600">ITS-250926-1004</div>
+                    <div className="font-mono text-sm text-red-600">ITS-250926-1004</div>
                     <div className="text-xs text-gray-600">Dell Laptop Hardware Fix</div>
                   </button>
                 </div>
@@ -189,7 +189,7 @@ export default function TrackRepair() {
                 </button>
                 <button
                   onClick={() => window.location.reload()}
-                  className="flex items-center px-4 py-2 text-blue-600 hover:text-blue-800 transition-colors duration-300"
+                  className="flex items-center px-4 py-2 text-red-600 hover:text-red-800 transition-colors duration-300"
                 >
                   <i className="fas fa-sync-alt mr-2"></i>
                   Refresh Status

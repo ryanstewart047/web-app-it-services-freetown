@@ -60,7 +60,7 @@ export default function NetworkTestPage() {
 
             <button
               onClick={checkCurrentStatus}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg flex items-center justify-center space-x-2"
+              className="bg-red-600 hover:bg-red-700 text-white px-6 py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg flex items-center justify-center space-x-2"
             >
               <i className="fas fa-info-circle"></i>
               <span>Check Status</span>
@@ -85,7 +85,7 @@ export default function NetworkTestPage() {
                 <p><strong>Real Testing:</strong> Disconnect your device from internet (WiFi/Ethernet)</p>
               </div>
               <div className="flex items-start space-x-3">
-                <span className="bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                <span className="bg-red-100 text-red-600 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">3</span>
                 <p><strong>Reconnection:</strong> Reconnect to internet to see the &ldquo;Back online!&rdquo; popup</p>
               </div>
             </div>

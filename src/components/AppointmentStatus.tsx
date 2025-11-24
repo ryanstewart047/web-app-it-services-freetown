@@ -353,12 +353,12 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
       {/* Additional Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {appointment.estimatedCompletion && (
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <div className="flex items-center text-blue-700">
+          <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+            <div className="flex items-center text-red-700">
               <i className="fas fa-clock mr-2"></i>
               <span className="font-semibold">Estimated Completion</span>
             </div>
-            <p className="text-blue-900 mt-1">{new Date(appointment.estimatedCompletion).toLocaleDateString()}</p>
+            <p className="text-[#040e40] mt-1">{new Date(appointment.estimatedCompletion).toLocaleDateString()}</p>
           </div>
         )}
 
@@ -381,7 +381,7 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
             href="tel:+23233399391"
             className="flex items-center justify-center px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-300 border"
           >
-            <i className="fas fa-phone mr-2 text-blue-500"></i>
+            <i className="fas fa-phone mr-2 text-red-600"></i>
             Call Us
           </a>
           <a 

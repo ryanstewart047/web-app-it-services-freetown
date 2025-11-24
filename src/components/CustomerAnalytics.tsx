@@ -78,21 +78,21 @@ export default function CustomerAnalytics({ analytics, bookings }: CustomerAnaly
     <div className="bg-white rounded-lg shadow-sm border p-6">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-          <i className="fas fa-users text-blue-600 mr-2"></i>
+          <i className="fas fa-users text-red-600 mr-2"></i>
           Customer Analytics
         </h3>
       </div>
 
       {/* Customer Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4">
+        <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-blue-600 font-medium">Total Customers</p>
-              <p className="text-2xl font-bold text-blue-900">{analytics.totalCustomers}</p>
+              <p className="text-sm text-red-600 font-medium">Total Customers</p>
+              <p className="text-2xl font-bold text-[#040e40]">{analytics.totalCustomers}</p>
             </div>
-            <div className="w-10 h-10 bg-blue-200 rounded-full flex items-center justify-center">
-              <i className="fas fa-user-friends text-blue-600"></i>
+            <div className="w-10 h-10 bg-red-200 rounded-full flex items-center justify-center">
+              <i className="fas fa-user-friends text-red-600"></i>
             </div>
           </div>
         </div>
@@ -109,14 +109,14 @@ export default function CustomerAnalytics({ analytics, bookings }: CustomerAnaly
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4">
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-purple-600 font-medium">Returning</p>
-              <p className="text-2xl font-bold text-purple-900">{analytics.returningCustomers}</p>
+              <p className="text-sm text-[#040e40] font-medium">Returning</p>
+              <p className="text-2xl font-bold text-[#040e40]">{analytics.returningCustomers}</p>
             </div>
-            <div className="w-10 h-10 bg-purple-200 rounded-full flex items-center justify-center">
-              <i className="fas fa-redo text-purple-600"></i>
+            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+              <i className="fas fa-redo text-[#040e40]"></i>
             </div>
           </div>
         </div>
@@ -146,7 +146,7 @@ export default function CustomerAnalytics({ analytics, bookings }: CustomerAnaly
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
-              className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500"
+              className="bg-gradient-to-r from-red-600 to-[#040e40] h-2 rounded-full transition-all duration-500"
               style={{ width: `${Math.min(analytics.customerRetentionRate, 100)}%` }}
             ></div>
           </div>
@@ -235,7 +235,7 @@ export default function CustomerAnalytics({ analytics, bookings }: CustomerAnaly
       {/* Customer Insights */}
       <div className="mt-6 p-4 bg-gray-50 rounded-lg">
         <h4 className="text-sm font-semibold text-gray-900 mb-2 flex items-center">
-          <i className="fas fa-brain text-purple-500 mr-2"></i>
+          <i className="fas fa-brain text-red-600 mr-2"></i>
           Customer Insights
         </h4>
         <div className="space-y-1 text-sm text-gray-600">

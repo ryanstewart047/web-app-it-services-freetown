@@ -71,7 +71,7 @@ export default function PWATestPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Desktop:</span>
-                  <span className={deviceInfo.isDesktop ? 'text-blue-600' : 'text-gray-500'}>
+                  <span className={deviceInfo.isDesktop ? 'text-red-600' : 'text-gray-500'}>
                     {deviceInfo.isDesktop ? '🖥️ Yes' : '⚪ No'}
                   </span>
                 </div>
@@ -84,7 +84,7 @@ export default function PWATestPage() {
             </div>
 
             {/* PWA Information */}
-            <div className="bg-blue-50 rounded-xl p-6">
+            <div className="bg-red-50 rounded-xl p-6">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">PWA Status</h2>
               <div className="space-y-3">
                 <div className="flex justify-between">
@@ -101,7 +101,7 @@ export default function PWATestPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Already Installed:</span>
-                  <span className={pwaInfo.isInstalled ? 'text-blue-600' : 'text-gray-500'}>
+                  <span className={pwaInfo.isInstalled ? 'text-red-600' : 'text-gray-500'}>
                     {pwaInfo.isInstalled ? '📱 Yes' : '⚪ No'}
                   </span>
                 </div>

@@ -186,7 +186,7 @@ export default function CloudSyncSetup({ onSyncComplete }: CloudSyncSetupProps) 
           <div className="text-sm text-gray-600 mb-3">
             <p><strong>Setup Instructions:</strong></p>
             <ol className="list-decimal ml-4 space-y-1">
-              <li>Go to <a href="https://gist.github.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">GitHub Gist</a></li>
+              <li>Go to <a href="https://gist.github.com" target="_blank" rel="noopener noreferrer" className="text-red-600 underline">GitHub Gist</a></li>
               <li>Create a new public gist with filename: <code className="bg-gray-100 px-1">its-bookings.json</code></li>
               <li>Add initial content: <code className="bg-gray-100 px-1">{`{"bookings":[],"lastUpdated":"","version":0}`}</code></li>
               <li>Copy the Gist ID from the URL (after /gist/)</li>
@@ -236,7 +236,7 @@ export default function CloudSyncSetup({ onSyncComplete }: CloudSyncSetupProps) 
           <div className="flex space-x-2">
             <button
               onClick={saveConfig}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
             >
               Save Configuration
             </button>
@@ -257,7 +257,7 @@ export default function CloudSyncSetup({ onSyncComplete }: CloudSyncSetupProps) 
           <button
             onClick={() => manualSync('up')}
             disabled={isLoading}
-            className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-400 transition-colors"
+            className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-400 transition-colors"
           >
             {isLoading ? 'Syncing...' : '⬆️ Push to Cloud'}
           </button>

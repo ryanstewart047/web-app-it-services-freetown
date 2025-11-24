@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 interface AdSenseProps {
   adSlot?: string
@@ -30,12 +30,19 @@ export default function AdSense({
   adStyle = { display: 'block' },
   className = ''
 }: AdSenseProps) {
+  const adRef = useRef<HTMLModElement>(null)
+  const isAdPushed = useRef(false)
   
   useEffect(() => {
     try {
-      // Push ad to AdSense when component mounts
-      if (typeof window !== 'undefined') {
-        ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({})
+      // Only push ad once and if the element exists
+      if (typeof window !== 'undefined' && adRef.current && !isAdPushed.current) {
+        // Check if ad is already initialized
+        const adElement = adRef.current
+        if (!adElement.getAttribute('data-ad-status')) {
+          ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({})
+          isAdPushed.current = true
+        }
       }
     } catch (err) {
       console.error('AdSense error:', err)
@@ -45,6 +52,7 @@ export default function AdSense({
   return (
     <div className={`adsense-container ${className}`}>
       <ins
+        ref={adRef}
         className="adsbygoogle"
         style={adStyle}
         data-ad-client="ca-pub-9989697800650646" // Your actual Publisher ID

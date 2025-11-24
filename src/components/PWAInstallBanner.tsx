@@ -141,7 +141,7 @@ export default function PWAInstallBanner() {
   console.log('PWA Install Banner: Rendering banner for device:', deviceInfo)
 
   return (
-    <div className="pwa-install-banner fixed top-0 left-0 right-0 bg-gradient-to-r from-blue-900 via-blue-800 to-red-600 text-white p-4 z-50 shadow-2xl border-b-4 border-white/20">
+    <div className="pwa-install-banner fixed top-0 left-0 right-0 bg-gradient-to-r from-[#040e40] via-red-800 to-red-600 text-white p-4 z-50 shadow-2xl border-b-4 border-white/20">
       <div className="pwa-banner-content flex items-center justify-between max-w-6xl mx-auto">
         <div className="flex items-center space-x-4">
           {/* Site Logo */}
@@ -179,7 +179,7 @@ export default function PWAInstallBanner() {
           {deviceInfo.isAndroid && deferredPrompt && (
             <button 
               onClick={handleInstall}
-              className="pwa-install-btn bg-white text-blue-900 px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-2"
+              className="pwa-install-btn bg-white text-red-600 px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-2"
             >
               <i className="fas fa-download text-sm"></i>
               <span>Install App</span>

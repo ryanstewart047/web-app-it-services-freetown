@@ -563,28 +563,28 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-gray-50">
       {/* Hero Header */}
       <header className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900 via-indigo-900 to-purple-900 opacity-95"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-red-600 via-[#040e40] to-red-800 opacity-95"></div>
         
         <div className="relative max-w-7xl mx-auto px-6 py-20 md:py-28">
           <div className="text-center">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 text-white">
-              Tech Tips & <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300">Innovation</span>
+              Tech Tips & <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-300 to-white">Innovation</span>
             </h1>
-            <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed">
               Discover the latest insights, tutorials, and news in technology and IT services
             </p>
-            <div className="mt-8 flex items-center justify-center gap-4 text-blue-200">
+            <div className="mt-8 flex items-center justify-center gap-4 text-white/80">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
                 <span className="text-sm">Auto-updating every 30s</span>
               </div>
               <button
                 onClick={handleManualRefresh}
                 disabled={isRefreshing}
-                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed border border-white/20 hover:border-white/30"
+                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-red-500/20 rounded-lg transition-all duration-200 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed border border-white/20 hover:border-red-300/30"
                 title="Manually refresh blog posts"
               >
                 <svg 
@@ -609,11 +609,14 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
           <DisplayAd className="max-w-4xl mx-auto" />
         </div>
 
-        {/* Blog Posts */}
-        <div className="space-y-8">{posts.length === 0 ? (
+        {/* Magazine Layout: Main Content + Sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content Area (2/3 width) */}
+          <div className="lg:col-span-2">
+            {posts.length === 0 ? (
             <div className="text-center py-20 scroll-animate">
               <div className="bg-white rounded-3xl shadow-lg p-12 max-w-md mx-auto">
-                <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto mb-6 flex items-center justify-center">
+                <div className="w-20 h-20 bg-gradient-to-r from-red-600 to-[#040e40] rounded-full mx-auto mb-6 flex items-center justify-center">
                   <MessageCircle className="w-10 h-10 text-white" />
                 </div>
                 <p className="text-gray-600 text-lg mb-2">No posts yet</p>
@@ -627,23 +630,23 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                   className="group bg-white rounded-3xl shadow-lg overflow-hidden scroll-animate hover:shadow-2xl transition-all duration-500 border border-gray-100"
                 >
                 {/* Post Header with Gradient Bar */}
-                <div className="h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+                <div className="h-2 bg-gradient-to-r from-red-600 via-[#040e40] to-red-600"></div>
                 
                 <div className="p-8 md:p-10">
                   {/* Meta Info */}
                   <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-6">
-                    <div className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-full">
-                      <Calendar className="w-4 h-4 text-blue-600" />
-                      <span className="font-medium text-blue-900">{formatDate(post.date)}</span>
+                    <div className="flex items-center gap-2 bg-red-50 px-3 py-1.5 rounded-full">
+                      <Calendar className="w-4 h-4 text-red-600" />
+                      <span className="font-medium text-[#040e40]">{formatDate(post.date)}</span>
                     </div>
-                    <div className="flex items-center gap-2 bg-purple-50 px-3 py-1.5 rounded-full">
-                      <User className="w-4 h-4 text-purple-600" />
-                      <span className="font-medium text-purple-900">{post.author}</span>
+                    <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-full">
+                      <User className="w-4 h-4 text-[#040e40]" />
+                      <span className="font-medium text-[#040e40]">{post.author}</span>
                     </div>
                   </div>
 
                   {/* Title */}
-                  <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-900 via-purple-900 to-pink-900 bg-clip-text text-transparent leading-tight group-hover:scale-[1.02] transition-transform duration-300">
+                  <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-red-600 via-[#040e40] to-red-600 bg-clip-text text-transparent leading-tight group-hover:scale-[1.02] transition-transform duration-300">
                     {post.title}
                   </h2>
 
@@ -704,7 +707,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                     {isContentLong(post.content) && (
                       <button
                         onClick={() => toggleExpandPost(post.id)}
-                        className="mt-4 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
+                        className="mt-4 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-[#040e40] hover:from-red-700 hover:to-[#030b30] text-white font-semibold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
                       >
                         {expandedPosts[post.id] ? (
                           <>
@@ -735,8 +738,8 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                         onClick={() => handleLike(post.id)}
                         className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm ${
                           userVotes[post.id] === 'like'
-                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-blue-200'
-                            : 'bg-white text-gray-600 hover:bg-blue-50 hover:text-blue-600 hover:shadow-md'
+                            ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-red-200'
+                            : 'bg-white text-gray-600 hover:bg-red-50 hover:text-red-600 hover:shadow-md'
                         }`}
                       >
                         <ThumbsUp className="w-5 h-5" />
@@ -759,7 +762,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                     {/* Comments Button */}
                     <button
                       onClick={() => toggleComments(post.id)}
-                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition-all duration-300 shadow-sm hover:shadow-md font-medium"
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-gray-600 hover:bg-red-50 hover:text-[#040e40] transition-all duration-300 shadow-sm hover:shadow-md font-medium"
                     >
                       <MessageCircle className="w-5 h-5" />
                       <span className="font-bold">{post.comments.length}</span>
@@ -787,7 +790,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                     {/* Add Comment Form */}
                     <div className="mb-8">
                       <h3 className="font-bold text-xl text-gray-900 mb-6 flex items-center gap-2">
-                        <MessageCircle className="w-6 h-6 text-purple-600" />
+                        <MessageCircle className="w-6 h-6 text-red-600" />
                         Leave a Comment
                       </h3>
                       <div className="space-y-4">
@@ -796,7 +799,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                           placeholder="Your name"
                           value={commentAuthors[post.id] || ''}
                           onChange={(e) => setCommentAuthors({ ...commentAuthors, [post.id]: e.target.value })}
-                          className="w-full px-5 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white shadow-sm"
+                          className="w-full px-5 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-300 bg-white shadow-sm"
                         />
                         <div className="flex gap-3">
                           <input
@@ -805,11 +808,11 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                             value={commentInputs[post.id] || ''}
                             onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
                             onKeyPress={(e) => e.key === 'Enter' && handleAddComment(post.id)}
-                            className="flex-1 px-5 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white shadow-sm"
+                            className="flex-1 px-5 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-300 bg-white shadow-sm"
                           />
                           <button
                             onClick={() => handleAddComment(post.id)}
-                            className="px-6 py-3 rounded-xl font-bold text-white transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg bg-gradient-to-r from-purple-600 to-pink-600"
+                            className="px-6 py-3 rounded-xl font-bold text-white transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg bg-gradient-to-r from-red-600 to-[#040e40]"
                           >
                             <Send className="w-5 h-5" />
                           </button>
@@ -828,7 +831,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                           <div key={comment.id} className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100">
                             <div className="flex items-center justify-between mb-3">
                               <div className="flex items-center gap-2">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-red-600 to-[#040e40] flex items-center justify-center text-white font-bold">
                                   {comment.author.charAt(0).toUpperCase()}
                                 </div>
                                 <span className="font-bold text-gray-900">{comment.author}</span>
@@ -853,6 +856,162 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
             </div>
             ))
           )}
+          </div>
+
+          {/* Sidebar (1/3 width) */}
+          <aside className="lg:col-span-1 space-y-6">
+            {/* Popular Posts Widget */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 scroll-animate">
+              <div className="flex items-center gap-2 mb-6 pb-3 border-b-2 border-red-600">
+                <div className="w-1 h-6 bg-gradient-to-b from-red-600 to-[#040e40] rounded-full"></div>
+                <h3 className="text-xl font-bold text-[#040e40]">Popular Posts</h3>
+              </div>
+              <div className="space-y-4">
+                {posts.slice(0, 4).map((post, idx) => (
+                  <a
+                    key={post.id}
+                    href={`#post-${post.id}`}
+                    className="group flex gap-3 pb-4 border-b border-gray-100 last:border-0 hover:bg-red-50/50 p-2 -m-2 rounded-lg transition-all"
+                  >
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-red-600 to-[#040e40] text-white font-bold flex items-center justify-center text-sm">
+                      {idx + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-sm text-gray-900 group-hover:text-red-600 transition-colors line-clamp-2 mb-1">
+                        {post.title}
+                      </h4>
+                      <div className="flex items-center gap-3 text-xs text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {formatDate(post.date)}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <ThumbsUp className="w-3 h-3" />
+                          {post.likes}
+                        </span>
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Categories Widget */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 scroll-animate">
+              <div className="flex items-center gap-2 mb-6 pb-3 border-b-2 border-red-600">
+                <div className="w-1 h-6 bg-gradient-to-b from-red-600 to-[#040e40] rounded-full"></div>
+                <h3 className="text-xl font-bold text-[#040e40]">Categories</h3>
+              </div>
+              <div className="space-y-2">
+                {[
+                  { name: 'Device Repair', count: posts.length, color: 'red' },
+                  { name: 'Tech Tips', count: Math.floor(posts.length * 0.7), color: 'blue' },
+                  { name: 'Software', count: Math.floor(posts.length * 0.5), color: 'purple' },
+                  { name: 'Hardware', count: Math.floor(posts.length * 0.6), color: 'green' },
+                  { name: 'Mobile', count: Math.floor(posts.length * 0.8), color: 'orange' }
+                ].map((category) => (
+                  <button
+                    key={category.name}
+                    className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-red-50 transition-all group"
+                  >
+                    <span className="font-medium text-gray-700 group-hover:text-red-600">
+                      {category.name}
+                    </span>
+                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full font-semibold group-hover:bg-red-600 group-hover:text-white transition-all">
+                      {category.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Social Follow Widget */}
+            <div className="bg-gradient-to-br from-red-600 to-[#040e40] rounded-2xl shadow-lg p-6 text-white scroll-animate">
+              <h3 className="text-xl font-bold mb-4">Follow Us</h3>
+              <p className="text-red-100 text-sm mb-6">
+                Stay updated with the latest tech news and tips!
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <a
+                  href="https://facebook.com/itservicesfreetown"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm p-3 rounded-lg transition-all"
+                >
+                  <i className="fab fa-facebook text-lg"></i>
+                  <span className="text-sm font-medium">Facebook</span>
+                </a>
+                <a
+                  href="https://twitter.com/itsfreetown"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm p-3 rounded-lg transition-all"
+                >
+                  <i className="fab fa-twitter text-lg"></i>
+                  <span className="text-sm font-medium">Twitter</span>
+                </a>
+                <a
+                  href="https://instagram.com/itservicesfreetown"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm p-3 rounded-lg transition-all"
+                >
+                  <i className="fab fa-instagram text-lg"></i>
+                  <span className="text-sm font-medium">Instagram</span>
+                </a>
+                <a
+                  href="https://wa.me/23233399391"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm p-3 rounded-lg transition-all"
+                >
+                  <i className="fab fa-whatsapp text-lg"></i>
+                  <span className="text-sm font-medium">WhatsApp</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Tags Cloud Widget */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 scroll-animate">
+              <div className="flex items-center gap-2 mb-6 pb-3 border-b-2 border-red-600">
+                <div className="w-1 h-6 bg-gradient-to-b from-red-600 to-[#040e40] rounded-full"></div>
+                <h3 className="text-xl font-bold text-[#040e40]">Popular Tags</h3>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  'Repair', 'iPhone', 'Android', 'Laptop', 'Screen', 
+                  'Battery', 'Software', 'Data Recovery', 'MacBook',
+                  'Samsung', 'Hardware', 'Tips'
+                ].map((tag) => (
+                  <button
+                    key={tag}
+                    className="px-3 py-1.5 bg-gray-100 hover:bg-red-600 hover:text-white text-gray-700 text-sm rounded-full font-medium transition-all"
+                  >
+                    #{tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Newsletter Widget */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 scroll-animate">
+              <div className="flex items-center gap-2 mb-4 pb-3 border-b-2 border-red-600">
+                <div className="w-1 h-6 bg-gradient-to-b from-red-600 to-[#040e40] rounded-full"></div>
+                <h3 className="text-xl font-bold text-[#040e40]">Newsletter</h3>
+              </div>
+              <p className="text-gray-600 text-sm mb-4">
+                Get the latest tech tips delivered to your inbox!
+              </p>
+              <input
+                type="email"
+                placeholder="Your email address"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+              />
+              <button className="w-full py-2.5 bg-gradient-to-r from-red-600 to-[#040e40] text-white font-semibold rounded-lg hover:shadow-lg transition-all">
+                Subscribe Now
+              </button>
+            </div>
+          </aside>
         </div>
 
         {/* Bottom Ad - Before Footer */}

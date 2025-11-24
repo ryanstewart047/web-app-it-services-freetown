@@ -674,7 +674,7 @@ ${htmlContent || content || 'Empty draft'}`
                     setPassword(e.target.value)
                     setShowPasswordError(false)
                   }}
-                  className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                  className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all ${
                     showPasswordError ? 'border-red-500' : 'border-gray-200'
                   }`}
                   placeholder="Enter admin password"
@@ -746,7 +746,7 @@ ${htmlContent || content || 'Empty draft'}`
               <button
                 type="button"
                 onClick={toggleManagePosts}
-                className="flex items-center px-4 py-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                className="flex items-center px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
               >
                 <List className="w-4 h-4 mr-2" />
                 {showManagePosts ? 'Hide' : 'Manage'} Posts
@@ -783,7 +783,7 @@ ${htmlContent || content || 'Empty draft'}`
             <h2 className="text-2xl font-bold mb-4" style={{ color: '#040e40' }}>Existing Posts</h2>
             {loadingPosts ? (
               <div className="text-center py-8">
-                <RefreshCw className="w-8 h-8 animate-spin mx-auto text-blue-600 mb-2" />
+                <RefreshCw className="w-8 h-8 animate-spin mx-auto text-red-600 mb-2" />
                 <p className="text-gray-600">Loading posts...</p>
               </div>
             ) : existingPosts.length === 0 ? (
@@ -859,7 +859,7 @@ ${htmlContent || content || 'Empty draft'}`
                           <div className="flex items-center gap-2 ml-4">
                             <button
                               onClick={() => handleEditPost(post)}
-                              className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors"
+                              className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
                             >
                               <Edit className="w-4 h-4" />
                               Edit
@@ -894,7 +894,7 @@ ${htmlContent || content || 'Empty draft'}`
                 type="text"
                 value={author}
                 onChange={(e) => setAuthor(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                 placeholder="Your name or company name"
                 required
               />
@@ -909,7 +909,7 @@ ${htmlContent || content || 'Empty draft'}`
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-2xl font-bold"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all text-2xl font-bold"
                 placeholder="Enter an engaging title..."
                 required
               />
@@ -934,7 +934,7 @@ ${htmlContent || content || 'Empty draft'}`
                       }}
                       className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
                         editorMode === 'rich' 
-                          ? 'bg-white text-blue-600 shadow-sm' 
+                          ? 'bg-white text-red-600 shadow-sm' 
                           : 'text-gray-600 hover:text-gray-900'
                       }`}
                     >
@@ -948,7 +948,7 @@ ${htmlContent || content || 'Empty draft'}`
                       }}
                       className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
                         editorMode === 'html' 
-                          ? 'bg-white text-purple-600 shadow-sm' 
+                          ? 'bg-white text-[#040e40] shadow-sm' 
                           : 'text-gray-600 hover:text-gray-900'
                       }`}
                     >
@@ -973,9 +973,9 @@ ${htmlContent || content || 'Empty draft'}`
 
               {/* AI Content Generator */}
               {showAIHelper && (
-                <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200">
+                <div className="mb-4 p-4 bg-gradient-to-r from-red-50 to-gray-50 rounded-lg border-2 border-red-200">
                   <div className="flex items-start space-x-2 mb-3">
-                    <Sparkles className="w-5 h-5 text-purple-600 mt-0.5" />
+                    <Sparkles className="w-5 h-5 text-red-600 mt-0.5" />
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900 mb-1">AI Content Generator</h3>
                       <p className="text-sm text-gray-600 mb-3">
@@ -986,7 +986,7 @@ ${htmlContent || content || 'Empty draft'}`
                         value={contentPrompt}
                         onChange={(e) => setContentPrompt(e.target.value)}
                         placeholder="E.g., 'Tips for preventing malware on phones' or 'How to backup iPhone data'"
-                        className="w-full px-4 py-2 border-2 border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent mb-3"
+                        className="w-full px-4 py-2 border-2 border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent mb-3"
                         disabled={generatingContent}
                       />
                       <div className="flex space-x-2">
@@ -1074,14 +1074,14 @@ Tips:
                       <button
                         type="button"
                         onClick={loadDraft}
-                        className="px-3 py-1 text-xs font-medium text-purple-600 hover:bg-purple-50 rounded transition-colors flex items-center gap-1"
+                        className="px-3 py-1 text-xs font-medium text-[#040e40] hover:bg-gray-100 rounded transition-colors flex items-center gap-1"
                       >
                         📂 Load Draft
                       </button>
                       <button
                         type="button"
                         onClick={downloadAsWord}
-                        className="px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded transition-colors flex items-center gap-1"
+                        className="px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50 rounded transition-colors flex items-center gap-1"
                       >
                         📄 Word
                       </button>
@@ -1098,7 +1098,7 @@ Tips:
                           navigator.clipboard.writeText(htmlContent)
                           toast.success('HTML copied to clipboard!')
                         }}
-                        className="px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        className="px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50 rounded transition-colors"
                       >
                         📋 Copy HTML
                       </button>
@@ -1111,7 +1111,7 @@ Tips:
                             toast.success('Plain text copied to clipboard!')
                           }
                         }}
-                        className="px-3 py-1 text-xs font-medium text-purple-600 hover:bg-purple-50 rounded transition-colors"
+                        className="px-3 py-1 text-xs font-medium text-[#040e40] hover:bg-gray-100 rounded transition-colors"
                       >
                         📋 Copy Text
                       </button>
@@ -1132,7 +1132,7 @@ Tips:
                             setContent(htmlContent)
                             toast.success('Applied HTML changes!')
                           }}
-                          className="px-3 py-1 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                          className="px-3 py-1 text-xs font-medium bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
                         >
                           ✓ Apply Changes
                         </button>
@@ -1140,7 +1140,7 @@ Tips:
                       <textarea
                         value={htmlContent}
                         onChange={(e) => setHtmlContent(e.target.value)}
-                        className="w-full h-[500px] p-4 font-mono text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none bg-white"
+                        className="w-full h-[500px] p-4 font-mono text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none bg-white"
                         placeholder="Paste your HTML content here..."
                       />
                       <p className="text-xs text-gray-500 mt-2">
@@ -1169,15 +1169,15 @@ Tips:
                   </div>
 
                   {/* Quick Tips */}
-                  <div className="bg-blue-50 px-4 py-3 border-t-2 border-blue-200">
+                  <div className="bg-red-50 px-4 py-3 border-t-2 border-red-200">
                     <div className="space-y-2">
                       <div className="flex items-start gap-2">
-                        <span className="text-blue-600 mt-0.5">💡</span>
-                        <div className="text-sm text-blue-900">
-                          <strong>HTML Tips:</strong> Use <code className="bg-blue-100 px-1 rounded">&lt;h2&gt;</code> for headers, 
-                          <code className="bg-blue-100 px-1 rounded mx-1">&lt;p&gt;</code> for paragraphs, 
-                          <code className="bg-blue-100 px-1 rounded mx-1">&lt;strong&gt;</code> for bold, 
-                          <code className="bg-blue-100 px-1 rounded mx-1">&lt;ul&gt;</code> for lists
+                        <span className="text-red-600 mt-0.5">💡</span>
+                        <div className="text-sm text-[#040e40]">
+                          <strong>HTML Tips:</strong> Use <code className="bg-red-100 px-1 rounded">&lt;h2&gt;</code> for headers, 
+                          <code className="bg-red-100 px-1 rounded mx-1">&lt;p&gt;</code> for paragraphs, 
+                          <code className="bg-red-100 px-1 rounded mx-1">&lt;strong&gt;</code> for bold, 
+                          <code className="bg-red-100 px-1 rounded mx-1">&lt;ul&gt;</code> for lists
                         </div>
                       </div>
                       <div className="flex items-start gap-2">
@@ -1187,8 +1187,8 @@ Tips:
                         </div>
                       </div>
                       <div className="flex items-start gap-2">
-                        <span className="text-purple-600 mt-0.5">📥</span>
-                        <div className="text-sm text-purple-900">
+                        <span className="text-[#040e40] mt-0.5">📥</span>
+                        <div className="text-sm text-[#040e40]">
                           <strong>Download:</strong> Export as Word (.doc) for editing in Microsoft Word, or save as PDF for sharing
                         </div>
                       </div>
@@ -1206,7 +1206,7 @@ Tips:
               
               {/* Add Media Buttons */}
               {/* Free Stock Photo Resources */}
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 mb-6 border-2 border-blue-100">
+              <div className="bg-gradient-to-r from-red-50 to-gray-50 rounded-xl p-4 mb-6 border-2 border-red-100">
                 <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
                   📸 Free Quality Images
                 </h4>
@@ -1215,7 +1215,7 @@ Tips:
                     href="https://unsplash.com" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="px-3 py-2 bg-white hover:bg-blue-50 text-blue-600 font-semibold rounded-lg transition-all hover:shadow-md text-center"
+                    className="px-3 py-2 bg-white hover:bg-red-50 text-red-600 font-semibold rounded-lg transition-all hover:shadow-md text-center"
                   >
                     🎨 Unsplash
                   </a>
@@ -1231,7 +1231,7 @@ Tips:
                     href="https://pixabay.com" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="px-3 py-2 bg-white hover:bg-purple-50 text-purple-600 font-semibold rounded-lg transition-all hover:shadow-md text-center"
+                    className="px-3 py-2 bg-white hover:bg-gray-100 text-[#040e40] font-semibold rounded-lg transition-all hover:shadow-md text-center"
                   >
                     🖼️ Pixabay
                   </a>
@@ -1239,7 +1239,7 @@ Tips:
                     href="https://www.freepik.com" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="px-3 py-2 bg-white hover:bg-pink-50 text-pink-600 font-semibold rounded-lg transition-all hover:shadow-md text-center"
+                    className="px-3 py-2 bg-white hover:bg-red-50 text-red-600 font-semibold rounded-lg transition-all hover:shadow-md text-center"
                   >
                     ✨ Freepik
                   </a>
@@ -1247,7 +1247,7 @@ Tips:
                     href="https://stocksnap.io" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="px-3 py-2 bg-white hover:bg-indigo-50 text-indigo-600 font-semibold rounded-lg transition-all hover:shadow-md text-center"
+                    className="px-3 py-2 bg-white hover:bg-gray-100 text-[#040e40] font-semibold rounded-lg transition-all hover:shadow-md text-center"
                   >
                     📸 StockSnap
                   </a>

@@ -205,10 +205,10 @@ export default function ProductDetailPage() {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-[#040e40] to-gray-900 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-white mb-4">Product Not Found</h2>
-          <Link href="/marketplace" className="text-blue-400 hover:text-blue-300">
+          <Link href="/marketplace" className="text-red-400 hover:text-red-300">
             ← Back to Marketplace
           </Link>
         </div>
@@ -256,7 +256,7 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-[#040e40] to-gray-900">
       {/* Structured Data */}
       <script
         type="application/ld+json"
@@ -266,7 +266,7 @@ export default function ProductDetailPage() {
       {/* Header */}
       <div className="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700">
         <div className="container mx-auto px-4 py-4">
-          <Link href="/marketplace" className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors">
+          <Link href="/marketplace" className="inline-flex items-center gap-2 text-red-400 hover:text-red-300 transition-colors">
             <ArrowLeft className="w-5 h-5" />
             Back to Marketplace
           </Link>
@@ -386,9 +386,9 @@ export default function ProductDetailPage() {
             {/* Condition Badge */}
             <div className="mb-4">
               <span className={`inline-block px-4 py-2 rounded-lg text-sm font-semibold ${
-                product.condition === 'new' ? 'bg-blue-500/20 text-blue-400' :
+                product.condition === 'new' ? 'bg-red-500/20 text-red-400' :
                 product.condition === 'refurbished' ? 'bg-green-500/20 text-green-400' :
-                product.condition === 'used-like-new' ? 'bg-purple-500/20 text-purple-400' :
+                product.condition === 'used-like-new' ? 'bg-[#040e40]/30 text-gray-300' :
                 'bg-gray-500/20 text-gray-400'
               }`}>
                 Condition: {
@@ -480,7 +480,7 @@ export default function ProductDetailPage() {
               <button
                 onClick={buyNow}
                 disabled={product.stock === 0}
-                className="flex-1 py-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all transform hover:scale-105 disabled:hover:scale-100"
+                className="flex-1 py-4 bg-gradient-to-r from-red-600 to-[#040e40] hover:from-red-700 hover:to-[#030b30] disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all transform hover:scale-105 disabled:hover:scale-100"
               >
                 Buy Now
               </button>
@@ -496,7 +496,7 @@ export default function ProductDetailPage() {
 
             {/* Additional Actions */}
             <div className="flex gap-3 mb-8">
-              <button className="flex-1 flex items-center justify-center gap-2 py-3 border-2 border-gray-700 hover:border-blue-500 text-white rounded-lg transition-all">
+              <button className="flex-1 flex items-center justify-center gap-2 py-3 border-2 border-gray-700 hover:border-red-500 hover:bg-red-500/10 text-white rounded-lg transition-all">
                 <Heart className="w-5 h-5" />
                 Add to Wishlist
               </button>
@@ -512,21 +512,21 @@ export default function ProductDetailPage() {
             {/* Features */}
             <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 space-y-4">
               <div className="flex items-start gap-3">
-                <Truck className="w-6 h-6 text-blue-400 flex-shrink-0 mt-1" />
+                <Truck className="w-6 h-6 text-red-400 flex-shrink-0 mt-1" />
                 <div>
                   <h4 className="text-white font-semibold mb-1">Free Shipping</h4>
                   <p className="text-gray-400 text-sm">On orders over Le 500,000 within Freetown</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <Shield className="w-6 h-6 text-blue-400 flex-shrink-0 mt-1" />
+                <Shield className="w-6 h-6 text-red-400 flex-shrink-0 mt-1" />
                 <div>
                   <h4 className="text-white font-semibold mb-1">Warranty</h4>
                   <p className="text-gray-400 text-sm">6 months warranty on all products</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <RefreshCw className="w-6 h-6 text-blue-400 flex-shrink-0 mt-1" />
+                <RefreshCw className="w-6 h-6 text-red-400 flex-shrink-0 mt-1" />
                 <div>
                   <h4 className="text-white font-semibold mb-1">Easy Returns</h4>
                   <p className="text-gray-400 text-sm">14-day return policy, no questions asked</p>
