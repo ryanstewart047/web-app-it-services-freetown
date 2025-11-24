@@ -17,7 +17,7 @@ interface ReceiptItem {
 
 interface SavedReceipt {
   receiptNumber: string
-  receiptType: 'purchase' | 'repair'
+  receiptType: 'purchase' | 'repair' | 'loan'
   customerName: string
   customerPhone: string
   customerEmail: string
@@ -48,7 +48,7 @@ export default function ReceiptGenerator() {
   const [showPasswordError, setShowPasswordError] = useState(false)
 
   // Receipt data
-  const [receiptType, setReceiptType] = useState<'purchase' | 'repair'>('purchase')
+  const [receiptType, setReceiptType] = useState<'purchase' | 'repair' | 'loan'>('purchase')
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
   const [customerEmail, setCustomerEmail] = useState('')
@@ -391,7 +391,8 @@ export default function ReceiptGenerator() {
 
   const handleShareWhatsApp = () => {
     // Create a simple, clean message
-    const message = `*${receiptType === 'purchase' ? 'PURCHASE' : 'REPAIR'} RECEIPT*
+    const receiptTypeLabel = receiptType === 'purchase' ? 'PURCHASE' : receiptType === 'repair' ? 'REPAIR' : 'LOAN'
+    const message = `*${receiptTypeLabel} RECEIPT*
 
 *IT Services Freetown*
 Receipt #: ${receiptNumber}
@@ -403,6 +404,7 @@ Paid: SLE ${amountPaid.toFixed(2)}
 Change: SLE ${calculateChange().toFixed(2)}
 
 Thank you for your business!
+www.itservicesfreetown.com
 #1 Regent Highway Jui Junction
 +232 33 399 391`
 
@@ -420,8 +422,9 @@ Thank you for your business!
   }
 
   const handleShareEmail = () => {
+    const receiptTypeLabel = receiptType === 'purchase' ? 'PURCHASE' : receiptType === 'repair' ? 'REPAIR' : 'LOAN'
     const subject = `Receipt ${receiptNumber} - IT Services Freetown`
-    const body = `${receiptType === 'purchase' ? 'PURCHASE' : 'REPAIR'} RECEIPT\n\nIT Services Freetown\n#1 Regent Highway Jui Junction\nTel: +232 33 399 391\n\nReceipt No: ${receiptNumber}\nDate: ${new Date(receiptDate).toLocaleDateString()}\nCustomer: ${customerName}\nPhone: ${customerPhone}${customerAddress ? `\nAddress: ${customerAddress}` : ''}\n\nItems:\n${items.filter(i => i.description).map(i => `${i.description} - Qty: ${i.quantity} - SLE ${i.total.toFixed(2)}`).join('\n')}\n\nSubtotal: SLE ${calculateSubtotal().toFixed(2)}\nAmount Paid: SLE ${amountPaid.toFixed(2)}${calculateSubtotal() > amountPaid ? `\nBalance to be Paid: SLE ${(calculateSubtotal() - amountPaid).toFixed(2)}` : ''}\nChange: SLE ${calculateChange().toFixed(2)}\n\nThank you for your business!`
+    const body = `${receiptTypeLabel} RECEIPT\n\nIT Services Freetown\nwww.itservicesfreetown.com\n#1 Regent Highway Jui Junction\nTel: +232 33 399 391\n\nReceipt No: ${receiptNumber}\nDate: ${new Date(receiptDate).toLocaleDateString()}\nCustomer: ${customerName}\nPhone: ${customerPhone}${customerAddress ? `\nAddress: ${customerAddress}` : ''}\n\nItems:\n${items.filter(i => i.description).map(i => `${i.description} - Qty: ${i.quantity} - SLE ${i.total.toFixed(2)}`).join('\n')}\n\nSubtotal: SLE ${calculateSubtotal().toFixed(2)}\nAmount Paid: SLE ${amountPaid.toFixed(2)}${calculateSubtotal() > amountPaid ? `\nBalance to be Paid: SLE ${(calculateSubtotal() - amountPaid).toFixed(2)}` : ''}\nChange: SLE ${calculateChange().toFixed(2)}\n\nThank you for your business!`
     window.location.href = `mailto:${customerEmail || ''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
   }
 
@@ -711,7 +714,7 @@ Thank you for your business!
               <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-900 to-purple-900 bg-clip-text text-transparent mb-2">
                 Receipt Generator
               </h1>
-              <p className="text-gray-600">Create professional receipts for purchases and repairs</p>
+              <p className="text-gray-600">Create professional receipts for purchases, repairs, and loans</p>
             </div>
           </div>
 
@@ -787,7 +790,11 @@ Thank you for your business!
                         <div className="flex items-center gap-3 mb-2">
                           <span className="font-bold text-lg text-blue-600">{receipt.receiptNumber}</span>
                           <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                            receipt.receiptType === 'purchase' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
+                            receipt.receiptType === 'purchase' 
+                              ? 'bg-green-100 text-green-700' 
+                              : receipt.receiptType === 'repair' 
+                              ? 'bg-purple-100 text-purple-700' 
+                              : 'bg-blue-100 text-blue-700'
                           }`}>
                             {receipt.receiptType.toUpperCase()}
                           </span>
@@ -899,11 +906,12 @@ Thank you for your business!
                 </label>
                 <select
                   value={receiptType}
-                  onChange={(e) => setReceiptType(e.target.value as 'purchase' | 'repair')}
+                  onChange={(e) => setReceiptType(e.target.value as 'purchase' | 'repair' | 'loan')}
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="purchase">Purchase</option>
                   <option value="repair">Repair</option>
+                  <option value="loan">Loan</option>
                 </select>
               </div>
 
@@ -1162,7 +1170,7 @@ Thank you for your business!
           {/* Receipt Type Banner */}
           <div className="text-center mb-3">
             <h2 className="inline-block px-4 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-lg font-bold rounded" style={{ fontSize: '16px', letterSpacing: '1px' }}>
-              {receiptType === 'purchase' ? 'PURCHASE RECEIPT' : 'REPAIR RECEIPT'}
+              {receiptType === 'purchase' ? 'PURCHASE RECEIPT' : receiptType === 'repair' ? 'REPAIR RECEIPT' : 'LOAN RECEIPT'}
             </h2>
           </div>
 
@@ -1243,9 +1251,25 @@ Thank you for your business!
             </div>
           )}
 
+          {/* Terms and Conditions - Only for Repair Receipts */}
+          {receiptType === 'repair' && (
+            <div className="mb-3 p-3 bg-yellow-50 rounded border border-yellow-200">
+              <h3 className="font-bold text-gray-900 mb-2" style={{ fontSize: '11px' }}>REPAIR TERMS & CONDITIONS:</h3>
+              <ul className="text-gray-700 space-y-1" style={{ fontSize: '9px', lineHeight: '1.3' }}>
+                <li>• LCD screens are fragile components. We cannot guarantee against future damage or defects that may appear after repair.</li>
+                <li>• All repairs are tested before return. Any issues must be reported within 24 hours of collection.</li>
+                <li>• We are not responsible for data loss. Please backup your data before submitting devices for repair.</li>
+                <li>• Warranty does not cover physical damage, water damage, or damage from misuse after repair.</li>
+                <li>• Parts replaced are guaranteed for 30 days from the date of repair, excluding LCD damage from drops or pressure.</li>
+                <li>• Customer accepts all risks associated with the inherent fragility of electronic components, especially display screens.</li>
+              </ul>
+            </div>
+          )}
+
           {/* Footer */}
           <div className="text-center pt-3 border-t-2 border-gray-300 space-y-1">
             <p className="text-gray-600 font-semibold" style={{ fontSize: '13px' }}>Thank you for your business!</p>
+            <p className="text-gray-700 font-bold" style={{ fontSize: '11px' }}>www.itservicesfreetown.com</p>
             <p className="text-gray-500" style={{ fontSize: '10px' }}>This is a computer-generated receipt</p>
             <p className="text-gray-500" style={{ fontSize: '10px', lineHeight: '1.3' }}>For support, call +232 33 399 391 or visit #1 Regent Highway Jui Junction</p>
           </div>

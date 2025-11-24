@@ -267,7 +267,7 @@ model Wishlist {
 model Receipt {
   id             String   @id @default(cuid())
   receiptNumber  String   @unique
-  receiptType    String   // 'purchase' or 'repair'
+  receiptType    String   // 'purchase', 'repair', or 'loan'
   customerName   String
   customerPhone  String
   customerEmail  String?
