@@ -1257,7 +1257,7 @@ www.itservicesfreetown.com
               <h3 className="font-bold text-gray-900 mb-2" style={{ fontSize: '11px' }}>REPAIR TERMS & CONDITIONS:</h3>
               <ul className="text-gray-700 space-y-1" style={{ fontSize: '9px', lineHeight: '1.3' }}>
                 <li>• LCD screens are fragile components. We cannot guarantee against future damage or defects that may appear after repair.</li>
-                <li>• All repairs are tested before return. Any issues must be reported within 24 hours of collection.</li>
+                <li>• All repairs are tested before collection. Any issues must be reported within 1 hour of collection.</li>
                 <li>• We are not responsible for data loss. Please backup your data before submitting devices for repair.</li>
                 <li>• Warranty does not cover physical damage, water damage, or damage from misuse after repair.</li>
                 <li>• Parts replaced are guaranteed for 30 days from the date of repair, excluding LCD damage from drops or pressure.</li>
