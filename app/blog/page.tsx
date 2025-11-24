@@ -45,6 +45,7 @@ export default function BlogPage() {
   const [userVotes, setUserVotes] = useState<{ [key: string]: 'like' | 'dislike' | null }>({})
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [copiedPostId, setCopiedPostId] = useState<string | null>(null)
+  const [expandedPosts, setExpandedPosts] = useState<{ [key: string]: boolean }>({})
 
   useScrollAnimations()
 
@@ -412,6 +413,66 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
     setShowComments({ ...showComments, [postId]: !showComments[postId] })
   }
 
+  const toggleExpandPost = (postId: string) => {
+    setExpandedPosts({ ...expandedPosts, [postId]: !expandedPosts[postId] })
+    
+    // Scroll to post if expanding
+    if (!expandedPosts[postId]) {
+      setTimeout(() => {
+        const element = document.getElementById(`post-${postId}`)
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }, 100)
+    }
+  }
+
+  const isContentLong = (content: string): boolean => {
+    // Remove HTML tags to get plain text length
+    const plainText = content.replace(/<[^>]*>/g, '')
+    return plainText.length > 500 // More than 500 characters
+  }
+
+  const getTruncatedContent = (content: string, maxLength: number = 500): string => {
+    const plainText = content.replace(/<[^>]*>/g, '')
+    
+    if (plainText.length <= maxLength) {
+      return content
+    }
+    
+    // Find a good breaking point (end of sentence or paragraph)
+    let truncateAt = maxLength
+    const breakPoints = ['. ', '! ', '? ', '\n']
+    
+    for (const breakPoint of breakPoints) {
+      const index = plainText.lastIndexOf(breakPoint, maxLength)
+      if (index > maxLength * 0.7) { // At least 70% of desired length
+        truncateAt = index + breakPoint.length
+        break
+      }
+    }
+    
+    // Create truncated HTML by finding the position in original HTML
+    let charCount = 0
+    let htmlResult = ''
+    let inTag = false
+    
+    for (let i = 0; i < content.length && charCount < truncateAt; i++) {
+      const char = content[i]
+      htmlResult += char
+      
+      if (char === '<') {
+        inTag = true
+      } else if (char === '>') {
+        inTag = false
+      } else if (!inTag) {
+        charCount++
+      }
+    }
+    
+    return htmlResult + '...'
+  }
+
   const handleShare = async (post: BlogPost) => {
     const shareUrl = `${window.location.origin}/blog#post-${post.id}`
     const shareTitle = post.title
@@ -586,14 +647,58 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                     {post.title}
                   </h2>
 
-                  {/* Content */}
-                  <div 
-                    className="prose prose-lg max-w-none text-gray-700 mb-8 leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: post.content }}
-                  />
+                  {/* Content with Read More */}
+                  <div className="mb-8">
+                    <div 
+                      className={`prose prose-lg max-w-none text-gray-700 leading-relaxed transition-all duration-500 ${
+                        !expandedPosts[post.id] && isContentLong(post.content) ? 'relative' : ''
+                      }`}
+                      style={{
+                        maxHeight: !expandedPosts[post.id] && isContentLong(post.content) ? '300px' : 'none',
+                        overflow: !expandedPosts[post.id] && isContentLong(post.content) ? 'hidden' : 'visible'
+                      }}
+                    >
+                      <div 
+                        dangerouslySetInnerHTML={{ 
+                          __html: expandedPosts[post.id] || !isContentLong(post.content) 
+                            ? post.content 
+                            : getTruncatedContent(post.content) 
+                        }}
+                      />
+                      
+                      {/* Fade overlay for collapsed long content */}
+                      {!expandedPosts[post.id] && isContentLong(post.content) && (
+                        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none"></div>
+                      )}
+                    </div>
+                    
+                    {/* Read More / Show Less Button */}
+                    {isContentLong(post.content) && (
+                      <button
+                        onClick={() => toggleExpandPost(post.id)}
+                        className="mt-4 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
+                      >
+                        {expandedPosts[post.id] ? (
+                          <>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                            </svg>
+                            Show Less
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                            Read More
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
 
-                  {/* Media Display */}
-                  {post.media && post.media.length > 0 && (
+                  {/* Media Display - Only show when expanded or if content is short */}
+                  {(expandedPosts[post.id] || !isContentLong(post.content)) && post.media && post.media.length > 0 && (
                     <div className="mt-8 space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {post.media.map((item) => (
