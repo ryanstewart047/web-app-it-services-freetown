@@ -19,8 +19,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const order = await prisma.order.findUnique({
-      where: { orderNumber },
+    // Case-insensitive order lookup
+    const order = await prisma.order.findFirst({
+      where: { 
+        orderNumber: {
+          equals: orderNumber,
+          mode: 'insensitive'
+        }
+      },
       include: {
         items: {
           include: {
