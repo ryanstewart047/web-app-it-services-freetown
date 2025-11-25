@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, Filter, ShoppingCart, Grid, List, ChevronDown, Heart, Star } from 'lucide-react';
 import Link from 'next/link';
 import { getWishlistSessionId } from '@/utils/wishlistSession';
@@ -31,8 +31,10 @@ interface Category {
 
 export default function MarketplacePage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -42,6 +44,11 @@ export default function MarketplacePage() {
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
   const [wishlistCounts, setWishlistCounts] = useState<Record<string, number>>({});
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const observerTarget = useRef<HTMLDivElement>(null);
+  
+  const ITEMS_PER_PAGE = 12;
 
   useEffect(() => {
     fetchProducts();
@@ -234,6 +241,44 @@ export default function MarketplacePage() {
     }
   });
 
+  // Infinite scroll: load more products when user scrolls
+  useEffect(() => {
+    const currentProducts = filteredProducts.slice(0, page * ITEMS_PER_PAGE);
+    setDisplayedProducts(currentProducts);
+    setHasMore(currentProducts.length < filteredProducts.length);
+  }, [page, filteredProducts]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, selectedCategory, sortBy]);
+
+  // Intersection observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          setLoadingMore(true);
+          setTimeout(() => {
+            setPage(prev => prev + 1);
+            setLoadingMore(false);
+          }, 500);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => {
+      if (observerTarget.current) {
+        observer.unobserve(observerTarget.current);
+      }
+    };
+  }, [hasMore, loadingMore]);
+
   const calculateDiscount = (price: number, comparePrice?: number) => {
     if (!comparePrice || comparePrice <= price) return null;
     return Math.round(((comparePrice - price) / comparePrice) * 100);
@@ -367,7 +412,7 @@ export default function MarketplacePage() {
             <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-4 mb-6">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <p className="text-gray-300">
-                  Showing <span className="font-bold text-white">{filteredProducts.length}</span> products
+                  Showing <span className="font-bold text-white">{displayedProducts.length}</span> of <span className="font-bold text-white">{filteredProducts.length}</span> products
                 </p>
 
                 <div className="flex items-center gap-4">
@@ -482,11 +527,12 @@ export default function MarketplacePage() {
                 )}
               </div>
             ) : (
+              <>
               <div className={viewMode === 'grid' 
                 ? 'grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
                 : 'space-y-4'
               }>
-                {filteredProducts.map(product => {
+                {displayedProducts.map(product => {
                   const discount = calculateDiscount(product.price, product.comparePrice);
                   
                   return (
@@ -622,6 +668,26 @@ export default function MarketplacePage() {
                   );
                 })}
               </div>
+
+              {/* Infinite Scroll Loading Indicator */}
+              {loadingMore && (
+                <div className="text-center py-8">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                  <p className="text-gray-400 mt-2">Loading more products...</p>
+                </div>
+              )}
+
+              {/* Intersection Observer Target */}
+              <div ref={observerTarget} className="h-10" />
+
+              {/* End of results message */}
+              {!hasMore && displayedProducts.length > 0 && (
+                <div className="text-center py-8 text-gray-400">
+                  <p>You've reached the end of the results</p>
+                  <p className="text-sm mt-1">Showing all {displayedProducts.length} products</p>
+                </div>
+              )}
+              </>
             )}
           </div>
         </div>
