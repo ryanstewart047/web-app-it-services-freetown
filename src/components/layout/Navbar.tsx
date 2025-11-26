@@ -6,6 +6,7 @@ import Image from 'next/image';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [supportDropdownOpen, setSupportDropdownOpen] = useState(false);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -13,6 +14,11 @@ export default function Navbar() {
 
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
+    setSupportDropdownOpen(false);
+  };
+
+  const toggleSupportDropdown = () => {
+    setSupportDropdownOpen(!supportDropdownOpen);
   };
 
   return (
@@ -52,7 +58,50 @@ export default function Navbar() {
             <Link href="/book-appointment" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Book Appointment</Link>
             <Link href="/track-repair" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Track Repair</Link>
             <Link href="/troubleshoot" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Troubleshoot</Link>
-            <Link href="/chat" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Chat Support</Link>
+            
+            {/* Get Support Dropdown */}
+            <div className="relative">
+              <button 
+                onClick={toggleSupportDropdown}
+                className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium inline-flex items-center gap-1"
+              >
+                Get Support
+                <i className={`fas fa-chevron-down text-xs transition-transform duration-200 ${supportDropdownOpen ? 'rotate-180' : ''}`}></i>
+              </button>
+              
+              {supportDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                  <Link 
+                    href="/chat" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={() => setSupportDropdownOpen(false)}
+                  >
+                    <i className="fas fa-comments mr-2"></i>Chat Support
+                  </Link>
+                  <Link 
+                    href="/contact" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={() => setSupportDropdownOpen(false)}
+                  >
+                    <i className="fas fa-envelope mr-2"></i>Contact Us
+                  </Link>
+                  <Link 
+                    href="/privacy" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={() => setSupportDropdownOpen(false)}
+                  >
+                    <i className="fas fa-shield-alt mr-2"></i>Privacy Policy
+                  </Link>
+                  <Link 
+                    href="/terms" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={() => setSupportDropdownOpen(false)}
+                  >
+                    <i className="fas fa-file-contract mr-2"></i>Terms of Service
+                  </Link>
+                </div>
+              )}
+            </div>
             
             <Link href="/book-appointment" className="btn-primary text-sm px-4 py-2">Book Now</Link>
           </div>
@@ -90,7 +139,50 @@ export default function Navbar() {
             <Link href="/book-appointment" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Book Appointment</Link>
             <Link href="/track-repair" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Track Repair</Link>
             <Link href="/troubleshoot" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Troubleshoot</Link>
-            <Link href="/chat" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Chat Support</Link>
+            
+            {/* Get Support Dropdown for Mobile */}
+            <div className="px-3 py-2">
+              <button 
+                onClick={toggleSupportDropdown}
+                className="text-gray-700 hover:text-primary-950 text-base font-medium inline-flex items-center gap-2 w-full justify-between"
+              >
+                Get Support
+                <i className={`fas fa-chevron-down text-sm transition-transform duration-200 ${supportDropdownOpen ? 'rotate-180' : ''}`}></i>
+              </button>
+              
+              {supportDropdownOpen && (
+                <div className="mt-2 ml-4 space-y-1 bg-gray-50 rounded-md py-2">
+                  <Link 
+                    href="/chat" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-950"
+                    onClick={closeMobileMenu}
+                  >
+                    <i className="fas fa-comments mr-2"></i>Chat Support
+                  </Link>
+                  <Link 
+                    href="/contact" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-950"
+                    onClick={closeMobileMenu}
+                  >
+                    <i className="fas fa-envelope mr-2"></i>Contact Us
+                  </Link>
+                  <Link 
+                    href="/privacy" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-950"
+                    onClick={closeMobileMenu}
+                  >
+                    <i className="fas fa-shield-alt mr-2"></i>Privacy Policy
+                  </Link>
+                  <Link 
+                    href="/terms" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-950"
+                    onClick={closeMobileMenu}
+                  >
+                    <i className="fas fa-file-contract mr-2"></i>Terms of Service
+                  </Link>
+                </div>
+              )}
+            </div>
             
             <Link href="/book-appointment" className="btn-primary text-sm px-4 py-2 w-full text-center mt-4" onClick={closeMobileMenu}>Book Now</Link>
           </div>
