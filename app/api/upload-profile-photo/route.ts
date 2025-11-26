@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
-import { existsSync } from 'fs';
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,32 +40,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Convert file to base64 data URL for direct embedding
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+    const base64 = buffer.toString('base64');
+    const dataUrl = `data:${file.type};base64,${base64}`;
 
-    // Generate unique filename with timestamp
-    const timestamp = Date.now();
-    const ext = file.name.split('.').pop();
-    const filename = `profile-${timestamp}.${ext}`;
-    
-    // Save to public/assets/portfolio/
-    const uploadsDir = path.join(process.cwd(), 'public', 'assets', 'portfolio');
-    
-    // Ensure directory exists
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true });
-    }
-
-    const filepath = path.join(uploadsDir, filename);
-    await writeFile(filepath, buffer);
-
-    // Return the public URL
-    const publicUrl = `/assets/portfolio/${filename}`;
-
+    // Return the data URL (can be stored directly in Airtable)
     return NextResponse.json({
       success: true,
-      url: publicUrl,
-      filename: filename,
+      url: dataUrl,
+      type: file.type,
+      size: file.size,
     });
   } catch (error) {
     console.error('Error uploading file:', error);
@@ -76,28 +59,5 @@ export async function POST(request: NextRequest) {
       { success: false, message: 'Error uploading file: ' + (error instanceof Error ? error.message : 'Unknown error') },
       { status: 500 }
     );
-  }
-}
-
-// GET endpoint to list uploaded images
-export async function GET() {
-  try {
-    const uploadsDir = path.join(process.cwd(), 'public', 'assets', 'portfolio');
-    
-    if (!existsSync(uploadsDir)) {
-      return NextResponse.json({ files: [] });
-    }
-
-    const { readdir } = await import('fs/promises');
-    const files = await readdir(uploadsDir);
-    
-    const imageFiles = files
-      .filter(file => /\.(jpg|jpeg|png|webp)$/i.test(file))
-      .map(file => `/assets/portfolio/${file}`);
-
-    return NextResponse.json({ files: imageFiles });
-  } catch (error) {
-    console.error('Error listing files:', error);
-    return NextResponse.json({ files: [] });
   }
 }
