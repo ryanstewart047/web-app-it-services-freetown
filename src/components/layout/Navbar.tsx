@@ -99,6 +99,13 @@ export default function Navbar() {
                   >
                     <i className="fas fa-file-contract mr-2"></i>Terms of Service
                   </Link>
+                  <Link 
+                    href="/disclaimer" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={() => setSupportDropdownOpen(false)}
+                  >
+                    <i className="fas fa-exclamation-triangle mr-2"></i>Disclaimer
+                  </Link>
                 </div>
               )}
             </div>
@@ -179,6 +186,13 @@ export default function Navbar() {
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-file-contract mr-2"></i>Terms of Service
+                  </Link>
+                  <Link 
+                    href="/disclaimer" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-950"
+                    onClick={closeMobileMenu}
+                  >
+                    <i className="fas fa-exclamation-triangle mr-2"></i>Disclaimer
                   </Link>
                 </div>
               )}

@@ -413,22 +413,6 @@ export default function Footer() {
               </div>
             </div>
             <div className="flex items-center space-x-6">
-              <Link href="/about" className="text-gray-400 hover:text-white text-sm">
-                About Us
-              </Link>
-              <span className="text-gray-500">•</span>
-              <Link href="/privacy" className="text-gray-400 hover:text-white text-sm">
-                Privacy Policy
-              </Link>
-              <span className="text-gray-500">•</span>
-              <Link href="/terms" className="text-gray-400 hover:text-white text-sm">
-                Terms of Service
-              </Link>
-              <span className="text-gray-500">•</span>
-              <Link href="/disclaimer" className="text-gray-400 hover:text-white text-sm">
-                Disclaimer
-              </Link>
-              <span className="text-gray-500">•</span>
               <button
                 onClick={() => setShowAdminPanel(true)}
                 className="text-gray-500 hover:text-gray-400 text-xs transition-colors"
