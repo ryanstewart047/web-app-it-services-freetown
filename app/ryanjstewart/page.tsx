@@ -69,8 +69,29 @@ export default function PortfolioPage() {
       return;
     }
     
-    setIsAuthenticated(true);
-    setError('');
+    // Validate password with API
+    try {
+      const response = await fetch('/api/portfolio-settings/validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password: adminPassword }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.valid) {
+        setIsAuthenticated(true);
+        setError('');
+      } else {
+        setError('Invalid password. Please try again.');
+        setAdminPassword('');
+      }
+    } catch (error) {
+      setError('Authentication failed. Please try again.');
+      setAdminPassword('');
+    }
   };
   
   // Handle settings save
