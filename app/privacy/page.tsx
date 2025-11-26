@@ -128,7 +128,7 @@ export default function PrivacyPolicyPage() {
               If you have any questions about this Privacy Policy, please contact us:
             </p>
             <div className="text-gray-700 space-y-2">
-              <p><strong>Email:</strong> privacy@itservicesfreetown.com</p>
+              <p><strong>Email:</strong> support@itservicesfreetown.com</p>
               <p><strong>Phone:</strong> +23233399391</p>
               <p><strong>Address:</strong> Freetown, Sierra Leone</p>
             </div>

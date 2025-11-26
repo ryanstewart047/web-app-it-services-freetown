@@ -1163,7 +1163,7 @@ www.itservicesfreetown.com
             <div className="space-y-1 text-gray-700" style={{ fontSize: '15px', lineHeight: '1.6', fontWeight: '500' }}>
               <p className="font-bold text-lg" style={{ fontSize: '16px' }}>#1 Regent Highway Jui Junction, Freetown</p>
               <p>Tel: +232 33 399 391</p>
-              <p>Email: info@itservicesfreetown.com</p>
+              <p>Email: support@itservicesfreetown.com</p>
             </div>
           </div>
 

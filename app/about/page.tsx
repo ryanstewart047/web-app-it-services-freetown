@@ -169,7 +169,7 @@ export default function AboutPage() {
               </div>
               <div>
                 <h3 className="font-semibold text-lg mb-1">Email</h3>
-                <p className="text-blue-100">itservicesfreetown@gmail.com</p>
+                <p className="text-blue-100">support@itservicesfreetown.com</p>
                 <p className="text-sm text-blue-200 mt-1">24/7 Support</p>
               </div>
             </div>

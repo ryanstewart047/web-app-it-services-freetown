@@ -757,7 +757,7 @@ export default function MarketplacePage() {
               <h2 className="text-xl font-bold text-white mb-4">Contact Us</h2>
               <div className="space-y-3">
                 <p><strong>Phone:</strong> +232 33 399 391</p>
-                <p><strong>Email:</strong> info@itservicesfreetown.com</p>
+                <p><strong>Email:</strong> support@itservicesfreetown.com</p>
                 <p><strong>Location:</strong> #1 Regent Highway Jui Junction, Freetown</p>
                 <p><strong>Hours:</strong> Mon-Sat: 8:00 AM - 6:00 PM</p>
               </div>
