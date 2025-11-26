@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Moon, Sun, Mail, Phone, MapPin, Linkedin, Github, Globe, Code, Database, Server, Layout, Smartphone, Award, GraduationCap, Briefcase, ExternalLink, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -8,6 +8,50 @@ import Link from 'next/link';
 export default function PortfolioPage() {
   const [darkMode, setDarkMode] = useState(true);
   const [imageError, setImageError] = useState(false);
+  const [currentSpecialty, setCurrentSpecialty] = useState(0);
+  const [displayText, setDisplayText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const specialties = [
+    { text: 'Full Stack Developer', color: 'from-blue-400 to-cyan-400' },
+    { text: 'IT Specialist', color: 'from-purple-400 to-pink-400' },
+    { text: 'Computer Repair Technician', color: 'from-green-400 to-emerald-400' },
+    { text: 'Mobile Repair Technician', color: 'from-orange-400 to-red-400' },
+    { text: 'Network Administrator', color: 'from-yellow-400 to-orange-400' },
+    { text: 'System Administrator', color: 'from-indigo-400 to-purple-400' },
+    { text: 'Cloud Solutions Architect', color: 'from-cyan-400 to-blue-400' },
+    { text: 'DevOps Engineer', color: 'from-pink-400 to-rose-400' },
+  ];
+
+  useEffect(() => {
+    const currentText = specialties[currentSpecialty].text;
+    const typingSpeed = isDeleting ? 50 : 100;
+    const pauseTime = isDeleting ? 500 : 2000;
+
+    if (!isDeleting && displayText === currentText) {
+      // Pause before deleting
+      const timeout = setTimeout(() => setIsDeleting(true), pauseTime);
+      return () => clearTimeout(timeout);
+    }
+
+    if (isDeleting && displayText === '') {
+      // Move to next specialty
+      setIsDeleting(false);
+      setCurrentSpecialty((prev) => (prev + 1) % specialties.length);
+      return;
+    }
+
+    // Type or delete character
+    const timeout = setTimeout(() => {
+      setDisplayText(
+        isDeleting
+          ? currentText.substring(0, displayText.length - 1)
+          : currentText.substring(0, displayText.length + 1)
+      );
+    }, typingSpeed);
+
+    return () => clearTimeout(timeout);
+  }, [displayText, isDeleting, currentSpecialty]);
 
   const toggleTheme = () => {
     setDarkMode(!darkMode);
@@ -214,9 +258,12 @@ export default function PortfolioPage() {
               <h1 className={`text-5xl md:text-6xl font-bold mb-4 ${darkMode ? 'bg-gradient-to-r from-blue-400 to-purple-400' : 'bg-gradient-to-r from-purple-600 to-pink-600'} bg-clip-text text-transparent`}>
                 Ryan J Stewart
               </h1>
-              <p className={`text-2xl md:text-3xl font-semibold mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                Full Stack Developer & IT Specialist
-              </p>
+              <div className="h-12 mb-6">
+                <p className={`text-2xl md:text-3xl font-semibold bg-gradient-to-r ${specialties[currentSpecialty].color} bg-clip-text text-transparent`}>
+                  {displayText}
+                  <span className={`inline-block w-0.5 h-8 ml-1 ${darkMode ? 'bg-blue-400' : 'bg-purple-600'} animate-pulse`}></span>
+                </p>
+              </div>
               <p className={`text-lg mb-8 leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                 Passionate about creating innovative web solutions and providing expert IT services. 
                 Specialized in building scalable applications with modern technologies and delivering 
