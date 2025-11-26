@@ -531,12 +531,132 @@ export default function PortfolioPage() {
 
                   {/* Project Preview */}
                   <div className={`md:col-span-2 ${index % 2 === 1 ? 'md:col-start-4' : ''}`}>
-                    <div className={`rounded-xl overflow-hidden ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-gray-100 border border-gray-200'} h-full min-h-[400px] flex items-center justify-center`}>
-                      <div className="p-8 text-center">
-                        <Globe className={`w-24 h-24 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
-                        <p className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                          Visit the live website to see the full project
-                        </p>
+                    <div className={`rounded-xl overflow-hidden ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-gray-100 border border-gray-200'} h-full min-h-[400px]`}>
+                      <div className="relative h-full group">
+                        {/* Browser Chrome */}
+                        <div className={`p-3 border-b ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-300'} flex items-center gap-2`}>
+                          <div className="flex gap-1.5">
+                            <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                          </div>
+                          <div className={`flex-1 mx-4 px-3 py-1 rounded text-xs ${darkMode ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-600'}`}>
+                            {project.url}
+                          </div>
+                        </div>
+                        
+                        {/* Website Preview Frame */}
+                        <div className={`relative h-[calc(100%-48px)] ${darkMode ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' : 'bg-gradient-to-br from-white via-gray-50 to-white'} overflow-hidden`}>
+                          {project.id === 1 ? (
+                            // IT Services Freetown Preview
+                            <div className="p-6 space-y-4">
+                              {/* Header Bar */}
+                              <div className={`h-12 rounded-lg ${darkMode ? 'bg-blue-900/30 border border-blue-500/20' : 'bg-blue-100 border border-blue-200'} flex items-center px-4`}>
+                                <div className="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-purple-600"></div>
+                                <div className="ml-3 flex-1 space-y-1">
+                                  <div className={`h-2 w-32 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                  <div className={`h-1.5 w-24 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-200'}`}></div>
+                                </div>
+                              </div>
+                              
+                              {/* Hero Section Mockup */}
+                              <div className={`h-32 rounded-lg ${darkMode ? 'bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/20' : 'bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-200'} p-4`}>
+                                <div className={`h-3 w-3/4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'} mb-2`}></div>
+                                <div className={`h-2 w-1/2 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-200'} mb-3`}></div>
+                                <div className="flex gap-2">
+                                  <div className={`h-6 w-20 rounded ${darkMode ? 'bg-blue-600' : 'bg-blue-500'}`}></div>
+                                  <div className={`h-6 w-20 rounded ${darkMode ? 'bg-purple-600' : 'bg-purple-500'}`}></div>
+                                </div>
+                              </div>
+                              
+                              {/* Cards Grid */}
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className={`h-24 rounded-lg ${darkMode ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200'} p-3`}>
+                                  <div className={`w-8 h-8 rounded mb-2 ${darkMode ? 'bg-green-600/20' : 'bg-green-100'}`}></div>
+                                  <div className={`h-2 w-16 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                </div>
+                                <div className={`h-24 rounded-lg ${darkMode ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200'} p-3`}>
+                                  <div className={`w-8 h-8 rounded mb-2 ${darkMode ? 'bg-orange-600/20' : 'bg-orange-100'}`}></div>
+                                  <div className={`h-2 w-16 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                </div>
+                                <div className={`h-24 rounded-lg ${darkMode ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200'} p-3`}>
+                                  <div className={`w-8 h-8 rounded mb-2 ${darkMode ? 'bg-purple-600/20' : 'bg-purple-100'}`}></div>
+                                  <div className={`h-2 w-16 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                </div>
+                                <div className={`h-24 rounded-lg ${darkMode ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200'} p-3`}>
+                                  <div className={`w-8 h-8 rounded mb-2 ${darkMode ? 'bg-red-600/20' : 'bg-red-100'}`}></div>
+                                  <div className={`h-2 w-16 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                </div>
+                              </div>
+                              
+                              {/* Footer Bar */}
+                              <div className={`h-8 rounded ${darkMode ? 'bg-gray-900/50' : 'bg-gray-200'}`}></div>
+                            </div>
+                          ) : (
+                            // EARPI Environmental NGO Preview
+                            <div className="p-6 space-y-4">
+                              {/* Header with Logo */}
+                              <div className={`h-12 rounded-lg ${darkMode ? 'bg-green-900/30 border border-green-500/20' : 'bg-green-100 border border-green-200'} flex items-center px-4`}>
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white text-xs font-bold">
+                                  🌱
+                                </div>
+                                <div className="ml-3 flex gap-4">
+                                  <div className={`h-2 w-16 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                  <div className={`h-2 w-16 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                  <div className={`h-2 w-16 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                </div>
+                              </div>
+                              
+                              {/* Hero Banner */}
+                              <div className={`h-28 rounded-lg ${darkMode ? 'bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/20' : 'bg-gradient-to-r from-green-100 to-emerald-100 border border-green-200'} p-4 relative overflow-hidden`}>
+                                <div className="absolute top-2 right-2 text-4xl opacity-20">🌳</div>
+                                <div className={`h-3 w-2/3 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'} mb-2`}></div>
+                                <div className={`h-2 w-1/2 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-200'} mb-3`}></div>
+                                <div className={`h-6 w-24 rounded ${darkMode ? 'bg-green-600' : 'bg-green-500'}`}></div>
+                              </div>
+                              
+                              {/* Impact Stats */}
+                              <div className="grid grid-cols-3 gap-2">
+                                <div className={`h-16 rounded ${darkMode ? 'bg-green-900/20 border border-green-500/20' : 'bg-green-50 border border-green-200'} p-2`}>
+                                  <div className={`h-3 w-12 rounded mb-1 ${darkMode ? 'bg-green-600' : 'bg-green-500'}`}></div>
+                                  <div className={`h-1.5 w-full rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                </div>
+                                <div className={`h-16 rounded ${darkMode ? 'bg-blue-900/20 border border-blue-500/20' : 'bg-blue-50 border border-blue-200'} p-2`}>
+                                  <div className={`h-3 w-12 rounded mb-1 ${darkMode ? 'bg-blue-600' : 'bg-blue-500'}`}></div>
+                                  <div className={`h-1.5 w-full rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                </div>
+                                <div className={`h-16 rounded ${darkMode ? 'bg-yellow-900/20 border border-yellow-500/20' : 'bg-yellow-50 border border-yellow-200'} p-2`}>
+                                  <div className={`h-3 w-12 rounded mb-1 ${darkMode ? 'bg-yellow-600' : 'bg-yellow-500'}`}></div>
+                                  <div className={`h-1.5 w-full rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                </div>
+                              </div>
+                              
+                              {/* Project Cards */}
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className={`h-20 rounded-lg ${darkMode ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200'} p-2`}>
+                                  <div className={`h-10 w-full rounded mb-1 ${darkMode ? 'bg-green-900/30' : 'bg-green-100'}`}></div>
+                                  <div className={`h-1.5 w-3/4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                </div>
+                                <div className={`h-20 rounded-lg ${darkMode ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200'} p-2`}>
+                                  <div className={`h-10 w-full rounded mb-1 ${darkMode ? 'bg-emerald-900/30' : 'bg-emerald-100'}`}></div>
+                                  <div className={`h-1.5 w-3/4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Hover Overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
+                            <a 
+                              href={project.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 px-6 py-3 bg-white text-gray-900 rounded-lg font-semibold hover:bg-gray-100 transition-colors transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300"
+                            >
+                              View Live Site <ExternalLink className="w-4 h-4" />
+                            </a>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
