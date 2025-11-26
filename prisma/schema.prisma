@@ -286,3 +286,14 @@ model Receipt {
   @@index([customerName])
   @@index([createdAt])
 }
+
+model PortfolioSettings {
+  id           String   @id @default(cuid())
+  email        String
+  phone        String
+  location     String
+  profilePhoto String   @db.Text
+  logoText     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
