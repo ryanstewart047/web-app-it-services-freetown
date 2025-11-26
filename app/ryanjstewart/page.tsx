@@ -48,11 +48,17 @@ export default function PortfolioPage() {
   // Load settings
   const loadSettings = async () => {
     try {
-      const response = await fetch('/api/portfolio-settings');
+      const response = await fetch('/api/portfolio-settings', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
       if (response.ok) {
         const data = await response.json();
         setSettings(data);
         setEditedSettings(data);
+        setImageError(false); // Reset image error on new settings
       }
     } catch (error) {
       console.error('Error loading settings:', error);
@@ -476,6 +482,8 @@ export default function PortfolioPage() {
                       height={300}
                       className="rounded-full border-4 border-white/20 shadow-2xl relative z-10"
                       onError={() => setImageError(true)}
+                      key={settings.profilePhoto}
+                      unoptimized={settings.profilePhoto.startsWith('data:')}
                     />
                   ) : (
                     <div className={`w-[300px] h-[300px] rounded-full border-4 ${darkMode ? 'border-white/20 bg-gradient-to-br from-blue-600 to-purple-600' : 'border-white bg-gradient-to-br from-purple-500 to-pink-500'} shadow-2xl relative z-10 flex items-center justify-center`}>
