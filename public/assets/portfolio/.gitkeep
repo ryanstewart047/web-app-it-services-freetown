@@ -1,0 +1,9 @@
+# Portfolio Assets Directory
+
+This directory stores uploaded profile photos and portfolio-related images.
+
+## Uploaded Files
+- Profile photos uploaded via the admin panel are stored here
+- Files are automatically named with timestamps to prevent conflicts
+- Maximum file size: 5MB
+- Supported formats: JPG, PNG, WebP

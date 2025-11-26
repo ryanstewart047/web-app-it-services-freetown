@@ -30,6 +30,8 @@ export default function PortfolioPage() {
   
   const [editedSettings, setEditedSettings] = useState(settings);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Prevent scroll restoration and ensure top position on load
   useEffect(() => {
@@ -107,6 +109,57 @@ export default function PortfolioPage() {
       setError('Error saving settings');
     } finally {
       setIsSaving(false);
+    }
+  };
+  
+  // Handle file upload
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setError('Invalid file type. Please upload JPG, PNG, or WebP');
+      return;
+    }
+    
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('File too large. Maximum size is 5MB');
+      return;
+    }
+    
+    setIsUploading(true);
+    setError('');
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('password', adminPassword);
+      
+      const response = await fetch('/api/upload-profile-photo', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        setEditedSettings({ ...editedSettings, profilePhoto: data.url });
+        setSuccessMessage('Photo uploaded! Click Save to apply changes.');
+        setTimeout(() => setSuccessMessage(''), 3000);
+      } else {
+        setError(data.message || 'Failed to upload photo');
+      }
+    } catch (error) {
+      setError('Error uploading photo');
+    } finally {
+      setIsUploading(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
   
@@ -992,18 +1045,62 @@ export default function PortfolioPage() {
                   {/* Profile Photo */}
                   <div>
                     <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      Profile Photo URL
+                      Profile Photo
                     </label>
+                    
+                    {/* Photo Preview */}
+                    {editedSettings.profilePhoto && (
+                      <div className="mb-3">
+                        <img 
+                          src={editedSettings.profilePhoto} 
+                          alt="Profile preview" 
+                          className="w-32 h-32 rounded-full object-cover border-4 border-blue-500/20"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+                    
+                    {/* Upload Button */}
                     <input
-                      type="text"
-                      value={editedSettings.profilePhoto}
-                      onChange={(e) => setEditedSettings({ ...editedSettings, profilePhoto: e.target.value })}
-                      placeholder="/assets/profile-ryan.jpg"
-                      className={`w-full px-4 py-3 rounded-lg ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-300'} border focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      className="hidden"
                     />
-                    <p className={`text-xs mt-1 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                      Upload image to /public/assets/ and enter path
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                      className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-colors ${
+                        darkMode 
+                          ? 'bg-blue-600 hover:bg-blue-500 text-white' 
+                          : 'bg-blue-500 hover:bg-blue-600 text-white'
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                      <Upload className="w-5 h-5" />
+                      {isUploading ? 'Uploading...' : 'Upload New Photo'}
+                    </button>
+                    
+                    <p className={`text-xs mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                      JPG, PNG, or WebP • Max 5MB • Square images work best
                     </p>
+                    
+                    {/* Manual URL Input (Optional) */}
+                    <details className="mt-3">
+                      <summary className={`text-xs cursor-pointer ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-700'}`}>
+                        Or enter URL manually
+                      </summary>
+                      <input
+                        type="text"
+                        value={editedSettings.profilePhoto}
+                        onChange={(e) => setEditedSettings({ ...editedSettings, profilePhoto: e.target.value })}
+                        placeholder="/assets/profile-ryan.jpg"
+                        className={`w-full mt-2 px-3 py-2 text-sm rounded-lg ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-300'} border focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      />
+                    </details>
                   </div>
 
                   {/* Logo Text */}

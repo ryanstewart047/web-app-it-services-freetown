@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 
-const SETTINGS_FILE = path.join(process.cwd(), 'data', 'portfolio-settings.json');
-
-// Ensure data directory exists
-function ensureDataDir() {
-  const dir = path.dirname(SETTINGS_FILE);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-}
+// Use Airtable for portfolio settings storage
+const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
+const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+const AIRTABLE_TABLE_NAME = 'PortfolioSettings';
 
 // Default settings
 const DEFAULT_SETTINGS = {
@@ -21,17 +14,42 @@ const DEFAULT_SETTINGS = {
   logoText: 'RJS',
 };
 
-// GET settings
+// GET settings from Airtable
 export async function GET() {
   try {
-    ensureDataDir();
-    
-    if (fs.existsSync(SETTINGS_FILE)) {
-      const data = fs.readFileSync(SETTINGS_FILE, 'utf-8');
-      return NextResponse.json(JSON.parse(data));
+    if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID) {
+      console.log('Airtable not configured, returning defaults');
+      return NextResponse.json(DEFAULT_SETTINGS);
     }
+
+    const response = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}?maxRecords=1`,
+      {
+        headers: {
+          Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+        },
+        cache: 'no-store',
+      }
+    );
+
+    if (!response.ok) {
+      console.error('Airtable fetch error:', response.status);
+      return NextResponse.json(DEFAULT_SETTINGS);
+    }
+
+    const data = await response.json();
     
-    // Return defaults if file doesn't exist
+    if (data.records && data.records.length > 0) {
+      const record = data.records[0].fields;
+      return NextResponse.json({
+        email: record.email || DEFAULT_SETTINGS.email,
+        phone: record.phone || DEFAULT_SETTINGS.phone,
+        location: record.location || DEFAULT_SETTINGS.location,
+        profilePhoto: record.profilePhoto || DEFAULT_SETTINGS.profilePhoto,
+        logoText: record.logoText || DEFAULT_SETTINGS.logoText,
+      });
+    }
+
     return NextResponse.json(DEFAULT_SETTINGS);
   } catch (error) {
     console.error('Error reading settings:', error);
@@ -39,7 +57,7 @@ export async function GET() {
   }
 }
 
-// POST/PUT settings (requires password)
+// POST/PUT settings to Airtable
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -54,33 +72,86 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    ensureDataDir();
-    
-    // Read existing settings or use defaults
-    let currentSettings = DEFAULT_SETTINGS;
-    if (fs.existsSync(SETTINGS_FILE)) {
-      const data = fs.readFileSync(SETTINGS_FILE, 'utf-8');
-      currentSettings = JSON.parse(data);
+    if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID) {
+      return NextResponse.json(
+        { success: false, message: 'Database not configured' },
+        { status: 500 }
+      );
     }
 
-    // Merge with new settings
-    const updatedSettings = {
-      ...currentSettings,
-      ...settings,
+    // Check if record exists
+    const listResponse = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}?maxRecords=1`,
+      {
+        headers: {
+          Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+        },
+      }
+    );
+
+    const listData = await listResponse.json();
+    const recordId = listData.records && listData.records.length > 0 ? listData.records[0].id : null;
+
+    const settingsToSave = {
+      email: settings.email,
+      phone: settings.phone,
+      location: settings.location,
+      profilePhoto: settings.profilePhoto,
+      logoText: settings.logoText,
       updatedAt: new Date().toISOString(),
     };
 
-    // Save to file
-    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(updatedSettings, null, 2));
+    let result;
+
+    if (recordId) {
+      // Update existing record
+      result = await fetch(
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}/${recordId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fields: settingsToSave,
+          }),
+        }
+      );
+    } else {
+      // Create new record
+      result = await fetch(
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fields: settingsToSave,
+          }),
+        }
+      );
+    }
+
+    if (!result.ok) {
+      const errorData = await result.json();
+      console.error('Airtable save error:', errorData);
+      return NextResponse.json(
+        { success: false, message: 'Failed to save settings to database' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
-      settings: updatedSettings,
+      settings: settingsToSave,
     });
   } catch (error) {
     console.error('Error saving settings:', error);
     return NextResponse.json(
-      { success: false, message: 'Error saving settings' },
+      { success: false, message: 'Error saving settings: ' + (error instanceof Error ? error.message : 'Unknown error') },
       { status: 500 }
     );
   }
