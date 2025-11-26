@@ -12,27 +12,40 @@ export default function PortfolioPage() {
   const [displayText, setDisplayText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Prevent scroll restoration and ensure top position on load
+  useEffect(() => {
+    // Force scroll to top on component mount
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, []);
+
   // Intersection Observer for scroll animations
   useEffect(() => {
     const observerOptions = {
       threshold: 0.1,
-      rootMargin: '0px 0px -100px 0px'
+      rootMargin: '0px 0px -50px 0px'
     };
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           entry.target.classList.add('animate-fade-in-up');
-          entry.target.classList.remove('opacity-0', 'translate-y-8');
         }
       });
     }, observerOptions);
 
-    // Observe all elements with scroll-animate class
-    const elements = document.querySelectorAll('.scroll-animate');
-    elements.forEach(el => observer.observe(el));
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      const elements = document.querySelectorAll('.scroll-animate');
+      elements.forEach(el => observer.observe(el));
+    }, 100);
 
-    return () => observer.disconnect();
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
   }, [darkMode]); // Re-run when theme changes to catch new elements
 
   const specialties = [
@@ -185,10 +198,16 @@ export default function PortfolioPage() {
           scroll-behavior: smooth;
         }
         
+        /* Prevent scroll restoration on refresh */
+        html, body {
+          overflow-x: hidden;
+        }
+        
         .scroll-animate {
           opacity: 0;
           transform: translateY(2rem);
-          transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+          transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
+                      transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .animate-fade-in-up {
@@ -198,11 +217,11 @@ export default function PortfolioPage() {
         
         /* Stagger animation delays */
         .scroll-animate:nth-child(1) { transition-delay: 0ms; }
-        .scroll-animate:nth-child(2) { transition-delay: 100ms; }
-        .scroll-animate:nth-child(3) { transition-delay: 200ms; }
-        .scroll-animate:nth-child(4) { transition-delay: 300ms; }
-        .scroll-animate:nth-child(5) { transition-delay: 400ms; }
-        .scroll-animate:nth-child(6) { transition-delay: 500ms; }
+        .scroll-animate:nth-child(2) { transition-delay: 150ms; }
+        .scroll-animate:nth-child(3) { transition-delay: 300ms; }
+        .scroll-animate:nth-child(4) { transition-delay: 450ms; }
+        .scroll-animate:nth-child(5) { transition-delay: 600ms; }
+        .scroll-animate:nth-child(6) { transition-delay: 750ms; }
       `}</style>
       
       {/* Custom Navigation Header - Sticky */}
