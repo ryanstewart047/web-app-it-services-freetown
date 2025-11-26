@@ -113,21 +113,76 @@ export default function PortfolioPage() {
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
-      {/* Theme Toggle Button - Fixed Position */}
-      <button
-        onClick={toggleTheme}
-        className={`fixed top-6 right-6 z-50 p-3 rounded-full shadow-lg transition-all duration-300 ${
-          darkMode 
-            ? 'bg-yellow-400 text-gray-900 hover:bg-yellow-300' 
-            : 'bg-gray-800 text-yellow-400 hover:bg-gray-700'
-        }`}
-        aria-label="Toggle theme"
-      >
-        {darkMode ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
-      </button>
+      <style jsx global>{`
+        html {
+          scroll-behavior: smooth;
+        }
+      `}</style>
+      
+      {/* Custom Navigation Header - Sticky */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-md ${darkMode ? 'bg-gray-900/80 border-gray-800' : 'bg-white/80 border-gray-200'} border-b transition-colors duration-300`}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex justify-between items-center">
+            {/* Custom Logo */}
+            <div className="flex items-center gap-3">
+              <div className={`relative w-12 h-12 rounded-lg ${darkMode ? 'bg-gradient-to-br from-blue-500 to-purple-600' : 'bg-gradient-to-br from-purple-600 to-pink-600'} flex items-center justify-center font-bold text-white text-xl shadow-lg`}>
+                <span>RJS</span>
+                <div className={`absolute inset-0 rounded-lg ${darkMode ? 'bg-gradient-to-br from-blue-500 to-purple-600' : 'bg-gradient-to-br from-purple-600 to-pink-600'} blur-md opacity-50 -z-10`}></div>
+              </div>
+              <div>
+                <h1 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Ryan J Stewart
+                </h1>
+                <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Full Stack Developer
+                </p>
+              </div>
+            </div>
+
+            {/* Navigation Links & Theme Toggle */}
+            <div className="flex items-center gap-4">
+              <a 
+                href="#projects" 
+                className={`hidden md:block text-sm font-medium ${darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-700 hover:text-gray-900'} transition-colors`}
+              >
+                Projects
+              </a>
+              <a 
+                href="#skills" 
+                className={`hidden md:block text-sm font-medium ${darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-700 hover:text-gray-900'} transition-colors`}
+              >
+                Skills
+              </a>
+              <a 
+                href="#education" 
+                className={`hidden md:block text-sm font-medium ${darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-700 hover:text-gray-900'} transition-colors`}
+              >
+                Education
+              </a>
+              <a 
+                href="mailto:support@itservicesfreetown.com"
+                className={`hidden md:block text-sm font-medium ${darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-700 hover:text-gray-900'} transition-colors`}
+              >
+                Contact
+              </a>
+              <button
+                onClick={toggleTheme}
+                className={`p-2 rounded-lg transition-all duration-300 ${
+                  darkMode 
+                    ? 'bg-yellow-400/10 text-yellow-400 hover:bg-yellow-400/20' 
+                    : 'bg-gray-800/10 text-gray-800 hover:bg-gray-800/20'
+                }`}
+                aria-label="Toggle theme"
+              >
+                {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
 
       {/* Hero Section */}
-      <section className={`relative py-20 px-4 overflow-hidden ${darkMode ? 'bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900' : 'bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50'}`}>
+      <section className={`relative pt-32 pb-20 px-4 overflow-hidden ${darkMode ? 'bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900' : 'bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50'}`}>
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Profile Image */}
@@ -206,7 +261,7 @@ export default function PortfolioPage() {
       </section>
 
       {/* Skills Section */}
-      <section className={`py-20 px-4 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+      <section id="skills" className={`py-20 px-4 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className={`text-4xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -312,7 +367,7 @@ export default function PortfolioPage() {
       </section>
 
       {/* Projects Section */}
-      <section className={`py-20 px-4 ${darkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
+      <section id="projects" className={`py-20 px-4 ${darkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className={`text-4xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -446,7 +501,7 @@ export default function PortfolioPage() {
       </section>
 
       {/* Education Section */}
-      <section className={`py-20 px-4 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+      <section id="education" className={`py-20 px-4 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className={`text-4xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>

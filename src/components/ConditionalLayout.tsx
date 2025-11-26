@@ -17,9 +17,10 @@ interface ConditionalLayoutProps {
 export default function ConditionalLayout({ children }: ConditionalLayoutProps) {
   const pathname = usePathname();
   const isAdminPage = pathname?.startsWith('/admin');
+  const isPortfolioPage = pathname === '/ryanjstewart';
 
-  if (isAdminPage) {
-    // Admin pages - clean layout with minimal components
+  if (isAdminPage || isPortfolioPage) {
+    // Admin pages and Portfolio - clean layout with minimal components
     return (
       <>
         {children}
