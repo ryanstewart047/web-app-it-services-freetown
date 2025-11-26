@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Moon, Sun, Mail, Phone, MapPin, Linkedin, Github, Globe, Code, Database, Server, Layout, Smartphone, Award, GraduationCap, Briefcase, ExternalLink, ChevronRight } from 'lucide-react';
+import { Moon, Sun, Mail, Phone, MapPin, Linkedin, Github, Globe, Code, Database, Server, Layout, Smartphone, Award, GraduationCap, Briefcase, ExternalLink, ChevronRight, Lock, X, Upload, Save } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -11,6 +11,25 @@ export default function PortfolioPage() {
   const [currentSpecialty, setCurrentSpecialty] = useState(0);
   const [displayText, setDisplayText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Admin panel state
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  
+  // Settings state
+  const [settings, setSettings] = useState({
+    email: 'support@itservicesfreetown.com',
+    phone: '+232 76 123 456',
+    location: 'Freetown, Sierra Leone',
+    profilePhoto: '/assets/profile-ryan.jpg',
+    logoText: 'RJS',
+  });
+  
+  const [editedSettings, setEditedSettings] = useState(settings);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Prevent scroll restoration and ensure top position on load
   useEffect(() => {
@@ -19,7 +38,87 @@ export default function PortfolioPage() {
       window.history.scrollRestoration = 'manual';
     }
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    
+    // Load settings from API
+    loadSettings();
   }, []);
+  
+  // Load settings
+  const loadSettings = async () => {
+    try {
+      const response = await fetch('/api/portfolio-settings');
+      if (response.ok) {
+        const data = await response.json();
+        setSettings(data);
+        setEditedSettings(data);
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
+  };
+  
+  // Handle admin login
+  const handleAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    
+    if (adminPassword.length < 3) {
+      setError('Password required');
+      return;
+    }
+    
+    setIsAuthenticated(true);
+    setError('');
+  };
+  
+  // Handle settings save
+  const handleSaveSettings = async () => {
+    setIsSaving(true);
+    setError('');
+    setSuccessMessage('');
+    
+    try {
+      const response = await fetch('/api/portfolio-settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          password: adminPassword,
+          settings: editedSettings,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        setSettings(editedSettings);
+        setSuccessMessage('Settings saved successfully!');
+        setTimeout(() => {
+          setSuccessMessage('');
+          handleCloseAdmin();
+          // Reload to apply changes
+          window.location.reload();
+        }, 1500);
+      } else {
+        setError(data.message || 'Failed to save settings');
+      }
+    } catch (error) {
+      setError('Error saving settings');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
+  // Close admin panel
+  const handleCloseAdmin = () => {
+    setShowAdminPanel(false);
+    setIsAuthenticated(false);
+    setAdminPassword('');
+    setEditedSettings(settings);
+    setError('');
+    setSuccessMessage('');
+  };
 
   // Intersection Observer for scroll animations
   useEffect(() => {
@@ -231,7 +330,7 @@ export default function PortfolioPage() {
             {/* Custom Logo */}
             <div className="flex items-center gap-3">
               <div className={`relative w-12 h-12 rounded-lg ${darkMode ? 'bg-gradient-to-br from-blue-500 to-purple-600' : 'bg-gradient-to-br from-purple-600 to-pink-600'} flex items-center justify-center font-bold text-white text-xl shadow-lg`}>
-                <span>RJS</span>
+                <span>{settings.logoText}</span>
                 <div className={`absolute inset-0 rounded-lg ${darkMode ? 'bg-gradient-to-br from-blue-500 to-purple-600' : 'bg-gradient-to-br from-purple-600 to-pink-600'} blur-md opacity-50 -z-10`}></div>
               </div>
               <div>
@@ -297,7 +396,7 @@ export default function PortfolioPage() {
                 <div className="relative">
                   {!imageError ? (
                     <Image
-                      src="/assets/profile-ryan.jpg"
+                      src={settings.profilePhoto}
                       alt="Ryan J Stewart"
                       width={300}
                       height={300}
@@ -306,7 +405,7 @@ export default function PortfolioPage() {
                     />
                   ) : (
                     <div className={`w-[300px] h-[300px] rounded-full border-4 ${darkMode ? 'border-white/20 bg-gradient-to-br from-blue-600 to-purple-600' : 'border-white bg-gradient-to-br from-purple-500 to-pink-500'} shadow-2xl relative z-10 flex items-center justify-center`}>
-                      <span className="text-8xl font-bold text-white">RJS</span>
+                      <span className="text-8xl font-bold text-white">{settings.logoText}</span>
                     </div>
                   )}
                   <div className={`absolute bottom-4 right-4 z-20 ${darkMode ? 'bg-green-500' : 'bg-green-400'} w-8 h-8 rounded-full border-4 ${darkMode ? 'border-gray-900' : 'border-white'}`}></div>
@@ -334,14 +433,14 @@ export default function PortfolioPage() {
               {/* Contact Info */}
               <div className="flex flex-wrap gap-4 justify-center md:justify-start mb-8">
                 <a 
-                  href="mailto:support@itservicesfreetown.com" 
+                  href={`mailto:${settings.email}`}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg ${darkMode ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-200 hover:bg-gray-300'} transition-colors`}
                 >
                   <Mail className="w-4 h-4" />
                   <span className="text-sm">Email</span>
                 </a>
                 <a 
-                  href="tel:+23276123456" 
+                  href={`tel:${settings.phone.replace(/\s/g, '')}`}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg ${darkMode ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-200 hover:bg-gray-300'} transition-colors`}
                 >
                   <Phone className="w-4 h-4" />
@@ -349,11 +448,9 @@ export default function PortfolioPage() {
                 </a>
                 <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${darkMode ? 'bg-white/10' : 'bg-gray-200'}`}>
                   <MapPin className="w-4 h-4" />
-                  <span className="text-sm">Freetown, SL</span>
+                  <span className="text-sm">{settings.location}</span>
                 </div>
-              </div>
-
-              {/* CTA Buttons */}
+              </div>              {/* CTA Buttons */}
               <div className="flex flex-wrap gap-4 justify-center md:justify-start">
                 <Link 
                   href="/"
@@ -778,7 +875,7 @@ export default function PortfolioPage() {
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <a 
-              href="mailto:support@itservicesfreetown.com"
+              href={`mailto:${settings.email}`}
               className="flex items-center gap-2 px-8 py-4 bg-white text-gray-900 rounded-lg font-semibold hover:bg-gray-100 transition-colors shadow-lg"
             >
               <Mail className="w-5 h-5" />
@@ -796,14 +893,199 @@ export default function PortfolioPage() {
       </section>
 
       {/* Footer */}
-      <footer className={`py-8 px-4 ${darkMode ? 'bg-gray-950' : 'bg-gray-900'} text-center`}>
+      <footer className={`py-8 px-4 ${darkMode ? 'bg-gray-950' : 'bg-gray-900'} text-center relative`}>
         <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
           © {new Date().getFullYear()} Ryan J Stewart. All rights reserved.
         </p>
         <p className={`text-xs mt-2 ${darkMode ? 'text-gray-600' : 'text-gray-600'}`}>
           Built with Next.js, TypeScript & Tailwind CSS
         </p>
+        
+        {/* Discreet Admin Button */}
+        <button
+          onClick={() => setShowAdminPanel(true)}
+          className={`absolute bottom-4 right-4 p-2 rounded-md opacity-20 hover:opacity-60 transition-opacity ${darkMode ? 'text-gray-600 hover:text-gray-400' : 'text-gray-700 hover:text-gray-500'}`}
+          title="Admin Panel"
+        >
+          <Lock className="w-4 h-4" />
+        </button>
       </footer>
+
+      {/* Admin Panel Modal */}
+      {showAdminPanel && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={handleCloseAdmin}>
+          <div 
+            className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl ${darkMode ? 'bg-gray-900 border border-gray-700' : 'bg-white border border-gray-200'} shadow-2xl`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className={`sticky top-0 z-10 flex justify-between items-center p-6 border-b ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
+              <div className="flex items-center gap-3">
+                <Lock className={`w-6 h-6 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+                <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Portfolio Admin
+                </h2>
+              </div>
+              <button
+                onClick={handleCloseAdmin}
+                className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'} transition-colors`}
+              >
+                <X className={`w-6 h-6 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              {!isAuthenticated ? (
+                // Login Form
+                <div className="max-w-md mx-auto">
+                  <div className="text-center mb-6">
+                    <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 ${darkMode ? 'bg-blue-500/20' : 'bg-blue-100'}`}>
+                      <Lock className={`w-10 h-10 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+                    </div>
+                    <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      Enter admin password to manage portfolio settings
+                    </p>
+                  </div>
+                  
+                  <form onSubmit={handleAdminLogin} className="space-y-4">
+                    <div>
+                      <input
+                        type="password"
+                        value={adminPassword}
+                        onChange={(e) => setAdminPassword(e.target.value)}
+                        placeholder="Admin Password"
+                        className={`w-full px-4 py-3 rounded-lg ${darkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-300 text-gray-900'} border focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                        autoFocus
+                      />
+                    </div>
+                    
+                    {error && (
+                      <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+                        <p className="text-red-500 text-sm">{error}</p>
+                      </div>
+                    )}
+                    
+                    <button
+                      type="submit"
+                      className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg font-semibold transition-all"
+                    >
+                      Login
+                    </button>
+                  </form>
+                </div>
+              ) : (
+                // Settings Form
+                <div className="space-y-6">
+                  {successMessage && (
+                    <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
+                      <p className="text-green-500 font-medium">{successMessage}</p>
+                    </div>
+                  )}
+                  
+                  {error && (
+                    <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+                      <p className="text-red-500">{error}</p>
+                    </div>
+                  )}
+
+                  {/* Profile Photo */}
+                  <div>
+                    <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Profile Photo URL
+                    </label>
+                    <input
+                      type="text"
+                      value={editedSettings.profilePhoto}
+                      onChange={(e) => setEditedSettings({ ...editedSettings, profilePhoto: e.target.value })}
+                      placeholder="/assets/profile-ryan.jpg"
+                      className={`w-full px-4 py-3 rounded-lg ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-300'} border focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                    />
+                    <p className={`text-xs mt-1 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                      Upload image to /public/assets/ and enter path
+                    </p>
+                  </div>
+
+                  {/* Logo Text */}
+                  <div>
+                    <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Logo Text (Initials)
+                    </label>
+                    <input
+                      type="text"
+                      value={editedSettings.logoText}
+                      onChange={(e) => setEditedSettings({ ...editedSettings, logoText: e.target.value.substring(0, 3) })}
+                      placeholder="RJS"
+                      maxLength={3}
+                      className={`w-full px-4 py-3 rounded-lg ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-300'} border focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                    />
+                  </div>
+
+                  {/* Email */}
+                  <div>
+                    <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={editedSettings.email}
+                      onChange={(e) => setEditedSettings({ ...editedSettings, email: e.target.value })}
+                      placeholder="your@email.com"
+                      className={`w-full px-4 py-3 rounded-lg ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-300'} border focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                    />
+                  </div>
+
+                  {/* Phone */}
+                  <div>
+                    <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Phone Number
+                    </label>
+                    <input
+                      type="text"
+                      value={editedSettings.phone}
+                      onChange={(e) => setEditedSettings({ ...editedSettings, phone: e.target.value })}
+                      placeholder="+232 76 123 456"
+                      className={`w-full px-4 py-3 rounded-lg ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-300'} border focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                    />
+                  </div>
+
+                  {/* Location */}
+                  <div>
+                    <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Location
+                    </label>
+                    <input
+                      type="text"
+                      value={editedSettings.location}
+                      onChange={(e) => setEditedSettings({ ...editedSettings, location: e.target.value })}
+                      placeholder="Freetown, Sierra Leone"
+                      className={`w-full px-4 py-3 rounded-lg ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-300'} border focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                    />
+                  </div>
+
+                  {/* Save Button */}
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      onClick={handleSaveSettings}
+                      disabled={isSaving}
+                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-all"
+                    >
+                      <Save className="w-5 h-5" />
+                      {isSaving ? 'Saving...' : 'Save Changes'}
+                    </button>
+                    <button
+                      onClick={handleCloseAdmin}
+                      className={`px-6 py-3 rounded-lg font-semibold transition-colors ${darkMode ? 'bg-gray-800 hover:bg-gray-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-900'}`}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
