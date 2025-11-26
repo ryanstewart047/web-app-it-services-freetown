@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Moon, Sun, Mail, Phone, MapPin, Linkedin, Github, Globe, Code, Database, Server, Layout, Smartphone, Award, GraduationCap, Briefcase, ExternalLink, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -11,6 +11,29 @@ export default function PortfolioPage() {
   const [currentSpecialty, setCurrentSpecialty] = useState(0);
   const [displayText, setDisplayText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Intersection Observer for scroll animations
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -100px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-fade-in-up');
+          entry.target.classList.remove('opacity-0', 'translate-y-8');
+        }
+      });
+    }, observerOptions);
+
+    // Observe all elements with scroll-animate class
+    const elements = document.querySelectorAll('.scroll-animate');
+    elements.forEach(el => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, [darkMode]); // Re-run when theme changes to catch new elements
 
   const specialties = [
     { text: 'Full Stack Developer', color: 'from-blue-400 to-cyan-400' },
@@ -161,6 +184,25 @@ export default function PortfolioPage() {
         html {
           scroll-behavior: smooth;
         }
+        
+        .scroll-animate {
+          opacity: 0;
+          transform: translateY(2rem);
+          transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        
+        .animate-fade-in-up {
+          opacity: 1 !important;
+          transform: translateY(0) !important;
+        }
+        
+        /* Stagger animation delays */
+        .scroll-animate:nth-child(1) { transition-delay: 0ms; }
+        .scroll-animate:nth-child(2) { transition-delay: 100ms; }
+        .scroll-animate:nth-child(3) { transition-delay: 200ms; }
+        .scroll-animate:nth-child(4) { transition-delay: 300ms; }
+        .scroll-animate:nth-child(5) { transition-delay: 400ms; }
+        .scroll-animate:nth-child(6) { transition-delay: 500ms; }
       `}</style>
       
       {/* Custom Navigation Header - Sticky */}
@@ -310,7 +352,7 @@ export default function PortfolioPage() {
       {/* Skills Section */}
       <section id="skills" className={`py-20 px-4 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-12 scroll-animate">
             <h2 className={`text-4xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               Technical Skills
             </h2>
@@ -321,7 +363,7 @@ export default function PortfolioPage() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Frontend */}
-            <div className={`p-6 rounded-xl ${darkMode ? 'bg-gradient-to-br from-blue-900/50 to-blue-800/30 border border-blue-500/20' : 'bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200'} hover:scale-105 transition-transform`}>
+            <div className={`scroll-animate p-6 rounded-xl ${darkMode ? 'bg-gradient-to-br from-blue-900/50 to-blue-800/30 border border-blue-500/20' : 'bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200'} hover:scale-105 transition-transform`}>
               <div className="flex items-center gap-3 mb-4">
                 <Layout className={`w-8 h-8 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
                 <h3 className={`text-xl font-bold ${darkMode ? 'text-blue-300' : 'text-blue-700'}`}>Frontend</h3>
@@ -339,7 +381,7 @@ export default function PortfolioPage() {
             </div>
 
             {/* Backend */}
-            <div className={`p-6 rounded-xl ${darkMode ? 'bg-gradient-to-br from-green-900/50 to-green-800/30 border border-green-500/20' : 'bg-gradient-to-br from-green-50 to-green-100 border border-green-200'} hover:scale-105 transition-transform`}>
+            <div className={`scroll-animate p-6 rounded-xl ${darkMode ? 'bg-gradient-to-br from-green-900/50 to-green-800/30 border border-green-500/20' : 'bg-gradient-to-br from-green-50 to-green-100 border border-green-200'} hover:scale-105 transition-transform`}>
               <div className="flex items-center gap-3 mb-4">
                 <Server className={`w-8 h-8 ${darkMode ? 'text-green-400' : 'text-green-600'}`} />
                 <h3 className={`text-xl font-bold ${darkMode ? 'text-green-300' : 'text-green-700'}`}>Backend</h3>
@@ -357,7 +399,7 @@ export default function PortfolioPage() {
             </div>
 
             {/* Database */}
-            <div className={`p-6 rounded-xl ${darkMode ? 'bg-gradient-to-br from-purple-900/50 to-purple-800/30 border border-purple-500/20' : 'bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200'} hover:scale-105 transition-transform`}>
+            <div className={`scroll-animate p-6 rounded-xl ${darkMode ? 'bg-gradient-to-br from-purple-900/50 to-purple-800/30 border border-purple-500/20' : 'bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200'} hover:scale-105 transition-transform`}>
               <div className="flex items-center gap-3 mb-4">
                 <Database className={`w-8 h-8 ${darkMode ? 'text-purple-400' : 'text-purple-600'}`} />
                 <h3 className={`text-xl font-bold ${darkMode ? 'text-purple-300' : 'text-purple-700'}`}>Database</h3>
@@ -375,7 +417,7 @@ export default function PortfolioPage() {
             </div>
 
             {/* DevOps */}
-            <div className={`p-6 rounded-xl ${darkMode ? 'bg-gradient-to-br from-orange-900/50 to-orange-800/30 border border-orange-500/20' : 'bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200'} hover:scale-105 transition-transform`}>
+            <div className={`scroll-animate p-6 rounded-xl ${darkMode ? 'bg-gradient-to-br from-orange-900/50 to-orange-800/30 border border-orange-500/20' : 'bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200'} hover:scale-105 transition-transform`}>
               <div className="flex items-center gap-3 mb-4">
                 <Code className={`w-8 h-8 ${darkMode ? 'text-orange-400' : 'text-orange-600'}`} />
                 <h3 className={`text-xl font-bold ${darkMode ? 'text-orange-300' : 'text-orange-700'}`}>DevOps & Tools</h3>
@@ -393,7 +435,7 @@ export default function PortfolioPage() {
             </div>
 
             {/* Other Skills */}
-            <div className={`p-6 rounded-xl md:col-span-2 ${darkMode ? 'bg-gradient-to-br from-pink-900/50 to-pink-800/30 border border-pink-500/20' : 'bg-gradient-to-br from-pink-50 to-pink-100 border border-pink-200'} hover:scale-105 transition-transform`}>
+            <div className={`scroll-animate p-6 rounded-xl md:col-span-2 ${darkMode ? 'bg-gradient-to-br from-pink-900/50 to-pink-800/30 border border-pink-500/20' : 'bg-gradient-to-br from-pink-50 to-pink-100 border border-pink-200'} hover:scale-105 transition-transform`}>
               <div className="flex items-center gap-3 mb-4">
                 <Smartphone className={`w-8 h-8 ${darkMode ? 'text-pink-400' : 'text-pink-600'}`} />
                 <h3 className={`text-xl font-bold ${darkMode ? 'text-pink-300' : 'text-pink-700'}`}>Specialized Skills</h3>
@@ -416,7 +458,7 @@ export default function PortfolioPage() {
       {/* Projects Section */}
       <section id="projects" className={`py-20 px-4 ${darkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-12 scroll-animate">
             <h2 className={`text-4xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               Featured Projects
             </h2>
@@ -429,7 +471,7 @@ export default function PortfolioPage() {
             {projects.map((project, index) => (
               <div 
                 key={project.id}
-                className={`rounded-2xl overflow-hidden ${darkMode ? 'bg-gray-900 border border-gray-700' : 'bg-white border border-gray-200'} hover:shadow-2xl transition-all duration-300`}
+                className={`scroll-animate rounded-2xl overflow-hidden ${darkMode ? 'bg-gray-900 border border-gray-700' : 'bg-white border border-gray-200'} hover:shadow-2xl transition-all duration-300`}
               >
                 <div className={`grid md:grid-cols-5 gap-6 p-8 ${index % 2 === 1 ? 'md:grid-flow-dense' : ''}`}>
                   {/* Project Info */}
@@ -670,7 +712,7 @@ export default function PortfolioPage() {
       {/* Education Section */}
       <section id="education" className={`py-20 px-4 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-12 scroll-animate">
             <h2 className={`text-4xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               Education & Certifications
             </h2>
@@ -683,7 +725,7 @@ export default function PortfolioPage() {
             {education.map((edu, index) => (
               <div 
                 key={index}
-                className={`p-6 rounded-xl ${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700' : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200'} hover:scale-105 transition-transform`}
+                className={`scroll-animate p-6 rounded-xl ${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700' : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200'} hover:scale-105 transition-transform`}
               >
                 <div className={`w-12 h-12 rounded-lg ${darkMode ? 'bg-blue-500/20' : 'bg-blue-100'} flex items-center justify-center mb-4 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
                   {edu.icon}
@@ -708,7 +750,7 @@ export default function PortfolioPage() {
 
       {/* CTA Section */}
       <section className={`py-20 px-4 ${darkMode ? 'bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900' : 'bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500'}`}>
-        <div className="max-w-4xl mx-auto text-center">
+        <div className="max-w-4xl mx-auto text-center scroll-animate">
           <h2 className="text-4xl font-bold mb-6 text-white">
             Let's Work Together
           </h2>
