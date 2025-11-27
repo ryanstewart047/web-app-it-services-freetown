@@ -32,6 +32,14 @@ export default function PortfolioPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Image cropper state
+  const [showCropper, setShowCropper] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const cropperCanvasRef = useRef<HTMLCanvasElement>(null);
+  const cropperImageRef = useRef<HTMLImageElement>(null);
 
   // Prevent scroll restoration and ensure top position on load
   useEffect(() => {
@@ -139,7 +147,131 @@ export default function PortfolioPage() {
     }
   };
   
-  // Handle file upload
+  // Handle file selection - show cropper instead of direct upload
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setError('Invalid file type. Please upload JPG, PNG, or WebP');
+      return;
+    }
+    
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('File too large. Maximum size is 5MB');
+      return;
+    }
+    
+    // Read file and show cropper
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageToCrop(reader.result as string);
+      setShowCropper(true);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+    };
+    reader.readAsDataURL(file);
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+  
+  // Crop and upload the image
+  const handleCropComplete = async () => {
+    if (!cropperCanvasRef.current || !cropperImageRef.current) return;
+    
+    setIsUploading(true);
+    setError('');
+    
+    try {
+      const canvas = cropperCanvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      
+      const image = cropperImageRef.current;
+      const size = 300; // Output size
+      
+      canvas.width = size;
+      canvas.height = size;
+      
+      // Calculate crop area
+      const scale = image.naturalWidth / image.width;
+      const cropSize = Math.min(image.width, image.height) / zoom;
+      const cropX = (image.width - cropSize) / 2 + crop.x;
+      const cropY = (image.height - cropSize) / 2 + crop.y;
+      
+      // Draw cropped circular image
+      ctx.clearRect(0, 0, size, size);
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+      
+      ctx.drawImage(
+        image,
+        cropX * scale,
+        cropY * scale,
+        cropSize * scale,
+        cropSize * scale,
+        0,
+        0,
+        size,
+        size
+      );
+      ctx.restore();
+      
+      // Convert to blob
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          setError('Failed to process image');
+          setIsUploading(false);
+          return;
+        }
+        
+        const formData = new FormData();
+        formData.append('file', blob, 'profile-photo.png');
+        formData.append('password', adminPassword);
+        
+        const response = await fetch('/api/upload-profile-photo', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+          setEditedSettings({ ...editedSettings, profilePhoto: data.url });
+          setSuccessMessage('Photo uploaded! Click Save to apply changes.');
+          setShowCropper(false);
+          setImageToCrop(null);
+          setTimeout(() => setSuccessMessage(''), 3000);
+        } else {
+          setError(data.message || 'Failed to upload photo');
+        }
+        
+        setIsUploading(false);
+      }, 'image/png', 0.95);
+    } catch (error) {
+      setError('Error uploading photo');
+      setIsUploading(false);
+    }
+  };
+  
+  // Cancel cropping
+  const handleCancelCrop = () => {
+    setShowCropper(false);
+    setImageToCrop(null);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+  };
+  
+  // Handle file upload (legacy - replaced by cropper)
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1140,7 +1272,7 @@ export default function PortfolioPage() {
                     <input
                       type="file"
                       ref={fileInputRef}
-                      onChange={handleFileUpload}
+                      onChange={handleFileSelect}
                       accept="image/jpeg,image/jpg,image/png,image/webp"
                       className="hidden"
                     />
@@ -1253,6 +1385,150 @@ export default function PortfolioPage() {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Image Cropper Modal */}
+      {showCropper && imageToCrop && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+          <div className={`w-full max-w-2xl rounded-2xl ${darkMode ? 'bg-gray-900' : 'bg-white'} shadow-2xl overflow-hidden`}>
+            {/* Header */}
+            <div className={`flex justify-between items-center p-6 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+              <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                Adjust Your Profile Photo
+              </h3>
+              <button
+                onClick={handleCancelCrop}
+                className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'} transition-colors`}
+                disabled={isUploading}
+              >
+                <X className={`w-6 h-6 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} />
+              </button>
+            </div>
+            
+            {/* Cropper Area */}
+            <div className="p-6">
+              <div className="relative bg-gray-800 rounded-lg overflow-hidden" style={{ height: '400px' }}>
+                <div 
+                  className="absolute inset-0 flex items-center justify-center overflow-hidden"
+                  onMouseDown={(e) => {
+                    const startX = e.clientX - crop.x;
+                    const startY = e.clientY - crop.y;
+                    
+                    const handleMouseMove = (e: MouseEvent) => {
+                      setCrop({
+                        x: e.clientX - startX,
+                        y: e.clientY - startY
+                      });
+                    };
+                    
+                    const handleMouseUp = () => {
+                      document.removeEventListener('mousemove', handleMouseMove);
+                      document.removeEventListener('mouseup', handleMouseUp);
+                    };
+                    
+                    document.addEventListener('mousemove', handleMouseMove);
+                    document.addEventListener('mouseup', handleMouseUp);
+                  }}
+                >
+                  <img
+                    ref={cropperImageRef}
+                    src={imageToCrop}
+                    alt="Crop preview"
+                    className="max-w-full max-h-full object-contain select-none"
+                    style={{
+                      transform: `scale(${zoom}) translate(${crop.x / zoom}px, ${crop.y / zoom}px)`,
+                      cursor: 'move'
+                    }}
+                    draggable={false}
+                  />
+                </div>
+                
+                {/* Circular overlay */}
+                <div className="absolute inset-0 pointer-events-none">
+                  <svg className="w-full h-full">
+                    <defs>
+                      <mask id="circle-mask">
+                        <rect width="100%" height="100%" fill="white" />
+                        <circle cx="50%" cy="50%" r="140" fill="black" />
+                      </mask>
+                    </defs>
+                    <rect width="100%" height="100%" fill="black" opacity="0.6" mask="url(#circle-mask)" />
+                    <circle cx="50%" cy="50%" r="140" stroke="white" strokeWidth="2" fill="none" strokeDasharray="5,5" />
+                  </svg>
+                </div>
+                
+                {/* Helper text */}
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm">
+                  Drag to reposition • Scroll to zoom
+                </div>
+              </div>
+              
+              {/* Zoom Slider */}
+              <div className="mt-6">
+                <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Zoom
+                </label>
+                <input
+                  type="range"
+                  min="1"
+                  max="3"
+                  step="0.1"
+                  value={zoom}
+                  onChange={(e) => setZoom(parseFloat(e.target.value))}
+                  onWheel={(e) => {
+                    e.preventDefault();
+                    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+                    setZoom(Math.max(1, Math.min(3, zoom + delta)));
+                  }}
+                  className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>1x</span>
+                  <span>3x</span>
+                </div>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={handleCancelCrop}
+                  disabled={isUploading}
+                  className={`flex-1 px-6 py-3 rounded-lg font-medium transition-colors ${
+                    darkMode
+                      ? 'bg-gray-800 hover:bg-gray-700 text-white'
+                      : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCropComplete}
+                  disabled={isUploading}
+                  className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
+                    darkMode
+                      ? 'bg-blue-600 hover:bg-blue-500 text-white'
+                      : 'bg-blue-500 hover:bg-blue-600 text-white'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  {isUploading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-5 h-5" />
+                      Upload Photo
+                    </>
+                  )}
+                </button>
+              </div>
+              
+              {/* Hidden canvas for cropping */}
+              <canvas ref={cropperCanvasRef} className="hidden" />
             </div>
           </div>
         </div>
