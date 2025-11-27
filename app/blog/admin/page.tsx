@@ -1141,6 +1141,7 @@ Tips:
                         value={htmlContent}
                         onChange={(e) => setHtmlContent(e.target.value)}
                         className="w-full h-[500px] p-4 font-mono text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none bg-white"
+                        style={{ whiteSpace: 'pre-wrap' }}
                         placeholder="Paste your HTML content here..."
                       />
                       <p className="text-xs text-gray-500 mt-2">
@@ -1159,7 +1160,8 @@ Tips:
                         dangerouslySetInnerHTML={{ __html: htmlContent || '<p class="text-gray-400 italic">Preview will appear here...</p>' }}
                         style={{
                           fontSize: '16px',
-                          lineHeight: '1.8'
+                          lineHeight: '1.8',
+                          whiteSpace: 'normal'
                         }}
                       />
                       <p className="text-xs text-gray-500 mt-2">

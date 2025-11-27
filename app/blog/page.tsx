@@ -686,7 +686,8 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                       }`}
                       style={{
                         maxHeight: !expandedPosts[post.id] && isContentLong(post.content) ? '300px' : 'none',
-                        overflow: !expandedPosts[post.id] && isContentLong(post.content) ? 'hidden' : 'visible'
+                        overflow: !expandedPosts[post.id] && isContentLong(post.content) ? 'hidden' : 'visible',
+                        whiteSpace: 'normal'
                       }}
                     >
                       <div 
@@ -694,6 +695,9 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                           __html: expandedPosts[post.id] || !isContentLong(post.content) 
                             ? post.content 
                             : getTruncatedContent(post.content) 
+                        }}
+                        style={{
+                          whiteSpace: 'normal'
                         }}
                       />
                       
