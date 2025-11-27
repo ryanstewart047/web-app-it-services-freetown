@@ -352,21 +352,48 @@ export default function PortfolioPage() {
       institution: 'Amity University, India',
       year: 'Completed',
       icon: <GraduationCap className="w-6 h-6" />,
-      description: 'Comprehensive study in computer science, programming, databases, and software engineering'
+      description: 'Comprehensive study in computer science, programming, databases, and software engineering',
+      verificationLink: 'https://www.amity.edu/OCVS/'
+    },
+    {
+      degree: 'Diploma in Information Technology Management',
+      institution: 'Alison',
+      year: 'Certified',
+      icon: <Award className="w-6 h-6" />,
+      description: 'Advanced diploma covering IT management principles, project management, and business technology',
+      verificationLink: 'https://alison.com/certification/check/%242y%2410%24Ekw.WxHpgVlyu5T8Pj3lL.PRveisiifd0R4Ywm1eiDrMPPe8.SJu'
     },
     {
       degree: 'Cisco Certified Network Associate (CCNA)',
       institution: 'BlueCrest College, Freetown',
       year: 'Routing and Switching',
       icon: <Award className="w-6 h-6" />,
-      description: 'Professional certification in network configuration, routing protocols, and switching technologies'
+      description: 'Professional certification in network configuration, routing protocols, and switching technologies',
+      certNumber: 'C-3bff183a8f-8c7f89'
     },
     {
       degree: 'System Administration and IT Services',
       institution: 'Google Professional Certificate',
       year: 'Certified',
       icon: <Award className="w-6 h-6" />,
-      description: 'Expert training in IT support, system administration, network management, and troubleshooting'
+      description: 'Expert training in IT support, system administration, network management, and troubleshooting',
+      verificationLink: 'https://www.coursera.org/account/accomplishments/verify/4E86D9NHXPZ8'
+    },
+    {
+      degree: 'Technical Support Fundamentals',
+      institution: 'Google Professional Certificate',
+      year: 'Certified',
+      icon: <Award className="w-6 h-6" />,
+      description: 'Foundational skills in technical support, customer service, troubleshooting, and IT fundamentals',
+      verificationLink: 'https://www.coursera.org/account/accomplishments/verify/U6EXD9LQ44BA'
+    },
+    {
+      degree: 'Cloud Computing Basics (Cloud 101)',
+      institution: 'Google Professional Certificate',
+      year: 'Certified',
+      icon: <Award className="w-6 h-6" />,
+      description: 'Introduction to cloud computing concepts, services, deployment models, and cloud infrastructure',
+      verificationLink: 'https://www.coursera.org/account/accomplishments/verify/MUS4NV9JJVN4'
     }
   ];
 
@@ -937,9 +964,27 @@ export default function PortfolioPage() {
                 <p className={`text-xs mb-3 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
                   {edu.year}
                 </p>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                <p className={`text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                   {edu.description}
                 </p>
+                
+                {/* Verification Link or Cert Number */}
+                {(edu as any).verificationLink && (
+                  <a
+                    href={(edu as any).verificationLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`inline-flex items-center gap-2 text-sm font-medium ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} transition-colors`}
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Verify Certificate
+                  </a>
+                )}
+                {(edu as any).certNumber && (
+                  <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                    <span className="font-semibold">Cert #:</span> {(edu as any).certNumber}
+                  </p>
+                )}
               </div>
             ))}
           </div>
