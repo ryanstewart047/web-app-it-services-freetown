@@ -309,18 +309,18 @@ export default function MarketplacePage() {
             </div>
 
             {/* Cart */}
-            <Link
-              href="/cart"
-              className="relative flex items-center gap-1 sm:gap-2 px-3 py-2 sm:px-6 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all text-sm sm:text-base z-10"
+            <button
+              onClick={() => window.location.href = '/cart'}
+              className="relative flex items-center gap-1 sm:gap-2 px-3 py-2 sm:px-6 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all text-sm sm:text-base z-10 cursor-pointer"
             >
               <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="hidden sm:inline">Cart</span>
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center pointer-events-none">
                   {cartCount}
                 </span>
               )}
-            </Link>
+            </button>
           </div>
 
           {/* Mobile Search */}
