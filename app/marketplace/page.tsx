@@ -546,7 +546,7 @@ export default function MarketplacePage() {
                       <div
                         className={`relative overflow-hidden cursor-pointer ${viewMode === 'list' ? 'w-40 flex-shrink-0' : 'aspect-[4/3]'}`}
                         onClick={(e) => {
-                          e.preventDefault();
+                          e.stopPropagation();
                           if (product.images[0]) {
                             setZoomedImage(product.images[0].url);
                           }
@@ -647,11 +647,14 @@ export default function MarketplacePage() {
                         </p>
 
                         {/* Actions */}
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 relative z-20">
                           <button
-                            onClick={() => addToCart(product)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              addToCart(product);
+                            }}
                             disabled={product.stock === 0}
-                            className="flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-4 sm:py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-all text-xs sm:text-sm"
+                            className="flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-4 sm:py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-all text-xs sm:text-sm cursor-pointer"
                           >
                             <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4" />
                             <span className="hidden xs:inline">Add to Cart</span>
@@ -659,7 +662,8 @@ export default function MarketplacePage() {
                           </button>
                           <Link
                             href={`/marketplace/${product.slug}`}
-                            className="px-2 py-1.5 sm:px-4 sm:py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all text-xs sm:text-sm whitespace-nowrap"
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex items-center justify-center px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all text-xs sm:text-sm whitespace-nowrap min-w-[60px] sm:min-w-[80px] cursor-pointer"
                           >
                             View
                           </Link>
