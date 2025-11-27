@@ -1,1 +1,6 @@
+# ads.txt for itservicesfreetown.com
+# Google AdSense
 google.com, pub-9989697800650646, DIRECT, f08c47fec0942fa0
+
+# Google Ad Manager (if using)
+google.com, pub-9989697800650646, RESELLER, f08c47fec0942fa0
