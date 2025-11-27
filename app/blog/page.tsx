@@ -169,19 +169,14 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
     // Load posts immediately
     loadPosts()
 
-    // Auto-refresh posts every 30 seconds
-    const refreshInterval = setInterval(() => {
-      loadPosts()
-    }, 30000) // 30 seconds
+    // Removed auto-refresh to comply with AdSense policies
+    // Users can manually refresh using the refresh button
 
     // Load user votes from localStorage
     const savedVotes = localStorage.getItem('blog_votes')
     if (savedVotes) {
       setUserVotes(JSON.parse(savedVotes))
     }
-
-    // Cleanup interval on unmount
-    return () => clearInterval(refreshInterval)
   }, [])
 
   // Handle URL hash navigation for shared links
