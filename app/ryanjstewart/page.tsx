@@ -830,12 +830,12 @@ export default function PortfolioPage() {
                 key={project.id}
                 className={`scroll-animate rounded-2xl overflow-hidden ${darkMode ? 'bg-gray-900 border border-gray-700' : 'bg-white border border-gray-200'} hover:shadow-2xl transition-all duration-300`}
               >
-                <div className={`grid md:grid-cols-5 gap-6 p-8 ${index % 2 === 1 ? 'md:grid-flow-dense' : ''}`}>
+                <div className={`grid md:grid-cols-5 gap-6 p-4 md:p-8 ${index % 2 === 1 ? 'md:grid-flow-dense' : ''}`}>
                   {/* Project Info */}
                   <div className={`md:col-span-3 ${index % 2 === 1 ? 'md:col-start-1' : ''}`}>
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className={`text-3xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
+                      <div className="flex-1 min-w-0">
+                        <h3 className={`text-2xl sm:text-3xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'} break-words`}>
                           {project.name}
                         </h3>
                         <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -846,18 +846,18 @@ export default function PortfolioPage() {
                         href={project.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg ${darkMode ? 'bg-blue-600 hover:bg-blue-500' : 'bg-blue-500 hover:bg-blue-600'} text-white transition-colors`}
+                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg ${darkMode ? 'bg-blue-600 hover:bg-blue-500' : 'bg-blue-500 hover:bg-blue-600'} text-white transition-colors whitespace-nowrap flex-shrink-0`}
                       >
                         Visit <ExternalLink className="w-4 h-4" />
                       </a>
                     </div>
 
-                    <p className={`mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <p className={`mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'} break-words`}>
                       {project.description}
                     </p>
 
                     {/* Technologies */}
-                    <div className="mb-6">
+                    <div className="mb-6 overflow-hidden">
                       <h4 className={`text-sm font-semibold mb-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         Technologies Used:
                       </h4>
@@ -865,7 +865,7 @@ export default function PortfolioPage() {
                         {project.technologies.map((tech) => (
                           <span 
                             key={tech}
-                            className={`px-3 py-1 rounded-full text-xs font-medium ${darkMode ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : 'bg-blue-100 text-blue-700 border border-blue-200'}`}
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${darkMode ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : 'bg-blue-100 text-blue-700 border border-blue-200'} whitespace-nowrap`}
                           >
                             {tech}
                           </span>
@@ -874,18 +874,18 @@ export default function PortfolioPage() {
                     </div>
 
                     {/* Features */}
-                    <div className="mb-6">
+                    <div className="mb-6 overflow-hidden">
                       <h4 className={`text-sm font-semibold mb-3 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         Key Features:
                       </h4>
-                      <ul className="grid md:grid-cols-2 gap-2">
+                      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {project.features.slice(0, 8).map((feature, idx) => (
                           <li 
                             key={idx}
-                            className={`flex items-start gap-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}
+                            className={`flex items-start gap-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} break-words`}
                           >
                             <ChevronRight className={`w-4 h-4 mt-0.5 flex-shrink-0 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
-                            <span>{feature}</span>
+                            <span className="break-words">{feature}</span>
                           </li>
                         ))}
                       </ul>
@@ -894,14 +894,14 @@ export default function PortfolioPage() {
                           <summary className={`cursor-pointer text-sm font-medium ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}>
                             View {project.features.length - 8} more features
                           </summary>
-                          <ul className="grid md:grid-cols-2 gap-2 mt-3">
+                          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
                             {project.features.slice(8).map((feature, idx) => (
                               <li 
                                 key={idx}
-                                className={`flex items-start gap-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}
+                                className={`flex items-start gap-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} break-words`}
                               >
                                 <ChevronRight className={`w-4 h-4 mt-0.5 flex-shrink-0 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
-                                <span>{feature}</span>
+                                <span className="break-words">{feature}</span>
                               </li>
                             ))}
                           </ul>
@@ -910,7 +910,7 @@ export default function PortfolioPage() {
                     </div>
 
                     {/* Highlights */}
-                    <div className={`p-4 rounded-lg ${darkMode ? 'bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-500/20' : 'bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200'}`}>
+                    <div className={`p-4 rounded-lg ${darkMode ? 'bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-500/20' : 'bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200'} overflow-hidden`}>
                       <h4 className={`text-sm font-semibold mb-2 ${darkMode ? 'text-blue-300' : 'text-blue-700'}`}>
                         Project Highlights:
                       </h4>
@@ -918,10 +918,10 @@ export default function PortfolioPage() {
                         {project.highlights.map((highlight, idx) => (
                           <li 
                             key={idx}
-                            className={`flex items-start gap-2 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                            className={`flex items-start gap-2 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'} break-words`}
                           >
-                            <span className={darkMode ? 'text-blue-400' : 'text-blue-600'}>•</span>
-                            <span>{highlight}</span>
+                            <span className={`flex-shrink-0 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>•</span>
+                            <span className="break-words">{highlight}</span>
                           </li>
                         ))}
                       </ul>
@@ -929,116 +929,116 @@ export default function PortfolioPage() {
                   </div>
 
                   {/* Project Preview */}
-                  <div className={`md:col-span-2 ${index % 2 === 1 ? 'md:col-start-4' : ''}`}>
-                    <div className={`rounded-xl overflow-hidden ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-gray-100 border border-gray-200'} h-full min-h-[400px]`}>
+                  <div className={`md:col-span-2 ${index % 2 === 1 ? 'md:col-start-4' : ''} overflow-hidden`}>
+                    <div className={`rounded-xl overflow-hidden ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-gray-100 border border-gray-200'} h-full min-h-[300px] md:min-h-[400px]`}>
                       <div className="relative h-full group">
                         {/* Browser Chrome */}
-                        <div className={`p-3 border-b ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-300'} flex items-center gap-2`}>
-                          <div className="flex gap-1.5">
-                            <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                        <div className={`p-2 md:p-3 border-b ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-300'} flex items-center gap-2`}>
+                          <div className="flex gap-1.5 flex-shrink-0">
+                            <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-red-500"></div>
+                            <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-yellow-500"></div>
+                            <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-green-500"></div>
                           </div>
-                          <div className={`flex-1 mx-4 px-3 py-1 rounded text-xs ${darkMode ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-600'}`}>
+                          <div className={`flex-1 mx-2 md:mx-4 px-2 md:px-3 py-1 rounded text-xs ${darkMode ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-600'} truncate`}>
                             {project.url}
                           </div>
                         </div>
                         
                         {/* Website Preview Frame */}
-                        <div className={`relative h-[calc(100%-48px)] ${darkMode ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' : 'bg-gradient-to-br from-white via-gray-50 to-white'} overflow-hidden`}>
+                        <div className={`relative h-[calc(100%-40px)] md:h-[calc(100%-48px)] ${darkMode ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' : 'bg-gradient-to-br from-white via-gray-50 to-white'} overflow-hidden`}>
                           {project.id === 1 ? (
                             // IT Services Freetown Preview
-                            <div className="p-6 space-y-4">
+                            <div className="p-3 md:p-6 space-y-3 md:space-y-4">
                               {/* Header Bar */}
-                              <div className={`h-12 rounded-lg ${darkMode ? 'bg-blue-900/30 border border-blue-500/20' : 'bg-blue-100 border border-blue-200'} flex items-center px-4`}>
-                                <div className="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-purple-600"></div>
-                                <div className="ml-3 flex-1 space-y-1">
-                                  <div className={`h-2 w-32 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
-                                  <div className={`h-1.5 w-24 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-200'}`}></div>
+                              <div className={`h-10 md:h-12 rounded-lg ${darkMode ? 'bg-blue-900/30 border border-blue-500/20' : 'bg-blue-100 border border-blue-200'} flex items-center px-3 md:px-4`}>
+                                <div className="w-6 h-6 md:w-8 md:h-8 rounded bg-gradient-to-br from-blue-500 to-purple-600 flex-shrink-0"></div>
+                                <div className="ml-2 md:ml-3 flex-1 space-y-1 min-w-0">
+                                  <div className={`h-2 w-20 md:w-32 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                  <div className={`h-1.5 w-16 md:w-24 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-200'}`}></div>
                                 </div>
                               </div>
                               
                               {/* Hero Section Mockup */}
-                              <div className={`h-32 rounded-lg ${darkMode ? 'bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/20' : 'bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-200'} p-4`}>
-                                <div className={`h-3 w-3/4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'} mb-2`}></div>
-                                <div className={`h-2 w-1/2 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-200'} mb-3`}></div>
+                              <div className={`h-24 md:h-32 rounded-lg ${darkMode ? 'bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/20' : 'bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-200'} p-3 md:p-4`}>
+                                <div className={`h-2.5 md:h-3 w-3/4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'} mb-2`}></div>
+                                <div className={`h-2 w-1/2 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-200'} mb-2 md:mb-3`}></div>
                                 <div className="flex gap-2">
-                                  <div className={`h-6 w-20 rounded ${darkMode ? 'bg-blue-600' : 'bg-blue-500'}`}></div>
-                                  <div className={`h-6 w-20 rounded ${darkMode ? 'bg-purple-600' : 'bg-purple-500'}`}></div>
+                                  <div className={`h-5 md:h-6 w-16 md:w-20 rounded ${darkMode ? 'bg-blue-600' : 'bg-blue-500'}`}></div>
+                                  <div className={`h-5 md:h-6 w-16 md:w-20 rounded ${darkMode ? 'bg-purple-600' : 'bg-purple-500'}`}></div>
                                 </div>
                               </div>
                               
                               {/* Cards Grid */}
-                              <div className="grid grid-cols-2 gap-3">
-                                <div className={`h-24 rounded-lg ${darkMode ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200'} p-3`}>
-                                  <div className={`w-8 h-8 rounded mb-2 ${darkMode ? 'bg-green-600/20' : 'bg-green-100'}`}></div>
-                                  <div className={`h-2 w-16 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                              <div className="grid grid-cols-2 gap-2 md:gap-3">
+                                <div className={`h-20 md:h-24 rounded-lg ${darkMode ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200'} p-2 md:p-3`}>
+                                  <div className={`w-6 h-6 md:w-8 md:h-8 rounded mb-1 md:mb-2 ${darkMode ? 'bg-green-600/20' : 'bg-green-100'}`}></div>
+                                  <div className={`h-1.5 md:h-2 w-12 md:w-16 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
                                 </div>
-                                <div className={`h-24 rounded-lg ${darkMode ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200'} p-3`}>
-                                  <div className={`w-8 h-8 rounded mb-2 ${darkMode ? 'bg-orange-600/20' : 'bg-orange-100'}`}></div>
-                                  <div className={`h-2 w-16 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                <div className={`h-20 md:h-24 rounded-lg ${darkMode ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200'} p-2 md:p-3`}>
+                                  <div className={`w-6 h-6 md:w-8 md:h-8 rounded mb-1 md:mb-2 ${darkMode ? 'bg-orange-600/20' : 'bg-orange-100'}`}></div>
+                                  <div className={`h-1.5 md:h-2 w-12 md:w-16 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
                                 </div>
-                                <div className={`h-24 rounded-lg ${darkMode ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200'} p-3`}>
-                                  <div className={`w-8 h-8 rounded mb-2 ${darkMode ? 'bg-purple-600/20' : 'bg-purple-100'}`}></div>
-                                  <div className={`h-2 w-16 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                <div className={`h-20 md:h-24 rounded-lg ${darkMode ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200'} p-2 md:p-3`}>
+                                  <div className={`w-6 h-6 md:w-8 md:h-8 rounded mb-1 md:mb-2 ${darkMode ? 'bg-purple-600/20' : 'bg-purple-100'}`}></div>
+                                  <div className={`h-1.5 md:h-2 w-12 md:w-16 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
                                 </div>
-                                <div className={`h-24 rounded-lg ${darkMode ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200'} p-3`}>
-                                  <div className={`w-8 h-8 rounded mb-2 ${darkMode ? 'bg-red-600/20' : 'bg-red-100'}`}></div>
-                                  <div className={`h-2 w-16 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                <div className={`h-20 md:h-24 rounded-lg ${darkMode ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200'} p-2 md:p-3`}>
+                                  <div className={`w-6 h-6 md:w-8 md:h-8 rounded mb-1 md:mb-2 ${darkMode ? 'bg-red-600/20' : 'bg-red-100'}`}></div>
+                                  <div className={`h-1.5 md:h-2 w-12 md:w-16 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
                                 </div>
                               </div>
                               
                               {/* Footer Bar */}
-                              <div className={`h-8 rounded ${darkMode ? 'bg-gray-900/50' : 'bg-gray-200'}`}></div>
+                              <div className={`h-6 md:h-8 rounded ${darkMode ? 'bg-gray-900/50' : 'bg-gray-200'}`}></div>
                             </div>
                           ) : (
                             // EARPI Environmental NGO Preview
-                            <div className="p-6 space-y-4">
+                            <div className="p-3 md:p-6 space-y-3 md:space-y-4">
                               {/* Header with Logo */}
-                              <div className={`h-12 rounded-lg ${darkMode ? 'bg-green-900/30 border border-green-500/20' : 'bg-green-100 border border-green-200'} flex items-center px-4`}>
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white text-xs font-bold">
+                              <div className={`h-10 md:h-12 rounded-lg ${darkMode ? 'bg-green-900/30 border border-green-500/20' : 'bg-green-100 border border-green-200'} flex items-center px-3 md:px-4`}>
+                                <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                                   🌱
                                 </div>
-                                <div className="ml-3 flex gap-4">
-                                  <div className={`h-2 w-16 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
-                                  <div className={`h-2 w-16 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
-                                  <div className={`h-2 w-16 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                <div className="ml-2 md:ml-3 flex gap-2 md:gap-4 overflow-hidden">
+                                  <div className={`h-1.5 md:h-2 w-12 md:w-16 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                  <div className={`h-1.5 md:h-2 w-12 md:w-16 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                  <div className={`h-1.5 md:h-2 w-12 md:w-16 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'} hidden sm:block`}></div>
                                 </div>
                               </div>
                               
                               {/* Hero Banner */}
-                              <div className={`h-28 rounded-lg ${darkMode ? 'bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/20' : 'bg-gradient-to-r from-green-100 to-emerald-100 border border-green-200'} p-4 relative overflow-hidden`}>
-                                <div className="absolute top-2 right-2 text-4xl opacity-20">🌳</div>
-                                <div className={`h-3 w-2/3 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'} mb-2`}></div>
-                                <div className={`h-2 w-1/2 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-200'} mb-3`}></div>
-                                <div className={`h-6 w-24 rounded ${darkMode ? 'bg-green-600' : 'bg-green-500'}`}></div>
+                              <div className={`h-24 md:h-28 rounded-lg ${darkMode ? 'bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/20' : 'bg-gradient-to-r from-green-100 to-emerald-100 border border-green-200'} p-3 md:p-4 relative overflow-hidden`}>
+                                <div className="absolute top-1 right-1 md:top-2 md:right-2 text-2xl md:text-4xl opacity-20">🌳</div>
+                                <div className={`h-2.5 md:h-3 w-2/3 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'} mb-2`}></div>
+                                <div className={`h-2 w-1/2 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-200'} mb-2 md:mb-3`}></div>
+                                <div className={`h-5 md:h-6 w-20 md:w-24 rounded ${darkMode ? 'bg-green-600' : 'bg-green-500'}`}></div>
                               </div>
                               
                               {/* Impact Stats */}
-                              <div className="grid grid-cols-3 gap-2">
-                                <div className={`h-16 rounded ${darkMode ? 'bg-green-900/20 border border-green-500/20' : 'bg-green-50 border border-green-200'} p-2`}>
-                                  <div className={`h-3 w-12 rounded mb-1 ${darkMode ? 'bg-green-600' : 'bg-green-500'}`}></div>
-                                  <div className={`h-1.5 w-full rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                              <div className="grid grid-cols-3 gap-1.5 md:gap-2">
+                                <div className={`h-14 md:h-16 rounded ${darkMode ? 'bg-green-900/20 border border-green-500/20' : 'bg-green-50 border border-green-200'} p-1.5 md:p-2`}>
+                                  <div className={`h-2.5 md:h-3 w-10 md:w-12 rounded mb-1 ${darkMode ? 'bg-green-600' : 'bg-green-500'}`}></div>
+                                  <div className={`h-1 md:h-1.5 w-full rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
                                 </div>
-                                <div className={`h-16 rounded ${darkMode ? 'bg-blue-900/20 border border-blue-500/20' : 'bg-blue-50 border border-blue-200'} p-2`}>
-                                  <div className={`h-3 w-12 rounded mb-1 ${darkMode ? 'bg-blue-600' : 'bg-blue-500'}`}></div>
-                                  <div className={`h-1.5 w-full rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                <div className={`h-14 md:h-16 rounded ${darkMode ? 'bg-blue-900/20 border border-blue-500/20' : 'bg-blue-50 border border-blue-200'} p-1.5 md:p-2`}>
+                                  <div className={`h-2.5 md:h-3 w-10 md:w-12 rounded mb-1 ${darkMode ? 'bg-blue-600' : 'bg-blue-500'}`}></div>
+                                  <div className={`h-1 md:h-1.5 w-full rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
                                 </div>
-                                <div className={`h-16 rounded ${darkMode ? 'bg-yellow-900/20 border border-yellow-500/20' : 'bg-yellow-50 border border-yellow-200'} p-2`}>
-                                  <div className={`h-3 w-12 rounded mb-1 ${darkMode ? 'bg-yellow-600' : 'bg-yellow-500'}`}></div>
-                                  <div className={`h-1.5 w-full rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                <div className={`h-14 md:h-16 rounded ${darkMode ? 'bg-yellow-900/20 border border-yellow-500/20' : 'bg-yellow-50 border border-yellow-200'} p-1.5 md:p-2`}>
+                                  <div className={`h-2.5 md:h-3 w-10 md:w-12 rounded mb-1 ${darkMode ? 'bg-yellow-600' : 'bg-yellow-500'}`}></div>
+                                  <div className={`h-1 md:h-1.5 w-full rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
                                 </div>
                               </div>
                               
                               {/* Project Cards */}
-                              <div className="grid grid-cols-2 gap-3">
-                                <div className={`h-20 rounded-lg ${darkMode ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200'} p-2`}>
-                                  <div className={`h-10 w-full rounded mb-1 ${darkMode ? 'bg-green-900/30' : 'bg-green-100'}`}></div>
-                                  <div className={`h-1.5 w-3/4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                              <div className="grid grid-cols-2 gap-2 md:gap-3">
+                                <div className={`h-16 md:h-20 rounded-lg ${darkMode ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200'} p-1.5 md:p-2`}>
+                                  <div className={`h-8 md:h-10 w-full rounded mb-1 ${darkMode ? 'bg-green-900/30' : 'bg-green-100'}`}></div>
+                                  <div className={`h-1 md:h-1.5 w-3/4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
                                 </div>
-                                <div className={`h-20 rounded-lg ${darkMode ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200'} p-2`}>
-                                  <div className={`h-10 w-full rounded mb-1 ${darkMode ? 'bg-emerald-900/30' : 'bg-emerald-100'}`}></div>
-                                  <div className={`h-1.5 w-3/4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                                <div className={`h-16 md:h-20 rounded-lg ${darkMode ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200'} p-1.5 md:p-2`}>
+                                  <div className={`h-8 md:h-10 w-full rounded mb-1 ${darkMode ? 'bg-emerald-900/30' : 'bg-emerald-100'}`}></div>
+                                  <div className={`h-1 md:h-1.5 w-3/4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
                                 </div>
                               </div>
                             </div>
