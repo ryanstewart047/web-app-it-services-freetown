@@ -757,6 +757,23 @@ export default function PortfolioPage() {
                   )}
                   <span className="text-sm">{isSharing ? 'Sharing...' : 'Share Profile'}</span>
                 </button>
+                <a
+                  href={`mailto:${settings.email}?subject=Hire%20Ryan%20J%20Stewart%20-%20Full%20Stack%20Developer&body=Hi%20Ryan,%0D%0A%0D%0AI'm%20interested%20in%20discussing%20a%20project%20opportunity%20with%20you.%0D%0A%0D%0ABest%20regards`}
+                  className={`relative group flex items-center gap-2 px-6 py-2 rounded-lg font-semibold transition-all ${
+                    darkMode 
+                      ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500' 
+                      : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500'
+                  } text-white shadow-lg hover:shadow-xl transform hover:scale-105 animate-pulse hover:animate-none overflow-hidden`}
+                >
+                  {/* Shimmer effect */}
+                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></span>
+                  
+                  <Briefcase className="w-5 h-5 relative z-10" />
+                  <span className="text-sm relative z-10">Hire Me</span>
+                  
+                  {/* Glow effect */}
+                  <span className="absolute inset-0 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 opacity-0 group-hover:opacity-75 blur-md transition-opacity duration-300 -z-10"></span>
+                </a>
               </div>              {/* CTA Buttons */}
               <div className="flex flex-wrap gap-4 justify-center md:justify-start">
                 <Link 
