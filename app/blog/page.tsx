@@ -1021,14 +1021,6 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
         {/* Modern Footer */}
         <footer className="mt-20 pt-12 border-t border-gray-200">
           <div className="text-center space-y-6">
-            {/* Auto-refresh Indicator */}
-            <div className="flex items-center justify-center gap-3 text-gray-500 flex-wrap">
-              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium">Auto-updating every 30s</span>
-              </div>
-            </div>
-            
             {/* Copyright */}
             <p className="text-gray-400 text-sm">
               © 2025 IT Services Freetown. All rights reserved.
