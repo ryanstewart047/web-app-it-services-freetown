@@ -311,12 +311,12 @@ export default function MarketplacePage() {
             {/* Cart */}
             <Link
               href="/cart"
-              className="relative flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
+              className="relative flex items-center gap-1 sm:gap-2 px-3 py-2 sm:px-6 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all text-sm sm:text-base z-10"
             >
-              <ShoppingCart className="w-5 h-5" />
+              <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="hidden sm:inline">Cart</span>
               {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center">
                   {cartCount}
                 </span>
               )}
@@ -651,14 +651,15 @@ export default function MarketplacePage() {
                           <button
                             onClick={() => addToCart(product)}
                             disabled={product.stock === 0}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-all"
+                            className="flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-4 sm:py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-all text-xs sm:text-sm"
                           >
-                            <ShoppingCart className="w-4 h-4" />
-                            Add to Cart
+                            <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <span className="hidden xs:inline">Add to Cart</span>
+                            <span className="xs:hidden">Add</span>
                           </button>
                           <Link
                             href={`/marketplace/${product.slug}`}
-                            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all"
+                            className="px-2 py-1.5 sm:px-4 sm:py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all text-xs sm:text-sm whitespace-nowrap"
                           >
                             View
                           </Link>
