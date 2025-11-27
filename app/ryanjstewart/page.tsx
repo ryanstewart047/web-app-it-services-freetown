@@ -39,6 +39,7 @@ export default function PortfolioPage() {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [showShareToast, setShowShareToast] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const cropperCanvasRef = useRef<HTMLCanvasElement>(null);
   const cropperImageRef = useRef<HTMLImageElement>(null);
 
@@ -719,31 +720,42 @@ export default function PortfolioPage() {
                 </div>
                 <button
                   onClick={async () => {
-                    const shareData = {
-                      title: 'Ryan J Stewart - Full Stack Developer',
-                      text: 'Check out my portfolio and professional experience',
-                      url: window.location.href
-                    };
-                    
-                    if (navigator.share) {
-                      try {
+                    setIsSharing(true);
+                    try {
+                      const shareData = {
+                        title: 'Ryan J Stewart - Full Stack Developer',
+                        text: 'Check out my portfolio and professional experience',
+                        url: window.location.href
+                      };
+                      
+                      if (navigator.share) {
                         await navigator.share(shareData);
-                      } catch (err) {
-                        if ((err as Error).name !== 'AbortError') {
-                          console.error('Error sharing:', err);
-                        }
+                      } else {
+                        // Fallback: copy to clipboard
+                        await navigator.clipboard.writeText(window.location.href);
+                        setShowShareToast(true);
+                        setTimeout(() => setShowShareToast(false), 3000);
                       }
-                    } else {
-                      // Fallback: copy to clipboard
-                      await navigator.clipboard.writeText(window.location.href);
-                      setShowShareToast(true);
-                      setTimeout(() => setShowShareToast(false), 3000);
+                    } catch (err) {
+                      if ((err as Error).name !== 'AbortError') {
+                        console.error('Error sharing:', err);
+                      }
+                    } finally {
+                      setIsSharing(false);
                     }
                   }}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg ${darkMode ? 'bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30' : 'bg-blue-50 hover:bg-blue-100 border border-blue-200'} transition-colors`}
+                  disabled={isSharing}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg ${darkMode ? 'bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30' : 'bg-blue-50 hover:bg-blue-100 border border-blue-200'} transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
-                  <Share2 className="w-4 h-4" />
-                  <span className="text-sm">Share Profile</span>
+                  {isSharing ? (
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  ) : (
+                    <Share2 className="w-4 h-4" />
+                  )}
+                  <span className="text-sm">{isSharing ? 'Sharing...' : 'Share Profile'}</span>
                 </button>
               </div>              {/* CTA Buttons */}
               <div className="flex flex-wrap gap-4 justify-center md:justify-start">
