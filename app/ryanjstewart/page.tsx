@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Moon, Sun, Mail, Phone, MapPin, Linkedin, Github, Globe, Code, Database, Server, Layout, Smartphone, Award, GraduationCap, Briefcase, ExternalLink, ChevronRight, Lock, X, Upload, Save } from 'lucide-react';
+import { Moon, Sun, Mail, Phone, MapPin, Linkedin, Github, Globe, Code, Database, Server, Layout, Smartphone, Award, GraduationCap, Briefcase, ExternalLink, ChevronRight, Lock, X, Upload, Save, Share2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -38,6 +38,7 @@ export default function PortfolioPage() {
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
+  const [showShareToast, setShowShareToast] = useState(false);
   const cropperCanvasRef = useRef<HTMLCanvasElement>(null);
   const cropperImageRef = useRef<HTMLImageElement>(null);
 
@@ -716,6 +717,34 @@ export default function PortfolioPage() {
                   <MapPin className="w-4 h-4" />
                   <span className="text-sm">{settings.location}</span>
                 </div>
+                <button
+                  onClick={async () => {
+                    const shareData = {
+                      title: 'Ryan J Stewart - Full Stack Developer',
+                      text: 'Check out my portfolio and professional experience',
+                      url: window.location.href
+                    };
+                    
+                    if (navigator.share) {
+                      try {
+                        await navigator.share(shareData);
+                      } catch (err) {
+                        if ((err as Error).name !== 'AbortError') {
+                          console.error('Error sharing:', err);
+                        }
+                      }
+                    } else {
+                      // Fallback: copy to clipboard
+                      await navigator.clipboard.writeText(window.location.href);
+                      setShowShareToast(true);
+                      setTimeout(() => setShowShareToast(false), 3000);
+                    }
+                  }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg ${darkMode ? 'bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30' : 'bg-blue-50 hover:bg-blue-100 border border-blue-200'} transition-colors`}
+                >
+                  <Share2 className="w-4 h-4" />
+                  <span className="text-sm">Share Profile</span>
+                </button>
               </div>              {/* CTA Buttons */}
               <div className="flex flex-wrap gap-4 justify-center md:justify-start">
                 <Link 
@@ -1554,6 +1583,22 @@ export default function PortfolioPage() {
               
               {/* Hidden canvas for cropping */}
               <canvas ref={cropperCanvasRef} className="hidden" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Share Toast Notification */}
+      {showShareToast && (
+        <div className="fixed bottom-8 right-8 z-50 animate-fade-in">
+          <div className={`px-6 py-3 rounded-lg shadow-lg ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span className={darkMode ? 'text-gray-200' : 'text-gray-800'}>
+                Profile link copied to clipboard!
+              </span>
             </div>
           </div>
         </div>
