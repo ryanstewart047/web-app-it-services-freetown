@@ -660,13 +660,15 @@ export default function MarketplacePage() {
                             <span className="hidden xs:inline">Add to Cart</span>
                             <span className="xs:hidden">Add</span>
                           </button>
-                          <Link
-                            href={`/marketplace/${product.slug}`}
-                            onClick={(e) => e.stopPropagation()}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.location.href = `/marketplace/${product.slug}`;
+                            }}
                             className="flex items-center justify-center px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all text-xs sm:text-sm whitespace-nowrap min-w-[60px] sm:min-w-[80px] cursor-pointer"
                           >
                             View
-                          </Link>
+                          </button>
                         </div>
                       </div>
                     </div>
