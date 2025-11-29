@@ -12,7 +12,6 @@ import ServiceWorkerRegistration from '../src/components/ServiceWorkerRegistrati
 import PWAInstallBanner from '../src/components/PWAInstallBanner'
 import NetworkMonitor from '../src/components/NetworkMonitor'
 import { AnalyticsProvider } from '../src/components/AnalyticsTracker'
-import Script from 'next/script'
 import ConditionalLayout from '@/components/ConditionalLayout'
 
 const inter = Inter({ 
@@ -147,12 +146,12 @@ export default function RootLayout({
         {/* Google AdSense Verification Meta Tag */}
         <meta name="google-adsense-account" content="ca-pub-9989697800650646" />
         
-        {/* Google AdSense Script - Using afterInteractive to avoid data-nscript attribute error */}
-        <Script
+        {/* Google AdSense Script - Using raw script tag to avoid data-nscript attribute */}
+        <script
+          async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9989697800650646"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
+        ></script>
         
         {/* Font Awesome */}
         <link 
