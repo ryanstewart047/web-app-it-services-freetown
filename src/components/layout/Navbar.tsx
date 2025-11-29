@@ -3,11 +3,13 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [supportDropdownOpen, setSupportDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -56,7 +58,7 @@ export default function Navbar() {
             </Link>
           </div>
           <div className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Home</Link>
+            <Link href="/" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Home</Link>
             
             {/* Special Shop Button with Badge and Animation */}
             <Link 
@@ -72,16 +74,16 @@ export default function Navbar() {
               <span className="absolute inset-0 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 opacity-0 group-hover:opacity-75 blur-md transition-opacity duration-300 -z-10"></span>
             </Link>
             
-            <Link href="/blog" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Blog</Link>
-            <Link href="/book-appointment" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Book Appointment</Link>
-            <Link href="/track-repair" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Track Repair</Link>
-            <Link href="/troubleshoot" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Troubleshoot</Link>
+            <Link href="/blog" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/blog' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Blog</Link>
+            <Link href="/book-appointment" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/book-appointment' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Book Appointment</Link>
+            <Link href="/track-repair" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/track-repair' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Track Repair</Link>
+            <Link href="/troubleshoot" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/troubleshoot' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Troubleshoot</Link>
             
             {/* Get Support Dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button 
                 onClick={toggleSupportDropdown}
-                className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium inline-flex items-center gap-1"
+                className="text-gray-700 hover:text-[#040e40] px-3 py-2 text-sm font-medium inline-flex items-center gap-1"
               >
                 Get Support
                 <i className={`fas fa-chevron-down text-xs transition-transform duration-200 ${supportDropdownOpen ? 'rotate-180' : ''}`}></i>
@@ -91,35 +93,35 @@ export default function Navbar() {
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200 animate-fadeIn">
                   <Link 
                     href="/chat" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200"
                     onClick={() => setSupportDropdownOpen(false)}
                   >
                     <i className="fas fa-comments mr-2"></i>Chat Support
                   </Link>
                   <Link 
                     href="/contact" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200"
                     onClick={() => setSupportDropdownOpen(false)}
                   >
                     <i className="fas fa-envelope mr-2"></i>Contact Us
                   </Link>
                   <Link 
                     href="/privacy" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200"
                     onClick={() => setSupportDropdownOpen(false)}
                   >
                     <i className="fas fa-shield-alt mr-2"></i>Privacy Policy
                   </Link>
                   <Link 
                     href="/terms" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200"
                     onClick={() => setSupportDropdownOpen(false)}
                   >
                     <i className="fas fa-file-contract mr-2"></i>Terms of Service
                   </Link>
                   <Link 
                     href="/disclaimer" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200"
                     onClick={() => setSupportDropdownOpen(false)}
                   >
                     <i className="fas fa-exclamation-triangle mr-2"></i>Disclaimer
@@ -145,7 +147,7 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
-            <Link href="/" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Home</Link>
+            <Link href="/" className={`block px-3 py-2 text-base font-medium rounded-md transition-all duration-200 ${pathname === '/' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`} onClick={closeMobileMenu}>Home</Link>
             
             {/* Special Shop Button for Mobile */}
             <Link 
@@ -160,16 +162,16 @@ export default function Navbar() {
               </span>
             </Link>
             
-            <Link href="/blog" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Blog</Link>
-            <Link href="/book-appointment" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Book Appointment</Link>
-            <Link href="/track-repair" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Track Repair</Link>
-            <Link href="/troubleshoot" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Troubleshoot</Link>
+            <Link href="/blog" className={`block px-3 py-2 text-base font-medium rounded-md transition-all duration-200 ${pathname === '/blog' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`} onClick={closeMobileMenu}>Blog</Link>
+            <Link href="/book-appointment" className={`block px-3 py-2 text-base font-medium rounded-md transition-all duration-200 ${pathname === '/book-appointment' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`} onClick={closeMobileMenu}>Book Appointment</Link>
+            <Link href="/track-repair" className={`block px-3 py-2 text-base font-medium rounded-md transition-all duration-200 ${pathname === '/track-repair' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`} onClick={closeMobileMenu}>Track Repair</Link>
+            <Link href="/troubleshoot" className={`block px-3 py-2 text-base font-medium rounded-md transition-all duration-200 ${pathname === '/troubleshoot' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`} onClick={closeMobileMenu}>Troubleshoot</Link>
             
             {/* Get Support Dropdown for Mobile */}
             <div className="px-3 py-2">
               <button 
                 onClick={toggleSupportDropdown}
-                className="text-gray-700 hover:text-primary-950 text-base font-medium inline-flex items-center gap-2 w-full justify-between"
+                className="text-gray-700 hover:text-[#040e40] text-base font-medium inline-flex items-center gap-2 w-full justify-between"
               >
                 Get Support
                 <i className={`fas fa-chevron-down text-sm transition-transform duration-200 ${supportDropdownOpen ? 'rotate-180' : ''}`}></i>
@@ -179,35 +181,35 @@ export default function Navbar() {
                 <div className="mt-2 ml-4 space-y-1 bg-gray-50 rounded-md py-2 animate-fadeIn">
                   <Link 
                     href="/chat" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200 rounded"
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-comments mr-2"></i>Chat Support
                   </Link>
                   <Link 
                     href="/contact" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200 rounded"
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-envelope mr-2"></i>Contact Us
                   </Link>
                   <Link 
                     href="/privacy" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200 rounded"
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-shield-alt mr-2"></i>Privacy Policy
                   </Link>
                   <Link 
                     href="/terms" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200 rounded"
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-file-contract mr-2"></i>Terms of Service
                   </Link>
                   <Link 
                     href="/disclaimer" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200 rounded"
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-exclamation-triangle mr-2"></i>Disclaimer
