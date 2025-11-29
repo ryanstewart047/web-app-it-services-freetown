@@ -43,22 +43,27 @@ export default function BlogPage() {
   const [commentAuthors, setCommentAuthors] = useState<{ [key: string]: string }>({})
   const [showComments, setShowComments] = useState<{ [key: string]: boolean }>({})
   const [userVotes, setUserVotes] = useState<{ [key: string]: 'like' | 'dislike' | null }>({})
-  const [expandedPosts, setExpandedPosts] = useState<{ [key: string]: boolean }>({})
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [copiedPostId, setCopiedPostId] = useState<string | null>(null)
+  const [expandedPosts, setExpandedPosts] = useState<{ [key: string]: boolean }>({})
 
   useScrollAnimations()
 
   useEffect(() => {
     const loadPosts = async () => {
       try {
+        console.log('Fetching blog posts from GitHub Issues...')
         // Try to load posts from GitHub Issues first
         const githubPosts = await fetchBlogPosts()
         
+        console.log(`Fetched ${githubPosts.length} posts from GitHub`)
+        
         if (githubPosts.length > 0) {
-          // Filter out draft posts (those with [DRAFT] prefix)
+          // Filter out draft posts (those with [DRAFT] in title)
           const publishedPosts = githubPosts.filter(post => !post.title.startsWith('[DRAFT]'))
+          console.log(`Filtered to ${publishedPosts.length} published posts (excluded ${githubPosts.length - publishedPosts.length} drafts)`)
           
-          // Load comments for each post from GitHub
+          // Load comments for each published post from GitHub
           const postsWithComments = await Promise.all(
             publishedPosts.map(async (post) => {
               const comments = await fetchPostComments(parseInt(post.id))
@@ -73,16 +78,20 @@ export default function BlogPage() {
               }
             })
           )
+          console.log('Successfully loaded posts with comments from GitHub')
           setPosts(postsWithComments)
           // Also save to localStorage as cache
           localStorage.setItem('blog_posts', JSON.stringify(postsWithComments))
           return
+        } else {
+          console.warn('No posts returned from GitHub Issues API')
         }
       } catch (error) {
         console.error('Failed to load posts from GitHub:', error)
       }
 
       // Fallback to localStorage if GitHub fails
+      console.log('Attempting to load posts from localStorage...')
       const savedPosts = localStorage.getItem('blog_posts')
       if (savedPosts) {
         const parsedPosts = JSON.parse(savedPosts)
@@ -96,8 +105,10 @@ export default function BlogPage() {
               timestamp: new Date(comment.timestamp)
             }))
           }))
+        console.log(`Loaded ${postsWithDates.length} posts from localStorage`)
         setPosts(postsWithDates)
       } else {
+        console.log('No cached posts found, using sample posts')
         // Initialize with sample posts if nothing in localStorage
         const samplePosts: BlogPost[] = [
           {
@@ -158,6 +169,9 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
     // Load posts immediately
     loadPosts()
 
+    // Removed auto-refresh to comply with AdSense policies
+    // Users can manually refresh using the refresh button
+
     // Load user votes from localStorage
     const savedVotes = localStorage.getItem('blog_votes')
     if (savedVotes) {
@@ -165,28 +179,53 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
     }
   }, [])
 
-  // Handle URL hash navigation for shared links and update meta tags
+  // Handle URL hash navigation for shared links
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.hash && posts.length > 0) {
+    if (typeof window !== 'undefined' && window.location.hash) {
       const postId = window.location.hash.replace('#post-', '')
       const post = posts.find(p => p.id === postId)
       
       if (post) {
         // Update meta tags for social sharing
         const shareImage = post.media?.find(m => m.type === 'image')?.url || post.image
+        const contentPreview = post.content.replace(/<[^>]*>/g, '').substring(0, 200)
         
-        // Update Open Graph image
+        // Create OG image URL
+        const ogImageUrl = new URL('/api/og-blog', window.location.origin)
+        ogImageUrl.searchParams.set('title', post.title)
+        ogImageUrl.searchParams.set('author', post.author)
+        ogImageUrl.searchParams.set('date', formatDate(post.date))
+        ogImageUrl.searchParams.set('excerpt', contentPreview)
+        ogImageUrl.searchParams.set('likes', post.likes.toString())
+        if (shareImage) {
+          ogImageUrl.searchParams.set('image', shareImage)
+        }
+        
+        // Update Open Graph tags
         let ogImage = document.querySelector('meta[property="og:image"]')
         if (!ogImage) {
           ogImage = document.createElement('meta')
           ogImage.setAttribute('property', 'og:image')
           document.head.appendChild(ogImage)
         }
-        if (shareImage) {
-          ogImage.setAttribute('content', shareImage)
-        }
+        ogImage.setAttribute('content', ogImageUrl.toString())
         
-        // Update Open Graph title
+        let ogImageWidth = document.querySelector('meta[property="og:image:width"]')
+        if (!ogImageWidth) {
+          ogImageWidth = document.createElement('meta')
+          ogImageWidth.setAttribute('property', 'og:image:width')
+          document.head.appendChild(ogImageWidth)
+        }
+        ogImageWidth.setAttribute('content', '1200')
+        
+        let ogImageHeight = document.querySelector('meta[property="og:image:height"]')
+        if (!ogImageHeight) {
+          ogImageHeight = document.createElement('meta')
+          ogImageHeight.setAttribute('property', 'og:image:height')
+          document.head.appendChild(ogImageHeight)
+        }
+        ogImageHeight.setAttribute('content', '630')
+        
         let ogTitle = document.querySelector('meta[property="og:title"]')
         if (!ogTitle) {
           ogTitle = document.createElement('meta')
@@ -195,43 +234,83 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
         }
         ogTitle.setAttribute('content', post.title)
         
-        // Update Open Graph description
         let ogDescription = document.querySelector('meta[property="og:description"]')
         if (!ogDescription) {
           ogDescription = document.createElement('meta')
           ogDescription.setAttribute('property', 'og:description')
           document.head.appendChild(ogDescription)
         }
-        const contentPreview = post.content.replace(/<[^>]*>/g, '').substring(0, 200)
         ogDescription.setAttribute('content', contentPreview)
         
-        // Update Twitter card image
+        // Update Twitter Card tags
+        let twitterCard = document.querySelector('meta[name="twitter:card"]')
+        if (!twitterCard) {
+          twitterCard = document.createElement('meta')
+          twitterCard.setAttribute('name', 'twitter:card')
+          document.head.appendChild(twitterCard)
+        }
+        twitterCard.setAttribute('content', 'summary_large_image')
+        
         let twitterImage = document.querySelector('meta[name="twitter:image"]')
         if (!twitterImage) {
           twitterImage = document.createElement('meta')
           twitterImage.setAttribute('name', 'twitter:image')
           document.head.appendChild(twitterImage)
         }
-        if (shareImage) {
-          twitterImage.setAttribute('content', shareImage)
+        twitterImage.setAttribute('content', ogImageUrl.toString())
+        
+        // Scroll to post
+        const postElement = document.getElementById(`post-${postId}`)
+        if (postElement) {
+          setTimeout(() => {
+            postElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }, 500)
         }
-        
-        // Expand the post automatically when accessed via hash
-        setExpandedPosts(prev => ({
-          ...prev,
-          [postId]: true
-        }))
-        
-        // Scroll to the post
-        setTimeout(() => {
-          const element = document.getElementById(`post-${postId}`)
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' })
-          }
-        }, 100)
       }
     }
   }, [posts])
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true)
+    try {
+      console.log('Manual refresh: Fetching blog posts from GitHub...')
+      const githubPosts = await fetchBlogPosts()
+      
+      console.log(`Manual refresh: Fetched ${githubPosts.length} posts`)
+      
+      if (githubPosts.length > 0) {
+        // Filter out draft posts
+        const publishedPosts = githubPosts.filter(post => !post.title.startsWith('[DRAFT]'))
+        console.log(`Manual refresh: Filtered to ${publishedPosts.length} published posts`)
+        
+        const postsWithComments = await Promise.all(
+          publishedPosts.map(async (post) => {
+            const comments = await fetchPostComments(parseInt(post.id))
+            return {
+              ...post,
+              comments: comments.map(c => ({
+                id: c.id.toString(),
+                author: c.author,
+                content: c.content,
+                timestamp: c.timestamp
+              }))
+            }
+          })
+        )
+        setPosts(postsWithComments)
+        localStorage.setItem('blog_posts', JSON.stringify(postsWithComments))
+        toast.success(`Refreshed! Loaded ${postsWithComments.length} blog posts`)
+      } else {
+        console.warn('Manual refresh: No posts returned from GitHub')
+        toast('No new posts available')
+      }
+    } catch (error) {
+      console.error('Failed to refresh posts:', error)
+      toast.error('Failed to refresh posts')
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
 
   const savePosts = (updatedPosts: BlogPost[]) => {
     localStorage.setItem('blog_posts', JSON.stringify(updatedPosts))
@@ -348,6 +427,70 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
     }
   }
 
+  const toggleComments = (postId: string) => {
+    setShowComments({ ...showComments, [postId]: !showComments[postId] })
+  }
+
+  const toggleExpandPost = (postId: string) => {
+    setExpandedPosts({ ...expandedPosts, [postId]: !expandedPosts[postId] })
+    
+    // Scroll to post if expanding
+    if (!expandedPosts[postId]) {
+      setTimeout(() => {
+        const element = document.getElementById(`post-${postId}`)
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }, 100)
+    }
+  }
+
+  const isContentLong = (content: string): boolean => {
+    // Remove HTML tags to get plain text length
+    const plainText = content.replace(/<[^>]*>/g, '')
+    return plainText.length > 500 // More than 500 characters
+  }
+
+  const getTruncatedContent = (content: string, maxLength: number = 500): string => {
+    const plainText = content.replace(/<[^>]*>/g, '')
+    
+    if (plainText.length <= maxLength) {
+      return content
+    }
+    
+    // Find a good breaking point (end of sentence or paragraph)
+    let truncateAt = maxLength
+    const breakPoints = ['. ', '! ', '? ', '\n']
+    
+    for (const breakPoint of breakPoints) {
+      const index = plainText.lastIndexOf(breakPoint, maxLength)
+      if (index > maxLength * 0.7) { // At least 70% of desired length
+        truncateAt = index + breakPoint.length
+        break
+      }
+    }
+    
+    // Create truncated HTML by finding the position in original HTML
+    let charCount = 0
+    let htmlResult = ''
+    let inTag = false
+    
+    for (let i = 0; i < content.length && charCount < truncateAt; i++) {
+      const char = content[i]
+      htmlResult += char
+      
+      if (char === '<') {
+        inTag = true
+      } else if (char === '>') {
+        inTag = false
+      } else if (!inTag) {
+        charCount++
+      }
+    }
+    
+    return htmlResult + '...'
+  }
+
   const handleShare = async (post: BlogPost) => {
     const shareUrl = `${window.location.origin}/blog#post-${post.id}`
     const shareTitle = post.title
@@ -355,48 +498,42 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
     // Get the first image from media or fallback to post.image
     const shareImage = post.media?.find(m => m.type === 'image')?.url || post.image
     
-    // Create a more detailed share text with image info
+    // Create a brief excerpt for sharing
     const contentPreview = post.content.replace(/<[^>]*>/g, '').substring(0, 150) + '...'
-    const shareText = shareImage 
-      ? `${post.title}\n\n${contentPreview}\n\nRead more at IT Services Freetown`
-      : `Check out this article: ${post.title}\n\n${contentPreview}`
-    
+    const shareText = `${post.title}\n\n${contentPreview}\n\n📖 By ${post.author} | 👍 ${post.likes} likes\n\nRead more:`
+
     // Try native Web Share API first (mobile)
     if (navigator.share) {
       try {
-        await navigator.share({
+        const shareData: any = {
           title: shareTitle,
           text: shareText,
           url: shareUrl,
-        })
+        }
+        
+        await navigator.share(shareData)
         toast.success('Shared successfully!')
         return
       } catch (error) {
-        // User cancelled or share failed, fall back to clipboard
+        // User cancelled or share failed, fall back to copy link
         if ((error as Error).name !== 'AbortError') {
-          console.error('Share failed:', error)
+          console.log('Share failed, falling back to copy link')
         }
       }
     }
-    
-    // Fallback: Copy to clipboard
+
+    // Fallback: Copy link to clipboard with rich preview info
     try {
-      await navigator.clipboard.writeText(shareUrl)
-      setCopiedPostId(post.id)
-      toast.success('Link copied to clipboard!')
+      const clipboardText = `${shareText}\n${shareUrl}`
       
-      // Reset copied state after 2 seconds
-      setTimeout(() => {
-        setCopiedPostId(null)
-      }, 2000)
+      await navigator.clipboard.writeText(clipboardText)
+      setCopiedPostId(post.id)
+      toast.success('Link copied! Share preview will show post image and details.')
+      setTimeout(() => setCopiedPostId(null), 3000)
     } catch (error) {
       console.error('Failed to copy:', error)
       toast.error('Failed to copy link')
     }
-  }
-
-  const toggleComments = (postId: string) => {
-    setShowComments({ ...showComments, [postId]: !showComments[postId] })
   }
 
   const formatDate = (dateString: string) => {
@@ -418,37 +555,46 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
     return date.toLocaleDateString()
   }
 
-  const getExcerpt = (content: string, maxLength: number = 300) => {
-    const strippedContent = content.replace(/<[^>]*>/g, '')
-    if (strippedContent.length <= maxLength) return content
-    return strippedContent.substring(0, maxLength).trim() + '...'
-  }
-
-  const togglePostExpansion = (postId: string) => {
-    setExpandedPosts(prev => ({
-      ...prev,
-      [postId]: !prev[postId]
-    }))
-  }
-
   if (isLoading) {
     return <LoadingOverlay />
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-gray-50">
       {/* Hero Header */}
-      <header className="relative overflow-hidden" style={{backgroundImage: 'url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQ0MCIgaGVpZ2h0PSI0NTAiIHZpZXdCb3g9IjAgMCAxNDQwIDQ1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE0NDAiIGhlaWdodD0iNDUwIiBmaWxsPSJ1cmwoI3BhaW50MF9saW5lYXJfMF8xKSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJwYWludDBfbGluZWFyXzBfMSIgeDE9IjcyMCIgeTE9IjAiIHgyPSI3MjAiIHkyPSI0NTAiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KPHN0b3Agc3RvcC1jb2xvcj0iIzBEMUIyQSIvPgo8c3RvcCBvZmZzZXQ9IjAuNSIgc3RvcC1jb2xvcj0iIzFBMjMzMyIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwRDBFMjgiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8L3N2Zz4K)', backgroundSize: 'cover', backgroundPosition: 'center'}}>
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-indigo-900/80 to-purple-900/80"></div>
+      <header className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-red-600 via-[#040e40] to-red-800 opacity-95"></div>
         
         <div className="relative max-w-7xl mx-auto px-6 py-20 md:py-28">
           <div className="text-center">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 text-white">
-              Tech Tips & <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300">Innovation</span>
+              Tech Tips & <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-300 to-white">Innovation</span>
             </h1>
-            <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed">
               Discover the latest insights, tutorials, and news in technology and IT services
             </p>
+            <div className="mt-8 flex items-center justify-center gap-4 text-white/80">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
+                <span className="text-sm">Auto-updating every 30s</span>
+              </div>
+              <button
+                onClick={handleManualRefresh}
+                disabled={isRefreshing}
+                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-red-500/20 rounded-lg transition-all duration-200 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed border border-white/20 hover:border-red-300/30"
+                title="Manually refresh blog posts"
+              >
+                <svg 
+                  className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -460,11 +606,14 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
           <DisplayAd className="max-w-4xl mx-auto" />
         </div>
 
-        {/* Blog Posts */}
-        <div className="space-y-8">{posts.length === 0 ? (
+        {/* Magazine Layout: Main Content + Sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content Area (2/3 width) */}
+          <div className="lg:col-span-2">
+            {posts.length === 0 ? (
             <div className="text-center py-20 scroll-animate">
               <div className="bg-white rounded-3xl shadow-lg p-12 max-w-md mx-auto">
-                <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto mb-6 flex items-center justify-center">
+                <div className="w-20 h-20 bg-gradient-to-r from-red-600 to-[#040e40] rounded-full mx-auto mb-6 flex items-center justify-center">
                   <MessageCircle className="w-10 h-10 text-white" />
                 </div>
                 <p className="text-gray-600 text-lg mb-2">No posts yet</p>
@@ -473,78 +622,100 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
             </div>
           ) : (
             posts.map((post, index) => (
-              <div key={post.id}>
+              <div key={post.id} id={`post-${post.id}`}>
                 <article 
                   className="group bg-white rounded-3xl shadow-lg overflow-hidden scroll-animate hover:shadow-2xl transition-all duration-500 border border-gray-100"
                 >
                 {/* Post Header with Gradient Bar */}
-                <div className="h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+                <div className="h-2 bg-gradient-to-r from-red-600 via-[#040e40] to-red-600"></div>
                 
                 <div className="p-8 md:p-10">
                   {/* Meta Info */}
                   <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-6">
-                    <div className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-full">
-                      <Calendar className="w-4 h-4 text-blue-600" />
-                      <span className="font-medium text-blue-900">{formatDate(post.date)}</span>
+                    <div className="flex items-center gap-2 bg-red-50 px-3 py-1.5 rounded-full">
+                      <Calendar className="w-4 h-4 text-red-600" />
+                      <span className="font-medium text-[#040e40]">{formatDate(post.date)}</span>
                     </div>
-                    <div className="flex items-center gap-2 bg-purple-50 px-3 py-1.5 rounded-full">
-                      <User className="w-4 h-4 text-purple-600" />
-                      <span className="font-medium text-purple-900">{post.author}</span>
+                    <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-full">
+                      <User className="w-4 h-4 text-[#040e40]" />
+                      <span className="font-medium text-[#040e40]">{post.author}</span>
                     </div>
                   </div>
 
-                  {/* Title - Clickable */}
-                  <h2 
-                    onClick={() => togglePostExpansion(post.id)}
-                    className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-900 via-purple-900 to-pink-900 bg-clip-text text-transparent leading-tight group-hover:scale-[1.02] transition-transform duration-300 cursor-pointer hover:opacity-80"
-                  >
+                  {/* Title */}
+                  <h2 className="text-3xl md:text-4xl font-bold mb-8 bg-gradient-to-r from-red-600 via-[#040e40] to-red-600 bg-clip-text text-transparent leading-tight group-hover:scale-[1.02] transition-transform duration-300">
                     {post.title}
                   </h2>
 
-                  {/* Content - Excerpt or Full */}
-                  <div className="prose prose-lg max-w-none text-gray-700 mb-8 leading-relaxed">
-                    {expandedPosts[post.id] ? (
-                      <div dangerouslySetInnerHTML={{ __html: post.content }} />
-                    ) : (
-                      <div>
-                        <p>{getExcerpt(post.content)}</p>
-                        <button
-                          onClick={() => togglePostExpansion(post.id)}
-                          className="mt-4 text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-2 transition-colors"
-                        >
-                          Read more →
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Media Display - Only show when expanded */}
-                  {expandedPosts[post.id] && post.media && post.media.length > 0 && (
-                    <div className="mt-8 space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {post.media.map((item) => (
-                          <div key={item.id} className="rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
-                            {item.type === 'image' ? (
-                              <img 
-                                src={item.url} 
-                                alt={item.caption || 'Post image'} 
-                                className="w-full h-auto object-cover"
-                              />
-                            ) : (
-                              <video 
-                                src={item.url} 
-                                controls 
-                                className="w-full h-auto"
-                              />
-                            )}
-                            {item.caption && (
-                              <p className="text-sm text-gray-600 mt-3 px-2 italic">{item.caption}</p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                  {/* Featured Image - Single main image right after title */}
+                  {(post.media?.find(m => m.type === 'image') || post.image) && (
+                    <div className="mb-8 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
+                      <img 
+                        src={post.media?.find(m => m.type === 'image')?.url || post.image} 
+                        alt={post.media?.find(m => m.type === 'image')?.caption || post.title} 
+                        className="w-full h-auto object-cover max-h-[500px]"
+                      />
+                      {post.media?.find(m => m.type === 'image')?.caption && (
+                        <div className="bg-gradient-to-r from-red-50 to-gray-50 px-6 py-3">
+                          <p className="text-sm text-gray-700 italic">{post.media.find(m => m.type === 'image')?.caption}</p>
+                        </div>
+                      )}
                     </div>
                   )}
+
+                  {/* Content with Read More */}
+                  <div className="mb-8">
+                    <div 
+                      className={`prose prose-lg max-w-none text-gray-700 leading-relaxed transition-all duration-500 ${
+                        !expandedPosts[post.id] && isContentLong(post.content) ? 'relative' : ''
+                      }`}
+                      style={{
+                        maxHeight: !expandedPosts[post.id] && isContentLong(post.content) ? '300px' : 'none',
+                        overflow: !expandedPosts[post.id] && isContentLong(post.content) ? 'hidden' : 'visible',
+                        whiteSpace: 'normal'
+                      }}
+                    >
+                      <div 
+                        dangerouslySetInnerHTML={{ 
+                          __html: expandedPosts[post.id] || !isContentLong(post.content) 
+                            ? post.content 
+                            : getTruncatedContent(post.content) 
+                        }}
+                        style={{
+                          whiteSpace: 'normal'
+                        }}
+                      />
+                      
+                      {/* Fade overlay for collapsed long content */}
+                      {!expandedPosts[post.id] && isContentLong(post.content) && (
+                        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none"></div>
+                      )}
+                    </div>
+                    
+                    {/* Read More / Show Less Button */}
+                    {isContentLong(post.content) && (
+                      <button
+                        onClick={() => toggleExpandPost(post.id)}
+                        className="mt-4 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-[#040e40] hover:from-red-700 hover:to-[#030b30] text-white font-semibold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
+                      >
+                        {expandedPosts[post.id] ? (
+                          <>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                            </svg>
+                            Show Less
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                            Read More
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Engagement Bar */}
@@ -556,8 +727,8 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                         onClick={() => handleLike(post.id)}
                         className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm ${
                           userVotes[post.id] === 'like'
-                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-blue-200'
-                            : 'bg-white text-gray-600 hover:bg-blue-50 hover:text-blue-600 hover:shadow-md'
+                            ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-red-200'
+                            : 'bg-white text-gray-600 hover:bg-red-50 hover:text-red-600 hover:shadow-md'
                         }`}
                       >
                         <ThumbsUp className="w-5 h-5" />
@@ -577,29 +748,28 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                       </button>
                     </div>
 
-                    {/* Comments and Share Buttons */}
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => toggleComments(post.id)}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition-all duration-300 shadow-sm hover:shadow-md font-medium"
-                      >
-                        <MessageCircle className="w-5 h-5" />
-                        <span className="font-bold">{post.comments.length}</span>
-                        <span className="hidden sm:inline">Comments</span>
-                      </button>
+                    {/* Comments Button */}
+                    <button
+                      onClick={() => toggleComments(post.id)}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-gray-600 hover:bg-red-50 hover:text-[#040e40] transition-all duration-300 shadow-sm hover:shadow-md font-medium"
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      <span className="font-bold">{post.comments.length}</span>
+                      <span className="hidden sm:inline">Comments</span>
+                    </button>
 
-                      <button
-                        onClick={() => handleShare(post)}
-                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm hover:shadow-md ${
-                          copiedPostId === post.id
-                            ? 'bg-gradient-to-r from-green-500 to-green-600 text-white'
-                            : 'bg-white text-gray-600 hover:bg-green-50 hover:text-green-600'
-                        }`}
-                      >
-                        <Share2 className="w-5 h-5" />
-                        <span className="hidden sm:inline">{copiedPostId === post.id ? 'Copied!' : 'Share'}</span>
-                      </button>
-                    </div>
+                    {/* Share Button */}
+                    <button
+                      onClick={() => handleShare(post)}
+                      className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm hover:shadow-md ${
+                        copiedPostId === post.id
+                          ? 'bg-gradient-to-r from-green-500 to-green-600 text-white'
+                          : 'bg-white text-gray-600 hover:bg-green-50 hover:text-green-600'
+                      }`}
+                    >
+                      <Share2 className="w-5 h-5" />
+                      <span className="hidden sm:inline">{copiedPostId === post.id ? 'Copied!' : 'Share'}</span>
+                    </button>
                   </div>
                 </div>
 
@@ -609,7 +779,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                     {/* Add Comment Form */}
                     <div className="mb-8">
                       <h3 className="font-bold text-xl text-gray-900 mb-6 flex items-center gap-2">
-                        <MessageCircle className="w-6 h-6 text-purple-600" />
+                        <MessageCircle className="w-6 h-6 text-red-600" />
                         Leave a Comment
                       </h3>
                       <div className="space-y-4">
@@ -618,7 +788,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                           placeholder="Your name"
                           value={commentAuthors[post.id] || ''}
                           onChange={(e) => setCommentAuthors({ ...commentAuthors, [post.id]: e.target.value })}
-                          className="w-full px-5 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white shadow-sm"
+                          className="w-full px-5 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-300 bg-white shadow-sm"
                         />
                         <div className="flex gap-3">
                           <input
@@ -627,11 +797,11 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                             value={commentInputs[post.id] || ''}
                             onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
                             onKeyPress={(e) => e.key === 'Enter' && handleAddComment(post.id)}
-                            className="flex-1 px-5 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white shadow-sm"
+                            className="flex-1 px-5 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-300 bg-white shadow-sm"
                           />
                           <button
                             onClick={() => handleAddComment(post.id)}
-                            className="px-6 py-3 rounded-xl font-bold text-white transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg bg-gradient-to-r from-purple-600 to-pink-600"
+                            className="px-6 py-3 rounded-xl font-bold text-white transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg bg-gradient-to-r from-red-600 to-[#040e40]"
                           >
                             <Send className="w-5 h-5" />
                           </button>
@@ -650,7 +820,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                           <div key={comment.id} className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100">
                             <div className="flex items-center justify-between mb-3">
                               <div className="flex items-center gap-2">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-red-600 to-[#040e40] flex items-center justify-center text-white font-bold">
                                   {comment.author.charAt(0).toUpperCase()}
                                 </div>
                                 <span className="font-bold text-gray-900">{comment.author}</span>
@@ -675,6 +845,162 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
             </div>
             ))
           )}
+          </div>
+
+          {/* Sidebar (1/3 width) */}
+          <aside className="lg:col-span-1 space-y-6">
+            {/* Popular Posts Widget */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 scroll-animate">
+              <div className="flex items-center gap-2 mb-6 pb-3 border-b-2 border-red-600">
+                <div className="w-1 h-6 bg-gradient-to-b from-red-600 to-[#040e40] rounded-full"></div>
+                <h3 className="text-xl font-bold text-[#040e40]">Popular Posts</h3>
+              </div>
+              <div className="space-y-4">
+                {posts.slice(0, 4).map((post, idx) => (
+                  <a
+                    key={post.id}
+                    href={`#post-${post.id}`}
+                    className="group flex gap-3 pb-4 border-b border-gray-100 last:border-0 hover:bg-red-50/50 p-2 -m-2 rounded-lg transition-all"
+                  >
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-red-600 to-[#040e40] text-white font-bold flex items-center justify-center text-sm">
+                      {idx + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-sm text-gray-900 group-hover:text-red-600 transition-colors line-clamp-2 mb-1">
+                        {post.title}
+                      </h4>
+                      <div className="flex items-center gap-3 text-xs text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {formatDate(post.date)}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <ThumbsUp className="w-3 h-3" />
+                          {post.likes}
+                        </span>
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Categories Widget */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 scroll-animate">
+              <div className="flex items-center gap-2 mb-6 pb-3 border-b-2 border-red-600">
+                <div className="w-1 h-6 bg-gradient-to-b from-red-600 to-[#040e40] rounded-full"></div>
+                <h3 className="text-xl font-bold text-[#040e40]">Categories</h3>
+              </div>
+              <div className="space-y-2">
+                {[
+                  { name: 'Device Repair', count: posts.length, color: 'red' },
+                  { name: 'Tech Tips', count: Math.floor(posts.length * 0.7), color: 'blue' },
+                  { name: 'Software', count: Math.floor(posts.length * 0.5), color: 'purple' },
+                  { name: 'Hardware', count: Math.floor(posts.length * 0.6), color: 'green' },
+                  { name: 'Mobile', count: Math.floor(posts.length * 0.8), color: 'orange' }
+                ].map((category) => (
+                  <button
+                    key={category.name}
+                    className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-red-50 transition-all group"
+                  >
+                    <span className="font-medium text-gray-700 group-hover:text-red-600">
+                      {category.name}
+                    </span>
+                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full font-semibold group-hover:bg-red-600 group-hover:text-white transition-all">
+                      {category.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Social Follow Widget */}
+            <div className="bg-gradient-to-br from-red-600 to-[#040e40] rounded-2xl shadow-lg p-6 text-white scroll-animate">
+              <h3 className="text-xl font-bold mb-4">Follow Us</h3>
+              <p className="text-red-100 text-sm mb-6">
+                Stay updated with the latest tech news and tips!
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <a
+                  href="https://facebook.com/itservicefreetown"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm p-3 rounded-lg transition-all"
+                >
+                  <i className="fab fa-facebook text-lg"></i>
+                  <span className="text-sm font-medium">Facebook</span>
+                </a>
+                <a
+                  href="https://twitter.com/itsfreetown"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm p-3 rounded-lg transition-all"
+                >
+                  <i className="fab fa-twitter text-lg"></i>
+                  <span className="text-sm font-medium">Twitter</span>
+                </a>
+                <a
+                  href="https://instagram.com/itservicesfreetown"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm p-3 rounded-lg transition-all"
+                >
+                  <i className="fab fa-instagram text-lg"></i>
+                  <span className="text-sm font-medium">Instagram</span>
+                </a>
+                <a
+                  href="https://chat.whatsapp.com/FuS9EBvCF455geNHqQl3Iz"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm p-3 rounded-lg transition-all"
+                >
+                  <i className="fab fa-whatsapp text-lg"></i>
+                  <span className="text-sm font-medium">WhatsApp</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Tags Cloud Widget */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 scroll-animate">
+              <div className="flex items-center gap-2 mb-6 pb-3 border-b-2 border-red-600">
+                <div className="w-1 h-6 bg-gradient-to-b from-red-600 to-[#040e40] rounded-full"></div>
+                <h3 className="text-xl font-bold text-[#040e40]">Popular Tags</h3>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  'Repair', 'iPhone', 'Android', 'Laptop', 'Screen', 
+                  'Battery', 'Software', 'Data Recovery', 'MacBook',
+                  'Samsung', 'Hardware', 'Tips'
+                ].map((tag) => (
+                  <button
+                    key={tag}
+                    className="px-3 py-1.5 bg-gray-100 hover:bg-red-600 hover:text-white text-gray-700 text-sm rounded-full font-medium transition-all"
+                  >
+                    #{tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Newsletter Widget */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 scroll-animate">
+              <div className="flex items-center gap-2 mb-4 pb-3 border-b-2 border-red-600">
+                <div className="w-1 h-6 bg-gradient-to-b from-red-600 to-[#040e40] rounded-full"></div>
+                <h3 className="text-xl font-bold text-[#040e40]">Newsletter</h3>
+              </div>
+              <p className="text-gray-600 text-sm mb-4">
+                Get the latest tech tips delivered to your inbox!
+              </p>
+              <input
+                type="email"
+                placeholder="Your email address"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+              />
+              <button className="w-full py-2.5 bg-gradient-to-r from-red-600 to-[#040e40] text-white font-semibold rounded-lg hover:shadow-lg transition-all">
+                Subscribe Now
+              </button>
+            </div>
+          </aside>
         </div>
 
         {/* Bottom Ad - Before Footer */}
