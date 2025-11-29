@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ShoppingCart, Heart, Share2, Check, ArrowLeft, Star, Truck, Shield, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
 
 interface Product {
   id: string;
@@ -126,7 +127,11 @@ export default function ProductDetailPage() {
     }
 
     localStorage.setItem('cart', JSON.stringify(cart));
-    alert('Product added to cart!');
+    // Toast notification instead of alert for better UX
+    if (typeof window !== 'undefined') {
+      const event = new CustomEvent('cartUpdated');
+      window.dispatchEvent(event);
+    }
   };
 
   const buyNow = () => {
@@ -167,16 +172,16 @@ export default function ProductDetailPage() {
       } else {
         // Fallback: copy to clipboard
         await navigator.clipboard.writeText(shareText);
-        alert('Product details copied to clipboard!');
+        toast.success('Product details copied to clipboard!');
       }
     } catch (error) {
       console.error('Error sharing:', error);
       // If all else fails, try clipboard again
       try {
         await navigator.clipboard.writeText(shareText);
-        alert('Product link copied to clipboard!');
+        toast.success('Product link copied to clipboard!');
       } catch (clipboardError) {
-        alert('Unable to share. Please copy the URL from your browser.');
+        toast.error('Unable to share. Please copy the URL from your browser.');
       }
     }
   };
