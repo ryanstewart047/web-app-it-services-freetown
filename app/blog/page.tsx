@@ -53,9 +53,12 @@ export default function BlogPage() {
         const githubPosts = await fetchBlogPosts()
         
         if (githubPosts.length > 0) {
+          // Filter out draft posts (those with [DRAFT] prefix)
+          const publishedPosts = githubPosts.filter(post => !post.title.startsWith('[DRAFT]'))
+          
           // Load comments for each post from GitHub
           const postsWithComments = await Promise.all(
-            githubPosts.map(async (post) => {
+            publishedPosts.map(async (post) => {
               const comments = await fetchPostComments(parseInt(post.id))
               return {
                 ...post,
@@ -81,14 +84,16 @@ export default function BlogPage() {
       const savedPosts = localStorage.getItem('blog_posts')
       if (savedPosts) {
         const parsedPosts = JSON.parse(savedPosts)
-        // Convert date strings back to Date objects
-        const postsWithDates = parsedPosts.map((post: any) => ({
-          ...post,
-          comments: post.comments.map((comment: any) => ({
-            ...comment,
-            timestamp: new Date(comment.timestamp)
+        // Convert date strings back to Date objects and filter out drafts
+        const postsWithDates = parsedPosts
+          .filter((post: any) => !post.title.startsWith('[DRAFT]'))
+          .map((post: any) => ({
+            ...post,
+            comments: post.comments.map((comment: any) => ({
+              ...comment,
+              timestamp: new Date(comment.timestamp)
+            }))
           }))
-        }))
         setPosts(postsWithDates)
       } else {
         // Initialize with sample posts if nothing in localStorage
