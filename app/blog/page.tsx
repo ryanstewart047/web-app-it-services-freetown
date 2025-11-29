@@ -835,7 +835,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
               
               {/* Insert In-Feed Ad after every 2 posts */}
               {(index + 1) % 2 === 0 && index < posts.length - 1 && (
-                <div className="my-8 scroll-animate">
+                <div className="my-8 scroll-animate min-w-[250px]">
                   <InFeedAd />
                 </div>
               )}

@@ -85,8 +85,7 @@ export function InArticleAd({ className }: { className?: string }) {
   return (
     <AdSense
       adSlot="2222222222" // Replace with your in-article ad slot
-      adFormat="fluid"
-      adLayout="in-article"
+      adFormat="auto"
       className={className}
     />
   )
@@ -109,8 +108,7 @@ export function InFeedAd({ className }: { className?: string }) {
   return (
     <AdSense
       adSlot="4444444444" // Replace with your in-feed ad slot
-      adFormat="fluid"
-      adLayout="in-feed"
+      adFormat="auto"
       className={className}
     />
   )
