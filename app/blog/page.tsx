@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
-import { ThumbsUp, ThumbsDown, MessageCircle, Calendar, User, Send } from 'lucide-react'
+import { ThumbsUp, ThumbsDown, MessageCircle, Calendar, User, Send, Share2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { fetchBlogPosts, fetchPostComments, addComment, addReaction } from '@/lib/github-blog-storage'
 import { DisplayAd, InFeedAd } from '@/components/AdSense'
@@ -44,6 +44,7 @@ export default function BlogPage() {
   const [showComments, setShowComments] = useState<{ [key: string]: boolean }>({})
   const [userVotes, setUserVotes] = useState<{ [key: string]: 'like' | 'dislike' | null }>({})
   const [expandedPosts, setExpandedPosts] = useState<{ [key: string]: boolean }>({})
+  const [copiedPostId, setCopiedPostId] = useState<string | null>(null)
 
   useScrollAnimations()
 
@@ -279,6 +280,53 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
     }
   }
 
+  const handleShare = async (post: BlogPost) => {
+    const shareUrl = `${window.location.origin}/blog#post-${post.id}`
+    const shareTitle = post.title
+    
+    // Get the first image from media or fallback to post.image
+    const shareImage = post.media?.find(m => m.type === 'image')?.url || post.image
+    
+    // Create a more detailed share text with image info
+    const contentPreview = post.content.replace(/<[^>]*>/g, '').substring(0, 150) + '...'
+    const shareText = shareImage 
+      ? `${post.title}\n\n${contentPreview}\n\nRead more at IT Services Freetown`
+      : `Check out this article: ${post.title}\n\n${contentPreview}`
+    
+    // Try native Web Share API first (mobile)
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl,
+        })
+        toast.success('Shared successfully!')
+        return
+      } catch (error) {
+        // User cancelled or share failed, fall back to clipboard
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Share failed:', error)
+        }
+      }
+    }
+    
+    // Fallback: Copy to clipboard
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setCopiedPostId(post.id)
+      toast.success('Link copied to clipboard!')
+      
+      // Reset copied state after 2 seconds
+      setTimeout(() => {
+        setCopiedPostId(null)
+      }, 2000)
+    } catch (error) {
+      console.error('Failed to copy:', error)
+      toast.error('Failed to copy link')
+    }
+  }
+
   const toggleComments = (postId: string) => {
     setShowComments({ ...showComments, [postId]: !showComments[postId] })
   }
@@ -461,15 +509,29 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                       </button>
                     </div>
 
-                    {/* Comments Button */}
-                    <button
-                      onClick={() => toggleComments(post.id)}
-                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition-all duration-300 shadow-sm hover:shadow-md font-medium"
-                    >
-                      <MessageCircle className="w-5 h-5" />
-                      <span className="font-bold">{post.comments.length}</span>
-                      <span className="hidden sm:inline">Comments</span>
-                    </button>
+                    {/* Comments and Share Buttons */}
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => toggleComments(post.id)}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition-all duration-300 shadow-sm hover:shadow-md font-medium"
+                      >
+                        <MessageCircle className="w-5 h-5" />
+                        <span className="font-bold">{post.comments.length}</span>
+                        <span className="hidden sm:inline">Comments</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleShare(post)}
+                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm hover:shadow-md ${
+                          copiedPostId === post.id
+                            ? 'bg-gradient-to-r from-green-500 to-green-600 text-white'
+                            : 'bg-white text-gray-600 hover:bg-green-50 hover:text-green-600'
+                        }`}
+                      >
+                        <Share2 className="w-5 h-5" />
+                        <span className="hidden sm:inline">{copiedPostId === post.id ? 'Copied!' : 'Share'}</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
 
