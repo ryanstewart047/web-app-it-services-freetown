@@ -61,15 +61,34 @@ export default function ProductDetailPage() {
       ? imageUrl 
       : `${window.location.origin}${imageUrl}`;
     
+    // Create OG image with product details
+    const truncatedDesc = product.description.length > 100 
+      ? product.description.substring(0, 100) 
+      : product.description;
+    
+    const ogImageUrl = `${window.location.origin}/api/og-product?` + new URLSearchParams({
+      name: product.name,
+      price: product.price.toString(),
+      image: fullImageUrl,
+      description: truncatedDesc,
+      condition: product.condition || 'new'
+    }).toString();
+    
     // Update or create meta tags for better link previews
     const metaTags = [
-      { property: 'og:title', content: product.name },
-      { property: 'og:description', content: product.description },
-      { property: 'og:image', content: fullImageUrl },
+      { property: 'og:title', content: `${product.name} - Le ${product.price.toLocaleString()}` },
+      { property: 'og:description', content: truncatedDesc },
+      { property: 'og:image', content: ogImageUrl },
+      { property: 'og:image:width', content: '1200' },
+      { property: 'og:image:height', content: '630' },
       { property: 'og:url', content: window.location.href },
       { property: 'og:type', content: 'product' },
+      { property: 'product:price:amount', content: product.price.toString() },
+      { property: 'product:price:currency', content: 'SLL' },
       { name: 'twitter:card', content: 'summary_large_image' },
-      { name: 'twitter:image', content: fullImageUrl }
+      { name: 'twitter:title', content: `${product.name} - Le ${product.price.toLocaleString()}` },
+      { name: 'twitter:description', content: truncatedDesc },
+      { name: 'twitter:image', content: ogImageUrl }
     ];
 
     metaTags.forEach(({ property, name, content }) => {
@@ -123,55 +142,25 @@ export default function ProductDetailPage() {
   const handleShare = async () => {
     if (!product) return;
 
-    // Get the product's primary image with full URL
-    const productImage = product.images?.[0]?.url || '';
-    console.log('Product image from data:', productImage);
-    
-    const fullImageUrl = productImage.startsWith('http') 
-      ? productImage 
-      : `${window.location.origin}${productImage}`;
-    
-    console.log('Full image URL:', fullImageUrl);
-    
-    // Create short URL using API with fallback
-    const shortCode = product.slug.substring(0, 8).toLowerCase();
-    let shareUrl = `${window.location.origin}/s/${shortCode}`;
-    
-    try {
-      const shortenResponse = await fetch('/api/shorten', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: window.location.href })
-      });
-      
-      if (shortenResponse.ok) {
-        const data = await shortenResponse.json();
-        shareUrl = data.shortUrl;
-        console.log('✅ Created short URL:', shareUrl);
-      } else {
-        console.log('⚠️ API failed, using local short URL:', shareUrl);
-      }
-      
-      // Always store in localStorage as backup for mobile
-      localStorage.setItem(`short_${shortCode}`, window.location.href);
-    } catch (error) {
-      console.log('⚠️ Failed to call API, using local short URL:', shareUrl, error);
-      // Still store in localStorage so redirect works
-      localStorage.setItem(`short_${shortCode}`, window.location.href);
-    }
+    // Truncate description for sharing
+    const truncatedDesc = product.description.length > 100 
+      ? product.description.substring(0, 100) + '...' 
+      : product.description;
 
-    // Share text without image URL (Open Graph meta tags handle the preview)
-    const shareText = `${product.name} - Le ${product.price.toLocaleString()}\n\n${shareUrl}`;
+    // Direct link to this product page
+    const productUrl = `${window.location.origin}/marketplace/${product.slug}`;
+    
+    // Create share text with product details
+    const shareText = `${product.name}\n\nLe ${product.price.toLocaleString()}${product.comparePrice ? ` (was Le ${product.comparePrice.toLocaleString()})` : ''}\n\n${truncatedDesc}\n\n${productUrl}`;
 
     const shareData: ShareData = {
       title: product.name,
       text: shareText,
-      url: shareUrl
+      url: productUrl
     };
 
     try {
-      // Try native share API (text + URL only, no files)
-      // This ensures the URL is always pasteable on mobile
+      // Try native share API
       if (navigator.share) {
         await navigator.share(shareData);
         console.log('Shared successfully');
