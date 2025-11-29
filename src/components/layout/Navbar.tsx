@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [supportDropdownOpen, setSupportDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -17,12 +18,30 @@ export default function Navbar() {
     setSupportDropdownOpen(false);
   };
 
-  const toggleSupportDropdown = () => {
+  const toggleSupportDropdown = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setSupportDropdownOpen(!supportDropdownOpen);
   };
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setSupportDropdownOpen(false);
+      }
+    };
+
+    if (supportDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [supportDropdownOpen]);
+
   return (
-    <nav className="bg-white shadow-lg fixed top-0 left-0 right-0 z-40">
+    <nav className="bg-white shadow-lg fixed top-0 left-0 right-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -60,17 +79,17 @@ export default function Navbar() {
             <Link href="/troubleshoot" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Troubleshoot</Link>
             
             {/* Get Support Dropdown */}
-            <div className="relative">
+            <div className="relative" ref={dropdownRef}>
               <button 
                 onClick={toggleSupportDropdown}
-                className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium inline-flex items-center gap-1"
+                className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium inline-flex items-center gap-1 cursor-pointer"
               >
                 Get Support
                 <i className={`fas fa-chevron-down text-xs transition-transform duration-200 ${supportDropdownOpen ? 'rotate-180' : ''}`}></i>
               </button>
               
               {supportDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-[60] border border-gray-200">
                   <Link 
                     href="/chat" 
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -158,7 +177,7 @@ export default function Navbar() {
             <div className="px-3 py-2">
               <button 
                 onClick={toggleSupportDropdown}
-                className="text-gray-700 hover:text-primary-950 text-base font-medium inline-flex items-center gap-2 w-full justify-between"
+                className="text-gray-700 hover:text-primary-950 text-base font-medium inline-flex items-center gap-2 w-full justify-between cursor-pointer"
               >
                 Get Support
                 <i className={`fas fa-chevron-down text-sm transition-transform duration-200 ${supportDropdownOpen ? 'rotate-180' : ''}`}></i>
