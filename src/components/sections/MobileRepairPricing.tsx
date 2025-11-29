@@ -106,28 +106,30 @@ const MobileRepairPricing: React.FC = () => {
           </div>
 
           {/* Device Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-            {devices.map((device) => (
-              <div
-                key={device.id}
-                onClick={() => handleDeviceClick(device)}
-                className="bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-2 group"
-              >
-                <div className="relative w-full h-32 mb-4 flex items-center justify-center overflow-hidden rounded-lg">
-                  <img 
-                    src={device.icon} 
-                    alt={`${device.name} device`}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
+          <div className="overflow-x-auto pb-4 -mx-4 px-4 md:overflow-x-visible">
+            <div className="flex md:grid md:grid-cols-3 lg:grid-cols-5 gap-6 min-w-max md:min-w-0">
+              {devices.map((device) => (
+                <div
+                  key={device.id}
+                  onClick={() => handleDeviceClick(device)}
+                  className="bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-2 group flex-shrink-0 w-48 md:w-auto"
+                >
+                  <div className="relative w-full h-32 mb-4 flex items-center justify-center overflow-hidden rounded-lg">
+                    <img 
+                      src={device.icon} 
+                      alt={`${device.name} device`}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 text-center group-hover:text-red-600 transition-colors">
+                    {device.name}
+                  </h3>
+                  <p className="text-sm text-gray-500 text-center mt-2">
+                    Click for pricing
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 text-center group-hover:text-red-600 transition-colors">
-                  {device.name}
-                </h3>
-                <p className="text-sm text-gray-500 text-center mt-2">
-                  Click for pricing
-                </p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           {/* Info Banner */}
