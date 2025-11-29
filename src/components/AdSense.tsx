@@ -18,10 +18,14 @@ interface AdSenseProps {
  * 2. ⏳ Waiting for approval (usually takes 1-2 weeks)
  * 3. After approval: Get your ad slot IDs from AdSense dashboard
  * 4. Replace the placeholder adSlot IDs below with your actual ad unit IDs
+ * 5. Set ADSENSE_APPROVED=true in environment variables
  * 
- * Current Status: Ready for automatic ads (Auto ads enabled via script tag)
- * Once approved, ads will show automatically where Google determines best placement
+ * Current Status: Auto ads enabled (manual ad units hidden until approval)
+ * Once approved, set ADSENSE_APPROVED=true to enable manual ad placements
  */
+
+// Check if AdSense is approved (set this to true after approval)
+const ADSENSE_APPROVED = process.env.NEXT_PUBLIC_ADSENSE_APPROVED === 'true'
 
 export default function AdSense({
   adSlot = '0000000000', // Replace with your ad slot ID after approval
@@ -32,6 +36,11 @@ export default function AdSense({
 }: AdSenseProps) {
   const adRef = useRef<HTMLModElement>(null)
   const isAdPushed = useRef(false)
+  
+  // Don't render manual ads until AdSense is approved to prevent 400 errors
+  if (!ADSENSE_APPROVED) {
+    return null
+  }
   
   useEffect(() => {
     try {
