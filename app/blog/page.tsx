@@ -314,12 +314,6 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
             <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
               Discover the latest insights, tutorials, and news in technology and IT services
             </p>
-            <div className="mt-8 flex items-center justify-center gap-4 text-blue-200">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-sm">Auto-updating every 30s</span>
-              </div>
-            </div>
           </div>
         </div>
       </header>
