@@ -135,8 +135,9 @@ export default function MarketplacePage() {
         const data = await res.json();
         setWishlistCounts(prev => ({ ...prev, [productId]: data.count }));
       }
+      // Silently ignore errors to prevent console spam when DB not configured
     } catch (error) {
-      console.error('Error fetching wishlist count:', error);
+      // Database not configured - ignore
     }
   };
 
@@ -179,12 +180,8 @@ export default function MarketplacePage() {
     }
   };
 
-  // Fetch wishlist counts for all products when products change
-  useEffect(() => {
-    products.forEach(product => {
-      fetchWishlistCount(product.id);
-    });
-  }, [products]);
+  // Wishlist counts are fetched on-demand when needed (e.g., after toggle)
+  // This prevents console spam when database is not configured
 
   const addToCart = (product: Product) => {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
