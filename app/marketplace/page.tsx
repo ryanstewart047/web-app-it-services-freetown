@@ -287,7 +287,7 @@ export default function MarketplacePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
       {/* Header */}
-      <header className="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700 sticky top-0 z-50">
+      <header className="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700 sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="text-2xl font-bold text-white">
@@ -703,7 +703,7 @@ export default function MarketplacePage() {
       {/* Image Zoom Modal */}
       {zoomedImage && (
         <div 
-          className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-[999] p-4"
           onClick={() => setZoomedImage(null)}
         >
           <div className="relative max-w-6xl max-h-[90vh] w-full h-full flex items-center justify-center">
