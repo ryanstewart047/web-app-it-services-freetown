@@ -10,14 +10,14 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <main className="min-h-screen bg-gradient-to-br from-[#040e40] via-[#040e40] to-gray-900">
       {/* Hero Section */}
       <section className="pt-24 pb-12 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
             Get in Touch
           </h1>
-          <p className="text-lg text-gray-600 mb-8">
+          <p className="text-lg text-gray-300 mb-8">
             We're here to help with all your IT service needs. Reach out to us through any of the channels below.
           </p>
         </div>
@@ -28,14 +28,14 @@ export default function ContactPage() {
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Phone */}
           <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-            <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
-              <Phone className="w-6 h-6 text-blue-600" />
+            <div className="bg-red-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+              <Phone className="w-6 h-6 text-red-600" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Phone</h3>
             <p className="text-gray-600 mb-3">Call us for immediate assistance</p>
             <a 
               href="tel:+23233399391" 
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="text-red-600 hover:text-red-700 font-medium"
             >
               +232 33 399391
             </a>
@@ -60,12 +60,12 @@ export default function ContactPage() {
 
           {/* Location */}
           <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-            <div className="bg-purple-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
-              <MapPin className="w-6 h-6 text-purple-600" />
+            <div className="bg-red-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+              <MapPin className="w-6 h-6 text-red-600" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Visit Us</h3>
             <p className="text-gray-600 mb-3">Come to our service center</p>
-            <address className="text-purple-600 not-italic">
+            <address className="text-red-600 not-italic">
               #1 Regent Highway, Jui Junction<br />
               Freetown, Sierra Leone
             </address>
@@ -94,7 +94,7 @@ export default function ContactPage() {
       <section className="pb-16 px-4">
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-8">
           <div className="flex items-center gap-3 mb-6">
-            <Clock className="w-8 h-8 text-blue-600" />
+            <Clock className="w-8 h-8 text-red-600" />
             <h2 className="text-2xl font-bold text-gray-900">Business Hours</h2>
           </div>
           <div className="grid md:grid-cols-2 gap-6">
@@ -138,7 +138,7 @@ export default function ContactPage() {
 
       {/* Map or Additional Info */}
       <section className="pb-16 px-4">
-        <div className="max-w-4xl mx-auto bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg shadow-lg p-8 text-white">
+        <div className="max-w-4xl mx-auto bg-gradient-to-br from-red-600 to-[#040e40] rounded-lg shadow-lg p-8 text-white">
           <h2 className="text-2xl font-bold mb-4">Need Immediate Help?</h2>
           <p className="text-blue-100 mb-6">
             For urgent repairs or technical emergencies, call us directly or visit our service center. 
@@ -147,13 +147,13 @@ export default function ContactPage() {
           <div className="flex flex-wrap gap-4">
             <Link 
               href="/book-appointment" 
-              className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
+              className="bg-white text-red-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
             >
               Book Appointment
             </Link>
             <Link 
               href="/chat" 
-              className="bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-400 transition-colors border-2 border-white"
+              className="bg-red-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-400 transition-colors border-2 border-white"
             >
               Chat Now
             </Link>
@@ -179,7 +179,7 @@ export default function ContactPage() {
               className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow text-center group"
             >
               <div className="text-3xl mb-2">🛒</div>
-              <h3 className="font-semibold text-gray-900 group-hover:text-blue-600">Shop Products</h3>
+              <h3 className="font-semibold text-gray-900 group-hover:text-red-600">Shop Products</h3>
               <p className="text-sm text-gray-600 mt-2">Browse our marketplace</p>
             </Link>
             
@@ -188,7 +188,7 @@ export default function ContactPage() {
               className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow text-center group"
             >
               <div className="text-3xl mb-2">🔧</div>
-              <h3 className="font-semibold text-gray-900 group-hover:text-blue-600">Troubleshoot</h3>
+              <h3 className="font-semibold text-gray-900 group-hover:text-red-600">Troubleshoot</h3>
               <p className="text-sm text-gray-600 mt-2">Get instant solutions</p>
             </Link>
             
@@ -197,7 +197,7 @@ export default function ContactPage() {
               className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow text-center group"
             >
               <div className="text-3xl mb-2">📍</div>
-              <h3 className="font-semibold text-gray-900 group-hover:text-blue-600">Track Repair</h3>
+              <h3 className="font-semibold text-gray-900 group-hover:text-red-600">Track Repair</h3>
               <p className="text-sm text-gray-600 mt-2">Check repair status</p>
             </Link>
           </div>
@@ -209,7 +209,7 @@ export default function ContactPage() {
         <div className="max-w-4xl mx-auto text-center">
           <Link 
             href="/" 
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+            className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 font-medium"
           >
             <i className="fas fa-arrow-left"></i>
             Back to Home

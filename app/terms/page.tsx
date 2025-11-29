@@ -2,14 +2,14 @@ import Link from 'next/link';
 
 export default function TermsOfServicePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-[#040e40] via-[#040e40] to-gray-900">
       <div className="container mx-auto px-4 py-16 max-w-4xl">
         {/* Header */}
         <div className="mb-12 text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl font-bold text-white mb-4">
             Terms of Service
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-300">
             Last updated: October 19, 2025
           </p>
         </div>

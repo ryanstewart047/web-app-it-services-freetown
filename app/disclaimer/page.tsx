@@ -9,11 +9,11 @@ export const metadata: Metadata = {
 
 export default function DisclaimerPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-[#040e40] via-[#040e40] to-gray-900 py-12">
       <div className="container mx-auto px-4 max-w-4xl">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-yellow-600 rounded-full mb-6">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-red-600 rounded-full mb-6">
             <AlertTriangle className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Disclaimer</h1>
@@ -164,29 +164,29 @@ export default function DisclaimerPage() {
           </section>
 
           {/* Contact Information */}
-          <section className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-6">
+          <section className="bg-gradient-to-r from-red-50 to-white rounded-xl p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Questions or Concerns?</h2>
             <p className="text-gray-700 mb-4">
               If you have any questions about this disclaimer or our services, please don't hesitate to contact us:
             </p>
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-gray-700">
-                <Phone className="w-5 h-5 text-yellow-600" />
+                <Phone className="w-5 h-5 text-red-600" />
                 <span><strong>Phone:</strong> +232 33 399 391</span>
               </div>
               <div className="flex items-center gap-3 text-gray-700">
-                <Mail className="w-5 h-5 text-yellow-600" />
+                <Mail className="w-5 h-5 text-red-600" />
                 <span><strong>Email:</strong> support@itservicesfreetown.com</span>
               </div>
               <div className="flex items-start gap-3 text-gray-700">
-                <MapPin className="w-5 h-5 text-yellow-600 mt-1" />
+                <MapPin className="w-5 h-5 text-red-600 mt-1" />
                 <span><strong>Address:</strong> #1 Regent Highway Jui Junction, Freetown, Sierra Leone</span>
               </div>
             </div>
           </section>
 
           {/* Agreement Notice */}
-          <section className="bg-blue-50 border-l-4 border-blue-600 p-6 rounded-r-lg">
+          <section className="bg-red-50 border-l-4 border-red-600 p-6 rounded-r-lg">
             <p className="text-gray-700 font-semibold">
               By using our services, you acknowledge that you have read, understood, and agree to be bound by this disclaimer.
             </p>
@@ -196,7 +196,7 @@ export default function DisclaimerPage() {
           <div className="text-center pt-6">
             <Link 
               href="/"
-              className="inline-block px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+              className="inline-block px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
             >
               Back to Home
             </Link>

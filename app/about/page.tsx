@@ -9,9 +9,9 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-[#040e40] via-[#040e40] to-gray-900">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-red-600 to-blue-900 text-white py-20">
+      <div className="bg-gradient-to-r from-red-600 to-[#040e40] text-white py-20">
         <div className="container mx-auto px-4 text-center">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-6">
             <Building2 className="w-10 h-10 text-white" />
@@ -51,8 +51,8 @@ export default function AboutPage() {
           <h2 className="text-3xl font-bold text-white text-center mb-8">Why Choose Us?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-white rounded-xl shadow-lg p-6 text-center hover:shadow-2xl transition-all">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Award className="w-8 h-8 text-blue-600" />
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Award className="w-8 h-8 text-red-600" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Expert Technicians</h3>
               <p className="text-gray-600">
@@ -97,7 +97,7 @@ export default function AboutPage() {
           <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Services</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="text-xl font-semibold text-blue-600 mb-3">Computer & Laptop Repairs</h3>
+              <h3 className="text-xl font-semibold text-red-600 mb-3">Computer & Laptop Repairs</h3>
               <ul className="list-disc list-inside text-gray-700 space-y-2">
                 <li>Hardware diagnostics and repairs</li>
                 <li>Screen replacement</li>
@@ -110,7 +110,7 @@ export default function AboutPage() {
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold text-blue-600 mb-3">Mobile Phone Repairs</h3>
+              <h3 className="text-xl font-semibold text-red-600 mb-3">Mobile Phone Repairs</h3>
               <ul className="list-disc list-inside text-gray-700 space-y-2">
                 <li>Screen/LCD replacement</li>
                 <li>Battery replacement</li>
@@ -123,7 +123,7 @@ export default function AboutPage() {
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold text-blue-600 mb-3">Sales & Marketplace</h3>
+              <h3 className="text-xl font-semibold text-red-600 mb-3">Sales & Marketplace</h3>
               <ul className="list-disc list-inside text-gray-700 space-y-2">
                 <li>New and refurbished laptops</li>
                 <li>Desktop computers</li>
@@ -135,7 +135,7 @@ export default function AboutPage() {
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold text-blue-600 mb-3">Additional Services</h3>
+              <h3 className="text-xl font-semibold text-red-600 mb-3">Additional Services</h3>
               <ul className="list-disc list-inside text-gray-700 space-y-2">
                 <li>Data backup and recovery</li>
                 <li>Virus and malware removal</li>
@@ -149,7 +149,7 @@ export default function AboutPage() {
         </section>
 
         {/* Contact Information */}
-        <section className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-2xl p-8 md:p-12 text-white">
+        <section className="bg-gradient-to-r from-red-600 to-[#040e40] rounded-2xl shadow-2xl p-8 md:p-12 text-white">
           <h2 className="text-3xl font-bold mb-8 text-center">Get In Touch</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="flex items-start gap-4">
@@ -190,7 +190,7 @@ export default function AboutPage() {
           <div className="mt-8 text-center">
             <Link 
               href="/contact"
-              className="inline-block px-8 py-4 bg-white text-blue-600 font-bold rounded-lg hover:bg-gray-100 transition-colors"
+              className="inline-block px-8 py-4 bg-white text-red-600 font-bold rounded-lg hover:bg-gray-100 transition-colors"
             >
               Contact Us Today
             </Link>
@@ -201,7 +201,7 @@ export default function AboutPage() {
         <div className="text-center mt-12">
           <Link 
             href="/"
-            className="inline-block px-8 py-3 bg-white text-gray-900 font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+            className="inline-block px-8 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors"
           >
             Back to Home
           </Link>
