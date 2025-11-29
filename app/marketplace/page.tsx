@@ -285,9 +285,9 @@ export default function MarketplacePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
-      {/* Header */}
-      <header className="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700 sticky top-0 z-40">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 pt-16">
+      {/* Header - Positioned below main navbar */}
+      <header className="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700 sticky top-16 z-30">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="text-2xl font-bold text-white">
@@ -359,7 +359,7 @@ export default function MarketplacePage() {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar - Categories & Filters */}
           <aside className="lg:w-64 flex-shrink-0">
-            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 sticky top-24">
+            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 sticky top-32">
               <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                 <Filter className="w-5 h-5" />
                 Categories
