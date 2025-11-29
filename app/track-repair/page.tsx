@@ -52,8 +52,8 @@ export default function TrackRepair() {
   return (
     <>
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-red-600 via-red-500 to-red-700 text-white overflow-hidden" style={{background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #040e40 100%)'}}>
-        <div className="absolute inset-0 bg-black/20"></div>
+      <div className="relative text-white overflow-hidden" style={{backgroundImage: 'url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQ0MCIgaGVpZ2h0PSI0NTAiIHZpZXdCb3g9IjAgMCAxNDQwIDQ1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE0NDAiIGhlaWdodD0iNDUwIiBmaWxsPSJ1cmwoI3BhaW50MF9saW5lYXJfMF8xKSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJwYWludDBfbGluZWFyXzBfMSIgeDE9IjcyMCIgeTE9IjAiIHgyPSI3MjAiIHkyPSI0NTAiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KPHN0b3Agc3RvcC1jb2xvcj0iIzBEMUIyQSIvPgo8c3RvcCBvZmZzZXQ9IjAuNSIgc3RvcC1jb2xvcj0iIzFBMjMzMyIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwRDBFMjgiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8L3N2Zz4K)', backgroundSize: 'cover', backgroundPosition: 'center'}}>
+        <div className="absolute inset-0 bg-gradient-to-r from-red-600/30 via-red-500/30 to-blue-900/30"></div>
         
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-6">
@@ -149,28 +149,28 @@ export default function TrackRepair() {
                     onClick={() => setTrackingId('ITS-250926-1001')}
                     className="text-left p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors duration-300 border"
                   >
-                    <div className="font-mono text-sm text-red-600">ITS-250926-1001</div>
+                    <div className="font-mono text-sm text-blue-600">ITS-250926-1001</div>
                     <div className="text-xs text-gray-600">iPhone 14 Screen Repair</div>
                   </button>
                   <button
                     onClick={() => setTrackingId('ITS-250926-1002')}
                     className="text-left p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors duration-300 border"
                   >
-                    <div className="font-mono text-sm text-red-600">ITS-250926-1002</div>
+                    <div className="font-mono text-sm text-blue-600">ITS-250926-1002</div>
                     <div className="text-xs text-gray-600">MacBook Pro Diagnosis</div>
                   </button>
                   <button
                     onClick={() => setTrackingId('ITS-250926-1003')}
                     className="text-left p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors duration-300 border"
                   >
-                    <div className="font-mono text-sm text-red-600">ITS-250926-1003</div>
+                    <div className="font-mono text-sm text-blue-600">ITS-250926-1003</div>
                     <div className="text-xs text-gray-600">Samsung Galaxy Repair</div>
                   </button>
                   <button
                     onClick={() => setTrackingId('ITS-250926-1004')}
                     className="text-left p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors duration-300 border"
                   >
-                    <div className="font-mono text-sm text-red-600">ITS-250926-1004</div>
+                    <div className="font-mono text-sm text-blue-600">ITS-250926-1004</div>
                     <div className="text-xs text-gray-600">Dell Laptop Hardware Fix</div>
                   </button>
                 </div>
@@ -189,7 +189,7 @@ export default function TrackRepair() {
                 </button>
                 <button
                   onClick={() => window.location.reload()}
-                  className="flex items-center px-4 py-2 text-red-600 hover:text-red-800 transition-colors duration-300"
+                  className="flex items-center px-4 py-2 text-blue-600 hover:text-blue-800 transition-colors duration-300"
                 >
                   <i className="fas fa-sync-alt mr-2"></i>
                   Refresh Status

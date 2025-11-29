@@ -165,6 +165,74 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
     }
   }, [])
 
+  // Handle URL hash navigation for shared links and update meta tags
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash && posts.length > 0) {
+      const postId = window.location.hash.replace('#post-', '')
+      const post = posts.find(p => p.id === postId)
+      
+      if (post) {
+        // Update meta tags for social sharing
+        const shareImage = post.media?.find(m => m.type === 'image')?.url || post.image
+        
+        // Update Open Graph image
+        let ogImage = document.querySelector('meta[property="og:image"]')
+        if (!ogImage) {
+          ogImage = document.createElement('meta')
+          ogImage.setAttribute('property', 'og:image')
+          document.head.appendChild(ogImage)
+        }
+        if (shareImage) {
+          ogImage.setAttribute('content', shareImage)
+        }
+        
+        // Update Open Graph title
+        let ogTitle = document.querySelector('meta[property="og:title"]')
+        if (!ogTitle) {
+          ogTitle = document.createElement('meta')
+          ogTitle.setAttribute('property', 'og:title')
+          document.head.appendChild(ogTitle)
+        }
+        ogTitle.setAttribute('content', post.title)
+        
+        // Update Open Graph description
+        let ogDescription = document.querySelector('meta[property="og:description"]')
+        if (!ogDescription) {
+          ogDescription = document.createElement('meta')
+          ogDescription.setAttribute('property', 'og:description')
+          document.head.appendChild(ogDescription)
+        }
+        const contentPreview = post.content.replace(/<[^>]*>/g, '').substring(0, 200)
+        ogDescription.setAttribute('content', contentPreview)
+        
+        // Update Twitter card image
+        let twitterImage = document.querySelector('meta[name="twitter:image"]')
+        if (!twitterImage) {
+          twitterImage = document.createElement('meta')
+          twitterImage.setAttribute('name', 'twitter:image')
+          document.head.appendChild(twitterImage)
+        }
+        if (shareImage) {
+          twitterImage.setAttribute('content', shareImage)
+        }
+        
+        // Expand the post automatically when accessed via hash
+        setExpandedPosts(prev => ({
+          ...prev,
+          [postId]: true
+        }))
+        
+        // Scroll to the post
+        setTimeout(() => {
+          const element = document.getElementById(`post-${postId}`)
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }
+        }, 100)
+      }
+    }
+  }, [posts])
+
   const savePosts = (updatedPosts: BlogPost[]) => {
     localStorage.setItem('blog_posts', JSON.stringify(updatedPosts))
     setPosts(updatedPosts)

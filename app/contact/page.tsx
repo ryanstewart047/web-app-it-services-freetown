@@ -34,10 +34,10 @@ export default function ContactPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Phone</h3>
             <p className="text-gray-600 mb-3">Call us for immediate assistance</p>
             <a 
-              href="tel:+23276123456" 
+              href="tel:+23233399391" 
               className="text-blue-600 hover:text-blue-700 font-medium"
             >
-              +232 76 123 456
+              +232 33 399391
             </a>
             <p className="text-sm text-gray-500 mt-2">Mon-Sat: 9AM - 6PM</p>
           </div>
@@ -66,7 +66,7 @@ export default function ContactPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Visit Us</h3>
             <p className="text-gray-600 mb-3">Come to our service center</p>
             <address className="text-purple-600 not-italic">
-              15 Kissy Road<br />
+              #1 Regent Highway, Jui Junction<br />
               Freetown, Sierra Leone
             </address>
             <p className="text-sm text-gray-500 mt-2">Walk-ins welcome</p>
@@ -158,7 +158,7 @@ export default function ContactPage() {
               Chat Now
             </Link>
             <a 
-              href="tel:+23276123456" 
+              href="tel:+23233399391" 
               className="bg-transparent text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition-colors border-2 border-white"
             >
               Call Us
