@@ -574,15 +574,11 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
             <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed">
               Discover the latest insights, tutorials, and news in technology and IT services
             </p>
-            <div className="mt-8 flex items-center justify-center gap-4 text-white/80">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
-                <span className="text-sm">Auto-updating every 30s</span>
-              </div>
+            <div className="mt-8 flex items-center justify-center">
               <button
                 onClick={handleManualRefresh}
                 disabled={isRefreshing}
-                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-red-500/20 rounded-lg transition-all duration-200 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed border border-white/20 hover:border-red-300/30"
+                className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-red-500/20 rounded-lg transition-all duration-200 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed border border-white/20 hover:border-red-300/30"
                 title="Manually refresh blog posts"
               >
                 <svg 
@@ -593,7 +589,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+                <span>{isRefreshing ? 'Refreshing...' : 'Refresh Now'}</span>
               </button>
             </div>
           </div>
