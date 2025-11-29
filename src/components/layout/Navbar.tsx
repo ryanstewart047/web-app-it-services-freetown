@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [supportDropdownOpen, setSupportDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -20,6 +21,23 @@ export default function Navbar() {
   const toggleSupportDropdown = () => {
     setSupportDropdownOpen(!supportDropdownOpen);
   };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setSupportDropdownOpen(false);
+      }
+    };
+
+    if (supportDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [supportDropdownOpen]);
 
   return (
     <nav className="bg-white shadow-lg fixed top-0 left-0 right-0 z-40">
@@ -60,7 +78,7 @@ export default function Navbar() {
             <Link href="/troubleshoot" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Troubleshoot</Link>
             
             {/* Get Support Dropdown */}
-            <div className="relative">
+            <div className="relative" ref={dropdownRef}>
               <button 
                 onClick={toggleSupportDropdown}
                 className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium inline-flex items-center gap-1"
@@ -70,38 +88,38 @@ export default function Navbar() {
               </button>
               
               {supportDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200 animate-fadeIn">
                   <Link 
                     href="/chat" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
                     onClick={() => setSupportDropdownOpen(false)}
                   >
                     <i className="fas fa-comments mr-2"></i>Chat Support
                   </Link>
                   <Link 
                     href="/contact" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
                     onClick={() => setSupportDropdownOpen(false)}
                   >
                     <i className="fas fa-envelope mr-2"></i>Contact Us
                   </Link>
                   <Link 
                     href="/privacy" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
                     onClick={() => setSupportDropdownOpen(false)}
                   >
                     <i className="fas fa-shield-alt mr-2"></i>Privacy Policy
                   </Link>
                   <Link 
                     href="/terms" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
                     onClick={() => setSupportDropdownOpen(false)}
                   >
                     <i className="fas fa-file-contract mr-2"></i>Terms of Service
                   </Link>
                   <Link 
                     href="/disclaimer" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
                     onClick={() => setSupportDropdownOpen(false)}
                   >
                     <i className="fas fa-exclamation-triangle mr-2"></i>Disclaimer
@@ -158,38 +176,38 @@ export default function Navbar() {
               </button>
               
               {supportDropdownOpen && (
-                <div className="mt-2 ml-4 space-y-1 bg-gray-50 rounded-md py-2">
+                <div className="mt-2 ml-4 space-y-1 bg-gray-50 rounded-md py-2 animate-fadeIn">
                   <Link 
                     href="/chat" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-950"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded"
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-comments mr-2"></i>Chat Support
                   </Link>
                   <Link 
                     href="/contact" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-950"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded"
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-envelope mr-2"></i>Contact Us
                   </Link>
                   <Link 
                     href="/privacy" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-950"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded"
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-shield-alt mr-2"></i>Privacy Policy
                   </Link>
                   <Link 
                     href="/terms" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-950"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded"
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-file-contract mr-2"></i>Terms of Service
                   </Link>
                   <Link 
                     href="/disclaimer" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-950"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded"
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-exclamation-triangle mr-2"></i>Disclaimer
