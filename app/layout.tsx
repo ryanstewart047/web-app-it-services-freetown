@@ -147,11 +147,11 @@ export default function RootLayout({
         {/* Google AdSense Verification Meta Tag */}
         <meta name="google-adsense-account" content="ca-pub-9989697800650646" />
         
-        {/* Google AdSense Script - Lazy load for better performance */}
+        {/* Google AdSense Script - Using afterInteractive to avoid data-nscript attribute error */}
         <Script
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9989697800650646"
           crossOrigin="anonymous"
-          strategy="lazyOnload"
+          strategy="afterInteractive"
         />
         
         {/* Font Awesome */}
