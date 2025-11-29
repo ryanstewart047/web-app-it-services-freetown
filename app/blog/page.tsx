@@ -43,6 +43,7 @@ export default function BlogPage() {
   const [commentAuthors, setCommentAuthors] = useState<{ [key: string]: string }>({})
   const [showComments, setShowComments] = useState<{ [key: string]: boolean }>({})
   const [userVotes, setUserVotes] = useState<{ [key: string]: 'like' | 'dislike' | null }>({})
+  const [expandedPosts, setExpandedPosts] = useState<{ [key: string]: boolean }>({})
 
   useScrollAnimations()
 
@@ -301,6 +302,19 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
     return date.toLocaleDateString()
   }
 
+  const getExcerpt = (content: string, maxLength: number = 300) => {
+    const strippedContent = content.replace(/<[^>]*>/g, '')
+    if (strippedContent.length <= maxLength) return content
+    return strippedContent.substring(0, maxLength).trim() + '...'
+  }
+
+  const togglePostExpansion = (postId: string) => {
+    setExpandedPosts(prev => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }))
+  }
+
   if (isLoading) {
     return <LoadingOverlay />
   }
@@ -363,19 +377,33 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                     </div>
                   </div>
 
-                  {/* Title */}
-                  <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-900 via-purple-900 to-pink-900 bg-clip-text text-transparent leading-tight group-hover:scale-[1.02] transition-transform duration-300">
+                  {/* Title - Clickable */}
+                  <h2 
+                    onClick={() => togglePostExpansion(post.id)}
+                    className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-900 via-purple-900 to-pink-900 bg-clip-text text-transparent leading-tight group-hover:scale-[1.02] transition-transform duration-300 cursor-pointer hover:opacity-80"
+                  >
                     {post.title}
                   </h2>
 
-                  {/* Content */}
-                  <div 
-                    className="prose prose-lg max-w-none text-gray-700 mb-8 leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: post.content }}
-                  />
+                  {/* Content - Excerpt or Full */}
+                  <div className="prose prose-lg max-w-none text-gray-700 mb-8 leading-relaxed">
+                    {expandedPosts[post.id] ? (
+                      <div dangerouslySetInnerHTML={{ __html: post.content }} />
+                    ) : (
+                      <div>
+                        <p>{getExcerpt(post.content)}</p>
+                        <button
+                          onClick={() => togglePostExpansion(post.id)}
+                          className="mt-4 text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-2 transition-colors"
+                        >
+                          Read more →
+                        </button>
+                      </div>
+                    )}
+                  </div>
 
-                  {/* Media Display */}
-                  {post.media && post.media.length > 0 && (
+                  {/* Media Display - Only show when expanded */}
+                  {expandedPosts[post.id] && post.media && post.media.length > 0 && (
                     <div className="mt-8 space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {post.media.map((item) => (
