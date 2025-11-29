@@ -286,8 +286,8 @@ export default function MarketplacePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 pt-16">
-      {/* Header - Positioned below main navbar */}
-      <header className="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700 sticky top-16 z-30">
+      {/* Header - Search and Cart */}
+      <header className="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="text-2xl font-bold text-white">
