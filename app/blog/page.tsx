@@ -492,7 +492,8 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
   }
 
   const handleShare = async (post: BlogPost) => {
-    const shareUrl = `${window.location.origin}/blog#post-${post.id}`
+    // Use the new dynamic route for better social sharing
+    const shareUrl = `${window.location.origin}/blog/${post.id}`
     const shareTitle = post.title
     
     // Get the first image from media or fallback to post.image
