@@ -19,6 +19,7 @@ export default function Navbar() {
   };
 
   const toggleSupportDropdown = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     setSupportDropdownOpen(!supportDropdownOpen);
   };
@@ -151,8 +152,8 @@ export default function Navbar() {
       </div>
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
+        <div className="md:hidden relative z-50">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t shadow-lg">
             <Link href="/" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Home</Link>
             
             {/* Special Shop Button for Mobile */}
@@ -177,7 +178,8 @@ export default function Navbar() {
             <div className="px-3 py-2">
               <button 
                 onClick={toggleSupportDropdown}
-                className="text-gray-700 hover:text-primary-950 text-base font-medium inline-flex items-center gap-2 w-full justify-between cursor-pointer"
+                type="button"
+                className="text-gray-700 hover:text-primary-950 text-base font-medium inline-flex items-center gap-2 w-full justify-between cursor-pointer touch-manipulation select-none"
               >
                 Get Support
                 <i className={`fas fa-chevron-down text-sm transition-transform duration-200 ${supportDropdownOpen ? 'rotate-180' : ''}`}></i>
