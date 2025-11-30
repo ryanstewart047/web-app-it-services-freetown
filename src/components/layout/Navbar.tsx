@@ -19,7 +19,6 @@ export default function Navbar() {
   };
 
   const toggleSupportDropdown = (e: React.MouseEvent) => {
-    e.preventDefault();
     e.stopPropagation();
     setSupportDropdownOpen(!supportDropdownOpen);
   };
@@ -93,42 +92,48 @@ export default function Navbar() {
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-[60] border border-gray-200">
                   <Link 
                     href="/chat" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    prefetch={false}
+                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 active:bg-gray-200 touch-manipulation"
                     onClick={() => setSupportDropdownOpen(false)}
                   >
                     <i className="fas fa-comments mr-2"></i>Chat Support
                   </Link>
                   <Link 
                     href="/contact" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    prefetch={false}
+                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 active:bg-gray-200 touch-manipulation"
                     onClick={() => setSupportDropdownOpen(false)}
                   >
                     <i className="fas fa-envelope mr-2"></i>Contact Us
                   </Link>
                   <Link 
                     href="/about" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    prefetch={false}
+                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 active:bg-gray-200 touch-manipulation"
                     onClick={() => setSupportDropdownOpen(false)}
                   >
                     <i className="fas fa-info-circle mr-2"></i>About Us
                   </Link>
                   <Link 
                     href="/privacy" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    prefetch={false}
+                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 active:bg-gray-200 touch-manipulation"
                     onClick={() => setSupportDropdownOpen(false)}
                   >
                     <i className="fas fa-shield-alt mr-2"></i>Privacy Policy
                   </Link>
                   <Link 
                     href="/terms" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    prefetch={false}
+                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 active:bg-gray-200 touch-manipulation"
                     onClick={() => setSupportDropdownOpen(false)}
                   >
                     <i className="fas fa-file-contract mr-2"></i>Terms of Service
                   </Link>
                   <Link 
                     href="/disclaimer" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    prefetch={false}
+                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 active:bg-gray-200 touch-manipulation"
                     onClick={() => setSupportDropdownOpen(false)}
                   >
                     <i className="fas fa-exclamation-triangle mr-2"></i>Disclaimer
@@ -189,42 +194,48 @@ export default function Navbar() {
                 <div className="mt-2 ml-4 space-y-1 bg-gray-50 rounded-md py-2">
                   <Link 
                     href="/chat" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-950"
+                    prefetch={false}
+                    className="block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-comments mr-2"></i>Chat Support
                   </Link>
                   <Link 
                     href="/contact" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-950"
+                    prefetch={false}
+                    className="block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-envelope mr-2"></i>Contact Us
                   </Link>
                   <Link 
                     href="/about" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-950"
+                    prefetch={false}
+                    className="block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-info-circle mr-2"></i>About Us
                   </Link>
                   <Link 
                     href="/privacy" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-950"
+                    prefetch={false}
+                    className="block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-shield-alt mr-2"></i>Privacy Policy
                   </Link>
                   <Link 
                     href="/terms" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-950"
+                    prefetch={false}
+                    className="block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-file-contract mr-2"></i>Terms of Service
                   </Link>
                   <Link 
                     href="/disclaimer" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-950"
+                    prefetch={false}
+                    className="block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-exclamation-triangle mr-2"></i>Disclaimer
