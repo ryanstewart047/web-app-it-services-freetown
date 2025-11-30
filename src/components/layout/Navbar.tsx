@@ -3,11 +3,13 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [supportDropdownOpen, setSupportDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -21,6 +23,15 @@ export default function Navbar() {
   const toggleSupportDropdown = (e: React.MouseEvent) => {
     e.stopPropagation();
     setSupportDropdownOpen(!supportDropdownOpen);
+  };
+
+  // Handle mobile dropdown link clicks - navigate then close menu
+  const handleMobileDropdownClick = (href: string) => {
+    router.push(href);
+    // Close menu after a tiny delay to allow navigation to start
+    setTimeout(() => {
+      closeMobileMenu();
+    }, 100);
   };
 
   // Close dropdown when clicking outside
@@ -192,54 +203,42 @@ export default function Navbar() {
               
               {supportDropdownOpen && (
                 <div className="mt-2 ml-4 space-y-1 bg-gray-50 rounded-md py-2">
-                  <Link 
-                    href="/chat" 
-                    prefetch={false}
-                    className="block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
-                    onClick={closeMobileMenu}
+                  <button
+                    onClick={() => handleMobileDropdownClick('/chat')}
+                    className="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
                   >
                     <i className="fas fa-comments mr-2"></i>Chat Support
-                  </Link>
-                  <Link 
-                    href="/contact" 
-                    prefetch={false}
-                    className="block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
-                    onClick={closeMobileMenu}
+                  </button>
+                  <button
+                    onClick={() => handleMobileDropdownClick('/contact')}
+                    className="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
                   >
                     <i className="fas fa-envelope mr-2"></i>Contact Us
-                  </Link>
-                  <Link 
-                    href="/about" 
-                    prefetch={false}
-                    className="block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
-                    onClick={closeMobileMenu}
+                  </button>
+                  <button
+                    onClick={() => handleMobileDropdownClick('/about')}
+                    className="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
                   >
                     <i className="fas fa-info-circle mr-2"></i>About Us
-                  </Link>
-                  <Link 
-                    href="/privacy" 
-                    prefetch={false}
-                    className="block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
-                    onClick={closeMobileMenu}
+                  </button>
+                  <button
+                    onClick={() => handleMobileDropdownClick('/privacy')}
+                    className="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
                   >
                     <i className="fas fa-shield-alt mr-2"></i>Privacy Policy
-                  </Link>
-                  <Link 
-                    href="/terms" 
-                    prefetch={false}
-                    className="block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
-                    onClick={closeMobileMenu}
+                  </button>
+                  <button
+                    onClick={() => handleMobileDropdownClick('/terms')}
+                    className="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
                   >
                     <i className="fas fa-file-contract mr-2"></i>Terms of Service
-                  </Link>
-                  <Link 
-                    href="/disclaimer" 
-                    prefetch={false}
-                    className="block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
-                    onClick={closeMobileMenu}
+                  </button>
+                  <button
+                    onClick={() => handleMobileDropdownClick('/disclaimer')}
+                    className="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
                   >
                     <i className="fas fa-exclamation-triangle mr-2"></i>Disclaimer
-                  </Link>
+                  </button>
                 </div>
               )}
             </div>
