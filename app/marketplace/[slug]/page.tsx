@@ -364,6 +364,17 @@ export default function ProductDetailPage() {
               <span className="text-white">{product.name}</span>
             </div>
 
+            {/* Back to Home Button */}
+            <div className="mb-6">
+              <Link 
+                href="/" 
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Home
+              </Link>
+            </div>
+
             {/* Brand */}
             {product.brand && (
               <p className="text-blue-400 font-semibold mb-2">{product.brand}</p>
