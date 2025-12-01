@@ -71,22 +71,29 @@ export default function Navbar() {
             </Link>
             
             <Link href="/blog" className="text-gray-700 hover:text-[#040e40] px-3 py-2 text-sm font-medium transition-colors">Blog</Link>
-            <Link href="/chat" className="text-gray-700 hover:text-[#040e40] px-3 py-2 text-sm font-medium transition-colors">Chat Support</Link>
             <Link href="/book-appointment" className="text-gray-700 hover:text-[#040e40] px-3 py-2 text-sm font-medium transition-colors">Book Appointment</Link>
             <Link href="/track-repair" className="text-gray-700 hover:text-[#040e40] px-3 py-2 text-sm font-medium transition-colors">Track Repair</Link>
             
-            {/* More Dropdown - Brand Colors */}
+            {/* Get Support Dropdown - Brand Colors */}
             <div className="relative" ref={dropdownRef}>
               <button 
                 onClick={() => setDesktopDropdownOpen(!desktopDropdownOpen)}
                 className="text-gray-700 hover:text-[#040e40] px-3 py-2 text-sm font-medium inline-flex items-center gap-1 cursor-pointer transition-colors"
               >
-                More
+                Get Support
                 <i className={`fas fa-chevron-down text-xs transition-transform duration-200 ${desktopDropdownOpen ? 'rotate-180' : ''}`}></i>
               </button>
               
               {desktopDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl py-2 z-[60] border-2 border-[#040e40]/10">
+                  <Link 
+                    href="/chat"
+                    className="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-[#040e40] transition-all"
+                    onClick={() => setDesktopDropdownOpen(false)}
+                  >
+                    <i className="fas fa-comments w-5 text-red-600"></i>
+                    <span className="ml-3 font-medium">Chat Support</span>
+                  </Link>
                   <Link 
                     href="/contact"
                     className="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-[#040e40] transition-all"
@@ -156,21 +163,18 @@ export default function Navbar() {
             {/* Special Shop Button for Mobile */}
             <Link 
               href="/marketplace" 
-              className="relative flex items-center justify-center gap-2 mx-2 my-2 px-4 py-3 text-sm font-bold text-white bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 rounded-lg shadow-md active:scale-95 transition-all duration-300"
+              className="relative inline-flex items-center justify-center gap-1.5 mx-2 my-1.5 px-3 py-2 text-xs font-bold text-white bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 rounded-md shadow-sm active:scale-95 transition-all duration-300"
               onClick={closeMobileMenu}
             >
-              <i className="fas fa-shopping-bag text-white drop-shadow-lg text-sm"></i>
-              <span className="drop-shadow-lg">Shop Now</span>
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-xs font-bold animate-bounce">
+              <i className="fas fa-shopping-bag text-white text-xs"></i>
+              <span>Shop Now</span>
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-yellow-400 text-[10px] font-bold animate-bounce">
                 🔥
               </span>
             </Link>
             
             <Link href="/blog" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
               <i className="fas fa-blog w-5 mr-3 text-[#040e40]"></i>Blog
-            </Link>
-            <Link href="/chat" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
-              <i className="fas fa-comments w-5 mr-3 text-red-600"></i>Chat Support
             </Link>
             <Link href="/book-appointment" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
               <i className="fas fa-calendar-check w-5 mr-3 text-[#040e40]"></i>Book Appointment
@@ -179,7 +183,7 @@ export default function Navbar() {
               <i className="fas fa-search w-5 mr-3 text-[#040e40]"></i>Track Repair
             </Link>
             
-            {/* More Dropdown for Mobile - Brand Colors */}
+            {/* Get Support Dropdown for Mobile - Brand Colors */}
             <div className="pt-2">
               <button 
                 onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
@@ -187,13 +191,21 @@ export default function Navbar() {
                 className="w-full text-left text-gray-700 hover:text-[#040e40] hover:bg-gray-50 px-4 py-3 text-base font-medium rounded-lg transition-all flex items-center justify-between"
               >
                 <span>
-                  <i className="fas fa-ellipsis-h w-5 mr-3 text-[#040e40]"></i>More
+                  <i className="fas fa-headset w-5 mr-3 text-[#040e40]"></i>Get Support
                 </span>
                 <i className={`fas fa-chevron-down text-sm transition-transform duration-200 ${mobileDropdownOpen ? 'rotate-180' : ''}`}></i>
               </button>
               
               {mobileDropdownOpen && (
                 <div className="mt-2 ml-6 mr-2 bg-gradient-to-br from-gray-50 to-red-50 rounded-lg border-2 border-[#040e40]/10 overflow-hidden">
+                  <Link
+                    href="/chat"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
+                    onClick={closeMobileMenu}
+                  >
+                    <i className="fas fa-comments w-5 text-red-600"></i>
+                    <span className="ml-3 font-medium">Chat Support</span>
+                  </Link>
                   <Link
                     href="/contact"
                     className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
