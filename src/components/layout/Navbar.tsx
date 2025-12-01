@@ -3,53 +3,39 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [supportDropdownOpen, setSupportDropdownOpen] = useState(false);
+  const [desktopDropdownOpen, setDesktopDropdownOpen] = useState(false);
+  const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
+    setMobileDropdownOpen(false);
   };
 
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
-    setSupportDropdownOpen(false);
+    setMobileDropdownOpen(false);
   };
 
-  const toggleSupportDropdown = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setSupportDropdownOpen(!supportDropdownOpen);
-  };
-
-  // Handle mobile dropdown link clicks - navigate then close menu
-  const handleMobileDropdownClick = (href: string) => {
-    router.push(href);
-    // Close menu after a tiny delay to allow navigation to start
-    setTimeout(() => {
-      closeMobileMenu();
-    }, 100);
-  };
-
-  // Close dropdown when clicking outside
+  // Close desktop dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setSupportDropdownOpen(false);
+        setDesktopDropdownOpen(false);
       }
     };
 
-    if (supportDropdownOpen) {
+    if (desktopDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [supportDropdownOpen]);
+  }, [desktopDropdownOpen]);
 
   return (
     <nav className="bg-white shadow-lg fixed top-0 left-0 right-0 z-50">
@@ -68,7 +54,7 @@ export default function Navbar() {
             </Link>
           </div>
           <div className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Home</Link>
+            <Link href="/" className="text-gray-700 hover:text-[#040e40] px-3 py-2 text-sm font-medium transition-colors">Home</Link>
             
             {/* Special Shop Button with Badge and Animation */}
             <Link 
@@ -84,82 +70,75 @@ export default function Navbar() {
               <span className="absolute inset-0 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 opacity-0 group-hover:opacity-75 blur-md transition-opacity duration-300 -z-10"></span>
             </Link>
             
-            <Link href="/blog" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Blog</Link>
-            <Link href="/book-appointment" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Book Appointment</Link>
-            <Link href="/track-repair" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Track Repair</Link>
-            <Link href="/troubleshoot" className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium">Troubleshoot</Link>
+            <Link href="/blog" className="text-gray-700 hover:text-[#040e40] px-3 py-2 text-sm font-medium transition-colors">Blog</Link>
+            <Link href="/chat" className="text-gray-700 hover:text-[#040e40] px-3 py-2 text-sm font-medium transition-colors">Chat Support</Link>
+            <Link href="/book-appointment" className="text-gray-700 hover:text-[#040e40] px-3 py-2 text-sm font-medium transition-colors">Book Appointment</Link>
+            <Link href="/track-repair" className="text-gray-700 hover:text-[#040e40] px-3 py-2 text-sm font-medium transition-colors">Track Repair</Link>
             
-            {/* Get Support Dropdown */}
+            {/* More Dropdown - Brand Colors */}
             <div className="relative" ref={dropdownRef}>
               <button 
-                onClick={toggleSupportDropdown}
-                className="text-gray-700 hover:text-primary-950 px-3 py-2 text-sm font-medium inline-flex items-center gap-1 cursor-pointer"
+                onClick={() => setDesktopDropdownOpen(!desktopDropdownOpen)}
+                className="text-gray-700 hover:text-[#040e40] px-3 py-2 text-sm font-medium inline-flex items-center gap-1 cursor-pointer transition-colors"
               >
-                Get Support
-                <i className={`fas fa-chevron-down text-xs transition-transform duration-200 ${supportDropdownOpen ? 'rotate-180' : ''}`}></i>
+                More
+                <i className={`fas fa-chevron-down text-xs transition-transform duration-200 ${desktopDropdownOpen ? 'rotate-180' : ''}`}></i>
               </button>
               
-              {supportDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-[60] border border-gray-200">
+              {desktopDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl py-2 z-[60] border-2 border-[#040e40]/10">
                   <Link 
-                    href="/chat" 
-                    prefetch={false}
-                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 active:bg-gray-200 touch-manipulation"
-                    onClick={() => setSupportDropdownOpen(false)}
+                    href="/contact"
+                    className="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-[#040e40] transition-all"
+                    onClick={() => setDesktopDropdownOpen(false)}
                   >
-                    <i className="fas fa-comments mr-2"></i>Chat Support
+                    <i className="fas fa-envelope w-5 text-red-600"></i>
+                    <span className="ml-3 font-medium">Contact Us</span>
                   </Link>
                   <Link 
-                    href="/contact" 
-                    prefetch={false}
-                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 active:bg-gray-200 touch-manipulation"
-                    onClick={() => setSupportDropdownOpen(false)}
+                    href="/about"
+                    className="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-[#040e40] transition-all"
+                    onClick={() => setDesktopDropdownOpen(false)}
                   >
-                    <i className="fas fa-envelope mr-2"></i>Contact Us
+                    <i className="fas fa-info-circle w-5 text-red-600"></i>
+                    <span className="ml-3 font-medium">About Us</span>
+                  </Link>
+                  <div className="my-1 border-t border-gray-200"></div>
+                  <Link 
+                    href="/privacy"
+                    className="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-[#040e40] transition-all"
+                    onClick={() => setDesktopDropdownOpen(false)}
+                  >
+                    <i className="fas fa-shield-alt w-5 text-[#040e40]"></i>
+                    <span className="ml-3 font-medium">Privacy Policy</span>
                   </Link>
                   <Link 
-                    href="/about" 
-                    prefetch={false}
-                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 active:bg-gray-200 touch-manipulation"
-                    onClick={() => setSupportDropdownOpen(false)}
+                    href="/terms"
+                    className="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-[#040e40] transition-all"
+                    onClick={() => setDesktopDropdownOpen(false)}
                   >
-                    <i className="fas fa-info-circle mr-2"></i>About Us
+                    <i className="fas fa-file-contract w-5 text-[#040e40]"></i>
+                    <span className="ml-3 font-medium">Terms of Service</span>
                   </Link>
                   <Link 
-                    href="/privacy" 
-                    prefetch={false}
-                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 active:bg-gray-200 touch-manipulation"
-                    onClick={() => setSupportDropdownOpen(false)}
+                    href="/disclaimer"
+                    className="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-[#040e40] transition-all"
+                    onClick={() => setDesktopDropdownOpen(false)}
                   >
-                    <i className="fas fa-shield-alt mr-2"></i>Privacy Policy
-                  </Link>
-                  <Link 
-                    href="/terms" 
-                    prefetch={false}
-                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 active:bg-gray-200 touch-manipulation"
-                    onClick={() => setSupportDropdownOpen(false)}
-                  >
-                    <i className="fas fa-file-contract mr-2"></i>Terms of Service
-                  </Link>
-                  <Link 
-                    href="/disclaimer" 
-                    prefetch={false}
-                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 active:bg-gray-200 touch-manipulation"
-                    onClick={() => setSupportDropdownOpen(false)}
-                  >
-                    <i className="fas fa-exclamation-triangle mr-2"></i>Disclaimer
+                    <i className="fas fa-exclamation-triangle w-5 text-[#040e40]"></i>
+                    <span className="ml-3 font-medium">Disclaimer</span>
                   </Link>
                 </div>
               )}
             </div>
             
-            <Link href="/book-appointment" className="btn-primary text-sm px-4 py-2">Book Now</Link>
+            <Link href="/book-appointment" className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-md hover:shadow-lg">Book Now</Link>
           </div>
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
             <button 
               onClick={toggleMobileMenu}
-              className="text-gray-700 hover:text-primary-950 focus:outline-none focus:text-primary-950"
+              className="text-gray-700 hover:text-[#040e40] focus:outline-none transition-colors"
             >
               <i className={`fas ${mobileMenuOpen ? 'fa-times' : 'fa-bars'} text-xl`}></i>
             </button>
@@ -168,14 +147,16 @@ export default function Navbar() {
       </div>
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
-        <div className="md:hidden relative z-50">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t shadow-lg">
-            <Link href="/" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Home</Link>
+        <div className="md:hidden relative z-50 bg-white border-t shadow-lg">
+          <div className="px-2 pt-2 pb-3 space-y-1">
+            <Link href="/" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
+              <i className="fas fa-home w-5 mr-3 text-[#040e40]"></i>Home
+            </Link>
             
             {/* Special Shop Button for Mobile */}
             <Link 
               href="/marketplace" 
-              className="relative inline-flex items-center justify-center gap-2 mx-2 my-2 px-3 py-2 text-sm font-bold text-white bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 rounded-lg shadow-md transform active:scale-95 transition-all duration-300"
+              className="relative flex items-center justify-center gap-2 mx-2 my-2 px-4 py-3 text-sm font-bold text-white bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 rounded-lg shadow-md active:scale-95 transition-all duration-300"
               onClick={closeMobileMenu}
             >
               <i className="fas fa-shopping-bag text-white drop-shadow-lg text-sm"></i>
@@ -185,65 +166,83 @@ export default function Navbar() {
               </span>
             </Link>
             
-            <Link href="/blog" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Blog</Link>
-            <Link href="/book-appointment" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Book Appointment</Link>
-            <Link href="/track-repair" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Track Repair</Link>
-            <Link href="/troubleshoot" className="text-gray-700 hover:text-primary-950 block px-3 py-2 text-base font-medium" onClick={closeMobileMenu}>Troubleshoot</Link>
+            <Link href="/blog" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
+              <i className="fas fa-blog w-5 mr-3 text-[#040e40]"></i>Blog
+            </Link>
+            <Link href="/chat" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
+              <i className="fas fa-comments w-5 mr-3 text-red-600"></i>Chat Support
+            </Link>
+            <Link href="/book-appointment" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
+              <i className="fas fa-calendar-check w-5 mr-3 text-[#040e40]"></i>Book Appointment
+            </Link>
+            <Link href="/track-repair" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
+              <i className="fas fa-search w-5 mr-3 text-[#040e40]"></i>Track Repair
+            </Link>
             
-            {/* Get Support Dropdown for Mobile */}
-            <div className="px-3 py-2">
+            {/* More Dropdown for Mobile - Brand Colors */}
+            <div className="pt-2">
               <button 
-                onClick={toggleSupportDropdown}
+                onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
                 type="button"
-                className="text-gray-700 hover:text-primary-950 text-base font-medium inline-flex items-center gap-2 w-full justify-between cursor-pointer touch-manipulation select-none"
+                className="w-full text-left text-gray-700 hover:text-[#040e40] hover:bg-gray-50 px-4 py-3 text-base font-medium rounded-lg transition-all flex items-center justify-between"
               >
-                Get Support
-                <i className={`fas fa-chevron-down text-sm transition-transform duration-200 ${supportDropdownOpen ? 'rotate-180' : ''}`}></i>
+                <span>
+                  <i className="fas fa-ellipsis-h w-5 mr-3 text-[#040e40]"></i>More
+                </span>
+                <i className={`fas fa-chevron-down text-sm transition-transform duration-200 ${mobileDropdownOpen ? 'rotate-180' : ''}`}></i>
               </button>
               
-              {supportDropdownOpen && (
-                <div className="mt-2 ml-4 space-y-1 bg-gray-50 rounded-md py-2">
-                  <a
-                    href="/chat"
-                    className="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
-                  >
-                    <i className="fas fa-comments mr-2"></i>Chat Support
-                  </a>
-                  <a
+              {mobileDropdownOpen && (
+                <div className="mt-2 ml-6 mr-2 bg-gradient-to-br from-gray-50 to-red-50 rounded-lg border-2 border-[#040e40]/10 overflow-hidden">
+                  <Link
                     href="/contact"
-                    className="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
+                    onClick={closeMobileMenu}
                   >
-                    <i className="fas fa-envelope mr-2"></i>Contact Us
-                  </a>
-                  <a
+                    <i className="fas fa-envelope w-5 text-red-600"></i>
+                    <span className="ml-3 font-medium">Contact Us</span>
+                  </Link>
+                  <Link
                     href="/about"
-                    className="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
+                    onClick={closeMobileMenu}
                   >
-                    <i className="fas fa-info-circle mr-2"></i>About Us
-                  </a>
-                  <a
+                    <i className="fas fa-info-circle w-5 text-red-600"></i>
+                    <span className="ml-3 font-medium">About Us</span>
+                  </Link>
+                  <Link
                     href="/privacy"
-                    className="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
+                    onClick={closeMobileMenu}
                   >
-                    <i className="fas fa-shield-alt mr-2"></i>Privacy Policy
-                  </a>
-                  <a
+                    <i className="fas fa-shield-alt w-5 text-[#040e40]"></i>
+                    <span className="ml-3 font-medium">Privacy Policy</span>
+                  </Link>
+                  <Link
                     href="/terms"
-                    className="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
+                    onClick={closeMobileMenu}
                   >
-                    <i className="fas fa-file-contract mr-2"></i>Terms of Service
-                  </a>
-                  <a
+                    <i className="fas fa-file-contract w-5 text-[#040e40]"></i>
+                    <span className="ml-3 font-medium">Terms of Service</span>
+                  </Link>
+                  <Link
                     href="/disclaimer"
-                    className="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all"
+                    onClick={closeMobileMenu}
                   >
-                    <i className="fas fa-exclamation-triangle mr-2"></i>Disclaimer
-                  </a>
+                    <i className="fas fa-exclamation-triangle w-5 text-[#040e40]"></i>
+                    <span className="ml-3 font-medium">Disclaimer</span>
+                  </Link>
                 </div>
               )}
             </div>
             
-            <Link href="/book-appointment" className="btn-primary text-sm px-4 py-2 w-full text-center mt-4" onClick={closeMobileMenu}>Book Now</Link>
+            <div className="px-2 pt-4">
+              <Link href="/book-appointment" className="block w-full text-center bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg text-sm font-semibold transition-colors shadow-md" onClick={closeMobileMenu}>
+                <i className="fas fa-calendar-check mr-2"></i>Book Now
+              </Link>
+            </div>
           </div>
         </div>
       )}
