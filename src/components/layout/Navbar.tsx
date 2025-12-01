@@ -203,42 +203,42 @@ export default function Navbar() {
               
               {supportDropdownOpen && (
                 <div className="mt-2 ml-4 space-y-1 bg-gray-50 rounded-md py-2">
-                  <button
-                    onClick={() => handleMobileDropdownClick('/chat')}
+                  <a
+                    href="/chat"
                     className="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
                   >
                     <i className="fas fa-comments mr-2"></i>Chat Support
-                  </button>
-                  <button
-                    onClick={() => handleMobileDropdownClick('/contact')}
+                  </a>
+                  <a
+                    href="/contact"
                     className="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
                   >
                     <i className="fas fa-envelope mr-2"></i>Contact Us
-                  </button>
-                  <button
-                    onClick={() => handleMobileDropdownClick('/about')}
+                  </a>
+                  <a
+                    href="/about"
                     className="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
                   >
                     <i className="fas fa-info-circle mr-2"></i>About Us
-                  </button>
-                  <button
-                    onClick={() => handleMobileDropdownClick('/privacy')}
+                  </a>
+                  <a
+                    href="/privacy"
                     className="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
                   >
                     <i className="fas fa-shield-alt mr-2"></i>Privacy Policy
-                  </button>
-                  <button
-                    onClick={() => handleMobileDropdownClick('/terms')}
+                  </a>
+                  <a
+                    href="/terms"
                     className="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
                   >
                     <i className="fas fa-file-contract mr-2"></i>Terms of Service
-                  </button>
-                  <button
-                    onClick={() => handleMobileDropdownClick('/disclaimer')}
+                  </a>
+                  <a
+                    href="/disclaimer"
                     className="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:text-primary-950 active:bg-gray-200 touch-manipulation"
                   >
                     <i className="fas fa-exclamation-triangle mr-2"></i>Disclaimer
-                  </button>
+                  </a>
                 </div>
               )}
             </div>
