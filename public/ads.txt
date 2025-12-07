@@ -1,6 +1,7 @@
 # ads.txt for itservicesfreetown.com
+# Last updated: December 7, 2025
 # Google AdSense
 google.com, pub-9989697800650646, DIRECT, f08c47fec0942fa0
 
-# Google Ad Manager (if using)
+# Google Ad Manager
 google.com, pub-9989697800650646, RESELLER, f08c47fec0942fa0
