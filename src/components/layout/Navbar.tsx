@@ -8,6 +8,7 @@ import { usePathname } from 'next/navigation';
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [supportDropdownOpen, setSupportDropdownOpen] = useState(false);
+  const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
@@ -18,6 +19,7 @@ export default function Navbar() {
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
     setSupportDropdownOpen(false);
+    setMobileDropdownOpen(false);
   };
 
   const toggleSupportDropdown = () => {
@@ -153,82 +155,97 @@ export default function Navbar() {
       </div>
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
-            <Link href="/" className={`block px-3 py-2 text-base font-medium rounded-md transition-all duration-200 ${pathname === '/' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`} onClick={closeMobileMenu}>Home</Link>
+        <div className="md:hidden relative z-50 bg-white border-t shadow-lg">
+          <div className="px-2 pt-2 pb-3 space-y-1">
+            <Link href="/" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
+              <i className="fas fa-home w-5 mr-3 text-[#040e40]"></i>Home
+            </Link>
             
             {/* Special Shop Button for Mobile */}
             <Link 
               href="/marketplace" 
-              className="relative inline-flex items-center justify-center gap-2 mx-2 my-2 px-3 py-2 text-sm font-bold text-white bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 rounded-lg shadow-md transform active:scale-95 transition-all duration-300"
+              className="relative inline-flex items-center justify-center gap-1.5 mx-2 my-1.5 px-3 py-2 text-xs font-bold text-white bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 rounded-md shadow-sm active:scale-95 transition-all duration-300"
               onClick={closeMobileMenu}
             >
-              <i className="fas fa-shopping-bag text-white drop-shadow-lg text-sm"></i>
-              <span className="drop-shadow-lg">Shop Now</span>
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-xs font-bold animate-bounce">
+              <i className="fas fa-shopping-bag text-white text-xs"></i>
+              <span>Shop Now</span>
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-yellow-400 text-[10px] font-bold animate-bounce">
                 🔥
               </span>
             </Link>
             
-            <Link href="/blog" className={`block px-3 py-2 text-base font-medium rounded-md transition-all duration-200 ${pathname === '/blog' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`} onClick={closeMobileMenu}>Blog</Link>
-            <Link href="/book-appointment" className={`block px-3 py-2 text-base font-medium rounded-md transition-all duration-200 ${pathname === '/book-appointment' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`} onClick={closeMobileMenu}>Book Appointment</Link>
-            <Link href="/track-repair" className={`block px-3 py-2 text-base font-medium rounded-md transition-all duration-200 ${pathname === '/track-repair' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`} onClick={closeMobileMenu}>Track Repair</Link>
-            <Link href="/troubleshoot" className={`block px-3 py-2 text-base font-medium rounded-md transition-all duration-200 ${pathname === '/troubleshoot' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`} onClick={closeMobileMenu}>Troubleshoot</Link>
+            <Link href="/blog" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
+              <i className="fas fa-blog w-5 mr-3 text-[#040e40]"></i>Blog
+            </Link>
+            <Link href="/book-appointment" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
+              <i className="fas fa-calendar-check w-5 mr-3 text-[#040e40]"></i>Book Appointment
+            </Link>
+            <Link href="/track-repair" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
+              <i className="fas fa-search w-5 mr-3 text-[#040e40]"></i>Track Repair
+            </Link>
             
-            {/* Get Support Dropdown for Mobile */}
-            <div className="px-3 py-2">
+            {/* Get Support Dropdown for Mobile - Brand Colors */}
+            <div className="pt-2">
               <button 
-                onClick={toggleSupportDropdown}
-                className="text-gray-700 hover:text-[#040e40] text-base font-medium inline-flex items-center gap-2 w-full justify-between"
+                onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
+                type="button"
+                className="w-full text-left text-gray-700 hover:text-[#040e40] hover:bg-gray-50 px-4 py-3 text-base font-medium rounded-lg transition-all flex items-center justify-between"
               >
-                Get Support
-                <i className={`fas fa-chevron-down text-sm transition-transform duration-200 ${supportDropdownOpen ? 'rotate-180' : ''}`}></i>
+                <span>
+                  <i className="fas fa-headset w-5 mr-3 text-[#040e40]"></i>Get Support
+                </span>
+                <i className={`fas fa-chevron-down text-sm transition-transform duration-200 ${mobileDropdownOpen ? 'rotate-180' : ''}`}></i>
               </button>
               
-              {supportDropdownOpen && (
-                <div className="mt-2 ml-4 space-y-1 bg-gray-50 rounded-md py-2 animate-fadeIn">
-                  <Link 
-                    href="/chat" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200 rounded"
+              {mobileDropdownOpen && (
+                <div className="mt-2 ml-6 mr-2 bg-gradient-to-br from-gray-50 to-red-50 rounded-lg border-2 border-[#040e40]/10 overflow-hidden">
+                  <Link
+                    href="/chat"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
                     onClick={closeMobileMenu}
                   >
-                    <i className="fas fa-comments mr-2"></i>Chat Support
+                    <i className="fas fa-comments w-5 text-red-600"></i>
+                    <span className="ml-3 font-medium">Chat Support</span>
                   </Link>
-                  <Link 
-                    href="/contact" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200 rounded"
+                  <Link
+                    href="/contact"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
                     onClick={closeMobileMenu}
                   >
-                    <i className="fas fa-envelope mr-2"></i>Contact Us
+                    <i className="fas fa-envelope w-5 text-red-600"></i>
+                    <span className="ml-3 font-medium">Contact Us</span>
                   </Link>
-                  <Link 
-                    href="/about" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200 rounded"
+                  <Link
+                    href="/about"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
                     onClick={closeMobileMenu}
                   >
-                    <i className="fas fa-info-circle mr-2"></i>About Us
+                    <i className="fas fa-info-circle w-5 text-red-600"></i>
+                    <span className="ml-3 font-medium">About Us</span>
                   </Link>
-                  <div className="my-1 border-t border-gray-200"></div>
-                  <Link 
-                    href="/privacy" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200 rounded"
+                  <Link
+                    href="/privacy"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
                     onClick={closeMobileMenu}
                   >
-                    <i className="fas fa-shield-alt mr-2"></i>Privacy Policy
+                    <i className="fas fa-shield-alt w-5 text-[#040e40]"></i>
+                    <span className="ml-3 font-medium">Privacy Policy</span>
                   </Link>
-                  <Link 
-                    href="/terms" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200 rounded"
+                  <Link
+                    href="/terms"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
                     onClick={closeMobileMenu}
                   >
-                    <i className="fas fa-file-contract mr-2"></i>Terms of Service
+                    <i className="fas fa-file-contract w-5 text-[#040e40]"></i>
+                    <span className="ml-3 font-medium">Terms of Service</span>
                   </Link>
-                  <Link 
-                    href="/disclaimer" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200 rounded"
+                  <Link
+                    href="/disclaimer"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all"
                     onClick={closeMobileMenu}
                   >
-                    <i className="fas fa-exclamation-triangle mr-2"></i>Disclaimer
+                    <i className="fas fa-exclamation-triangle w-5 text-[#040e40]"></i>
+                    <span className="ml-3 font-medium">Disclaimer</span>
                   </Link>
                 </div>
               )}
