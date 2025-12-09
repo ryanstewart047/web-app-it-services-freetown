@@ -9,6 +9,7 @@ import FloatingScrollToTop from '@/components/FloatingScrollToTop';
 import PWAInstallBanner from '@/components/PWAInstallBanner';
 import NetworkMonitor from '@/components/NetworkMonitor';
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration';
+import OfferPopup from '@/components/OfferPopup';
 
 interface ConditionalLayoutProps {
   children: React.ReactNode;
@@ -41,6 +42,7 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
         <Footer />
       </div>
       <CookiePopup />
+      <OfferPopup delay={30000} />
       <StaticChatFloat />
       <FloatingScrollToTop />
       <PWAInstallBanner />
