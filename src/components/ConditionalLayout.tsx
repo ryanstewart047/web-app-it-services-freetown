@@ -42,7 +42,7 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
         <Footer />
       </div>
       <CookiePopup />
-      <OfferPopup delay={30000} />
+      <OfferPopup delay={5000} />
       <StaticChatFloat />
       <FloatingScrollToTop />
       <PWAInstallBanner />

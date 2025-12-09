@@ -106,6 +106,14 @@ export default function Navbar() {
                     <i className="fas fa-envelope mr-2"></i>Contact Us
                   </Link>
                   <Link 
+                    href="/about" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200"
+                    onClick={() => setSupportDropdownOpen(false)}
+                  >
+                    <i className="fas fa-info-circle mr-2"></i>About Us
+                  </Link>
+                  <div className="my-1 border-t border-gray-200"></div>
+                  <Link 
                     href="/privacy" 
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200"
                     onClick={() => setSupportDropdownOpen(false)}
@@ -193,6 +201,14 @@ export default function Navbar() {
                   >
                     <i className="fas fa-envelope mr-2"></i>Contact Us
                   </Link>
+                  <Link 
+                    href="/about" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200 rounded"
+                    onClick={closeMobileMenu}
+                  >
+                    <i className="fas fa-info-circle mr-2"></i>About Us
+                  </Link>
+                  <div className="my-1 border-t border-gray-200"></div>
                   <Link 
                     href="/privacy" 
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200 rounded"
