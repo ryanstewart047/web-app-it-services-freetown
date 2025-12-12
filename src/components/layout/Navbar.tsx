@@ -114,6 +114,13 @@ export default function Navbar() {
                   >
                     <i className="fas fa-info-circle mr-2"></i>About Us
                   </Link>
+                  <Link 
+                    href="/faq" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200"
+                    onClick={() => setSupportDropdownOpen(false)}
+                  >
+                    <i className="fas fa-question-circle mr-2"></i>FAQ
+                  </Link>
                   <div className="my-1 border-t border-gray-200"></div>
                   <Link 
                     href="/privacy" 
@@ -222,6 +229,14 @@ export default function Navbar() {
                   >
                     <i className="fas fa-info-circle w-5 text-red-600"></i>
                     <span className="ml-3 font-medium">About Us</span>
+                  </Link>
+                  <Link
+                    href="/faq"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
+                    onClick={closeMobileMenu}
+                  >
+                    <i className="fas fa-question-circle w-5 text-red-600"></i>
+                    <span className="ml-3 font-medium">FAQ</span>
                   </Link>
                   <Link
                     href="/privacy"
