@@ -139,7 +139,7 @@ const MobileRepairPricing: React.FC = () => {
                 <i className="fas fa-shield-check text-3xl"></i>
                 <div className="text-left">
                   <h4 className="font-bold">Warranty Included</h4>
-                  <p className="text-sm text-red-100">30 days on all repairs</p>
+                  <p className="text-sm text-red-100">24hrs LCD | 72hrs other repairs</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -236,7 +236,8 @@ const MobileRepairPricing: React.FC = () => {
                 </h4>
                 <ul className="text-sm text-gray-700 space-y-1">
                   <li>• All repairs tested before collection</li>
-                  <li>• 30-day warranty on parts (excludes LCD damage from drops)</li>
+                  <li>• LCD/Screen repairs: 24-hour warranty (excludes damage from drops)</li>
+                  <li>• Other repairs: 72-hour warranty on parts and labor</li>
                   <li>• Issues must be reported within 1 hour of collection</li>
                   <li>• Water damage repair price may vary based on damage extent</li>
                   <li>• We are not responsible for data loss - please backup before repair</li>

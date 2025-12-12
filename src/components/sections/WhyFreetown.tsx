@@ -69,11 +69,12 @@ export default function WhyFreetown() {
               <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center mr-4">
                 <Shield className="w-7 h-7 text-green-600" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">30-Day Warranty</h3>
+              <h3 className="text-2xl font-bold text-gray-900">Quality Warranty</h3>
             </div>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Every repair comes with our comprehensive 30-day parts and labor warranty. If you experience any issues 
-              with the repaired component within 30 days, we'll fix it free of charge. This warranty demonstrates 
+              Every repair comes with our warranty: 24 hours for LCD/screen replacements (due to screen fragility) 
+              and 72 hours for all other repairs including batteries, charging boards, and computer repairs. If you 
+              experience any issues with the repaired component within the warranty period, we'll fix it free of charge. This warranty demonstrates 
               our confidence in the quality of our work and genuine parts.
             </p>
             <p className="text-gray-700 leading-relaxed">

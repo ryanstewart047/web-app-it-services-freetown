@@ -76,7 +76,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Warranty Backed</h3>
               <p className="text-gray-600">
-                30-day warranty on all repairs and parts
+                24hr LCD warranty | 72hr other repairs
               </p>
             </div>
 

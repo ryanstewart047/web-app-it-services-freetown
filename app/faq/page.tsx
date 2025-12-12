@@ -66,11 +66,11 @@ export default function FAQPage() {
       questions: [
         {
           q: 'What warranty do you provide on repairs?',
-          a: 'Every repair includes our comprehensive 30-day parts and labor warranty. This means if the same issue reoccurs within 30 days due to our workmanship or part defect, we\'ll fix it free of charge. The warranty covers the specific component repaired, not unrelated issues. Accidental damage, liquid damage, or physical drops after repair are not covered.'
+          a: 'Our warranty varies by repair type: LCD/Screen replacements have a 24-hour warranty due to the fragile nature of screens. All other repairs (batteries, charging boards, speakers, computer repairs, etc.) have a 72-hour warranty on parts and labor. If the same issue reoccurs within the warranty period due to our workmanship or part defect, we\'ll fix it free of charge. The warranty covers the specific component repaired, not unrelated issues. Accidental damage, liquid damage, or physical drops after repair are not covered.'
         },
         {
           q: 'What if my device has problems after I pick it up?',
-          a: 'If you notice any issues within 1 hour of collection, bring the device back immediately for re-inspection at no charge. For issues appearing within the 30-day warranty period, contact us to schedule a warranty repair. We stand behind our work and will make it right if there\'s a workmanship issue.'
+          a: 'If you notice any issues within 1 hour of collection, bring the device back immediately for re-inspection at no charge. For issues appearing within the warranty period (24 hours for LCD/screens, 72 hours for other repairs), contact us to schedule a warranty repair. We stand behind our work and will make it right if there\'s a workmanship issue.'
         },
         {
           q: 'Do you use genuine parts?',

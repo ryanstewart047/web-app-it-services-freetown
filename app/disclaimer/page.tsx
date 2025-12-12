@@ -54,8 +54,8 @@ export default function DisclaimerPage() {
             </p>
 
             <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-6">Warranty Limitations</h3>
-            <p className="text-gray-700 mb-4">
-              Our 30-day warranty covers parts and labor for the specific repair performed. It does not cover:
+            <p className="text-gray-600 mb-3">
+              Our warranty varies by repair type: 24 hours for LCD/screen repairs, 72 hours for other repairs (batteries, charging, computer repairs). The warranty covers parts and labor for the specific repair performed. It does not cover:
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
               <li>Damage caused by misuse, accidents, or improper handling after repair</li>

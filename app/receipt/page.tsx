@@ -1260,7 +1260,8 @@ www.itservicesfreetown.com
                 <li>• All repairs are tested before collection. Any issues must be reported within 1 hour of collection.</li>
                 <li>• We are not responsible for data loss. Please backup your data before submitting devices for repair.</li>
                 <li>• Warranty does not cover physical damage, water damage, or damage from misuse after repair.</li>
-                <li>• Parts replaced are guaranteed for 30 days from the date of repair, excluding LCD damage from drops or pressure.</li>
+                <li>• LCD/Screen repairs: 24-hour warranty (excludes damage from drops or pressure).</li>
+                <li>• Other repairs (batteries, charging, computer): 72-hour warranty from date of repair.</li>
                 <li>• Customer accepts all risks associated with the inherent fragility of electronic components, especially display screens.</li>
               </ul>
             </div>
