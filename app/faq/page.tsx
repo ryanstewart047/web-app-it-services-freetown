@@ -1,14 +1,15 @@
-import { Metadata } from 'next';
-import Link from 'next/link';
-import { HelpCircle, Phone, Mail, Clock, MapPin } from 'lucide-react';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Frequently Asked Questions (FAQ) | IT Services Freetown',
-  description: 'Get answers to common questions about computer repair, laptop repair, mobile phone repair, pricing, warranties, and services in Freetown, Sierra Leone.',
-  keywords: 'IT services FAQ, computer repair questions, laptop repair Freetown, mobile repair FAQ, warranty information, repair pricing Sierra Leone',
-};
+import { useState } from 'react';
+import Link from 'next/link';
+import { HelpCircle, Phone, Mail, Clock, MapPin, ChevronDown } from 'lucide-react';
 
 export default function FAQPage() {
+  const [openQuestion, setOpenQuestion] = useState<string | null>(null);
+
+  const toggleQuestion = (questionId: string) => {
+    setOpenQuestion(openQuestion === questionId ? null : questionId);
+  };
   const faqCategories = [
     {
       category: 'General Repairs & Services',
@@ -216,24 +217,52 @@ export default function FAQPage() {
               <h2 className="text-3xl font-bold text-gray-900">{category.category}</h2>
             </div>
 
-            <div className="space-y-6">
-              {category.questions.map((faq, faqIndex) => (
-                <div 
-                  key={faqIndex}
-                  className="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 border-l-4 border-[#040e40]"
-                >
-                  <h3 className="text-xl font-bold text-gray-900 mb-3 flex items-start">
-                    <span className="text-red-600 mr-3">Q:</span>
-                    {faq.q}
-                  </h3>
-                  <div className="pl-8">
-                    <p className="text-gray-700 leading-relaxed">
-                      <span className="font-bold text-[#040e40] mr-2">A:</span>
-                      {faq.a}
-                    </p>
+            <div className="space-y-4">
+              {category.questions.map((faq, faqIndex) => {
+                const questionId = `${catIndex}-${faqIndex}`;
+                const isOpen = openQuestion === questionId;
+                
+                return (
+                  <div 
+                    key={faqIndex}
+                    className="bg-white rounded-xl shadow-lg overflow-hidden border-l-4 border-[#040e40] transition-all duration-300 hover:shadow-2xl"
+                  >
+                    {/* Question - Clickable */}
+                    <button
+                      onClick={() => toggleQuestion(questionId)}
+                      className="w-full text-left px-6 py-5 flex items-center justify-between hover:bg-gray-50 transition-colors duration-200"
+                    >
+                      <h3 className="text-lg font-bold text-gray-900 flex items-start flex-1 pr-4">
+                        <span className="text-red-600 mr-3">Q:</span>
+                        <span>{faq.q}</span>
+                      </h3>
+                      <ChevronDown 
+                        className={`w-6 h-6 text-[#040e40] flex-shrink-0 transition-transform duration-300 ${
+                          isOpen ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </button>
+                    
+                    {/* Answer - Expandable with Dark Mode */}
+                    <div 
+                      className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                        isOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
+                      }`}
+                    >
+                      <div className="px-6 pb-6 pt-2">
+                        <div className="bg-gradient-to-br from-gray-800 via-gray-900 to-[#040e40] rounded-lg p-6 shadow-inner">
+                          <div className="flex items-start">
+                            <span className="font-bold text-red-400 mr-3 text-lg">A:</span>
+                            <p className="text-gray-100 leading-relaxed flex-1">
+                              {faq.a}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ))}
