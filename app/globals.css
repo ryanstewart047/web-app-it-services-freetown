@@ -119,10 +119,14 @@ article .prose h2,
 article .prose h3,
 article .prose h4,
 article .prose strong {
-  background-clip: unset !important;
-  -webkit-background-clip: unset !important;
-  text-fill-color: currentColor !important;
-  -webkit-text-fill-color: currentColor !important;
+  background: none !important;
+  background-image: none !important;
+  background-clip: border-box !important;
+  -webkit-background-clip: border-box !important;
+  text-fill-color: unset !important;
+  -webkit-text-fill-color: unset !important;
+  color: #040e40 !important;
+  opacity: 1 !important;
 }
 
 .prose p {
@@ -135,13 +139,13 @@ article .prose strong {
 }
 
 .prose h1 {
-  color: #111827;
+  color: #040e40 !important;
   font-weight: 800;
   font-size: 2.25em;
   margin-top: 0;
   margin-bottom: 0.8888889em;
   line-height: 1.1111111;
-  opacity: 1;
+  opacity: 1 !important;
 }
 
 .prose h2 {
