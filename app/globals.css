@@ -133,41 +133,49 @@ nav {
 }
 
 .prose h2 {
-  color: #111827;
-  font-weight: 700;
+  color: #000000;
+  font-weight: 800;
   font-size: 1.75em;
   margin-top: 2em;
   margin-bottom: 1em;
   line-height: 1.3333333;
-  border-bottom: 2px solid #e5e7eb;
+  border-bottom: 3px solid #2563eb;
   padding-bottom: 0.5em;
-  opacity: 1;
+  opacity: 1 !important;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 .prose h3 {
-  color: #111827;
-  font-weight: 600;
+  color: #000000;
+  font-weight: 700;
   font-size: 1.5em;
   margin-top: 1.6em;
   margin-bottom: 0.6em;
   line-height: 1.4444444;
-  opacity: 1;
+  opacity: 1 !important;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 .prose h4 {
-  color: #111827;
-  font-weight: 600;
+  color: #000000;
+  font-weight: 700;
   font-size: 1.25em;
   margin-top: 1.5em;
   margin-bottom: 0.5em;
   line-height: 1.5;
-  opacity: 1;
+  opacity: 1 !important;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 .prose strong {
-  color: #111827;
-  font-weight: 700;
-  opacity: 1;
+  color: #000000;
+  font-weight: 800;
+  opacity: 1 !important;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 .prose em {
