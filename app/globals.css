@@ -105,22 +105,24 @@ nav {
 
 /* Prose Styles for Blog Content - Matching HTML Preview */
 .prose {
-  color: #000000;
+  color: #1f2937;
   max-width: 65ch;
 }
 
 .prose *:not(code):not(pre) {
   opacity: 1 !important;
-  color: inherit;
 }
 
 /* Override any parent opacity/transparency */
-article .prose,
-article .prose * {
+article .prose h1,
+article .prose h2,
+article .prose h3,
+article .prose h4,
+article .prose strong {
   background-clip: unset !important;
   -webkit-background-clip: unset !important;
-  text-fill-color: unset !important;
-  -webkit-text-fill-color: unset !important;
+  text-fill-color: currentColor !important;
+  -webkit-text-fill-color: currentColor !important;
 }
 
 .prose p {
@@ -128,8 +130,8 @@ article .prose * {
   margin-bottom: 1.25em;
   line-height: 1.75;
   font-size: 1.125rem;
-  color: #000000;
-  opacity: 1;
+  color: #1f2937;
+  opacity: 1 !important;
 }
 
 .prose h1 {
