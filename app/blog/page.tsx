@@ -502,7 +502,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                   </h2>
 
                   {/* Content - Excerpt or Full */}
-                  <div className="prose prose-lg max-w-none text-gray-700 mb-8 leading-relaxed">
+                  <div className="prose prose-lg max-w-none mb-8 leading-relaxed">
                     {expandedPosts[post.id] ? (
                       <div>
                         <div dangerouslySetInnerHTML={{ __html: post.content }} />
