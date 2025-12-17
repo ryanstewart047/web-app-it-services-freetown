@@ -105,12 +105,22 @@ nav {
 
 /* Prose Styles for Blog Content - Matching HTML Preview */
 .prose {
-  color: #1f2937;
+  color: #000000;
   max-width: 65ch;
 }
 
-.prose * {
+.prose *:not(code):not(pre) {
   opacity: 1 !important;
+  color: inherit;
+}
+
+/* Override any parent opacity/transparency */
+article .prose,
+article .prose * {
+  background-clip: unset !important;
+  -webkit-background-clip: unset !important;
+  text-fill-color: unset !important;
+  -webkit-text-fill-color: unset !important;
 }
 
 .prose p {
@@ -118,7 +128,7 @@ nav {
   margin-bottom: 1.25em;
   line-height: 1.75;
   font-size: 1.125rem;
-  color: #1f2937;
+  color: #000000;
   opacity: 1;
 }
 
