@@ -504,7 +504,15 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                   {/* Content - Excerpt or Full */}
                   <div className="prose prose-lg max-w-none text-gray-700 mb-8 leading-relaxed">
                     {expandedPosts[post.id] ? (
-                      <div dangerouslySetInnerHTML={{ __html: post.content }} />
+                      <div>
+                        <div dangerouslySetInnerHTML={{ __html: post.content }} />
+                        <button
+                          onClick={() => togglePostExpansion(post.id)}
+                          className="mt-6 text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-2 transition-colors"
+                        >
+                          ← Read less
+                        </button>
+                      </div>
                     ) : (
                       <div>
                         <p>{getExcerpt(post.content)}</p>
