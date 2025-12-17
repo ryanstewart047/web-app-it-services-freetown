@@ -145,13 +145,13 @@ article .prose strong {
 }
 
 .prose h2 {
-  color: #000000;
+  color: #040e40;
   font-weight: 800;
   font-size: 1.75em;
   margin-top: 2em;
   margin-bottom: 1em;
   line-height: 1.3333333;
-  border-bottom: 3px solid #2563eb;
+  border-bottom: 3px solid #040e40;
   padding-bottom: 0.5em;
   opacity: 1 !important;
   text-rendering: optimizeLegibility;
@@ -159,7 +159,7 @@ article .prose strong {
 }
 
 .prose h3 {
-  color: #000000;
+  color: #040e40;
   font-weight: 700;
   font-size: 1.5em;
   margin-top: 1.6em;
@@ -171,7 +171,7 @@ article .prose strong {
 }
 
 .prose h4 {
-  color: #000000;
+  color: #040e40;
   font-weight: 700;
   font-size: 1.25em;
   margin-top: 1.5em;
@@ -183,7 +183,7 @@ article .prose strong {
 }
 
 .prose strong {
-  color: #000000;
+  color: #040e40;
   font-weight: 800;
   opacity: 1 !important;
   text-rendering: optimizeLegibility;
@@ -221,12 +221,12 @@ article .prose strong {
 }
 
 .prose ul > li::marker {
-  color: #2563eb;
+  color: #dc2626;
 }
 
 .prose ol > li::marker {
-  color: #2563eb;
-  font-weight: 600;
+  color: #dc2626;
+  font-weight: 700;
 }
 
 .prose ul ul,
@@ -238,8 +238,8 @@ article .prose strong {
 }
 
 .prose hr {
-  border-color: #e5e7eb;
-  border-top-width: 1px;
+  border-color: #040e40;
+  border-top-width: 2px;
   margin-top: 3em;
   margin-bottom: 3em;
 }
@@ -249,7 +249,7 @@ article .prose strong {
   font-style: italic;
   color: #111827;
   border-left-width: 0.25rem;
-  border-left-color: #2563eb;
+  border-left-color: #040e40;
   quotes: "\201C""\201D""\2018""\2019";
   margin-top: 1.6em;
   margin-bottom: 1.6em;
@@ -294,9 +294,9 @@ article .prose strong {
 }
 
 .prose a {
-  color: #2563eb;
+  color: #040e40;
   text-decoration: underline;
-  text-decoration-color: #93c5fd;
+  text-decoration-color: #dc2626;
   text-decoration-thickness: 2px;
   text-underline-offset: 3px;
   font-weight: 500;
@@ -304,8 +304,8 @@ article .prose strong {
 }
 
 .prose a:hover {
-  color: #1d4ed8;
-  text-decoration-color: #2563eb;
+  color: #dc2626;
+  text-decoration-color: #040e40;
 }
 
 .prose table {
