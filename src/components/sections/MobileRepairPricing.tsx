@@ -20,6 +20,22 @@ const MobileRepairPricing: React.FC = () => {
 
   const devices: DeviceBrand[] = [
     {
+      id: 'computer',
+      name: 'Computer/Laptop',
+      icon: 'https://images.pexels.com/photos/7974/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=400',
+      services: [
+        { name: 'Inspection/Diagnosis', price: 'Le 50' },
+        { name: 'Screen Replacement', price: 'Varies (+ parts)' },
+        { name: 'Keyboard Replacement', price: 'Varies (+ parts)' },
+        { name: 'Battery Replacement', price: 'Varies (+ parts)' },
+        { name: 'Hard Drive/SSD Replacement', price: 'Varies (+ parts)' },
+        { name: 'RAM Upgrade', price: 'Varies (+ parts)' },
+        { name: 'Motherboard Repair', price: 'Varies (+ parts)' },
+        { name: 'Software Installation', price: 'Varies' },
+        { name: 'Virus Removal', price: 'Varies' },
+      ],
+    },
+    {
       id: 'tecno',
       name: 'Tecno',
       icon: 'https://images.pexels.com/photos/404280/pexels-photo-404280.jpeg?auto=compress&cs=tinysrgb&w=400',
@@ -95,19 +111,19 @@ const MobileRepairPricing: React.FC = () => {
           {/* Section Header */}
           <div className="text-center mb-12">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-red-600 text-white rounded-full mb-6">
-              <i className="fas fa-mobile-alt text-2xl"></i>
+              <i className="fas fa-tools text-2xl"></i>
             </div>
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Mobile Repair Pricing
+              Repair Pricing
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Professional repair services for all major mobile brands. Click on any device to see our competitive pricing.
+              Professional repair services for computers, laptops, and all major mobile brands. Click on any device to see our competitive pricing.
             </p>
           </div>
 
           {/* Device Grid */}
           <div className="overflow-x-auto pb-4 -mx-4 px-4 md:overflow-x-visible">
-            <div className="flex md:grid md:grid-cols-3 lg:grid-cols-5 gap-6 min-w-max md:min-w-0">
+            <div className="flex md:grid md:grid-cols-3 lg:grid-cols-6 gap-6 min-w-max md:min-w-0">
               {devices.map((device) => (
                 <div
                   key={device.id}
@@ -211,6 +227,13 @@ const MobileRepairPricing: React.FC = () => {
                           service.name.includes('Battery') ? 'fa-battery-three-quarters' :
                           service.name.includes('Charging') ? 'fa-charging-station' :
                           service.name.includes('Speaker') ? 'fa-volume-up' :
+                          service.name.includes('Inspection') || service.name.includes('Diagnosis') ? 'fa-search' :
+                          service.name.includes('Keyboard') ? 'fa-keyboard' :
+                          service.name.includes('Hard Drive') || service.name.includes('SSD') ? 'fa-hdd' :
+                          service.name.includes('RAM') ? 'fa-memory' :
+                          service.name.includes('Motherboard') ? 'fa-microchip' :
+                          service.name.includes('Software') ? 'fa-download' :
+                          service.name.includes('Virus') ? 'fa-shield-virus' :
                           'fa-tools'
                         } text-red-600`}></i>
                       </div>
@@ -218,6 +241,9 @@ const MobileRepairPricing: React.FC = () => {
                         <h4 className="font-semibold text-gray-900">{service.name}</h4>
                         {service.name.includes('Water Damage') && (
                           <p className="text-xs text-gray-500">Additional charges apply if parts need replacement</p>
+                        )}
+                        {service.price.includes('Varies') && (
+                          <p className="text-xs text-gray-500">Final price depends on parts needed</p>
                         )}
                       </div>
                     </div>
@@ -236,6 +262,8 @@ const MobileRepairPricing: React.FC = () => {
                 </h4>
                 <ul className="text-sm text-gray-700 space-y-1">
                   <li>• All repairs tested before collection</li>
+                  <li>• Computer inspection fee: Le 50 (applied toward repair if approved)</li>
+                  <li>• Computer part prices vary based on brand and specifications</li>
                   <li>• LCD/Screen repairs: 24-hour warranty (excludes damage from drops)</li>
                   <li>• Other repairs: 72-hour warranty on parts and labor</li>
                   <li>• Issues must be reported within 1 hour of collection</li>

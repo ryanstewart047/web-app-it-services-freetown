@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scroll Animation Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        
+        .test-section {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .scroll-animate {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        
+        .scroll-animate.animate-in {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .fade-in-left {
+            opacity: 0;
+            transform: translateX(-40px);
+            transition: all 0.7s ease-out;
+        }
+        
+        .fade-in-left.animate-in {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .fade-in-right {
+            opacity: 0;
+            transform: translateX(40px);
+            transition: all 0.7s ease-out;
+        }
+        
+        .fade-in-right.animate-in {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .test-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 600px;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-section">
+        <div class="test-box">
+            <h1>Scroll Animation Test</h1>
+            <p>Scroll down to see animations in action</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-box scroll-animate">
+            <h2>Fade Up Animation</h2>
+            <p>This box should fade up when it comes into view</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-box fade-in-left">
+            <h2>Slide From Left</h2>
+            <p>This box should slide in from the left</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-box fade-in-right">
+            <h2>Slide From Right</h2>
+            <p>This box should slide in from the right</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-box scroll-animate">
+            <h2>Another Fade Up</h2>
+            <p>Testing multiple animations</p>
+        </div>
+    </div>
+
+    <script>
+        // Simple scroll animation implementation
+        function initScrollAnimations() {
+            const elements = document.querySelectorAll('.scroll-animate, .fade-in-left, .fade-in-right');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate-in');
+                    }
+                });
+            }, {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            });
+
+            elements.forEach((el) => {
+                observer.observe(el);
+            });
+        }
+
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initScrollAnimations);
+        } else {
+            initScrollAnimations();
+        }
+    </script>
+</body>
+</html>
