@@ -44,7 +44,8 @@ export type RepairStatus =
 	| 'completed'
 	| 'cancelled'
 	| 'received'
-	| 'ready-for-pickup';
+	| 'ready-for-pickup'
+	| 'collected';
 
 export interface RepairBooking {
 	trackingId: string;

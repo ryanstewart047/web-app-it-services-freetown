@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     }, 0);
 
     const totalRevenue = data.repairs
-      .filter((repair) => repair.status === 'completed' && typeof repair.totalCost === 'number')
+      .filter((repair) => (repair.status === 'completed' || repair.status === 'collected') && typeof repair.totalCost === 'number')
       .reduce((sum, repair) => sum + (repair.totalCost ?? 0), 0);
 
     const mapRepairForResponse = (repair: any) => ({

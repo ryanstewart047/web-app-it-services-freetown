@@ -30,6 +30,7 @@ export const REPAIR_STATUSES = {
   TESTING: 'testing',
   COMPLETED: 'completed',
   READY_PICKUP: 'ready-pickup',
+  COLLECTED: 'collected',
   DELIVERED: 'delivered'
 } as const;
 
@@ -57,6 +58,7 @@ export const STATUS_MESSAGES = {
   [REPAIR_STATUSES.TESTING]: 'Repair completed. Running final tests to ensure everything works perfectly.',
   [REPAIR_STATUSES.COMPLETED]: 'Your device has been successfully repaired and tested.',
   [REPAIR_STATUSES.READY_PICKUP]: 'Your device is ready for pickup! Please bring your ID and repair receipt.',
+  [REPAIR_STATUSES.COLLECTED]: 'Your device has been collected. Thank you for choosing IT Services Freetown!',
   [REPAIR_STATUSES.DELIVERED]: 'Your repaired device has been delivered successfully.'
 };
 
@@ -68,7 +70,8 @@ export const REPAIR_TIMELINE_STEPS = [
   { step: 'in-repair', label: 'Under Repair', description: 'Actively fixing the device' },
   { step: 'testing', label: 'Testing', description: 'Quality assurance testing' },
   { step: 'completed', label: 'Completed', description: 'Repair finished successfully' },
-  { step: 'ready-pickup', label: 'Ready for Pickup', description: 'Ready for customer collection' }
+  { step: 'ready-pickup', label: 'Ready for Pickup', description: 'Ready for customer collection' },
+  { step: 'collected', label: 'Collected', description: 'Device collected by customer' }
 ];
 
 // Utility function to get status message for customers
