@@ -201,11 +201,11 @@ export default function PortfolioPage() {
       canvas.width = size;
       canvas.height = size;
       
-      // Calculate crop area
+      // Calculate crop area - properly account for zoom scaling
       const scale = image.naturalWidth / image.width;
       const cropSize = Math.min(image.width, image.height) / zoom;
-      const cropX = (image.width - cropSize) / 2 + crop.x;
-      const cropY = (image.height - cropSize) / 2 + crop.y;
+      const cropX = (image.width - cropSize) / 2 + (crop.x / zoom);
+      const cropY = (image.height - cropSize) / 2 + (crop.y / zoom);
       
       // Draw cropped circular image
       ctx.clearRect(0, 0, size, size);
