@@ -161,6 +161,7 @@ export default function Chat() {
                           <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">{message.trackingData.id}</span>
                           <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                             message.trackingData.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            message.trackingData.status === 'collected' ? 'bg-green-100 text-green-800' :
                             message.trackingData.status === 'in-progress' ? 'bg-red-100 text-red-800' :
                             message.trackingData.status === 'ready-for-pickup' ? 'bg-[#040e40]/20 text-[#040e40]' :
                             'bg-yellow-100 text-yellow-800'
