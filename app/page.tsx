@@ -30,11 +30,11 @@ export default function Home() {
     <>
       <Hero />
       <Services />
+      <MobileRepairPricing />
       <WhyFreetown />
       <CommonIssues />
       <WhyChooseUs />
       <TrackRecord />
-      <MobileRepairPricing />
       <CallToAction />
       <Contact />
       <PWAInstallBanner />
