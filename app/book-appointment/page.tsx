@@ -730,7 +730,7 @@ export default function BookAppointment() {
                         required
                       >
                         <option value="">Choose your device type...</option>
-                        <option value="computer">💻 Computer/Laptop</option>
+                        <option value="computer">💻 PC/Laptop</option>
                         <option value="mobile">📱 Mobile Phone</option>
                         <option value="tablet">📱 Tablet/iPad</option>
                         <option value="other">🔧 Other Device</option>

@@ -261,7 +261,7 @@ export default function Troubleshoot() {
                   required
                 >
                   <option value="">Select device type</option>
-                  <option value="computer">Computer/Laptop</option>
+                  <option value="computer">PC/Laptop</option>
                   <option value="mobile">Mobile/Tablet</option>
                 </select>
                 <ValidationError 

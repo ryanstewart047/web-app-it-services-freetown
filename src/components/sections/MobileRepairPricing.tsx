@@ -21,7 +21,7 @@ const MobileRepairPricing: React.FC = () => {
   const devices: DeviceBrand[] = [
     {
       id: 'computer',
-      name: 'Computer/Laptop',
+      name: 'PC/Laptop',
       icon: 'https://images.pexels.com/photos/7974/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=400',
       services: [
         { name: 'Inspection/Diagnosis', price: 'Le 50' },
@@ -33,6 +33,44 @@ const MobileRepairPricing: React.FC = () => {
         { name: 'Motherboard Repair', price: 'Varies (+ parts)' },
         { name: 'Software Installation', price: 'Varies' },
         { name: 'Virus Removal', price: 'Varies' },
+      ],
+    },
+    {
+      id: 'networking',
+      name: 'Networking',
+      icon: 'https://images.pexels.com/photos/2881229/pexels-photo-2881229.jpeg?auto=compress&cs=tinysrgb&w=400',
+      services: [
+        { name: 'Network Setup & Configuration', price: 'Le 500+' },
+        { name: 'Router Installation', price: 'Le 500+' },
+        { name: 'Network Troubleshooting', price: 'Le 500+' },
+        { name: 'WiFi Setup & Optimization', price: 'Le 500+' },
+        { name: 'Network Security Setup', price: 'Le 500+' },
+      ],
+    },
+    {
+      id: 'website',
+      name: 'Website Development',
+      icon: 'https://images.pexels.com/photos/326505/pexels-photo-326505.jpeg?auto=compress&cs=tinysrgb&w=400',
+      services: [
+        { name: 'Landing Page', price: '$50+' },
+        { name: 'Portfolio Website', price: '$50+' },
+        { name: 'Business Website', price: '$50+' },
+        { name: 'Blog/Social Website', price: '$50+' },
+        { name: 'NGO Website', price: '$50+' },
+        { name: 'Education Website', price: '$50+' },
+        { name: 'Corporate Website', price: '$50+' },
+        { name: 'E-commerce Website', price: '$50+' },
+      ],
+    },
+    {
+      id: 'app',
+      name: 'App Development',
+      icon: 'https://images.pexels.com/photos/177598/pexels-photo-177598.jpeg?auto=compress&cs=tinysrgb&w=400',
+      services: [
+        { name: 'Mobile App Development', price: 'Custom Quote' },
+        { name: 'Web App Development', price: 'Custom Quote' },
+        { name: 'Desktop App Development', price: 'Custom Quote' },
+        { name: 'App Maintenance & Updates', price: 'Custom Quote' },
       ],
     },
     {
@@ -114,7 +152,7 @@ const MobileRepairPricing: React.FC = () => {
               <i className="fas fa-tools text-2xl"></i>
             </div>
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Repair Pricing
+              Repair & Service Pricing
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Professional repair services for computers, laptops, and all major mobile brands. Click on any device to see our competitive pricing.
@@ -199,8 +237,8 @@ const MobileRepairPricing: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold">{selectedDevice.name} Repairs</h3>
-                    <p className="text-red-100 text-sm">Professional repair pricing</p>
+                    <h3 className="text-2xl font-bold">{selectedDevice.name} {selectedDevice.id === 'website' || selectedDevice.id === 'app' || selectedDevice.id === 'networking' ? 'Services' : 'Repairs'}</h3>
+                    <p className="text-red-100 text-sm">Professional {selectedDevice.id === 'website' || selectedDevice.id === 'app' || selectedDevice.id === 'networking' ? 'service' : 'repair'} pricing</p>
                   </div>
                 </div>
                 <button

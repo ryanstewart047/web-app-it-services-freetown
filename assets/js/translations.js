@@ -89,7 +89,7 @@ class TranslationManager {
                 'book.form.device-info': 'Device Information',
                 'book.form.device': 'Device Type *',
                 'book.form.device.select': 'Select device type',
-                'book.form.device.computer': 'Computer/Laptop',
+                'book.form.device.computer': 'PC/Laptop',
                 'book.form.device.mobile': 'Mobile Phone',
                 'book.form.device.tablet': 'Tablet',
                 'book.form.device.other': 'Other',
