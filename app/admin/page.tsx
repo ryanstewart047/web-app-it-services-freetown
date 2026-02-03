@@ -740,6 +740,8 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
         body: JSON.stringify({
           trackingId: selectedRepair.trackingId,
           status: updateForm.status,
+          notes: updateForm.notes,
+          totalCost: updateForm.totalCost ? parseFloat(updateForm.totalCost) : undefined,
           diagnosticNotes: updateForm.diagnosticNotes,
           diagnosticImages: updateForm.diagnosticImages,
         }),
@@ -750,7 +752,9 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
         setSelectedRepair(null);
         onUpdate();
       } else {
-        alert('Failed to update repair');
+        const error = await response.json();
+        console.error('Update failed:', error);
+        alert(`Failed to update repair: ${error.error || 'Unknown error'}`);
       }
     } catch (err) {
       console.error('Error updating repair:', err);
