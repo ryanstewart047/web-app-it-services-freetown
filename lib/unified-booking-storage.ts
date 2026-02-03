@@ -19,6 +19,8 @@ export interface BookingData {
   cost?: number;
   estimatedCompletion?: string;
   notes?: string;
+  diagnosticImages?: string[]; // Array of base64 encoded images
+  diagnosticNotes?: string; // Detailed diagnostic notes for the customer
 }
 
 const STORAGE_KEY = 'its_bookings';
@@ -141,6 +143,28 @@ export function updateBookingStatus(trackingId: string, status: BookingData['sta
     ...(notes && { notes }),
     ...(estimatedCompletion && { estimatedCompletion }),
     ...(cost && { cost })
+  };
+  
+  saveBookings(bookings);
+  return true;
+}
+
+// Update booking with diagnostic information
+export function updateBookingDiagnostics(
+  trackingId: string, 
+  diagnosticNotes?: string, 
+  diagnosticImages?: string[]
+): boolean {
+  const bookings = getAllBookings();
+  const bookingIndex = bookings.findIndex(b => b.trackingId === trackingId);
+  
+  if (bookingIndex === -1) return false;
+  
+  bookings[bookingIndex] = {
+    ...bookings[bookingIndex],
+    updatedAt: new Date().toISOString(),
+    ...(diagnosticNotes !== undefined && { diagnosticNotes }),
+    ...(diagnosticImages !== undefined && { diagnosticImages })
   };
   
   saveBookings(bookings);

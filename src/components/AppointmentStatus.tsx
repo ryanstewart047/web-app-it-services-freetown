@@ -18,6 +18,8 @@ interface AppointmentStatus {
   cost?: number
   createdAt: string
   updatedAt: string
+  diagnosticImages?: string[]
+  diagnosticNotes?: string
 }
 
 const statusSteps = [
@@ -71,7 +73,9 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
           notes: realBooking.notes,
           cost: realBooking.cost,
           createdAt: realBooking.createdAt,
-          updatedAt: realBooking.updatedAt
+          updatedAt: realBooking.updatedAt,
+          diagnosticImages: realBooking.diagnosticImages,
+          diagnosticNotes: realBooking.diagnosticNotes
         };
         
         setAppointment(appointmentStatus);
@@ -212,7 +216,9 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
       notes: repair.notes,
       cost: typeof repair.totalCost === 'number' ? repair.totalCost : undefined,
       createdAt: repair.submissionDate || new Date().toISOString(),
-      updatedAt: repair.lastUpdated || repair.submissionDate || new Date().toISOString()
+      updatedAt: repair.lastUpdated || repair.submissionDate || new Date().toISOString(),
+      diagnosticImages: repair.diagnosticImages,
+      diagnosticNotes: repair.diagnosticNotes
     };
   };
 
@@ -373,6 +379,44 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
           </div>
         )}
       </div>
+
+      {/* Diagnostic Information Section */}
+      {(appointment.diagnosticNotes || (appointment.diagnosticImages && appointment.diagnosticImages.length > 0)) && (
+        <div className="mt-8 bg-blue-50 p-6 rounded-lg border border-blue-200">
+          <div className="flex items-center text-blue-700 mb-4">
+            <i className="fas fa-stethoscope mr-2 text-xl"></i>
+            <h4 className="font-semibold text-lg">Device Diagnostic Report</h4>
+          </div>
+          
+          {appointment.diagnosticNotes && (
+            <div className="mb-4">
+              <p className="text-gray-700 whitespace-pre-wrap">{appointment.diagnosticNotes}</p>
+            </div>
+          )}
+
+          {appointment.diagnosticImages && appointment.diagnosticImages.length > 0 && (
+            <div>
+              <h5 className="font-medium text-gray-900 mb-3">Diagnostic Photos</h5>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {appointment.diagnosticImages.map((image, index) => (
+                  <div key={index} className="relative group">
+                    <img 
+                      src={image} 
+                      alt={`Diagnostic image ${index + 1}`}
+                      className="w-full h-48 object-cover rounded-lg shadow-md cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => window.open(image, '_blank')}
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all rounded-lg flex items-center justify-center">
+                      <i className="fas fa-search-plus text-white opacity-0 group-hover:opacity-100 text-2xl transition-opacity"></i>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">Click on images to view full size</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Contact Information */}
       <div className="mt-8 p-6 bg-gradient-to-r from-gray-50 to-red-50 rounded-lg border">

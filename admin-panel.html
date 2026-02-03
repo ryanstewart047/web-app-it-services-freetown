@@ -214,12 +214,12 @@
 
     <!-- Update Repair Modal -->
     <div id="update-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
             <div class="mt-3">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">
                     Update Repair: <span id="modal-tracking-id"></span>
                 </h3>
-                <div class="space-y-4">
+                <div class="space-y-4 max-h-[70vh] overflow-y-auto">
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Status</label>
                         <select id="modal-status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500">
@@ -242,24 +242,175 @@
                         <label class="block text-sm font-medium text-gray-700">Total Cost ($)</label>
                         <input type="number" id="modal-cost" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500" placeholder="0.00">
                     </div>
+                    
+                    <!-- New Diagnostic Section -->
+                    <div class="border-t pt-4">
+                        <h4 class="text-md font-medium text-gray-900 mb-3">Diagnostic Information (Customer View)</h4>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Diagnostic Notes for Customer</label>
+                            <textarea id="modal-diagnostic-notes" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500" rows="4" placeholder="e.g., Device inspected. Found cracked screen and damaged battery. Screen replacement in progress..."></textarea>
+                            <p class="mt-1 text-xs text-gray-500">This will be visible to the customer when they track their repair</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Upload Diagnostic Images</label>
+                            
+                            <!-- Mobile Camera Button (only visible on mobile) -->
+                            <div id="mobile-camera-section" class="hidden mb-3">
+                                <button type="button" onclick="openCamera()" class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-blue-700 flex items-center justify-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    Take Photo with Camera
+                                </button>
+                                <input type="file" id="modal-camera-capture" accept="image/*" capture="environment" class="hidden">
+                                <p class="mt-1 text-xs text-gray-500 text-center">Or choose from gallery below</p>
+                            </div>
+                            
+                            <!-- Regular file upload (always visible) -->
+                            <input type="file" id="modal-diagnostic-images" accept="image/*" multiple class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100">
+                            <p class="mt-1 text-xs text-gray-500">Add photos showing the device diagnosis, damage, or repair progress (max 5 images)</p>
+                            
+                            <!-- Image Preview -->
+                            <div id="image-preview-container" class="mt-3 grid grid-cols-3 gap-2"></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="flex justify-end space-x-3 mt-6">
                     <button onclick="closeModal()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
                         Cancel
                     </button>
-                    <button onclick="updateRepair()" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-                        Update Repair
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+           Detect mobile device
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                   (window.innerWidth <= 768);
+        }
 
-    <script>
-        let analyticsData = null;
-        let formData = null;
-        let repairData = null;
-        let currentRepair = null;
+        // Show camera option on mobile
+        function showCameraOption() {
+            if (isMobileDevice()) {
+                const cameraSection = document.getElementById('mobile-camera-section');
+                if (cameraSection) {
+                    cameraSection.classList.remove('hidden');
+                }
+            }
+        }
+
+        // Open camera on mobile
+        function openCamera() {
+            const cameraInput = document.getElementById('modal-camera-capture');
+            if (cameraInput) {
+                cameraInput.click();
+            }
+        }
+
+        // Handle camerprocessImageFiles(files) {
+            const maxImages = 5;
+            const maxTotalImages = maxImages - uploadedImages.length;
+            
+            if (files.length + uploadedImages.length > maxImages) {
+                alert(`Maximum ${maxImages} images allowed. You can add ${maxTotalImages} more.`);
+                return;
+            }
+
+            const previewContainer = document.getElementById('image-preview-container');
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                
+                // Check file size (max 2MB per image)
+                if (file.size > 2 * 1024 * 1024) {
+                    alert(`Image ${file.name} is too large. Maximum size is 2MB`);
+                    continue;
+                }
+
+                // Convert to base64
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Image = e.target.result;
+                    uploadedImages.push(base64Image);
+                    
+                    // Create preview
+                    const previewDiv = document.createElement('div');
+                    previewDiv.className = 'relative';
+                    previewDiv.innerHTML = `
+                        <img src="${base64Image}" class="w-full h-24 object-cover rounded-lg">
+                        <button onclick="removeImage(${uploadedImages.length - 1})" class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-700">
+                            ×
+                        </button>
+                    `;
+                    previewContainer.appendChild(previewDiv);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function handleImageUpload(event) {
+            const files = event.target.files;
+            await processImageFiles(files);
+
+        async function handleImageUpload(event) {
+            const files = event.target.files;
+            const maxImages = 5;
+            
+            if (files.length > maxImages) {
+                alert(`Maximum ${maxImages} images allowed`);
+                return;
+            }
+
+            uploadedImages = [];
+            const previewContainer = document.getElementById('image-preview-container');
+            previewContainer.innerHTML = '';
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                
+                // Check file size (max 2MB per image)
+                if (file.size > 2 * 1024 * 1024) {
+                    alert(`Image ${file.name} is too large. Maximum size is 2MB`);
+                    continue;
+                }
+
+                // Convert to base64
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Image = e.target.result;
+                    uploadedImages.push(base64Image);
+                    
+                    // Create preview
+                    const previewDiv = document.createElement('div');
+                    previewDiv.className = 'relative';
+                    previewDiv.innerHTML = `
+                        <img src="${base64Image}" class="w-full h-24 object-cover rounded-lg">
+                        <button onclick="removeImage(${uploadedImages.length - 1})" class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-700">
+                            ×
+                        </button>
+                    `;
+                    previewContainer.appendChild(previewDiv);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeImage(index) {
+            uploadedImages.splice(index, 1);
+            const previewContainer = document.getElementById('image-preview-container');
+            previewContainer.innerHTML = '';
+            
+            uploadedImages.forEach((img, i) => {
+                const previewDiv = document.createElement('div');
+                previewDiv.className = 'relative';
+                previewDiv.innerHTML = `
+                    <img src="${img}" class="w-full h-24 object-cover rounded-lg">
+                    <button onclick="removeImage(${i})" class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-700">
+                        ×
+                    </button>
+                `;
+                previewContainer.appendChild(previewDiv);
+            });
+        }
 
         function showTab(tabName) {
             // Hide all content
@@ -447,7 +598,8 @@
                 case 'in-progress': return 'bg-blue-100 text-blue-800';
                 case 'diagnosed': return 'bg-yellow-100 text-yellow-800';
                 case 'submitted': return 'bg-gray-100 text-gray-800';
-                case 'cancelled': return 'bg-red-100 text-red-800';
+                case 'cancelled': retmodal-camera-capture').value = '';
+            document.getElementById('urn 'bg-red-100 text-red-800';
                 default: return 'bg-gray-100 text-gray-800';
             }
         }
@@ -457,17 +609,42 @@
             if (!repair) return;
 
             currentRepair = repair;
+            uploadedImages = repair.diagnosticImages || [];
+            
             document.getElementById('modal-tracking-id').textContent = trackingId;
             document.getElementById('modal-status').value = repair.status;
             document.getElementById('modal-notes').value = repair.notes || '';
             document.getElementById('modal-completion').value = repair.estimatedCompletion || '';
             document.getElementById('modal-cost').value = repair.totalCost || '';
+            document.getElementById('modal-diagnostic-notes').value = repair.diagnosticNotes || '';
+            
+            // Display existing images
+            const previewContainer = document.getElementById('image-preview-container');
+            previewContainer.innerHTML = '';
+            
+            if (uploadedImages.length > 0) {
+                uploadedImages.forEach((img, i) => {
+                    const previewDiv = document.createElement('div');
+                    previewDiv.className = 'relative';
+                    previewDiv.innerHTML = `
+                        <img src="${img}" class="w-full h-24 object-cover rounded-lg">
+                        <button onclick="removeImage(${i})" class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-700">
+                            ×
+                        </button>
+                    `;
+                    previewContainer.appendChild(previewDiv);
+                });
+            }
+            
             document.getElementById('update-modal').classList.remove('hidden');
         }
 
         function closeModal() {
             document.getElementById('update-modal').classList.add('hidden');
             currentRepair = null;
+            uploadedImages = [];
+            document.getElementById('modal-diagnostic-images').value = '';
+            document.getElementById('image-preview-container').innerHTML = '';
         }
 
         async function updateRepair() {
@@ -478,10 +655,46 @@
                 status: document.getElementById('modal-status').value,
                 notes: document.getElementById('modal-notes').value,
                 estimatedCompletion: document.getElementById('modal-completion').value,
-                totalCost: document.getElementById('modal-cost').value ? parseFloat(document.getElementById('modal-cost').value) : undefined
+                totalCost: document.getElementById('modal-cost').value ? parseFloat(document.getElementById('modal-cost').value) : undefined,
+                diagnosticNotes: document.getElementById('modal-diagnostic-notes').value,
+                diagnosticImages: uploadedImages
             };
 
             try {
+                // Update via localStorage directly
+                if (typeof Storage !== 'undefined' && window.localStorage) {
+                    const bookings = JSON.parse(localStorage.getItem('its_bookings') || '[]');
+                    const bookingIndex = bookings.findIndex(b => b.trackingId === currentRepair.trackingId);
+                    
+                    if (bookingIndex !== -1) {
+                        bookings[bookingIndex] = {
+                            ...bookings[bookingIndex],
+                            status: updateData.status,
+                            notes: updateData.notes,
+                            estimatedCompletion: updateData.estimatedCompletion,
+                            cost: updateData.totalCost,
+                            diagnosticNotes: updateData.diagnosticNotes,
+                            diagnosticImages: updateData.diagnosticImages,
+                            updatedAt: new Date().toISOString()
+                        };
+                        
+                        localStorage.setItem('its_bookings', JSON.stringify(bookings));
+                        
+                        // Also update export data
+                        const exportData = {
+                            lastUpdated: new Date().toISOString(),
+                            bookings: bookings
+                        };
+                        localStorage.setItem('its_bookings_export', JSON.stringify(exportData));
+                        
+                        alert('Repair updated successfully! Customer can now see diagnostic images and notes.');
+                        closeModal();
+                        await refreshData();
+                        return;
+                    }
+                }
+
+                // Fallback to API if localStorage not available
                 const response = await fetch('/api/analytics/repairs/', {
                     method: 'PUT',
                     headers: {
@@ -510,11 +723,6 @@
             document.getElementById('loading').classList.add('hidden');
             showTab('overview');
         }
-
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', function() {
-            refreshData();
-        });
     </script>
 </body>
 </html>
