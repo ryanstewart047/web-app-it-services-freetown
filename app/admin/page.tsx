@@ -172,10 +172,59 @@ export default function AdminPage() {
     try {
       // Clean up old diagnostic images (5+ days old) before loading data
       if (typeof window !== 'undefined') {
-        const { cleanupOldImages } = await import('@/lib/unified-booking-storage');
+        const { cleanupOldImages, getAllBookings } = await import('@/lib/unified-booking-storage');
         const deletedCount = cleanupOldImages();
         if (deletedCount > 0) {
           console.log(`🗑️ Cleaned up ${deletedCount} diagnostic images older than 5 days`);
+        }
+
+        // Sync localStorage bookings to API storage
+        const localBookings = getAllBookings();
+        if (localBookings.length > 0) {
+          console.log(`📦 Found ${localBookings.length} bookings in localStorage`);
+          
+          // Get existing API bookings to avoid duplicates
+          const apiResponse = await fetch('/api/analytics/repairs/');
+          const apiData = apiResponse.ok ? await apiResponse.json() : { allRepairs: [] };
+          const existingTrackingIds = new Set(
+            (apiData.allRepairs || []).map((r: any) => r.trackingId)
+          );
+
+          // Sync each localStorage booking to API if it doesn't exist
+          let syncedCount = 0;
+          for (const booking of localBookings) {
+            if (!existingTrackingIds.has(booking.trackingId)) {
+              try {
+                await fetch('/api/analytics/repairs/', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    action: 'create',
+                    trackingId: booking.trackingId,
+                    customerName: booking.customerName,
+                    email: booking.email,
+                    phone: booking.phone,
+                    deviceType: booking.deviceType,
+                    deviceModel: booking.deviceModel,
+                    issueDescription: booking.issueDescription,
+                    serviceType: booking.serviceType,
+                    address: booking.address,
+                    status: booking.status,
+                    notes: booking.notes,
+                    totalCost: booking.cost,
+                    estimatedCompletion: booking.estimatedCompletion,
+                  }),
+                });
+                syncedCount++;
+              } catch (err) {
+                console.error(`Failed to sync booking ${booking.trackingId}:`, err);
+              }
+            }
+          }
+          
+          if (syncedCount > 0) {
+            console.log(`✅ Synced ${syncedCount} localStorage bookings to API`);
+          }
         }
       }
 
