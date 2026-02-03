@@ -170,6 +170,15 @@ export default function AdminPage() {
   const loadData = async () => {
     setLoading(true);
     try {
+      // Clean up old diagnostic images (5+ days old) before loading data
+      if (typeof window !== 'undefined') {
+        const { cleanupOldImages } = await import('@/lib/unified-booking-storage');
+        const deletedCount = cleanupOldImages();
+        if (deletedCount > 0) {
+          console.log(`🗑️ Cleaned up ${deletedCount} diagnostic images older than 5 days`);
+        }
+      }
+
       const [analyticsRes, formsRes, repairsRes] = await Promise.all([
         fetch('/api/analytics/visitor/'),
         fetch('/api/analytics/forms/'),
@@ -708,12 +717,18 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
       return;
     }
 
+    // Extract image data from timestamped format (backward compatible with string[])
+    const images = (selectedRepair as any).diagnosticImages ?? [];
+    const imageData = images.map((img: any) => 
+      typeof img === 'string' ? img : img.data
+    );
+
     setUpdateForm({
       status: selectedRepair.status ?? '',
       notes: selectedRepair.issueSummary ?? '',
       totalCost: selectedRepair.totalCost ? String(selectedRepair.totalCost) : '',
       diagnosticNotes: (selectedRepair as any).diagnosticNotes ?? '',
-      diagnosticImages: (selectedRepair as any).diagnosticImages ?? [],
+      diagnosticImages: imageData,
     });
   }, [selectedRepair]);
 
@@ -762,8 +777,8 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
 
-      if (file.size > 2 * 1024 * 1024) {
-        alert(`Image ${file.name} is too large. Maximum size is 2MB`);
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`Image ${file.name} is too large. Maximum size is 5MB`);
         continue;
       }
 
@@ -956,8 +971,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                     className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm file:mr-3 file:rounded-lg file:border-0 file:bg-blue-100 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-blue-700 hover:file:bg-blue-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:file:bg-blue-900 dark:file:text-blue-300"
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Add photos showing diagnosis, damage, or repair progress (max 5 images, 2MB each)
-                  </p>
+                      Add photos showing diagnosis, damage, or repair progress (max 5 images, 5MB each)
 
                   {updateForm.diagnosticImages.length > 0 && (
                     <div className="grid grid-cols-3 gap-2">

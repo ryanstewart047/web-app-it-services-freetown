@@ -19,7 +19,7 @@ export interface BookingData {
   cost?: number;
   estimatedCompletion?: string;
   notes?: string;
-  diagnosticImages?: string[]; // Array of base64 encoded images
+  diagnosticImages?: Array<{ data: string; uploadedAt: string }>; // Array of timestamped base64 images
   diagnosticNotes?: string; // Detailed diagnostic notes for the customer
 }
 
@@ -160,15 +160,59 @@ export function updateBookingDiagnostics(
   
   if (bookingIndex === -1) return false;
   
+  // Convert string array to timestamped format
+  const timestampedImages = diagnosticImages?.map(data => ({
+    data,
+    uploadedAt: new Date().toISOString()
+  }));
+  
   bookings[bookingIndex] = {
     ...bookings[bookingIndex],
     updatedAt: new Date().toISOString(),
     ...(diagnosticNotes !== undefined && { diagnosticNotes }),
-    ...(diagnosticImages !== undefined && { diagnosticImages })
+    ...(timestampedImages !== undefined && { diagnosticImages: timestampedImages })
   };
   
   saveBookings(bookings);
   return true;
+}
+
+// Clean up images older than 5 days from all bookings
+export function cleanupOldImages(): number {
+  const bookings = getAllBookings();
+  const fiveDaysAgo = Date.now() - (5 * 24 * 60 * 60 * 1000);
+  let totalCleaned = 0;
+  
+  bookings.forEach(booking => {
+    if (booking.diagnosticImages && booking.diagnosticImages.length > 0) {
+      const originalCount = booking.diagnosticImages.length;
+      
+      // Support both old format (string[]) and new format (timestamped)
+      booking.diagnosticImages = booking.diagnosticImages.filter(img => {
+        // If it's an old format string, convert it to timestamped format with current date
+        if (typeof img === 'string') {
+          return true; // Keep old format images for now (they'll be migrated on next update)
+        }
+        
+        // Check if image is newer than 5 days
+        const uploadDate = new Date(img.uploadedAt).getTime();
+        return uploadDate > fiveDaysAgo;
+      });
+      
+      const deletedCount = originalCount - booking.diagnosticImages.length;
+      if (deletedCount > 0) {
+        totalCleaned += deletedCount;
+        booking.updatedAt = new Date().toISOString();
+      }
+    }
+  });
+  
+  if (totalCleaned > 0) {
+    saveBookings(bookings);
+    console.log(`Cleaned up ${totalCleaned} images older than 5 days`);
+  }
+  
+  return totalCleaned;
 }
 
 // Export bookings as JSON string for sharing between devices

@@ -18,7 +18,7 @@ interface AppointmentStatus {
   cost?: number
   createdAt: string
   updatedAt: string
-  diagnosticImages?: string[]
+  diagnosticImages?: Array<string | { data: string; uploadedAt: string }>
   diagnosticNotes?: string
 }
 
@@ -398,19 +398,22 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
             <div>
               <h5 className="font-medium text-gray-900 mb-3">Diagnostic Photos</h5>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {appointment.diagnosticImages.map((image, index) => (
-                  <div key={index} className="relative group">
-                    <img 
-                      src={image} 
-                      alt={`Diagnostic image ${index + 1}`}
-                      className="w-full h-48 object-cover rounded-lg shadow-md cursor-pointer hover:opacity-90 transition-opacity"
-                      onClick={() => window.open(image, '_blank')}
-                    />
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all rounded-lg flex items-center justify-center">
-                      <i className="fas fa-search-plus text-white opacity-0 group-hover:opacity-100 text-2xl transition-opacity"></i>
+                {appointment.diagnosticImages.map((image, index) => {
+                  const imageData = typeof image === 'string' ? image : image.data;
+                  return (
+                    <div key={index} className="relative group">
+                      <img 
+                        src={imageData} 
+                        alt={`Diagnostic image ${index + 1}`}
+                        className="w-full h-48 object-cover rounded-lg shadow-md cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => window.open(imageData, '_blank')}
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all rounded-lg flex items-center justify-center">
+                        <i className="fas fa-search-plus text-white opacity-0 group-hover:opacity-100 text-2xl transition-opacity"></i>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <p className="text-xs text-gray-500 mt-2">Click on images to view full size</p>
             </div>
