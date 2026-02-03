@@ -63,6 +63,8 @@ export interface RepairBooking {
 	address?: string;
 	deviceModel?: string;
 	serviceType?: string;
+	diagnosticImages?: Array<{ data: string; uploadedAt: string }>;
+	diagnosticNotes?: string;
 }
 
 export interface AnalyticsData {
@@ -340,6 +342,8 @@ export interface UpdateRepairInput {
 	notes?: string;
 	estimatedCompletion?: string | null;
 	totalCost?: number | null;
+	diagnosticImages?: string[];
+	diagnosticNotes?: string;
 }
 
 export async function updateRepair(input: UpdateRepairInput): Promise<RepairBooking | null> {
@@ -351,12 +355,21 @@ export async function updateRepair(input: UpdateRepairInput): Promise<RepairBook
 	}
 
 	const current = data.repairs[index];
+	
+	// Convert string array to timestamped format for diagnostic images
+	const timestampedImages = input.diagnosticImages?.map(data => ({
+		data,
+		uploadedAt: new Date().toISOString()
+	}));
+	
 	const updated: RepairBooking = {
 		...current,
 		status: input.status ?? current.status,
 		notes: input.notes ?? current.notes,
 		estimatedCompletion: input.estimatedCompletion === undefined ? current.estimatedCompletion : input.estimatedCompletion || undefined,
 		totalCost: input.totalCost === undefined ? current.totalCost : input.totalCost ?? undefined,
+		diagnosticImages: timestampedImages !== undefined ? timestampedImages : current.diagnosticImages,
+		diagnosticNotes: input.diagnosticNotes !== undefined ? input.diagnosticNotes : current.diagnosticNotes,
 		lastUpdated: new Date().toISOString()
 	};
 

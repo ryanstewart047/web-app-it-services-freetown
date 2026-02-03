@@ -213,7 +213,9 @@ export async function PUT(request: NextRequest) {
       status: data.status,
       notes: data.notes,
       estimatedCompletion: data.estimatedCompletion,
-      totalCost: typeof data.totalCost === 'number' ? data.totalCost : undefined
+      totalCost: typeof data.totalCost === 'number' ? data.totalCost : undefined,
+      diagnosticImages: data.diagnosticImages,
+      diagnosticNotes: data.diagnosticNotes
     });
 
     if (!updated) {
