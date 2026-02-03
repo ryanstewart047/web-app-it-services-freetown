@@ -789,9 +789,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
     setUpdateForm((prev) => ({
       ...prev,
       diagnosticImages: prev.diagnosticImages.filter((_, i) => i !== index),
-    })); console.error('Error updating repair:', err);
-      alert('Error updating repair');
-    }
+    }));
   };
 
   return (
