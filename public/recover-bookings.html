@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recover Bookings - IT Services Freetown</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #ef4444;
+      margin-bottom: 10px;
+    }
+    button {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 10px 10px 0;
+    }
+    button:hover {
+      background: #dc2626;
+    }
+    button.secondary {
+      background: #6b7280;
+    }
+    button.secondary:hover {
+      background: #4b5563;
+    }
+    .info {
+      background: #fef3c7;
+      border: 1px solid #fbbf24;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .success {
+      background: #d1fae5;
+      border: 1px solid #10b981;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .error {
+      background: #fee2e2;
+      border: 1px solid #ef4444;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    pre {
+      background: #f3f4f6;
+      padding: 15px;
+      border-radius: 8px;
+      overflow-x: auto;
+      max-height: 400px;
+    }
+    #status {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 Booking Data Recovery Tool</h1>
+    <p>This tool helps you recover booking data from localStorage and sync it to the API.</p>
+
+    <div class="info">
+      <strong>ℹ️ Info:</strong> This tool checks your browser's localStorage for booking data and allows you to export or restore it.
+    </div>
+
+    <div id="status"></div>
+
+    <button onclick="checkLocalStorage()">📊 Check localStorage</button>
+    <button onclick="exportData()" class="secondary">💾 Export JSON</button>
+    <button onclick="syncToAPI()">🔄 Sync to API</button>
+    <button onclick="clearAndReload()" class="secondary">🗑️ Clear Cache & Reload</button>
+
+    <div id="output"></div>
+  </div>
+
+  <script>
+    function checkLocalStorage() {
+      const status = document.getElementById('status');
+      const output = document.getElementById('output');
+      
+      try {
+        const bookingsData = localStorage.getItem('its_bookings');
+        
+        if (!bookingsData) {
+          status.innerHTML = '<div class="error">❌ No booking data found in localStorage</div>';
+          output.innerHTML = '';
+          return;
+        }
+
+        const bookings = JSON.parse(bookingsData);
+        status.innerHTML = `<div class="success">✅ Found ${bookings.length} bookings in localStorage</div>`;
+        
+        output.innerHTML = `
+          <h3>Booking Data Preview:</h3>
+          <pre>${JSON.stringify(bookings, null, 2)}</pre>
+          <p><strong>Total bookings:</strong> ${bookings.length}</p>
+          <p><strong>Tracking IDs:</strong></p>
+          <ul>${bookings.map(b => `<li>${b.trackingId} - ${b.customerName} (${b.status})</li>`).join('')}</ul>
+        `;
+      } catch (error) {
+        status.innerHTML = `<div class="error">❌ Error reading localStorage: ${error.message}</div>`;
+        output.innerHTML = '';
+      }
+    }
+
+    function exportData() {
+      try {
+        const bookingsData = localStorage.getItem('its_bookings');
+        if (!bookingsData) {
+          alert('No booking data found in localStorage');
+          return;
+        }
+
+        const bookings = JSON.parse(bookingsData);
+        const exportData = {
+          exportedAt: new Date().toISOString(),
+          bookingCount: bookings.length,
+          bookings: bookings
+        };
+
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `its-bookings-backup-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        document.getElementById('status').innerHTML = '<div class="success">✅ Backup file downloaded!</div>';
+      } catch (error) {
+        document.getElementById('status').innerHTML = `<div class="error">❌ Export failed: ${error.message}</div>`;
+      }
+    }
+
+    async function syncToAPI() {
+      const status = document.getElementById('status');
+      
+      try {
+        status.innerHTML = '<div class="info">⏳ Syncing bookings to API...</div>';
+        
+        const bookingsData = localStorage.getItem('its_bookings');
+        if (!bookingsData) {
+          status.innerHTML = '<div class="error">❌ No booking data found in localStorage</div>';
+          return;
+        }
+
+        const bookings = JSON.parse(bookingsData);
+        
+        // Get existing API bookings
+        const apiResponse = await fetch('/api/analytics/repairs/');
+        const apiData = await apiResponse.json();
+        const existingTrackingIds = new Set(
+          (apiData.allRepairs || []).map(r => r.trackingId)
+        );
+
+        let syncedCount = 0;
+        let failedCount = 0;
+        
+        for (const booking of bookings) {
+          if (!existingTrackingIds.has(booking.trackingId)) {
+            try {
+              const response = await fetch('/api/analytics/repairs/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  action: 'create',
+                  trackingId: booking.trackingId,
+                  customerName: booking.customerName,
+                  email: booking.email,
+                  phone: booking.phone,
+                  deviceType: booking.deviceType,
+                  deviceModel: booking.deviceModel,
+                  issueDescription: booking.issueDescription,
+                  serviceType: booking.serviceType,
+                  address: booking.address,
+                  status: booking.status,
+                  notes: booking.notes,
+                  totalCost: booking.cost,
+                  estimatedCompletion: booking.estimatedCompletion,
+                }),
+              });
+
+              if (response.ok) {
+                syncedCount++;
+              } else {
+                failedCount++;
+                console.error(`Failed to sync ${booking.trackingId}:`, await response.text());
+              }
+            } catch (err) {
+              failedCount++;
+              console.error(`Error syncing ${booking.trackingId}:`, err);
+            }
+          }
+        }
+
+        status.innerHTML = `
+          <div class="success">
+            ✅ Sync complete!<br>
+            • Synced: ${syncedCount} bookings<br>
+            • Already existed: ${bookings.length - syncedCount - failedCount}<br>
+            ${failedCount > 0 ? `• Failed: ${failedCount}<br>` : ''}
+          </div>
+        `;
+
+        if (syncedCount > 0) {
+          status.innerHTML += '<p>You can now go to the <a href="/admin">admin panel</a> to see all bookings.</p>';
+        }
+      } catch (error) {
+        status.innerHTML = `<div class="error">❌ Sync failed: ${error.message}</div>`;
+      }
+    }
+
+    function clearAndReload() {
+      if (confirm('This will clear the page cache and reload. Your localStorage data will NOT be deleted. Continue?')) {
+        window.location.reload(true);
+      }
+    }
+
+    // Auto-check on load
+    window.addEventListener('load', checkLocalStorage);
+  </script>
+</body>
+</html>
