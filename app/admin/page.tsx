@@ -698,11 +698,13 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
     status: '',
     notes: '',
     totalCost: '',
+    diagnosticNotes: '',
+    diagnosticImages: [] as string[],
   });
 
   useEffect(() => {
     if (!selectedRepair) {
-      setUpdateForm({ status: '', notes: '', totalCost: '' });
+      setUpdateForm({ status: '', notes: '', totalCost: '', diagnosticNotes: '', diagnosticImages: [] });
       return;
     }
 
@@ -710,6 +712,8 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
       status: selectedRepair.status ?? '',
       notes: selectedRepair.issueSummary ?? '',
       totalCost: selectedRepair.totalCost ? String(selectedRepair.totalCost) : '',
+      diagnosticNotes: (selectedRepair as any).diagnosticNotes ?? '',
+      diagnosticImages: (selectedRepair as any).diagnosticImages ?? [],
     });
   }, [selectedRepair]);
 
@@ -723,13 +727,13 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
         body: JSON.stringify({
           trackingId: selectedRepair.trackingId,
           status: updateForm.status,
-          notes: updateForm.notes,
-          totalCost: updateForm.totalCost ? parseFloat(updateForm.totalCost) : undefined,
+          diagnosticNotes: updateForm.diagnosticNotes,
+          diagnosticImages: updateForm.diagnosticImages,
         }),
       });
 
       if (response.ok) {
-        alert('Repair updated successfully!');
+        alert('Repair updated successfully! Customer can now see diagnostic images and notes.');
         setSelectedRepair(null);
         onUpdate();
       } else {
@@ -737,6 +741,55 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
       }
     } catch (err) {
       console.error('Error updating repair:', err);
+      alert('Error updating repair');
+    }
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    const maxImages = 5;
+    const maxTotalImages = maxImages - updateForm.diagnosticImages.length;
+
+    if (files.length + updateForm.diagnosticImages.length > maxImages) {
+      alert(`Maximum ${maxImages} images allowed. You can add ${maxTotalImages} more.`);
+      return;
+    }
+
+    const newImages: string[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      if (file.size > 2 * 1024 * 1024) {
+        alert(`Image ${file.name} is too large. Maximum size is 2MB`);
+        continue;
+      }
+
+      const reader = new FileReader();
+      await new Promise((resolve) => {
+        reader.onload = (e) => {
+          if (e.target?.result) {
+            newImages.push(e.target.result as string);
+          }
+          resolve(null);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    setUpdateForm((prev) => ({
+      ...prev,
+      diagnosticImages: [...prev.diagnosticImages, ...newImages],
+    }));
+  };
+
+  const removeImage = (index: number) => {
+    setUpdateForm((prev) => ({
+      ...prev,
+      diagnosticImages: prev.diagnosticImages.filter((_, i) => i !== index),
+    })); console.error('Error updating repair:', err);
       alert('Error updating repair');
     }
   };
@@ -870,6 +923,66 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                   className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
                 />
               </label>
+
+              {/* Diagnostic Information Section */}
+              <div className="space-y-4 rounded-2xl border-2 border-blue-200 bg-blue-50/50 p-4 dark:border-blue-900/50 dark:bg-blue-950/20">
+                <div className="flex items-center gap-2 text-sm font-semibold text-blue-900 dark:text-blue-300">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Diagnostic Report (Customer View)
+                </div>
+
+                <label className="space-y-2">
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Diagnostic notes for customer</span>
+                  <textarea
+                    rows={4}
+                    value={updateForm.diagnosticNotes}
+                    onChange={(event) => setUpdateForm((prev) => ({ ...prev, diagnosticNotes: event.target.value }))}
+                    className="w-full resize-y rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+                    placeholder="e.g., Device inspected. Found cracked screen and damaged battery. Screen replacement in progress..."
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    This will be visible to the customer when they track their repair
+                  </p>
+                </label>
+
+                <div className="space-y-2">
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Diagnostic images</span>
+                  
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageUpload}
+                    className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm file:mr-3 file:rounded-lg file:border-0 file:bg-blue-100 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-blue-700 hover:file:bg-blue-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:file:bg-blue-900 dark:file:text-blue-300"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Add photos showing diagnosis, damage, or repair progress (max 5 images, 2MB each)
+                  </p>
+
+                  {updateForm.diagnosticImages.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2">
+                      {updateForm.diagnosticImages.map((image, index) => (
+                        <div key={index} className="group relative">
+                          <img
+                            src={image}
+                            alt={`Diagnostic ${index + 1}`}
+                            className="h-24 w-full rounded-lg object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-white opacity-0 transition hover:bg-red-700 group-hover:opacity-100"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
 
               <button
                 onClick={updateRepair}
