@@ -312,3 +312,13 @@ model Donation {
 
   @@index([createdAt])
 }
+
+// Community Bridge Project Progress Photos
+model ProjectPhoto {
+  id        String   @id @default(cuid())
+  imageUrl  String   @db.Text
+  caption   String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

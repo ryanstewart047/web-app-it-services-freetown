@@ -19,7 +19,7 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
   const pathname = usePathname();
   const isAdminPage = pathname?.startsWith('/admin');
   const isPortfolioPage = pathname === '/ryanjstewart';
-  const isDonationPage = pathname === '/madinaface3bridgeproject';
+  const isDonationPage = pathname === '/madinaface3bridgeproject' || pathname?.startsWith('/madinaface3bridgeproject/');
 
   if (isAdminPage || isPortfolioPage || isDonationPage) {
     // Admin pages, Portfolio, and Donation page - clean layout with minimal components

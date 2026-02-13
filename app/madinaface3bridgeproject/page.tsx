@@ -11,6 +11,13 @@ interface Donation {
   createdAt: string;
 }
 
+interface ProjectPhoto {
+  id: string;
+  imageUrl: string;
+  caption?: string;
+  createdAt: string;
+}
+
 const GOAL = 200000;
 const POLL_INTERVAL = 15000;
 
@@ -34,6 +41,8 @@ export default function MadinaFace3BridgeProject() {
   const [omAmount, setOmAmount] = useState('');
   const [omPhone, setOmPhone] = useState('');
   const [omSubmitting, setOmSubmitting] = useState(false);
+  const [photos, setPhotos] = useState<ProjectPhoto[]>([]);
+  const [lightboxPhoto, setLightboxPhoto] = useState<ProjectPhoto | null>(null);
 
   const percentage = Math.min((totalRaised / GOAL) * 100, 100).toFixed(1);
 
@@ -57,6 +66,21 @@ export default function MadinaFace3BridgeProject() {
     const interval = setInterval(fetchDonations, POLL_INTERVAL);
     return () => clearInterval(interval);
   }, [fetchDonations]);
+
+  const fetchPhotos = useCallback(async () => {
+    try {
+      const res = await fetch('/api/donations/photos');
+      if (!res.ok) throw new Error('Failed to fetch photos');
+      const data = await res.json();
+      setPhotos(data.photos || []);
+    } catch (err) {
+      console.error('Error fetching photos:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPhotos();
+  }, [fetchPhotos]);
 
   useEffect(() => {
     if (!loading) setTimeout(() => setAnimateProgress(true), 300);
@@ -775,6 +799,154 @@ export default function MadinaFace3BridgeProject() {
           border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
 
+        /* Card Payment Restricted */
+        .donate-page .pay-card.restricted {
+          position: relative;
+          cursor: default;
+          opacity: 0.7;
+        }
+        .donate-page .pay-card.restricted:hover {
+          transform: none;
+          box-shadow: none;
+        }
+        .donate-page .restricted-badge {
+          position: absolute;
+          top: 14px;
+          right: 14px;
+          background: linear-gradient(135deg, #dc2626, #b91c1c);
+          color: #fff;
+          font-size: 0.65rem;
+          font-weight: 700;
+          padding: 4px 10px;
+          border-radius: 20px;
+          text-transform: uppercase;
+          letter-spacing: 0.8px;
+        }
+        .donate-page .restricted-msg {
+          margin-top: 10px;
+          padding: 10px 14px;
+          background: rgba(239, 68, 68, 0.1);
+          border: 1px solid rgba(239, 68, 68, 0.2);
+          border-radius: 10px;
+          font-size: 0.78rem;
+          color: #fca5a5;
+          line-height: 1.5;
+          text-align: center;
+        }
+        .donate-page .restricted-msg i {
+          color: #f87171;
+          margin-right: 6px;
+        }
+
+        /* Gallery Section */
+        .donate-page .gallery-section {
+          margin-top: 32px;
+        }
+        .donate-page .gallery-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+          gap: 16px;
+        }
+        .donate-page .gallery-card {
+          border-radius: 16px;
+          overflow: hidden;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+        .donate-page .gallery-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+          border-color: rgba(59, 130, 246, 0.3);
+        }
+        .donate-page .gallery-card img {
+          width: 100%;
+          height: 180px;
+          object-fit: cover;
+          display: block;
+        }
+        .donate-page .gallery-card-body {
+          padding: 12px 14px;
+        }
+        .donate-page .gallery-caption {
+          font-size: 0.9rem;
+          color: #e2e8f0;
+          font-weight: 500;
+          line-height: 1.4;
+        }
+        .donate-page .gallery-date {
+          font-size: 0.75rem;
+          color: #64748b;
+          margin-top: 6px;
+        }
+        .donate-page .gallery-empty {
+          text-align: center;
+          padding: 40px 20px;
+          color: #64748b;
+          background: rgba(255, 255, 255, 0.03);
+          border-radius: 16px;
+          border: 1px dashed rgba(255, 255, 255, 0.1);
+        }
+        .donate-page .gallery-empty i {
+          font-size: 2.5rem;
+          margin-bottom: 12px;
+          color: #475569;
+        }
+        .donate-page .gallery-empty p {
+          font-size: 0.95rem;
+          margin: 0;
+        }
+
+        /* Lightbox */
+        .donate-page .lightbox-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.92);
+          z-index: 10000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          animation: fadeIn 0.25s ease;
+        }
+        .donate-page .lightbox-content {
+          max-width: 900px;
+          width: 100%;
+          text-align: center;
+          position: relative;
+        }
+        .donate-page .lightbox-content img {
+          max-width: 100%;
+          max-height: 75vh;
+          border-radius: 12px;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        .donate-page .lightbox-caption {
+          color: #e2e8f0;
+          font-size: 1rem;
+          margin-top: 16px;
+          font-weight: 500;
+        }
+        .donate-page .lightbox-date {
+          color: #64748b;
+          font-size: 0.8rem;
+          margin-top: 6px;
+        }
+        .donate-page .lightbox-close {
+          position: absolute;
+          top: -40px;
+          right: 0;
+          background: none;
+          border: none;
+          color: #94a3b8;
+          font-size: 1.5rem;
+          cursor: pointer;
+          padding: 8px;
+          transition: color 0.2s;
+        }
+        .donate-page .lightbox-close:hover { color: #fff; }
+
         @media (max-width: 768px) {
           .donate-page .hero-bg { padding: 40px 16px 60px; }
           .donate-page .hero-title { font-size: 2.2rem; }
@@ -799,6 +971,8 @@ export default function MadinaFace3BridgeProject() {
           .donate-page .stat-num { font-size: 1.2rem; }
           .donate-page .stat-label { font-size: 0.7rem; }
           .donate-page .stat-box { padding: 12px 8px; }
+          .donate-page .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+          .donate-page .gallery-card img { height: 150px; }
         }
 
         @media (max-width: 480px) {
@@ -841,6 +1015,10 @@ export default function MadinaFace3BridgeProject() {
           .donate-page .step-item { font-size: 0.85rem; }
           .donate-page .steps-box { padding: 16px; }
           .donate-page .row-2 { grid-template-columns: 1fr; }
+          .donate-page .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+          .donate-page .gallery-card img { height: 130px; }
+          .donate-page .gallery-caption { font-size: 0.8rem; }
+          .donate-page .gallery-card-body { padding: 10px 12px; }
           .donate-page .toast-notif {
             right: 12px; left: 12px; top: 12px;
             font-size: 0.85rem; padding: 14px 16px; border-radius: 12px;
@@ -931,12 +1109,17 @@ export default function MadinaFace3BridgeProject() {
               <div className="pay-title">Orange Money</div>
               <div className="pay-desc">Quick mobile payment via USSD</div>
             </div>
-            <div className="pay-card cc" onClick={() => setActiveModal('card')}>
+            <div className="pay-card cc restricted">
+              <span className="restricted-badge">Coming Soon</span>
               <div className="icon-wrap">
                 <i className="fas fa-credit-card"></i>
               </div>
               <div className="pay-title">Card Payment</div>
               <div className="pay-desc">Visa, Mastercard & more</div>
+              <div className="restricted-msg">
+                <i className="fas fa-info-circle"></i>
+                Card payments are currently unavailable while we set up our secure payment processor. Please use Orange Money for now.
+              </div>
             </div>
           </div>
 
@@ -984,6 +1167,32 @@ export default function MadinaFace3BridgeProject() {
                 })
               )}
             </div>
+          </div>
+
+          {/* Project Progress Gallery */}
+          <div className="gallery-section">
+            <h2 className="donate-section-title">
+              <i className="fas fa-images" style={{ marginRight: '10px', fontSize: '0.9em' }}></i>
+              Project Progress
+            </h2>
+            {photos.length === 0 ? (
+              <div className="gallery-empty">
+                <i className="fas fa-camera"></i>
+                <p>Progress photos coming soon!</p>
+              </div>
+            ) : (
+              <div className="gallery-grid">
+                {photos.map((photo) => (
+                  <div className="gallery-card" key={photo.id} onClick={() => setLightboxPhoto(photo)}>
+                    <img src={photo.imageUrl} alt={photo.caption || 'Project progress'} loading="lazy" />
+                    <div className="gallery-card-body">
+                      {photo.caption && <div className="gallery-caption">{photo.caption}</div>}
+                      <div className="gallery-date">{new Date(photo.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -1065,7 +1274,7 @@ export default function MadinaFace3BridgeProject() {
           </div>
         )}
 
-        {/* Card Payment Modal */}
+        {/* Card Payment Modal - Restricted */}
         {activeModal === 'card' && (
           <div className="overlay" onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }}>
             <div className="modal-box">
@@ -1076,97 +1285,33 @@ export default function MadinaFace3BridgeProject() {
                 <i className="fas fa-credit-card"></i>
               </div>
               <div className="modal-title">Card Payment</div>
-              <p className="modal-subtitle">Secure donation via debit or credit card</p>
+              <p className="modal-subtitle" style={{ color: '#fca5a5' }}>
+                <i className="fas fa-exclamation-triangle" style={{ marginRight: '8px' }}></i>
+                This payment method is currently unavailable
+              </p>
+              <div className="restricted-msg" style={{ marginTop: '16px', fontSize: '0.9rem' }}>
+                We are currently setting up our secure card payment processing system.
+                In the meantime, please use <strong>Orange Money</strong> to make your donation.
+                We apologize for the inconvenience and appreciate your patience.
+              </div>
+              <button className="dial-btn om-btn" style={{ marginTop: '20px' }} onClick={() => setActiveModal('orange')}>
+                <i className="fas fa-mobile-alt"></i>
+                Use Orange Money Instead
+              </button>
+            </div>
+          </div>
+        )}
 
-              <form onSubmit={processCardPayment}>
-                <div className="field-group">
-                  <label className="field-label">Donation Amount (Le)</label>
-                  <input
-                    className="field-input"
-                    type="number"
-                    placeholder="Any amount is welcome"
-                    value={cardAmount}
-                    onChange={(e) => setCardAmount(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="field-group">
-                  <label className="field-label">Cardholder Name</label>
-                  <input
-                    className="field-input"
-                    type="text"
-                    placeholder="Full name on card"
-                    value={cardName}
-                    onChange={(e) => setCardName(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="field-group">
-                  <label className="field-label">Email (optional)</label>
-                  <input
-                    className="field-input"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={cardEmail}
-                    onChange={(e) => setCardEmail(e.target.value)}
-                  />
-                </div>
-                <div className="field-group">
-                  <label className="field-label">Card Number</label>
-                  <input
-                    className="field-input"
-                    type="text"
-                    placeholder="1234 5678 9012 3456"
-                    maxLength={19}
-                    value={cardNumber}
-                    onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                    required
-                  />
-                </div>
-                <div className="row-2">
-                  <div className="field-group">
-                    <label className="field-label">Expiry</label>
-                    <input
-                      className="field-input"
-                      type="text"
-                      placeholder="MM/YY"
-                      maxLength={5}
-                      value={cardExpiry}
-                      onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
-                      required
-                    />
-                  </div>
-                  <div className="field-group">
-                    <label className="field-label">CVV</label>
-                    <input
-                      className="field-input"
-                      type="text"
-                      placeholder="123"
-                      maxLength={3}
-                      value={cardCVV}
-                      onChange={(e) => setCardCVV(e.target.value.replace(/\D/g, ''))}
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="field-group">
-                  <label className="field-label">Message (optional)</label>
-                  <input
-                    className="field-input"
-                    type="text"
-                    placeholder="Leave a message of support"
-                    value={cardMessage}
-                    onChange={(e) => setCardMessage(e.target.value)}
-                  />
-                </div>
-                <button className="dial-btn cc-btn" type="submit" disabled={cardProcessing}>
-                  {cardProcessing ? (
-                    <><i className="fas fa-spinner fa-spin"></i> Processing...</>
-                  ) : (
-                    <><i className="fas fa-lock"></i> Donate Securely</>
-                  )}
-                </button>
-              </form>
+        {/* Photo Lightbox */}
+        {lightboxPhoto && (
+          <div className="lightbox-overlay" onClick={(e) => { if (e.target === e.currentTarget) setLightboxPhoto(null); }}>
+            <div className="lightbox-content">
+              <button className="lightbox-close" onClick={() => setLightboxPhoto(null)}>
+                <i className="fas fa-times"></i>
+              </button>
+              <img src={lightboxPhoto.imageUrl} alt={lightboxPhoto.caption || 'Project progress'} />
+              {lightboxPhoto.caption && <div className="lightbox-caption">{lightboxPhoto.caption}</div>}
+              <div className="lightbox-date">{new Date(lightboxPhoto.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
             </div>
           </div>
         )}
