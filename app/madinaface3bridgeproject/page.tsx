@@ -1,943 +1,923 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
+
+interface Donation {
+  name: string;
+  amount: number;
+  date: string;
+  method: string;
+}
+
+const initialDonations: Donation[] = [
+  { name: "Mohamed K.", amount: 5000, date: "2 hours ago", method: "Orange Money" },
+  { name: "Aminata S.", amount: 10000, date: "5 hours ago", method: "Card" },
+  { name: "Ibrahim B.", amount: 2500, date: "1 day ago", method: "Orange Money" },
+  { name: "Fatmata J.", amount: 15000, date: "1 day ago", method: "Card" },
+  { name: "Abdul R.", amount: 7500, date: "2 days ago", method: "Orange Money" },
+  { name: "Mariama F.", amount: 3000, date: "2 days ago", method: "Orange Money" },
+  { name: "Sorie K.", amount: 20000, date: "3 days ago", method: "Card" },
+  { name: "Isata M.", amount: 5000, date: "3 days ago", method: "Orange Money" },
+];
+
+const GOAL = 200000;
 
 export default function MadinaFace3BridgeProject() {
+  const [donations, setDonations] = useState<Donation[]>(initialDonations);
+  const [activeModal, setActiveModal] = useState<'orange' | 'card' | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: string } | null>(null);
+  const [cardProcessing, setCardProcessing] = useState(false);
+  const [cardAmount, setCardAmount] = useState('');
+  const [cardName, setCardName] = useState('');
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCVV, setCardCVV] = useState('');
+  const [animateProgress, setAnimateProgress] = useState(false);
+
+  const totalRaised = donations.reduce((sum, d) => sum + d.amount, 0);
+  const percentage = Math.min((totalRaised / GOAL) * 100, 100).toFixed(1);
+
   useEffect(() => {
-    // Initialize donations and setup event listeners
-    const donations = [
-      { name: "Mohamed K.", amount: 5000, date: "2 hours ago" },
-      { name: "Aminata S.", amount: 10000, date: "5 hours ago" },
-      { name: "Ibrahim B.", amount: 2500, date: "1 day ago" },
-      { name: "Fatmata J.", amount: 15000, date: "1 day ago" },
-      { name: "Abdul R.", amount: 7500, date: "2 days ago" },
-      { name: "Mariama F.", amount: 3000, date: "2 days ago" },
-      { name: "Sorie K.", amount: 20000, date: "3 days ago" },
-      { name: "Isata M.", amount: 5000, date: "3 days ago" }
-    ];
-
-    const renderDonations = () => {
-      const donationList = document.getElementById('donationList');
-      if (!donationList) return;
-      donationList.innerHTML = '';
-      
-      donations.forEach(donation => {
-        const initials = donation.name.split(' ').map(n => n[0]).join('');
-        const item = document.createElement('div');
-        item.className = 'donation-item';
-        item.innerHTML = `
-          <div class="donor-info">
-            <div class="donor-avatar">${initials}</div>
-            <div class="donor-details">
-              <div class="donor-name">${donation.name}</div>
-              <div class="donor-date">${donation.date}</div>
-            </div>
-          </div>
-          <div class="donation-amount">Le ${donation.amount.toLocaleString()}</div>
-        `;
-        donationList.appendChild(item);
-      });
-    };
-
-    const updateProgress = () => {
-      const totalRaised = donations.reduce((sum, d) => sum + d.amount, 0);
-      const goal = 200000;
-      const percentage = (totalRaised / goal * 100).toFixed(1);
-      
-      const totalEl = document.getElementById('totalRaised');
-      const countEl = document.getElementById('donorCount');
-      const fillEl = document.getElementById('progressFill');
-      
-      if (totalEl) totalEl.textContent = `Le ${totalRaised.toLocaleString()}`;
-      if (countEl) countEl.textContent = donations.length.toString();
-      if (fillEl) {
-        fillEl.style.width = `${percentage}%`;
-        fillEl.textContent = `${percentage}%`;
-      }
-    };
-
-    // Initialize
-    renderDonations();
-    updateProgress();
-
-    // Setup card number formatting
-    const cardNumberInput = document.getElementById('cardNumber') as HTMLInputElement;
-    if (cardNumberInput) {
-      cardNumberInput.addEventListener('input', function(e) {
-        const target = e.target as HTMLInputElement;
-        let value = target.value.replace(/\s/g, '');
-        let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
-        target.value = formattedValue;
-      });
-    }
-    
-    // Setup expiry formatting
-    const expiryInput = document.getElementById('cardExpiry') as HTMLInputElement;
-    if (expiryInput) {
-      expiryInput.addEventListener('input', function(e) {
-        const target = e.target as HTMLInputElement;
-        let value = target.value.replace(/\D/g, '');
-        if (value.length >= 2) {
-          value = value.slice(0, 2) + '/' + value.slice(2, 4);
-        }
-        target.value = value;
-      });
-    }
-    
-    // Setup modal close on outside click
-    document.querySelectorAll('.modal').forEach(modal => {
-      modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-          const modalId = (modal as HTMLElement).id;
-          closeModal(modalId);
-        }
-      });
-    });
+    setTimeout(() => setAnimateProgress(true), 300);
   }, []);
 
-  const openOrangeMoneyModal = () => {
-    const modal = document.getElementById('orangeMoneyModal');
-    if (modal) modal.classList.add('active');
-  };
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
-  const openCardPaymentModal = () => {
-    const modal = document.getElementById('cardPaymentModal');
-    if (modal) modal.classList.add('active');
-  };
-
-  const closeModal = (modalId: string) => {
-    const modal = document.getElementById(modalId);
-    if (modal) modal.classList.remove('active');
+  const showToast = (message: string, type = 'success') => {
+    setToast({ message, type });
   };
 
   const initiateUSSDCall = () => {
-    const ussdCode = document.getElementById('ussdCode')?.textContent?.trim();
-    if (ussdCode) {
-      window.location.href = 'tel:' + encodeURIComponent(ussdCode);
-      showToast('Initiating Orange Money transaction...');
-    }
+    window.location.href = 'tel:' + encodeURIComponent('#144*2*1*076210320#');
+    showToast('Initiating Orange Money transaction...');
   };
 
-  const showToast = (message: string, type: string = 'success') => {
-    const toast = document.getElementById('toast');
-    const toastMessage = document.getElementById('toastMessage');
-    
-    if (!toast || !toastMessage) return;
-    
-    if (type === 'error') {
-      toast.style.background = '#ef4444';
-    } else {
-      toast.style.background = '#10b981';
-    }
-    
-    toastMessage.textContent = message;
-    toast.classList.add('show');
-    
-    setTimeout(() => {
-      toast.classList.remove('show');
-    }, 3000);
+  const formatCardNumber = (value: string) => {
+    const v = value.replace(/\s/g, '').replace(/\D/g, '');
+    return v.match(/.{1,4}/g)?.join(' ') || v;
   };
 
-  const processCardPayment = (event: React.FormEvent) => {
-    event.preventDefault();
-    
-    const form = event.target as HTMLFormElement;
-    const amountInput = document.getElementById('cardAmount') as HTMLInputElement;
-    const nameInput = document.getElementById('cardName') as HTMLInputElement;
-    
-    const amount = parseInt(amountInput?.value || '0');
-    const name = nameInput?.value || '';
-    
-    if (amount <= 0 || isNaN(amount)) {
+  const formatExpiry = (value: string) => {
+    const v = value.replace(/\D/g, '');
+    if (v.length >= 2) return v.slice(0, 2) + '/' + v.slice(2, 4);
+    return v;
+  };
+
+  const processCardPayment = (e: React.FormEvent) => {
+    e.preventDefault();
+    const amount = parseInt(cardAmount);
+    if (!amount || amount <= 0) {
       showToast('Please enter a valid donation amount', 'error');
       return;
     }
-    
-    const submitButton = form.querySelector('.submit-button') as HTMLButtonElement;
-    const originalText = submitButton.innerHTML;
-    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-    submitButton.disabled = true;
-    
+    setCardProcessing(true);
     setTimeout(() => {
-      form.reset();
-      closeModal('cardPaymentModal');
-      submitButton.innerHTML = originalText;
-      submitButton.disabled = false;
-      
-      showToast(`Thank you for your donation of Le ${amount.toLocaleString()}!`);
+      setDonations(prev => [
+        { name: cardName, amount, date: "Just now", method: "Card" },
+        ...prev,
+      ]);
+      setCardAmount('');
+      setCardName('');
+      setCardNumber('');
+      setCardExpiry('');
+      setCardCVV('');
+      setCardProcessing(false);
+      setActiveModal(null);
+      showToast(`Thank you for your generous donation of Le ${amount.toLocaleString()}!`);
     }, 2000);
   };
+
   return (
-    <html lang="en">
-      <head>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-        <style dangerouslySetInnerHTML={{__html: `
-          * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }
-
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-image: url('/assets/bridge-background.png');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            position: relative;
-            background-color: #667eea;
-          }
-
-          body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(102, 126, 234, 0.75);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            z-index: 0;
-          }
-
-          .donation-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 800px;
-            width: 100%;
-            overflow: hidden;
-            position: relative;
-            z-index: 1;
-          }
-
-          .header-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px;
-            text-align: center;
-          }
-
-          .header-section h1 {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-            font-weight: 700;
-          }
-
-          .header-section p {
-            font-size: 1.1rem;
-            opacity: 0.95;
-            line-height: 1.6;
-          }
-
-          .bridge-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            animation: bounce 2s infinite;
-          }
-
-          @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-          }
-
-          .content-section {
-            padding: 40px;
-          }
-
-          .progress-section {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            text-align: center;
-          }
-
-          .progress-title {
-            font-size: 1.3rem;
-            color: #333;
-            margin-bottom: 20px;
-            font-weight: 600;
-          }
-
-          .progress-stats {
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin-bottom: 25px;
-          }
-
-          .stat-item {
-            flex: 1;
-            min-width: 150px;
-          }
-
-          .stat-value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #667eea;
-            margin-bottom: 5px;
-          }
-
-          .stat-label {
-            font-size: 0.9rem;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-          }
-
-          .progress-bar {
-            width: 100%;
-            height: 30px;
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 10px;
-          }
-
-          .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            transition: width 1s ease;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 10px;
-            color: white;
-            font-weight: 600;
-            font-size: 0.9rem;
-          }
-
-          .donation-methods {
-            margin-top: 30px;
-          }
-
-          .methods-title {
-            font-size: 1.5rem;
-            color: #333;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: 600;
-          }
-
-          .payment-buttons {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-          }
-
-          .payment-btn {
-            padding: 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-            background: white;
-            position: relative;
-            overflow: hidden;
-          }
-
-          .payment-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-          }
-
-          .payment-btn.orange-money {
-            border-color: #ff6b00;
-          }
-
-          .payment-btn.orange-money:hover {
-            background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%);
-            border-color: #ff6b00;
-            color: white;
-          }
-
-          .payment-btn.card-payment {
-            border-color: #667eea;
-          }
-
-          .payment-btn.card-payment:hover {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-color: #667eea;
-            color: white;
-          }
-
-          .payment-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
-          }
-
-          .payment-btn.orange-money .payment-icon {
-            color: #ff6b00;
-          }
-
-          .payment-btn.card-payment .payment-icon {
-            color: #667eea;
-          }
-
-          .payment-btn:hover .payment-icon {
-            color: white;
-          }
-
-          .payment-name {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 5px;
-          }
-
-          .payment-desc {
-            font-size: 0.9rem;
-            color: #666;
-          }
-
-          .payment-btn:hover .payment-desc {
-            color: rgba(255, 255, 255, 0.9);
-          }
-
-          .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-          }
-
-          .modal.active {
-            display: flex;
-            animation: fadeIn 0.3s ease;
-          }
-
-          @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-          }
-
-          .modal-content {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            max-width: 500px;
-            width: 90%;
-            text-align: center;
-            animation: slideUp 0.3s ease;
-            position: relative;
-          }
-
-          @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-          }
-
-          .modal-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #999;
-            transition: color 0.3s;
-          }
-
-          .modal-close:hover {
-            color: #333;
-          }
-
-          .modal-icon {
-            font-size: 4rem;
-            color: #ff6b00;
-            margin-bottom: 20px;
-          }
-
-          .modal h2 {
-            font-size: 1.8rem;
-            color: #333;
-            margin-bottom: 15px;
-          }
-
-          .ussd-code {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            padding: 20px;
-            border-radius: 12px;
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #ff6b00;
-            margin: 25px 0;
-            letter-spacing: 2px;
-            font-family: 'Courier New', monospace;
-          }
-
-          .modal-instructions {
-            text-align: left;
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-          }
-
-          .modal-instructions h3 {
-            font-size: 1.1rem;
-            color: #333;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-          }
-
-          .modal-instructions ol {
-            margin-left: 20px;
-            color: #555;
-            line-height: 1.8;
-          }
-
-          .modal-instructions li {
-            margin-bottom: 8px;
-          }
-
-          .amount-input-section {
-            margin-top: 25px;
-          }
-
-          .amount-input-section label {
-            display: block;
-            font-size: 1.1rem;
-            color: #333;
-            margin-bottom: 10px;
-            font-weight: 600;
-          }
-
-          .amount-input {
-            width: 100%;
-            padding: 15px;
-            font-size: 1.2rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            text-align: center;
-            transition: border-color 0.3s;
-          }
-
-          .amount-input:focus {
-            outline: none;
-            border-color: #ff6b00;
-          }
-
-          .copy-button {
-            background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            margin-top: 15px;
-            transition: transform 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-          }
-
-          .copy-button:hover {
-            transform: scale(1.05);
-          }
-
-          .copy-button:active {
-            transform: scale(0.95);
-          }
-
-          .card-form {
-            text-align: left;
-            margin-top: 20px;
-          }
-
-          .form-group {
-            margin-bottom: 20px;
-          }
-
-          .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
-          }
-
-          .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-          }
-
-          .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-          }
-
-          .card-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-          }
-
-          .submit-button {
-            width: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-            margin-top: 10px;
-          }
-
-          .submit-button:hover {
-            transform: scale(1.02);
-          }
-
-          .submit-button:active {
-            transform: scale(0.98);
-          }
-
-          .recent-donations {
-            margin-top: 40px;
-            padding-top: 30px;
-            border-top: 2px solid #e0e0e0;
-          }
-
-          .recent-donations h3 {
-            font-size: 1.3rem;
-            color: #333;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-          }
-
-          .donation-list {
-            max-height: 300px;
-            overflow-y: auto;
-          }
-
-          .donation-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin-bottom: 10px;
-          }
-
-          .donation-item:hover {
-            background: #e9ecef;
-          }
-
-          .donor-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-          }
-
-          .donor-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-          }
-
-          .donor-details {
-            display: flex;
-            flex-direction: column;
-          }
-
-          .donor-name {
-            font-weight: 600;
-            color: #333;
-          }
-
-          .donor-date {
-            font-size: 0.85rem;
-            color: #999;
-          }
-
-          .donation-amount {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #667eea;
-          }
-
-          @media (max-width: 640px) {
-            .header-section h1 {
-              font-size: 1.8rem;
-            }
-
-            .stat-value {
-              font-size: 2rem;
-            }
-
-            .payment-buttons {
-              grid-template-columns: 1fr;
-            }
-
-            .card-row {
-              grid-template-columns: 1fr;
-            }
-
-            .modal-content {
-              padding: 30px 20px;
-            }
-          }
-
-          .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #10b981;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            display: none;
-            align-items: center;
-            gap: 10px;
-            z-index: 2000;
-            animation: slideInRight 0.3s ease;
-          }
-
-          .toast.show {
-            display: flex;
-          }
-
-          @keyframes slideInRight {
-            from {
-              transform: translateX(400px);
-              opacity: 0;
-            }
-            to {
-              transform: translateX(0);
-              opacity: 1;
-            }
-          }
-        `}} />
-      </head>
-      <body suppressHydrationWarning>
-        <div className="donation-container">
-          <div className="header-section">
-            <div className="bridge-icon">
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        .donate-page * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        .donate-page {
+          font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+          min-height: 100vh;
+          background: #0f172a;
+          color: #e2e8f0;
+          overflow-x: hidden;
+        }
+
+        .donate-page .hero-bg {
+          position: relative;
+          background: linear-gradient(165deg, #1e3a5f 0%, #0f172a 50%, #1a1a2e 100%);
+          padding: 60px 20px 80px;
+          text-align: center;
+          overflow: hidden;
+        }
+
+        .donate-page .hero-bg::before {
+          content: '';
+          position: absolute;
+          top: -50%;
+          left: -50%;
+          width: 200%;
+          height: 200%;
+          background: radial-gradient(ellipse at 30% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                      radial-gradient(ellipse at 70% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+          animation: floatBg 20s ease-in-out infinite;
+        }
+
+        @keyframes floatBg {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); }
+          33% { transform: translate(30px, -30px) rotate(1deg); }
+          66% { transform: translate(-20px, 20px) rotate(-1deg); }
+        }
+
+        .donate-page .hero-content { position: relative; z-index: 2; max-width: 700px; margin: 0 auto; }
+
+        .donate-page .bridge-visual {
+          width: 100px;
+          height: 100px;
+          margin: 0 auto 30px;
+          background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+          border-radius: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 2.5rem;
+          color: white;
+          box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
+          animation: pulseGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+          0%, 100% { box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3); }
+          50% { box-shadow: 0 20px 60px rgba(139, 92, 246, 0.5); }
+        }
+
+        .donate-page .hero-title {
+          font-size: 2.8rem;
+          font-weight: 800;
+          color: white;
+          margin-bottom: 16px;
+          line-height: 1.1;
+          letter-spacing: -0.02em;
+        }
+
+        .donate-page .hero-title span {
+          background: linear-gradient(135deg, #60a5fa, #a78bfa);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        .donate-page .hero-subtitle {
+          font-size: 1.15rem;
+          color: #94a3b8;
+          line-height: 1.7;
+          max-width: 550px;
+          margin: 0 auto;
+        }
+
+        .donate-page .main-content {
+          max-width: 900px;
+          margin: -40px auto 0;
+          padding: 0 20px 60px;
+          position: relative;
+          z-index: 3;
+        }
+
+        .donate-page .progress-card {
+          background: linear-gradient(135deg, #1e293b, #1a1a2e);
+          border: 1px solid rgba(59, 130, 246, 0.2);
+          border-radius: 20px;
+          padding: 35px;
+          margin-bottom: 30px;
+        }
+
+        .donate-page .progress-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          margin-bottom: 20px;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+
+        .donate-page .raised-amount {
+          font-size: 2.8rem;
+          font-weight: 800;
+          color: white;
+        }
+
+        .donate-page .raised-amount .currency { color: #60a5fa; font-size: 1.6rem; }
+
+        .donate-page .goal-text { font-size: 1rem; color: #64748b; }
+        .donate-page .goal-text strong { color: #94a3b8; }
+
+        .donate-page .progress-track {
+          width: 100%;
+          height: 16px;
+          background: rgba(255, 255, 255, 0.08);
+          border-radius: 10px;
+          overflow: hidden;
+          margin-bottom: 20px;
+        }
+
+        .donate-page .progress-bar-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+          border-radius: 10px;
+          transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+          position: relative;
+        }
+
+        .donate-page .progress-bar-fill::after {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+          animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+
+        .donate-page .stats-row {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 15px;
+        }
+
+        .donate-page .stat-box {
+          text-align: center;
+          padding: 15px;
+          background: rgba(255, 255, 255, 0.03);
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .donate-page .stat-num { font-size: 1.5rem; font-weight: 700; color: white; }
+        .donate-page .stat-label {
+          font-size: 0.8rem;
+          color: #64748b;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          margin-top: 4px;
+        }
+
+        .donate-page .donate-section-title {
+          text-align: center;
+          font-size: 1.8rem;
+          font-weight: 700;
+          color: white;
+          margin-bottom: 25px;
+        }
+
+        .donate-page .payment-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+          margin-bottom: 40px;
+        }
+
+        .donate-page .pay-card {
+          background: linear-gradient(135deg, #1e293b, #1a1a2e);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 18px;
+          padding: 35px 25px;
+          text-align: center;
+          cursor: pointer;
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .donate-page .pay-card::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 18px;
+          opacity: 0;
+          transition: opacity 0.4s;
+        }
+
+        .donate-page .pay-card.om::before {
+          background: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(234, 88, 12, 0.05));
+        }
+
+        .donate-page .pay-card.cc::before {
+          background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.05));
+        }
+
+        .donate-page .pay-card:hover {
+          transform: translateY(-6px);
+          border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .donate-page .pay-card:hover::before { opacity: 1; }
+
+        .donate-page .pay-card .icon-wrap {
+          width: 70px;
+          height: 70px;
+          margin: 0 auto 20px;
+          border-radius: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.8rem;
+          position: relative;
+          z-index: 1;
+        }
+
+        .donate-page .pay-card.om .icon-wrap {
+          background: linear-gradient(135deg, #f97316, #ea580c);
+          color: white;
+          box-shadow: 0 8px 25px rgba(249, 115, 22, 0.3);
+        }
+
+        .donate-page .pay-card.cc .icon-wrap {
+          background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+          color: white;
+          box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .donate-page .pay-card .pay-title {
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: white;
+          margin-bottom: 6px;
+          position: relative;
+          z-index: 1;
+        }
+
+        .donate-page .pay-card .pay-desc {
+          font-size: 0.9rem;
+          color: #64748b;
+          position: relative;
+          z-index: 1;
+        }
+
+        .donate-page .donors-section {
+          background: linear-gradient(135deg, #1e293b, #1a1a2e);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 20px;
+          padding: 30px;
+        }
+
+        .donate-page .donors-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+        }
+
+        .donate-page .donors-title {
+          font-size: 1.3rem;
+          font-weight: 700;
+          color: white;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .donate-page .donors-title .heart { color: #f43f5e; }
+
+        .donate-page .donor-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 14px 16px;
+          border-radius: 12px;
+          transition: background 0.2s;
+          margin-bottom: 4px;
+        }
+
+        .donate-page .donor-row:hover { background: rgba(255, 255, 255, 0.04); }
+
+        .donate-page .donor-left {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+        }
+
+        .donate-page .donor-avatar {
+          width: 42px;
+          height: 42px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          font-size: 0.85rem;
+          color: white;
+        }
+
+        .donate-page .donor-avatar.om-av { background: linear-gradient(135deg, #f97316, #ea580c); }
+        .donate-page .donor-avatar.cc-av { background: linear-gradient(135deg, #3b82f6, #8b5cf6); }
+
+        .donate-page .donor-name { font-weight: 600; color: #e2e8f0; font-size: 0.95rem; }
+        .donate-page .donor-meta { font-size: 0.8rem; color: #475569; margin-top: 2px; }
+        .donate-page .donor-amount { font-weight: 700; color: #60a5fa; font-size: 1.05rem; }
+
+        .donate-page .donor-list {
+          max-height: 350px;
+          overflow-y: auto;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(255,255,255,0.1) transparent;
+        }
+
+        .donate-page .overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.85);
+          backdrop-filter: blur(8px);
+          z-index: 100;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          animation: fadeIn 0.25s ease;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        .donate-page .modal-box {
+          background: #1e293b;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 24px;
+          padding: 40px;
+          max-width: 480px;
+          width: 100%;
+          position: relative;
+          animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes scaleIn {
+          from { transform: scale(0.9); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+
+        .donate-page .modal-close {
+          position: absolute;
+          top: 16px;
+          right: 16px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: #94a3b8;
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          cursor: pointer;
+          font-size: 1.1rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+
+        .donate-page .modal-close:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+
+        .donate-page .modal-icon {
+          width: 64px;
+          height: 64px;
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.6rem;
+          color: white;
+          margin-bottom: 24px;
+        }
+
+        .donate-page .modal-icon.om-icon { background: linear-gradient(135deg, #f97316, #ea580c); }
+        .donate-page .modal-icon.cc-icon { background: linear-gradient(135deg, #3b82f6, #8b5cf6); }
+
+        .donate-page .modal-title {
+          font-size: 1.6rem;
+          font-weight: 700;
+          color: white;
+          margin-bottom: 8px;
+        }
+
+        .donate-page .modal-subtitle { color: #94a3b8; margin-bottom: 28px; }
+
+        .donate-page .ussd-display {
+          background: rgba(249, 115, 22, 0.1);
+          border: 1px solid rgba(249, 115, 22, 0.3);
+          padding: 18px;
+          border-radius: 14px;
+          text-align: center;
+          font-family: 'Courier New', monospace;
+          font-size: 1.6rem;
+          font-weight: 700;
+          color: #fb923c;
+          letter-spacing: 2px;
+          margin-bottom: 20px;
+        }
+
+        .donate-page .dial-btn {
+          width: 100%;
+          padding: 16px;
+          border: none;
+          border-radius: 14px;
+          font-size: 1.05rem;
+          font-weight: 700;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          transition: all 0.3s;
+          font-family: inherit;
+        }
+
+        .donate-page .dial-btn.om-btn {
+          background: linear-gradient(135deg, #f97316, #ea580c);
+          color: white;
+        }
+
+        .donate-page .dial-btn.om-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(249, 115, 22, 0.4); }
+
+        .donate-page .dial-btn.cc-btn {
+          background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+          color: white;
+        }
+
+        .donate-page .dial-btn.cc-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4); }
+
+        .donate-page .dial-btn:disabled { opacity: 0.7; cursor: wait; transform: none !important; }
+
+        .donate-page .steps-box {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          border-radius: 14px;
+          padding: 20px;
+          margin-top: 24px;
+        }
+
+        .donate-page .steps-title {
+          font-weight: 600;
+          color: #94a3b8;
+          margin-bottom: 12px;
+          font-size: 0.9rem;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+
+        .donate-page .step-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          padding: 8px 0;
+          color: #cbd5e1;
+          font-size: 0.95rem;
+          line-height: 1.5;
+        }
+
+        .donate-page .step-num {
+          width: 24px;
+          height: 24px;
+          min-width: 24px;
+          border-radius: 8px;
+          background: rgba(59, 130, 246, 0.15);
+          color: #60a5fa;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.75rem;
+          font-weight: 700;
+        }
+
+        .donate-page .field-group { margin-bottom: 18px; }
+
+        .donate-page .field-label {
+          display: block;
+          font-size: 0.85rem;
+          font-weight: 600;
+          color: #94a3b8;
+          margin-bottom: 8px;
+        }
+
+        .donate-page .field-input {
+          width: 100%;
+          padding: 14px 16px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.04);
+          color: white;
+          font-size: 1rem;
+          font-family: inherit;
+          transition: border-color 0.3s;
+        }
+
+        .donate-page .field-input:focus {
+          outline: none;
+          border-color: #3b82f6;
+          background: rgba(59, 130, 246, 0.05);
+        }
+
+        .donate-page .field-input::placeholder { color: #475569; }
+
+        .donate-page .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+        .donate-page .toast-notif {
+          position: fixed;
+          top: 24px;
+          right: 24px;
+          padding: 16px 24px;
+          border-radius: 14px;
+          color: white;
+          font-weight: 600;
+          font-size: 0.95rem;
+          z-index: 200;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .donate-page .toast-notif.success { background: linear-gradient(135deg, #059669, #10b981); }
+        .donate-page .toast-notif.error { background: linear-gradient(135deg, #dc2626, #ef4444); }
+
+        @keyframes slideIn {
+          from { transform: translateX(120%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+
+        .donate-page .footer-simple {
+          text-align: center;
+          padding: 30px 20px;
+          color: #475569;
+          font-size: 0.85rem;
+          border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        @media (max-width: 640px) {
+          .donate-page .hero-title { font-size: 2rem; }
+          .donate-page .hero-subtitle { font-size: 1rem; }
+          .donate-page .payment-grid { grid-template-columns: 1fr; }
+          .donate-page .raised-amount { font-size: 2rem; }
+          .donate-page .stats-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+          .donate-page .stat-num { font-size: 1.1rem; }
+          .donate-page .modal-box { padding: 28px 22px; }
+          .donate-page .row-2 { grid-template-columns: 1fr; }
+          .donate-page .progress-card { padding: 24px; }
+        }
+      `}</style>
+
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+      <div className="donate-page">
+        {/* Hero */}
+        <div className="hero-bg">
+          <div className="hero-content">
+            <div className="bridge-visual">
               <i className="fas fa-bridge-water"></i>
             </div>
-            <h1>Madina Face 3 Community Bridge Project</h1>
-            <p>Help us build a bridge that connects our Madina Face 3 community. Every contribution brings us closer to our goal!</p>
-          </div>
-
-          <div className="content-section">
-            <div className="progress-section">
-              <div className="progress-title">
-                <i className="fas fa-chart-line"></i> Campaign Progress
-              </div>
-              <div className="progress-stats">
-                <div className="stat-item">
-                  <div className="stat-value" id="totalRaised">Le 45,000</div>
-                  <div className="stat-label">Raised</div>
-                </div>
-                <div className="stat-item">
-                  <div className="stat-value">Le 200,000</div>
-                  <div className="stat-label">Goal</div>
-                </div>
-                <div className="stat-item">
-                  <div className="stat-value" id="donorCount">127</div>
-                  <div className="stat-label">Donors</div>
-                </div>
-              </div>
-              <div className="progress-bar">
-                <div className="progress-fill" id="progressFill" style={{width: '22.5%'}}>22.5%</div>
-              </div>
-            </div>
-
-            <div className="donation-methods">
-              <h2 className="methods-title">Choose Your Payment Method</h2>
-              <div className="payment-buttons">
-                <div className="payment-btn orange-money" onClick={openOrangeMoneyModal}>
-                  <div className="payment-icon">
-                    <i className="fas fa-mobile-alt"></i>
-                  </div>
-                  <div className="payment-name">Orange Money</div>
-                  <div className="payment-desc">Quick & Easy Mobile Payment</div>
-                </div>
-                <div className="payment-btn card-payment" onClick={openCardPaymentModal}>
-                  <div className="payment-icon">
-                    <i className="fas fa-credit-card"></i>
-                  </div>
-                  <div className="payment-name">Card Payment</div>
-                  <div className="payment-desc">Visa, Mastercard & More</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="recent-donations">
-              <h3>
-                <i className="fas fa-heart"></i>
-                Recent Donations
-              </h3>
-              <div className="donation-list" id="donationList"></div>
-            </div>
+            <h1 className="hero-title">
+              Madina Face 3<br />
+              <span>Community Bridge Project</span>
+            </h1>
+            <p className="hero-subtitle">
+              Help us build a bridge that connects the Madina Face 3 community.
+              Every donation, big or small, brings us one step closer to making this a reality.
+            </p>
           </div>
         </div>
 
-        <div className="modal" id="orangeMoneyModal">
-          <div className="modal-content">
-            <button className="modal-close" onClick={() => closeModal('orangeMoneyModal')}>
-              <i className="fas fa-times"></i>
-            </button>
-            <div className="modal-icon">
-              <i className="fas fa-mobile-alt"></i>
+        {/* Main Content */}
+        <div className="main-content">
+          {/* Progress Card */}
+          <div className="progress-card">
+            <div className="progress-header">
+              <div className="raised-amount">
+                <span className="currency">Le </span>
+                {totalRaised.toLocaleString()}
+              </div>
+              <div className="goal-text">
+                raised of <strong>Le {GOAL.toLocaleString()}</strong> goal
+              </div>
             </div>
-            <h2>Orange Money Donation</h2>
-            <p>Dial the USSD code below to make your donation</p>
-            
-            <div className="ussd-code" id="ussdCode">
-              #144*2*1*076210320#
-            </div>
-
-            <button className="copy-button" onClick={initiateUSSDCall}>
-              <i className="fas fa-phone-alt"></i>
-              Dial to Donate
-            </button>
-
-            <div className="amount-input-section">
-              <label htmlFor="donationAmount">
-                <i className="fas fa-coins"></i> Enter Amount (Le)
-              </label>
-              <input 
-                type="number" 
-                id="donationAmount" 
-                className="amount-input" 
-                placeholder="Any amount is welcome"
+            <div className="progress-track">
+              <div
+                className="progress-bar-fill"
+                style={{ width: animateProgress ? `${percentage}%` : '0%' }}
               />
             </div>
+            <div className="stats-row">
+              <div className="stat-box">
+                <div className="stat-num">{percentage}%</div>
+                <div className="stat-label">Funded</div>
+              </div>
+              <div className="stat-box">
+                <div className="stat-num">{donations.length}</div>
+                <div className="stat-label">Donors</div>
+              </div>
+              <div className="stat-box">
+                <div className="stat-num">Le {(GOAL - totalRaised).toLocaleString()}</div>
+                <div className="stat-label">Remaining</div>
+              </div>
+            </div>
+          </div>
 
-            <div className="modal-instructions">
-              <h3>
-                <i className="fas fa-info-circle"></i>
-                How to Donate:
-              </h3>
-              <ol>
-                <li>Click "Dial to Donate" or dial: <strong>#144*2*1*076210320#</strong></li>
-                <li>Enter the amount you wish to donate</li>
-                <li>Confirm the transaction with your PIN</li>
-                <li>You&apos;ll receive a confirmation SMS</li>
-              </ol>
+          {/* Payment Methods */}
+          <h2 className="donate-section-title">Make a Donation</h2>
+          <div className="payment-grid">
+            <div className="pay-card om" onClick={() => setActiveModal('orange')}>
+              <div className="icon-wrap">
+                <i className="fas fa-mobile-alt"></i>
+              </div>
+              <div className="pay-title">Orange Money</div>
+              <div className="pay-desc">Quick mobile payment via USSD</div>
+            </div>
+            <div className="pay-card cc" onClick={() => setActiveModal('card')}>
+              <div className="icon-wrap">
+                <i className="fas fa-credit-card"></i>
+              </div>
+              <div className="pay-title">Card Payment</div>
+              <div className="pay-desc">Visa, Mastercard & more</div>
+            </div>
+          </div>
+
+          {/* Recent Donors */}
+          <div className="donors-section">
+            <div className="donors-header">
+              <div className="donors-title">
+                <span className="heart"><i className="fas fa-heart"></i></span>
+                Recent Donors
+              </div>
+            </div>
+            <div className="donor-list">
+              {donations.map((d, i) => {
+                const initials = d.name.split(' ').map(n => n[0]).join('');
+                return (
+                  <div className="donor-row" key={i}>
+                    <div className="donor-left">
+                      <div className={`donor-avatar ${d.method === 'Orange Money' ? 'om-av' : 'cc-av'}`}>
+                        {initials}
+                      </div>
+                      <div>
+                        <div className="donor-name">{d.name}</div>
+                        <div className="donor-meta">{d.date} &middot; {d.method}</div>
+                      </div>
+                    </div>
+                    <div className="donor-amount">Le {d.amount.toLocaleString()}</div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
 
-        <div className="modal" id="cardPaymentModal">
-          <div className="modal-content">
-            <button className="modal-close" onClick={() => closeModal('cardPaymentModal')}>
-              <i className="fas fa-times"></i>
-            </button>
-            <div className="modal-icon" style={{color: '#667eea'}}>
-              <i className="fas fa-credit-card"></i>
-            </div>
-            <h2>Card Payment</h2>
-            
-            <form className="card-form" onSubmit={processCardPayment}>
-              <div className="form-group">
-                <label>
-                  <i className="fas fa-coins"></i> Donation Amount (Le)
-                </label>
-                <input 
-                  type="number" 
-                  id="cardAmount" 
-                  required 
-                  placeholder="Any amount is welcome"
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>
-                  <i className="fas fa-user"></i> Cardholder Name
-                </label>
-                <input 
-                  type="text" 
-                  id="cardName" 
-                  required 
-                  placeholder="John Doe"
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>
-                  <i className="fas fa-credit-card"></i> Card Number
-                </label>
-                <input 
-                  type="text" 
-                  id="cardNumber" 
-                  required 
-                  placeholder="1234 5678 9012 3456"
-                  maxLength={19}
-                />
-              </div>
-              
-              <div className="card-row">
-                <div className="form-group">
-                  <label>Expiry Date</label>
-                  <input 
-                    type="text" 
-                    id="cardExpiry" 
-                    required 
-                    placeholder="MM/YY"
-                    maxLength={5}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>CVV</label>
-                  <input 
-                    type="text" 
-                    id="cardCVV" 
-                    required 
-                    placeholder="123"
-                    maxLength={3}
-                  />
-                </div>
-              </div>
-              
-              <button type="submit" className="submit-button">
-                <i className="fas fa-lock"></i> Process Secure Payment
+        {/* Simple Footer */}
+        <div className="footer-simple">
+          Madina Face 3 Community Bridge Project &copy; {new Date().getFullYear()}
+        </div>
+
+        {/* Orange Money Modal */}
+        {activeModal === 'orange' && (
+          <div className="overlay" onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }}>
+            <div className="modal-box">
+              <button className="modal-close" onClick={() => setActiveModal(null)}>
+                <i className="fas fa-times"></i>
               </button>
-            </form>
-          </div>
-        </div>
+              <div className="modal-icon om-icon">
+                <i className="fas fa-mobile-alt"></i>
+              </div>
+              <div className="modal-title">Orange Money</div>
+              <p className="modal-subtitle">Tap the button below to initiate the transaction</p>
 
-        <div className="toast" id="toast">
-          <i className="fas fa-check-circle"></i>
-          <span id="toastMessage"></span>
-        </div>
-      </body>
-    </html>
+              <div className="ussd-display">#144*2*1*076210320#</div>
+
+              <button className="dial-btn om-btn" onClick={initiateUSSDCall}>
+                <i className="fas fa-phone-alt"></i>
+                Dial to Donate
+              </button>
+
+              <div className="steps-box">
+                <div className="steps-title">How it works</div>
+                <div className="step-item">
+                  <span className="step-num">1</span>
+                  <span>Tap &ldquo;Dial to Donate&rdquo; to dial the USSD code automatically</span>
+                </div>
+                <div className="step-item">
+                  <span className="step-num">2</span>
+                  <span>Enter any amount you wish to donate</span>
+                </div>
+                <div className="step-item">
+                  <span className="step-num">3</span>
+                  <span>Confirm with your Orange Money PIN</span>
+                </div>
+                <div className="step-item">
+                  <span className="step-num">4</span>
+                  <span>You&apos;ll receive a confirmation SMS</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Card Payment Modal */}
+        {activeModal === 'card' && (
+          <div className="overlay" onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }}>
+            <div className="modal-box">
+              <button className="modal-close" onClick={() => setActiveModal(null)}>
+                <i className="fas fa-times"></i>
+              </button>
+              <div className="modal-icon cc-icon">
+                <i className="fas fa-credit-card"></i>
+              </div>
+              <div className="modal-title">Card Payment</div>
+              <p className="modal-subtitle">Secure donation via debit or credit card</p>
+
+              <form onSubmit={processCardPayment}>
+                <div className="field-group">
+                  <label className="field-label">Donation Amount (Le)</label>
+                  <input
+                    className="field-input"
+                    type="number"
+                    placeholder="Any amount is welcome"
+                    value={cardAmount}
+                    onChange={(e) => setCardAmount(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="field-group">
+                  <label className="field-label">Cardholder Name</label>
+                  <input
+                    className="field-input"
+                    type="text"
+                    placeholder="Full name on card"
+                    value={cardName}
+                    onChange={(e) => setCardName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="field-group">
+                  <label className="field-label">Card Number</label>
+                  <input
+                    className="field-input"
+                    type="text"
+                    placeholder="1234 5678 9012 3456"
+                    maxLength={19}
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                    required
+                  />
+                </div>
+                <div className="row-2">
+                  <div className="field-group">
+                    <label className="field-label">Expiry</label>
+                    <input
+                      className="field-input"
+                      type="text"
+                      placeholder="MM/YY"
+                      maxLength={5}
+                      value={cardExpiry}
+                      onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
+                      required
+                    />
+                  </div>
+                  <div className="field-group">
+                    <label className="field-label">CVV</label>
+                    <input
+                      className="field-input"
+                      type="text"
+                      placeholder="123"
+                      maxLength={3}
+                      value={cardCVV}
+                      onChange={(e) => setCardCVV(e.target.value.replace(/\D/g, ''))}
+                      required
+                    />
+                  </div>
+                </div>
+                <button className="dial-btn cc-btn" type="submit" disabled={cardProcessing}>
+                  {cardProcessing ? (
+                    <><i className="fas fa-spinner fa-spin"></i> Processing...</>
+                  ) : (
+                    <><i className="fas fa-lock"></i> Donate Securely</>
+                  )}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Toast */}
+        {toast && (
+          <div className={`toast-notif ${toast.type}`}>
+            <i className={`fas ${toast.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}`}></i>
+            {toast.message}
+          </div>
+        )}
+      </div>
+    </>
   );
 }
