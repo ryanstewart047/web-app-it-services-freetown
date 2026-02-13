@@ -18,7 +18,7 @@ interface ProjectPhoto {
   createdAt: string;
 }
 
-const GOAL = 200000;
+const GOAL = 600000;
 const POLL_INTERVAL = 15000;
 
 export default function MadinaFace3BridgeProject() {
@@ -217,18 +217,19 @@ export default function MadinaFace3BridgeProject() {
         .donate-page .hero-content { position: relative; z-index: 2; max-width: 700px; margin: 0 auto; }
 
         .donate-page .bridge-visual {
-          width: 100px;
-          height: 100px;
+          width: 110px;
+          height: 110px;
           margin: 0 auto 30px;
-          background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-          border-radius: 24px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 2.5rem;
-          color: white;
+          border-radius: 50%;
+          overflow: hidden;
           box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
           animation: pulseGlow 3s ease-in-out infinite;
+        }
+        .donate-page .bridge-visual img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
         }
 
         @keyframes pulseGlow {
@@ -797,6 +798,17 @@ export default function MadinaFace3BridgeProject() {
           color: #475569;
           font-size: 0.85rem;
           border-top: 1px solid rgba(255, 255, 255, 0.05);
+          position: relative;
+        }
+        .donate-page .admin-link {
+          color: rgba(71, 85, 105, 0.3);
+          font-size: 0.55rem;
+          text-decoration: none;
+          transition: color 0.3s;
+          margin-left: 6px;
+        }
+        .donate-page .admin-link:hover {
+          color: rgba(71, 85, 105, 0.6);
         }
 
         /* Card Payment Restricted */
@@ -951,7 +963,7 @@ export default function MadinaFace3BridgeProject() {
           .donate-page .hero-bg { padding: 40px 16px 60px; }
           .donate-page .hero-title { font-size: 2.2rem; }
           .donate-page .hero-subtitle { font-size: 1rem; line-height: 1.6; }
-          .donate-page .bridge-visual { width: 80px; height: 80px; font-size: 2rem; margin-bottom: 24px; }
+          .donate-page .bridge-visual { width: 90px; height: 90px; margin-bottom: 24px; }
           .donate-page .main-content { padding: 0 16px 40px; margin-top: -30px; }
           .donate-page .progress-card { padding: 24px 20px; border-radius: 16px; }
           .donate-page .raised-amount { font-size: 2.2rem; }
@@ -979,7 +991,7 @@ export default function MadinaFace3BridgeProject() {
           .donate-page .hero-bg { padding: 32px 14px 50px; }
           .donate-page .hero-title { font-size: 1.75rem; }
           .donate-page .hero-subtitle { font-size: 0.9rem; }
-          .donate-page .bridge-visual { width: 70px; height: 70px; font-size: 1.7rem; border-radius: 18px; margin-bottom: 20px; }
+          .donate-page .bridge-visual { width: 80px; height: 80px; margin-bottom: 20px; }
           .donate-page .main-content { padding: 0 12px 32px; }
           .donate-page .progress-card { padding: 20px 16px; }
           .donate-page .raised-amount { font-size: 1.8rem; }
@@ -1035,13 +1047,15 @@ export default function MadinaFace3BridgeProject() {
       `}</style>
 
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+      <link rel="icon" href="/bridge-logo.jpg" type="image/jpeg" />
+      <link rel="apple-touch-icon" href="/bridge-logo.jpg" />
 
       <div className="donate-page">
         {/* Hero */}
         <div className="hero-bg">
           <div className="hero-content">
             <div className="bridge-visual">
-              <i className="fas fa-bridge-water"></i>
+              <img src="/bridge-logo.jpg" alt="Madina Phase 3 Community Bridge Project" />
             </div>
             <h1 className="hero-title">
               Madina Face 3<br />
@@ -1199,6 +1213,9 @@ export default function MadinaFace3BridgeProject() {
         {/* Simple Footer */}
         <div className="footer-simple">
           Madina Face 3 Community Bridge Project &copy; {new Date().getFullYear()}
+          <a href="/madinaface3bridgeproject/admin" className="admin-link" title="">
+            <i className="fas fa-lock"></i>
+          </a>
         </div>
 
         {/* Orange Money Modal */}
