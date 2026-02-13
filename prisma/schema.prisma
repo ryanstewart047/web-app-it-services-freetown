@@ -297,3 +297,18 @@ model PortfolioSettings {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
+// Community Bridge Project Donations
+model Donation {
+  id        String   @id @default(cuid())
+  name      String
+  amount    Float
+  method    String   // "Orange Money" or "Card"
+  phone     String?  // Optional phone for Orange Money donors
+  email     String?  // Optional email for card donors
+  message   String?  // Optional message from donor
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

@@ -1,29 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface Donation {
+  id: string;
   name: string;
   amount: number;
-  date: string;
   method: string;
+  message?: string;
+  createdAt: string;
 }
 
-const initialDonations: Donation[] = [
-  { name: "Mohamed K.", amount: 5000, date: "2 hours ago", method: "Orange Money" },
-  { name: "Aminata S.", amount: 10000, date: "5 hours ago", method: "Card" },
-  { name: "Ibrahim B.", amount: 2500, date: "1 day ago", method: "Orange Money" },
-  { name: "Fatmata J.", amount: 15000, date: "1 day ago", method: "Card" },
-  { name: "Abdul R.", amount: 7500, date: "2 days ago", method: "Orange Money" },
-  { name: "Mariama F.", amount: 3000, date: "2 days ago", method: "Orange Money" },
-  { name: "Sorie K.", amount: 20000, date: "3 days ago", method: "Card" },
-  { name: "Isata M.", amount: 5000, date: "3 days ago", method: "Orange Money" },
-];
-
 const GOAL = 200000;
+const POLL_INTERVAL = 15000;
 
 export default function MadinaFace3BridgeProject() {
-  const [donations, setDonations] = useState<Donation[]>(initialDonations);
+  const [donations, setDonations] = useState<Donation[]>([]);
+  const [totalRaised, setTotalRaised] = useState(0);
+  const [donorCount, setDonorCount] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [activeModal, setActiveModal] = useState<'orange' | 'card' | null>(null);
   const [toast, setToast] = useState<{ message: string; type: string } | null>(null);
   const [cardProcessing, setCardProcessing] = useState(false);
@@ -32,14 +27,40 @@ export default function MadinaFace3BridgeProject() {
   const [cardNumber, setCardNumber] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
   const [cardCVV, setCardCVV] = useState('');
+  const [cardEmail, setCardEmail] = useState('');
+  const [cardMessage, setCardMessage] = useState('');
   const [animateProgress, setAnimateProgress] = useState(false);
+  const [omName, setOmName] = useState('');
+  const [omAmount, setOmAmount] = useState('');
+  const [omPhone, setOmPhone] = useState('');
+  const [omSubmitting, setOmSubmitting] = useState(false);
 
-  const totalRaised = donations.reduce((sum, d) => sum + d.amount, 0);
   const percentage = Math.min((totalRaised / GOAL) * 100, 100).toFixed(1);
 
-  useEffect(() => {
-    setTimeout(() => setAnimateProgress(true), 300);
+  const fetchDonations = useCallback(async () => {
+    try {
+      const res = await fetch('/api/donations');
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+      setDonations(data.donations || []);
+      setTotalRaised(data.totalRaised || 0);
+      setDonorCount(data.donorCount || 0);
+    } catch (err) {
+      console.error('Error fetching donations:', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchDonations();
+    const interval = setInterval(fetchDonations, POLL_INTERVAL);
+    return () => clearInterval(interval);
+  }, [fetchDonations]);
+
+  useEffect(() => {
+    if (!loading) setTimeout(() => setAnimateProgress(true), 300);
+  }, [loading]);
 
   useEffect(() => {
     if (toast) {
@@ -57,6 +78,32 @@ export default function MadinaFace3BridgeProject() {
     showToast('Initiating Orange Money transaction...');
   };
 
+  const recordOrangeDonation = async () => {
+    if (!omName.trim() || !omAmount.trim()) {
+      showToast('Please enter your name and amount', 'error');
+      return;
+    }
+    const amount = parseFloat(omAmount);
+    if (isNaN(amount) || amount <= 0) {
+      showToast('Please enter a valid amount', 'error');
+      return;
+    }
+    setOmSubmitting(true);
+    try {
+      const res = await fetch('/api/donations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: omName.trim(), amount, method: 'Orange Money', phone: omPhone.trim() || null }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      showToast(`Thank you ${omName}! Donation of Le ${amount.toLocaleString()} recorded.`);
+      setOmName(''); setOmAmount(''); setOmPhone('');
+      setActiveModal(null);
+      await fetchDonations();
+    } catch { showToast('Could not record donation. Try again.', 'error'); }
+    finally { setOmSubmitting(false); }
+  };
+
   const formatCardNumber = (value: string) => {
     const v = value.replace(/\s/g, '').replace(/\D/g, '');
     return v.match(/.{1,4}/g)?.join(' ') || v;
@@ -68,7 +115,7 @@ export default function MadinaFace3BridgeProject() {
     return v;
   };
 
-  const processCardPayment = (e: React.FormEvent) => {
+  const processCardPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     const amount = parseInt(cardAmount);
     if (!amount || amount <= 0) {
@@ -76,20 +123,29 @@ export default function MadinaFace3BridgeProject() {
       return;
     }
     setCardProcessing(true);
-    setTimeout(() => {
-      setDonations(prev => [
-        { name: cardName, amount, date: "Just now", method: "Card" },
-        ...prev,
-      ]);
-      setCardAmount('');
-      setCardName('');
-      setCardNumber('');
-      setCardExpiry('');
-      setCardCVV('');
-      setCardProcessing(false);
+    try {
+      const res = await fetch('/api/donations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: cardName.trim(), amount, method: 'Card', email: cardEmail.trim() || null, message: cardMessage.trim() || null }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      setCardAmount(''); setCardName(''); setCardNumber(''); setCardExpiry(''); setCardCVV('');
+      setCardEmail(''); setCardMessage('');
       setActiveModal(null);
       showToast(`Thank you for your generous donation of Le ${amount.toLocaleString()}!`);
-    }, 2000);
+      await fetchDonations();
+    } catch { showToast('Payment processing failed. Try again.', 'error'); }
+    finally { setCardProcessing(false); }
+  };
+
+  const timeAgo = (dateStr: string) => {
+    const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+    if (seconds < 60) return 'Just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+    if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
+    return new Date(dateStr).toLocaleDateString();
   };
 
   return (
@@ -105,6 +161,7 @@ export default function MadinaFace3BridgeProject() {
           background: #0f172a;
           color: #e2e8f0;
           overflow-x: hidden;
+          -webkit-text-size-adjust: 100%;
         }
 
         .donate-page .hero-bg {
@@ -186,6 +243,16 @@ export default function MadinaFace3BridgeProject() {
           position: relative;
           z-index: 3;
         }
+
+        .donate-page .skeleton {
+          background: linear-gradient(90deg, #1e293b 25%, #2d3a4f 50%, #1e293b 75%);
+          background-size: 200% 100%; animation: skeletonPulse 1.5s infinite; border-radius: 12px;
+        }
+        @keyframes skeletonPulse { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .donate-page .skeleton-text { height: 24px; margin-bottom: 12px; }
+        .donate-page .skeleton-text.sm { height: 16px; width: 60%; }
+        .donate-page .skeleton-bar { height: 16px; margin: 20px 0; }
+        .donate-page .skeleton-row { height: 60px; margin-bottom: 8px; }
 
         .donate-page .progress-card {
           background: linear-gradient(135deg, #1e293b, #1a1a2e);
@@ -372,6 +439,8 @@ export default function MadinaFace3BridgeProject() {
           justify-content: space-between;
           align-items: center;
           margin-bottom: 20px;
+          flex-wrap: wrap;
+          gap: 8px;
         }
 
         .donate-page .donors-title {
@@ -384,6 +453,20 @@ export default function MadinaFace3BridgeProject() {
         }
 
         .donate-page .donors-title .heart { color: #f43f5e; }
+
+        .donate-page .live-badge {
+          display: flex; align-items: center; gap: 6px;
+          font-size: 0.75rem; color: #22c55e; font-weight: 600;
+          text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .donate-page .live-dot {
+          width: 8px; height: 8px; background: #22c55e; border-radius: 50%;
+          animation: livePulse 2s infinite;
+        }
+        @keyframes livePulse {
+          0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+          50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+        }
 
         .donate-page .donor-row {
           display: flex;
@@ -401,11 +484,14 @@ export default function MadinaFace3BridgeProject() {
           display: flex;
           align-items: center;
           gap: 14px;
+          min-width: 0;
+          flex: 1;
         }
 
         .donate-page .donor-avatar {
           width: 42px;
           height: 42px;
+          min-width: 42px;
           border-radius: 12px;
           display: flex;
           align-items: center;
@@ -418,9 +504,10 @@ export default function MadinaFace3BridgeProject() {
         .donate-page .donor-avatar.om-av { background: linear-gradient(135deg, #f97316, #ea580c); }
         .donate-page .donor-avatar.cc-av { background: linear-gradient(135deg, #3b82f6, #8b5cf6); }
 
-        .donate-page .donor-name { font-weight: 600; color: #e2e8f0; font-size: 0.95rem; }
+        .donate-page .donor-info { min-width: 0; flex: 1; }
+        .donate-page .donor-name { font-weight: 600; color: #e2e8f0; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .donate-page .donor-meta { font-size: 0.8rem; color: #475569; margin-top: 2px; }
-        .donate-page .donor-amount { font-weight: 700; color: #60a5fa; font-size: 1.05rem; }
+        .donate-page .donor-amount { font-weight: 700; color: #60a5fa; font-size: 1.05rem; white-space: nowrap; margin-left: 12px; }
 
         .donate-page .donor-list {
           max-height: 350px;
@@ -428,6 +515,9 @@ export default function MadinaFace3BridgeProject() {
           scrollbar-width: thin;
           scrollbar-color: rgba(255,255,255,0.1) transparent;
         }
+
+        .donate-page .no-donors { text-align: center; padding: 40px 20px; color: #64748b; }
+        .donate-page .no-donors i { font-size: 2rem; margin-bottom: 12px; display: block; opacity: 0.5; }
 
         .donate-page .overlay {
           position: fixed;
@@ -456,6 +546,10 @@ export default function MadinaFace3BridgeProject() {
           width: 100%;
           position: relative;
           animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          max-height: 90vh;
+          overflow-y: auto;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(255,255,255,0.1) transparent;
         }
 
         @keyframes scaleIn {
@@ -514,11 +608,12 @@ export default function MadinaFace3BridgeProject() {
           border-radius: 14px;
           text-align: center;
           font-family: 'Courier New', monospace;
-          font-size: 1.6rem;
+          font-size: 1.4rem;
           font-weight: 700;
           color: #fb923c;
           letter-spacing: 2px;
           margin-bottom: 20px;
+          word-break: break-all;
         }
 
         .donate-page .dial-btn {
@@ -535,11 +630,13 @@ export default function MadinaFace3BridgeProject() {
           gap: 10px;
           transition: all 0.3s;
           font-family: inherit;
+          -webkit-tap-highlight-color: transparent;
         }
 
         .donate-page .dial-btn.om-btn {
           background: linear-gradient(135deg, #f97316, #ea580c);
           color: white;
+          margin-bottom: 16px;
         }
 
         .donate-page .dial-btn.om-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(249, 115, 22, 0.4); }
@@ -552,6 +649,20 @@ export default function MadinaFace3BridgeProject() {
         .donate-page .dial-btn.cc-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4); }
 
         .donate-page .dial-btn:disabled { opacity: 0.7; cursor: wait; transform: none !important; }
+
+        .donate-page .divider-text {
+          text-align: center; color: #475569; font-size: 0.85rem; margin: 20px 0; position: relative;
+        }
+        .donate-page .divider-text::before, .donate-page .divider-text::after {
+          content: ''; position: absolute; top: 50%; width: 30%; height: 1px; background: rgba(255,255,255,0.08);
+        }
+        .donate-page .divider-text::before { left: 0; }
+        .donate-page .divider-text::after { right: 0; }
+        .donate-page .record-section-title {
+          font-size: 0.95rem; font-weight: 600; color: #94a3b8; margin-bottom: 16px; text-align: center;
+        }
+        .donate-page .dial-btn.record-btn { background: linear-gradient(135deg, #059669, #10b981); color: white; }
+        .donate-page .dial-btn.record-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4); }
 
         .donate-page .steps-box {
           background: rgba(255, 255, 255, 0.03);
@@ -614,6 +725,8 @@ export default function MadinaFace3BridgeProject() {
           font-size: 1rem;
           font-family: inherit;
           transition: border-color 0.3s;
+          -webkit-appearance: none;
+          appearance: none;
         }
 
         .donate-page .field-input:focus {
@@ -630,6 +743,9 @@ export default function MadinaFace3BridgeProject() {
           position: fixed;
           top: 24px;
           right: 24px;
+          left: 24px;
+          max-width: 420px;
+          margin-left: auto;
           padding: 16px 24px;
           border-radius: 14px;
           color: white;
@@ -659,16 +775,84 @@ export default function MadinaFace3BridgeProject() {
           border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        @media (max-width: 640px) {
-          .donate-page .hero-title { font-size: 2rem; }
-          .donate-page .hero-subtitle { font-size: 1rem; }
-          .donate-page .payment-grid { grid-template-columns: 1fr; }
-          .donate-page .raised-amount { font-size: 2rem; }
-          .donate-page .stats-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-          .donate-page .stat-num { font-size: 1.1rem; }
-          .donate-page .modal-box { padding: 28px 22px; }
+        @media (max-width: 768px) {
+          .donate-page .hero-bg { padding: 40px 16px 60px; }
+          .donate-page .hero-title { font-size: 2.2rem; }
+          .donate-page .hero-subtitle { font-size: 1rem; line-height: 1.6; }
+          .donate-page .bridge-visual { width: 80px; height: 80px; font-size: 2rem; margin-bottom: 24px; }
+          .donate-page .main-content { padding: 0 16px 40px; margin-top: -30px; }
+          .donate-page .progress-card { padding: 24px 20px; border-radius: 16px; }
+          .donate-page .raised-amount { font-size: 2.2rem; }
+          .donate-page .raised-amount .currency { font-size: 1.3rem; }
+          .donate-page .payment-grid { grid-template-columns: 1fr; gap: 14px; }
+          .donate-page .pay-card { padding: 28px 20px; }
+          .donate-page .pay-card .icon-wrap { width: 60px; height: 60px; font-size: 1.5rem; }
+          .donate-page .donate-section-title { font-size: 1.5rem; margin-bottom: 20px; }
+          .donate-page .donors-section { padding: 24px 16px; border-radius: 16px; }
+          .donate-page .donors-title { font-size: 1.1rem; }
+          .donate-page .donor-row { padding: 12px 10px; }
+          .donate-page .donor-avatar { width: 38px; height: 38px; min-width: 38px; font-size: 0.75rem; border-radius: 10px; }
+          .donate-page .donor-left { gap: 10px; }
+          .donate-page .donor-name { font-size: 0.9rem; }
+          .donate-page .donor-meta { font-size: 0.75rem; }
+          .donate-page .donor-amount { font-size: 0.95rem; }
+          .donate-page .stat-num { font-size: 1.2rem; }
+          .donate-page .stat-label { font-size: 0.7rem; }
+          .donate-page .stat-box { padding: 12px 8px; }
+        }
+
+        @media (max-width: 480px) {
+          .donate-page .hero-bg { padding: 32px 14px 50px; }
+          .donate-page .hero-title { font-size: 1.75rem; }
+          .donate-page .hero-subtitle { font-size: 0.9rem; }
+          .donate-page .bridge-visual { width: 70px; height: 70px; font-size: 1.7rem; border-radius: 18px; margin-bottom: 20px; }
+          .donate-page .main-content { padding: 0 12px 32px; }
+          .donate-page .progress-card { padding: 20px 16px; }
+          .donate-page .raised-amount { font-size: 1.8rem; }
+          .donate-page .raised-amount .currency { font-size: 1.1rem; }
+          .donate-page .goal-text { font-size: 0.85rem; }
+          .donate-page .progress-track { height: 12px; }
+          .donate-page .stats-row { gap: 8px; }
+          .donate-page .stat-num { font-size: 1rem; }
+          .donate-page .stat-label { font-size: 0.65rem; letter-spacing: 0.5px; }
+          .donate-page .stat-box { padding: 10px 6px; border-radius: 10px; }
+          .donate-page .donate-section-title { font-size: 1.3rem; }
+          .donate-page .pay-card { padding: 24px 16px; border-radius: 14px; }
+          .donate-page .pay-card .icon-wrap { width: 52px; height: 52px; font-size: 1.3rem; border-radius: 14px; }
+          .donate-page .pay-card .pay-title { font-size: 1.1rem; }
+          .donate-page .pay-card .pay-desc { font-size: 0.8rem; }
+          .donate-page .donors-section { padding: 20px 14px; }
+          .donate-page .donor-row { padding: 10px 8px; }
+          .donate-page .donor-avatar { width: 34px; height: 34px; min-width: 34px; font-size: 0.7rem; }
+          .donate-page .donor-amount { font-size: 0.85rem; }
+          .donate-page .overlay { padding: 12px; align-items: flex-end; }
+          .donate-page .modal-box {
+            padding: 28px 18px; border-radius: 20px 20px 0 0; max-height: 85vh;
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+          @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+          .donate-page .modal-icon { width: 52px; height: 52px; font-size: 1.3rem; margin-bottom: 18px; }
+          .donate-page .modal-title { font-size: 1.3rem; }
+          .donate-page .modal-subtitle { font-size: 0.9rem; margin-bottom: 20px; }
+          .donate-page .ussd-display { font-size: 1.1rem; padding: 14px; letter-spacing: 1px; }
+          .donate-page .dial-btn { padding: 14px; font-size: 0.95rem; }
+          .donate-page .field-input { padding: 12px 14px; font-size: 0.95rem; }
+          .donate-page .field-label { font-size: 0.8rem; }
+          .donate-page .step-item { font-size: 0.85rem; }
+          .donate-page .steps-box { padding: 16px; }
           .donate-page .row-2 { grid-template-columns: 1fr; }
-          .donate-page .progress-card { padding: 24px; }
+          .donate-page .toast-notif {
+            right: 12px; left: 12px; top: 12px;
+            font-size: 0.85rem; padding: 14px 16px; border-radius: 12px;
+          }
+        }
+
+        @media (max-width: 360px) {
+          .donate-page .hero-title { font-size: 1.5rem; }
+          .donate-page .raised-amount { font-size: 1.5rem; }
+          .donate-page .raised-amount .currency { font-size: 1rem; }
+          .donate-page .stats-row { gap: 6px; }
+          .donate-page .stat-num { font-size: 0.9rem; }
         }
       `}</style>
 
@@ -696,35 +880,45 @@ export default function MadinaFace3BridgeProject() {
         <div className="main-content">
           {/* Progress Card */}
           <div className="progress-card">
-            <div className="progress-header">
-              <div className="raised-amount">
-                <span className="currency">Le </span>
-                {totalRaised.toLocaleString()}
-              </div>
-              <div className="goal-text">
-                raised of <strong>Le {GOAL.toLocaleString()}</strong> goal
-              </div>
-            </div>
-            <div className="progress-track">
-              <div
-                className="progress-bar-fill"
-                style={{ width: animateProgress ? `${percentage}%` : '0%' }}
-              />
-            </div>
-            <div className="stats-row">
-              <div className="stat-box">
-                <div className="stat-num">{percentage}%</div>
-                <div className="stat-label">Funded</div>
-              </div>
-              <div className="stat-box">
-                <div className="stat-num">{donations.length}</div>
-                <div className="stat-label">Donors</div>
-              </div>
-              <div className="stat-box">
-                <div className="stat-num">Le {(GOAL - totalRaised).toLocaleString()}</div>
-                <div className="stat-label">Remaining</div>
-              </div>
-            </div>
+            {loading ? (
+              <>
+                <div className="skeleton skeleton-text" style={{ width: '50%' }}></div>
+                <div className="skeleton skeleton-text sm"></div>
+                <div className="skeleton skeleton-bar"></div>
+              </>
+            ) : (
+              <>
+                <div className="progress-header">
+                  <div className="raised-amount">
+                    <span className="currency">Le </span>
+                    {totalRaised.toLocaleString()}
+                  </div>
+                  <div className="goal-text">
+                    raised of <strong>Le {GOAL.toLocaleString()}</strong> goal
+                  </div>
+                </div>
+                <div className="progress-track">
+                  <div
+                    className="progress-bar-fill"
+                    style={{ width: animateProgress ? `${percentage}%` : '0%' }}
+                  />
+                </div>
+                <div className="stats-row">
+                  <div className="stat-box">
+                    <div className="stat-num">{percentage}%</div>
+                    <div className="stat-label">Funded</div>
+                  </div>
+                  <div className="stat-box">
+                    <div className="stat-num">{donorCount}</div>
+                    <div className="stat-label">Donors</div>
+                  </div>
+                  <div className="stat-box">
+                    <div className="stat-num">Le {Math.max(0, GOAL - totalRaised).toLocaleString()}</div>
+                    <div className="stat-label">Remaining</div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Payment Methods */}
@@ -753,25 +947,42 @@ export default function MadinaFace3BridgeProject() {
                 <span className="heart"><i className="fas fa-heart"></i></span>
                 Recent Donors
               </div>
+              <div className="live-badge">
+                <span className="live-dot"></span>
+                Live
+              </div>
             </div>
             <div className="donor-list">
-              {donations.map((d, i) => {
-                const initials = d.name.split(' ').map(n => n[0]).join('');
-                return (
-                  <div className="donor-row" key={i}>
-                    <div className="donor-left">
-                      <div className={`donor-avatar ${d.method === 'Orange Money' ? 'om-av' : 'cc-av'}`}>
-                        {initials}
+              {loading ? (
+                <>
+                  {[1, 2, 3, 4].map(i => (
+                    <div className="skeleton skeleton-row" key={i}></div>
+                  ))}
+                </>
+              ) : donations.length === 0 ? (
+                <div className="no-donors">
+                  <i className="fas fa-hand-holding-heart"></i>
+                  <p>Be the first to donate!</p>
+                </div>
+              ) : (
+                donations.map((d) => {
+                  const initials = d.name.split(' ').map(n => n[0]).join('').slice(0, 2);
+                  return (
+                    <div className="donor-row" key={d.id}>
+                      <div className="donor-left">
+                        <div className={`donor-avatar ${d.method === 'Orange Money' ? 'om-av' : 'cc-av'}`}>
+                          {initials}
+                        </div>
+                        <div className="donor-info">
+                          <div className="donor-name">{d.name}</div>
+                          <div className="donor-meta">{timeAgo(d.createdAt)} &middot; {d.method}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="donor-name">{d.name}</div>
-                        <div className="donor-meta">{d.date} &middot; {d.method}</div>
-                      </div>
+                      <div className="donor-amount">Le {d.amount.toLocaleString()}</div>
                     </div>
-                    <div className="donor-amount">Le {d.amount.toLocaleString()}</div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
         </div>
@@ -801,6 +1012,36 @@ export default function MadinaFace3BridgeProject() {
                 Dial to Donate
               </button>
 
+              <div className="divider-text">After completing payment, record your donation</div>
+
+              <div className="record-section-title">
+                <i className="fas fa-clipboard-check"></i> Record Your Donation
+              </div>
+
+              <div className="field-group">
+                <label className="field-label">Your Name</label>
+                <input className="field-input" type="text" placeholder="Enter your name"
+                  value={omName} onChange={(e) => setOmName(e.target.value)} />
+              </div>
+              <div className="field-group">
+                <label className="field-label">Amount Donated (Le)</label>
+                <input className="field-input" type="number" placeholder="Amount you sent"
+                  value={omAmount} onChange={(e) => setOmAmount(e.target.value)} />
+              </div>
+              <div className="field-group">
+                <label className="field-label">Phone Number (optional)</label>
+                <input className="field-input" type="tel" placeholder="e.g. 076210320"
+                  value={omPhone} onChange={(e) => setOmPhone(e.target.value)} />
+              </div>
+
+              <button className="dial-btn record-btn" onClick={recordOrangeDonation} disabled={omSubmitting}>
+                {omSubmitting ? (
+                  <><i className="fas fa-spinner fa-spin"></i> Recording...</>
+                ) : (
+                  <><i className="fas fa-check-circle"></i> Record My Donation</>
+                )}
+              </button>
+
               <div className="steps-box">
                 <div className="steps-title">How it works</div>
                 <div className="step-item">
@@ -817,7 +1058,7 @@ export default function MadinaFace3BridgeProject() {
                 </div>
                 <div className="step-item">
                   <span className="step-num">4</span>
-                  <span>You&apos;ll receive a confirmation SMS</span>
+                  <span>Fill in your details above and tap &ldquo;Record My Donation&rdquo;</span>
                 </div>
               </div>
             </div>
@@ -861,6 +1102,16 @@ export default function MadinaFace3BridgeProject() {
                   />
                 </div>
                 <div className="field-group">
+                  <label className="field-label">Email (optional)</label>
+                  <input
+                    className="field-input"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={cardEmail}
+                    onChange={(e) => setCardEmail(e.target.value)}
+                  />
+                </div>
+                <div className="field-group">
                   <label className="field-label">Card Number</label>
                   <input
                     className="field-input"
@@ -897,6 +1148,16 @@ export default function MadinaFace3BridgeProject() {
                       required
                     />
                   </div>
+                </div>
+                <div className="field-group">
+                  <label className="field-label">Message (optional)</label>
+                  <input
+                    className="field-input"
+                    type="text"
+                    placeholder="Leave a message of support"
+                    value={cardMessage}
+                    onChange={(e) => setCardMessage(e.target.value)}
+                  />
                 </div>
                 <button className="dial-btn cc-btn" type="submit" disabled={cardProcessing}>
                   {cardProcessing ? (
