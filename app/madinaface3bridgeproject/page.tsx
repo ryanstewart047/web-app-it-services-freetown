@@ -1,11 +1,172 @@
-import { Metadata } from 'next';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Madina Face 3 Community Bridge Project - Donation',
-  description: 'Help us build a bridge that connects our Madina Face 3 community. Donate via Orange Money or Card Payment.',
-};
+import { useEffect } from 'react';
 
 export default function MadinaFace3BridgeProject() {
+  useEffect(() => {
+    // Initialize donations and setup event listeners
+    const donations = [
+      { name: "Mohamed K.", amount: 5000, date: "2 hours ago" },
+      { name: "Aminata S.", amount: 10000, date: "5 hours ago" },
+      { name: "Ibrahim B.", amount: 2500, date: "1 day ago" },
+      { name: "Fatmata J.", amount: 15000, date: "1 day ago" },
+      { name: "Abdul R.", amount: 7500, date: "2 days ago" },
+      { name: "Mariama F.", amount: 3000, date: "2 days ago" },
+      { name: "Sorie K.", amount: 20000, date: "3 days ago" },
+      { name: "Isata M.", amount: 5000, date: "3 days ago" }
+    ];
+
+    const renderDonations = () => {
+      const donationList = document.getElementById('donationList');
+      if (!donationList) return;
+      donationList.innerHTML = '';
+      
+      donations.forEach(donation => {
+        const initials = donation.name.split(' ').map(n => n[0]).join('');
+        const item = document.createElement('div');
+        item.className = 'donation-item';
+        item.innerHTML = `
+          <div class="donor-info">
+            <div class="donor-avatar">${initials}</div>
+            <div class="donor-details">
+              <div class="donor-name">${donation.name}</div>
+              <div class="donor-date">${donation.date}</div>
+            </div>
+          </div>
+          <div class="donation-amount">Le ${donation.amount.toLocaleString()}</div>
+        `;
+        donationList.appendChild(item);
+      });
+    };
+
+    const updateProgress = () => {
+      const totalRaised = donations.reduce((sum, d) => sum + d.amount, 0);
+      const goal = 200000;
+      const percentage = (totalRaised / goal * 100).toFixed(1);
+      
+      const totalEl = document.getElementById('totalRaised');
+      const countEl = document.getElementById('donorCount');
+      const fillEl = document.getElementById('progressFill');
+      
+      if (totalEl) totalEl.textContent = `Le ${totalRaised.toLocaleString()}`;
+      if (countEl) countEl.textContent = donations.length.toString();
+      if (fillEl) {
+        fillEl.style.width = `${percentage}%`;
+        fillEl.textContent = `${percentage}%`;
+      }
+    };
+
+    // Initialize
+    renderDonations();
+    updateProgress();
+
+    // Setup card number formatting
+    const cardNumberInput = document.getElementById('cardNumber') as HTMLInputElement;
+    if (cardNumberInput) {
+      cardNumberInput.addEventListener('input', function(e) {
+        const target = e.target as HTMLInputElement;
+        let value = target.value.replace(/\s/g, '');
+        let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+        target.value = formattedValue;
+      });
+    }
+    
+    // Setup expiry formatting
+    const expiryInput = document.getElementById('cardExpiry') as HTMLInputElement;
+    if (expiryInput) {
+      expiryInput.addEventListener('input', function(e) {
+        const target = e.target as HTMLInputElement;
+        let value = target.value.replace(/\D/g, '');
+        if (value.length >= 2) {
+          value = value.slice(0, 2) + '/' + value.slice(2, 4);
+        }
+        target.value = value;
+      });
+    }
+    
+    // Setup modal close on outside click
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+          const modalId = (modal as HTMLElement).id;
+          closeModal(modalId);
+        }
+      });
+    });
+  }, []);
+
+  const openOrangeMoneyModal = () => {
+    const modal = document.getElementById('orangeMoneyModal');
+    if (modal) modal.classList.add('active');
+  };
+
+  const openCardPaymentModal = () => {
+    const modal = document.getElementById('cardPaymentModal');
+    if (modal) modal.classList.add('active');
+  };
+
+  const closeModal = (modalId: string) => {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.classList.remove('active');
+  };
+
+  const initiateUSSDCall = () => {
+    const ussdCode = document.getElementById('ussdCode')?.textContent?.trim();
+    if (ussdCode) {
+      window.location.href = 'tel:' + encodeURIComponent(ussdCode);
+      showToast('Initiating Orange Money transaction...');
+    }
+  };
+
+  const showToast = (message: string, type: string = 'success') => {
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+    
+    if (!toast || !toastMessage) return;
+    
+    if (type === 'error') {
+      toast.style.background = '#ef4444';
+    } else {
+      toast.style.background = '#10b981';
+    }
+    
+    toastMessage.textContent = message;
+    toast.classList.add('show');
+    
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3000);
+  };
+
+  const processCardPayment = (event: React.FormEvent) => {
+    event.preventDefault();
+    
+    const form = event.target as HTMLFormElement;
+    const amountInput = document.getElementById('cardAmount') as HTMLInputElement;
+    const nameInput = document.getElementById('cardName') as HTMLInputElement;
+    
+    const amount = parseInt(amountInput?.value || '0');
+    const name = nameInput?.value || '';
+    
+    if (amount <= 0 || isNaN(amount)) {
+      showToast('Please enter a valid donation amount', 'error');
+      return;
+    }
+    
+    const submitButton = form.querySelector('.submit-button') as HTMLButtonElement;
+    const originalText = submitButton.innerHTML;
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    submitButton.disabled = true;
+    
+    setTimeout(() => {
+      form.reset();
+      closeModal('cardPaymentModal');
+      submitButton.innerHTML = originalText;
+      submitButton.disabled = false;
+      
+      showToast(`Thank you for your donation of Le ${amount.toLocaleString()}!`);
+    }, 2000);
+  };
   return (
     <html lang="en">
       <head>
@@ -620,22 +781,14 @@ export default function MadinaFace3BridgeProject() {
             <div className="donation-methods">
               <h2 className="methods-title">Choose Your Payment Method</h2>
               <div className="payment-buttons">
-                <div className="payment-btn orange-money" onClick={() => {
-                  if (typeof window !== 'undefined') {
-                    (window as any).openOrangeMoneyModal();
-                  }
-                }}>
+                <div className="payment-btn orange-money" onClick={openOrangeMoneyModal}>
                   <div className="payment-icon">
                     <i className="fas fa-mobile-alt"></i>
                   </div>
                   <div className="payment-name">Orange Money</div>
                   <div className="payment-desc">Quick & Easy Mobile Payment</div>
                 </div>
-                <div className="payment-btn card-payment" onClick={() => {
-                  if (typeof window !== 'undefined') {
-                    (window as any).openCardPaymentModal();
-                  }
-                }}>
+                <div className="payment-btn card-payment" onClick={openCardPaymentModal}>
                   <div className="payment-icon">
                     <i className="fas fa-credit-card"></i>
                   </div>
@@ -657,11 +810,7 @@ export default function MadinaFace3BridgeProject() {
 
         <div className="modal" id="orangeMoneyModal">
           <div className="modal-content">
-            <button className="modal-close" onClick={() => {
-              if (typeof window !== 'undefined') {
-                (window as any).closeModal('orangeMoneyModal');
-              }
-            }}>
+            <button className="modal-close" onClick={() => closeModal('orangeMoneyModal')}>
               <i className="fas fa-times"></i>
             </button>
             <div className="modal-icon">
@@ -674,11 +823,7 @@ export default function MadinaFace3BridgeProject() {
               #144*2*1*076210320#
             </div>
 
-            <button className="copy-button" onClick={() => {
-              if (typeof window !== 'undefined') {
-                (window as any).initiateUSSDCall();
-              }
-            }}>
+            <button className="copy-button" onClick={initiateUSSDCall}>
               <i className="fas fa-phone-alt"></i>
               Dial to Donate
             </button>
@@ -712,11 +857,7 @@ export default function MadinaFace3BridgeProject() {
 
         <div className="modal" id="cardPaymentModal">
           <div className="modal-content">
-            <button className="modal-close" onClick={() => {
-              if (typeof window !== 'undefined') {
-                (window as any).closeModal('cardPaymentModal');
-              }
-            }}>
+            <button className="modal-close" onClick={() => closeModal('cardPaymentModal')}>
               <i className="fas fa-times"></i>
             </button>
             <div className="modal-icon" style={{color: '#667eea'}}>
@@ -724,12 +865,7 @@ export default function MadinaFace3BridgeProject() {
             </div>
             <h2>Card Payment</h2>
             
-            <form className="card-form" onSubmit={(e) => {
-              e.preventDefault();
-              if (typeof window !== 'undefined') {
-                (window as any).processCardPayment(e);
-              }
-            }}>
+            <form className="card-form" onSubmit={processCardPayment}>
               <div className="form-group">
                 <label>
                   <i className="fas fa-coins"></i> Donation Amount (Le)
@@ -801,180 +937,6 @@ export default function MadinaFace3BridgeProject() {
           <i className="fas fa-check-circle"></i>
           <span id="toastMessage"></span>
         </div>
-
-        <script dangerouslySetInnerHTML={{__html: `
-          let donations = [
-            { name: "Mohamed K.", amount: 5000, date: "2 hours ago" },
-            { name: "Aminata S.", amount: 10000, date: "5 hours ago" },
-            { name: "Ibrahim B.", amount: 2500, date: "1 day ago" },
-            { name: "Fatmata J.", amount: 15000, date: "1 day ago" },
-            { name: "Abdul R.", amount: 7500, date: "2 days ago" },
-            { name: "Mariama F.", amount: 3000, date: "2 days ago" },
-            { name: "Sorie K.", amount: 20000, date: "3 days ago" },
-            { name: "Isata M.", amount: 5000, date: "3 days ago" }
-          ];
-
-          function init() {
-            renderDonations();
-            updateProgress();
-          }
-
-          function renderDonations() {
-            const donationList = document.getElementById('donationList');
-            if (!donationList) return;
-            donationList.innerHTML = '';
-            
-            donations.forEach(donation => {
-              const initials = donation.name.split(' ').map(n => n[0]).join('');
-              const item = document.createElement('div');
-              item.className = 'donation-item';
-              item.innerHTML = \`
-                <div class="donor-info">
-                  <div class="donor-avatar">\${initials}</div>
-                  <div class="donor-details">
-                    <div class="donor-name">\${donation.name}</div>
-                    <div class="donor-date">\${donation.date}</div>
-                  </div>
-                </div>
-                <div class="donation-amount">Le \${donation.amount.toLocaleString()}</div>
-              \`;
-              donationList.appendChild(item);
-            });
-          }
-
-          function updateProgress() {
-            const totalRaised = donations.reduce((sum, d) => sum + d.amount, 0);
-            const goal = 200000;
-            const percentage = (totalRaised / goal * 100).toFixed(1);
-            
-            const totalEl = document.getElementById('totalRaised');
-            const countEl = document.getElementById('donorCount');
-            const fillEl = document.getElementById('progressFill');
-            
-            if (totalEl) totalEl.textContent = \`Le \${totalRaised.toLocaleString()}\`;
-            if (countEl) countEl.textContent = donations.length;
-            if (fillEl) {
-              fillEl.style.width = \`\${percentage}%\`;
-              fillEl.textContent = \`\${percentage}%\`;
-            }
-          }
-
-          function openOrangeMoneyModal() {
-            const modal = document.getElementById('orangeMoneyModal');
-            if (modal) modal.classList.add('active');
-          }
-
-          function openCardPaymentModal() {
-            const modal = document.getElementById('cardPaymentModal');
-            if (modal) modal.classList.add('active');
-          }
-
-          function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) modal.classList.remove('active');
-          }
-
-          function initiateUSSDCall() {
-            const ussdCode = document.getElementById('ussdCode').textContent.trim();
-            window.location.href = 'tel:' + encodeURIComponent(ussdCode);
-            showToast('Initiating Orange Money transaction...');
-          }
-
-          function processCardPayment(event) {
-            event.preventDefault();
-            
-            const amount = parseInt(document.getElementById('cardAmount').value);
-            const name = document.getElementById('cardName').value;
-            
-            if (amount <= 0 || isNaN(amount)) {
-              showToast('Please enter a valid donation amount', 'error');
-              return;
-            }
-            
-            const submitButton = event.target.querySelector('.submit-button');
-            const originalText = submitButton.innerHTML;
-            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-            submitButton.disabled = true;
-            
-            setTimeout(() => {
-              donations.unshift({
-                name: name,
-                amount: amount,
-                date: "Just now"
-              });
-              
-              renderDonations();
-              updateProgress();
-              
-              event.target.reset();
-              closeModal('cardPaymentModal');
-              submitButton.innerHTML = originalText;
-              submitButton.disabled = false;
-              
-              showToast(\`Thank you for your donation of Le \${amount.toLocaleString()}!\`);
-            }, 2000);
-          }
-
-          function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toastMessage');
-            
-            if (!toast || !toastMessage) return;
-            
-            if (type === 'error') {
-              toast.style.background = '#ef4444';
-            } else {
-              toast.style.background = '#10b981';
-            }
-            
-            toastMessage.textContent = message;
-            toast.classList.add('show');
-            
-            setTimeout(() => {
-              toast.classList.remove('show');
-            }, 3000);
-          }
-
-          if (typeof document !== 'undefined') {
-            document.addEventListener('DOMContentLoaded', function() {
-              const cardNumberInput = document.getElementById('cardNumber');
-              if (cardNumberInput) {
-                cardNumberInput.addEventListener('input', function(e) {
-                  let value = e.target.value.replace(/\\s/g, '');
-                  let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
-                  e.target.value = formattedValue;
-                });
-              }
-              
-              const expiryInput = document.getElementById('cardExpiry');
-              if (expiryInput) {
-                expiryInput.addEventListener('input', function(e) {
-                  let value = e.target.value.replace(/\\D/g, '');
-                  if (value.length >= 2) {
-                    value = value.slice(0, 2) + '/' + value.slice(2, 4);
-                  }
-                  e.target.value = value;
-                });
-              }
-              
-              document.querySelectorAll('.modal').forEach(modal => {
-                modal.addEventListener('click', function(e) {
-                  if (e.target === modal) {
-                    closeModal(modal.id);
-                  }
-                });
-              });
-              
-              init();
-            });
-          }
-
-          window.openOrangeMoneyModal = openOrangeMoneyModal;
-          window.openCardPaymentModal = openCardPaymentModal;
-          window.closeModal = closeModal;
-          window.initiateUSSDCall = initiateUSSDCall;
-          window.processCardPayment = processCardPayment;
-        `}} />
       </body>
     </html>
   );
