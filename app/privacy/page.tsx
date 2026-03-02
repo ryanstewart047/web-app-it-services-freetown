@@ -104,8 +104,20 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">
               6. Cookies and Tracking
             </h2>
-            <p className="text-gray-700">
+            <p className="text-gray-700 mb-4">
               We use cookies and similar tracking technologies to track activity on our service and store certain information. You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent.
+            </p>
+            <p className="text-gray-700 mb-4">
+              <strong>Third-Party Advertising Cookies:</strong> We use Google AdSense to display advertisements on our website. Google AdSense uses cookies to serve ads based on your prior visits to our website and other websites on the Internet. Google&apos;s use of advertising cookies enables it and its partners to serve ads based on your visit to our site and/or other sites on the Internet.
+            </p>
+            <p className="text-gray-700 mb-4">
+              You may opt out of personalized advertising by visiting{' '}
+              <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Google Ads Settings</a>. Alternatively, you can opt out of third-party vendor cookies by visiting the{' '}
+              <a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Digital Advertising Alliance opt-out page</a>.
+            </p>
+            <p className="text-gray-700">
+              For more information on how Google uses data when you use our site, please visit{' '}
+              <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">How Google uses data when you use our partners&apos; sites or apps</a>.
             </p>
           </div>
 

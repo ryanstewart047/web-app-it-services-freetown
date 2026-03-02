@@ -390,8 +390,25 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Legal Links */}
+        <div className="border-t border-red-900/30 mt-8 pt-6">
+          <div className="flex flex-wrap justify-center gap-4 mb-6 text-sm">
+            <Link href="/privacy" className="text-gray-400 hover:text-red-400 transition-colors">
+              Privacy Policy
+            </Link>
+            <span className="text-gray-600">|</span>
+            <Link href="/terms" className="text-gray-400 hover:text-red-400 transition-colors">
+              Terms of Service
+            </Link>
+            <span className="text-gray-600">|</span>
+            <Link href="/disclaimer" className="text-gray-400 hover:text-red-400 transition-colors">
+              Disclaimer
+            </Link>
+          </div>
+        </div>
+
         {/* Bottom Section */}
-        <div className="border-t border-red-900/30 mt-8 pt-8">
+        <div className="border-t border-red-900/30 pt-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
               <p className="text-gray-300 text-sm">
