@@ -61,11 +61,13 @@ export const emailTemplates = {
         <style>
           body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
           .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-          .header { background: linear-gradient(135deg, #040e40 0%, #1c1891 100%); color: white; padding: 30px; text-align: center; }
+          .header { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; padding: 30px; text-align: center; }
           .content { padding: 30px; }
-          .info-box { background: #f8f9fa; border-left: 4px solid #040e40; padding: 15px; margin: 20px 0; }
-          .button { display: inline-block; background: #ff0000; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-          .footer { background: #040e40; color: white; padding: 20px; text-align: center; }
+          .info-box { background: #f8f9fa; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0; }
+          .button { display: inline-block; background: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
+          .footer { background: #1f2937; color: white; padding: 20px; text-align: center; }
+          .social-links { margin: 15px 0; }
+          .social-links a { display: inline-block; margin: 0 8px; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.15); text-align: center; line-height: 36px; text-decoration: none; color: white; font-size: 16px; }
         </style>
       </head>
       <body>
@@ -94,15 +96,23 @@ export const emailTemplates = {
               <li>We'll provide a detailed diagnosis and estimate</li>
             </ul>
             
-            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/track-repair" class="button">Track Your Repair</a>
+            <a href="https://www.itservicesfreetown.com/track-repair" class="button">Track Your Repair</a>
             
             <p>If you need to reschedule or have any questions, please contact us at +232 33 399 391.</p>
           </div>
           <div class="footer">
-            <p>IT Services Freetown<br>
+            <div class="social-links">
+              <a href="https://www.facebook.com/itservicesfreetown" title="Facebook">&#xf09a;</a>
+              <a href="https://www.instagram.com/itservicesfreetown" title="Instagram">&#xf16d;</a>
+              <a href="https://x.com/itservicesft" title="X (Twitter)">&#x1D54F;</a>
+              <a href="https://wa.me/23233399391" title="WhatsApp">&#xf232;</a>
+              <a href="https://www.tiktok.com/@itservicesfreetown" title="TikTok">&#x266B;</a>
+            </div>
+            <p style="margin:10px 0 0;">IT Services Freetown<br>
             1 Regent Highway, Jui Junction<br>
             Freetown, Sierra Leone<br>
             +232 33 399 391</p>
+            <p style="margin:10px 0 0; font-size:12px; color:#9ca3af;">© 2026 IT Services Freetown. All rights reserved.</p>
           </div>
         </div>
       </body>
