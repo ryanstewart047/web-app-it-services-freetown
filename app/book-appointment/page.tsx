@@ -199,6 +199,41 @@ export default function BookAppointment() {
 
       void submitBookingToServer(trackingId, bookingSnapshot);
       
+      // Send confirmation email to customer + admin notification
+      // (Formspree still handles its own notification — this is additional)
+      const sendConfirmationEmails = async () => {
+        try {
+          const response = await fetch('/api/booking/confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              trackingId,
+              customerName: bookingSnapshot.customerName,
+              email: bookingSnapshot.email,
+              phone: bookingSnapshot.phone,
+              address: bookingSnapshot.address,
+              deviceType: bookingSnapshot.deviceType,
+              deviceModel: bookingSnapshot.deviceModel,
+              serviceType: bookingSnapshot.serviceType,
+              issueDescription: bookingSnapshot.issueDescription,
+              preferredDate: bookingSnapshot.preferredDate,
+              preferredTime: bookingSnapshot.preferredTime,
+            }),
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            console.log('✅ Confirmation emails sent:', result.emails);
+          } else {
+            console.warn('⚠️ Email API responded with', response.status);
+          }
+        } catch (error) {
+          // Email failure should NOT block the booking — Formspree already captured it
+          console.warn('ℹ️ Email confirmation not available:', error);
+        }
+      };
+      sendConfirmationEmails();
+
       // Auto-sync to cloud via server API - works for all customers (if server available)
       const tryServerSync = async () => {
         // Check if we're on GitHub Pages (no server API available)

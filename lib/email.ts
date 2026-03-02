@@ -212,6 +212,103 @@ Contact us: +232 33 399 391
 IT Services Freetown`
   }),
 
+  adminBookingNotification: (data: {
+    trackingId: string
+    customerName: string
+    email: string
+    phone: string
+    address: string
+    deviceType: string
+    deviceModel: string
+    serviceType: string
+    issueDescription: string
+    preferredDate: string
+    preferredTime: string
+    submittedAt: string
+  }) => ({
+    subject: `🔔 New Booking - ${data.trackingId} | ${data.customerName}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+          .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+          .header { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; padding: 25px; text-align: center; }
+          .content { padding: 25px; }
+          .info-box { background: #f8f9fa; border-left: 4px solid #dc2626; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; }
+          .customer-box { background: #eff6ff; border-left: 4px solid #2563eb; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; }
+          .device-box { background: #f0fdf4; border-left: 4px solid #16a34a; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; }
+          .label { font-weight: bold; color: #374151; display: inline-block; min-width: 140px; }
+          .value { color: #1f2937; }
+          .priority-badge { display: inline-block; background: #fef2f2; color: #dc2626; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+          .footer { background: #1f2937; color: #9ca3af; padding: 15px; text-align: center; font-size: 12px; }
+          .action-btn { display: inline-block; background: #dc2626; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; margin: 10px 5px; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1 style="margin:0;">🔔 New Booking Received</h1>
+            <p style="margin:5px 0 0;">Tracking ID: ${data.trackingId}</p>
+          </div>
+          <div class="content">
+            <p>A new repair appointment has been submitted on the website.</p>
+
+            <div class="customer-box">
+              <h3 style="margin-top:0; color:#2563eb;">👤 Customer Details</h3>
+              <p><span class="label">Name:</span> <span class="value">${data.customerName}</span></p>
+              <p><span class="label">Email:</span> <span class="value"><a href="mailto:${data.email}">${data.email}</a></span></p>
+              <p><span class="label">Phone:</span> <span class="value"><a href="tel:${data.phone}">${data.phone}</a></span></p>
+              <p><span class="label">Address:</span> <span class="value">${data.address}</span></p>
+            </div>
+
+            <div class="device-box">
+              <h3 style="margin-top:0; color:#16a34a;">💻 Device & Service</h3>
+              <p><span class="label">Device Type:</span> <span class="value">${data.deviceType}</span></p>
+              <p><span class="label">Model/Brand:</span> <span class="value">${data.deviceModel}</span></p>
+              <p><span class="label">Service Type:</span> <span class="value">${data.serviceType}</span></p>
+              <p><span class="label">Issue:</span> <span class="value">${data.issueDescription}</span></p>
+            </div>
+
+            <div class="info-box">
+              <h3 style="margin-top:0; color:#dc2626;">📅 Appointment Schedule</h3>
+              <p><span class="label">Preferred Date:</span> <span class="value">${data.preferredDate}</span></p>
+              <p><span class="label">Preferred Time:</span> <span class="value">${data.preferredTime}</span></p>
+              <p><span class="label">Submitted:</span> <span class="value">${new Date(data.submittedAt).toLocaleString('en-GB', { timeZone: 'Africa/Freetown' })}</span></p>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+              <a href="mailto:${data.email}?subject=RE: Your Booking ${data.trackingId}" class="action-btn">📧 Reply to Customer</a>
+              <a href="tel:${data.phone}" class="action-btn" style="background:#16a34a;">📞 Call Customer</a>
+            </div>
+          </div>
+          <div class="footer">
+            <p>IT Services Freetown - Admin Notification<br>
+            This email was auto-generated from the booking system.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `NEW BOOKING RECEIVED - ${data.trackingId}
+
+Customer: ${data.customerName}
+Email: ${data.email}
+Phone: ${data.phone}
+Address: ${data.address}
+
+Device: ${data.deviceType} - ${data.deviceModel}
+Service: ${data.serviceType}
+Issue: ${data.issueDescription}
+
+Scheduled: ${data.preferredDate} at ${data.preferredTime}
+Submitted: ${data.submittedAt}
+
+---
+IT Services Freetown - Auto-generated notification`
+  }),
+
   repairStatusUpdate: (data: {
     customerName: string
     repairId: string
