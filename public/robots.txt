@@ -16,11 +16,10 @@ Disallow: /-test
 # Allow important pages explicitly
 Allow: /blog
 Allow: /marketplace
-Allow: /services
-Allow: /repair
+Allow: /book-appointment
+Allow: /troubleshoot
 Allow: /about
 Allow: /contact
 
 # Sitemap location
-Sitemap: https://www.itservicesfreetown.com/sitemap.xml
 Sitemap: https://itservicesfreetown.com/sitemap.xml

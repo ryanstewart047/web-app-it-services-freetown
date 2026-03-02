@@ -1,4 +1,11 @@
 import Link from 'next/link';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy - IT Services Freetown',
+  description: 'Read our privacy policy to understand how IT Services Freetown collects, uses, and protects your personal information.',
+  robots: { index: true, follow: true },
+}
 
 export default function PrivacyPolicyPage() {
   return (

@@ -108,6 +108,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
+    site: '@itservicesft',
+    creator: '@itservicesft',
     title: 'IT Services Freetown - #1 Computer & Mobile Repair',
     description: 'Professional computer and mobile repair services in Freetown. Same-day service, 1-month warranty, 95% success rate.',
     images: ['/assets/images/slide01.jpg'],
@@ -124,8 +126,8 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    // Add your Google Search Console verification code here
-    // google: 'your-verification-code',
+    google: 'google-site-verification-placeholder',
+    // Replace 'google-site-verification-placeholder' with your actual Google Search Console verification code
   },
 }
 
@@ -170,11 +172,11 @@ export default function RootLayout({
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         
-        {/* Apple Touch Icons - Using Site Logo */}
-        <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.svg" />
-        <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon.svg" />
-        <link rel="apple-touch-icon" sizes="167x167" href="/apple-touch-icon.svg" />
+        {/* Apple Touch Icons - PNG format required for Apple devices */}
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" sizes="167x167" href="/apple-touch-icon.png" />
         
         {/* Structured Data - Local Business Schema */}
         <script

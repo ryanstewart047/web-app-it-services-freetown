@@ -1,4 +1,11 @@
 import Link from 'next/link';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Terms of Service - IT Services Freetown',
+  description: 'Review the terms and conditions for using IT Services Freetown repair services, marketplace, and website.',
+  robots: { index: true, follow: true },
+}
 
 export default function TermsOfServicePage() {
   return (

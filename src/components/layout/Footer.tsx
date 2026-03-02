@@ -252,7 +252,7 @@ export default function Footer() {
                 <i className="fab fa-facebook-f" aria-hidden="true"></i>
               </a>
               <a 
-                href="https://twitter.com" 
+                href="https://twitter.com/itservicesft" 
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Follow us on Twitter"
