@@ -2,40 +2,42 @@ import { useEffect } from 'react';
 
 export function useScrollAnimations() {
   useEffect(() => {
-    const initAnimations = () => {
-      const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-      };
-
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('animate-in');
-            observer.unobserve(entry.target);
-          }
-        });
-      }, observerOptions);
-
-      const animatedElements = document.querySelectorAll('[data-animate]');
-      animatedElements.forEach((el) => observer.observe(el));
-
-      return () => {
-        animatedElements.forEach((el) => observer.unobserve(el));
-      };
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
     };
 
-    // Run immediately
-    const cleanup1 = initAnimations();
-    
-    // Also run after a short delay to catch dynamically rendered elements
-    const timeout = setTimeout(() => {
-      initAnimations();
-    }, 500);
+    const intersectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-in');
+          intersectionObserver.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    // Observe all current data-animate elements
+    const observeAll = () => {
+      document.querySelectorAll('[data-animate]:not(.animate-in)').forEach((el) => {
+        intersectionObserver.observe(el);
+      });
+    };
+
+    observeAll();
+
+    // Watch for new elements added to the DOM (e.g. after loading overlay hides)
+    const mutationObserver = new MutationObserver(() => {
+      observeAll();
+    });
+
+    mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
 
     return () => {
-      clearTimeout(timeout);
-      if (cleanup1) cleanup1();
+      intersectionObserver.disconnect();
+      mutationObserver.disconnect();
     };
   }, []);
 }

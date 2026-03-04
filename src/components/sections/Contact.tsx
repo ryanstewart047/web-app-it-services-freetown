@@ -96,7 +96,7 @@ function ContactForm() {
                 value={formData.name}
                 onChange={handleInputChange}
                 required
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-gray-50 focus:bg-white"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#040e40] focus:border-transparent transition-all duration-300 bg-gray-50 focus:bg-white"
                 placeholder="Enter your full name"
               />
             </div>
@@ -121,7 +121,7 @@ function ContactForm() {
                 value={formData.email}
                 onChange={handleInputChange}
                 required
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-gray-50 focus:bg-white"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#040e40] focus:border-transparent transition-all duration-300 bg-gray-50 focus:bg-white"
                 placeholder="Enter your email"
               />
             </div>
@@ -148,7 +148,7 @@ function ContactForm() {
                 name="phone"
                 value={formData.phone}
                 onChange={handleInputChange}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-gray-50 focus:bg-white"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#040e40] focus:border-transparent transition-all duration-300 bg-gray-50 focus:bg-white"
                 placeholder="+232 XX XXX XXX"
               />
             </div>
@@ -171,7 +171,7 @@ function ContactForm() {
                 name="serviceType"
                 value={formData.serviceType}
                 onChange={handleInputChange}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-gray-50 focus:bg-white appearance-none"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#040e40] focus:border-transparent transition-all duration-300 bg-gray-50 focus:bg-white appearance-none"
               >
                 <option value="">Select a service</option>
                 {serviceTypes.map((service) => (
@@ -203,7 +203,7 @@ function ContactForm() {
               value={formData.subject}
               onChange={handleInputChange}
               required
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-gray-50 focus:bg-white"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#040e40] focus:border-transparent transition-all duration-300 bg-gray-50 focus:bg-white"
               placeholder="Brief description of your inquiry"
             />
           </div>
@@ -229,7 +229,7 @@ function ContactForm() {
               onChange={handleInputChange}
               required
               rows={5}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-gray-50 focus:bg-white resize-none"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#040e40] focus:border-transparent transition-all duration-300 bg-gray-50 focus:bg-white resize-none"
               placeholder="Please describe your issue or inquiry in detail..."
             />
           </div>
@@ -246,7 +246,7 @@ function ContactForm() {
           <button
             type="submit"
             disabled={state.submitting}
-            className="w-full bg-gradient-to-r from-blue-900 to-blue-700 hover:from-blue-800 hover:to-blue-600 disabled:from-gray-400 disabled:to-gray-500 text-white py-4 px-6 rounded-lg font-semibold transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg disabled:hover:scale-100 disabled:hover:shadow-none flex items-center justify-center"
+            className="w-full bg-gradient-to-r from-[#040e40] to-[#0a1a5c] hover:from-[#0a1a5c] hover:to-[#040e40] disabled:from-gray-400 disabled:to-gray-500 text-white py-4 px-6 rounded-lg font-semibold transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg disabled:hover:scale-100 disabled:hover:shadow-none flex items-center justify-center"
           >
             {state.submitting ? (
               <>
@@ -295,7 +295,7 @@ export default function Contact() {
       icon: 'fas fa-map-marker-alt',
       title: 'Address',
       details: '#1 Regent Highway, Jui Junction, Freetown',
-      bgColor: 'bg-blue-900'
+      bgColor: 'bg-[#040e40]'
     },
     {
       icon: 'fas fa-phone',
@@ -307,7 +307,7 @@ export default function Contact() {
       icon: 'fas fa-envelope',
       title: 'Email',
       details: 'support@itservicesfreetown.com',
-      bgColor: 'bg-blue-900'
+      bgColor: 'bg-[#040e40]'
     },
     {
       icon: 'fas fa-clock',
@@ -375,9 +375,9 @@ export default function Contact() {
                 {/* Track Repair Button */}
                 <Link 
                   href="/track-repair" 
-                  className="group relative overflow-hidden bg-gradient-to-r from-blue-900 to-blue-700 hover:from-blue-700 hover:to-blue-600 text-white p-6 rounded-xl text-center transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
+                  className="group relative overflow-hidden bg-gradient-to-r from-[#040e40] to-[#0a1a5c] hover:from-[#0a1a5c] hover:to-[#040e40] text-white p-6 rounded-xl text-center transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#0a1a5c] to-[#040e40] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <div className="relative z-10">
                     <div className="bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-white/30 transition-colors duration-300">
                       <i className="fas fa-search text-2xl text-white"></i>

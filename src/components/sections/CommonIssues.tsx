@@ -122,7 +122,7 @@ export default function CommonIssues() {
         </div>
 
         {/* Freetown-Specific Issues */}
-        <div className="bg-gradient-to-r from-[#040e40] to-blue-900 rounded-3xl shadow-2xl p-12 text-white">
+        <div className="bg-gradient-to-r from-[#040e40] to-[#0a1a5c] rounded-3xl shadow-2xl p-12 text-white">
           <h3 className="text-3xl font-bold mb-8 text-center">
             Tech Challenges Unique to Freetown, Sierra Leone
           </h3>
@@ -277,7 +277,7 @@ export default function CommonIssues() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a 
               href="/troubleshoot" 
-              className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-[#040e40] to-blue-900 text-white text-lg font-semibold rounded-xl hover:from-blue-900 hover:to-[#040e40] transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-[#040e40] to-[#0a1a5c] text-white text-lg font-semibold rounded-xl hover:from-[#0a1a5c] hover:to-[#040e40] transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
             >
               <i className="fas fa-search-plus mr-3"></i>
               Get Free Diagnosis

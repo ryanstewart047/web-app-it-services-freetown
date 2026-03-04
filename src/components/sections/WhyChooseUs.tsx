@@ -6,7 +6,7 @@ export default function WhyChooseUs() {
       icon: 'fas fa-clock',
       title: 'Real-Time Tracking',
       description: 'Monitor your repair status in real-time with detailed progress updates',
-      gradientColors: 'from-blue-900 to-blue-950'
+      gradientColors: 'from-[#040e40] to-[#0a1a5c]'
     },
     {
       icon: 'fas fa-comments', 
@@ -18,7 +18,7 @@ export default function WhyChooseUs() {
       icon: 'fas fa-brain',
       title: 'AI Troubleshooting', 
       description: 'Get instant repair suggestions powered by artificial intelligence',
-      gradientColors: 'from-gray-700 to-blue-900'
+      gradientColors: 'from-gray-700 to-[#040e40]'
     },
     {
       icon: 'fas fa-check-circle',

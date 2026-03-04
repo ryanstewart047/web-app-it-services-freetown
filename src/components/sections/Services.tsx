@@ -14,7 +14,7 @@ export default function Services() {
         'Virus removal',
         'Performance optimization'
       ],
-      gradientColors: 'from-blue-900 to-blue-950',
+      gradientColors: 'from-[#040e40] to-[#0a1a5c]',
       accentColor: 'blue',
       href: undefined
     },
@@ -42,7 +42,7 @@ export default function Services() {
         'Cable installation',
         'System integration'
       ],
-      gradientColors: 'from-blue-900 to-blue-950',
+      gradientColors: 'from-[#040e40] to-[#0a1a5c]',
       accentColor: 'blue',
       href: undefined
     },
@@ -114,7 +114,7 @@ export default function Services() {
                 
                 <Link 
                   href={service.href || "/learn-more"}
-                  className="rounded-full px-5 py-2.5 bg-white shadow-md font-medium transition-all duration-300 flex items-center justify-center group-hover:shadow-lg border-2 border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white"
+                  className="rounded-full px-5 py-2.5 bg-white shadow-md font-medium transition-all duration-300 flex items-center justify-center group-hover:shadow-lg border-2 border-[#040e40] text-[#040e40] hover:bg-[#040e40] hover:text-white"
                 >
                   {service.href ? 'Try Now' : 'Learn More'} <i className="fas fa-arrow-right ml-2 transition-transform duration-300 group-hover:translate-x-1"></i>
                 </Link>

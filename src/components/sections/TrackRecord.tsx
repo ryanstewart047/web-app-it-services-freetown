@@ -16,7 +16,7 @@ export default function TrackRecord() {
       target: 450, 
       label: 'Devices Repaired',
       suffix: '+',
-      color: 'text-blue-900'
+      color: 'text-[#040e40]'
     },
     { 
       key: 'customers',

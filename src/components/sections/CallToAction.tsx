@@ -4,10 +4,10 @@ import Link from 'next/link'
 
 export default function CallToAction() {
   return (
-    <section className="bg-gradient-to-br from-blue-900 via-blue-800 to-red-600 text-white py-20 relative overflow-hidden">
+    <section className="bg-gradient-to-br from-[#040e40] via-[#040e40] to-red-600 text-white py-20 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-transparent"></div>
       <div className="absolute top-0 right-0 w-96 h-96 bg-red-500/10 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#040e40]/10 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
       
       <div className="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
         <h2 className="text-3xl md:text-4xl font-bold mb-6" data-animate="fade">

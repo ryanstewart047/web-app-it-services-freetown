@@ -237,7 +237,7 @@ export default function WhyFreetown() {
             </a>
             <a 
               href="/chat" 
-              className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-[#040e40] to-blue-900 text-white text-lg font-semibold rounded-xl hover:from-blue-900 hover:to-[#040e40] transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-[#040e40] to-[#0a1a5c] text-white text-lg font-semibold rounded-xl hover:from-[#0a1a5c] hover:to-[#040e40] transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
             >
               <i className="fas fa-comments mr-3"></i>
               Chat with Expert
