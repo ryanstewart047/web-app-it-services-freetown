@@ -117,7 +117,7 @@ export default function Hero() {
       <div className="hero-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-screen py-20">
           {/* Left Side - Text Content */}
-          <div className="text-left">
+          <div className="text-left" data-animate="slide-right">
             <h1 className="hero-title">
               Freetown&apos;s #1 Computer & Mobile Repair | iPhone Repair | iCloud Removal | FRP Unlock
             </h1>
@@ -164,7 +164,7 @@ export default function Hero() {
           </div>
           
           {/* Right Side - Image Slider */}
-          <div className="relative">
+          <div className="relative" data-animate="slide-left">
             <div className="image-slider-container relative w-full rounded-2xl overflow-hidden" style={{ aspectRatio: '4/3', minHeight: '400px' }}>
               {slides.map((slide, index) => (
                 <div

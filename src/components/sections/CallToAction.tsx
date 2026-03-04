@@ -10,14 +10,14 @@ export default function CallToAction() {
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
       
       <div className="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl md:text-4xl font-bold mb-6">
+        <h2 className="text-3xl md:text-4xl font-bold mb-6" data-animate="fade">
           Ready to Get Your Device Fixed?
         </h2>
-        <p className="text-xl mb-8 opacity-90">
+        <p className="text-xl mb-8 opacity-90" data-animate="fade">
           Join thousands of satisfied customers who trust us with their valuable devices
         </p>
         
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center" data-animate="scale">
           <Link 
             href="/book-appointment"
             className="bg-red-600 hover:bg-red-700 text-white text-lg px-8 py-4 rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-lg inline-flex items-center"

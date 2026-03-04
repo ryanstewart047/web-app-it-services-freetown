@@ -12,10 +12,10 @@ export default function WhyFreetown() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#040e40] to-red-600 text-white rounded-full mb-6">
             <Shield className="w-8 h-8" />
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4" data-animate="fade">
             Why Choose IT Services Freetown?
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto" data-animate="fade">
             We're not just another repair shop. We're your trusted technology partner in Sierra Leone, 
             providing expert solutions tailored to the unique challenges of Freetown's environment.
           </p>
@@ -24,7 +24,7 @@ export default function WhyFreetown() {
         {/* Main Benefits Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
           {/* Benefit 1 */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 border-t-4 border-red-600">
+          <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 border-t-4 border-red-600" data-animate="zoom">
             <div className="flex items-center mb-6">
               <div className="w-14 h-14 bg-red-100 rounded-xl flex items-center justify-center mr-4">
                 <Award className="w-7 h-7 text-red-600" />
@@ -44,7 +44,7 @@ export default function WhyFreetown() {
           </div>
 
           {/* Benefit 2 */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 border-t-4 border-[#040e40]">
+          <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 border-t-4 border-[#040e40]" data-animate="zoom">
             <div className="flex items-center mb-6">
               <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
                 <Clock className="w-7 h-7 text-[#040e40]" />
@@ -64,7 +64,7 @@ export default function WhyFreetown() {
           </div>
 
           {/* Benefit 3 */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 border-t-4 border-green-600">
+          <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 border-t-4 border-green-600" data-animate="zoom">
             <div className="flex items-center mb-6">
               <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center mr-4">
                 <Shield className="w-7 h-7 text-green-600" />
@@ -85,7 +85,7 @@ export default function WhyFreetown() {
           </div>
 
           {/* Benefit 4 */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 border-t-4 border-purple-600">
+          <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 border-t-4 border-purple-600" data-animate="zoom">
             <div className="flex items-center mb-6">
               <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mr-4">
                 <Users className="w-7 h-7 text-purple-600" />
@@ -105,7 +105,7 @@ export default function WhyFreetown() {
           </div>
 
           {/* Benefit 5 */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 border-t-4 border-orange-600">
+          <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 border-t-4 border-orange-600" data-animate="zoom">
             <div className="flex items-center mb-6">
               <div className="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center mr-4">
                 <Wrench className="w-7 h-7 text-orange-600" />
@@ -125,7 +125,7 @@ export default function WhyFreetown() {
           </div>
 
           {/* Benefit 6 */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 border-t-4 border-red-600">
+          <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 border-t-4 border-red-600" data-animate="zoom">
             <div className="flex items-center mb-6">
               <div className="w-14 h-14 bg-red-100 rounded-xl flex items-center justify-center mr-4">
                 <MapPin className="w-7 h-7 text-red-600" />

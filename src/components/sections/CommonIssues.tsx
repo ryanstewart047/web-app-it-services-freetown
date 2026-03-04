@@ -86,10 +86,10 @@ export default function CommonIssues() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-red-600 to-orange-600 text-white rounded-full mb-6">
             <i className="fas fa-tools text-2xl"></i>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4" data-animate="fade">
             Common Device Problems We Fix Daily
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed" data-animate="fade">
             From simple software glitches to complex hardware failures, our expert technicians have seen and 
             successfully resolved thousands of tech problems. Here are the most common issues we encounter 
             in Freetown and how we fix them.
@@ -102,6 +102,7 @@ export default function CommonIssues() {
             <div 
               key={index}
               className="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 border-l-4 border-red-600 group"
+              data-animate="zoom"
             >
               <div className="flex items-start space-x-4">
                 <div className={`w-12 h-12 bg-${issue.color}-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>

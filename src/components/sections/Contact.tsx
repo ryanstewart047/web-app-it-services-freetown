@@ -50,7 +50,7 @@ function ContactForm() {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300" data-animate="slide-left">
       <div className="text-center mb-8">
         <h3 className="text-2xl font-bold text-gray-900 mb-2">Send us a Message</h3>
         <p className="text-gray-600">We&apos;ll get back to you within 24 hours</p>
@@ -321,17 +321,17 @@ export default function Contact() {
     <section id="contact" className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4" data-animate="fade">
             Get in Touch
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto" data-animate="fade">
             Have questions? Need a quote? We&apos;re here to help! Send us a message and we&apos;ll get back to you within 24 hours.
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Contact Information */}
-          <div className="space-y-8">
+          <div className="space-y-8" data-animate="slide-right">
             <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
               <h3 className="text-2xl font-bold text-gray-900 mb-6">Visit Our Store</h3>
               <div className="space-y-4">

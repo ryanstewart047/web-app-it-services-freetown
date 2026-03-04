@@ -151,10 +151,10 @@ const MobileRepairPricing: React.FC = () => {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-red-600 text-white rounded-full mb-6">
               <i className="fas fa-tools text-2xl"></i>
             </div>
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4" data-animate="fade">
               Repair & Service Pricing
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto" data-animate="fade">
               Professional repair services for computers, laptops, and all major mobile brands. Click on any device to see our competitive pricing.
             </p>
           </div>
@@ -166,6 +166,7 @@ const MobileRepairPricing: React.FC = () => {
                 <div
                   key={device.id}
                   onClick={() => handleDeviceClick(device)}
+                  data-animate="zoom"
                   className="bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-2 group flex-shrink-0 w-48 md:w-auto"
                 >
                   <div className="relative w-full h-32 mb-4 flex items-center justify-center overflow-hidden rounded-lg">
