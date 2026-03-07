@@ -5,6 +5,7 @@ import AppointmentStatus from '@/components/AppointmentStatus';
 import TrackingDebug from '@/components/TrackingDebug';
 import { usePageLoader } from '@/hooks/usePageLoader';
 import LoadingOverlay from '@/components/LoadingOverlay';
+import PageBanner from '@/components/PageBanner';
 
 const SESSION_KEY = 'its_track_session';
 const IDLE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
@@ -117,21 +118,11 @@ export default function TrackRepair() {
   return (
     <>
       {/* Hero Section */}
-      <div className="relative text-white overflow-hidden" style={{backgroundImage: 'url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQ0MCIgaGVpZ2h0PSI0NTAiIHZpZXdCb3g9IjAgMCAxNDQwIDQ1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE0NDAiIGhlaWdodD0iNDUwIiBmaWxsPSJ1cmwoI3BhaW50MF9saW5lYXJfMF8xKSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJwYWludDBfbGluZWFyXzBfMSIgeDE9IjcyMCIgeTE9IjAiIHgyPSI3MjAiIHkyPSI0NTAiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KPHN0b3Agc3RvcC1jb2xvcj0iIzBEMUIyQSIvPgo8c3RvcCBvZmZzZXQ9IjAuNSIgc3RvcC1jb2xvcj0iIzFBMjMzMyIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwRDBFMjgiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8L3N2Zz4K)', backgroundSize: 'cover', backgroundPosition: 'center'}}>
-        <div className="absolute inset-0 bg-gradient-to-r from-red-600/30 via-red-500/30 to-blue-900/30"></div>
-        
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-6">
-            <i className="fas fa-search text-3xl text-white"></i>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white to-red-100 bg-clip-text text-transparent">
-            Track Your Repair
-          </h1>
-          <p className="text-xl text-red-100 max-w-3xl mx-auto leading-relaxed">
-            Enter your tracking ID to see real-time updates on your device repair status
-          </p>
-        </div>
-      </div>
+      <PageBanner
+        title="Track Your Repair"
+        subtitle="Enter your tracking ID to see real-time updates on your device repair status"
+        icon="fas fa-search"
+      />
 
       {/* Main Content */}
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-red-50 py-12">

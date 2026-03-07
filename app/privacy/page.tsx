@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
+import PageBanner from '@/components/PageBanner';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy - IT Services Freetown',
@@ -9,17 +10,14 @@ export const metadata: Metadata = {
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#040e40] via-[#040e40] to-gray-900">
+    <div className="min-h-screen bg-gray-50">
+      <PageBanner
+        title="Privacy Policy"
+        subtitle="Last updated: October 19, 2025"
+        icon="fas fa-shield-alt"
+        compact
+      />
       <div className="container mx-auto px-4 py-16 max-w-4xl">
-        {/* Header */}
-        <div className="mb-12 text-center">
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Privacy Policy
-          </h1>
-          <p className="text-gray-300">
-            Last updated: October 19, 2025
-          </p>
-        </div>
 
         {/* Content */}
         <div className="prose prose-lg max-w-none">

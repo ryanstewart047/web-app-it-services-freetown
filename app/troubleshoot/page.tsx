@@ -10,6 +10,7 @@ import LoadingOverlay from '@/components/LoadingOverlay'
 import { openChatFloat } from '@/lib/chat-float-controller'
 import { generateTroubleshootingResponseClient, isStaticDeployment } from '@/lib/groq-ai-client'
 import { DisplayAd, InArticleAd } from '@/components/AdSense'
+import PageBanner from '@/components/PageBanner'
 
 interface TroubleshootingStep {
   id: string
@@ -221,20 +222,14 @@ export default function Troubleshoot() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 relative overflow-hidden">
-      
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-12">
-          <div className="flex justify-center mb-4">
-            <Brain className="w-16 h-16 text-primary" />
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            AI-Powered Troubleshooting
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Describe your device issue and get instant AI-powered repair suggestions and step-by-step solutions
-          </p>
-        </div>
+    <div className="min-h-screen bg-gray-50 relative overflow-hidden">
+      <PageBanner
+        title="AI-Powered Troubleshooting"
+        subtitle="Describe your device issue and get instant AI-powered repair suggestions and step-by-step solutions"
+        icon="fas fa-brain"
+      />
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-12">
 
         {/* Top Ad */}
         <div className="mb-8">

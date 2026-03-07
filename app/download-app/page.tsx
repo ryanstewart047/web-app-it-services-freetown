@@ -2,6 +2,7 @@
 
 import { Download, CheckCircle, Smartphone, Shield, Zap, Database, Monitor, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
+import PageBanner from '@/components/PageBanner';
 
 export default function DownloadAppPage() {
   const [os, setOS] = useState<'windows' | 'mac' | 'linux'>('windows');
@@ -25,22 +26,13 @@ export default function DownloadAppPage() {
       </div>
 
       {/* Hero Section */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-green-500 rounded-2xl mb-6">
-            <Monitor className="w-10 h-10 text-white" />
-          </div>
-          <h1 className="text-5xl font-bold text-white mb-6">
-            IT Services Device Detector
-          </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-4">
-            Professional desktop application for complete Android device diagnostics
-          </p>
-          <p className="text-lg text-blue-400 font-semibold">
-            Get IMEI, hardware specs, battery stats, and 50+ device properties!
-          </p>
-        </div>
+      <PageBanner
+        title="IT Services Device Detector"
+        subtitle="Professional desktop application for complete Android device diagnostics. Get IMEI, hardware specs, battery stats, and 50+ device properties!"
+        icon="fas fa-desktop"
+      />
 
+      <div className="container mx-auto px-4 py-16">
         {/* OS Selection */}
         <div className="max-w-4xl mx-auto mb-12">
           <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-8">

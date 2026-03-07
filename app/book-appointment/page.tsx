@@ -7,6 +7,7 @@ import { useScrollAnimations } from '@/hooks/useScrollAnimations';
 import { usePageLoader } from '@/hooks/usePageLoader';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import { saveBooking } from '@/lib/unified-booking-storage';
+import PageBanner from '@/components/PageBanner';
 
 export default function BookAppointment() {
   const router = useRouter();
@@ -525,24 +526,16 @@ export default function BookAppointment() {
   return (
     <>
       {/* Modern Hero Section */}
-      <div className="relative text-white overflow-hidden" style={{backgroundImage: 'url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQ0MCIgaGVpZ2h0PSI0NTAiIHZpZXdCb3g9IjAgMCAxNDQwIDQ1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE0NDAiIGhlaWdodD0iNDUwIiBmaWxsPSJ1cmwoI3BhaW50MF9saW5lYXJfMF8xKSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJwYWludDBfbGluZWFyXzBfMSIgeDE9IjcyMCIgeTE9IjAiIHgyPSI3MjAiIHkyPSI0NTAiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KPHN0b3Agc3RvcC1jb2xvcj0iIzBEMUIyQSIvPgo8c3RvcCBvZmZzZXQ9IjAuNSIgc3RvcC1jb2xvcj0iIzFBMjMzMyIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwRDBFMjgiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8L3N2Zz4K)', backgroundSize: 'cover', backgroundPosition: 'center'}}>
-        <div className="absolute inset-0 bg-gradient-to-r from-red-600/30 via-red-500/30 to-blue-900/30"></div>
-        
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
-          <div className="mb-6">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full mb-4">
-              <i className="fas fa-calendar-plus text-2xl text-white"></i>
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-white to-red-100 bg-clip-text text-transparent">
-              Book Your Repair
-            </h1>
-            <p className="text-lg md:text-xl text-red-100 max-w-2xl mx-auto leading-relaxed">
-              Schedule your device repair with our expert technicians. Fast, reliable, and professional service.
-            </p>
-          </div>
-          
-          {/* Progress Indicator */}
-          <div className="flex justify-center items-center space-x-4 mt-6">
+      <PageBanner
+        title="Book Your Repair"
+        subtitle="Schedule your device repair with our expert technicians. Fast, reliable, and professional service."
+        icon="fas fa-calendar-plus"
+      />
+
+      {/* Progress Indicator */}
+      <div className="bg-[#040e40] py-6">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-center items-center space-x-4">
             {[1, 2, 3].map((step) => (
               <div key={step} className="flex items-center">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ${
@@ -560,8 +553,7 @@ export default function BookAppointment() {
               </div>
             ))}
           </div>
-          
-          <div className="mt-3 text-red-100">
+          <div className="mt-3 text-red-100 text-center">
             <span className="text-sm">
               Step {currentStep} of 3: {
                 currentStep === 1 ? 'Personal Information' :

@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { AlertTriangle, Phone, Mail, MapPin } from 'lucide-react';
+import PageBanner from '@/components/PageBanner';
 
 export const metadata: Metadata = {
   title: 'Disclaimer | IT Services Freetown',
@@ -9,16 +10,14 @@ export const metadata: Metadata = {
 
 export default function DisclaimerPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#040e40] via-[#040e40] to-gray-900 py-12">
-      <div className="container mx-auto px-4 max-w-4xl">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-red-600 rounded-full mb-6">
-            <AlertTriangle className="w-10 h-10 text-white" />
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Disclaimer</h1>
-          <p className="text-gray-300 text-lg">Last Updated: November 26, 2025</p>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      <PageBanner
+        title="Disclaimer"
+        subtitle="Last Updated: November 26, 2025"
+        icon="fas fa-exclamation-triangle"
+        compact
+      />
+      <div className="container mx-auto px-4 max-w-4xl py-12">
 
         {/* Content */}
         <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-12 space-y-8">

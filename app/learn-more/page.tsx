@@ -3,6 +3,7 @@
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
+import PageBanner from '@/components/PageBanner'
 
 export default function LearnMore() {
   const { isLoading, progress } = usePageLoader({
@@ -19,27 +20,11 @@ export default function LearnMore() {
   return (
     <>
       {/* Hero Section */}
-      <section className="gradient-bg hero-pattern pt-24 pb-16" style={{background: 'linear-gradient(135deg, #040e40 0%, #dc2626 100%)'}}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 scroll-animate" style={{color: 'white', textShadow: '0 2px 4px rgba(0,0,0,0.3)'}}>
-              Learn More About{' '}
-              <span className="text-yellow-300" style={{color: '#f59e0b', textShadow: '0 2px 4px rgba(0,0,0,0.3)'}}>IT Services Freetown</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto scroll-animate" style={{color: '#f3f4f6', textShadow: '0 1px 2px rgba(0,0,0,0.2)'}}>
-              Discover our expertise, commitment to excellence, and comprehensive IT solutions that have made us Freetown&apos;s trusted technology partner.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center scroll-animate">
-              <a href="#about" className="bg-white text-primary-950 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-300 shadow-lg" style={{color: '#040e40'}}>
-                About Our Company
-              </a>
-              <a href="#services" className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-gray-900 transition-colors duration-300">
-                Our Services
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
+      <PageBanner
+        title="Learn More About IT Services Freetown"
+        subtitle="Discover our expertise, commitment to excellence, and comprehensive IT solutions that have made us Freetown's trusted technology partner."
+        icon="fas fa-info-circle"
+      />
 
       {/* About Section */}
       <section id="about" className="py-20 bg-white">

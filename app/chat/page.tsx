@@ -6,6 +6,7 @@ import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
 import { openChatFloat } from '@/lib/chat-float-controller'
 import { DisplayAd } from '@/components/AdSense'
+import PageBanner from '@/components/PageBanner'
 import { 
   generateChatResponseClient, 
   isRepairTrackingQueryClient, 
@@ -145,13 +146,12 @@ export default function Chat() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-primary">AI Chat Support</h1>
-          <p className="text-gray-600 mt-2">Get instant help with your device issues</p>
-        </div>
-      </div>
+      <PageBanner
+        title="AI Chat Support"
+        subtitle="Get instant help with your device issues"
+        icon="fas fa-comments"
+        compact
+      />
 
       {/* Ad Banner - Top */}
       <div className="max-w-4xl mx-auto px-4 py-6">

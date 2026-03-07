@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { HelpCircle, Phone, Mail, Clock, MapPin, ChevronDown } from 'lucide-react';
+import PageBanner from '@/components/PageBanner';
 
 export default function FAQPage() {
   const [openQuestion, setOpenQuestion] = useState<string | null>(null);
@@ -157,20 +158,11 @@ export default function FAQPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-white">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-[#040e40] to-blue-900 text-white py-20">
-        <div className="container mx-auto px-4 text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-6">
-            <HelpCircle className="w-10 h-10 text-white" />
-          </div>
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">
-            Frequently Asked Questions
-          </h1>
-          <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto">
-            Get quick answers about our computer, laptop, and mobile repair services in Freetown
-          </p>
-        </div>
-      </div>
+      <PageBanner
+        title="Frequently Asked Questions"
+        subtitle="Get quick answers about our computer, laptop, and mobile repair services in Freetown"
+        icon="fas fa-question-circle"
+      />
 
       <div className="container mx-auto px-4 py-16 max-w-6xl">
         {/* Quick Contact */}

@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { Building2, Phone, Mail, MapPin, Users, Award, Clock, Shield } from 'lucide-react';
+import PageBanner from '@/components/PageBanner';
 
 export const metadata: Metadata = {
   title: 'About Us | IT Services Freetown',
@@ -9,19 +10,12 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#040e40] via-[#040e40] to-gray-900">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-red-600 to-[#040e40] text-white py-20">
-        <div className="container mx-auto px-4 text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-6">
-            <Building2 className="w-10 h-10 text-white" />
-          </div>
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">About IT Services Freetown</h1>
-          <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto">
-            Your Trusted Technology Partner in Sierra Leone
-          </p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <PageBanner
+        title="About IT Services Freetown"
+        subtitle="Your Trusted Technology Partner in Sierra Leone"
+        icon="fas fa-building"
+      />
 
       <div className="container mx-auto px-4 py-16 max-w-6xl">
         {/* Our Story */}

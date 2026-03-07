@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Phone, Mail, MapPin, Clock, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
+import PageBanner from '@/components/PageBanner';
 
 export const metadata: Metadata = {
   title: 'Contact Us - IT Services Freetown',
@@ -10,18 +11,12 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#040e40] via-[#040e40] to-gray-900">
-      {/* Hero Section */}
-      <section className="pt-24 pb-12 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Get in Touch
-          </h1>
-          <p className="text-lg text-gray-300 mb-8">
-            We're here to help with all your IT service needs. Reach out to us through any of the channels below.
-          </p>
-        </div>
-      </section>
+    <main className="min-h-screen bg-gray-50">
+      <PageBanner
+        title="Get in Touch"
+        subtitle="We're here to help with all your IT service needs. Reach out to us through any of the channels below."
+        icon="fas fa-envelope"
+      />
 
       {/* Contact Methods Grid */}
       <section className="pb-16 px-4">

@@ -2,12 +2,20 @@
 
 import Link from 'next/link';
 import { ArrowLeft, Download, Terminal, CheckCircle, AlertCircle } from 'lucide-react';
+import PageBanner from '@/components/PageBanner';
 
 export default function ADBGuidePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-12 px-4">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <PageBanner
+        title="ADB Installation Guide"
+        subtitle="Complete step-by-step instructions for Windows & Mac"
+        icon="fas fa-terminal"
+        compact
+      />
+
+      <div className="max-w-5xl mx-auto py-12 px-4">
+        {/* Back Link */}
         <Link
           href="/device-detection"
           className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-8 transition-colors"
@@ -17,16 +25,6 @@ export default function ADBGuidePage() {
         </Link>
 
         <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
-          {/* Title */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-4">
-              <Terminal className="w-10 h-10 text-white" />
-            </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">ADB Installation Guide</h1>
-            <p className="text-xl text-gray-600">
-              Complete step-by-step instructions for Windows & Mac
-            </p>
-          </div>
 
           {/* Table of Contents */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">

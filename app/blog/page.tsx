@@ -8,6 +8,7 @@ import { ThumbsUp, ThumbsDown, MessageCircle, Calendar, User, Send, Share2 } fro
 import toast from 'react-hot-toast'
 import { fetchBlogPosts, fetchPostComments, addComment, addReaction } from '@/lib/github-blog-storage'
 import { DisplayAd, InFeedAd } from '@/components/AdSense'
+import PageBanner from '@/components/PageBanner'
 
 interface Comment {
   id: string
@@ -438,20 +439,11 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Hero Header */}
-      <header className="relative overflow-hidden" style={{backgroundImage: 'url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQ0MCIgaGVpZ2h0PSI0NTAiIHZpZXdCb3g9IjAgMCAxNDQwIDQ1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE0NDAiIGhlaWdodD0iNDUwIiBmaWxsPSJ1cmwoI3BhaW50MF9saW5lYXJfMF8xKSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJwYWludDBfbGluZWFyXzBfMSIgeDE9IjcyMCIgeTE9IjAiIHgyPSI3MjAiIHkyPSI0NTAiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KPHN0b3Agc3RvcC1jb2xvcj0iIzBEMUIyQSIvPgo8c3RvcCBvZmZzZXQ9IjAuNSIgc3RvcC1jb2xvcj0iIzFBMjMzMyIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwRDBFMjgiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8L3N2Zz4K)', backgroundSize: 'cover', backgroundPosition: 'center'}}>
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-indigo-900/80 to-purple-900/80"></div>
-        
-        <div className="relative max-w-7xl mx-auto px-6 py-20 md:py-28">
-          <div className="text-center">
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 text-white">
-              Tech Tips & <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300">Innovation</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
-              Discover the latest insights, tutorials, and news in technology and IT services
-            </p>
-          </div>
-        </div>
-      </header>
+      <PageBanner
+        title="Tech Tips & Innovation"
+        subtitle="Discover the latest insights, tutorials, and news in technology and IT services"
+        icon="fas fa-blog"
+      />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-12 md:py-16">
