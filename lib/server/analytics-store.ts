@@ -1,41 +1,8 @@
-import fs from 'fs/promises';
-import path from 'path';
+import { prisma } from '@/lib/prisma';
 
-const DATA_FILE_PATH = process.env.APP_DATA_FILE
-	? path.resolve(process.cwd(), process.env.APP_DATA_FILE)
-	: path.resolve(process.cwd(), 'data/app-analytics.json');
-
-const GIST_ID = process.env.GITHUB_GIST_ID || process.env.OFFER_GIST_ID || '741d3c2e3203df10a318d3dae1a94c66';
-const GIST_TOKEN = process.env.ITS_FREETOWN_OFFER_TOKEN || process.env.ITS_GITHUB_TOKEN || process.env.GITHUB_TOKEN || '';
-const GIST_FILENAME = process.env.GITHUB_GIST_FILENAME || 'its-analytics.json';
-
-const DEFAULT_DATA: AnalyticsData = {
-	forms: {
-		submissions: [],
-		views: {},
-		conversions: {}
-	},
-	repairs: [],
-	meta: {
-		version: 1,
-		updatedAt: new Date(0).toISOString()
-	}
-};
-
-const CACHE_TTL_MS = 3000;
-
-let cachedData: AnalyticsData | null = null;
-let lastCacheLoad = 0;
-
-export interface FormSubmission {
-	id: string;
-	formType: string;
-	timestamp: string;
-	fields: Record<string, any>;
-	userAgent?: string;
-	page?: string;
-	trackingId?: string;
-}
+// ──────────────────────────────────────────────
+// Types (unchanged – consumed by API routes)
+// ──────────────────────────────────────────────
 
 export type RepairStatus =
 	| 'submitted'
@@ -67,6 +34,16 @@ export interface RepairBooking {
 	diagnosticNotes?: string;
 }
 
+export interface FormSubmission {
+	id: string;
+	formType: string;
+	timestamp: string;
+	fields: Record<string, any>;
+	userAgent?: string;
+	page?: string;
+	trackingId?: string;
+}
+
 export interface AnalyticsData {
 	forms: {
 		submissions: FormSubmission[];
@@ -80,158 +57,127 @@ export interface AnalyticsData {
 	};
 }
 
-async function ensureDataDir() {
-	const dir = path.dirname(DATA_FILE_PATH);
-	await fs.mkdir(dir, { recursive: true });
-}
+// ──────────────────────────────────────────────
+// Helpers – map Prisma rows → RepairBooking
+// ──────────────────────────────────────────────
 
-function normaliseData(raw: Partial<AnalyticsData> | null | undefined): AnalyticsData {
-	if (!raw) return structuredClone(DEFAULT_DATA);
-
+function mapRepairRow(row: any): RepairBooking {
 	return {
-		forms: {
-			submissions: Array.isArray(raw.forms?.submissions) ? raw.forms!.submissions : [],
-			views: raw.forms?.views ? { ...raw.forms.views } : {},
-			conversions: raw.forms?.conversions ? { ...raw.forms.conversions } : {}
-		},
-		repairs: Array.isArray(raw.repairs) ? raw.repairs.map((repair) => ({
-			...repair,
-			submissionDate: repair?.submissionDate ?? new Date().toISOString(),
-			status: (repair?.status as RepairStatus) || 'submitted',
-			lastUpdated: repair?.lastUpdated ?? new Date().toISOString()
-		})) : [],
-		meta: {
-			version: raw.meta?.version ?? 1,
-			updatedAt: raw.meta?.updatedAt ?? new Date(0).toISOString()
-		}
+		trackingId: row.trackingId,
+		customerName: row.customer?.name ?? 'Unknown',
+		email: row.customer?.email ?? '',
+		phone: row.customer?.phone ?? '',
+		deviceType: row.deviceType,
+		deviceModel: row.deviceModel ?? undefined,
+		issueDescription: row.issueDescription,
+		serviceType: row.serviceType ?? undefined,
+		status: (row.status as RepairStatus) || 'received',
+		submissionDate: (row.dateReceived ?? row.createdAt)?.toISOString?.() ?? new Date().toISOString(),
+		estimatedCompletion: row.estimatedCompletion ?? undefined,
+		totalCost: row.actualCost ?? row.estimatedCost ?? undefined,
+		notes: row.notes || undefined,
+		lastUpdated: row.updatedAt?.toISOString?.() ?? new Date().toISOString(),
+		address: row.customer?.address ?? undefined,
+		diagnosticImages: undefined,
+		diagnosticNotes: undefined,
 	};
 }
 
-async function readFromFile(): Promise<AnalyticsData> {
-	await ensureDataDir();
+// ──────────────────────────────────────────────
+// Form analytics – kept in-memory / file (non-critical)
+// ──────────────────────────────────────────────
+
+import fs from 'fs/promises';
+import path from 'path';
+
+const DATA_FILE_PATH = process.env.APP_DATA_FILE
+	? path.resolve(process.cwd(), process.env.APP_DATA_FILE)
+	: path.resolve(process.cwd(), 'data/app-analytics.json');
+
+interface FormsData {
+	submissions: FormSubmission[];
+	views: Record<string, number>;
+	conversions: Record<string, number>;
+}
+
+async function readFormsFromFile(): Promise<FormsData> {
 	try {
+		const dir = path.dirname(DATA_FILE_PATH);
+		await fs.mkdir(dir, { recursive: true });
 		const content = await fs.readFile(DATA_FILE_PATH, 'utf-8');
-		const parsed = JSON.parse(content) as AnalyticsData;
-		return normaliseData(parsed);
-	} catch (error: any) {
-		if (error?.code === 'ENOENT') {
-			await writeToFile(DEFAULT_DATA);
-			return structuredClone(DEFAULT_DATA);
-		}
-		console.warn('[AnalyticsStore] Falling back to default data due to read error:', error);
-		return structuredClone(DEFAULT_DATA);
+		const parsed = JSON.parse(content);
+		return {
+			submissions: Array.isArray(parsed.forms?.submissions) ? parsed.forms.submissions : [],
+			views: parsed.forms?.views ?? {},
+			conversions: parsed.forms?.conversions ?? {},
+		};
+	} catch {
+		return { submissions: [], views: {}, conversions: {} };
 	}
 }
 
-async function writeToFile(data: AnalyticsData): Promise<void> {
-	await ensureDataDir();
-	await fs.writeFile(DATA_FILE_PATH, JSON.stringify(data, null, 2), 'utf-8');
-}
-
-async function readFromGist(): Promise<AnalyticsData> {
-	if (!GIST_ID) {
-		return readFromFile();
-	}
-
+async function writeFormsToFile(forms: FormsData): Promise<void> {
 	try {
-		const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-			headers: {
-				Accept: 'application/vnd.github.v3+json'
-			}
-		});
+		const dir = path.dirname(DATA_FILE_PATH);
+		await fs.mkdir(dir, { recursive: true });
 
-		if (!response.ok) {
-			console.warn('[AnalyticsStore] Unable to load gist, falling back to file:', response.status);
-			return readFromFile();
-		}
+		let existing: any = {};
+		try {
+			const content = await fs.readFile(DATA_FILE_PATH, 'utf-8');
+			existing = JSON.parse(content);
+		} catch { /* fresh file */ }
 
-		const gist = await response.json();
-		const file = gist.files?.[GIST_FILENAME];
-		if (!file?.content) {
-			await writeToGist(DEFAULT_DATA);
-			return structuredClone(DEFAULT_DATA);
-		}
+		existing.forms = forms;
+		existing.meta = {
+			version: (existing.meta?.version ?? 0) + 1,
+			updatedAt: new Date().toISOString(),
+		};
 
-		const parsed = JSON.parse(file.content) as AnalyticsData;
-		return normaliseData(parsed);
+		await fs.writeFile(DATA_FILE_PATH, JSON.stringify(existing, null, 2), 'utf-8');
 	} catch (error) {
-		console.warn('[AnalyticsStore] Gist read failed, falling back to file storage:', error);
-		return readFromFile();
+		console.error('[AnalyticsStore] Failed to write forms file:', error);
 	}
 }
 
-async function writeToGist(data: AnalyticsData): Promise<void> {
-	if (!GIST_ID || !GIST_TOKEN) {
-		await writeToFile(data);
-		return;
-	}
-
-	const payload = {
-		files: {
-			[GIST_FILENAME]: {
-				content: JSON.stringify(data, null, 2)
-			}
-		}
-	};
-
-	try {
-		const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-			method: 'PATCH',
-			headers: {
-				Authorization: `token ${GIST_TOKEN}`,
-				'Content-Type': 'application/json',
-				Accept: 'application/vnd.github.v3+json'
-			},
-			body: JSON.stringify(payload)
-		});
-
-		if (!response.ok) {
-			console.warn('[AnalyticsStore] Gist write failed, persisting to file:', response.status, await response.text());
-			await writeToFile(data);
-		}
-	} catch (error) {
-		console.warn('[AnalyticsStore] Gist write error, persisting to file storage:', error);
-		await writeToFile(data);
-	}
-}
-
-async function loadData(force = false): Promise<AnalyticsData> {
-	const now = Date.now();
-
-	if (!force && cachedData && now - lastCacheLoad < CACHE_TTL_MS) {
-		return structuredClone(cachedData);
-	}
-
-	const data = await readFromGist();
-	cachedData = data;
-	lastCacheLoad = now;
-	return structuredClone(data);
-}
-
-async function persistData(data: AnalyticsData): Promise<void> {
-	const serialisable: AnalyticsData = {
-		...data,
-		meta: {
-			version: data.meta.version + 1,
-			updatedAt: new Date().toISOString()
-		}
-	};
-
-	cachedData = structuredClone(serialisable);
-	lastCacheLoad = Date.now();
-
-	await writeToGist(serialisable);
-}
+// ──────────────────────────────────────────────
+// Public API – getAnalyticsData
+// ──────────────────────────────────────────────
 
 export async function getAnalyticsData(options?: { force?: boolean }): Promise<AnalyticsData> {
-	return loadData(options?.force ?? false);
+	// Repairs come from the database (persistent!)
+	let repairs: RepairBooking[] = [];
+	try {
+		const rows = await prisma.repair.findMany({
+			orderBy: { createdAt: 'desc' },
+			include: { customer: true },
+		});
+		repairs = rows.map(mapRepairRow);
+	} catch (error) {
+		console.error('[AnalyticsStore] Database read failed, returning empty repairs:', error);
+	}
+
+	// Forms come from the local file (non-critical analytics)
+	const forms = await readFormsFromFile();
+
+	return {
+		forms,
+		repairs,
+		meta: {
+			version: 1,
+			updatedAt: new Date().toISOString(),
+		},
+	};
 }
 
+// ──────────────────────────────────────────────
+// Form Operations
+// ──────────────────────────────────────────────
+
 export async function recordFormView(formType: string): Promise<AnalyticsData> {
-	const data = await loadData();
-	data.forms.views[formType] = (data.forms.views[formType] || 0) + 1;
-	await persistData(data);
-	return structuredClone(data);
+	const forms = await readFormsFromFile();
+	forms.views[formType] = (forms.views[formType] || 0) + 1;
+	await writeFormsToFile(forms);
+	return getAnalyticsData();
 }
 
 export interface RecordFormSubmissionInput {
@@ -248,7 +194,7 @@ export interface RecordFormSubmissionResult {
 }
 
 export async function recordFormSubmission(input: RecordFormSubmissionInput): Promise<RecordFormSubmissionResult> {
-	const data = await loadData();
+	const forms = await readFormsFromFile();
 	const submission: FormSubmission = {
 		id: `FORM-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
 		formType: input.formType,
@@ -256,84 +202,82 @@ export async function recordFormSubmission(input: RecordFormSubmissionInput): Pr
 		fields: input.fields,
 		userAgent: input.userAgent,
 		page: input.page,
-		trackingId: input.trackingId
+		trackingId: input.trackingId,
 	};
 
-	data.forms.submissions.push(submission);
+	forms.submissions.push(submission);
 
 	let repair: RepairBooking | undefined;
 
 	if (input.formType === 'repair-booking') {
-		repair = await createOrUpdateRepairFromSubmission(data, submission);
+		repair = await createRepairFromSubmission(submission);
 		if (repair) {
 			submission.trackingId = repair.trackingId;
 		}
 	}
 
-	await persistData(data);
+	await writeFormsToFile(forms);
 	return { submission, repair };
 }
 
-async function createOrUpdateRepairFromSubmission(data: AnalyticsData, submission: FormSubmission): Promise<RepairBooking> {
+async function createRepairFromSubmission(submission: FormSubmission): Promise<RepairBooking | undefined> {
 	const fields = submission.fields || {};
 	const trackingId = (submission.trackingId as string | undefined) || generateTrackingId();
 
-	const existingIndex = data.repairs.findIndex((booking) => booking.trackingId === trackingId);
+	try {
+		const customerName = fields.customerName || fields.name || 'Unknown';
+		const email = fields.email || `unknown-${Date.now()}@placeholder.com`;
+		const phone = fields.phone || '';
+
+		// Find or create customer
+		let customer = await prisma.customer.findUnique({ where: { email } });
+		if (!customer) {
+			customer = await prisma.customer.create({
+				data: { name: customerName, email, phone, address: fields.address },
+			});
+		}
+
 		const parsedCost = parseFloat(String(fields.totalCost ?? ''));
 		const totalCost = Number.isFinite(parsedCost) ? parsedCost : undefined;
 
-		const baseBooking: RepairBooking = {
-		trackingId,
-		customerName: fields.customerName || fields.name || 'Unknown',
-		email: fields.email || '',
-		phone: fields.phone || '',
-		deviceType: fields.deviceType || 'Unknown device',
-		issueDescription: fields.issueDescription || fields.issue || 'No description provided',
-		status: 'received',
-		submissionDate: new Date().toISOString(),
-		notes: fields.notes || '',
-		address: fields.address,
-		deviceModel: fields.deviceModel,
-		serviceType: fields.serviceType,
-			lastUpdated: new Date().toISOString(),
-			estimatedCompletion: deriveEstimatedCompletion(fields.preferredDate, fields.preferredTime),
-			totalCost
-	};
+		const repair = await prisma.repair.create({
+			data: {
+				trackingId,
+				customerId: customer.id,
+				deviceType: fields.deviceType || 'Unknown device',
+				deviceModel: fields.deviceModel || 'Unknown',
+				issueDescription: fields.issueDescription || fields.issue || 'No description provided',
+				serviceType: fields.serviceType || undefined,
+				status: 'received',
+				estimatedCost: totalCost,
+				estimatedCompletion: deriveEstimatedCompletion(fields.preferredDate, fields.preferredTime),
+				notes: fields.notes || '',
+			},
+			include: { customer: true },
+		});
 
-	if (existingIndex >= 0) {
-		const merged: RepairBooking = {
-			...data.repairs[existingIndex],
-			...baseBooking
-		};
-		data.repairs[existingIndex] = merged;
-		return merged;
-	}
-
-	data.repairs.push(baseBooking);
-	return baseBooking;
-}
-
-function deriveEstimatedCompletion(date?: string, time?: string): string | undefined {
-	if (!date) return undefined;
-	try {
-		const iso = time ? `${date}T${time}` : `${date}T09:00`;
-		return new Date(iso).toISOString();
+		return mapRepairRow(repair);
 	} catch (error) {
+		console.error('[AnalyticsStore] Failed to create repair in database:', error);
 		return undefined;
 	}
 }
 
-export function generateTrackingId(): string {
-	const prefix = 'ITS';
-	const date = new Date();
-	const formattedDate = `${date.getFullYear().toString().slice(-2)}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
-	const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-	return `${prefix}-${formattedDate}-${random}`;
-}
+// ──────────────────────────────────────────────
+// Repair CRUD – all backed by PostgreSQL
+// ──────────────────────────────────────────────
 
 export async function getRepairByTrackingId(trackingId: string): Promise<RepairBooking | null> {
-	const data = await loadData();
-	return data.repairs.find((repair) => repair.trackingId === trackingId) ?? null;
+	try {
+		const row = await prisma.repair.findUnique({
+			where: { trackingId },
+			include: { customer: true },
+		});
+		return row ? mapRepairRow(row) : null;
+	} catch (error) {
+		console.error('[AnalyticsStore] DB lookup failed for', trackingId, error);
+		return null;
+	}
 }
 
 export interface UpdateRepairInput {
@@ -347,71 +291,115 @@ export interface UpdateRepairInput {
 }
 
 export async function updateRepair(input: UpdateRepairInput): Promise<RepairBooking | null> {
-	const data = await loadData();
-	const index = data.repairs.findIndex((repair) => repair.trackingId === input.trackingId);
+	try {
+		const existing = await prisma.repair.findUnique({ where: { trackingId: input.trackingId } });
+		if (!existing) return null;
 
-	if (index === -1) {
+		const updateData: any = {};
+		if (input.status !== undefined) updateData.status = input.status;
+		if (input.notes !== undefined) updateData.notes = input.notes;
+		if (input.estimatedCompletion !== undefined) updateData.estimatedCompletion = input.estimatedCompletion || null;
+		if (input.totalCost !== undefined) {
+			updateData.estimatedCost = input.totalCost;
+			updateData.actualCost = input.totalCost;
+		}
+		if (input.status === 'completed') {
+			updateData.dateCompleted = new Date();
+		}
+
+		const updated = await prisma.repair.update({
+			where: { trackingId: input.trackingId },
+			data: updateData,
+			include: { customer: true },
+		});
+
+		return mapRepairRow(updated);
+	} catch (error) {
+		console.error('[AnalyticsStore] Failed to update repair:', error);
 		return null;
 	}
-
-	const current = data.repairs[index];
-	
-	// Convert string array to timestamped format for diagnostic images
-	const timestampedImages = input.diagnosticImages?.map(data => ({
-		data,
-		uploadedAt: new Date().toISOString()
-	}));
-	
-	const updated: RepairBooking = {
-		...current,
-		status: input.status ?? current.status,
-		notes: input.notes ?? current.notes,
-		estimatedCompletion: input.estimatedCompletion === undefined ? current.estimatedCompletion : input.estimatedCompletion || undefined,
-		totalCost: input.totalCost === undefined ? current.totalCost : input.totalCost ?? undefined,
-		diagnosticImages: timestampedImages !== undefined ? timestampedImages : current.diagnosticImages,
-		diagnosticNotes: input.diagnosticNotes !== undefined ? input.diagnosticNotes : current.diagnosticNotes,
-		lastUpdated: new Date().toISOString()
-	};
-
-	data.repairs[index] = updated;
-	await persistData(data);
-	return updated;
 }
 
-export async function createRepair(manualData: Omit<RepairBooking, 'submissionDate' | 'lastUpdated' | 'status'> & { status?: RepairStatus }): Promise<RepairBooking> {
-	const data = await loadData();
-	const existing = data.repairs.find((repair) => repair.trackingId === manualData.trackingId);
-
+export async function createRepair(
+	manualData: Omit<RepairBooking, 'submissionDate' | 'lastUpdated' | 'status'> & { status?: RepairStatus }
+): Promise<RepairBooking> {
+	// Check for duplicate
+	const existing = await prisma.repair.findUnique({ where: { trackingId: manualData.trackingId } });
 	if (existing) {
 		throw new Error(`Repair with tracking ID ${manualData.trackingId} already exists`);
 	}
 
-	const booking: RepairBooking = {
-		...manualData,
-		status: manualData.status ?? 'received',
-		submissionDate: new Date().toISOString(),
-		lastUpdated: new Date().toISOString()
-	};
+	// Find or create customer
+	const email = manualData.email || `unknown-${Date.now()}@placeholder.com`;
+	let customer = await prisma.customer.findUnique({ where: { email } });
+	if (!customer) {
+		customer = await prisma.customer.create({
+			data: {
+				name: manualData.customerName || 'Unknown',
+				email,
+				phone: manualData.phone || '',
+				address: manualData.address,
+			},
+		});
+	}
 
-	data.repairs.push(booking);
-	await persistData(data);
-	return booking;
+	const repair = await prisma.repair.create({
+		data: {
+			trackingId: manualData.trackingId,
+			customerId: customer.id,
+			deviceType: manualData.deviceType || 'Unknown',
+			deviceModel: manualData.deviceModel || 'Unknown',
+			issueDescription: manualData.issueDescription || 'No description',
+			serviceType: manualData.serviceType || undefined,
+			status: manualData.status || 'received',
+			estimatedCost: manualData.totalCost,
+			estimatedCompletion: manualData.estimatedCompletion,
+			notes: manualData.notes || '',
+		},
+		include: { customer: true },
+	});
+
+	return mapRepairRow(repair);
 }
 
 export async function deleteRepair(trackingId: string): Promise<RepairBooking | null> {
-	const data = await loadData();
-	const index = data.repairs.findIndex((repair) => repair.trackingId === trackingId);
+	try {
+		const existing = await prisma.repair.findUnique({
+			where: { trackingId },
+			include: { customer: true },
+		});
+		if (!existing) return null;
 
-	if (index === -1) {
+		await prisma.repair.delete({ where: { trackingId } });
+		return mapRepairRow(existing);
+	} catch (error) {
+		console.error('[AnalyticsStore] Failed to delete repair:', error);
 		return null;
 	}
+}
 
-	const [removed] = data.repairs.splice(index, 1);
-	await persistData(data);
-	return removed;
+// ──────────────────────────────────────────────
+// Utilities
+// ──────────────────────────────────────────────
+
+function deriveEstimatedCompletion(date?: string, time?: string): string | undefined {
+	if (!date) return undefined;
+	try {
+		const iso = time ? `${date}T${time}` : `${date}T09:00`;
+		return new Date(iso).toISOString();
+	} catch {
+		return undefined;
+	}
+}
+
+export function generateTrackingId(): string {
+	const prefix = 'ITS';
+	const date = new Date();
+	const formattedDate = `${date.getFullYear().toString().slice(-2)}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
+	const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+	return `${prefix}-${formattedDate}-${random}`;
 }
 
 export async function clearCache(): Promise<void> {
-	cachedData = null;
-	lastCacheLoad = 0;
+	// No-op – Prisma handles its own connection pool
 }

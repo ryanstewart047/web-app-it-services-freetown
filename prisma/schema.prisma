@@ -4,10 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // Use POSTGRES_URL for Prisma Accelerate (pooled connection)
-  url      = env("POSTGRES_URL")
-  // Use DATABASE_URL for direct connection (migrations)
-  directUrl = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 model Customer {
@@ -47,6 +44,7 @@ model Repair {
   deviceType          String
   deviceModel         String
   issueDescription    String
+  serviceType         String?
   status              String           @default("received")
   estimatedCost       Float?
   actualCost          Float?
