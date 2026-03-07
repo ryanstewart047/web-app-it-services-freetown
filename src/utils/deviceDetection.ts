@@ -162,15 +162,6 @@ export function shouldShowInstallBanner(): boolean {
     return false
   }
   
-  // Check if banner was dismissed this session (but allow showing after uninstall)
-  if (typeof sessionStorage !== 'undefined') {
-    const dismissed = sessionStorage.getItem('pwa-banner-dismissed')
-    if (dismissed === 'true') {
-      console.log('PWA Banner: Not showing - dismissed this session')
-      return false
-    }
-  }
-  
   console.log('PWA Banner: Should show banner')
   return true
 }

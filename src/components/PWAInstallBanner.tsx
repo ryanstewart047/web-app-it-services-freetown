@@ -50,10 +50,6 @@ export default function PWAInstallBanner() {
         setShowBanner(false)
       } else {
         console.log('PWA Install Banner: App was uninstalled, allowing fresh install')
-        // Reset banner state to allow showing again
-        if (typeof sessionStorage !== 'undefined') {
-          sessionStorage.removeItem('pwa-banner-dismissed')
-        }
         // Re-check if we should show banner after uninstall
         if (shouldShowInstallBanner()) {
           setShowBanner(true)
@@ -139,10 +135,6 @@ export default function PWAInstallBanner() {
 
   const handleClose = () => {
     setShowBanner(false)
-    // Set a flag to not show again for this session
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('pwa-banner-dismissed', 'true')
-    }
   }
 
   // Don't show banner if conditions are not met
