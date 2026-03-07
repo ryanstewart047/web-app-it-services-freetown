@@ -811,6 +811,61 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
     }
   };
 
+  const handleDeleteRepair = async (trackingId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!confirm(`Are you sure you want to permanently delete repair ${trackingId}? This action cannot be undone.`)) return;
+
+    try {
+      const response = await fetch('/api/analytics/repairs/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', trackingId }),
+      });
+
+      if (response.ok) {
+        alert('Repair deleted successfully.');
+        if (selectedRepair?.trackingId === trackingId) setSelectedRepair(null);
+        onUpdate();
+      } else {
+        const error = await response.json();
+        alert(`Failed to delete repair: ${error.error || 'Unknown error'}`);
+      }
+    } catch (err) {
+      console.error('Error deleting repair:', err);
+      alert('Error deleting repair');
+    }
+  };
+
+  const handleCancelRepair = async (trackingId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const reason = prompt(`Cancel repair ${trackingId}?\n\nEnter a cancellation reason (shown to customer):`);
+    if (reason === null) return; // user pressed Cancel in the prompt
+
+    try {
+      const response = await fetch('/api/analytics/repairs/', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trackingId,
+          status: 'cancelled',
+          notes: reason || 'Repair cancelled by admin.',
+        }),
+      });
+
+      if (response.ok) {
+        alert('Repair cancelled. Customer will see the cancellation notice when they track their repair.');
+        if (selectedRepair?.trackingId === trackingId) setSelectedRepair(null);
+        onUpdate();
+      } else {
+        const error = await response.json();
+        alert(`Failed to cancel repair: ${error.error || 'Unknown error'}`);
+      }
+    } catch (err) {
+      console.error('Error cancelling repair:', err);
+      alert('Error cancelling repair');
+    }
+  };
+
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files) return;
@@ -886,39 +941,70 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
           <div className="max-h-[26rem] space-y-3 overflow-y-auto pr-2">
             {repairs.allRepairs && repairs.allRepairs.length ? (
               repairs.allRepairs.map((repair) => (
-                <button
+                <div
                   key={repair.trackingId}
-                  onClick={() => setSelectedRepair(repair)}
-                  className={`w-full rounded-2xl border px-4 py-3 text-left text-sm transition hover:border-red-400 hover:shadow-md dark:hover:border-red-500/60 ${
+                  className={`relative rounded-2xl border text-sm transition hover:border-red-400 hover:shadow-md dark:hover:border-red-500/60 ${
                     selectedRepair?.trackingId === repair.trackingId
                       ? 'border-red-500 bg-red-500/10 text-red-600 dark:border-red-400 dark:bg-red-500/10 dark:text-red-200'
                       : 'border-gray-200 bg-white text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200'
                   }`}
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="font-semibold">{repair.trackingId}</div>
-                    <span className="rounded-full border border-current px-2 py-0.5 text-[11px] uppercase tracking-wide">
-                      {repair.status ?? 'pending'}
-                    </span>
+                  <button
+                    onClick={() => setSelectedRepair(repair)}
+                    className="w-full px-4 py-3 text-left"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2 pr-16">
+                      <div className="font-semibold">{repair.trackingId}</div>
+                      <span className={`rounded-full border px-2 py-0.5 text-[11px] uppercase tracking-wide ${
+                        repair.status === 'cancelled'
+                          ? 'border-red-400 bg-red-100 text-red-600 dark:border-red-600 dark:bg-red-900/40 dark:text-red-300'
+                          : 'border-current'
+                      }`}>
+                        {repair.status ?? 'pending'}
+                      </span>
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                      <span>{repair.deviceType ?? 'Unknown device'}</span>
+                      <span>•</span>
+                      <span>{repair.customerName ?? 'No customer name'}</span>
+                      {repair.totalCost ? (
+                        <>
+                          <span>•</span>
+                          <span>Le {repair.totalCost}</span>
+                        </>
+                      ) : null}
+                      {repair.lastUpdated ? (
+                        <>
+                          <span>•</span>
+                          <span>Updated {repair.lastUpdated}</span>
+                        </>
+                      ) : null}
+                    </div>
+                  </button>
+                  {/* Action buttons */}
+                  <div className="absolute right-2 top-2 flex items-center gap-1">
+                    {repair.status !== 'cancelled' && (
+                      <button
+                        onClick={(e) => handleCancelRepair(repair.trackingId, e)}
+                        title="Cancel repair"
+                        className="flex h-7 w-7 items-center justify-center rounded-lg text-orange-500 transition hover:bg-orange-100 hover:text-orange-700 dark:hover:bg-orange-900/30"
+                      >
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                        </svg>
+                      </button>
+                    )}
+                    <button
+                      onClick={(e) => handleDeleteRepair(repair.trackingId, e)}
+                      title="Delete repair"
+                      className="flex h-7 w-7 items-center justify-center rounded-lg text-red-400 transition hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30"
+                    >
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
                   </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                    <span>{repair.deviceType ?? 'Unknown device'}</span>
-                    <span>•</span>
-                    <span>{repair.customerName ?? 'No customer name'}</span>
-                    {repair.totalCost ? (
-                      <>
-                        <span>•</span>
-                        <span>Le {repair.totalCost}</span>
-                      </>
-                    ) : null}
-                    {repair.lastUpdated ? (
-                      <>
-                        <span>•</span>
-                        <span>Updated {repair.lastUpdated}</span>
-                      </>
-                    ) : null}
-                  </div>
-                </button>
+                </div>
               ))
             ) : (
               <p className="rounded-2xl border border-dashed border-gray-300 px-4 py-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-500">
@@ -1048,15 +1134,40 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                 </div>
               </div>
 
-              <button
-                onClick={updateRepair}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-600 dark:hover:bg-red-500"
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Apply update
-              </button>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={updateRepair}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-600 dark:hover:bg-red-500"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Apply update
+                </button>
+
+                <div className="flex gap-2">
+                  {selectedRepair.status !== 'cancelled' && (
+                    <button
+                      onClick={() => handleCancelRepair(selectedRepair.trackingId)}
+                      className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-orange-300 bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-700 transition hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 dark:border-orange-700 dark:bg-orange-900/20 dark:text-orange-300 dark:hover:bg-orange-900/40"
+                    >
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                      </svg>
+                      Cancel repair
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDeleteRepair(selectedRepair.trackingId)}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 dark:border-red-700 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/40"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Delete repair
+                  </button>
+                </div>
+              </div>
             </div>
           ) : (
             <p className="text-sm text-gray-500 dark:text-gray-400">
