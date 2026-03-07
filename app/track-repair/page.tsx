@@ -1,10 +1,36 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import AppointmentStatus from '@/components/AppointmentStatus';
 import TrackingDebug from '@/components/TrackingDebug';
 import { usePageLoader } from '@/hooks/usePageLoader';
 import LoadingOverlay from '@/components/LoadingOverlay';
+
+const SESSION_KEY = 'its_track_session';
+const IDLE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+
+function getSession(): { trackingId: string; timestamp: number } | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    // Expire after 5 minutes of inactivity
+    if (Date.now() - data.timestamp > IDLE_TIMEOUT) {
+      sessionStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+    return data;
+  } catch { return null; }
+}
+
+function saveSession(trackingId: string) {
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ trackingId, timestamp: Date.now() })); } catch {}
+}
+
+function clearSession() {
+  try { sessionStorage.removeItem(SESSION_KEY); } catch {}
+}
 
 export default function TrackRepair() {
   const { isLoading, progress } = usePageLoader({
@@ -13,36 +39,75 @@ export default function TrackRepair() {
   
   const [trackingId, setTrackingId] = useState('');
   const [showStatus, setShowStatus] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [browserSupport, setBrowserSupport] = useState(true);
+  const lastActivityRef = useRef(Date.now());
 
-  // Check browser support for localStorage on mount
+  // Restore session on mount & setup inactivity timer
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hasLocalStorage = typeof Storage !== 'undefined' && !!window.localStorage;
-      setBrowserSupport(hasLocalStorage);
-      
-      if (!hasLocalStorage) {
-        console.warn('localStorage not supported on this device/browser');
-      }
+    if (typeof window === 'undefined') return;
+
+    const hasLocalStorage = typeof Storage !== 'undefined' && !!window.localStorage;
+    setBrowserSupport(hasLocalStorage);
+    if (!hasLocalStorage) {
+      console.warn('localStorage not supported on this device/browser');
     }
+
+    // Restore previous session if still valid
+    const session = getSession();
+    if (session) {
+      setTrackingId(session.trackingId);
+      setShowStatus(true);
+    }
+
+    // Track user activity for idle timeout
+    const touchActivity = () => {
+      lastActivityRef.current = Date.now();
+      // Keep session timestamp fresh while user is active
+      const s = getSession();
+      if (s) saveSession(s.trackingId);
+    };
+
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+    events.forEach(e => document.addEventListener(e, touchActivity, { passive: true }));
+
+    // Check idle every 30 seconds
+    const idleCheck = setInterval(() => {
+      if (Date.now() - lastActivityRef.current > IDLE_TIMEOUT && showStatus) {
+        clearSession();
+        setShowStatus(false);
+        setTrackingId('');
+      }
+    }, 30_000);
+
+    return () => {
+      events.forEach(e => document.removeEventListener(e, touchActivity));
+      clearInterval(idleCheck);
+    };
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (trackingId.trim()) {
-      // Add mobile debugging
       console.log('Submitting tracking ID:', trackingId);
-      console.log('localStorage available:', typeof Storage !== 'undefined');
-      console.log('User agent:', navigator.userAgent);
-      
+      saveSession(trackingId.trim());
       setShowStatus(true);
+      setRefreshKey(k => k + 1);
     }
   };
 
   const resetSearch = () => {
+    clearSession();
     setTrackingId('');
     setShowStatus(false);
+  };
+
+  const handleRefresh = () => {
+    // Re-mount AppointmentStatus to re-fetch data — keeps tracking ID intact
+    setRefreshKey(k => k + 1);
+    // Touch session timestamp
+    if (trackingId) saveSession(trackingId);
   };
 
   if (isLoading) {
@@ -188,7 +253,7 @@ export default function TrackRepair() {
                   Search Again
                 </button>
                 <button
-                  onClick={() => window.location.reload()}
+                  onClick={handleRefresh}
                   className="flex items-center px-4 py-2 text-blue-600 hover:text-blue-800 transition-colors duration-300"
                 >
                   <i className="fas fa-sync-alt mr-2"></i>
@@ -196,7 +261,7 @@ export default function TrackRepair() {
                 </button>
               </div>
               
-              <AppointmentStatus trackingId={trackingId} />
+              <AppointmentStatus key={refreshKey} trackingId={trackingId} />
             </div>
           )}
 
