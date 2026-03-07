@@ -103,39 +103,44 @@ export function getInstallInstructions(): string {
 }
 
 /**
- * Checks if the app is already installed (running in standalone mode)
+ * Mark the PWA as installed — call from `appinstalled` event or after
+ * the user accepts the install prompt.
+ */
+export function markPWAInstalled(): void {
+  try {
+    localStorage.setItem('pwa-was-installed', 'true')
+    localStorage.setItem('pwa-install-time', Date.now().toString())
+    console.log('PWA: Marked as installed')
+  } catch {}
+}
+
+/**
+ * Checks if the app is already installed (running in standalone mode
+ * OR was previously installed via the install prompt).
  * @returns boolean indicating if app is installed
  */
 export function isPWAInstalled(): boolean {
   if (typeof window === 'undefined') return false
-  
-  // Check if running in standalone mode
+
+  // 1. Running in standalone / home-screen mode right now
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-  
-  // Check iOS specific standalone mode
   const isIOSStandalone = (navigator as any).standalone === true
-  
-  const isInstalled = isStandalone || isIOSStandalone
-  
-  // Store installation state for comparison
-  if (typeof localStorage !== 'undefined') {
-    const wasInstalled = localStorage.getItem('pwa-was-installed') === 'true'
-    
-    if (isInstalled && !wasInstalled) {
-      // App was just installed
-      localStorage.setItem('pwa-was-installed', 'true')
-      localStorage.setItem('pwa-install-time', Date.now().toString())
-      console.log('PWA: App installed!')
-    } else if (!isInstalled && wasInstalled) {
-      // App was uninstalled
-      localStorage.removeItem('pwa-was-installed')
-      localStorage.removeItem('pwa-install-time')
-      localStorage.removeItem('pwa-banner-dismissed')
-      console.log('PWA: App uninstalled - resetting state')
-    }
+
+  if (isStandalone || isIOSStandalone) {
+    // Ensure the persisted flag is set
+    markPWAInstalled()
+    return true
   }
-  
-  return isInstalled
+
+  // 2. Previously installed (user may be visiting the site in the browser
+  //    but the PWA is already on their home screen)
+  try {
+    if (localStorage.getItem('pwa-was-installed') === 'true') {
+      return true
+    }
+  } catch {}
+
+  return false
 }
 
 /**

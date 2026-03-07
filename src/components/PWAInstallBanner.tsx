@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { 
   shouldShowPWAInstall, 
   isPWASupported, 
-  isPWAInstalled, 
+  isPWAInstalled,
+  markPWAInstalled,
   shouldShowInstallBanner,
   getInstallInstructions,
   detectDevice,
@@ -60,7 +61,15 @@ export default function PWAInstallBanner() {
       }
     })
 
+    // Listen for the appinstalled event to persistently mark the app as installed
+    const handleAppInstalled = () => {
+      console.log('PWA Install Banner: appinstalled event fired')
+      markPWAInstalled()
+      setShowBanner(false)
+    }
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    window.addEventListener('appinstalled', handleAppInstalled)
 
     // For iOS devices, show banner after a short delay since beforeinstallprompt doesn't fire
     if (device.isIOS && shouldShowInstallBanner()) {
@@ -74,6 +83,7 @@ export default function PWAInstallBanner() {
       
       return () => {
         window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+        window.removeEventListener('appinstalled', handleAppInstalled)
         clearTimeout(timer)
         cleanupMonitor()
       }
@@ -91,6 +101,7 @@ export default function PWAInstallBanner() {
       
       return () => {
         window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+        window.removeEventListener('appinstalled', handleAppInstalled)
         clearTimeout(fallbackTimer)
         cleanupMonitor()
       }
@@ -98,6 +109,7 @@ export default function PWAInstallBanner() {
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      window.removeEventListener('appinstalled', handleAppInstalled)
       cleanupMonitor()
     }
   }, [])
@@ -110,7 +122,7 @@ export default function PWAInstallBanner() {
         console.log('PWA Install result:', choiceResult.outcome)
         if (choiceResult.outcome === 'accepted') {
           console.log('User accepted the install prompt')
-          // The installation state monitoring will handle the banner hiding
+          markPWAInstalled()
         }
         setDeferredPrompt(null)
         setShowBanner(false)
@@ -145,11 +157,11 @@ export default function PWAInstallBanner() {
       <div className="pwa-banner-content flex items-center justify-between max-w-6xl mx-auto">
         <div className="flex items-center space-x-4">
           {/* Site Logo */}
-          <div className="pwa-banner-icon bg-white/10 p-3 rounded-xl backdrop-blur-sm">
+          <div className="pwa-banner-icon bg-white/10 p-4 rounded-xl backdrop-blur-sm">
             <img 
               src="/assets/logo.png" 
               alt="IT Services Freetown" 
-              className="w-10 h-10 object-contain"
+              className="w-16 h-16 object-contain"
               onError={(e) => {
                 // Fallback to SVG if PNG fails
                 (e.target as HTMLImageElement).src = "/assets/logo.svg"
