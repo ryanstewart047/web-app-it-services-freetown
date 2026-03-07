@@ -823,6 +823,12 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
       });
 
       if (response.ok) {
+        // Also remove from localStorage so loadData doesn't re-sync it
+        try {
+          const { deleteBooking } = await import('@/lib/unified-booking-storage');
+          deleteBooking(trackingId);
+        } catch (_) { /* localStorage may not be available */ }
+
         alert('Repair deleted successfully.');
         if (selectedRepair?.trackingId === trackingId) setSelectedRepair(null);
         onUpdate();

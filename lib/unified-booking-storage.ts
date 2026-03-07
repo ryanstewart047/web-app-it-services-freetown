@@ -125,6 +125,20 @@ export function getBookingByTrackingId(trackingId: string): BookingData | null {
 }
 
 // Check if a tracking ID exists
+export function deleteBooking(trackingId: string): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const bookings = getAllBookings();
+    const filtered = bookings.filter(b => b.trackingId !== trackingId);
+    if (filtered.length === bookings.length) return false; // not found
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+    return true;
+  } catch (error) {
+    console.error('Error deleting booking from localStorage:', error);
+    return false;
+  }
+}
+
 export function isValidTrackingId(trackingId: string): boolean {
   return getBookingByTrackingId(trackingId) !== null;
 }
