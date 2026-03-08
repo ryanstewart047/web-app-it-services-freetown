@@ -69,7 +69,7 @@ export default function Chat() {
       if (useClientSide) {
         // Handle repair tracking queries first (client-side)
         if (isRepairTrackingQueryClient(userMessage)) {
-          const trackingResult = handleRepairTrackingClient(userMessage)
+          const trackingResult = await handleRepairTrackingClient(userMessage)
           addMessage(trackingResult.response, 'bot', 
             trackingResult.source === 'repair_tracking' ? 'tracking' : 'text', 
             trackingResult.trackingData)

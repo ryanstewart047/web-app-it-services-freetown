@@ -741,42 +741,85 @@ const mockRepairDataClient: Record<string, any> = {
 }
 
 /**
+ * Fetch real repair data from the API
+ */
+async function fetchRepairFromApi(trackingId: string): Promise<any | null> {
+  try {
+    const response = await fetch(`/api/analytics/repairs?trackingId=${encodeURIComponent(trackingId)}`, {
+      cache: 'no-store'
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const repair = await response.json();
+    if (repair && repair.trackingId) {
+      return {
+        trackingId: repair.trackingId,
+        device: repair.deviceType || repair.device || 'Unknown device',
+        issue: repair.issueDescription || repair.issue || 'Repair service',
+        status: repair.status || 'received',
+        estimatedCompletion: repair.estimatedCompletion || 'To be determined',
+        technician: repair.technician || 'Assigned technician',
+        notes: repair.notes || repair.diagnosticNotes || 'No additional notes.',
+        customerName: repair.customerName,
+        cost: repair.totalCost || repair.cost
+      };
+    }
+    return null;
+  } catch (error) {
+    console.warn('Repair API lookup failed:', error);
+    return null;
+  }
+}
+
+/**
  * Handle repair tracking queries (client-side)
  */
-export function handleRepairTrackingClient(message: string): {
+export async function handleRepairTrackingClient(message: string): Promise<{
   response: string
   source: string
   trackingData?: any
-} {
+}> {
   const trackingId = extractTrackingIdClient(message)
   
-  if (trackingId && mockRepairDataClient[trackingId]) {
-    const repairData = mockRepairDataClient[trackingId]
-    const trackingResponse = `📋 **Repair Status for ${trackingId}**
+  if (trackingId) {
+    // Try real API first
+    const apiData = await fetchRepairFromApi(trackingId);
+    // Fall back to mock data if API returns nothing
+    const repairData = apiData || mockRepairDataClient[trackingId];
 
-**Device:** ${repairData.device}
-**Issue:** ${repairData.issue}
-**Status:** ${repairData.status}
-**Technician:** ${repairData.technician}
-**Est. Completion:** ${repairData.estimatedCompletion}
+    if (repairData) {
+      const statusDisplay = repairData.status.charAt(0).toUpperCase() + repairData.status.slice(1).replace(/-/g, ' ')
+      const trackingResponse = `📋 **Repair Status for ${trackingId}**
 
-**Notes:** ${repairData.notes}
+**Device:** ${repairData.device || repairData.deviceType || 'N/A'}
+**Issue:** ${repairData.issue || repairData.issueDescription || 'N/A'}
+**Status:** ${statusDisplay}
+${repairData.technician ? `**Technician:** ${repairData.technician}` : ''}
+**Est. Completion:** ${repairData.estimatedCompletion || 'To be determined'}
+${repairData.customerName ? `**Customer:** ${repairData.customerName}` : ''}
+${repairData.cost ? `**Cost:** $${repairData.cost}` : ''}
 
-${repairData.status === 'Completed' ? '✅ Your device is ready for pickup!' : '⏳ We\'ll notify you when it\'s ready.'}
+**Notes:** ${repairData.notes || 'No additional notes.'}
+
+${repairData.status === 'completed' || repairData.status === 'Completed' || repairData.status === 'ready-for-pickup' ? '✅ Your device is ready for pickup!' : '⏳ We\'ll notify you when it\'s ready.'}
 
 Need more details? Call us or visit our location.`
 
-    return {
-      response: trackingResponse,
-      source: 'repair_tracking',
-      trackingData: repairData
-    }
-  } else if (trackingId) {
-    return {
-      response: `❌ Sorry, I couldn't find a repair with tracking ID "${trackingId}". Please double-check the ID or contact us for assistance.
+      return {
+        response: trackingResponse,
+        source: 'repair_tracking',
+        trackingData: repairData
+      }
+    } else {
+      return {
+        response: `❌ Sorry, I couldn't find a repair with tracking ID "${trackingId}". Please double-check the ID or contact us for assistance.
 
 Valid format examples: ITS-250926-1001, ITS-XXXXXX-XXXX`,
-      source: 'repair_tracking'
+        source: 'repair_tracking'
+      }
     }
   } else {
     return {
