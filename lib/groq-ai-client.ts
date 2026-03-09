@@ -56,7 +56,7 @@ function isStaticDeployment(): boolean {
  * Generate AI response for chat support (client-side)
  */
 export async function generateChatResponseClient(context: ChatContext): Promise<string> {
-  const systemMessage = `You are the official AI assistant for **IT Services Freetown** — a professional computer and mobile repair shop in Freetown, Sierra Leone. Your name is **ITBot**. You represent the business in every conversation.
+  const systemMessage = `You are the official AI assistant for **IT Services Freetown** — a professional computer and mobile repair shop in Freetown, Sierra Leone. Your name is **Alison**. You represent the business in every conversation.
 
 ═══════════════════════════════════════
 📍 BUSINESS DETAILS
@@ -213,7 +213,7 @@ function generateFallbackChatResponse(userMessage: string): string {
   
   // Greetings
   if (msg.match(/^(hi|hello|hey|good morning|good afternoon|good evening|yo|sup|whatsup|what's up|howdy|greetings)/)) {
-    return `Hello! 👋 Welcome to **IT Services Freetown**! I'm ITBot, your AI assistant.
+    return `Hello! 👋 Welcome to **IT Services Freetown**! I'm Alison, your AI assistant.
 
 I can help you with:
 🔧 Device troubleshooting & repair advice
@@ -645,7 +645,7 @@ Take care! 🙌`
   // Default helpful response
   return `Thank you for contacting **IT Services Freetown**! 👋
 
-I'm ITBot, your AI assistant. I can help with:
+I'm Alison, your AI assistant. I can help with:
 
 🛠️ **Repairs:** Computer, mobile, screens, batteries, charging ports
 🔓 **Unlocking:** FRP, iCloud, network, pattern/PIN locks
