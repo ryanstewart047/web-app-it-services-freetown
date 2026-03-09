@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   getAnalyticsData,
   getRepairByTrackingId,
+  searchRepairsByCustomerInfo,
   updateRepair,
   createRepair,
   deleteRepair,
@@ -14,6 +15,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const trackingId = searchParams.get('trackingId');
     const status = searchParams.get('status');
+    const customerName = searchParams.get('customerName');
+    const customerEmail = searchParams.get('customerEmail');
+    const customerPhone = searchParams.get('customerPhone');
 
     // If trackingId is provided, return specific repair
     if (trackingId) {
@@ -22,6 +26,16 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Repair not found' }, { status: 404 });
       }
       return NextResponse.json(repair);
+    }
+
+    // If customer info provided, search by customer details
+    if (customerName || customerEmail || customerPhone) {
+      const repairs = await searchRepairsByCustomerInfo({
+        name: customerName || undefined,
+        email: customerEmail || undefined,
+        phone: customerPhone || undefined,
+      });
+      return NextResponse.json({ repairs, count: repairs.length });
     }
 
     const data = await getAnalyticsData();

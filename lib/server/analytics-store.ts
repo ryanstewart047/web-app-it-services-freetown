@@ -280,6 +280,57 @@ export async function getRepairByTrackingId(trackingId: string): Promise<RepairB
 	}
 }
 
+/**
+ * Search repairs by customer name, email, or phone number.
+ * Returns all matching repairs (most recent first).
+ */
+export async function searchRepairsByCustomerInfo(query: {
+	name?: string;
+	email?: string;
+	phone?: string;
+}): Promise<RepairBooking[]> {
+	try {
+		const conditions: any[] = [];
+
+		if (query.name && query.name.trim()) {
+			conditions.push({
+				customer: { name: { contains: query.name.trim(), mode: 'insensitive' } },
+			});
+		}
+		if (query.email && query.email.trim()) {
+			conditions.push({
+				customer: { email: { equals: query.email.trim().toLowerCase(), mode: 'insensitive' } },
+			});
+		}
+		if (query.phone && query.phone.trim()) {
+			// Normalize: strip spaces, dashes, parens, plus
+			const normalizedPhone = query.phone.replace(/[\s\-\(\)\+]/g, '');
+			conditions.push({
+				customer: {
+					phone: {
+						contains: normalizedPhone.slice(-8), // Match last 8 digits for flexibility
+						mode: 'insensitive',
+					},
+				},
+			});
+		}
+
+		if (conditions.length === 0) return [];
+
+		const rows = await prisma.repair.findMany({
+			where: { OR: conditions },
+			include: { customer: true },
+			orderBy: { dateReceived: 'desc' },
+			take: 10,
+		});
+
+		return rows.map(mapRepairRow);
+	} catch (error) {
+		console.error('[AnalyticsStore] Customer search failed:', error);
+		return [];
+	}
+}
+
 export interface UpdateRepairInput {
 	trackingId: string;
 	status?: RepairStatus;

@@ -119,7 +119,8 @@ export async function generateChatResponseClient(context: ChatContext): Promise<
 • Every repair gets a tracking ID (format: ITS-XXXXXX-XXXX)
 • Customers can track status on the website at /track-repair or by asking you
 • If a customer provides a tracking ID, look it up for them
-• If they don't have their ID, suggest they call +232 33 399 391 or check their confirmation email
+• If they don't have their tracking ID, you can find their repair by their name, email, or phone number — just ask them to provide it
+• Encourage customers who lost their tracking ID to share their name, email, or phone so you can look it up
 
 ═══════════════════════════════════════
 🤖 YOUR BEHAVIOUR RULES
@@ -1214,6 +1215,193 @@ async function fetchRepairFromApi(trackingId: string): Promise<any | null> {
     console.warn('Repair API lookup failed:', error);
     return null;
   }
+}
+
+/**
+ * Search repairs by customer info (name, email, phone)
+ */
+async function searchRepairsByCustomerInfoClient(info: {
+  name?: string;
+  email?: string;
+  phone?: string;
+}): Promise<any[]> {
+  try {
+    const params = new URLSearchParams();
+    if (info.name) params.set('customerName', info.name);
+    if (info.email) params.set('customerEmail', info.email);
+    if (info.phone) params.set('customerPhone', info.phone);
+
+    const response = await fetch(`/api/analytics/repairs?${params.toString()}`, {
+      cache: 'no-store'
+    });
+
+    if (!response.ok) return [];
+
+    const data = await response.json();
+    if (data.repairs && Array.isArray(data.repairs)) {
+      return data.repairs.map((r: any) => ({
+        trackingId: r.trackingId,
+        device: r.deviceType || r.device || 'Unknown device',
+        deviceModel: r.deviceModel,
+        issue: r.issueDescription || r.issue || 'Repair service',
+        status: r.status || 'received',
+        estimatedCompletion: r.estimatedCompletion || new Date(Date.now() + 72 * 60 * 60 * 1000).toLocaleDateString(),
+        customerName: r.customerName,
+        cost: r.totalCost || r.cost
+      }));
+    }
+    return [];
+  } catch (error) {
+    console.warn('Customer search API failed:', error);
+    return [];
+  }
+}
+
+/**
+ * Extract customer info (name, email, phone) from a chat message.
+ * Returns null if no identifiable info found.
+ */
+function extractCustomerInfo(message: string): { name?: string; email?: string; phone?: string } | null {
+  const info: { name?: string; email?: string; phone?: string } = {};
+
+  // Extract email
+  const emailMatch = message.match(/[\w.\-+]+@[\w.\-]+\.\w{2,}/i);
+  if (emailMatch) info.email = emailMatch[0];
+
+  // Extract phone number (various formats: +23233399391, 232-33-399391, 033399391, etc.)
+  const phoneMatch = message.match(/(?:\+?\d{1,3}[\s\-]?)?\d[\d\s\-]{6,14}\d/);
+  if (phoneMatch) {
+    const cleaned = phoneMatch[0].replace(/[\s\-]/g, '');
+    if (cleaned.length >= 7) info.phone = cleaned;
+  }
+
+  // If we found email or phone, return
+  if (info.email || info.phone) return info;
+
+  // Otherwise look for a name pattern in the context of "my name is..." or "I am..."
+  const namePatterns = [
+    /(?:my name is|i am|i'm|this is|name:?)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})/i,
+    /(?:name is|called)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})/i,
+  ];
+  for (const pattern of namePatterns) {
+    const nameMatch = message.match(pattern);
+    if (nameMatch && nameMatch[1]) {
+      info.name = nameMatch[1].trim();
+      return info;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Check if a message is a customer trying to find their tracking ID
+ */
+export function isCustomerLookupQuery(message: string): boolean {
+  const msg = message.toLowerCase();
+  // Must mention finding/looking for their repair AND provide identifying info
+  const lookupKeywords = [
+    'find my repair', 'find my tracking', 'look up my repair', 'lookup my repair',
+    'my repair', 'my tracking id', 'don\'t have my tracking', 'lost my tracking',
+    'forgot my tracking', 'don\'t know my tracking', 'what is my tracking',
+    'where is my repair', 'check my repair', 'can you find my',
+    'i dropped off', 'i brought my', 'i submitted', 'i booked',
+    'my name is', 'my email is', 'my phone is', 'my number is'
+  ];
+  return lookupKeywords.some(keyword => msg.includes(keyword));
+}
+
+/**
+ * Handle customer lookup by name/email/phone — find their tracking ID(s)
+ */
+export async function handleCustomerLookup(message: string): Promise<{
+  response: string;
+  source: string;
+  trackingData?: any;
+}> {
+  const customerInfo = extractCustomerInfo(message);
+
+  if (!customerInfo) {
+    return {
+      response: `🔍 I'd love to help you find your repair! To look it up, please provide one of the following:
+
+📧 **Your email address** (used when booking)
+📱 **Your phone number**
+👤 **Your full name** (e.g. "My name is John Smith")
+
+For example, you can say:
+• "My email is john@example.com"
+• "My phone number is 033399391"
+• "My name is John Smith"`,
+      source: 'customer_lookup'
+    };
+  }
+
+  const repairs = await searchRepairsByCustomerInfoClient(customerInfo);
+
+  if (repairs.length === 0) {
+    const searchedWith = customerInfo.email
+      ? `email "${customerInfo.email}"`
+      : customerInfo.phone
+      ? `phone "${customerInfo.phone}"`
+      : `name "${customerInfo.name}"`;
+    return {
+      response: `❌ Sorry, I couldn't find any repairs associated with ${searchedWith}.
+
+This could mean:
+• The repair was booked under different contact info
+• The details may have a slight difference
+
+Please try:
+• A different email, phone, or name
+• Or call us at **+232 33 399 391** and we'll find it for you!`,
+      source: 'customer_lookup'
+    };
+  }
+
+  if (repairs.length === 1) {
+    const r = repairs[0];
+    const statusDisplay = r.status.charAt(0).toUpperCase() + r.status.slice(1).replace(/-/g, ' ');
+    return {
+      response: `✅ **Found your repair!**
+
+📋 **Tracking ID:** \`${r.trackingId}\`
+📱 **Device:** ${r.device}${r.deviceModel ? ` — ${r.deviceModel}` : ''}
+🔧 **Issue:** ${r.issue}
+📊 **Status:** ${statusDisplay}
+${r.estimatedCompletion ? `⏱️ **Est. Completion:** ${(() => { const d = new Date(r.estimatedCompletion); return isNaN(d.getTime()) ? r.estimatedCompletion : d.toLocaleDateString(); })()}` : ''}
+${r.cost ? `💰 **Cost:** Le ${r.cost.toLocaleString()}` : ''}
+
+${r.status === 'completed' || r.status === 'ready-for-pickup' ? '✅ Your device is ready for pickup!' : '⏳ We\'re working on it — we\'ll notify you when it\'s ready.'}
+
+You can track anytime at **itservicesfreetown.com/track-repair** using ID: **${r.trackingId}**`,
+      source: 'repair_tracking',
+      trackingData: {
+        id: r.trackingId,
+        status: r.status,
+        deviceType: r.device,
+        deviceModel: r.deviceModel || '',
+        customerName: r.customerName,
+        estimatedCompletion: r.estimatedCompletion,
+        cost: r.cost
+      }
+    };
+  }
+
+  // Multiple repairs found
+  let repairList = repairs.map((r: any, i: number) => {
+    const statusDisplay = r.status.charAt(0).toUpperCase() + r.status.slice(1).replace(/-/g, ' ');
+    return `**${i + 1}.** \`${r.trackingId}\` — ${r.device}${r.deviceModel ? ` (${r.deviceModel})` : ''} — **${statusDisplay}**`;
+  }).join('\n');
+
+  return {
+    response: `✅ **Found ${repairs.length} repair(s) on your account:**
+
+${repairList}
+
+To see full details, share the tracking ID you're interested in, or visit **itservicesfreetown.com/track-repair**.`,
+    source: 'customer_lookup'
+  };
 }
 
 /**

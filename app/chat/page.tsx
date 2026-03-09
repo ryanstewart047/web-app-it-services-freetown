@@ -11,6 +11,8 @@ import {
   generateChatResponseClient, 
   isRepairTrackingQueryClient, 
   handleRepairTrackingClient, 
+  isCustomerLookupQuery,
+  handleCustomerLookup,
   isStaticDeployment 
 } from '@/lib/groq-ai-client'
 
@@ -35,7 +37,7 @@ export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: 'Hello! I\'m your AI assistant. How can I help you today?\n\n🔧 I can help you with:\n• Device troubleshooting and repair advice\n• Booking new appointments\n• **Tracking your existing repairs** (just provide your tracking ID)\n• General IT support questions\n• Connecting you with our live agents\n\nWhat would you like assistance with?',
+      content: 'Hello! I\'m Alison, your AI assistant at IT Services Freetown. How can I help you today?\n\n🔧 I can help you with:\n• Device troubleshooting and repair advice\n• Booking new appointments\n• **Tracking your existing repairs** (just provide your tracking ID)\n• **Finding your repair** by name, email, or phone number\n• General IT support questions\n• Connecting you with our live agents\n\nWhat would you like assistance with?',
       sender: 'bot',
       timestamp: new Date(),
       type: 'text'
@@ -79,6 +81,19 @@ export default function Chat() {
           addMessage(trackingResult.response, 'bot', 
             trackingResult.source === 'repair_tracking' ? 'tracking' : 'text', 
             trackingResult.trackingData)
+          setIsTyping(false)
+          return
+        }
+
+        // Handle customer lookup by name/email/phone
+        if (isCustomerLookupQuery(userMessage)) {
+          const [lookupResult] = await Promise.all([
+            handleCustomerLookup(userMessage),
+            minDelay
+          ])
+          addMessage(lookupResult.response, 'bot',
+            lookupResult.source === 'repair_tracking' ? 'tracking' : 'text',
+            lookupResult.trackingData)
           setIsTyping(false)
           return
         }
@@ -307,6 +322,16 @@ export default function Chat() {
               >
                 <i className="fas fa-search mr-1"></i>
                 Track Repair
+              </button>
+              <button
+                onClick={() => {
+                  addMessage('I lost my tracking ID, can you find my repair?', 'user')
+                  getBotResponse('find my repair, I lost my tracking ID')
+                }}
+                className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm hover:bg-purple-200 transition-colors"
+              >
+                <i className="fas fa-user-search mr-1"></i>
+                Find My Repair
               </button>
               <button
                 onClick={() => {
