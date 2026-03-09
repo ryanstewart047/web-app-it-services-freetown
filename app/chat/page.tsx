@@ -277,7 +277,7 @@ export default function Chat() {
                       <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDuration: '0.6s', animationDelay: '0.15s' }}></div>
                       <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDuration: '0.6s', animationDelay: '0.3s' }}></div>
                     </div>
-                    <span className="text-xs text-gray-400 ml-1">ITBot is typing</span>
+                    <span className="text-xs text-gray-400 ml-1">Alison is typing</span>
                   </div>
                 </div>
               </div>
