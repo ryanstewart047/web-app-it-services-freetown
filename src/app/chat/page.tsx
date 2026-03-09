@@ -174,7 +174,7 @@ export default function Chat() {
                           <div><strong>Device:</strong> {message.trackingData.deviceType} - {message.trackingData.deviceModel}</div>
                           <div><strong>Customer:</strong> {message.trackingData.customerName}</div>
                           {message.trackingData.estimatedCompletion && (
-                            <div><strong>Est. Completion:</strong> {new Date(message.trackingData.estimatedCompletion).toLocaleDateString()}</div>
+                            <div><strong>Est. Completion:</strong> {(() => { const d = new Date(message.trackingData.estimatedCompletion); return isNaN(d.getTime()) ? message.trackingData.estimatedCompletion : d.toLocaleDateString(); })()}</div>
                           )}
                           {message.trackingData.cost && (
                             <div><strong>Est. Cost:</strong> Le {message.trackingData.cost.toLocaleString()}</div>

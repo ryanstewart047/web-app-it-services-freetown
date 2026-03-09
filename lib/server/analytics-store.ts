@@ -382,13 +382,13 @@ export async function deleteRepair(trackingId: string): Promise<RepairBooking | 
 // Utilities
 // ──────────────────────────────────────────────
 
-function deriveEstimatedCompletion(date?: string, time?: string): string | undefined {
-	if (!date) return undefined;
+function deriveEstimatedCompletion(date?: string, time?: string): string {
+	if (!date) return new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString();
 	try {
 		const iso = time ? `${date}T${time}` : `${date}T09:00`;
 		return new Date(iso).toISOString();
 	} catch {
-		return undefined;
+		return new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString();
 	}
 }
 

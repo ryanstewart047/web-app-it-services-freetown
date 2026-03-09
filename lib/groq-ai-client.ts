@@ -760,7 +760,7 @@ async function fetchRepairFromApi(trackingId: string): Promise<any | null> {
         device: repair.deviceType || repair.device || 'Unknown device',
         issue: repair.issueDescription || repair.issue || 'Repair service',
         status: repair.status || 'received',
-        estimatedCompletion: repair.estimatedCompletion || 'To be determined',
+        estimatedCompletion: repair.estimatedCompletion || new Date(Date.now() + 72 * 60 * 60 * 1000).toLocaleDateString(),
         technician: repair.technician || 'Assigned technician',
         notes: repair.notes || repair.diagnosticNotes || 'No additional notes.',
         customerName: repair.customerName,
@@ -798,7 +798,7 @@ export async function handleRepairTrackingClient(message: string): Promise<{
 **Issue:** ${repairData.issue || repairData.issueDescription || 'N/A'}
 **Status:** ${statusDisplay}
 ${repairData.technician ? `**Technician:** ${repairData.technician}` : ''}
-**Est. Completion:** ${repairData.estimatedCompletion || 'To be determined'}
+**Est. Completion:** ${(() => { if (!repairData.estimatedCompletion) return '72 Hours'; const d = new Date(repairData.estimatedCompletion); return isNaN(d.getTime()) ? repairData.estimatedCompletion : d.toLocaleDateString(); })()}
 ${repairData.customerName ? `**Customer:** ${repairData.customerName}` : ''}
 ${repairData.cost ? `**Cost:** $${repairData.cost}` : ''}
 

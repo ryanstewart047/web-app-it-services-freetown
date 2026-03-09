@@ -365,7 +365,7 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
               <i className="fas fa-clock mr-2"></i>
               <span className="font-semibold">Estimated Completion</span>
             </div>
-            <p className="text-[#040e40] mt-1">{new Date(appointment.estimatedCompletion).toLocaleDateString()}</p>
+            <p className="text-[#040e40] mt-1">{(() => { const d = new Date(appointment.estimatedCompletion!); return isNaN(d.getTime()) ? appointment.estimatedCompletion : d.toLocaleDateString(); })()}</p>
           </div>
         )}
 

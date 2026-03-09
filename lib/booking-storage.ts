@@ -62,7 +62,7 @@ export function saveBooking(bookingData: Omit<BookingData, 'createdAt' | 'update
     status: 'received',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    estimatedCompletion: 'We will contact you within 2 hours to confirm your appointment',
+    estimatedCompletion: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(),
     notes: `${bookingData.serviceType} requested for ${bookingData.deviceType} ${bookingData.deviceModel}. Issue: ${bookingData.issueDescription}`
   };
 
