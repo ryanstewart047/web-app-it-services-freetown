@@ -61,6 +61,9 @@ export default function Chat() {
   const getBotResponse = async (userMessage: string) => {
     setIsTyping(true)
     
+    // Minimum typing delay (3 seconds) so the bot feels more natural
+    const minDelay = new Promise(resolve => setTimeout(resolve, 3000))
+    
     try {
       // Check if we're in a static deployment (GitHub Pages)
       const useClientSide = isStaticDeployment()
@@ -69,7 +72,10 @@ export default function Chat() {
       if (useClientSide) {
         // Handle repair tracking queries first (client-side)
         if (isRepairTrackingQueryClient(userMessage)) {
-          const trackingResult = await handleRepairTrackingClient(userMessage)
+          const [trackingResult] = await Promise.all([
+            handleRepairTrackingClient(userMessage),
+            minDelay
+          ])
           addMessage(trackingResult.response, 'bot', 
             trackingResult.source === 'repair_tracking' ? 'tracking' : 'text', 
             trackingResult.trackingData)
@@ -78,21 +84,27 @@ export default function Chat() {
         }
 
         // Use client-side Google AI API for static deployments
-        const aiResponse = await generateChatResponseClient({
-          userMessage,
-          systemContext: 'chat_support'
-        })
+        const [aiResponse] = await Promise.all([
+          generateChatResponseClient({
+            userMessage,
+            systemContext: 'chat_support'
+          }),
+          minDelay
+        ])
         
         addMessage(aiResponse, 'bot')
       } else {
         // Use server-side API for full Next.js deployments
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ message: userMessage }),
-        })
+        const [response] = await Promise.all([
+          fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message: userMessage }),
+          }),
+          minDelay
+        ])
         
         const data = await response.json()
         
@@ -105,6 +117,7 @@ export default function Chat() {
       }
     } catch (error) {
       console.error('Error calling chat:', error)
+      await minDelay // Still wait for natural feel even on error
       addMessage("I'm sorry, I'm having trouble responding right now. Please try again or contact us directly.", 'bot')
     }
     
@@ -257,11 +270,14 @@ export default function Chat() {
             
             {isTyping && (
               <div className="flex justify-start">
-                <div className="bg-gray-100 text-gray-800 px-4 py-2 rounded-2xl">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="bg-gray-100 text-gray-800 px-4 py-3 rounded-2xl">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDuration: '0.6s' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDuration: '0.6s', animationDelay: '0.15s' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDuration: '0.6s', animationDelay: '0.3s' }}></div>
+                    </div>
+                    <span className="text-xs text-gray-400 ml-1">ITBot is typing</span>
                   </div>
                 </div>
               </div>
