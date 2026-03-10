@@ -128,9 +128,9 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  // verification: {
-  //   google: 'YOUR_ACTUAL_VERIFICATION_CODE',
-  // },
+  verification: {
+    google: 'C_qQ737j2Bhg-AVVx_SwZ_diTB_ycwlOxgn68tefCw4',
+  },
 }
 
 export default function RootLayout({
