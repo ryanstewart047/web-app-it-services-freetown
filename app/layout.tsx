@@ -21,7 +21,10 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://itservicesfreetown.com'),
+  metadataBase: new URL('https://www.itservicesfreetown.com'),
+  alternates: {
+    canonical: '/',
+  },
   title: {
     default: 'IT Services Freetown - #1 Computer & Mobile Repair in Sierra Leone',
     template: '%s | IT Services Freetown'
@@ -93,7 +96,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://itservicesfreetown.com',
+    url: 'https://www.itservicesfreetown.com',
     siteName: 'IT Services Freetown',
     title: 'IT Services Freetown - #1 Computer & Mobile Repair',
     description: 'Professional computer and mobile repair services in Freetown. Same-day service, 1-month warranty, 95% success rate.',
@@ -125,10 +128,9 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  verification: {
-    google: 'google-site-verification-placeholder',
-    // Replace 'google-site-verification-placeholder' with your actual Google Search Console verification code
-  },
+  // verification: {
+  //   google: 'YOUR_ACTUAL_VERIFICATION_CODE',
+  // },
 }
 
 export default function RootLayout({
@@ -185,13 +187,13 @@ export default function RootLayout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'LocalBusiness',
-              '@id': 'https://itservicesfreetown.com',
+              '@id': 'https://www.itservicesfreetown.com',
               name: 'IT Services Freetown',
               alternateName: 'IT Services SL',
               description: 'Professional computer and mobile repair services in Freetown, Sierra Leone. Same-day service, 1-month warranty, 95% success rate.',
-              url: 'https://itservicesfreetown.com',
+              url: 'https://www.itservicesfreetown.com',
               telephone: '+23233399391',
-              email: 'info@itservicesfreetown.com',
+              email: 'support@itservicesfreetown.com',
               address: {
                 '@type': 'PostalAddress',
                 streetAddress: '#1 Regent Highway Jui Junction',
@@ -211,16 +213,10 @@ export default function RootLayout({
                   opens: '08:00',
                   closes: '18:00',
                 },
-                {
-                  '@type': 'OpeningHoursSpecification',
-                  dayOfWeek: 'Saturday',
-                  opens: '09:00',
-                  closes: '17:00',
-                },
               ],
               priceRange: '$$',
-              image: 'https://itservicesfreetown.com/assets/images/slide01.jpg',
-              logo: 'https://itservicesfreetown.com/assets/logo.svg',
+              image: 'https://www.itservicesfreetown.com/assets/images/slide01.jpg',
+              logo: 'https://www.itservicesfreetown.com/assets/logo.svg',
               sameAs: [
                 'https://www.facebook.com/itservicesfreetown',
                 'https://twitter.com/itservicesft',
