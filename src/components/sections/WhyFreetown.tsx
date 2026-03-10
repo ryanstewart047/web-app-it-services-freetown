@@ -138,7 +138,7 @@ export default function WhyFreetown() {
               or surrounding areas, we're just a short drive or poda-poda ride away.
             </p>
             <p className="text-gray-700 leading-relaxed">
-              We maintain extended business hours Monday through Saturday (9:00 AM - 6:00 PM) to accommodate working 
+              We maintain extended business hours Monday through Friday (8:00 AM - 6:00 PM), with Saturday available by appointment, to accommodate working 
               professionals and students. For urgent repairs or corporate clients, we also offer pick-up and delivery 
               services within Freetown at a nominal fee. Walk-ins are welcome, or book an appointment online for priority service.
             </p>
