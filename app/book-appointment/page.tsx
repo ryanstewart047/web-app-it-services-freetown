@@ -46,6 +46,133 @@ export default function BookAppointment() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [captchaVerified, setCaptchaVerified] = useState(false);
   const recaptchaRef = useRef<any>(null);
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
+  const [showLeaveWarning, setShowLeaveWarning] = useState(false);
+  const pendingNavigation = useRef<string | null>(null);
+
+  // Check if form has any data entered
+  const isFormDirty = () => {
+    return (
+      formData.customerName.trim() !== '' ||
+      formData.email.trim() !== '' ||
+      formData.phone.trim() !== '' ||
+      formData.address.trim() !== '' ||
+      formData.deviceType !== '' ||
+      formData.deviceModel.trim() !== '' ||
+      formData.serviceType !== '' ||
+      formData.issueDescription.trim() !== '' ||
+      formData.preferredDate !== '' ||
+      formData.preferredTime !== ''
+    );
+  };
+
+  // Warn user on page refresh/close if form has data
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isFormDirty() && !showSuccess && !showThankYou) {
+        e.preventDefault();
+        return '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  });
+
+  // Intercept browser back/forward button when form has data
+  const formDirtyRef = useRef(false);
+  const backNavBlockedRef = useRef(false);
+  useEffect(() => {
+    formDirtyRef.current = isFormDirty() && !showSuccess && !showThankYou;
+  });
+
+  useEffect(() => {
+    // Push an extra history entry so pressing back stays on this page
+    const pushGuardState = () => {
+      if (!backNavBlockedRef.current) {
+        window.history.pushState({ bookingGuard: true }, '');
+        backNavBlockedRef.current = true;
+      }
+    };
+
+    pushGuardState();
+
+    const handlePopState = (e: PopStateEvent) => {
+      if (formDirtyRef.current) {
+        // Re-push the guard state to keep user on the page
+        window.history.pushState({ bookingGuard: true }, '');
+        setShowLeaveWarning(true);
+        pendingNavigation.current = '__browser_back__';
+      } else {
+        // Form is clean, allow normal back navigation
+        backNavBlockedRef.current = false;
+        window.history.back();
+      }
+    };
+
+    // Intercept keyboard refresh shortcuts (Cmd+R, Ctrl+R, F5)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isRefresh = e.key === 'F5' || ((e.metaKey || e.ctrlKey) && e.key === 'r');
+      if (isRefresh && formDirtyRef.current) {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowLeaveWarning(true);
+        pendingNavigation.current = '__refresh__';
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('keydown', handleKeyDown, true);
+    };
+  }, []);
+
+  // Mark a field as touched (user has interacted and left the field)
+  const markTouched = (field: string) => {
+    setTouchedFields(prev => ({ ...prev, [field]: true }));
+  };
+
+  // Get validation error for a specific field (returns empty string if valid)
+  const getFieldError = (field: string): string => {
+    switch (field) {
+      case 'customerName': {
+        const name = formData.customerName.trim();
+        if (!name) return 'Full Name is required';
+        if (name.length < 2) return 'Name must be at least 2 characters';
+        if (!/^[a-zA-Z\s'.\-]+$/.test(name)) return 'Name can only contain letters, spaces, hyphens, and apostrophes';
+        return '';
+      }
+      case 'email': {
+        const email = formData.email.trim();
+        if (!email) return 'Email Address is required';
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return 'Please enter a valid email address (e.g. name@example.com)';
+        return '';
+      }
+      case 'phone': {
+        const phone = formData.phone.trim();
+        if (!phone) return 'Phone Number is required';
+        const digitsOnly = phone.replace(/[\s\-()+ ]/g, '');
+        if (!/^\d+$/.test(digitsOnly)) return 'Phone number can only contain digits and formatting characters (+, -, spaces, parentheses)';
+        if (digitsOnly.length < 8) return 'Phone number must be at least 8 digits';
+        return '';
+      }
+      case 'deviceModel': {
+        const model = formData.deviceModel.trim();
+        if (!model) return 'Device Model/Brand is required';
+        if (model.length < 2) return 'Device model must be at least 2 characters';
+        return '';
+      }
+      case 'issueDescription': {
+        const desc = formData.issueDescription.trim();
+        if (!desc) return 'Issue Description is required';
+        if (desc.length < 10) return 'Please describe the issue in at least 10 characters';
+        return '';
+      }
+      default:
+        return '';
+    }
+  };
 
   // Handle reCAPTCHA verification
   const onCaptchaChange = async (token: string | null) => {
@@ -119,6 +246,7 @@ export default function BookAppointment() {
   // Handle starting a new booking (clears everything)
   const handleNewBooking = () => {
     resetBookingStates();
+    setTouchedFields({});
     setFormData({
       customerName: '',
       email: '',
@@ -449,6 +577,13 @@ export default function BookAppointment() {
   };
 
   const nextStep = () => {
+    // Mark all fields in current step as touched to show errors
+    if (currentStep === 1) {
+      setTouchedFields(prev => ({ ...prev, customerName: true, email: true, phone: true }));
+    }
+    if (currentStep === 2) {
+      setTouchedFields(prev => ({ ...prev, deviceModel: true, issueDescription: true }));
+    }
     if (currentStep < 3 && validateCurrentStep()) setCurrentStep(currentStep + 1);
   };
 
@@ -458,17 +593,15 @@ export default function BookAppointment() {
 
   const validateCurrentStep = () => {
     if (currentStep === 1) {
-      const phonePattern = /^[+]?[\d\s\-()]{8,}$/; // At least 8 digits with optional formatting
-      return formData.customerName.trim() !== '' && 
-             formData.email.trim() !== '' && 
-             formData.phone.trim() !== '' &&
-             phonePattern.test(formData.phone.replace(/[\s\-()]/g, '')); // Remove formatting for validation
+      return !getFieldError('customerName') && 
+             !getFieldError('email') && 
+             !getFieldError('phone');
     }
     if (currentStep === 2) {
       return formData.deviceType !== '' && 
-             formData.deviceModel.trim() !== '' && 
+             !getFieldError('deviceModel') && 
              formData.serviceType !== '' && 
-             formData.issueDescription.trim() !== '';
+             !getFieldError('issueDescription');
     }
     if (currentStep === 3) {
       if (!formData.preferredDate || !formData.preferredTime) return false;
@@ -497,23 +630,20 @@ export default function BookAppointment() {
   const getCurrentStepErrors = () => {
     const errors = [];
     if (currentStep === 1) {
-      if (!formData.customerName.trim()) errors.push('Full Name is required');
-      if (!formData.email.trim()) errors.push('Email Address is required');
-      if (!formData.phone.trim()) {
-        errors.push('Phone Number is required');
-      } else {
-        const phonePattern = /^[+]?[\d\s\-()]{8,}$/;
-        const digitsOnly = formData.phone.replace(/[\s\-()]/g, '');
-        if (!phonePattern.test(digitsOnly) || digitsOnly.length < 8) {
-          errors.push('Phone Number must be at least 8 digits (numbers only)');
-        }
-      }
+      const nameErr = getFieldError('customerName');
+      if (nameErr) errors.push(nameErr);
+      const emailErr = getFieldError('email');
+      if (emailErr) errors.push(emailErr);
+      const phoneErr = getFieldError('phone');
+      if (phoneErr) errors.push(phoneErr);
     }
     if (currentStep === 2) {
       if (!formData.deviceType) errors.push('Device Type is required');
-      if (!formData.deviceModel.trim()) errors.push('Device Model/Brand is required');
+      const modelErr = getFieldError('deviceModel');
+      if (modelErr) errors.push(modelErr);
       if (!formData.serviceType) errors.push('Service Type is required');
-      if (!formData.issueDescription.trim()) errors.push('Issue Description is required');
+      const descErr = getFieldError('issueDescription');
+      if (descErr) errors.push(descErr);
     }
     if (currentStep === 3) {
       if (!formData.preferredDate) errors.push('Preferred Date is required');
@@ -558,6 +688,56 @@ export default function BookAppointment() {
 
   return (
     <>
+      {/* Unsaved Changes Warning Modal */}
+      {showLeaveWarning && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(4px)' }}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in">
+            {/* Header */}
+            <div className="px-6 pt-6 pb-4 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-100 mb-4">
+                <i className="fas fa-exclamation-triangle text-amber-500 text-2xl"></i>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Unsaved Changes</h3>
+              <p className="text-gray-600 mt-2 text-sm leading-relaxed">
+                You have unsaved booking information. If you leave this page, all the data you&apos;ve entered will be lost.
+              </p>
+            </div>
+            {/* Actions */}
+            <div className="px-6 pb-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowLeaveWarning(false);
+                  pendingNavigation.current = null;
+                }}
+                className="flex-1 px-4 py-3 rounded-xl font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-all duration-200"
+              >
+                Stay on Page
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowLeaveWarning(false);
+                  const nav = pendingNavigation.current;
+                  pendingNavigation.current = null;
+                  if (nav === '__refresh__') {
+                    window.location.reload();
+                  } else if (nav === '__browser_back__') {
+                    backNavBlockedRef.current = false;
+                    window.history.go(-1);
+                  } else if (nav) {
+                    router.push(nav);
+                  }
+                }}
+                className="flex-1 px-4 py-3 rounded-xl font-semibold text-white bg-red-500 hover:bg-red-600 transition-all duration-200"
+              >
+                Leave Page
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modern Hero Section */}
       <PageBanner
         title="Book Your Repair"
@@ -651,7 +831,8 @@ export default function BookAppointment() {
                           e.target.style.boxShadow = '0 0 0 4px rgba(4, 14, 64, 0.1)';
                         }}
                         onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
+                          markTouched('customerName');
+                          e.target.style.borderColor = getFieldError('customerName') ? '#ef4444' : '#d1d5db';
                           e.target.style.boxShadow = 'none';
                         }}
                         placeholder="Enter your full name"
@@ -659,6 +840,12 @@ export default function BookAppointment() {
                         onChange={handleChange}
                         required
                       />
+                      {touchedFields.customerName && getFieldError('customerName') && (
+                        <p className="text-red-600 text-sm mt-1 flex items-center">
+                          <i className="fas fa-exclamation-circle mr-1"></i>
+                          {getFieldError('customerName')}
+                        </p>
+                      )}
                       <ValidationError 
                         prefix="Name" 
                         field="customerName"
@@ -682,7 +869,8 @@ export default function BookAppointment() {
                           e.target.style.boxShadow = '0 0 0 4px rgba(4, 14, 64, 0.1)';
                         }}
                         onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
+                          markTouched('email');
+                          e.target.style.borderColor = getFieldError('email') ? '#ef4444' : '#d1d5db';
                           e.target.style.boxShadow = 'none';
                         }}
                         placeholder="your.email@example.com"
@@ -690,6 +878,12 @@ export default function BookAppointment() {
                         onChange={handleChange}
                         required
                       />
+                      {touchedFields.email && getFieldError('email') && (
+                        <p className="text-red-600 text-sm mt-1 flex items-center">
+                          <i className="fas fa-exclamation-circle mr-1"></i>
+                          {getFieldError('email')}
+                        </p>
+                      )}
                       <ValidationError 
                         prefix="Email" 
                         field="email"
@@ -713,7 +907,8 @@ export default function BookAppointment() {
                           e.target.style.boxShadow = '0 0 0 4px rgba(4, 14, 64, 0.1)';
                         }}
                         onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
+                          markTouched('phone');
+                          e.target.style.borderColor = getFieldError('phone') ? '#ef4444' : '#d1d5db';
                           e.target.style.boxShadow = 'none';
                         }}
                         placeholder="+232 76 123 456 or 076123456"
@@ -723,6 +918,12 @@ export default function BookAppointment() {
                         title="Please enter numbers only. You can use +, -, spaces, and parentheses for formatting."
                         required
                       />
+                      {touchedFields.phone && getFieldError('phone') && (
+                        <p className="text-red-600 text-sm mt-1 flex items-center">
+                          <i className="fas fa-exclamation-circle mr-1"></i>
+                          {getFieldError('phone')}
+                        </p>
+                      )}
                       <p className="text-xs text-gray-500 mt-1">
                         <i className="fas fa-info-circle mr-1"></i>
                         Numbers only. Use spaces, +, -, () for formatting
@@ -812,7 +1013,8 @@ export default function BookAppointment() {
                           e.target.style.boxShadow = '0 0 0 4px rgba(239, 68, 68, 0.1)';
                         }}
                         onBlur={(e) => {
-                          e.target.style.borderColor = '#d1d5db';
+                          markTouched('deviceModel');
+                          e.target.style.borderColor = getFieldError('deviceModel') ? '#ef4444' : '#d1d5db';
                           e.target.style.boxShadow = 'none';
                         }}
                         placeholder="e.g., iPhone 14, Samsung Galaxy S23"
@@ -820,6 +1022,12 @@ export default function BookAppointment() {
                         onChange={handleChange}
                         required
                       />
+                      {touchedFields.deviceModel && getFieldError('deviceModel') && (
+                        <p className="text-red-600 text-sm mt-1 flex items-center">
+                          <i className="fas fa-exclamation-circle mr-1"></i>
+                          {getFieldError('deviceModel')}
+                        </p>
+                      )}
                     </div>
 
                     <div className="md:col-span-2">
@@ -856,8 +1064,15 @@ export default function BookAppointment() {
                         placeholder="Please describe the issue in detail. For example: 'Screen is cracked and not responding to touch', 'Computer won't turn on', etc."
                         value={formData.issueDescription}
                         onChange={handleChange}
+                        onBlur={() => markTouched('issueDescription')}
                         required
                       />
+                      {touchedFields.issueDescription && getFieldError('issueDescription') && (
+                        <p className="text-red-600 text-sm mt-1 flex items-center">
+                          <i className="fas fa-exclamation-circle mr-1"></i>
+                          {getFieldError('issueDescription')}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
