@@ -8,7 +8,9 @@ import { usePageLoader } from '@/hooks/usePageLoader';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import { saveBooking } from '@/lib/unified-booking-storage';
 import PageBanner from '@/components/PageBanner';
-import ReCAPTCHA from 'react-google-recaptcha';
+import dynamic from 'next/dynamic';
+
+const ReCAPTCHA = dynamic(() => import('react-google-recaptcha'), { ssr: false });
 
 export default function BookAppointment() {
   const router = useRouter();
@@ -43,7 +45,7 @@ export default function BookAppointment() {
   const [currentTrackingId, setCurrentTrackingId] = useState<string>('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [captchaVerified, setCaptchaVerified] = useState(false);
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
+  const recaptchaRef = useRef<any>(null);
 
   // Handle reCAPTCHA verification
   const onCaptchaChange = async (token: string | null) => {
