@@ -40,6 +40,30 @@ export default function BookAppointment() {
   const [thankYouCountdown, setThankYouCountdown] = useState(15);
   const [successData, setSuccessData] = useState<any>(null);
   const [currentTrackingId, setCurrentTrackingId] = useState<string>('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [captchaAnswer, setCaptchaAnswer] = useState('');
+  const [captchaChallenge, setCaptchaChallenge] = useState({ a: 0, b: 0 });
+  const [captchaVerified, setCaptchaVerified] = useState(false);
+
+  // Generate a simple math captcha
+  const generateCaptcha = () => {
+    const a = Math.floor(Math.random() * 10) + 1;
+    const b = Math.floor(Math.random() * 10) + 1;
+    setCaptchaChallenge({ a, b });
+    setCaptchaAnswer('');
+    setCaptchaVerified(false);
+  };
+
+  useEffect(() => {
+    generateCaptcha();
+  }, []);
+
+  // Verify captcha answer
+  const verifyCaptcha = (answer: string) => {
+    setCaptchaAnswer(answer);
+    const correct = parseInt(answer) === captchaChallenge.a + captchaChallenge.b;
+    setCaptchaVerified(correct);
+  };
 
   // Generate a more detailed tracking ID with ITS prefix
   const generateTrackingId = () => {
@@ -395,6 +419,10 @@ export default function BookAppointment() {
     if (!formData.preferredTime) errors.push('Please select a preferred time');
     if (!validateDateTime()) errors.push('Selected date/time is invalid');
 
+    // Validate T&C and captcha
+    if (!acceptedTerms) errors.push('You must accept the Terms & Conditions');
+    if (!captchaVerified) errors.push('Please complete the verification challenge');
+
     if (errors.length > 0) {
       alert('Please fix these errors:\n\n' + errors.map((e, i) => `${i + 1}. ${e}`).join('\n'));
       setIsSubmitting(false);
@@ -443,6 +471,8 @@ export default function BookAppointment() {
     }
     if (currentStep === 3) {
       if (!formData.preferredDate || !formData.preferredTime) return false;
+      if (!acceptedTerms) return false;
+      if (!captchaVerified) return false;
       
       const selectedDateTime = new Date(`${formData.preferredDate}T${formData.preferredTime}`);
       const now = new Date();
@@ -506,6 +536,8 @@ export default function BookAppointment() {
           errors.push('We are only available Monday through Friday');
         }
       }
+      if (!acceptedTerms) errors.push('You must accept the Terms & Conditions');
+      if (!captchaVerified) errors.push('Please complete the verification challenge');
     }
     return errors;
   };
@@ -921,6 +953,69 @@ export default function BookAppointment() {
                       <div><strong>Date & Time:</strong> {formData.preferredDate && formData.preferredTime ? `${formData.preferredDate} at ${formData.preferredTime}` : 'Not selected'}</div>
                     </div>
                   </div>
+
+                  {/* Verification: I'm not a robot */}
+                  <div className="bg-white rounded-2xl p-6 border-2 border-gray-200 shadow-sm">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <i className="fas fa-shield-alt mr-2 text-green-500"></i>
+                      Verification
+                    </h3>
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <div className="bg-gray-100 rounded-lg px-4 py-3 text-lg font-mono font-bold text-gray-800 select-none">
+                        {captchaChallenge.a} + {captchaChallenge.b} = ?
+                      </div>
+                      <input
+                        type="number"
+                        value={captchaAnswer}
+                        onChange={(e) => verifyCaptcha(e.target.value)}
+                        placeholder="Your answer"
+                        className="w-32 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-500/20 transition-all duration-300 text-lg text-center"
+                      />
+                      {captchaVerified && (
+                        <span className="text-green-600 font-semibold flex items-center">
+                          <i className="fas fa-check-circle mr-1"></i> Verified
+                        </span>
+                      )}
+                      {captchaAnswer && !captchaVerified && (
+                        <span className="text-red-500 font-semibold flex items-center">
+                          <i className="fas fa-times-circle mr-1"></i> Incorrect
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={generateCaptcha}
+                        className="text-gray-500 hover:text-gray-700 transition-colors"
+                        title="New challenge"
+                      >
+                        <i className="fas fa-sync-alt"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Terms & Conditions Checkbox */}
+                  <div className="bg-white rounded-2xl p-6 border-2 border-gray-200 shadow-sm">
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={acceptedTerms}
+                        onChange={(e) => setAcceptedTerms(e.target.checked)}
+                        className="mt-1 w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        required
+                      />
+                      <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
+                        I agree to the{' '}
+                        <a
+                          href="/terms"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline font-semibold"
+                        >
+                          Terms & Conditions
+                        </a>
+                        {' '}of IT Services Freetown. I understand that repair services are subject to device condition and parts availability.
+                      </span>
+                    </label>
+                  </div>
                 </div>
               )}
 
@@ -978,13 +1073,13 @@ export default function BookAppointment() {
                   ) : (
                     <button
                       type="submit"
-                      disabled={isSubmitting || !formData.preferredDate || !formData.preferredTime}
+                      disabled={isSubmitting || !formData.preferredDate || !formData.preferredTime || !acceptedTerms || !captchaVerified}
                       className={`px-8 py-3 rounded-xl font-semibold transition-all duration-300 transform shadow-lg flex items-center ${
-                        (!isSubmitting && formData.preferredDate && formData.preferredTime)
+                        (!isSubmitting && formData.preferredDate && formData.preferredTime && acceptedTerms && captchaVerified)
                           ? 'text-white hover:scale-105 hover:shadow-xl'
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       } disabled:hover:scale-100`}
-                      style={(!isSubmitting && formData.preferredDate && formData.preferredTime) ? {
+                      style={(!isSubmitting && formData.preferredDate && formData.preferredTime && acceptedTerms && captchaVerified) ? {
                         background: 'linear-gradient(135deg, #ef4444 0%, #040e40 100%)'
                       } : {}}
                     >
