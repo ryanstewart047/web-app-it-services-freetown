@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, ValidationError } from '@formspree/react';
 import { useScrollAnimations } from '@/hooks/useScrollAnimations';
@@ -8,6 +8,7 @@ import { usePageLoader } from '@/hooks/usePageLoader';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import { saveBooking } from '@/lib/unified-booking-storage';
 import PageBanner from '@/components/PageBanner';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 export default function BookAppointment() {
   const router = useRouter();
@@ -41,28 +42,26 @@ export default function BookAppointment() {
   const [successData, setSuccessData] = useState<any>(null);
   const [currentTrackingId, setCurrentTrackingId] = useState<string>('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [captchaAnswer, setCaptchaAnswer] = useState('');
-  const [captchaChallenge, setCaptchaChallenge] = useState({ a: 0, b: 0 });
   const [captchaVerified, setCaptchaVerified] = useState(false);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
-  // Generate a simple math captcha
-  const generateCaptcha = () => {
-    const a = Math.floor(Math.random() * 10) + 1;
-    const b = Math.floor(Math.random() * 10) + 1;
-    setCaptchaChallenge({ a, b });
-    setCaptchaAnswer('');
-    setCaptchaVerified(false);
-  };
-
-  useEffect(() => {
-    generateCaptcha();
-  }, []);
-
-  // Verify captcha answer
-  const verifyCaptcha = (answer: string) => {
-    setCaptchaAnswer(answer);
-    const correct = parseInt(answer) === captchaChallenge.a + captchaChallenge.b;
-    setCaptchaVerified(correct);
+  // Handle reCAPTCHA verification
+  const onCaptchaChange = async (token: string | null) => {
+    if (!token) {
+      setCaptchaVerified(false);
+      return;
+    }
+    try {
+      const res = await fetch('/api/verify-recaptcha', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+      const data = await res.json();
+      setCaptchaVerified(data.success === true);
+    } catch {
+      setCaptchaVerified(false);
+    }
   };
 
   // Generate a more detailed tracking ID with ITS prefix
@@ -954,42 +953,23 @@ export default function BookAppointment() {
                     </div>
                   </div>
 
-                  {/* Verification: I'm not a robot */}
+                  {/* Google reCAPTCHA Verification */}
                   <div className="bg-white rounded-2xl p-6 border-2 border-gray-200 shadow-sm">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                       <i className="fas fa-shield-alt mr-2 text-green-500"></i>
                       Verification
                     </h3>
-                    <div className="flex items-center gap-4 flex-wrap">
-                      <div className="bg-gray-100 rounded-lg px-4 py-3 text-lg font-mono font-bold text-gray-800 select-none">
-                        {captchaChallenge.a} + {captchaChallenge.b} = ?
-                      </div>
-                      <input
-                        type="number"
-                        value={captchaAnswer}
-                        onChange={(e) => verifyCaptcha(e.target.value)}
-                        placeholder="Your answer"
-                        className="w-32 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-500/20 transition-all duration-300 text-lg text-center"
-                      />
-                      {captchaVerified && (
-                        <span className="text-green-600 font-semibold flex items-center">
-                          <i className="fas fa-check-circle mr-1"></i> Verified
-                        </span>
-                      )}
-                      {captchaAnswer && !captchaVerified && (
-                        <span className="text-red-500 font-semibold flex items-center">
-                          <i className="fas fa-times-circle mr-1"></i> Incorrect
-                        </span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={generateCaptcha}
-                        className="text-gray-500 hover:text-gray-700 transition-colors"
-                        title="New challenge"
-                      >
-                        <i className="fas fa-sync-alt"></i>
-                      </button>
-                    </div>
+                    <ReCAPTCHA
+                      ref={recaptchaRef}
+                      sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}
+                      onChange={onCaptchaChange}
+                      onExpired={() => setCaptchaVerified(false)}
+                    />
+                    {captchaVerified && (
+                      <p className="text-green-600 font-semibold flex items-center mt-3">
+                        <i className="fas fa-check-circle mr-1"></i> Verified
+                      </p>
+                    )}
                   </div>
 
                   {/* Terms & Conditions Checkbox */}
