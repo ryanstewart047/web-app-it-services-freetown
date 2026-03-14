@@ -26,7 +26,45 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 301);
   }
 
-  return NextResponse.next();
+  const lowValueExactPaths = [
+    '/loading-demo',
+    '/loading-status',
+    '/network-test',
+    '/offer-test',
+    '/test-offer',
+    '/offer-debug',
+    '/chat-demo',
+    '/sound-demo',
+    '/animation-test',
+    '/favicon-generator',
+    '/favicon-png-generator',
+    '/blog/admin',
+    '/offer-admin',
+    '/admin-panel',
+  ];
+
+  const lowValuePrefixPaths = [
+    '/admin/',
+    '/api/',
+    '/pwa-test',
+    '/loading-',
+    '/test-',
+    '/debug',
+  ];
+
+  const isLowValuePath =
+    lowValueExactPaths.includes(pathname) ||
+    lowValuePrefixPaths.some((prefix) => pathname.startsWith(prefix)) ||
+    pathname.includes('-test');
+
+  const response = NextResponse.next();
+
+  if (isLowValuePath) {
+    // Keep utility and test routes out of search/AdSense quality evaluation.
+    response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+  }
+
+  return response;
 }
 
 export const config = {
