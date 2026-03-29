@@ -4,6 +4,8 @@
  * Works with static GitHub Pages deployment
  */
 
+import { marked } from 'marked'
+
 const GITHUB_OWNER = 'ryanstewart047'
 const GITHUB_REPO = 'web-app-it-services-freetown'
 
@@ -82,15 +84,16 @@ export async function fetchBlogPosts(): Promise<BlogPost[]> {
 
     const issues: GitHubIssue[] = await response.json()
 
-    const posts: BlogPost[] = issues.map(issue => {
+    const posts: BlogPost[] = await Promise.all(issues.map(async issue => {
       // Parse body to extract content and metadata
       const body = issue.body || ''
       const metadata = extractMetadata(body)
+      const parsedContent = await marked.parse(metadata.content, { async: true, breaks: true, gfm: true })
 
       return {
         id: issue.number.toString(),
         title: issue.title,
-        content: metadata.content,
+        content: parsedContent,
         author: metadata.author || 'IT Services Freetown',
         date: new Date(issue.created_at).toISOString().split('T')[0],
         likes: issue.reactions['+1'] || 0,
@@ -99,7 +102,7 @@ export async function fetchBlogPosts(): Promise<BlogPost[]> {
         comments: [],
         githubIssueNumber: issue.number
       }
-    })
+    }))
 
     return posts
   } catch (error) {
