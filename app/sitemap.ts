@@ -1,16 +1,15 @@
 import { MetadataRoute } from 'next';
 import { prisma } from '@/lib/prisma';
+import { fetchBlogPosts } from '@/lib/github-blog-storage';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // Revalidate every hour
 
-// Fetch blog posts from localStorage or GitHub Issues
+// Fetch blog posts from GitHub Issues
 async function getBlogPosts() {
   try {
-    // Since we're server-side, we'll just return placeholder entries
-    // In production, these will be from GitHub Issues
-    // For now, we'll add the blog homepage and let Google discover individual posts
-    return [];
+    const posts = await fetchBlogPosts();
+    return posts.filter(post => !post.title.startsWith('[DRAFT]'));
   } catch (error) {
     console.error('Error fetching blog posts for sitemap:', error);
     return [];
@@ -61,10 +60,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   
   let products: any[] = [];
   let categories: any[] = [];
+  let blogPosts: any[] = [];
   
   try {
     products = await getProducts();
     categories = await getCategories();
+    blogPosts = await getBlogPosts();
   } catch (error) {
     console.error('Error generating sitemap:', error);
     // Continue with empty arrays if database fails
@@ -180,5 +181,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...staticPages, ...productPages, ...categoryPages];
+  // Blog post pages
+  const blogPages: MetadataRoute.Sitemap = blogPosts.map((post: any) => ({
+    url: `${baseUrl}/blog/${post.id}`,
+    lastModified: new Date(post.date),
+    changeFrequency: 'weekly' as const,
+    priority: 0.8,
+  }));
+
+  return [...staticPages, ...productPages, ...categoryPages, ...blogPages];
 }
