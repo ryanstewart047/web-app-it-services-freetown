@@ -195,7 +195,7 @@ export default function BlogAdminPage() {
       setContent('')
       setAuthor('IT Services Freetown')
       setMedia([])
-      toast.info('Edit cancelled')
+      toast('Edit cancelled')
     }
   }
 
@@ -251,18 +251,19 @@ export default function BlogAdminPage() {
         setPublishProgress(100)
         toast.success(editingPostId ? '✅ Blog post updated successfully!' : '✅ Blog post published to GitHub Issues!')
         
-        // Reset form
-        setTitle('')
-        setContent('')
-        setMedia([])
-        setContentPrompt('')
-        setEditingPostId(null)
-        
-        // Redirect to blog page after a short delay
         setTimeout(() => {
           setIsPublishing(false)
           setPublishProgress(0)
-          router.push('/blog')
+          
+          if (!editingPostId) {
+            // Only reset form and redirect for new posts
+            setTitle('')
+            setContent('')
+            setMedia([])
+            setContentPrompt('')
+            router.push('/blog')
+          }
+          // For updates, we remain on the admin page with the form intact
         }, 1000)
       } else {
         // Fallback to localStorage if GitHub fails
@@ -461,7 +462,7 @@ ${htmlContent || content || 'Empty draft'}`
       
       if (result.success) {
         // Store the draft issue ID
-        localStorage.setItem('blog_draft_issue_id', result.post?.id || '')
+        localStorage.setItem('blog_draft_issue_id', result.issueNumber?.toString() || '')
         toast.success('✅ Draft saved and synced to cloud! Access from any device.')
       } else {
         toast.error('Draft saved locally only. Check your internet connection.')
