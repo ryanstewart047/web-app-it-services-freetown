@@ -64,3 +64,6 @@ static-build/
 # _server-backup/
 .env.local
 .env.production
+*.deb
+*.AppImage
+*.zip
