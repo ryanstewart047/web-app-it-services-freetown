@@ -13,6 +13,7 @@ import PWAInstallBanner from '../src/components/PWAInstallBanner'
 import NetworkMonitor from '../src/components/NetworkMonitor'
 import { AnalyticsProvider } from '../src/components/AnalyticsTracker'
 import ConditionalLayout from '@/components/ConditionalLayout'
+import CustomCursor from '@/components/CustomCursor'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -285,6 +286,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.className} bg-gray-50 min-h-screen`}>
+        <CustomCursor />
         <AnalyticsProvider config={{
           enabled: true,
           trackPageViews: true,
