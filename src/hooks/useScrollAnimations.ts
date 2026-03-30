@@ -5,9 +5,11 @@ export function useScrollAnimations() {
     if (typeof window === 'undefined') return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
+    document.body.classList.add('scroll-animations-ready');
+
     const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
+      threshold: 0.05,
+      rootMargin: '50px'
     };
 
     const observer = new IntersectionObserver((entries) => {

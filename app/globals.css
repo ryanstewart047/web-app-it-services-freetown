@@ -1190,11 +1190,18 @@ h3:not(.animate-on-scroll),
   opacity: 0;
 }
 
-/* Scroll Animations */
+/* Scroll Animations - Fail-safe implementation */
 [data-animate], .scroll-animate {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Only hide elements if JavaScript hook successfully adds .scroll-animations-ready to body */
+.scroll-animations-ready [data-animate]:not(.animate-in), 
+.scroll-animations-ready .scroll-animate:not(.animate-in) {
   opacity: 0;
   transform: translateY(30px);
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 [data-animate].animate-in, .scroll-animate.animate-in {
