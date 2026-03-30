@@ -77,7 +77,7 @@ export default function Navbar() {
             </Link>
             
             <Link href="/blog" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/blog' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Blog</Link>
-            <Link href="/repair-guides" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/repair-guides' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Repair Guides</Link>
+
             <Link href="/book-appointment" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/book-appointment' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Book Appointment</Link>
             <Link href="/track-repair" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/track-repair' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Track Repair</Link>
             <Link href="/troubleshoot" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/troubleshoot' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Troubleshoot</Link>
@@ -94,6 +94,13 @@ export default function Navbar() {
               
               {supportDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200 animate-fadeIn">
+                  <Link 
+                    href="/repair-guides" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200"
+                    onClick={() => setSupportDropdownOpen(false)}
+                  >
+                    <i className="fas fa-book-medical mr-2"></i>Repair Guides
+                  </Link>
                   <Link 
                     href="/chat" 
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200"
@@ -185,9 +192,7 @@ export default function Navbar() {
             <Link href="/blog" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
               <i className="fas fa-blog w-5 mr-3 text-[#040e40]"></i>Blog
             </Link>
-            <Link href="/repair-guides" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
-              <i className="fas fa-book-medical w-5 mr-3 text-[#040e40]"></i>Repair Guides
-            </Link>
+
             <Link href="/book-appointment" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
               <i className="fas fa-calendar-check w-5 mr-3 text-[#040e40]"></i>Book Appointment
             </Link>
@@ -210,6 +215,14 @@ export default function Navbar() {
               
               {mobileDropdownOpen && (
                 <div className="mt-2 ml-6 mr-2 bg-gradient-to-br from-gray-50 to-red-50 rounded-lg border-2 border-[#040e40]/10 overflow-hidden">
+                  <Link
+                    href="/repair-guides"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
+                    onClick={closeMobileMenu}
+                  >
+                    <i className="fas fa-book-medical w-5 text-red-600"></i>
+                    <span className="ml-3 font-medium">Repair Guides</span>
+                  </Link>
                   <Link
                     href="/chat"
                     className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
