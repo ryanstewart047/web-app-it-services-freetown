@@ -1179,10 +1179,7 @@ h3:not(.animate-on-scroll),
   height: auto;
 }
 
-/* Failsafe: Ensure all text content is visible */
-h1, h2, h3, h4, h5, h6, p, span, div, li, a {
-  opacity: 1 !important;
-}
+/* Global opacity failsafe removed to allow scroll animations */
 
 /* Only animation classes can be hidden temporarily */
 .scroll-animations-ready .scroll-fade-in:not(.animate-fade-in),
@@ -1194,15 +1191,15 @@ h1, h2, h3, h4, h5, h6, p, span, div, li, a {
 }
 
 /* Scroll Animations */
-[data-animate] {
+[data-animate], .scroll-animate {
   opacity: 0;
   transform: translateY(30px);
-  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-[data-animate].animate-in {
-  opacity: 1;
-  transform: translateY(0);
+[data-animate].animate-in, .scroll-animate.animate-in {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
 }
 
 /* Additional animation variants */

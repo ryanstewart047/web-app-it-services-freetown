@@ -2,7 +2,9 @@ import { useEffect } from 'react';
 
 export function useScrollAnimations() {
   useEffect(() => {
-    // Initialize scroll animations for elements with data-animate attribute
+    if (typeof window === 'undefined') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
     const observerOptions = {
       threshold: 0.1,
       rootMargin: '0px 0px -50px 0px'
@@ -17,12 +19,27 @@ export function useScrollAnimations() {
       });
     }, observerOptions);
 
-    // Observe all elements with data-animate attribute
-    const animatedElements = document.querySelectorAll('[data-animate]');
-    animatedElements.forEach((el) => observer.observe(el));
+    const observeElements = () => {
+      const animatedElements = document.querySelectorAll('[data-animate]:not(.animate-in), .scroll-animate:not(.animate-in)');
+      animatedElements.forEach((el) => observer.observe(el));
+    };
+
+    // Initial run
+    observeElements();
+
+    // Watch for new elements added dynamically to the DOM
+    const mutationObserver = new MutationObserver(() => {
+      observeElements();
+    });
+
+    mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
 
     return () => {
-      animatedElements.forEach((el) => observer.unobserve(el));
+      observer.disconnect();
+      mutationObserver.disconnect();
     };
   }, []);
 }
