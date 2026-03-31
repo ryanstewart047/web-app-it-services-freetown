@@ -121,6 +121,14 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
                   </div>
                   
                   <div className="flex items-center gap-1 sm:gap-2 ml-2 pr-2 border-l border-slate-700/50 pl-2 sm:pl-4">
+                    {user.role === 'admin' && (
+                       <Link 
+                         href="/forum/admin"
+                         className="px-3 py-1.5 text-xs font-bold text-red-500 hover:text-white hover:bg-red-500/20 rounded-lg transition-all uppercase"
+                       >
+                         ADMIN HUB
+                       </Link>
+                    )}
                     <Link 
                       href="/forum/settings"
                       className="px-3 py-1.5 text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all uppercase"

@@ -1,0 +1,48 @@
+import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { PrismaClient } from '@prisma/client';
+import { verifySession } from '@/lib/auth-utils';
+import { createForumTopic } from '@/lib/github-forum-storage';
+
+const prisma = new PrismaClient();
+
+async function requireAdmin() {
+  const token = cookies().get('forum_session')?.value;
+  if (!token) return null;
+
+  const payload = await verifySession(token);
+  if (!payload?.userId) return null;
+
+  const user = await prisma.technician.findUnique({ where: { id: payload.userId } });
+  if (!user || user.role !== 'admin') return null;
+
+  return user;
+}
+
+export async function POST(req: Request) {
+  try {
+    const admin = await requireAdmin();
+    if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const { title, content, images } = await req.json();
+
+    if (!title || !content) {
+      return NextResponse.json({ error: 'Title and content are required' }, { status: 400 });
+    }
+
+    const broadcastTitle = `[ADMIN BROADCAST] ${title}`;
+    const maxImages = images?.slice(0, 2) || []; // Cap at 2 photos
+
+    const result = await createForumTopic(broadcastTitle, content, `Admin: ${admin.name}`, maxImages);
+
+    if (result.success) {
+       return NextResponse.json({ success: true, id: result.id });
+    } else {
+       return NextResponse.json({ error: 'Failed to create broadcast in GitHub Engine' }, { status: 500 });
+    }
+
+  } catch (error) {
+    console.error('Create Broadcast Error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
