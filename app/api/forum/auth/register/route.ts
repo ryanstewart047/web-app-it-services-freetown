@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import { createSession } from '@/lib/auth-utils';
-import { cookies } from 'next/headers';
+import nodemailer from 'nodemailer';
+import crypto from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -21,6 +21,7 @@ export async function POST(req: Request) {
 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
+    const verificationToken = crypto.randomUUID();
 
     const technician = await prisma.technician.create({
       data: {
@@ -29,28 +30,47 @@ export async function POST(req: Request) {
         phone: phone || '',
         expertise: expertise || 'General Support',
         passwordHash,
-        isOnline: true,
-        lastSeen: new Date()
+        verificationToken,
+        emailVerified: false,
+        isOnline: false,
       }
     });
 
-    const token = await createSession(technician.id, 'technician');
-    
-    cookies().set('forum_session', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7 // 1 week
+    // Send Verification Email via NodeMailer
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT),
+      secure: false,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    // Verify token URL
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || req.headers.get('origin') || 'http://localhost:3000';
+    const verifyUrl = `${baseUrl}/forum/verify?token=${verificationToken}`;
+
+    await transporter.sendMail({
+      from: `"Sierra Leone Technician Forum" <${process.env.SMTP_USER}>`,
+      to: email,
+      subject: 'Verify your Technician Account',
+      html: `
+        <div style="font-family: sans-serif; max-w: 600px; margin: 0 auto; background-color: #0f172a; color: #f8fafc; padding: 40px; border-radius: 12px; border: 1px solid #1e293b;">
+          <h2 style="color: #60a5fa; margin-bottom: 24px;">Welcome to the IT Services Freetown Forum!</h2>
+          <p style="font-size: 16px; line-height: 1.5; color: #cbd5e1;">Hello ${name},</p>
+          <p style="font-size: 16px; line-height: 1.5; color: #cbd5e1;">To securely activate your Technician Dashboard and join the discussion, please verify your email address by clicking the button below:</p>
+          <div style="text-align: center; margin: 35px 0;">
+            <a href="${verifyUrl}" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; padding: 14px 28px; text-decoration: none; font-weight: bold; border-radius: 8px; display: inline-block;">Verify Email Address</a>
+          </div>
+          <p style="font-size: 14px; color: #94a3b8; margin-top: 30px;">If you did not request this account, you can safely ignore this email.</p>
+        </div>
+      `
     });
 
     return NextResponse.json({
       success: true,
-      user: {
-        id: technician.id,
-        name: technician.name,
-        email: technician.email,
-        role: technician.role
-      }
+      message: 'Registration successful! Please check your email inbox to verify your account.'
     });
   } catch (error) {
     console.error('Registration Error:', error);

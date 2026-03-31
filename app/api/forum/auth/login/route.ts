@@ -25,6 +25,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
+    if (!technician.emailVerified) {
+      return NextResponse.json({ error: 'Please verify your email address before logging in. Check your inbox.' }, { status: 403 });
+    }
+
     // Update their online presence
     await prisma.technician.update({
       where: { id: technician.id },
