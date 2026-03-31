@@ -60,7 +60,7 @@ export default function Navbar() {
             </Link>
           </div>
           <div className="hidden md:flex items-center space-x-8">
-            <Link href="/" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Home</Link>
+            <Link href="/" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-300 hover:text-white'}`}>Home</Link>
             
             {/* Special Shop Button with Badge and Animation */}
             <Link 
@@ -76,17 +76,17 @@ export default function Navbar() {
               <span className="absolute inset-0 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 opacity-0 group-hover:opacity-75 blur-md transition-opacity duration-300 -z-10"></span>
             </Link>
             
-            <Link href="/blog" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/blog' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Blog</Link>
+            <Link href="/blog" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/blog' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-300 hover:text-white'}`}>Blog</Link>
 
-            <Link href="/book-appointment" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/book-appointment' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Book Appointment</Link>
-            <Link href="/track-repair" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/track-repair' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Track Repair</Link>
-            <Link href="/troubleshoot" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/troubleshoot' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Troubleshoot</Link>
+            <Link href="/book-appointment" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/book-appointment' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-300 hover:text-white'}`}>Book Appointment</Link>
+            <Link href="/track-repair" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/track-repair' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-300 hover:text-white'}`}>Track Repair</Link>
+            <Link href="/troubleshoot" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/troubleshoot' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-300 hover:text-white'}`}>Troubleshoot</Link>
             
             {/* Get Support Dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button 
                 onClick={toggleSupportDropdown}
-                className="text-gray-700 hover:text-[#040e40] px-3 py-2 text-sm font-medium inline-flex items-center gap-1"
+                className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium inline-flex items-center gap-1"
               >
                 Get Support
                 <i className={`fas fa-chevron-down text-xs transition-transform duration-200 ${supportDropdownOpen ? 'rotate-180' : ''}`}></i>
@@ -172,8 +172,8 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div className="md:hidden relative z-50 bg-white border-t shadow-lg">
           <div className="px-2 pt-2 pb-3 space-y-1">
-            <Link href="/" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
-              <i className="fas fa-home w-5 mr-3 text-[#040e40]"></i>Home
+            <Link href="/" className="text-gray-300 hover:text-white hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
+              <i className="fas fa-home w-5 mr-3 text-gray-100"></i>Home
             </Link>
             
             {/* Special Shop Button for Mobile */}
@@ -189,15 +189,15 @@ export default function Navbar() {
               </span>
             </Link>
             
-            <Link href="/blog" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
-              <i className="fas fa-blog w-5 mr-3 text-[#040e40]"></i>Blog
+            <Link href="/blog" className="text-gray-300 hover:text-white hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
+              <i className="fas fa-blog w-5 mr-3 text-gray-100"></i>Blog
             </Link>
 
-            <Link href="/book-appointment" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
-              <i className="fas fa-calendar-check w-5 mr-3 text-[#040e40]"></i>Book Appointment
+            <Link href="/book-appointment" className="text-gray-300 hover:text-white hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
+              <i className="fas fa-calendar-check w-5 mr-3 text-gray-100"></i>Book Appointment
             </Link>
-            <Link href="/track-repair" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
-              <i className="fas fa-search w-5 mr-3 text-[#040e40]"></i>Track Repair
+            <Link href="/track-repair" className="text-gray-300 hover:text-white hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
+              <i className="fas fa-search w-5 mr-3 text-gray-100"></i>Track Repair
             </Link>
             
             {/* Get Support Dropdown for Mobile - Brand Colors */}
@@ -205,10 +205,10 @@ export default function Navbar() {
               <button 
                 onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
                 type="button"
-                className="w-full text-left text-gray-700 hover:text-[#040e40] hover:bg-gray-50 px-4 py-3 text-base font-medium rounded-lg transition-all flex items-center justify-between"
+                className="w-full text-left text-gray-300 hover:text-white hover:bg-gray-50 px-4 py-3 text-base font-medium rounded-lg transition-all flex items-center justify-between"
               >
                 <span>
-                  <i className="fas fa-headset w-5 mr-3 text-[#040e40]"></i>Get Support
+                  <i className="fas fa-headset w-5 mr-3 text-gray-100"></i>Get Support
                 </span>
                 <i className={`fas fa-chevron-down text-sm transition-transform duration-200 ${mobileDropdownOpen ? 'rotate-180' : ''}`}></i>
               </button>
@@ -217,7 +217,7 @@ export default function Navbar() {
                 <div className="mt-2 ml-6 mr-2 bg-gradient-to-br from-gray-50 to-red-50 rounded-lg border-2 border-[#040e40]/10 overflow-hidden">
                   <Link
                     href="/repair-guides"
-                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-white active:bg-red-100 transition-all border-b border-gray-200/50"
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-book-medical w-5 text-red-600"></i>
@@ -225,7 +225,7 @@ export default function Navbar() {
                   </Link>
                   <Link
                     href="/chat"
-                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-white active:bg-red-100 transition-all border-b border-gray-200/50"
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-comments w-5 text-red-600"></i>
@@ -233,7 +233,7 @@ export default function Navbar() {
                   </Link>
                   <Link
                     href="/contact"
-                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-white active:bg-red-100 transition-all border-b border-gray-200/50"
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-envelope w-5 text-red-600"></i>
@@ -241,7 +241,7 @@ export default function Navbar() {
                   </Link>
                   <Link
                     href="/about"
-                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-white active:bg-red-100 transition-all border-b border-gray-200/50"
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-info-circle w-5 text-red-600"></i>
@@ -249,7 +249,7 @@ export default function Navbar() {
                   </Link>
                   <Link
                     href="/faq"
-                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-white active:bg-red-100 transition-all border-b border-gray-200/50"
                     onClick={closeMobileMenu}
                   >
                     <i className="fas fa-question-circle w-5 text-red-600"></i>
@@ -257,26 +257,26 @@ export default function Navbar() {
                   </Link>
                   <Link
                     href="/privacy"
-                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-white active:bg-red-100 transition-all border-b border-gray-200/50"
                     onClick={closeMobileMenu}
                   >
-                    <i className="fas fa-shield-alt w-5 text-[#040e40]"></i>
+                    <i className="fas fa-shield-alt w-5 text-gray-100"></i>
                     <span className="ml-3 font-medium">Privacy Policy</span>
                   </Link>
                   <Link
                     href="/terms"
-                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-white active:bg-red-100 transition-all border-b border-gray-200/50"
                     onClick={closeMobileMenu}
                   >
-                    <i className="fas fa-file-contract w-5 text-[#040e40]"></i>
+                    <i className="fas fa-file-contract w-5 text-gray-100"></i>
                     <span className="ml-3 font-medium">Terms of Service</span>
                   </Link>
                   <Link
                     href="/disclaimer"
-                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-white active:bg-red-100 transition-all"
                     onClick={closeMobileMenu}
                   >
-                    <i className="fas fa-exclamation-triangle w-5 text-[#040e40]"></i>
+                    <i className="fas fa-exclamation-triangle w-5 text-gray-100"></i>
                     <span className="ml-3 font-medium">Disclaimer</span>
                   </Link>
                 </div>

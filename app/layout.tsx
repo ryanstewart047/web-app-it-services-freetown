@@ -285,7 +285,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.className} bg-gray-50 min-h-screen`}>
+      <body className={`${inter.className} bg-gradient-to-br from-[#040e40] via-[#020514] to-[#010105] text-white min-h-screen selection:bg-red-600/30 selection:text-white`}>
         <CustomCursor />
         <AnalyticsProvider config={{
           enabled: true,
