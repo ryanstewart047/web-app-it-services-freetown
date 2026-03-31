@@ -115,6 +115,25 @@ export default function Troubleshoot() {
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
 
+  // Prevent accidental exiting and data loss
+  useEffect(() => {
+    // Check if the user has inputted any substantial data
+    const hasUnsavedChanges = Boolean(deviceType || issueDescription || name || phone || email);
+
+    // If no unsaved changes, or if active loading/submitting, disable the warning
+    if (!hasUnsavedChanges || isLoading) return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      // Chrome requires returnValue to be set tightly
+      e.returnValue = 'You have unsaved details! Are you sure you want to leave this page?'; 
+      return e.returnValue;
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [deviceType, issueDescription, name, phone, email, isLoading]);
+
   if (pageLoading) {
     return <LoadingOverlay progress={progress} variant="modern" />;
   }
