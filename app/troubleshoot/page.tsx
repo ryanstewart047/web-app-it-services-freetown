@@ -126,6 +126,7 @@ export default function Troubleshoot() {
     }
 
     setIsLoading(true)
+    let aiDiagnosisText = "Could not generate AI diagnosis";
     
     try {
       // Check if we're in a static deployment (GitHub Pages)
@@ -140,6 +141,7 @@ export default function Troubleshoot() {
           issueDescription: issueDescription.trim()
         })
         
+        aiDiagnosisText = troubleshootingResult.diagnosis;
         setAiResponse(troubleshootingResult)
         toast.success('AI diagnosis completed!')
       } else {
@@ -159,6 +161,7 @@ export default function Troubleshoot() {
         const result = await response.json()
         
         if (result.success && result.data) {
+          aiDiagnosisText = result.data.diagnosis;
           setAiResponse(result.data)
           toast.success('AI diagnosis completed!')
         } else {
@@ -166,10 +169,10 @@ export default function Troubleshoot() {
         }
       }
       
-      // If user opted to submit to support, also send to Formspree manually
+      // If user opted to submit to support, also send to our internal custom mail API
       if (submitToSupport) {
         try {
-          const supportResponse = await fetch("https://formspree.io/f/mpwjnwrz", {
+          const supportResponse = await fetch("/api/troubleshoot-support", {
             method: "POST",
             headers: {
               'Accept': 'application/json',
@@ -177,13 +180,11 @@ export default function Troubleshoot() {
             },
             body: JSON.stringify({
               formType: "troubleshoot_support_ticket",
-              _replyto: email,
-              _cc: "support@itservicesfreetown.com",
               email: email,
               deviceType: deviceType,
               deviceModel: deviceModel || "Not specified",
               issueDescription: issueDescription,
-              aiDiagnosis: "See attached AI analysis via system"
+              aiDiagnosis: aiDiagnosisText
             })
           });
 
@@ -192,7 +193,7 @@ export default function Troubleshoot() {
             setEmail('');
             setSubmitToSupport(false);
           } else {
-            console.error('Formspree returned non-ok status');
+            console.error('Mail API returned non-ok status');
             toast.error('AI diagnosis completed, but failed to create support ticket.');
           }
         } catch (error) {
