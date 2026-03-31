@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm, ValidationError } from '@formspree/react'
 import { Brain, Send, Smartphone, Monitor, HelpCircle, CheckCircle, AlertCircle, Lightbulb } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -114,6 +114,18 @@ export default function Troubleshoot() {
   const [isLoading, setIsLoading] = useState(false)
   const [completedSteps, setCompletedSteps] = useState<string[]>([])
   const [submitToSupport, setSubmitToSupport] = useState(false)
+  const [email, setEmail] = useState('')
+
+  useEffect(() => {
+    if (state.succeeded) {
+      toast.success('Support ticket created! We will contact you at ' + email);
+      setSubmitToSupport(false);
+      setEmail('');
+    }
+    if (state.errors) {
+      toast.error('Failed to create support ticket. Please check your fields.');
+    }
+  }, [state.succeeded, state.errors, email]);
 
   if (pageLoading) {
     return <LoadingOverlay progress={progress} variant="modern" />;
@@ -172,9 +184,7 @@ export default function Troubleshoot() {
       if (submitToSupport) {
         try {
           await handleFormspreeSubmit(e);
-          if (state.succeeded) {
-            toast.success('Support ticket also created!');
-          }
+          // Success toast is handled by useEffect on state.succeeded
         } catch (error) {
           console.error('Error submitting to support:', error);
           toast.error('AI diagnosis completed, but failed to create support ticket.');
@@ -305,18 +315,44 @@ export default function Troubleshoot() {
             </div>
 
             {/* Support ticket option */}
-            <div className="flex items-center space-x-3 bg-blue-50 p-4 rounded-lg">
-              <input
-                type="checkbox"
-                id="submitToSupport"
-                name="submitToSupport"
-                checked={submitToSupport}
-                onChange={(e) => setSubmitToSupport(e.target.checked)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label htmlFor="submitToSupport" className="text-sm text-gray-700">
-                Also create a support ticket for human assistance (optional)
-              </label>
+            <div className="bg-blue-50 p-4 rounded-lg space-y-4">
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="submitToSupport"
+                  name="submitToSupport"
+                  checked={submitToSupport}
+                  onChange={(e) => setSubmitToSupport(e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="submitToSupport" className="text-sm font-medium text-gray-700">
+                  Also create a support ticket for human assistance (optional)
+                </label>
+              </div>
+              
+              {submitToSupport && (
+                <div className="pl-7 animate-fadeIn">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    Email Address *
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="input-field"
+                    placeholder="Enter your email so we can contact you"
+                    required={submitToSupport}
+                  />
+                  <ValidationError 
+                    prefix="Email" 
+                    field="email"
+                    errors={state.errors}
+                    className="text-red-600 text-sm mt-1"
+                  />
+                </div>
+              )}
             </div>
 
             <button
