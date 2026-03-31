@@ -111,6 +111,8 @@ export default function Troubleshoot() {
   const [isLoading, setIsLoading] = useState(false)
   const [completedSteps, setCompletedSteps] = useState<string[]>([])
   const [submitToSupport, setSubmitToSupport] = useState(false)
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
 
   if (pageLoading) {
@@ -180,6 +182,8 @@ export default function Troubleshoot() {
             },
             body: JSON.stringify({
               formType: "troubleshoot_support_ticket",
+              name: name,
+              phone: phone,
               email: email,
               deviceType: deviceType,
               deviceModel: deviceModel || "Not specified",
@@ -191,6 +195,8 @@ export default function Troubleshoot() {
           if (supportResponse.ok) {
             toast.success('Support ticket created! We will contact you at ' + email);
             setEmail('');
+            setName('');
+            setPhone('');
             setSubmitToSupport(false);
           } else {
             console.error('Mail API returned non-ok status');
@@ -330,20 +336,55 @@ export default function Troubleshoot() {
               </div>
               
               {submitToSupport && (
-                <div className="pl-7 animate-fadeIn">
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address *
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="input-field"
-                    placeholder="Enter your email so we can contact you"
-                    required={submitToSupport}
-                  />
+                <div className="pl-7 animate-fadeIn space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                        Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="input-field"
+                        placeholder="John Doe"
+                        required={submitToSupport}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                        Phone Number *
+                      </label>
+                      <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="input-field"
+                        placeholder="+232 XX XXX XXX"
+                        required={submitToSupport}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                      Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="input-field"
+                      placeholder="Enter your email so we can contact you"
+                      required={submitToSupport}
+                    />
+                  </div>
                 </div>
               )}
             </div>

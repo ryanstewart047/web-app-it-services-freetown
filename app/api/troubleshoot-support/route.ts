@@ -4,11 +4,11 @@ import nodemailer from 'nodemailer';
 export async function POST(req: Request) {
   try {
     const data = await req.json();
-    const { email, deviceType, deviceModel, issueDescription, aiDiagnosis } = data;
+    const { name, phone, email, deviceType, deviceModel, issueDescription, aiDiagnosis } = data;
 
-    if (!email || !issueDescription) {
+    if (!email || !issueDescription || !name) {
       return NextResponse.json(
-        { success: false, error: 'Email and issue description are required' },
+        { success: false, error: 'Name, email, and issue description are required' },
         { status: 400 }
       );
     }
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
           </div>
           <div style="padding: 30px; border: 1px solid #eee; border-top: none; border-radius: 0 0 8px 8px;">
             <h2>We have received your support ticket!</h2>
-            <p>Hello,</p>
+            <p>Hello ${name},</p>
             <p>Thank you for reaching out to IT Services Freetown. This email is to confirm that we have successfully received your troubleshooting ticket.</p>
             
             <div style="background-color: #f9fafb; padding: 15px; border-radius: 6px; margin: 20px 0; border: 1px solid #e5e7eb;">
@@ -73,7 +73,15 @@ export async function POST(req: Request) {
           
           <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
             <tr>
-              <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; width: 30%;">Customer Email:</td>
+              <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; width: 30%;">Customer Name:</td>
+              <td style="padding: 10px; border: 1px solid #ddd;">${name}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Phone Number:</td>
+              <td style="padding: 10px; border: 1px solid #ddd;"><a href="tel:${phone}">${phone}</a></td>
+            </tr>
+            <tr>
+              <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Customer Email:</td>
               <td style="padding: 10px; border: 1px solid #ddd;"><a href="mailto:${email}">${email}</a></td>
             </tr>
             <tr>
@@ -96,9 +104,14 @@ export async function POST(req: Request) {
             ${aiDiagnosis}
           </div>
 
-          <p style="margin-top: 30px; font-size: 14px; color: #666;">
-            <strong>Note:</strong> You can click "Reply" to this email to respond directly to the customer.
-          </p>
+          <div style="margin-top: 30px; text-align: center;">
+            <a href="mailto:${email}" style="display: inline-block; padding: 14px 28px; background-color: #dc2626; color: white; text-decoration: none; font-weight: bold; border-radius: 6px; font-size: 16px;">
+              Reply to ${name}
+            </a>
+            <p style="margin-top: 15px; font-size: 13px; color: #666;">
+              Or click 'Reply' in your email client to talk to the customer directly.
+            </p>
+          </div>
         </div>
       `,
     };
