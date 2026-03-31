@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useForm, ValidationError } from '@formspree/react'
+// Formspree hooks removed in favor of native fetch API for robustness
 import { Brain, Send, Smartphone, Monitor, HelpCircle, CheckCircle, AlertCircle, Lightbulb } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
@@ -104,9 +104,6 @@ export default function Troubleshoot() {
   // Initialize scroll animations
   useScrollAnimations()
   
-  // Formspree integration for support tracking
-  const [state, handleFormspreeSubmit] = useForm("mpwjnwrz");
-  
   const [deviceType, setDeviceType] = useState<'computer' | 'mobile' | ''>('')
   const [deviceModel, setDeviceModel] = useState('')
   const [issueDescription, setIssueDescription] = useState('')
@@ -115,17 +112,6 @@ export default function Troubleshoot() {
   const [completedSteps, setCompletedSteps] = useState<string[]>([])
   const [submitToSupport, setSubmitToSupport] = useState(false)
   const [email, setEmail] = useState('')
-
-  useEffect(() => {
-    if (state.succeeded) {
-      toast.success('Support ticket created! We will contact you at ' + email);
-      setSubmitToSupport(false);
-      setEmail('');
-    }
-    if (state.errors) {
-      toast.error('Failed to create support ticket. Please check your fields.');
-    }
-  }, [state.succeeded, state.errors, email]);
 
   if (pageLoading) {
     return <LoadingOverlay progress={progress} variant="modern" />;
@@ -180,11 +166,33 @@ export default function Troubleshoot() {
         }
       }
       
-      // If user opted to submit to support, also send to Formspree
+      // If user opted to submit to support, also send to Formspree manually
       if (submitToSupport) {
         try {
-          await handleFormspreeSubmit(e);
-          // Success toast is handled by useEffect on state.succeeded
+          const supportResponse = await fetch("https://formspree.io/f/mpwjnwrz", {
+            method: "POST",
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              formType: "troubleshoot_support_ticket",
+              email: email,
+              deviceType: deviceType,
+              deviceModel: deviceModel || "Not specified",
+              issueDescription: issueDescription,
+              aiDiagnosis: "See attached AI analysis via system"
+            })
+          });
+
+          if (supportResponse.ok) {
+            toast.success('Support ticket created! We will contact you at ' + email);
+            setEmail('');
+            setSubmitToSupport(false);
+          } else {
+            console.error('Formspree returned non-ok status');
+            toast.error('AI diagnosis completed, but failed to create support ticket.');
+          }
         } catch (error) {
           console.error('Error submitting to support:', error);
           toast.error('AI diagnosis completed, but failed to create support ticket.');
@@ -269,12 +277,6 @@ export default function Troubleshoot() {
                   <option value="computer">PC/Laptop</option>
                   <option value="mobile">Mobile/Tablet</option>
                 </select>
-                <ValidationError 
-                  prefix="Device Type" 
-                  field="deviceType"
-                  errors={state.errors}
-                  className="text-red-600 text-sm mt-1"
-                />
               </div>
               <div>
                 <label htmlFor="deviceModel" className="block text-sm font-medium text-gray-700 mb-2">
@@ -305,12 +307,6 @@ export default function Troubleshoot() {
                 className="input-field"
                 placeholder="Please describe the problem you're experiencing in detail..."
                 required
-              />
-              <ValidationError 
-                prefix="Issue Description" 
-                field="issueDescription"
-                errors={state.errors}
-                className="text-red-600 text-sm mt-1"
               />
             </div>
 
@@ -344,12 +340,6 @@ export default function Troubleshoot() {
                     className="input-field"
                     placeholder="Enter your email so we can contact you"
                     required={submitToSupport}
-                  />
-                  <ValidationError 
-                    prefix="Email" 
-                    field="email"
-                    errors={state.errors}
-                    className="text-red-600 text-sm mt-1"
                   />
                 </div>
               )}
