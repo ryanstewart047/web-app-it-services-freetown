@@ -177,6 +177,8 @@ export default function Troubleshoot() {
             },
             body: JSON.stringify({
               formType: "troubleshoot_support_ticket",
+              _replyto: email,
+              _cc: "support@itservicesfreetown.com",
               email: email,
               deviceType: deviceType,
               deviceModel: deviceModel || "Not specified",
