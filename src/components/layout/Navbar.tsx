@@ -199,6 +199,9 @@ export default function Navbar() {
             <Link href="/track-repair" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
               <i className="fas fa-search w-5 mr-3 text-[#040e40]"></i>Track Repair
             </Link>
+            <Link href="/troubleshoot" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
+              <i className="fas fa-tools w-5 mr-3 text-[#040e40]"></i>Troubleshoot
+            </Link>
             
             {/* Get Support Dropdown for Mobile - Brand Colors */}
             <div className="pt-2">
