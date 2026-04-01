@@ -420,9 +420,10 @@ export default function Footer() {
         <div className="border-t border-red-900/30 pt-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
-              <p className="text-gray-300 text-sm">
-                © {new Date().getFullYear()} IT Services Freetown. All rights reserved.
-              </p>
+              <div className="flex flex-col text-gray-300 text-sm">
+                <span>© {new Date().getFullYear()} IT Services Freetown. All rights reserved.</span>
+                <span className="mt-1">1 Regent High way, Jui Junction, East Freetown</span>
+              </div>
               <div className="flex items-center space-x-4 text-xs text-gray-400">
                 <span className="flex items-center">
                   <i className="fas fa-shield-alt mr-1 text-red-400"></i>

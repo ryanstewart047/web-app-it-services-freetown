@@ -50,11 +50,12 @@ export async function POST(req: Request) {
             </div>
 
             <p>Our expert technicians are reviewing the AI diagnosis and will contact you shortly with the next steps.</p>
-            <p>If you need immediate assistance, please reply directly to this email or call our support hotline.</p>
+            <p>If you need immediate assistance, please reply directly to this email or call our support hotline at <strong>+23233399391</strong>.</p>
             
             <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
-            <p style="font-size: 12px; color: #666; text-align: center;">
-              &copy; ${new Date().getFullYear()} IT Services Freetown. All rights reserved.
+            <p style="font-size: 12px; color: #666; text-align: center; line-height: 1.5;">
+              &copy; ${new Date().getFullYear()} IT Services Freetown. All rights reserved.<br/>
+              1 Regent High way, Jui Junction, East Freetown
             </p>
           </div>
         </div>
