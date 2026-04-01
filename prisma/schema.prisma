@@ -62,25 +62,25 @@ model Repair {
   notes_relation      RepairNote[]     @relation("RepairNotes")
   timeline            RepairTimeline[]
 }
-
 model Technician {
-  id                String        @id @default(cuid())
-  name              String
-  email             String        @unique
-  phone             String
-  passwordHash      String?       
-  profilePhoto      String?       @db.Text 
-  emailVerified     Boolean       @default(false)
-  verificationToken String?
-  isOnline          Boolean       @default(false)
-  lastSeen          DateTime?     @default(now())
-  role              String        @default("technician")
-  expertise         String
-  active            Boolean       @default(true)
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  chatSessions      ChatSession[]
-  repairs           Repair[]
+  id                     String        @id @default(cuid())
+  name                   String
+  email                  String        @unique
+  phone                  String
+  passwordHash           String?       
+  profilePhoto           String?       @db.Text 
+  emailVerified          Boolean       @default(false)
+  verificationToken      String?
+  requiresPasswordChange Boolean       @default(false)
+  isOnline               Boolean       @default(false)
+  lastSeen               DateTime?     @default(now())
+  role                   String        @default("technician")
+  expertise              String
+  active                 Boolean       @default(true)
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+  chatSessions           ChatSession[]
+  repairs                Repair[]
 }
 
 model RepairTimeline {

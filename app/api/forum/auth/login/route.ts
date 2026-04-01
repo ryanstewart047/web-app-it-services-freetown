@@ -29,6 +29,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Please verify your email address before logging in. Check your inbox.' }, { status: 403 });
     }
 
+    if (technician.requiresPasswordChange) {
+      // Create a short-lived session token just for password reset
+      const resetToken = await createSession(technician.id, 'password_reset_pending');
+      cookies().set('forum_reset_session', resetToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 15 // 15 minutes
+      });
+      return NextResponse.json({ success: true, requirePasswordChange: true });
+    }
+
     // Update their online presence
     await prisma.technician.update({
       where: { id: technician.id },

@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { PrismaClient } from '@prisma/client';
 import { verifySession, hashPassword } from '@/lib/auth-utils';
 import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 
 const prisma = new PrismaClient();
 
@@ -39,20 +40,72 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    const userToReset = await prisma.technician.findUnique({ where: { id: userId } });
+    if (!userToReset) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+
     // Generate a secure temporary password
-    const temporaryPassword = crypto.randomBytes(6).toString('hex'); // 12-char string, e.g. "a1b2c3d4e5f6"
+    const temporaryPassword = crypto.randomBytes(6).toString('hex'); // 12-char string
     const passwordHash = await hashPassword(temporaryPassword);
 
     await prisma.technician.update({
       where: { id: userId },
-      data: { passwordHash },
+      data: { passwordHash, requiresPasswordChange: true },
     });
 
-    // In a fully automated flow, we would use nodemailer to send this to the associated email.
-    // However, displaying it lets the admin copy it securely regardless of email transport availability.
+    // Send the password via email
+    try {
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: Number(process.env.SMTP_PORT) || 587,
+        secure: false,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+
+      const mailOptions = {
+        from: `"IT Services Freetown" <${process.env.SMTP_USER}>`,
+        to: userToReset.email,
+        subject: 'Your Forum Account Password Has Been Reset',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; line-height: 1.6;">
+            <div style="background-color: #040e40; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+               <h1 style="color: white; margin: 0;">Account Reset</h1>
+            </div>
+            <div style="padding: 30px; border: 1px solid #eee; border-top: none; border-radius: 0 0 8px 8px;">
+              <h2>Hello ${userToReset.name},</h2>
+              <p>Your password for the IT Services Freetown Technician Forum has been reset by an administrator.</p>
+              
+              <div style="background-color: #f9fafb; padding: 15px; border-radius: 6px; margin: 20px 0; border: 1px solid #e5e7eb; text-align: center;">
+                <p style="margin-bottom: 5px; color: #666;">Your One-Time Temporary Password is:</p>
+                <div style="font-size: 24px; font-weight: bold; letter-spacing: 2px; color: #040e40; font-family: monospace;">${temporaryPassword}</div>
+              </div>
+
+              <p style="color: #dc2626; font-weight: bold;">Important:</p>
+              <ul>
+                <li>This is a one-time use password.</li>
+                <li>You will be required to choose a new password immediately upon logging in.</li>
+              </ul>
+              
+              <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+              <p style="font-size: 12px; color: #666; text-align: center; line-height: 1.5;">
+                &copy; ${new Date().getFullYear()} IT Services Freetown. All rights reserved.<br/>
+                1 Regent High way, Jui Junction, East Freetown
+              </p>
+            </div>
+          </div>
+        `,
+      };
+
+      await transporter.sendMail(mailOptions);
+    } catch (emailError) {
+      console.error('Failed to send reset email:', emailError);
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'Password reset successfully',
+      message: 'Password reset successfully and email sent',
       temporaryPassword,
     });
   } catch (error: any) {

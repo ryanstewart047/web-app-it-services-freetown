@@ -27,6 +27,10 @@ export default function Login() {
 
       const data = await res.json();
       if (res.ok && data.success) {
+        if (data.requirePasswordChange) {
+          router.push('/forum/auth/force-change-password');
+          return;
+        }
         setUser(data.user);
         router.push('/forum');
       } else {
