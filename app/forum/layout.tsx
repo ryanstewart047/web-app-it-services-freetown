@@ -13,6 +13,7 @@ export function useForum() {
 export default function ForumLayout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -90,19 +91,21 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
         <div className="absolute top-0 left-1/4 w-[40rem] h-[40rem] bg-blue-600/10 rounded-full blur-[150px] pointer-events-none z-0"></div>
         <div className="absolute bottom-1/4 right-0 w-[30rem] h-[30rem] bg-indigo-600/10 rounded-full blur-[150px] pointer-events-none z-0"></div>
 
-        <header className="sticky top-0 z-50 bg-[#0b1120]/80 backdrop-blur-xl border-b border-white/5 shadow-2xl">
+        <header className="sticky top-0 z-50 bg-[#0b1120]/90 backdrop-blur-xl border-b border-white/5 shadow-2xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-20 items-center">
-              <div className="flex items-center gap-6">
-                <Link href="/forum" className="flex-shrink-0 flex items-center gap-3 transition-transform hover:scale-105">
-                  <div className="p-2 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-xl border border-blue-500/20">
-                    <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex justify-between h-16 sm:h-20 items-center">
+              
+              {/* Left: Logo + Main Site */}
+              <div className="flex items-center gap-4 sm:gap-6">
+                <Link href="/forum" className="flex-shrink-0 flex items-center gap-2 sm:gap-3 transition-transform hover:scale-105">
+                  <div className="p-1.5 sm:p-2 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-xl border border-blue-500/20">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                     </svg>
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-extrabold text-xl bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 leading-tight">SL Tech Stack</span>
-                    <span className="text-[10px] font-bold text-blue-500 uppercase tracking-[0.2em] leading-tight">Secure Network</span>
+                    <span className="font-extrabold text-base sm:text-xl bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 leading-tight">SL Tech Stack</span>
+                    <span className="text-[9px] sm:text-[10px] font-bold text-blue-500 uppercase tracking-[0.2em] leading-tight">Secure Network</span>
                   </div>
                 </Link>
 
@@ -113,8 +116,10 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
                 </div>
               </div>
 
+              {/* Right: User Info + Nav */}
               {user && (
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 sm:gap-4">
+                  {/* Desktop user name */}
                   <div className="text-right hidden sm:block">
                      <p className="text-sm font-bold text-white tracking-wide">{user.name}</p>
                      <p className="text-xs text-green-400 flex items-center justify-end gap-1.5 font-medium tracking-wider">
@@ -125,17 +130,22 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
                        LIVE
                      </p>
                   </div>
+
+                  {/* Avatar */}
                   <div className="relative">
                     {user.profilePhoto ? (
-                      <img src={user.profilePhoto} alt="Profile" className="h-10 w-10 rounded-full object-cover ring-2 ring-blue-500/50 shadow-lg shadow-blue-500/20" />
+                      <img src={user.profilePhoto} alt="Profile" className="h-9 w-9 sm:h-10 sm:w-10 rounded-full object-cover ring-2 ring-blue-500/50 shadow-lg shadow-blue-500/20" />
                     ) : (
-                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-900 flex items-center justify-center text-white font-bold ring-2 ring-blue-500/30">
+                      <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-900 flex items-center justify-center text-white font-bold ring-2 ring-blue-500/30">
                         {user.name.charAt(0).toUpperCase()}
                       </div>
                     )}
+                    {/* Mobile online dot */}
+                    <span className="sm:hidden absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[#0b1120]"></span>
                   </div>
                   
-                  <div className="flex items-center gap-1 sm:gap-2 ml-2 pr-2 border-l border-slate-700/50 pl-2 sm:pl-4">
+                  {/* Desktop Nav Links */}
+                  <div className="hidden sm:flex items-center gap-1 ml-1 pr-2 border-l border-slate-700/50 pl-3">
                     {user.role === 'admin' && (
                        <Link 
                          href="/forum/admin"
@@ -157,13 +167,55 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
                       LOGOUT
                     </button>
                   </div>
+
+                  {/* Mobile Hamburger */}
+                  <button
+                    onClick={() => setMobileMenuOpen(o => !o)}
+                    className="sm:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all"
+                    aria-label="Menu"
+                  >
+                    {mobileMenuOpen ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    )}
+                  </button>
                 </div>
               )}
             </div>
           </div>
+
+          {/* Mobile Dropdown Menu */}
+          {mobileMenuOpen && user && (
+            <div className="sm:hidden bg-[#0d1526]/95 backdrop-blur-xl border-t border-slate-800 px-4 py-3 space-y-1">
+              <div className="flex items-center gap-3 px-2 py-2 mb-2 border-b border-slate-800">
+                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-600 to-indigo-900 flex items-center justify-center text-white font-bold text-sm ring-2 ring-blue-500/30">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-white">{user.name}</p>
+                  <p className="text-xs text-green-400 font-medium">● Online</p>
+                </div>
+              </div>
+              <Link href="/" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all">
+                <i className="fas fa-home w-4 text-center"></i> Main Site
+              </Link>
+              {user.role === 'admin' && (
+                <Link href="/forum/admin" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-red-400 hover:text-white hover:bg-red-500/10 rounded-lg transition-all">
+                  <i className="fas fa-shield-halved w-4 text-center"></i> Admin Hub
+                </Link>
+              )}
+              <Link href="/forum/settings" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all">
+                <i className="fas fa-gear w-4 text-center"></i> Settings
+              </Link>
+              <button onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all text-left">
+                <i className="fas fa-right-from-bracket w-4 text-center"></i> Logout
+              </button>
+            </div>
+          )}
         </header>
         
-        <main className="flex-1 w-full max-w-7xl mx-auto py-10 relative z-10 px-4">
+        <main className="flex-1 w-full max-w-7xl mx-auto py-6 sm:py-10 relative z-10 px-3 sm:px-4 lg:px-8">
           {children}
         </main>
       </div>
