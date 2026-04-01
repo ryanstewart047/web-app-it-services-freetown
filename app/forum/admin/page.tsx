@@ -37,21 +37,17 @@ export default function AdminDashboardPage() {
   const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string, tempPassword?: string } | null>(null);
 
   useEffect(() => {
-    // Basic verification - redirect if not admin
-    if (user && user.role !== 'admin') {
-      router.push('/forum');
-      return;
-    }
-
-    if (user?.role === 'admin') {
-       fetchUsers();
-    }
-  }, [user]);
+    fetchUsers();
+  }, []);
 
   const fetchUsers = async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/forum/admin/users');
+      if (res.status === 401) {
+         router.push('/forum/admin/login');
+         return;
+      }
       if (res.ok) {
         const data = await res.json();
         setUsers(data.technicians);
@@ -186,7 +182,7 @@ export default function AdminDashboardPage() {
     }
   };
 
-  if (loading || !user || user.role !== 'admin') {
+  if (loading) {
     return (
       <div className="text-center mt-32">
         <div className="w-12 h-12 border-4 border-slate-700 border-t-red-500 rounded-full animate-spin mx-auto mb-6"></div>
@@ -259,7 +255,7 @@ export default function AdminDashboardPage() {
                                  {u.name.charAt(0).toUpperCase()}
                               </div>
                               <div>
-                                 <div className="text-white font-bold">{u.name} {u.id === user.id && <span className="text-xs text-red-500 ml-2 uppercase tracking-wide px-2 py-0.5 rounded bg-red-500/10 border border-red-500/20">(You)</span>}</div>
+                                 <div className="text-white font-bold">{u.name} {u.id === user?.id && <span className="text-xs text-red-500 ml-2 uppercase tracking-wide px-2 py-0.5 rounded bg-red-500/10 border border-red-500/20">(You)</span>}</div>
                                  <div className="text-xs text-slate-500">{u.expertise}</div>
                               </div>
                            </div>
@@ -282,7 +278,7 @@ export default function AdminDashboardPage() {
                         </td>
                         <td className="px-6 py-4 flex justify-end gap-2">
                            <button onClick={() => handleResetPassword(u.id)} className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider bg-slate-800 hover:bg-slate-700 rounded text-blue-400 border border-slate-600 transition-colors mr-2">Reset PRTCl</button>
-                           {u.id !== user.id && (
+                           {u.id !== user?.id && (
                               <>
                                  <button onClick={() => handleToggleBlock(u.id, u.active)} className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded border transition-colors ${u.active ? 'bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 border-yellow-500/30' : 'bg-green-500/10 hover:bg-green-500/20 text-green-500 border-green-500/30'}`}>
                                     {u.active ? 'Block' : 'Unblock'}

@@ -7,6 +7,16 @@ const prisma = new PrismaClient();
 
 // Helper to check admin auth
 async function requireAdmin() {
+  // Check for standalone master admin session first
+  const adminToken = cookies().get('forum_admin_session')?.value;
+  if (adminToken) {
+    const adminPayload = await verifySession(adminToken);
+    if (adminPayload?.role === 'superadmin') {
+      return { id: 'master-admin', name: 'IT Services Freetown', role: 'superadmin', active: true };
+    }
+  }
+
+  // Fallback to standard technician profile with admin role
   const token = cookies().get('forum_session')?.value;
   if (!token) return null;
 
