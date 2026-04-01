@@ -7,6 +7,7 @@ interface Topic {
   id: string;
   title: string;
   author: string;
+  category: string;
   repliesCount: number;
   date: string;
 }
@@ -16,10 +17,14 @@ export default function ForumDashboard() {
   const [stats, setStats] = useState({ online: 0, total: 0 });
   const [loading, setLoading] = useState(true);
 
+  // Filters
+  const [searchQuery, setSearchQuery] = useState('');
+
   // New Topic Modal State
   const [showModal, setShowModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
+  const [newCategory, setNewCategory] = useState('Technology');
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [errorText, setErrorText] = useState('');
@@ -85,7 +90,7 @@ export default function ForumDashboard() {
       const res = await fetch('/api/forum/topics', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: newTitle, content: newContent, images: imageUrls })
+        body: JSON.stringify({ title: newTitle, content: newContent, images: imageUrls, category: newCategory })
       });
       
       if (res.ok) {
@@ -118,6 +123,13 @@ export default function ForumDashboard() {
       </div>
     </div>
   );
+
+  const filteredTopics = topics.filter(topic => {
+     const query = searchQuery.toLowerCase();
+     return topic.title.toLowerCase().includes(query) || 
+            topic.author.toLowerCase().includes(query) || 
+            (topic.category || '').toLowerCase().includes(query);
+  });
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 px-4 font-sans">
@@ -155,19 +167,35 @@ export default function ForumDashboard() {
 
       {/* Main Feed: Topic Log */}
       <div className="md:col-span-3 space-y-4">
-        {topics.length === 0 ? (
+        
+        {/* Search Bar */}
+        <div className="relative mb-6">
+          <input 
+            type="search" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search discussions, categories, or authors..." 
+            className="w-full bg-slate-900/60 backdrop-blur-xl border border-slate-700/50 rounded-xl px-12 py-4 text-white shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
+          />
+          <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+
+        {filteredTopics.length === 0 ? (
           <div className="bg-slate-900/60 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-700/50 p-16 text-center text-slate-500">
             <svg className="w-16 h-16 mx-auto text-slate-700 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
             <p className="font-medium tracking-wide">Data module empty. Begin a new transmission.</p>
           </div>
         ) : (
-          topics.map(topic => (
+          filteredTopics.map(topic => (
             <Link href={`/forum/${topic.id}`} key={topic.id} className="block group">
               <div className="bg-slate-900/40 backdrop-blur-md rounded-xl border border-slate-700/50 hover:border-blue-500/50 hover:bg-slate-800/80 transition-all p-5 hover:shadow-[0_0_20px_rgba(59,130,246,0.15)]">
                 <div className="flex justify-between items-start gap-4">
                   <div className="flex-1">
-                    <h2 className="text-lg font-bold text-slate-200 group-hover:text-blue-400 transition-colors mb-2 leading-tight">
+                    <h2 className="text-lg font-bold text-slate-200 group-hover:text-blue-400 transition-colors mb-2 leading-tight flex items-center flex-wrap gap-3">
                       {topic.title}
+                      <span className="px-2.5 py-1 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] uppercase tracking-widest leading-none shrink-0">
+                        {topic.category || 'General'}
+                      </span>
                     </h2>
                     <div className="text-xs text-slate-500 flex items-center gap-3 font-medium uppercase tracking-wider">
                       <span className="text-slate-300 px-2 py-0.5 bg-slate-800 rounded flex items-center gap-1">
@@ -214,6 +242,20 @@ export default function ForumDashboard() {
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Subject Header</label>
                 <input required type="text" value={newTitle} onChange={e => setNewTitle(e.target.value)} className="w-full bg-slate-800 border-slate-700 rounded-lg focus:border-blue-500 focus:ring-blue-500 shadow-inner px-4 py-3 text-white border" placeholder="Identified issue anomaly..." />
               </div>
+              
+              <div>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Operation Category</label>
+                <select 
+                  value={newCategory} 
+                  onChange={e => setNewCategory(e.target.value)} 
+                  className="w-full bg-slate-800 border-slate-700 rounded-lg focus:border-blue-500 focus:ring-blue-500 shadow-inner px-4 py-3 text-white border appearance-none outline-none"
+                >
+                  {['Technology', 'General knowledge', 'Mobile repair', 'Computer repair', 'Operating Systems', 'Windows', 'Linux', 'Mobile unlock', 'Web development', 'Graphics', 'Communication'].map(cat => (
+                    <option key={cat} value={cat} className="bg-slate-800 text-white">{cat}</option>
+                  ))}
+                </select>
+              </div>
+
               <div>
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Detailed Log</label>
                 <textarea required rows={5} value={newContent} onChange={e => setNewContent(e.target.value)} className="w-full bg-slate-800 border-slate-700 rounded-lg focus:border-blue-500 focus:ring-blue-500 shadow-inner px-4 py-3 text-white border" placeholder="Execute detailed breakdown of the issue array..."></textarea>

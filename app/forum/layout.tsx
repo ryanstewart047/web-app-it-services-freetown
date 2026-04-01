@@ -93,7 +93,7 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
         <header className="sticky top-0 z-50 bg-[#0b1120]/80 backdrop-blur-xl border-b border-white/5 shadow-2xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-20 items-center">
-              <div className="flex items-center">
+              <div className="flex items-center gap-6">
                 <Link href="/forum" className="flex-shrink-0 flex items-center gap-3 transition-transform hover:scale-105">
                   <div className="p-2 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-xl border border-blue-500/20">
                     <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,6 +105,12 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
                     <span className="text-[10px] font-bold text-blue-500 uppercase tracking-[0.2em] leading-tight">Secure Network</span>
                   </div>
                 </Link>
+
+                <div className="hidden sm:block border-l border-slate-700/50 pl-6">
+                  <Link href="/" className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-colors flex items-center gap-2">
+                    <i className="fas fa-home"></i> Main Site
+                  </Link>
+                </div>
               </div>
 
               {user && (

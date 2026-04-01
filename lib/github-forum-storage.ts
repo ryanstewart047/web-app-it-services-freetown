@@ -10,6 +10,7 @@ export interface ForumTopic {
   content: string; // Markdown parsed HTML
   author: string;
   date: string;
+  category: string;
   repliesCount: number;
   images: string[];
 }
@@ -43,6 +44,9 @@ export async function fetchForumTopics(): Promise<ForumTopic[]> {
       const metadataMatches = issue.body?.match(/\[Author: (.+?)\]/);
       const author = metadataMatches ? metadataMatches[1] : issue.user.login;
 
+      const categoryMatches = issue.body?.match(/\[Category: (.+?)\]/);
+      const category = categoryMatches ? categoryMatches[1] : 'General';
+
       // Extract image tags natively from Markdown to show thumbnails
       const imageRegex = /!\[.*?\]\((.*?)\)/g;
       const images: string[] = [];
@@ -56,6 +60,7 @@ export async function fetchForumTopics(): Promise<ForumTopic[]> {
         title: issue.title,
         content: parsedContent,
         author: author,
+        category: category,
         date: new Date(issue.created_at).toISOString(),
         repliesCount: issue.comments,
         images: images.slice(0, 2) // Max 2 per spec requirement
@@ -108,9 +113,9 @@ export async function fetchForumReplies(issueNumber: number): Promise<ForumReply
 /**
  * Create a new Forum Topic
  */
-export async function createForumTopic(title: string, content: string, author: string, images: string[] = []): Promise<{ success: boolean; id?: string }> {
+export async function createForumTopic(title: string, content: string, author: string, images: string[] = [], category: string = 'General'): Promise<{ success: boolean; id?: string }> {
   try {
-    let finalBody = `[Author: ${author}]\n\n${content}`;
+    let finalBody = `[Author: ${author}]\n[Category: ${category}]\n\n${content}`;
     
     // Append markdown images at the bottom of the body
     if (images.length > 0) {

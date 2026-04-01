@@ -78,6 +78,14 @@ export default function ThreadView() {
     }
   };
 
+  const handleShare = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    navigator.clipboard.writeText(window.location.href);
+    import('react-hot-toast').then(mod => mod.default.success('Link copied to clipboard!', {
+      style: { background: '#1e293b', color: '#fff', border: '1px solid #3b82f6' }
+    })).catch(() => alert('Link copied to clipboard!'));
+  };
+
   const handlePostReply = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!replyContent.trim()) return;
@@ -148,6 +156,8 @@ export default function ThreadView() {
             <span className="text-blue-400">{topic.author}</span>
             <span className="mx-3 text-slate-600">///</span>
             <span>{new Date(topic.date).toLocaleString()}</span>
+            <span className="mx-3 text-slate-600 hidden sm:inline">///</span>
+            <span className="px-2.5 py-1 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] uppercase tracking-widest leading-none mt-2 sm:mt-0 inline-block">{topic.category || 'General'}</span>
           </div>
         </div>
         
@@ -171,6 +181,16 @@ export default function ThreadView() {
             </div>
           </div>
         )}
+
+        {/* Action Bar Main Topic */}
+        <div className="mt-8 border-t border-slate-700/50 pt-6 relative z-10 flex justify-end">
+           <button 
+             onClick={handleShare}
+             className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest bg-slate-800/50 text-slate-300 border border-slate-700 hover:bg-slate-800 hover:text-blue-400 transition-all hover:border-blue-500/50 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)]"
+           >
+             <i className="fas fa-share-nodes"></i> Share
+           </button>
+        </div>
       </div>
 
       <div className="flex items-center gap-3 pt-6 pb-2">
@@ -220,6 +240,13 @@ export default function ThreadView() {
                 }`}
               >
                 <i className="fas fa-thumbs-down"></i> {reactions[reply.id]?.dislikes || 0}
+              </button>
+
+              <button
+                onClick={handleShare}
+                className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all bg-slate-800/30 text-slate-500 border border-slate-700/50 hover:bg-slate-800 hover:text-slate-300 hover:border-slate-600"
+              >
+                <i className="fas fa-share-nodes"></i> Share
               </button>
             </div>
           </div>

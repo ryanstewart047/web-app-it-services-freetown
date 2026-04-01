@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     const user = await prisma.technician.findUnique({ where: { id: payload.userId } });
     if (!user || user.requiresPasswordChange) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { title, content, images } = await req.json();
+    const { title, content, images, category } = await req.json();
 
     if (!title || !content) {
       return NextResponse.json({ error: 'Title and content are required' }, { status: 400 });
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
 
     const maxImages = images?.slice(0, 2) || []; // Cap at 2 photos
 
-    const result = await createForumTopic(title, content, user.name, maxImages);
+    const result = await createForumTopic(title, content, user.name, maxImages, category);
 
     if (result.success) {
        return NextResponse.json({ success: true, id: result.id });
