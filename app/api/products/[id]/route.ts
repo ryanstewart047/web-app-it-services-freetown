@@ -5,8 +5,7 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 export const revalidate = 0;
 
-// Enable all HTTP methods
-export const methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'];
+// Methods enabled implicitly by exporting handler functions
 
 // OPTIONS handler for CORS preflight
 export async function OPTIONS(request: NextRequest) {

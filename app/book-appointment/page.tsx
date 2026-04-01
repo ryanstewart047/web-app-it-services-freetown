@@ -1176,12 +1176,17 @@ export default function BookAppointment() {
                       <i className="fas fa-shield-alt mr-2 text-green-500"></i>
                       Verification
                     </h3>
-                    <ReCAPTCHA
-                      ref={recaptchaRef}
-                      sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}
-                      onChange={onCaptchaChange}
-                      onExpired={() => setCaptchaVerified(false)}
-                    />
+                    {(() => {
+                      const ReCAPTCHAAny = ReCAPTCHA as any;
+                      return (
+                        <ReCAPTCHAAny
+                          ref={recaptchaRef}
+                          sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}
+                          onChange={onCaptchaChange}
+                          onExpired={() => setCaptchaVerified(false)}
+                        />
+                      );
+                    })()}
                     {captchaVerified && (
                       <p className="text-green-600 font-semibold flex items-center mt-3">
                         <i className="fas fa-check-circle mr-1"></i> Verified

@@ -169,7 +169,7 @@ export default function OrderConfirmationPage() {
                 <div>
                   <p className="text-gray-400 text-sm">Order Status</p>
                   <span className="inline-block px-3 py-1 bg-yellow-500/20 text-yellow-400 text-sm rounded-full mt-1">
-                    {order.status}
+                    {order.orderStatus}
                   </span>
                 </div>
               </div>
