@@ -158,7 +158,7 @@ export default function ThreadView() {
               </div>
             </div>
             
-            <div className="prose prose-invert prose-blue max-w-none text-slate-300 text-sm pl-0 sm:pl-12" dangerouslySetInnerHTML={{ __html: reply.content }} />
+            <div className="prose prose-invert prose-blue max-w-none text-slate-300 text-sm pl-0 sm:pl-12 custom-markdown" dangerouslySetInnerHTML={{ __html: reply.content }} />
           </div>
         ))}
       </div>
