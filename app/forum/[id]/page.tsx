@@ -8,6 +8,7 @@ export default function ThreadView() {
   const { id } = useParams();
   const [topic, setTopic] = useState<any>(null);
   const [replies, setReplies] = useState<any[]>([]);
+  const [reactions, setReactions] = useState<Record<string, { likes: number, dislikes: number, userReaction: boolean | null }>>({});
   const [loading, setLoading] = useState(true);
 
   // Reply State
@@ -18,9 +19,10 @@ export default function ThreadView() {
   useEffect(() => {
     const fetchThread = async () => {
       try {
-        const [topicsRes, repliesRes] = await Promise.all([
+        const [topicsRes, repliesRes, reactionsRes] = await Promise.all([
           fetch('/api/forum/topics'),
-          fetch(`/api/forum/topics/${id}/replies`)
+          fetch(`/api/forum/topics/${id}/replies`),
+          fetch(`/api/forum/topics/${id}/reactions`)
         ]);
 
         if (topicsRes.ok) {
@@ -31,6 +33,9 @@ export default function ThreadView() {
         if (repliesRes.ok) {
            setReplies(await repliesRes.json());
         }
+        if (reactionsRes.ok) {
+           setReactions(await reactionsRes.json());
+        }
       } catch (e) {
         console.error(e);
       } finally {
@@ -39,6 +44,39 @@ export default function ThreadView() {
     };
     if (id) fetchThread();
   }, [id]);
+
+  const toggleReaction = async (commentId: string, isLike: boolean) => {
+    // Optimistic UI updates
+    setReactions(prev => {
+      const current = prev[commentId] || { likes: 0, dislikes: 0, userReaction: null };
+      const next = { ...current };
+
+      if (current.userReaction === isLike) {
+        // Toggle off
+        if (isLike) next.likes--; else next.dislikes--;
+        next.userReaction = null;
+      } else {
+        // Swap or New
+        if (current.userReaction === true) { next.likes--; next.dislikes++; }
+        else if (current.userReaction === false) { next.dislikes--; next.likes++; }
+        else {
+          if (isLike) next.likes++; else next.dislikes++;
+        }
+        next.userReaction = isLike;
+      }
+      return { ...prev, [commentId]: next };
+    });
+
+    try {
+      await fetch(`/api/forum/topics/${id}/reactions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ commentId, isLike })
+      });
+    } catch (e) {
+      console.error('Failed to toggle reaction', e);
+    }
+  };
 
   const handlePostReply = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,6 +197,31 @@ export default function ThreadView() {
             </div>
             
             <div className="prose prose-invert prose-blue max-w-none text-slate-300 text-sm pl-0 sm:pl-12 custom-markdown" dangerouslySetInnerHTML={{ __html: reply.content }} />
+            
+            {/* Reactions Block */}
+            <div className="pl-0 sm:pl-12 mt-4 flex items-center gap-3">
+              <button
+                onClick={() => toggleReaction(reply.id, true)}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                  reactions[reply.id]?.userReaction === true
+                    ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50'
+                    : 'bg-slate-800/50 text-slate-400 border border-slate-700 hover:bg-slate-800 hover:text-blue-300'
+                }`}
+              >
+                <i className="fas fa-thumbs-up"></i> {reactions[reply.id]?.likes || 0}
+              </button>
+              
+              <button
+                onClick={() => toggleReaction(reply.id, false)}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                  reactions[reply.id]?.userReaction === false
+                    ? 'bg-red-500/20 text-red-400 border border-red-500/50'
+                    : 'bg-slate-800/50 text-slate-400 border border-slate-700 hover:bg-slate-800 hover:text-red-300'
+                }`}
+              >
+                <i className="fas fa-thumbs-down"></i> {reactions[reply.id]?.dislikes || 0}
+              </button>
+            </div>
           </div>
         ))}
       </div>

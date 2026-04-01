@@ -61,26 +61,40 @@ model Repair {
   technician          Technician?      @relation(fields: [technicianId], references: [id])
   notes_relation      RepairNote[]     @relation("RepairNotes")
   timeline            RepairTimeline[]
-}
-model Technician {
-  id                     String        @id @default(cuid())
+}model Technician {
+  id                     String          @id @default(cuid())
   name                   String
-  email                  String        @unique
+  email                  String          @unique
   phone                  String
   passwordHash           String?       
-  profilePhoto           String?       @db.Text 
-  emailVerified          Boolean       @default(false)
+  profilePhoto           String?         @db.Text 
+  emailVerified          Boolean         @default(false)
   verificationToken      String?
-  requiresPasswordChange Boolean       @default(false)
-  isOnline               Boolean       @default(false)
-  lastSeen               DateTime?     @default(now())
-  role                   String        @default("technician")
+  requiresPasswordChange Boolean         @default(false)
+  isOnline               Boolean         @default(false)
+  lastSeen               DateTime?       @default(now())
+  role                   String          @default("technician")
   expertise              String
-  active                 Boolean       @default(true)
-  createdAt              DateTime      @default(now())
-  updatedAt              DateTime      @updatedAt
+  active                 Boolean         @default(true)
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
   chatSessions           ChatSession[]
   repairs                Repair[]
+  forumReactions         ForumReaction[]
+}
+
+model ForumReaction {
+  id           String     @id @default(cuid())
+  commentId    String     // Links to the GitHub issue comment ID
+  topicId      String     // Issue ID
+  technicianId String     
+  isLike       Boolean    // true = like, false = dislike
+  createdAt    DateTime   @default(now())
+  
+  technician   Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+  
+  // Ensure 1 reaction maximum per user per comment
+  @@unique([commentId, technicianId])
 }
 
 model RepairTimeline {
