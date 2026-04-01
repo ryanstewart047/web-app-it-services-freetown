@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { hashPassword, verifySession, createSession } from '@/lib/auth-utils';
+import { verifySession, createSession } from '@/lib/auth-utils';
 import { cookies } from 'next/headers';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'This account does not require a password reset' }, { status: 400 });
     }
 
-    const passwordHash = await hashPassword(newPassword);
+    const passwordHash = await bcrypt.hash(newPassword, 10);
 
     await prisma.technician.update({
       where: { id: technician.id },

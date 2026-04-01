@@ -13,11 +13,20 @@ export async function GET(req: Request) {
     if (token) {
       const payload = await verifySession(token);
       if (payload?.userId) {
-        // Ping their presence
-        await prisma.technician.update({
+        // Ping their presence and check status
+        const technician = await prisma.technician.update({
           where: { id: payload.userId },
           data: { isOnline: true, lastSeen: new Date() }
-        }).catch(err => console.error("Heartbeat error on ID:", payload.userId));
+        }).catch(err => {
+          console.error("Heartbeat error on ID:", payload.userId);
+          return null;
+        });
+        
+        // Eject if password was reset actively
+        if (technician?.requiresPasswordChange) {
+           cookies().delete('forum_session');
+           return NextResponse.json({ error: 'Session revoked', requirePasswordChange: true }, { status: 401 });
+        }
       }
     }
 

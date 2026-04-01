@@ -30,12 +30,18 @@ export async function GET(req: Request) {
         expertise: true,
         profilePhoto: true,
         isOnline: true,
-        createdAt: true
+        createdAt: true,
+        requiresPasswordChange: true
       }
     });
 
     if (!technician) {
       return NextResponse.json({ authenticated: false }, { status: 401 });
+    }
+
+    if (technician.requiresPasswordChange) {
+      cookies().delete('forum_session');
+      return NextResponse.json({ authenticated: false, requirePasswordChange: true }, { status: 401 });
     }
 
     // Bump their lastSeen dynamically upon fetching 'me'

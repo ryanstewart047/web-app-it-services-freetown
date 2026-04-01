@@ -24,7 +24,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     if (!payload?.userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const user = await prisma.technician.findUnique({ where: { id: payload.userId } });
-    if (!user) return NextResponse.json({ error: 'Technician not found' }, { status: 401 });
+    if (!user || user.requiresPasswordChange) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { content, images } = await req.json();
 

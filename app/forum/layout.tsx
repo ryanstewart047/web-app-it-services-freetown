@@ -42,7 +42,16 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
     fetchAuth();
 
     const heartbeatInterval = setInterval(async () => {
-       await fetch('/api/forum/heartbeat', { method: 'GET' }).catch(() => {});
+       try {
+         const res = await fetch('/api/forum/heartbeat', { method: 'GET' });
+         if (res.status === 401 && mounted && !isAuthPage) {
+           const data = await res.json();
+           if (data.requirePasswordChange) {
+             setUser(null);
+             router.push('/forum/auth/login');
+           }
+         }
+       } catch (err) {}
     }, 60 * 1000);
 
     return () => {

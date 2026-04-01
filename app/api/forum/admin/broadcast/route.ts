@@ -23,7 +23,7 @@ async function requireAdmin() {
   if (!payload?.userId) return null;
 
   const user = await prisma.technician.findUnique({ where: { id: payload.userId } });
-  if (!user || user.role !== 'admin') return null;
+  if (!user || user.role !== 'admin' || user.requiresPasswordChange) return null;
 
   return user;
 }
