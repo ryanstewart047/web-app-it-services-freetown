@@ -13,6 +13,7 @@ import PWAInstallBanner from '../src/components/PWAInstallBanner'
 import NetworkMonitor from '../src/components/NetworkMonitor'
 import { AnalyticsProvider } from '../src/components/AnalyticsTracker'
 import ConditionalLayout from '@/components/ConditionalLayout'
+import ForumPromoCard from '@/components/ForumPromoCard'
 
 
 const inter = Inter({ 
@@ -298,6 +299,7 @@ export default function RootLayout({
           <ConditionalLayout>
             {children}
           </ConditionalLayout>
+          <ForumPromoCard />
           <Toaster position="top-right" />
         </AnalyticsProvider>
       </body>
