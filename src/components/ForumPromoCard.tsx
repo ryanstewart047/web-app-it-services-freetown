@@ -10,29 +10,32 @@ export default function ForumPromoCard() {
   const [dismissed, setDismissed] = useState(false);
   const [minimized, setMinimized] = useState(false);
 
-  // Don't render on forum pages at all
   const isForumPage = pathname === '/forum' || pathname?.startsWith('/forum/');
-  if (isForumPage) return null;
 
+  // ALL hooks must be called unconditionally — before any early returns
   useEffect(() => {
-    // Check if user already dismissed this session
+    if (isForumPage) return;
+
     const wasDismissed = sessionStorage.getItem('forum_promo_dismissed');
     if (wasDismissed) {
       setDismissed(true);
       return;
     }
 
-    // Slide in after 4 seconds
     const timer = setTimeout(() => setVisible(true), 4000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [isForumPage]);
+
+  // Early return AFTER all hooks
+  if (isForumPage || dismissed) return null;
 
   const handleDismiss = () => {
-    setDismissed(true);
-    sessionStorage.setItem('forum_promo_dismissed', '1');
+    setVisible(false);
+    setTimeout(() => {
+      setDismissed(true);
+      sessionStorage.setItem('forum_promo_dismissed', '1');
+    }, 300);
   };
-
-  if (dismissed) return null;
 
   return (
     <div
@@ -55,7 +58,7 @@ export default function ForumPromoCard() {
       ) : (
         /* Full card */
         <div className="w-72 sm:w-80 bg-[#0b1120] border border-slate-700/60 rounded-2xl shadow-2xl shadow-black/40 overflow-hidden ring-1 ring-white/5">
-          
+
           {/* Top gradient bar */}
           <div className="h-1 w-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
 
