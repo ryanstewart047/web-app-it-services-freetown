@@ -39,7 +39,7 @@ export default function ForumPromoCard() {
 
   return (
     <div
-      className={`fixed bottom-6 right-4 sm:right-6 z-50 transition-all duration-500 ease-out ${
+      className={`fixed bottom-6 left-4 sm:left-6 z-50 transition-all duration-500 ease-out ${
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'
       }`}
     >
