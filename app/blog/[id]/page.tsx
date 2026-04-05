@@ -8,25 +8,34 @@ type Props = {
   params: { id: string }
 }
 
+// Pre-generate all known blog post paths at build time so Google can crawl them
+export async function generateStaticParams() {
+  try {
+    const posts = await fetchBlogPosts()
+    return posts.map((post) => ({ id: post.id }))
+  } catch {
+    return []
+  }
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
-    // Fetch the specific blog post
     const posts = await fetchBlogPosts()
     const post = posts.find(p => p.id === params.id)
     
     if (!post) {
       return {
         title: 'Blog Post Not Found',
-        description: 'The requested blog post could not be found.'
+        description: 'The requested blog post could not be found.',
+        robots: { index: false },
       }
     }
     
-    // Get first image from media
     const shareImage = post.media?.find(m => m.type === 'image')?.url
     const contentPreview = post.content.replace(/<[^>]*>/g, '').substring(0, 200)
+    const canonicalUrl = `https://www.itservicesfreetown.com/blog/${params.id}`
     
-    // Create OG image URL
-    const ogImageUrl = new URL('/api/og-blog', 'https://itservicesfreetown.com')
+    const ogImageUrl = new URL('/api/og-blog', 'https://www.itservicesfreetown.com')
     ogImageUrl.searchParams.set('title', post.title)
     ogImageUrl.searchParams.set('author', post.author)
     ogImageUrl.searchParams.set('date', new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }))
@@ -39,11 +48,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title: post.title,
       description: contentPreview,
+      // Self-referencing canonical — critical for indexing
+      alternates: {
+        canonical: canonicalUrl,
+      },
       openGraph: {
         type: 'article',
         title: post.title,
         description: contentPreview,
-        url: `https://itservicesfreetown.com/blog/${params.id}`,
+        url: canonicalUrl,
         siteName: 'IT Services Freetown',
         images: [
           {
@@ -62,12 +75,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         description: contentPreview,
         images: [ogImageUrl.toString()],
       },
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          'max-snippet': -1,
+          'max-image-preview': 'large',
+        },
+      },
     }
   } catch (error) {
     console.error('Error generating blog post metadata:', error)
     return {
       title: 'Blog Post',
-      description: 'Read our latest tech tips and insights.'
+      description: 'Read our latest tech tips and insights from IT Services Freetown.',
     }
   }
 }
@@ -108,6 +131,35 @@ export default async function BlogPostPage({ params }: Props) {
         </Link>
         
         <article className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 md:p-12">
+          {/* Structured Data for the article */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'BlogPosting',
+                headline: post.title,
+                description: post.content.replace(/<[^>]*>/g, '').substring(0, 200),
+                author: {
+                  '@type': 'Person',
+                  name: post.author,
+                },
+                publisher: {
+                  '@type': 'Organization',
+                  name: 'IT Services Freetown',
+                  url: 'https://www.itservicesfreetown.com',
+                },
+                datePublished: post.date,
+                dateModified: post.date,
+                url: `https://www.itservicesfreetown.com/blog/${params.id}`,
+                mainEntityOfPage: {
+                  '@type': 'WebPage',
+                  '@id': `https://www.itservicesfreetown.com/blog/${params.id}`,
+                },
+              }),
+            }}
+          />
+
           {/* Header */}
           <header className="mb-10 border-b border-gray-100 pb-8">
             <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6 leading-tight">
