@@ -24,9 +24,6 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.itservicesfreetown.com'),
-  alternates: {
-    canonical: '/',
-  },
   title: {
     default: 'IT Services Freetown - #1 Computer & Mobile Repair in Sierra Leone',
     template: '%s | IT Services Freetown'

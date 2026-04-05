@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: 'Contact Us - IT Services Freetown',
   description: 'Get in touch with IT Services Freetown. Visit us, call, email, or chat with our expert technicians for all your device repair needs.',
   keywords: 'contact IT services, freetown contact, tech support, repair service contact',
+  alternates: {
+    canonical: 'https://www.itservicesfreetown.com/contact',
+  },
 };
 
 export default function ContactPage() {

@@ -3,6 +3,9 @@ import { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Book Appointment - Schedule Your Device Repair',
   description: 'Book a repair appointment with IT Services Freetown. Schedule same-day computer repair, mobile phone repair, iPhone screen replacement, iCloud removal, and more. Fast, reliable service in Freetown, Sierra Leone.',
+  alternates: {
+    canonical: 'https://www.itservicesfreetown.com/book-appointment',
+  },
   keywords: [
     'book repair appointment Freetown',
     'schedule device repair',
