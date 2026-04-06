@@ -23,6 +23,40 @@ export default function Login() {
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotError, setForgotError] = useState('');
 
+  // Two-step Email verification state
+  const [checkingEmail, setCheckingEmail] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
+
+  const handleVerifyEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCheckingEmail(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/forum/auth/check-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      
+      if (res.ok && data.exists) {
+        if (!data.active) {
+           setError(data.error || 'Account deactivated. Please contact admin.');
+        } else {
+           setEmailVerified(true);
+           setForgotEmail(email);
+        }
+      } else {
+        setError(data.error || 'Email not found in our database.');
+      }
+    } catch {
+      setError('A network error occurred. Check connection.');
+    } finally {
+      setCheckingEmail(false);
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -105,7 +139,7 @@ export default function Login() {
               </p>
             </div>
 
-            <form className="space-y-5" onSubmit={handleLogin}>
+            <form className="space-y-5" onSubmit={emailVerified ? handleLogin : handleVerifyEmail}>
               {error && (
                 <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-2">
                   <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -122,67 +156,99 @@ export default function Login() {
                   <input
                     type="email"
                     required
+                    readOnly={emailVerified}
                     autoComplete="email"
-                    className="w-full bg-slate-800/50 border border-slate-700 rounded-lg pl-4 pr-10 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-inner"
+                    className={`w-full bg-slate-800/50 border border-slate-700 rounded-lg pl-4 pr-16 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-inner ${emailVerified ? 'opacity-70 cursor-not-allowed' : ''}`}
                     placeholder="your@email.com"
                     value={email}
-                    onChange={e => setEmail(e.target.value)}
+                    onChange={e => {
+                      setEmail(e.target.value);
+                      setError('');
+                    }}
                   />
-                  {/* Verified icon appears when email looks valid */}
-                  {email.includes('@') && email.includes('.') && (
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-400" title="Email entered">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
-                    </span>
+                  {/* Action or verified icon */}
+                  {emailVerified ? (
+                    <button 
+                       type="button" 
+                       onClick={() => { setEmailVerified(false); setPassword(''); setError(''); }} 
+                       className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-400 text-xs font-bold hover:text-blue-300"
+                    >
+                       EDIT
+                    </button>
+                  ) : (
+                    email.includes('@') && email.includes('.') && (
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-400" title="Email entered">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
+                      </span>
+                    )
                   )}
                 </div>
-                {/* Show the entered email as a readable confirmation */}
-                {email.includes('@') && (
+                {/* Show the entered email as a readable confirmation only if verified */}
+                {emailVerified && (
                   <p className="mt-1.5 text-xs text-slate-500 flex items-center gap-1.5">
                     <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path></svg>
-                    Signing in as <span className="font-bold text-slate-400">{email}</span>
+                    Email Verified
                   </p>
                 )}
               </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Passphrase</label>
+              {emailVerified ? (
+                <>
+                  <div className="animate-in fade-in slide-in-from-top-4 duration-300">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Passphrase</label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setForgotError('');
+                          setView('forgot');
+                        }}
+                        className="text-xs text-blue-400 hover:text-blue-300 transition-colors font-semibold"
+                      >
+                        Forgot password?
+                      </button>
+                    </div>
+                    <input
+                      type="password"
+                      required
+                      autoComplete="current-password"
+                      className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-inner font-mono text-lg"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      autoFocus
+                    />
+                  </div>
+
+                  <div className="pt-2 animate-in fade-in slide-in-from-top-4 duration-300">
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full flex items-center justify-center gap-2 py-3.5 px-4 text-sm font-bold uppercase tracking-widest rounded-lg text-white bg-blue-600 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-500/25"
+                    >
+                      {loading ? (
+                        <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> Signing in…</>
+                      ) : (
+                        'Sign In to Forum'
+                      )}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="pt-2">
                   <button
-                    type="button"
-                    onClick={() => {
-                      setForgotEmail(email); // pre-fill with whatever they typed
-                      setForgotError('');
-                      setView('forgot');
-                    }}
-                    className="text-xs text-blue-400 hover:text-blue-300 transition-colors font-semibold"
+                    type="submit"
+                    disabled={checkingEmail || !email.includes('@')}
+                    className="w-full flex items-center justify-center gap-2 py-3.5 px-4 text-sm font-bold uppercase tracking-widest rounded-lg text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-500/25"
                   >
-                    Forgot password?
+                    {checkingEmail ? (
+                      <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> Verifying Email…</>
+                    ) : (
+                      'Continue'
+                    )}
                   </button>
                 </div>
-                <input
-                  type="password"
-                  required
-                  autoComplete="current-password"
-                  className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-inner font-mono text-lg"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                />
-              </div>
-
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 py-3.5 px-4 text-sm font-bold uppercase tracking-widest rounded-lg text-white bg-blue-600 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-500/25"
-                >
-                  {loading ? (
-                    <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> Signing in…</>
-                  ) : (
-                    'Sign In to Forum'
-                  )}
-                </button>
-              </div>
+              )}
             </form>
           </div>
         )}

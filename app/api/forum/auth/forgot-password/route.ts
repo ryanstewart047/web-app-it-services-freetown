@@ -19,11 +19,12 @@ export async function POST(req: Request) {
       where: { email: email.toLowerCase().trim() }
     });
 
-    // Always return the same message to prevent email enumeration attacks
-    // but only proceed with sending if the account actually exists
-    if (!technician || !technician.active) {
-      // We still return success to avoid revealing whether the email is registered
-      return NextResponse.json({ success: true });
+    // Only proceed with sending if the account actually exists
+    if (!technician) {
+      return NextResponse.json({ error: 'Email not found in our database.' }, { status: 404 });
+    }
+    if (!technician.active) {
+      return NextResponse.json({ error: 'Account is deactivated. Contact admin.' }, { status: 403 });
     }
 
     // Generate a secure temporary password
