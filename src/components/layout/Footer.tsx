@@ -190,6 +190,15 @@ export default function Footer() {
               <h4 className="text-white font-semibold text-sm">Bookings</h4>
               <p className="text-gray-400 text-xs mt-1">Service appointments</p>
             </Link>
+            <a 
+              href="/api/forum/admin/bridge" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              onClick={handleClose}
+            >
+              <i className="fas fa-users-gear text-indigo-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+              <h4 className="text-white font-semibold text-sm">Forum Admin</h4>
+              <p className="text-gray-400 text-xs mt-1">Manage technicians</p>
+            </a>
           </div>
                 </>
               )}

@@ -133,15 +133,9 @@ export default function Login() {
               </h2>
               <p className="mt-2 text-sm text-slate-400 font-medium">
                 Authorized Technicians Only.{' '}
-                <span className="block mt-2">
-                  <Link href="/forum/auth/register" className="font-bold text-blue-400 hover:text-blue-300 transition-colors">
-                    Request Access
-                  </Link>
-                  <span className="mx-2 text-slate-600">|</span>
-                  <Link href="/forum/admin/login" className="font-bold text-red-500 hover:text-red-400 transition-colors uppercase tracking-wider text-xs">
-                    <i className="fas fa-shield-halved mr-1"></i> Admin Access
-                  </Link>
-                </span>
+                <Link href="/forum/auth/register" className="font-bold text-blue-400 hover:text-blue-300 transition-colors">
+                  Request Access
+                </Link>
               </p>
             </div>
 
