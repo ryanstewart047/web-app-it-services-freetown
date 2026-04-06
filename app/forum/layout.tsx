@@ -18,6 +18,8 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
 
   const isAuthPage = pathname.includes('/auth/');
+  const isAdminRoute = pathname.includes('/admin');
+  const isExemptFromAuthRedirect = isAuthPage || isAdminRoute;
 
   useEffect(() => {
     let mounted = true;
@@ -28,14 +30,14 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
           const data = await res.json();
           if (mounted && data.authenticated) {
             setUser(data.user);
-          } else if (!isAuthPage && mounted) {
+          } else if (!isExemptFromAuthRedirect && mounted) {
             router.push('/forum/auth/login');
           }
-        } else if (!isAuthPage && mounted) {
+        } else if (!isExemptFromAuthRedirect && mounted) {
           router.push('/forum/auth/login');
         }
       } catch (e) {
-        if (!isAuthPage && mounted) router.push('/forum/auth/login');
+        if (!isExemptFromAuthRedirect && mounted) router.push('/forum/auth/login');
       } finally {
         if (mounted) setLoading(false);
       }
@@ -45,7 +47,7 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
     const heartbeatInterval = setInterval(async () => {
        try {
          const res = await fetch('/api/forum/heartbeat', { method: 'GET' });
-         if (res.status === 401 && mounted && !isAuthPage) {
+         if (res.status === 401 && mounted && !isExemptFromAuthRedirect) {
            const data = await res.json();
            if (data.requirePasswordChange) {
              setUser(null);
@@ -79,7 +81,7 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
   }
 
   // Pure dark background for auth panels without the navbar
-  if (isAuthPage || pathname.includes('/verify')) {
+  if (isAuthPage || pathname.includes('/verify') || pathname.includes('/admin/login')) {
     return <ForumContext.Provider value={{ user, setUser }}>{children}</ForumContext.Provider>;
   }
 
