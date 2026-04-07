@@ -116,70 +116,30 @@ export default function DownloadAppPage() {
               )}
               {os === 'mac' && (
                 <>
-                  <a
-                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector-1.1.0-arm64.dmg"
-                    className="flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-8 py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <div className="flex items-center justify-between bg-gray-800 text-gray-400 px-8 py-4 rounded-xl transition-all border border-gray-700 opacity-70 cursor-not-allowed">
                     <div className="flex items-center gap-3">
                       <Download className="w-6 h-6" />
                       <div className="text-left">
-                        <div className="font-bold text-lg">macOS DMG (Apple Silicon)</div>
-                        <div className="text-sm text-blue-100">Recommended - For M1/M2/M3 Macs</div>
+                        <div className="font-bold text-lg">macOS DMG</div>
+                        <div className="text-sm">Coming Soon - Currently in Development</div>
                       </div>
                     </div>
-                    <div className="text-sm text-blue-100">~100 MB</div>
-                  </a>
-                  <a
-                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector-1.1.0-arm64-mac.zip"
-                    className="flex items-center justify-between bg-gray-700 hover:bg-gray-600 text-white px-8 py-4 rounded-xl transition-all"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Download className="w-6 h-6" />
-                      <div className="text-left">
-                        <div className="font-bold">macOS ZIP (Apple Silicon)</div>
-                        <div className="text-sm text-gray-300">Portable archive for M1/M2/M3</div>
-                      </div>
-                    </div>
-                    <div className="text-sm text-gray-300">~73 MB</div>
-                  </a>
+                    <div className="text-sm font-semibold tracking-wider">TBA</div>
+                  </div>
                 </>
               )}
               {os === 'linux' && (
                 <>
-                  <a
-                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector-1.1.0.AppImage"
-                    className="flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-8 py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <div className="flex items-center justify-between bg-gray-800 text-gray-400 px-8 py-4 rounded-xl transition-all border border-gray-700 opacity-70 cursor-not-allowed">
                     <div className="flex items-center gap-3">
                       <Download className="w-6 h-6" />
                       <div className="text-left">
-                        <div className="font-bold text-lg">Linux AppImage</div>
-                        <div className="text-sm text-blue-100">Recommended - Universal, run anywhere</div>
+                        <div className="font-bold text-lg">Linux Package</div>
+                        <div className="text-sm">Coming Soon - Currently in Development</div>
                       </div>
                     </div>
-                    <div className="text-sm text-blue-100">~73 MB</div>
-                  </a>
-                  <a
-                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/it-services-device-detector_1.1.0_amd64.deb"
-                    className="flex items-center justify-between bg-gray-700 hover:bg-gray-600 text-white px-8 py-4 rounded-xl transition-all"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Download className="w-6 h-6" />
-                      <div className="text-left">
-                        <div className="font-bold">Debian Package (.deb)</div>
-                        <div className="text-sm text-gray-300">For Ubuntu, Debian, Linux Mint</div>
-                      </div>
-                    </div>
-                    <div className="text-sm text-gray-300">~69 MB</div>
-                  </a>
+                    <div className="text-sm font-semibold tracking-wider">TBA</div>
+                  </div>
                 </>
               )}
             </div>
