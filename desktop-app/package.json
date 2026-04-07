@@ -57,14 +57,14 @@
         "nsis",
         "portable"
       ],
-      "icon": "assets/icon.ico"
+      "icon": "assets/icon.png"
     },
     "mac": {
       "target": [
         "dmg",
         "zip"
       ],
-      "icon": "assets/icon.icns",
+      "icon": "assets/icon.png",
       "category": "public.app-category.developer-tools",
       "dmg": {
         "title": "Install IT Services Device Detector",
@@ -98,9 +98,6 @@
       "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
       "shortcutName": "Device Detector",
-      "installerIcon": "assets/icon.ico",
-      "uninstallerIcon": "assets/icon.ico",
-      "installerHeaderIcon": "assets/icon.ico",
       "include": "installer.nsh"
     }
   }
