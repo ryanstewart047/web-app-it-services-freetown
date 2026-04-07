@@ -3,7 +3,7 @@ name: Build and Release Desktop App
 on:
   push:
     tags:
-      - 'v*' # Triggers on version tags like v1.0.0, v1.0.1, etc.
+      - 'v*' # Triggers on version tags like v1.1.0, v1.0.1, etc.
   workflow_dispatch: # Allows manual trigger from GitHub Actions tab
 
 permissions:
@@ -128,36 +128,36 @@ jobs:
             
             ### Windows
             
-            - **IT-Services-Device-Detector-Setup-1.0.0.exe** (Recommended)
+            - **IT-Services-Device-Detector-Setup-1.1.0.exe** (Recommended)
               - Standard Windows installer with Start Menu shortcuts
               - Just download and run - easy installation wizard
             
-            - **IT Services Device Detector-1.0.0.exe** (Portable)
+            - **IT Services Device Detector-1.1.0.exe** (Portable)
               - No installation required - runs directly
               - Perfect for USB drives or temporary use
             
             ### macOS
             
-            - **IT-Services-Device-Detector-1.0.0.dmg** (Recommended)
+            - **IT-Services-Device-Detector-1.1.0.dmg** (Recommended)
               - Standard macOS installer
               - Drag to Applications folder
               - **Note**: May need to allow in System Preferences → Security
             
-            - **IT-Services-Device-Detector-1.0.0-mac.zip**
+            - **IT-Services-Device-Detector-1.1.0-mac.zip**
               - Compressed app bundle
               - Extract and drag to Applications
             
             ### Linux
             
-            - **IT Services Device Detector-1.0.0.AppImage** (Recommended)
+            - **IT Services Device Detector-1.1.0.AppImage** (Recommended)
               - Universal Linux installer
               - Works on Ubuntu, Fedora, Debian, Arch, etc.
-              - Make executable: `chmod +x "IT Services Device Detector-1.0.0.AppImage"`
-              - Run: `./IT\ Services\ Device\ Detector-1.0.0.AppImage`
+              - Make executable: `chmod +x "IT Services Device Detector-1.1.0.AppImage"`
+              - Run: `./IT\ Services\ Device\ Detector-1.1.0.AppImage`
             
-            - **it-services-device-detector_1.0.0_amd64.deb**
+            - **it-services-device-detector_1.1.0_amd64.deb**
               - For Debian/Ubuntu/Linux Mint
-              - Install: `sudo dpkg -i it-services-device-detector_1.0.0_amd64.deb`
+              - Install: `sudo dpkg -i it-services-device-detector_1.1.0_amd64.deb`
             
             ## ⚙️ Requirements
             

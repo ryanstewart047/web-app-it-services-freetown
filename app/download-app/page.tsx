@@ -83,7 +83,7 @@ export default function DownloadAppPage() {
               {os === 'windows' && (
                 <>
                   <a
-                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector.Setup.1.0.0.exe"
+                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector.Setup.1.1.0.exe"
                     className="flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-8 py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -98,7 +98,7 @@ export default function DownloadAppPage() {
                     <div className="text-sm text-blue-100">~90 MB</div>
                   </a>
                   <a
-                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector.1.0.0.exe"
+                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector.1.1.0.exe"
                     className="flex items-center justify-between bg-gray-700 hover:bg-gray-600 text-white px-8 py-4 rounded-xl transition-all"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -117,7 +117,7 @@ export default function DownloadAppPage() {
               {os === 'mac' && (
                 <>
                   <a
-                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector-1.0.0-arm64.dmg"
+                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector-1.1.0-arm64.dmg"
                     className="flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-8 py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -132,7 +132,7 @@ export default function DownloadAppPage() {
                     <div className="text-sm text-blue-100">~100 MB</div>
                   </a>
                   <a
-                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector-1.0.0-arm64-mac.zip"
+                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector-1.1.0-arm64-mac.zip"
                     className="flex items-center justify-between bg-gray-700 hover:bg-gray-600 text-white px-8 py-4 rounded-xl transition-all"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -151,7 +151,7 @@ export default function DownloadAppPage() {
               {os === 'linux' && (
                 <>
                   <a
-                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector-1.0.0.AppImage"
+                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector-1.1.0.AppImage"
                     className="flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-8 py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -166,7 +166,7 @@ export default function DownloadAppPage() {
                     <div className="text-sm text-blue-100">~73 MB</div>
                   </a>
                   <a
-                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/it-services-device-detector_1.0.0_amd64.deb"
+                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/it-services-device-detector_1.1.0_amd64.deb"
                     className="flex items-center justify-between bg-gray-700 hover:bg-gray-600 text-white px-8 py-4 rounded-xl transition-all"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -190,7 +190,7 @@ export default function DownloadAppPage() {
                 <div className="text-2xl">✅</div>
                 <div className="flex-1">
                   <p className="text-green-200 font-bold mb-2">
-                    v1.0.0 Released - All Installers Available!
+                    v1.1.0 Released - All Installers Available!
                   </p>
                   <p className="text-green-200 text-sm mb-2">
                     Pre-built installers for Windows, macOS, and Linux are now available on GitHub Releases.
@@ -223,7 +223,7 @@ export default function DownloadAppPage() {
                 >
                   GitHub repository
                 </a>
-                for the v1.0.0 release announcement.
+                for the v1.1.0 release announcement.
               </p>
             </div>
           </div>

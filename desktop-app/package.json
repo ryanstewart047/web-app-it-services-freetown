@@ -1,6 +1,6 @@
 {
   "name": "it-services-device-detector",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Professional Android Device Detection Tool - Get complete device information including IMEI, model, specs, and more",
   "main": "main.js",
   "homepage": "https://github.com/ryanstewart047/web-app-it-services-freetown",
