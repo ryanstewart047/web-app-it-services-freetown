@@ -183,8 +183,10 @@ function displayDeviceInfo(data) {
   document.getElementById('device').textContent = cleanValue(data.device);
   document.getElementById('serialNumber').textContent = cleanValue(data.serialNumber);
   
-  // IMEI Information
-  document.getElementById('imei1').textContent = parseIMEI(data.imei1);
+  // IMEI Information (With fallback to dumpsys if getprop fails)
+  const parsedImei1 = parseIMEI(data.imei1);
+  const parsedSimple = parseIMEI(data.imeiSimple);
+  document.getElementById('imei1').textContent = (parsedImei1 !== '-' && parsedImei1 !== 'Unable to retrieve') ? parsedImei1 : parsedSimple;
   document.getElementById('imei2').textContent = parseIMEI(data.imei2);
   
   // Android Information
@@ -199,6 +201,15 @@ function displayDeviceInfo(data) {
   document.getElementById('hardware').textContent = cleanValue(data.hardware);
   document.getElementById('board').textContent = cleanValue(data.board);
   document.getElementById('bootloader').textContent = cleanValue(data.bootloader);
+  document.getElementById('usbVendor').textContent = cleanValue(data.usbVendor) !== '-' ? `0x${cleanValue(data.usbVendor)}` : '-';
+  document.getElementById('usbProduct').textContent = cleanValue(data.usbProduct) !== '-' ? `0x${cleanValue(data.usbProduct)}` : '-';
+  
+  // FRP Information
+  document.getElementById('frpPartition').textContent = cleanValue(data.frpPartition);
+  const stateVal = cleanValue(data.frpState);
+  document.getElementById('frpState').textContent = stateVal === '1' ? 'Enabled (Restricted)' : (stateVal === '0' ? 'Disabled (Unlocked)' : stateVal);
+  if (stateVal === '1') document.getElementById('frpState').style.color = '#ef4444';
+  if (stateVal === '0') document.getElementById('frpState').style.color = '#10b981';
   
   // Display Information
   document.getElementById('screenSize').textContent = cleanValue(data.screenSize);
@@ -225,8 +236,15 @@ function displayDeviceInfo(data) {
   document.getElementById('batteryTech').textContent = formatBattery(data.batteryTech, 'batteryTech');
   
   // Network Information
+  const formatIpAddress = (ipStr) => {
+    if (!ipStr || ipStr === 'N/A') return '-';
+    // Extracts src IP from `ip route` output
+    const match = ipStr.match(/src\s+(\d+\.\d+\.\d+\.\d+)/);
+    return match ? match[1] : cleanValue(ipStr).split('\n')[0]; // fallback
+  };
+  
   document.getElementById('wifiMac').textContent = cleanValue(data.wifiMac);
-  document.getElementById('ipAddress').textContent = cleanValue(data.ipAddress);
+  document.getElementById('ipAddress').textContent = formatIpAddress(data.ipAddress);
   
   // Additional Information
   document.getElementById('locale').textContent = cleanValue(data.locale);

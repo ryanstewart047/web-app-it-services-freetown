@@ -91,16 +91,24 @@ ipcMain.handle('get-all-device-info', async () => {
     buildNumber: 'shell getprop ro.build.display.id',
     securityPatch: 'shell getprop ro.build.version.security_patch',
     
-    // IMEI Information (Multiple methods for compatibility)
-    imei1: 'shell service call iphonesubinfo 1 | grep -o "[0-9a-f]\\{8\\}" | tail -c +3 | while read a; do echo -n $(printf "\\x${a:6:2}\\x${a:4:2}\\x${a:2:2}\\x${a:0:2}"); done',
-    imei2: 'shell service call iphonesubinfo 3 | grep -o "[0-9a-f]\\{8\\}" | tail -c +3 | while read a; do echo -n $(printf "\\x${a:6:2}\\x${a:4:2}\\x${a:2:2}\\x${a:0:2}"); done',
-    imeiSimple: 'shell service call iphonesubinfo 1',
+    // IMEI Information - Multiple robust methods
+    imei1: 'shell getprop persist.radio.imei',
+    imei2: 'shell getprop persist.radio.imei2',
+    imeiSimple: 'shell dumpsys iphonesubinfo',
     
     // Hardware Info
     cpuAbi: 'shell getprop ro.product.cpu.abi',
     cpuAbi2: 'shell getprop ro.product.cpu.abi2',
     hardware: 'shell getprop ro.hardware',
     board: 'shell getprop ro.product.board',
+    
+    // USB Information (Native sysfs extraction)
+    usbVendor: 'shell cat /sys/class/android_usb/android0/idVendor 2>/dev/null',
+    usbProduct: 'shell cat /sys/class/android_usb/android0/idProduct 2>/dev/null',
+    
+    // FRP Status (Factory Reset Protection)
+    frpPartition: 'shell getprop ro.frp.pst',
+    frpState: 'shell settings get secure secure_frp_mode 2>/dev/null',
     
     // Display Info
     screenDensity: 'shell wm density',
@@ -113,9 +121,9 @@ ipcMain.handle('get-all-device-info', async () => {
     ramAvailable: 'shell cat /proc/meminfo | grep MemAvailable',
     
     // Storage Info
-    storageInternal: 'shell df /data',
-    storageSystem: 'shell df /system',
-    storageSdcard: 'shell df /sdcard',
+    storageInternal: 'shell df -h /data 2>/dev/null || shell df /data',
+    storageSystem: 'shell df -h /system 2>/dev/null || shell df /system',
+    storageSdcard: 'shell df -h /sdcard 2>/dev/null || shell df /sdcard',
     
     // Battery Info
     batteryLevel: 'shell dumpsys battery | grep level',
@@ -126,8 +134,8 @@ ipcMain.handle('get-all-device-info', async () => {
     batteryTech: 'shell dumpsys battery | grep technology',
     
     // Network Info
-    wifiMac: 'shell cat /sys/class/net/wlan0/address',
-    ipAddress: 'shell ip addr show wlan0 | grep "inet " | cut -d\' \' -f6',
+    wifiMac: 'shell cat /sys/class/net/wlan0/address 2>/dev/null || shell cat /sys/class/net/eth0/address 2>/dev/null',
+    ipAddress: 'shell ip route',
     
     // Additional Info
     bootloader: 'shell getprop ro.bootloader',

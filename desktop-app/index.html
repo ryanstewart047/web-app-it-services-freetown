@@ -246,9 +246,37 @@
               <span class="info-label">Board:</span>
               <span class="info-value" id="board">-</span>
             </div>
-            <div class="info-item">
+            <div className="info-item">
               <span class="info-label">Bootloader:</span>
               <span class="info-value mono" id="bootloader">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">USB Vendor:</span>
+              <span class="info-value mono" id="usbVendor">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">USB Product:</span>
+              <span class="info-value mono" id="usbProduct">-</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- FRP Status -->
+        <section class="info-section highlight">
+          <h2 class="section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            FRP Status (Factory Reset Protection)
+          </h2>
+          <div class="info-items">
+            <div class="info-item">
+              <span class="info-label">FRP Partition Block:</span>
+              <span class="info-value mono" id="frpPartition">-</span>
+            </div>
+            <div class="info-item mt-2">
+              <span class="info-label">FRP Secure Mode:</span>
+              <span class="info-value font-bold" id="frpState">-</span>
             </div>
           </div>
         </section>

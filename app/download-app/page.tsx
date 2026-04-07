@@ -48,7 +48,7 @@ export default function DownloadAppPage() {
                     : 'border-gray-600 bg-gray-700/30 hover:border-gray-500'
                 }`}
               >
-                <div className="text-4xl mb-3">🪟</div>
+                <div className="text-4xl mb-3"><i className="fab fa-windows text-blue-400"></i></div>
                 <div className="text-lg font-semibold text-white">Windows</div>
                 <div className="text-sm text-gray-400">10, 11 (64-bit)</div>
               </button>
@@ -60,7 +60,7 @@ export default function DownloadAppPage() {
                     : 'border-gray-600 bg-gray-700/30 hover:border-gray-500'
                 }`}
               >
-                <div className="text-4xl mb-3">🍎</div>
+                <div className="text-4xl mb-3"><i className="fab fa-apple text-white"></i></div>
                 <div className="text-lg font-semibold text-white">macOS</div>
                 <div className="text-sm text-gray-400">10.13+</div>
               </button>
@@ -72,7 +72,7 @@ export default function DownloadAppPage() {
                     : 'border-gray-600 bg-gray-700/30 hover:border-gray-500'
                 }`}
               >
-                <div className="text-4xl mb-3">🐧</div>
+                <div className="text-4xl mb-3"><i className="fab fa-linux text-yellow-500"></i></div>
                 <div className="text-lg font-semibold text-white">Linux</div>
                 <div className="text-sm text-gray-400">Ubuntu, Fedora, Debian</div>
               </button>
