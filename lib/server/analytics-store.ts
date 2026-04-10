@@ -79,8 +79,8 @@ function mapRepairRow(row: any): RepairBooking {
 		notes: row.notes || undefined,
 		lastUpdated: row.updatedAt?.toISOString?.() ?? new Date().toISOString(),
 		address: row.customer?.address ?? undefined,
-		diagnosticImages: undefined,
-		diagnosticNotes: undefined,
+		diagnosticImages: row.diagnosticImages ?? undefined,
+		diagnosticNotes: row.diagnosticNotes ?? undefined,
 	};
 }
 
@@ -357,6 +357,13 @@ export async function updateRepair(input: UpdateRepairInput): Promise<RepairBook
 		if (input.totalCost !== undefined) {
 			updateData.estimatedCost = input.totalCost;
 			updateData.actualCost = input.totalCost;
+		}
+		if (input.diagnosticNotes !== undefined) {
+			updateData.diagnosticNotes = input.diagnosticNotes;
+		}
+		if (input.diagnosticImages !== undefined) {
+			// Cast image arrays safely into JSON payload native types
+			updateData.diagnosticImages = input.diagnosticImages;
 		}
 		if (input.status === 'completed') {
 			updateData.dateCompleted = new Date();

@@ -53,6 +53,8 @@ model Repair {
   dateReceived        DateTime         @default(now())
   dateCompleted       DateTime?
   notes               String           @default("")
+  diagnosticNotes     String?
+  diagnosticImages    Json?
   technicianId        String?
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
