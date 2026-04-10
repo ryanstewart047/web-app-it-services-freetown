@@ -78,6 +78,10 @@ export default function Navbar() {
             
             <Link href="/blog" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/blog' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Blog</Link>
 
+            <Link href="/forum" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname?.startsWith('/forum') ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>
+              <i className="fas fa-users mr-1"></i> Tech Forum
+            </Link>
+
             <Link href="/book-appointment" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/book-appointment' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Book Appointment</Link>
             <Link href="/track-repair" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/track-repair' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Track Repair</Link>
             <Link href="/troubleshoot" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/troubleshoot' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Troubleshoot</Link>
@@ -191,6 +195,10 @@ export default function Navbar() {
             
             <Link href="/blog" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
               <i className="fas fa-blog w-5 mr-3 text-[#040e40]"></i>Blog
+            </Link>
+
+            <Link href="/forum" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
+              <i className="fas fa-users w-5 mr-3 text-[#040e40]"></i>Tech Forum
             </Link>
 
             <Link href="/book-appointment" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>

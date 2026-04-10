@@ -348,6 +348,12 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/forum" className="text-gray-200 hover:text-red-400 transition-colors text-sm flex items-center group">
+                  <i className="fas fa-users mr-3 text-red-500 w-4"></i>
+                  <span className="group-hover:translate-x-1 transition-transform font-semibold text-white">Tech Forum</span>
+                </Link>
+              </li>
+              <li>
                 <Link href="/troubleshoot" className="text-gray-200 hover:text-red-400 transition-colors text-sm flex items-center group">
                   <i className="fas fa-wrench mr-3 text-red-500 w-4"></i>
                   <span className="group-hover:translate-x-1 transition-transform">Troubleshoot</span>
