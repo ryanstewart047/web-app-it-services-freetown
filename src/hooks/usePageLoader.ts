@@ -10,35 +10,11 @@ interface UsePageLoaderReturn {
 }
 
 export function usePageLoader(options: UsePageLoaderOptions = {}): UsePageLoaderReturn {
-  const { minLoadTime = 1000 } = options;
-  const [isLoading, setIsLoading] = useState(true);
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    // Simulate loading progress
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 90) {
-          clearInterval(progressInterval);
-          return 90;
-        }
-        return prev + 10;
-      });
-    }, minLoadTime / 10);
-
-    // Complete loading after minimum time
-    const loadTimeout = setTimeout(() => {
-      setProgress(100);
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 200);
-    }, minLoadTime);
-
-    return () => {
-      clearInterval(progressInterval);
-      clearTimeout(loadTimeout);
-    };
-  }, [minLoadTime]);
+  // [SEO FIX]: Set isLoading directly to false right out of the gate! 
+  // This physically bypasses the synthetic DOM unmount overlay which was tricking Google AdSense. 
+  // Doing this guarantees web crawlers instantly parse the entire web content upon connection.
+  const [isLoading, setIsLoading] = useState(false);
+  const [progress, setProgress] = useState(100);
 
   return { isLoading, progress };
 }
