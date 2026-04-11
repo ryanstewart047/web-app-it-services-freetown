@@ -86,10 +86,10 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
       if (idleTime >= INACTIVITY_LIMIT_MS) {
         hasTriggeredLogout = true;
         
-        // Perform silent logout strictly enforcing security block
+        // Perform logout and carry the reason so the login page can display a message
         fetch('/api/forum/auth/logout', { method: 'POST' }).then(() => {
           setUser(null);
-          router.push('/forum/auth/login');
+          router.push('/forum/auth/login?reason=inactivity');
         });
       }
     }, 15000); // Audit every 15 seconds

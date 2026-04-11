@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForum } from '../../ForumLayoutClient';
 
 type View = 'login' | 'forgot' | 'forgot-sent';
@@ -26,6 +26,15 @@ export default function Login() {
   // Two-step Email verification state
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
+  const [inactivityBanner, setInactivityBanner] = useState(false);
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('reason') === 'inactivity') {
+      setInactivityBanner(true);
+    }
+  }, [searchParams]);
 
   const handleVerifyEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,6 +149,19 @@ export default function Login() {
             </div>
 
             <form className="space-y-5" onSubmit={emailVerified ? handleLogin : handleVerifyEmail}>
+              {/* Inactivity logout banner */}
+              {inactivityBanner && (
+                <div className="bg-amber-500/10 border border-amber-500/40 text-amber-300 px-4 py-3 rounded-lg text-sm font-medium flex items-start gap-3">
+                  <svg className="w-5 h-5 mt-0.5 shrink-0 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                  </svg>
+                  <span>
+                    <strong className="block text-amber-200 mb-0.5">Session Expired</strong>
+                    You were logged out due to inactivity. Please sign in again to continue.
+                  </span>
+                </div>
+              )}
+
               {error && (
                 <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-2">
                   <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
