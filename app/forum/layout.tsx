@@ -63,6 +63,43 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
     };
   }, [pathname, isAuthPage, router]);
 
+  // Inactivity Auto-Logout Tracker (5 Minutes)
+  useEffect(() => {
+    // Only track activity if a user is currently securely established in session
+    if (!user || isExemptFromAuthRedirect) return;
+
+    let lastActivityTime = Date.now();
+    let hasTriggeredLogout = false;
+    const INACTIVITY_LIMIT_MS = 5 * 60 * 1000;
+
+    const resetActivity = () => {
+      lastActivityTime = Date.now();
+    };
+
+    const activityEvents = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'];
+    activityEvents.forEach(event => window.addEventListener(event, resetActivity));
+
+    const checkInactivity = setInterval(() => {
+      if (hasTriggeredLogout) return;
+      
+      const idleTime = Date.now() - lastActivityTime;
+      if (idleTime >= INACTIVITY_LIMIT_MS) {
+        hasTriggeredLogout = true;
+        
+        // Perform silent logout strictly enforcing security block
+        fetch('/api/forum/auth/logout', { method: 'POST' }).then(() => {
+          setUser(null);
+          router.push('/forum/auth/login');
+        });
+      }
+    }, 15000); // Audit every 15 seconds
+
+    return () => {
+      activityEvents.forEach(event => window.removeEventListener(event, resetActivity));
+      clearInterval(checkInactivity);
+    };
+  }, [user, isExemptFromAuthRedirect, router]);
+
   const handleLogout = async () => {
     await fetch('/api/forum/auth/logout', { method: 'POST' });
     setUser(null);
