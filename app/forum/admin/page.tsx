@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useForum } from '../layout';
+import { useForum } from '../ForumLayoutClient';
 
 interface Technician {
   id: string;

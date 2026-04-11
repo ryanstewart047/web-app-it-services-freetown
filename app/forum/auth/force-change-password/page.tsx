@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForum } from '../../layout';
+import { useForum } from '../../ForumLayoutClient';
 
 export default function ForceChangePassword() {
   const router = useRouter();

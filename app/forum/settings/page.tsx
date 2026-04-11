@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useForum } from '../layout';
+import { useForum } from '../ForumLayoutClient';
 
 export default function SettingsPage() {
   const { user, setUser } = useForum();

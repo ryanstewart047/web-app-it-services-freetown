@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useForum } from '../layout';
+import { useForum } from '../ForumLayoutClient';
 import Link from 'next/link';
 
 function VerifyEngine() {
