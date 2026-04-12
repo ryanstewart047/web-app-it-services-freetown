@@ -11,6 +11,21 @@ export function useForum() {
   return useContext(ForumContext);
 }
 
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
 export default function ForumLayout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -110,6 +125,49 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
       clearInterval(checkInactivity);
     };
   }, [user, router]);
+
+  // Notification Registration Logic
+  useEffect(() => {
+    if (!user || typeof window === 'undefined' || !('serviceWorker' in navigator) || !('Notification' in window)) {
+      return;
+    }
+
+    const registerPush = async () => {
+      try {
+        // 1. Get Public Key
+        const keyRes = await fetch('/api/forum/notifications/vapid-public-key');
+        const { publicKey } = await keyRes.json();
+        if (!publicKey) return;
+
+        // 2. Register Service Worker (if not already handled by layout)
+        const registration = await navigator.serviceWorker.ready;
+
+        // 3. Request Permission & Subscribe
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(publicKey)
+          });
+
+          // 4. Send to backend
+          await fetch('/api/forum/notifications/subscribe', {
+            method: 'POST',
+            body: JSON.stringify({ subscription }),
+            headers: { 'Content-Type': 'application/json' }
+          });
+          
+          console.log('Mobile notifications active.');
+        }
+      } catch (err) {
+        console.error('Push registration failed:', err);
+      }
+    };
+
+    // Delay slightly to not block initial load
+    const timer = setTimeout(registerPush, 3000);
+    return () => clearTimeout(timer);
+  }, [user]);
 
   const handleLogout = async () => {
     await fetch('/api/forum/auth/logout', { method: 'POST' });

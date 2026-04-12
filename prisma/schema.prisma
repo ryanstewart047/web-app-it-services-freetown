@@ -85,6 +85,18 @@ model Repair {
   chatSessions           ChatSession[]
   repairs                Repair[]
   forumReactions         ForumReaction[]
+  pushSubscriptions      PushSubscription[]
+}
+
+model PushSubscription {
+  id           String     @id @default(cuid())
+  technicianId String
+  endpoint     String     @unique
+  p256dh       String
+  auth         String
+  createdAt    DateTime   @default(now())
+  
+  technician   Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
 }
 
 model ForumReaction {

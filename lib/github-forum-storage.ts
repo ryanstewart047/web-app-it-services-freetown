@@ -1,4 +1,5 @@
 import { marked } from 'marked';
+import { sendForumNotification } from './notifications';
 
 const GITHUB_OWNER = 'ryanstewart047';
 const GITHUB_REPO = 'web-app-it-services-freetown';
@@ -142,6 +143,13 @@ export async function createForumTopic(title: string, content: string, author: s
     if (!res.ok) throw new Error('API failure');
     const issue = await res.json();
 
+    // Trigger Notifications
+    await sendForumNotification({
+      title: 'New Forum Post',
+      body: `${author} posted: ${title}`,
+      data: { url: `/forum/topic/${issue.number}` }
+    });
+
     return { success: true, id: issue.number.toString() };
   } catch (error) {
     console.error('Create topic error:', error);
@@ -174,6 +182,14 @@ export async function addForumReply(issueNumber: number, content: string, author
     });
 
     if (!res.ok) throw new Error('API failure');
+    
+    // Trigger Notifications
+    await sendForumNotification({
+      title: 'New Reply',
+      body: `${author} replied to a topic you follow.`,
+      data: { url: `/forum/topic/${issueNumber}` }
+    });
+
     return { success: true };
   } catch (error) {
     console.error('Add reply error:', error);

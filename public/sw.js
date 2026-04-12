@@ -203,48 +203,57 @@ function removeStoredForm(db, id) {
   });
 }
 
-// Push notification handling (for future use)
+// Push notification handling
 self.addEventListener('push', (event) => {
   if (!event.data) return;
   
-  const data = event.data.json();
-  const options = {
-    body: data.body,
-    icon: '/assets/logo.png',
-    badge: '/assets/favicon-52x52.png',
-    vibrate: [100, 50, 100],
-    data: {
-      dateOfArrival: Date.now(),
-      primaryKey: data.primaryKey || 1
-    },
-    actions: [
-      {
-        action: 'explore',
-        title: 'View Details',
-        icon: '/assets/favicon-16x16.png'
+  try {
+    const data = event.data.json();
+    const options = {
+      body: data.body,
+      icon: data.icon || '/assets/logo.svg',
+      badge: data.badge || '/favicon.svg',
+      vibrate: [100, 50, 100],
+      data: {
+        url: data.data?.url || '/forum'
       },
-      {
-        action: 'close',
-        title: 'Close',
-        icon: '/assets/favicon-16x16.png'
-      }
-    ]
-  };
-  
-  event.waitUntil(
-    self.registration.showNotification(data.title, options)
-  );
+      actions: [
+        {
+          action: 'open',
+          title: 'View Post',
+        }
+      ]
+    };
+    
+    event.waitUntil(
+      self.registration.showNotification(data.title || 'SL Tech Forum', options)
+    );
+  } catch (err) {
+    console.error('Push error:', err);
+  }
 });
 
 // Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   
-  if (event.action === 'explore') {
-    event.waitUntil(
-      self.clients.openWindow('/')
-    );
-  }
+  const urlToOpen = event.notification.data?.url || '/forum';
+  
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then((windowClients) => {
+      // If a window is already open at the URL, focus it
+      for (let i = 0; i < windowClients.length; i++) {
+        const client = windowClients[i];
+        if (client.url === urlToOpen && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // If no window is open, open a new one
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
 });
 
 // Message handling from main thread
