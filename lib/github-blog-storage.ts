@@ -70,8 +70,7 @@ export async function fetchBlogPosts(): Promise<BlogPost[]> {
       `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/issues?labels=blog-post&state=open&sort=created&direction=desc&per_page=100`,
       { 
         headers,
-        cache: 'no-store', // Ensure we get fresh data
-        next: { revalidate: 0 } // Next.js specific: disable caching
+        cache: 'no-store', // no-store already covers revalidate: 0 — specifying both causes a Vercel build warning
       }
     )
 
