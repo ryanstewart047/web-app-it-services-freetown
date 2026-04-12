@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Register() {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', expertise: '', password: '' });
@@ -62,6 +63,16 @@ export default function Register() {
       <div className="w-full max-w-lg relative z-10 bg-slate-900/60 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl p-8 lg:p-10">
         
         <div className="mb-8 text-center">
+          <div className="flex justify-center mb-5">
+            <Image
+              src="/assets/forum-logo.png"
+              alt="Technicians Forum"
+              width={160}
+              height={54}
+              className="h-12 w-auto object-contain"
+              priority
+            />
+          </div>
           <h2 className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-300 tracking-tight">
             Terminal Access
           </h2>

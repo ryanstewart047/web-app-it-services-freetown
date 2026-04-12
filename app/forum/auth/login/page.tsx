@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForum } from '../../ForumLayoutClient';
 
@@ -133,9 +134,15 @@ export default function Login() {
         {view === 'login' && (
           <div className="p-8 lg:p-10">
             <div className="mb-8 text-center">
-              <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-2xl border border-blue-500/30 flex items-center justify-center shadow-lg shadow-blue-500/20 mb-5 relative">
-                <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full mix-blend-screen"></div>
-                <svg className="w-8 h-8 text-blue-400 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+              <div className="flex justify-center mb-5">
+                <Image
+                  src="/assets/forum-logo.png"
+                  alt="Technicians Forum"
+                  width={160}
+                  height={54}
+                  className="h-12 w-auto object-contain"
+                  priority
+                />
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-300 tracking-tight">
                 Secure Portal

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef, createContext, useContext } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 
 export const ForumContext = createContext<any>(null);
@@ -141,15 +142,14 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
               {/* Left: Logo + Main Site */}
               <div className="flex items-center gap-4 sm:gap-6">
                 <Link href="/forum" className="flex-shrink-0 flex items-center gap-2 sm:gap-3 transition-transform hover:scale-105">
-                  <div className="p-1.5 sm:p-2 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-xl border border-blue-500/20">
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                    </svg>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-extrabold text-base sm:text-xl bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 leading-tight">SL Tech Stack</span>
-                    <span className="text-[9px] sm:text-[10px] font-bold text-blue-500 uppercase tracking-[0.2em] leading-tight">Secure Network</span>
-                  </div>
+                  <Image
+                    src="/assets/forum-logo.png"
+                    alt="Technicians Forum Logo"
+                    width={120}
+                    height={40}
+                    className="h-8 sm:h-10 w-auto object-contain"
+                    priority
+                  />
                 </Link>
 
                 <div className="hidden sm:block border-l border-slate-700/50 pl-6">

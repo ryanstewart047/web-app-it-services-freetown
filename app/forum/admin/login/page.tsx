@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 
 export default function ForumAdminLogin() {
@@ -45,8 +46,15 @@ export default function ForumAdminLogin() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/10 rounded-full blur-[80px] pointer-events-none"></div>
 
         <div className="text-center mb-8 relative z-10">
-          <div className="mx-auto w-16 h-16 bg-red-500/10 border border-red-500/30 rounded-full flex items-center justify-center mb-4">
-             <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+          <div className="flex justify-center mb-4">
+            <Image
+              src="/assets/forum-logo.png"
+              alt="Technicians Forum"
+              width={160}
+              height={54}
+              className="h-12 w-auto object-contain"
+              priority
+            />
           </div>
           <h1 className="text-2xl font-extrabold text-white uppercase tracking-wider">Admin Hub</h1>
           <p className="text-sm text-slate-400 mt-2 font-medium tracking-wide">Authorized Personnel Only</p>
