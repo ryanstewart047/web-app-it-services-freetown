@@ -99,7 +99,7 @@ You have the right to:
 - Request deletion of your account and associated data
 - Withdraw consent where processing is based on consent
 
-To exercise your rights, contact the administrator at **itservicesfreetown@gmail.com**.
+To exercise your rights, contact the administrator at **support@itservicesfreetown.com**.
 
 ### 6. Data Security
 We implement industry-standard security measures including:
@@ -174,7 +174,7 @@ These Terms of Use are governed by the laws of the Republic of Sierra Leone. Any
 
 ### 10. Contact
 For any questions or concerns regarding these terms, contact:  
-**Email:** itservicesfreetown@gmail.com  
+**Email:** support@itservicesfreetown.com  
 **Phone:** +232 33 399 391  
 **Address:** 1 Regent Highway, Jui Junction, East Freetown, Sierra Leone
     `
