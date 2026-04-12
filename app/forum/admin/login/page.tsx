@@ -46,13 +46,13 @@ export default function ForumAdminLogin() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/10 rounded-full blur-[80px] pointer-events-none"></div>
 
         <div className="text-center mb-8 relative z-10">
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center mb-5">
             <Image
               src="/assets/forum-logo.png"
               alt="Technicians Forum"
-              width={160}
-              height={54}
-              className="h-12 w-auto object-contain"
+              width={220}
+              height={74}
+              className="h-16 w-auto object-contain"
               priority
             />
           </div>

@@ -141,13 +141,13 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
               
               {/* Left: Logo + Main Site */}
               <div className="flex items-center gap-4 sm:gap-6">
-                <Link href="/forum" className="flex-shrink-0 flex items-center gap-2 sm:gap-3 transition-transform hover:scale-105">
+                <Link href="/forum" className="flex-shrink-0 transition-transform hover:scale-105">
                   <Image
                     src="/assets/forum-logo.png"
                     alt="Technicians Forum Logo"
-                    width={120}
-                    height={40}
-                    className="h-8 sm:h-10 w-auto object-contain"
+                    width={180}
+                    height={60}
+                    className="h-10 sm:h-14 w-auto object-contain"
                     priority
                   />
                 </Link>
