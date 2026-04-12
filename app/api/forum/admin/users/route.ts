@@ -24,7 +24,18 @@ export async function GET() {
     const admin = await requireAdmin();
     if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // Fetch all technicians except the admin
+    const SIX_MINS_AGO = new Date(Date.now() - 6 * 60 * 1000);
+
+    // Auto-correct stale "online" flags: if lastSeen is older than 6 minutes,
+    // the client session timed out without calling logout (e.g. closed browser tab).
+    await prisma.technician.updateMany({
+      where: {
+        isOnline: true,
+        lastSeen: { lt: SIX_MINS_AGO }
+      },
+      data: { isOnline: false }
+    });
+
     const technicians = await prisma.technician.findMany({
       select: {
         id: true,
@@ -41,7 +52,13 @@ export async function GET() {
       orderBy: { createdAt: 'desc' }
     });
 
-    return NextResponse.json({ technicians });
+    // Return a computed isOnline field so the UI reflects real presence
+    const enriched = technicians.map(t => ({
+      ...t,
+      isOnline: t.isOnline && t.lastSeen != null && new Date(t.lastSeen) >= SIX_MINS_AGO
+    }));
+
+    return NextResponse.json({ technicians: enriched });
   } catch (error) {
     console.error('Admin Fetch Users Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

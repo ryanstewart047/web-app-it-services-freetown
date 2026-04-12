@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, createContext, useContext } from 'react';
+import React, { useEffect, useState, useRef, createContext, useContext } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -20,6 +20,9 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
   const isAuthPage = pathname.includes('/auth/');
   const isAdminRoute = pathname.includes('/admin');
   const isExemptFromAuthRedirect = isAuthPage || isAdminRoute;
+
+  // Shared ref so heartbeat + inactivity tracker both read the same activity clock
+  const lastActivityRef = useRef<number>(Date.now());
 
   useEffect(() => {
     let mounted = true;
@@ -44,8 +47,13 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
     };
     fetchAuth();
 
+    // Heartbeat: only pings the server if the user was active in the last 6 minutes.
+    // This means an idle user's lastSeen goes stale naturally and admin panel shows them offline.
     const heartbeatInterval = setInterval(async () => {
        try {
+         const idleSoFar = Date.now() - lastActivityRef.current;
+         if (idleSoFar >= 6 * 60 * 1000) return; // skip heartbeat when idle — let lastSeen expire
+
          const res = await fetch('/api/forum/heartbeat', { method: 'GET' });
          if (res.status === 401 && mounted && !isExemptFromAuthRedirect) {
            const data = await res.json();
@@ -55,7 +63,7 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
            }
          }
        } catch (err) {}
-    }, 60 * 1000);
+    }, 90 * 1000); // every 90 seconds
 
     return () => {
       mounted = false;
@@ -65,15 +73,13 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
 
   // Inactivity Auto-Logout Tracker (5 Minutes)
   useEffect(() => {
-    // Only track activity if a user is currently securely established in session
-    if (!user) return; // FIX: We removed 'isExemptFromAuthRedirect' so inactivity triggers correctly on all pages where a user is logged in.
+    if (!user) return;
 
-    let lastActivityTime = Date.now();
     let hasTriggeredLogout = false;
     const INACTIVITY_LIMIT_MS = 5 * 60 * 1000;
 
     const resetActivity = () => {
-      lastActivityTime = Date.now();
+      lastActivityRef.current = Date.now();
     };
 
     const activityEvents = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'];
@@ -81,24 +87,22 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
 
     const checkInactivity = setInterval(() => {
       if (hasTriggeredLogout) return;
-      
-      const idleTime = Date.now() - lastActivityTime;
+
+      const idleTime = Date.now() - lastActivityRef.current;
       if (idleTime >= INACTIVITY_LIMIT_MS) {
         hasTriggeredLogout = true;
-        
-        // Perform logout and carry the reason so the login page can display a message
         fetch('/api/forum/auth/logout', { method: 'POST' }).then(() => {
           setUser(null);
           router.push('/forum/auth/login?reason=inactivity');
         });
       }
-    }, 15000); // Audit every 15 seconds
+    }, 15000); // audit every 15 seconds
 
     return () => {
       activityEvents.forEach(event => window.removeEventListener(event, resetActivity));
       clearInterval(checkInactivity);
     };
-  }, [user, isExemptFromAuthRedirect, router]);
+  }, [user, router]);
 
   const handleLogout = async () => {
     await fetch('/api/forum/auth/logout', { method: 'POST' });
