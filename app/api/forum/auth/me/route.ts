@@ -31,7 +31,8 @@ export async function GET(req: Request) {
         profilePhoto: true,
         isOnline: true,
         createdAt: true,
-        requiresPasswordChange: true
+        requiresPasswordChange: true,
+        termsAccepted: true,
       }
     });
 

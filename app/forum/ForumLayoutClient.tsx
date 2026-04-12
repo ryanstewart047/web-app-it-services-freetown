@@ -20,7 +20,8 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
 
   const isAuthPage = pathname.includes('/auth/');
   const isAdminRoute = pathname.includes('/admin');
-  const isExemptFromAuthRedirect = isAuthPage || isAdminRoute;
+  const isTermsPage = pathname === '/forum/terms';
+  const isExemptFromAuthRedirect = isAuthPage || isAdminRoute || isTermsPage;
 
   // Shared ref so heartbeat + inactivity tracker both read the same activity clock
   const lastActivityRef = useRef<number>(Date.now());
@@ -34,6 +35,11 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
           const data = await res.json();
           if (mounted && data.authenticated) {
             setUser(data.user);
+            
+            // Redirect to terms if not accepted and not already there
+            if (!data.user.termsAccepted && !isTermsPage && !isAdminRoute) {
+               router.push('/forum/terms');
+            }
           } else if (!isExemptFromAuthRedirect && mounted) {
             router.push('/forum/auth/login');
           }
