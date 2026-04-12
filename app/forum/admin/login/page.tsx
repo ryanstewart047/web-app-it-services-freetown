@@ -48,7 +48,7 @@ export default function ForumAdminLogin() {
         <div className="text-center mb-8 relative z-10">
           <div className="flex justify-center mb-5">
             <Image
-              src="/assets/forum-logo.png"
+              src="/assets/forum-logo.svg"
               alt="Technicians Forum"
               width={280}
               height={94}

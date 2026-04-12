@@ -147,7 +147,7 @@ export default function Login() {
             <div className="mb-8 text-center">
               <div className="flex justify-center mb-6">
                 <Image
-                  src="/assets/forum-logo.png"
+                  src="/assets/forum-logo.svg"
                   alt="Technicians Forum"
                   width={280}
                   height={94}
