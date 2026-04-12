@@ -14,6 +14,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Name, email, and password are required' }, { status: 400 });
     }
 
+    // --- Strict email format validation ---
+    const EMAIL_REGEX = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+    if (!EMAIL_REGEX.test(email)) {
+      return NextResponse.json({ error: 'Please provide a valid email address.' }, { status: 400 });
+    }
+
+    // --- Block disposable / obviously fake email domains ---
+    const BLOCKED_DOMAINS = [
+      'mailinator.com', 'guerrillamail.com', 'trashmail.com', 'tempmail.com',
+      'throwam.com', 'yopmail.com', 'sharklasers.com', 'guerrillamailblock.com',
+      'grr.la', 'mailnull.com', 'spamgourmet.com', 'fakeinbox.com', 'dispostable.com',
+      'maildrop.cc', 'spamgourmet.org', 'spam4.me', 'tempr.email', 'discard.email',
+      'example.com', 'test.com', 'sample.com'
+    ];
+    const emailDomain = email.split('@')[1]?.toLowerCase();
+    if (!emailDomain || BLOCKED_DOMAINS.includes(emailDomain)) {
+      return NextResponse.json({ error: 'This email domain is not allowed. Please use a real email address.' }, { status: 400 });
+    }
+
+
     const existingTech = await prisma.technician.findUnique({ where: { email } });
     if (existingTech) {
       return NextResponse.json({ error: 'Email already in use' }, { status: 400 });

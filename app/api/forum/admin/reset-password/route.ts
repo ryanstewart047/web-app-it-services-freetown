@@ -9,25 +9,13 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function requireAdmin() {
-  // Check for standalone master admin session first
   const adminToken = cookies().get('forum_admin_session')?.value;
-  if (adminToken) {
-    const adminPayload = await verifySession(adminToken);
-    if (adminPayload?.role === 'superadmin') {
-      return { id: 'master-admin', name: 'IT Services Freetown', role: 'superadmin', active: true };
-    }
-  }
+  if (!adminToken) return null;
 
-  const token = cookies().get('forum_session')?.value;
-  if (!token) return null;
+  const adminPayload = await verifySession(adminToken);
+  if (adminPayload?.role !== 'superadmin') return null;
 
-  const payload = await verifySession(token);
-  if (!payload?.userId) return null;
-
-  const user = await prisma.technician.findUnique({ where: { id: payload.userId } });
-  if (!user || user.role !== 'admin') return null;
-
-  return user;
+  return { id: 'master-admin', name: 'IT Services Freetown', role: 'superadmin', active: true };
 }
 
 export async function POST(req: Request) {
