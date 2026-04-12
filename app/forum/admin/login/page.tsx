@@ -50,9 +50,9 @@ export default function ForumAdminLogin() {
             <Image
               src="/assets/forum-logo.png"
               alt="Technicians Forum"
-              width={220}
-              height={74}
-              className="h-16 w-auto object-contain"
+              width={280}
+              height={94}
+              className="h-20 w-auto object-contain"
               priority
             />
           </div>
