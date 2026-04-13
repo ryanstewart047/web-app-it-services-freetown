@@ -209,35 +209,37 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
         <div className="absolute top-0 left-1/4 w-[40rem] h-[40rem] bg-blue-600/10 rounded-full blur-[150px] pointer-events-none z-0"></div>
         <div className="absolute bottom-1/4 right-0 w-[30rem] h-[30rem] bg-indigo-600/10 rounded-full blur-[150px] pointer-events-none z-0"></div>
 
-        {/* Notification Opt-in Banner */}
-        {showNotificationPrompt && user && (
-          <div className="z-[60] bg-blue-600/20 backdrop-blur-md border-b border-blue-500/30 px-4 py-3 relative shadow-lg animate-in slide-in-from-top duration-500">
-            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-              <div className="flex items-center gap-3">
-                <span className="text-xl">🔔</span>
-                <p className="text-sm font-medium text-blue-100 leading-tight">
-                  <span className="font-bold">Enable Forum Notifications?</span> Get real-time alerts on your phone for new posts and replies.
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => registerPush(true)}
-                  className="bg-blue-500 hover:bg-blue-400 text-white text-xs font-bold py-2 px-4 rounded-lg shadow-blue-500/20 transition-all uppercase tracking-wider"
-                >
-                  Enable Now
-                </button>
-                <button
-                  onClick={() => setShowNotificationPrompt(false)}
-                  className="text-blue-300 hover:text-white text-xs font-semibold px-2 py-2"
-                >
-                  Later
-                </button>
+        {/* Sticky Container for Banner + Header */}
+        <div className="sticky top-0 z-[1000] flex flex-col">
+          {/* Notification Opt-in Banner */}
+          {showNotificationPrompt && user && (
+            <div className="bg-blue-700/95 backdrop-blur-md border-b border-blue-400/30 px-4 py-3 shadow-2xl animate-in slide-in-from-top duration-500">
+              <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">🔔</span>
+                  <p className="text-sm font-medium text-blue-100 leading-tight">
+                    <span className="font-bold">Enable Forum Notifications?</span> Get real-time alerts on your phone for new posts and replies.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => registerPush(true)}
+                    className="bg-blue-500 hover:bg-blue-400 text-white text-xs font-bold py-2 px-4 rounded-lg shadow-blue-500/20 transition-all uppercase tracking-wider"
+                  >
+                    Enable Now
+                  </button>
+                  <button
+                    onClick={() => setShowNotificationPrompt(false)}
+                    className="text-blue-300 hover:text-white text-xs font-semibold px-2 py-2"
+                  >
+                    Later
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <header className="sticky top-0 z-50 bg-[#0b1120]/90 backdrop-blur-xl border-b border-white/5 shadow-2xl">
+          <header className="bg-[#0b1120]/90 backdrop-blur-xl border-b border-white/5 shadow-2xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16 sm:h-20 items-center">
               
@@ -359,6 +361,7 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
             </div>
           )}
         </header>
+      </div>
         
         <main className="flex-1 w-full max-w-7xl mx-auto py-6 sm:py-10 relative z-10 px-3 sm:px-4 lg:px-8">
           {children}
