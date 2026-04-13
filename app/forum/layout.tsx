@@ -25,6 +25,15 @@ export const metadata: Metadata = {
     description: 'Join the exclusive IT professionals community in Sierra Leone.',
     images: ['https://www.itservicesfreetown.com/forum/opengraph-image'],
   },
+  icons: {
+    icon: [
+      { url: '/forum-favicon.svg', type: 'image/svg+xml' },
+      { url: '/forum-favicon.ico', type: 'image/x-icon' },
+    ],
+    apple: [
+      { url: '/forum-favicon.svg' }
+    ],
+  },
 };
 
 export default function ForumLayout({ children }: { children: React.ReactNode }) {
