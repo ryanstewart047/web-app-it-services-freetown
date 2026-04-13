@@ -60,6 +60,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: cleanDescription,
       images: images,
     },
+    alternates: {
+      canonical: `/forum/${params.id}`,
+    },
   };
 }
 

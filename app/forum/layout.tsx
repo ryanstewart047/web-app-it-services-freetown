@@ -34,6 +34,9 @@ export const metadata: Metadata = {
       { url: '/forum-favicon.svg' }
     ],
   },
+  alternates: {
+    canonical: '/forum',
+  },
 };
 
 export default function ForumLayout({ children }: { children: React.ReactNode }) {
