@@ -75,7 +75,7 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
     const heartbeatInterval = setInterval(async () => {
        try {
          const idleSoFar = Date.now() - lastActivityRef.current;
-         if (idleSoFar >= 6 * 60 * 1000) return; // skip heartbeat when idle — let lastSeen expire
+         if (idleSoFar >= 11 * 60 * 1000) return; // skip heartbeat when idle
 
          const res = await fetch('/api/forum/heartbeat', { method: 'GET' });
          if (res.status === 401 && mounted && !isExemptFromAuthRedirect) {
@@ -99,7 +99,7 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
     if (!user) return;
 
     let hasTriggeredLogout = false;
-    const INACTIVITY_LIMIT_MS = 5 * 60 * 1000;
+    const INACTIVITY_LIMIT_MS = 10 * 60 * 1000;
 
     const resetActivity = () => {
       lastActivityRef.current = Date.now();
