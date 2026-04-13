@@ -74,6 +74,58 @@ export async function fetchForumTopics(): Promise<ForumTopic[]> {
 }
 
 /**
+ * Fetch a single Forum Topic by ID (Issue Number)
+ */
+export async function fetchForumTopicById(id: string): Promise<ForumTopic | null> {
+  try {
+    const headers: HeadersInit = { 'Accept': 'application/vnd.github.v3+json' };
+    if (GITHUB_TOKEN) headers['Authorization'] = `token ${GITHUB_TOKEN}`;
+
+    const res = await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/issues/${id}`,
+      { headers, cache: 'no-store' }
+    );
+
+    if (!res.ok) {
+      if (res.status === 404) return null;
+      throw new Error('Failed to fetch topic');
+    }
+
+    const issue: any = await res.json();
+
+    // Re-use logic from fetchForumTopics to parse content, author, etc.
+    const parsedContent = await marked.parse(issue.body || '', { async: true, breaks: true, gfm: true });
+    const metadataMatches = issue.body?.match(/\[Author: (.+?)\]/);
+    const author = metadataMatches ? metadataMatches[1] : issue.user.login;
+
+    const categoryMatches = issue.body?.match(/\[Category: (.+?)\]/);
+    const category = categoryMatches ? categoryMatches[1] : 'General';
+
+    // Extract image tags natively from Markdown to show thumbnails
+    const imageRegex = /!\[.*?\]\((.*?)\)/g;
+    const images: string[] = [];
+    let match;
+    while ((match = imageRegex.exec(issue.body || '')) !== null) {
+      images.push(match[1]);
+    }
+
+    return {
+      id: issue.number.toString(),
+      title: issue.title,
+      content: parsedContent,
+      author: author,
+      category: category,
+      date: new Date(issue.created_at).toISOString(),
+      repliesCount: issue.comments,
+      images: images.slice(0, 2)
+    };
+  } catch (error) {
+    console.error('Topic fetch error:', error);
+    return null;
+  }
+}
+
+/**
  * Fetch Replies for a specific Topic
  */
 export async function fetchForumReplies(issueNumber: number): Promise<ForumReply[]> {
