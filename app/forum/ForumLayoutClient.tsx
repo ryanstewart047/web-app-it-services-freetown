@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef, createContext, useContext } from 'react';
+import React, { useEffect, useState, useRef, createContext, useContext, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -30,6 +30,7 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -127,47 +128,56 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
   }, [user, router]);
 
   // Notification Registration Logic
-  useEffect(() => {
+  const registerPush = useCallback(async (fromUserGesture = false) => {
     if (!user || typeof window === 'undefined' || !('serviceWorker' in navigator) || !('Notification' in window)) {
       return;
     }
 
-    const registerPush = async () => {
-      try {
-        // 1. Get Public Key
-        const keyRes = await fetch('/api/forum/notifications/vapid-public-key');
-        const { publicKey } = await keyRes.json();
-        if (!publicKey) return;
+    try {
+      // 1. Get Public Key
+      const keyRes = await fetch('/api/forum/notifications/vapid-public-key');
+      const { publicKey } = await keyRes.json();
+      if (!publicKey) return;
 
-        // 2. Register Service Worker (if not already handled by layout)
-        const registration = await navigator.serviceWorker.ready;
+      // 2. Register Service Worker (if not already handled by layout)
+      const registration = await navigator.serviceWorker.ready;
 
-        // 3. Request Permission & Subscribe
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-          const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(publicKey)
-          });
-
-          // 4. Send to backend
-          await fetch('/api/forum/notifications/subscribe', {
-            method: 'POST',
-            body: JSON.stringify({ subscription }),
-            headers: { 'Content-Type': 'application/json' }
-          });
-          
-          console.log('Mobile notifications active.');
-        }
-      } catch (err) {
-        console.error('Push registration failed:', err);
+      // 3. Request Permission & Subscribe
+      const currentPermission = Notification.permission;
+      
+      // If not from gesture and permission is default, show our internal banner instead
+      if (!fromUserGesture && currentPermission === 'default') {
+        setShowNotificationPrompt(true);
+        return;
       }
-    };
 
-    // Delay slightly to not block initial load
-    const timer = setTimeout(registerPush, 3000);
-    return () => clearTimeout(timer);
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicKey)
+        });
+
+        // 4. Send to backend
+        await fetch('/api/forum/notifications/subscribe', {
+          method: 'POST',
+          body: JSON.stringify({ subscription }),
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        console.log('Mobile notifications active.');
+        setShowNotificationPrompt(false);
+      }
+    } catch (err) {
+      console.error('Push registration failed:', err);
+    }
   }, [user]);
+
+  useEffect(() => {
+    // Delay slightly to check current state
+    const timer = setTimeout(() => registerPush(false), 2000);
+    return () => clearTimeout(timer);
+  }, [registerPush]);
 
   const handleLogout = async () => {
     await fetch('/api/forum/auth/logout', { method: 'POST' });
@@ -198,6 +208,34 @@ export default function ForumLayout({ children }: { children: React.ReactNode })
         {/* Dynamic Background Blurs */}
         <div className="absolute top-0 left-1/4 w-[40rem] h-[40rem] bg-blue-600/10 rounded-full blur-[150px] pointer-events-none z-0"></div>
         <div className="absolute bottom-1/4 right-0 w-[30rem] h-[30rem] bg-indigo-600/10 rounded-full blur-[150px] pointer-events-none z-0"></div>
+
+        {/* Notification Opt-in Banner */}
+        {showNotificationPrompt && user && (
+          <div className="z-[60] bg-blue-600/20 backdrop-blur-md border-b border-blue-500/30 px-4 py-3 relative shadow-lg animate-in slide-in-from-top duration-500">
+            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🔔</span>
+                <p className="text-sm font-medium text-blue-100 leading-tight">
+                  <span className="font-bold">Enable Forum Notifications?</span> Get real-time alerts on your phone for new posts and replies.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => registerPush(true)}
+                  className="bg-blue-500 hover:bg-blue-400 text-white text-xs font-bold py-2 px-4 rounded-lg shadow-blue-500/20 transition-all uppercase tracking-wider"
+                >
+                  Enable Now
+                </button>
+                <button
+                  onClick={() => setShowNotificationPrompt(false)}
+                  className="text-blue-300 hover:text-white text-xs font-semibold px-2 py-2"
+                >
+                  Later
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <header className="sticky top-0 z-50 bg-[#0b1120]/90 backdrop-blur-xl border-b border-white/5 shadow-2xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

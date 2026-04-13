@@ -5,8 +5,9 @@ import { shouldShowPWAInstall, isPWASupported, logDeviceInfo } from '@/utils/dev
 
 export default function ServiceWorkerRegistration() {
   useEffect(() => {
-    // Only register service worker on mobile devices that support PWA
-    if (!shouldShowPWAInstall() || !isPWASupported()) {
+    // We want the Service Worker to register on ALL devices that support it
+    // so that features like Push Notifications work for technicians on desktop too.
+    if (!('serviceWorker' in navigator)) {
       return
     }
 
