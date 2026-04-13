@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { fetchForumTopicById } from '@/lib/github-forum-storage';
 import TopicClient from './TopicClient';
 
@@ -10,6 +11,9 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const topic = await fetchForumTopicById(params.id);
+  const host = headers().get('host') || 'www.itservicesfreetown.com';
+  const protocol = host.includes('localhost') ? 'http' : 'https';
+  const baseUrl = `${protocol}://${host}`;
 
   if (!topic) {
     return {
@@ -20,14 +24,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // Strip HTML and metadata from content for a clean description
   const cleanDescription = topic.content
     .replace(/<[^>]*>/g, '') // Remove HTML tags
-    .replace(/^\[Author: .*?\]/, '') // Remove author metadata
-    .replace(/^\[Category: .*?\]/, '') // Remove category metadata
+    .replace(/^\[Author: .*?\]/, '') 
+    .replace(/^\[Category: .*?\]/, '')
     .trim()
     .substring(0, 160) + '...';
 
-  const images = topic.images && topic.images.length > 0 
-    ? [topic.images[0]] // Use the first image from the post
-    : ['/forum-favicon.svg']; // Fallback to logo
+  // Social platforms (WhatsApp, Slack, FB) don't support SVGs for previews.
+  // Always use a PNG for the fallback or fully qualified image URL.
+  const rawImages = topic.images && topic.images.length > 0 
+    ? [topic.images[0]] 
+    : [`${baseUrl}/assets/forum-logo.png`];
+
+  // Ensure all image URLs are absolute
+  const images = rawImages.map(url => url.startsWith('http') ? url : `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`);
 
   return {
     title: `${topic.title} | Technicians Forum`,
@@ -35,7 +44,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title: topic.title,
       description: cleanDescription,
-      url: `https://www.itservicesfreetown.com/forum/${params.id}`,
+      url: `${baseUrl}/forum/${params.id}`,
       siteName: 'IT Services Freetown Forum',
       images: images.map(url => ({
         url,
