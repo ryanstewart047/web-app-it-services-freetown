@@ -147,7 +147,7 @@ export async function createForumTopic(title: string, content: string, author: s
     await sendForumNotification({
       title: 'New Forum Post',
       body: `${author} posted: ${title}`,
-      data: { url: `/forum/topic/${issue.number}` }
+      data: { url: `/forum/${issue.number}` }
     });
 
     return { success: true, id: issue.number.toString() };
@@ -187,7 +187,7 @@ export async function addForumReply(issueNumber: number, content: string, author
     await sendForumNotification({
       title: 'New Reply',
       body: `${author} replied to a topic you follow.`,
-      data: { url: `/forum/topic/${issueNumber}` }
+      data: { url: `/forum/${issueNumber}` }
     });
 
     return { success: true };
