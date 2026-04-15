@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { getBookingByTrackingId, getAllBookings, BookingData } from '@/lib/unified-booking-storage'
+import PaymentInstructionsPopup from '@/components/PaymentInstructionsPopup'
 
 interface AppointmentStatusProps {
   trackingId: string
@@ -16,6 +17,7 @@ interface AppointmentStatus {
   estimatedCompletion?: string
   notes?: string
   cost?: number
+  paymentStatus?: string
   createdAt: string
   updatedAt: string
   diagnosticImages?: Array<string | { data: string; uploadedAt: string }>
@@ -37,6 +39,7 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
   const [appointment, setAppointment] = useState<AppointmentStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [showPaymentPopup, setShowPaymentPopup] = useState(false)
 
   useEffect(() => {
     fetchAppointmentStatus()
@@ -214,6 +217,7 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
       status: (repair.status || 'received') as AppointmentStatus['status'],
       estimatedCompletion: repair.estimatedCompletion,
       notes: repair.notes,
+      paymentStatus: repair.paymentStatus || 'pending',
       cost: typeof repair.totalCost === 'number' ? repair.totalCost : undefined,
       createdAt: repair.submissionDate || new Date().toISOString(),
       updatedAt: repair.lastUpdated || repair.submissionDate || new Date().toISOString(),
@@ -375,10 +379,33 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
               <i className="fas fa-dollar-sign mr-2"></i>
               <span className="font-semibold">Estimated Cost</span>
             </div>
-            <p className="text-green-900 mt-1 text-xl font-bold">Le {appointment.cost.toLocaleString()}</p>
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-green-900 text-xl font-bold">Le {appointment.cost.toLocaleString()}</p>
+              {appointment.paymentStatus === 'pending' && (
+                <button
+                  onClick={() => setShowPaymentPopup(true)}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-md"
+                >
+                  Pay Now
+                </button>
+              )}
+              {appointment.paymentStatus === 'paid' && (
+                <span className="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-green-300">
+                  Paid
+                </span>
+              )}
+            </div>
           </div>
         )}
       </div>
+
+      {showPaymentPopup && appointment.cost && (
+        <PaymentInstructionsPopup
+          orderNumber={appointment.id}
+          totalAmount={appointment.cost}
+          onClose={() => setShowPaymentPopup(false)}
+        />
+      )}
 
       {/* Diagnostic Information Section */}
       {(appointment.diagnosticNotes || (appointment.diagnosticImages && appointment.diagnosticImages.length > 0)) && (

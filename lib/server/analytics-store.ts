@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/prisma';
-import nodemailer from 'nodemailer';
 
 // ──────────────────────────────────────────────
 // Types (unchanged – consumed by API routes)
@@ -23,6 +22,7 @@ export interface RepairBooking {
 	deviceType: string;
 	issueDescription: string;
 	status: RepairStatus;
+	paymentStatus?: string;
 	submissionDate: string;
 	estimatedCompletion?: string;
 	totalCost?: number;
@@ -73,14 +73,15 @@ function mapRepairRow(row: any): RepairBooking {
 		issueDescription: row.issueDescription,
 		serviceType: row.serviceType ?? undefined,
 		status: (row.status as RepairStatus) || 'received',
+		paymentStatus: row.paymentStatus ?? 'pending',
 		submissionDate: (row.dateReceived ?? row.createdAt)?.toISOString?.() ?? new Date().toISOString(),
 		estimatedCompletion: row.estimatedCompletion ?? undefined,
 		totalCost: row.actualCost ?? row.estimatedCost ?? undefined,
 		notes: row.notes || undefined,
 		lastUpdated: row.updatedAt?.toISOString?.() ?? new Date().toISOString(),
 		address: row.customer?.address ?? undefined,
-		diagnosticImages: row.diagnosticImages ?? undefined,
-		diagnosticNotes: row.diagnosticNotes ?? undefined,
+		diagnosticImages: undefined,
+		diagnosticNotes: undefined,
 	};
 }
 
@@ -338,16 +339,14 @@ export interface UpdateRepairInput {
 	notes?: string;
 	estimatedCompletion?: string | null;
 	totalCost?: number | null;
+	paymentStatus?: string;
 	diagnosticImages?: string[];
 	diagnosticNotes?: string;
 }
 
 export async function updateRepair(input: UpdateRepairInput): Promise<RepairBooking | null> {
 	try {
-		const existing = await prisma.repair.findUnique({ 
-			where: { trackingId: input.trackingId },
-			include: { customer: true }
-		});
+		const existing = await prisma.repair.findUnique({ where: { trackingId: input.trackingId } });
 		if (!existing) return null;
 
 		const updateData: any = {};
@@ -358,13 +357,7 @@ export async function updateRepair(input: UpdateRepairInput): Promise<RepairBook
 			updateData.estimatedCost = input.totalCost;
 			updateData.actualCost = input.totalCost;
 		}
-		if (input.diagnosticNotes !== undefined) {
-			updateData.diagnosticNotes = input.diagnosticNotes;
-		}
-		if (input.diagnosticImages !== undefined) {
-			// Cast image arrays safely into JSON payload native types
-			updateData.diagnosticImages = input.diagnosticImages;
-		}
+		if (input.paymentStatus !== undefined) updateData.paymentStatus = input.paymentStatus;
 		if (input.status === 'completed') {
 			updateData.dateCompleted = new Date();
 		}
@@ -374,63 +367,6 @@ export async function updateRepair(input: UpdateRepairInput): Promise<RepairBook
 			data: updateData,
 			include: { customer: true },
 		});
-
-		// [NEW LOGIC]: Trigger Email exactly when status officially enters "ready-for-pickup"
-		if (existing.status !== 'ready-for-pickup' && input.status === 'ready-for-pickup' && existing.customer.email) {
-			try {
-				const transporter = nodemailer.createTransport({
-					host: process.env.SMTP_HOST || 'smtp.gmail.com',
-					port: Number(process.env.SMTP_PORT) || 587,
-					secure: false, 
-					auth: {
-						user: process.env.SMTP_USER || 'itservicesfreetown@gmail.com',
-						pass: process.env.SMTP_PASS || 'sxue cusg zikn qfzk',
-					},
-				});
-
-				const customerMailOptions = {
-					from: `"IT Services Freetown" <${process.env.SMTP_USER || 'itservicesfreetown@gmail.com'}>`,
-					to: existing.customer.email,
-					subject: 'Your Device is Ready for Pickup! - IT Services Freetown',
-					replyTo: process.env.SMTP_USER || 'itservicesfreetown@gmail.com',
-					html: `
-						<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; line-height: 1.6;">
-							<div style="background-color: #040e40; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-								<h1 style="color: white; margin: 0;">IT Services Freetown</h1>
-							</div>
-							<div style="padding: 30px; border: 1px solid #eee; border-top: none; border-radius: 0 0 8px 8px;">
-								<h2 style="color: #15803d;">Your Repair is Complete!</h2>
-								<p>Hello <strong>${existing.customer.name}</strong>,</p>
-								<p>Great news! Your <strong>${existing.deviceType}</strong> repair was completely successful and your device is now ready to be picked up.</p>
-								
-								<div style="background-color: #f9fafb; padding: 15px; border-radius: 6px; margin: 20px 0; border: 1px solid #e5e7eb;">
-									<h3 style="margin-top: 0; color: #040e40;">Pickup Location:</h3>
-									<p style="margin-bottom: 0;"><strong>IT Services Freetown</strong><br/>1 Regent High way, Jui Junction, East Freetown<br/>(The exact location you dropped it off!)</p>
-								</div>
-
-								<div style="background-color: #fefce8; padding: 15px; border-radius: 6px; margin: 20px 0; border: 1px solid #fef08a;">
-									<h3 style="margin-top: 0; color: #854d0e;">Want Home Delivery?</h3>
-									<p style="margin-bottom: 0;">We offer local home delivery directly to your doorstep. If you wish for a technician to drop off the device at your house, simply <strong>reply directly to this email</strong> requesting a home delivery.</p>
-									<p style="margin-top: 5px; font-size: 0.9em; color: #a16207;"><em>*Please note: You will be required to pay the transport fee (to and fro) for the physical delivery service.</em></p>
-								</div>
-								
-								<p>We look forward to seeing you soon!</p>
-								
-								<hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
-								<p style="font-size: 12px; color: #666; text-align: center; line-height: 1.5;">
-									&copy; ${new Date().getFullYear()} IT Services Freetown. All rights reserved.
-								</p>
-							</div>
-						</div>
-					`,
-				};
-
-				await transporter.sendMail(customerMailOptions);
-				console.log('[AnalyticsStore] Successfully dispatched "ready-for-pickup" notification email to', existing.customer.email);
-			} catch (emailError) {
-				console.error('[AnalyticsStore] Failed to send "ready-for-pickup" email:', emailError);
-			}
-		}
 
 		return mapRepairRow(updated);
 	} catch (error) {

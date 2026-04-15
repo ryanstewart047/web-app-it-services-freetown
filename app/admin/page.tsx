@@ -28,6 +28,7 @@ interface RepairRecord {
   deviceType?: string;
   customerName?: string;
   status?: string;
+  paymentStatus?: string;
   lastUpdated?: string;
   issueSummary?: string;
   totalCost?: number;
@@ -552,15 +553,6 @@ export default function AdminPage() {
                   </svg>
                   Manage Offers
                 </a>
-                <a
-                  href="/api/forum/admin/bridge"
-                  className="inline-flex items-center gap-2 rounded-xl border border-blue-300 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-blue-700 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50"
-                >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                  Forum Admin
-                </a>
                 <button
                   onClick={handleLogout}
                   className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-800 dark:bg-gray-800 dark:text-red-400 dark:hover:bg-gray-700"
@@ -763,6 +755,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
   const [selectedRepair, setSelectedRepair] = useState<RepairRecord | null>(null);
   const [updateForm, setUpdateForm] = useState({
     status: '',
+    paymentStatus: '',
     notes: '',
     totalCost: '',
     diagnosticNotes: '',
@@ -771,7 +764,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
 
   useEffect(() => {
     if (!selectedRepair) {
-      setUpdateForm({ status: '', notes: '', totalCost: '', diagnosticNotes: '', diagnosticImages: [] });
+      setUpdateForm({ status: '', paymentStatus: '', notes: '', totalCost: '', diagnosticNotes: '', diagnosticImages: [] });
       return;
     }
 
@@ -781,6 +774,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
 
     setUpdateForm({
       status: selectedRepair.status ?? '',
+      paymentStatus: selectedRepair.paymentStatus ?? 'pending',
       notes: selectedRepair.issueSummary ?? '',
       totalCost: selectedRepair.totalCost ? String(selectedRepair.totalCost) : '',
       diagnosticNotes: (selectedRepair as any).diagnosticNotes ?? '',
@@ -798,6 +792,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
         body: JSON.stringify({
           trackingId: selectedRepair.trackingId,
           status: updateForm.status,
+          paymentStatus: updateForm.paymentStatus,
           notes: updateForm.notes,
           totalCost: updateForm.totalCost ? parseFloat(updateForm.totalCost) : undefined,
           diagnosticNotes: updateForm.diagnosticNotes,
@@ -988,6 +983,14 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                           <span>Le {repair.totalCost}</span>
                         </>
                       ) : null}
+                      {repair.paymentStatus ? (
+                        <>
+                          <span>•</span>
+                          <span className={`${repair.paymentStatus === 'paid' ? 'text-green-600 dark:text-green-400 font-medium' : 'text-orange-500 font-medium'}`}>
+                            {repair.paymentStatus.charAt(0).toUpperCase() + repair.paymentStatus.slice(1)}
+                          </span>
+                        </>
+                      ) : null}
                       {repair.lastUpdated ? (
                         <>
                           <span>•</span>
@@ -1087,6 +1090,18 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                   onChange={(event) => setUpdateForm((prev) => ({ ...prev, totalCost: event.target.value }))}
                   className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
                 />
+              </label>
+
+              <label className="space-y-2">
+                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Payment Status</span>
+                <select
+                  value={updateForm.paymentStatus}
+                  onChange={(event) => setUpdateForm((prev) => ({ ...prev, paymentStatus: event.target.value }))}
+                  className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="paid">Paid</option>
+                </select>
               </label>
 
               {/* Diagnostic Information Section */}

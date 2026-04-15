@@ -183,6 +183,7 @@ export async function POST(request: NextRequest) {
       const updated = await updateRepair({
         trackingId: data.trackingId,
         status: data.status,
+        paymentStatus: data.paymentStatus,
         notes: data.notes,
         estimatedCompletion: data.estimatedCompletion,
         totalCost: typeof data.totalCost === 'number' ? data.totalCost : undefined
@@ -225,6 +226,7 @@ export async function PUT(request: NextRequest) {
     const updated = await updateRepair({
       trackingId: data.trackingId,
       status: data.status,
+      paymentStatus: data.paymentStatus,
       notes: data.notes,
       estimatedCompletion: data.estimatedCompletion,
       totalCost: typeof data.totalCost === 'number' ? data.totalCost : undefined,
