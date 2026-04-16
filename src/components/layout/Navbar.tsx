@@ -5,6 +5,30 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
+function MegaMenuLink({ href, icon, title, description, color, bg }: { 
+  href: string; 
+  icon: string; 
+  title: string; 
+  description: string;
+  color: string;
+  bg: string;
+}) {
+  return (
+    <Link 
+      href={href}
+      className={`group flex items-start gap-3 p-3 rounded-xl transition-all duration-300 hover:bg-white hover:shadow-md hover:scale-[1.02] border border-transparent hover:border-gray-100`}
+    >
+      <div className={`w-10 h-10 rounded-lg ${bg} flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:rotate-12`}>
+        <i className={`${icon} ${color} text-lg`}></i>
+      </div>
+      <div>
+        <h4 className="text-sm font-bold text-gray-900 group-hover:text-red-600 transition-colors">{title}</h4>
+        <p className="text-[11px] text-gray-500 leading-tight mt-0.5">{description}</p>
+      </div>
+    </Link>
+  );
+}
+
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [supportDropdownOpen, setSupportDropdownOpen] = useState(false);
@@ -86,77 +110,127 @@ export default function Navbar() {
             <Link href="/track-repair" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/track-repair' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Track Repair</Link>
             <Link href="/troubleshoot" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/troubleshoot' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Troubleshoot</Link>
             
-            {/* Get Support Dropdown */}
-            <div className="relative" ref={dropdownRef}>
+            {/* Get Support Mega Menu (Desktop) */}
+            <div 
+              className="relative" 
+              onMouseEnter={() => setSupportDropdownOpen(true)}
+              onMouseLeave={() => setSupportDropdownOpen(false)}
+            >
               <button 
-                onClick={toggleSupportDropdown}
-                className="text-gray-700 hover:text-[#040e40] px-3 py-2 text-sm font-medium inline-flex items-center gap-1"
+                className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-all duration-300 ${
+                  supportDropdownOpen ? 'text-red-600' : 'text-gray-700 hover:text-[#040e40]'
+                }`}
               >
                 Get Support
-                <i className={`fas fa-chevron-down text-xs transition-transform duration-200 ${supportDropdownOpen ? 'rotate-180' : ''}`}></i>
+                <i className={`fas fa-chevron-down text-[10px] transition-transform duration-300 ${supportDropdownOpen ? 'rotate-180' : ''}`}></i>
               </button>
               
-              {supportDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200 animate-fadeIn">
-                  <Link 
-                    href="/repair-guides" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200"
-                    onClick={() => setSupportDropdownOpen(false)}
-                  >
-                    <i className="fas fa-book-medical mr-2"></i>Repair Guides
-                  </Link>
-                  <Link 
-                    href="/chat" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200"
-                    onClick={() => setSupportDropdownOpen(false)}
-                  >
-                    <i className="fas fa-comments mr-2"></i>Chat Support
-                  </Link>
-                  <Link 
-                    href="/contact" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200"
-                    onClick={() => setSupportDropdownOpen(false)}
-                  >
-                    <i className="fas fa-envelope mr-2"></i>Contact Us
-                  </Link>
-                  <Link 
-                    href="/about" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200"
-                    onClick={() => setSupportDropdownOpen(false)}
-                  >
-                    <i className="fas fa-info-circle mr-2"></i>About Us
-                  </Link>
-                  <Link 
-                    href="/faq" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200"
-                    onClick={() => setSupportDropdownOpen(false)}
-                  >
-                    <i className="fas fa-question-circle mr-2"></i>FAQ
-                  </Link>
-                  <div className="my-1 border-t border-gray-200"></div>
-                  <Link 
-                    href="/privacy" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200"
-                    onClick={() => setSupportDropdownOpen(false)}
-                  >
-                    <i className="fas fa-shield-alt mr-2"></i>Privacy Policy
-                  </Link>
-                  <Link 
-                    href="/terms" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200"
-                    onClick={() => setSupportDropdownOpen(false)}
-                  >
-                    <i className="fas fa-file-contract mr-2"></i>Terms of Service
-                  </Link>
-                  <Link 
-                    href="/disclaimer" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#040e40] hover:text-white transition-colors duration-200"
-                    onClick={() => setSupportDropdownOpen(false)}
-                  >
-                    <i className="fas fa-exclamation-triangle mr-2"></i>Disclaimer
+              {/* Mega Menu Container */}
+              <div 
+                className={`absolute right-0 mt-0 w-[600px] bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 p-6 z-50 transition-all duration-300 origin-top-right ${
+                  supportDropdownOpen 
+                    ? 'opacity-100 translate-y-2 pointer-events-auto scale-100' 
+                    : 'opacity-0 translate-y-4 pointer-events-none scale-95'
+                }`}
+              >
+                <div className="grid grid-cols-3 gap-8">
+                  {/* Column 1: Support Resources */}
+                  <div className="space-y-4">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-2">Support Resources</h3>
+                    <div className="space-y-2">
+                      <MegaMenuLink 
+                        href="/repair-guides" 
+                        icon="fas fa-book-medical" 
+                        title="Repair Guides" 
+                        description="Step-by-step tech tutorials"
+                        color="text-blue-600"
+                        bg="bg-blue-50"
+                      />
+                      <MegaMenuLink 
+                        href="/chat" 
+                        icon="fas fa-comments" 
+                        title="Chat Support" 
+                        description="Real-time help from experts"
+                        color="text-emerald-600"
+                        bg="bg-emerald-50"
+                      />
+                      <MegaMenuLink 
+                        href="/faq" 
+                        icon="fas fa-question-circle" 
+                        title="Common FAQs" 
+                        description="Quick answers to your questions"
+                        color="text-purple-600"
+                        bg="bg-purple-50"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Column 2: Connect with Us */}
+                  <div className="space-y-4">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-2">Connect</h3>
+                    <div className="space-y-2">
+                      <MegaMenuLink 
+                        href="/contact" 
+                        icon="fas fa-envelope" 
+                        title="Contact Us" 
+                        description="Our team is here to help"
+                        color="text-red-600"
+                        bg="bg-red-50"
+                      />
+                      <MegaMenuLink 
+                        href="/about" 
+                        icon="fas fa-info-circle" 
+                        title="Our Story" 
+                        description="Learn about IT Services Freetown"
+                        color="text-[#040e40]"
+                        bg="bg-gray-50"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Column 3: Legal & Trust */}
+                  <div className="space-y-4">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-2">Legal & Policy</h3>
+                    <div className="space-y-2">
+                      <MegaMenuLink 
+                        href="/privacy" 
+                        icon="fas fa-shield-alt" 
+                        title="Privacy Policy" 
+                        description="Your data security matters"
+                        color="text-gray-600"
+                        bg="bg-gray-50"
+                      />
+                      <MegaMenuLink 
+                        href="/terms" 
+                        icon="fas fa-file-contract" 
+                        title="Terms of Service" 
+                        description="Rules for using our platform"
+                        color="text-gray-600"
+                        bg="bg-gray-50"
+                      />
+                      <MegaMenuLink 
+                        href="/disclaimer" 
+                        icon="fas fa-exclamation-triangle" 
+                        title="Disclaimer" 
+                        description="Essential service information"
+                        color="text-amber-600"
+                        bg="bg-amber-50"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mega Menu Footer */}
+                <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    <span className="text-[10px] text-gray-500 font-medium italic">Expert Technicians Online</span>
+                  </div>
+                  <Link href="/book-appointment" className="text-[10px] font-bold text-red-600 hover:text-red-700 uppercase tracking-wider flex items-center gap-1">
+                    Book Service Now <i className="fas fa-arrow-right text-[8px]"></i>
                   </Link>
                 </div>
-              )}
+              </div>
             </div>
             
             <Link href="/book-appointment" className="btn-primary text-sm px-4 py-2">Book Now</Link>
