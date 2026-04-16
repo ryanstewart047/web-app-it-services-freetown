@@ -12,7 +12,7 @@
   "lang": "en",
   "dir": "ltr",
   "categories": ["business", "productivity", "utilities"],
-  "iarc_rating_id": "",
+  "iarc_rating_id": "00000000-0000-0000-0000-000000000000",
   "display_override": ["window-controls-overlay", "standalone", "browser"],
   "launch_handler": {
     "client_mode": "focus-existing"
@@ -26,24 +26,24 @@
       "label": "Professional Repair Services"
     },
     {
-      "src": "/assets/pwa-mobile-screenshot.png",
+      "src": "/assets/pwa-mobile-screenshot.jpg",
       "sizes": "1024x1024",
-      "type": "image/png",
+      "type": "image/jpeg",
       "form_factor": "narrow",
       "label": "ITS Freetown Mobile App"
     }
   ],
   "icons": [
     {
-      "src": "/assets/pwa-icon-512.png",
+      "src": "/assets/pwa-icon-512.jpg",
       "sizes": "1024x1024",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "any"
     },
     {
-      "src": "/assets/pwa-icon-512.png",
+      "src": "/assets/pwa-icon-512.jpg",
       "sizes": "1024x1024",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "maskable"
     },
     {
