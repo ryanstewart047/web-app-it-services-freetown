@@ -114,5 +114,11 @@
     }
   ],
   "related_applications": [],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "scope_extensions": [
+    {
+      "origin": "https://itservicesfreetown.com"
+    }
+  ],
+  "handle_links": "preferred"
 }
