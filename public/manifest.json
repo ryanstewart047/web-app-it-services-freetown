@@ -35,15 +35,15 @@
   ],
   "icons": [
     {
-      "src": "/assets/pwa-icon-512.jpg",
-      "sizes": "1024x1024",
-      "type": "image/jpeg",
+      "src": "/assets/pwa-icon.png",
+      "sizes": "813x813",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/pwa-icon-512.jpg",
-      "sizes": "1024x1024",
-      "type": "image/jpeg",
+      "src": "/assets/pwa-icon.png",
+      "sizes": "813x813",
+      "type": "image/png",
       "purpose": "maskable"
     },
     {
@@ -67,8 +67,8 @@
       "url": "/book-appointment",
       "icons": [
         {
-          "src": "/apple-touch-icon.png",
-          "sizes": "180x180",
+          "src": "/assets/pwa-icon.png",
+          "sizes": "813x813",
           "type": "image/png"
         }
       ]
@@ -80,8 +80,8 @@
       "url": "/track-repair",
       "icons": [
         {
-          "src": "/apple-touch-icon.png",
-          "sizes": "180x180",
+          "src": "/assets/pwa-icon.png",
+          "sizes": "813x813",
           "type": "image/png"
         }
       ]
@@ -93,8 +93,8 @@
       "url": "/forum", 
       "icons": [
         {
-          "src": "/apple-touch-icon.png",
-          "sizes": "180x180",
+          "src": "/assets/pwa-icon.png",
+          "sizes": "813x813",
           "type": "image/png"
         }
       ]
@@ -106,8 +106,8 @@
       "url": "/troubleshoot", 
       "icons": [
         {
-          "src": "/apple-touch-icon.png",
-          "sizes": "180x180",
+          "src": "/assets/pwa-icon.png",
+          "sizes": "813x813",
           "type": "image/png"
         }
       ]
