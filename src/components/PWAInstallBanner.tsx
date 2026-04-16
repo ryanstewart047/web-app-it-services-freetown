@@ -163,7 +163,7 @@ export default function PWAInstallBanner() {
           
           <div className="pwa-banner-text">
             <div className="pwa-banner-title font-bold text-lg">
-              IT Services Freetown
+              ITS Freetown
             </div>
             <div className="pwa-banner-subtitle text-sm opacity-90 font-medium">
               {deviceInfo.isIOS 

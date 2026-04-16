@@ -1,212 +1,116 @@
 // Service Worker for IT Services Freetown PWA
-const CACHE_NAME = 'it-services-freetown-v1.0.0';
-const OFFLINE_URL = '/index.html';
+const CACHE_NAME = 'it-services-freetown-v2.0.0';
+const OFFLINE_URL = '/offline';
 
-// Files to cache for offline functionality
-const CACHE_FILES = [
+const ASSET_CACHE = 'assets-cache-v1';
+const IMAGE_CACHE = 'image-cache-v1';
+
+// Initial files to cache for offline functionality
+const STATIC_ASSETS = [
   '/',
-  '/index.html',
-  '/book-appointment.html',
-  '/track-repair.html',
-  '/chat.html',
-  '/troubleshoot.html',
-  '/assets/css/output.css',
+  '/offline',
+  '/manifest.json',
+  '/favicon.svg',
+  '/favicon.ico',
+  '/apple-touch-icon.png',
   '/assets/logo.png',
   '/assets/logo.svg',
-  '/assets/favicon-52x52.png',
-  '/assets/favicon-16x16.png',
-  '/manifest.json',
-  // Add Font Awesome for offline use
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 
-// Install event - cache files
 self.addEventListener('install', (event) => {
-  console.log('[ServiceWorker] Install');
   event.waitUntil(
-    (async () => {
-      const cache = await caches.open(CACHE_NAME);
-      console.log('[ServiceWorker] Caching app shell');
-      try {
-        await cache.addAll(CACHE_FILES);
-      } catch (error) {
-        console.error('[ServiceWorker] Cache addAll failed:', error);
-        // Cache files individually to handle failures gracefully
-        for (const file of CACHE_FILES) {
-          try {
-            await cache.add(file);
-          } catch (e) {
-            console.warn(`[ServiceWorker] Failed to cache ${file}:`, e);
-          }
-        }
-      }
-    })()
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('[ServiceWorker] Pre-caching offline assets');
+      return cache.addAll(STATIC_ASSETS);
+    })
   );
-  // Force the waiting service worker to become the active service worker
   self.skipWaiting();
 });
 
-// Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('[ServiceWorker] Activate');
   event.waitUntil(
-    (async () => {
-      // Clean up old caches
-      const cacheNames = await caches.keys();
-      await Promise.all(
-        cacheNames.map(async (cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('[ServiceWorker] Removing old cache:', cacheName);
-            return caches.delete(cacheName);
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((key) => {
+          if (![CACHE_NAME, ASSET_CACHE, IMAGE_CACHE].includes(key)) {
+            console.log('[ServiceWorker] Removing old cache:', key);
+            return caches.delete(key);
           }
         })
       );
-      
-      // Take control of all clients
-      await self.clients.claim();
-    })()
+    })
   );
+  self.clients.claim();
 });
 
-// Fetch event - serve cached content when offline
 self.addEventListener('fetch', (event) => {
-  // Only handle GET requests
-  if (event.request.method !== 'GET') {
-    return;
-  }
+  if (event.request.method !== 'GET') return;
 
-  // Skip chrome-extension and other unsupported schemes
   const url = new URL(event.request.url);
-  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+
+  // 1. Navigation requests (Pages) - Network First, fallback to Offline
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => {
+          return caches.match(OFFLINE_URL);
+        })
+    );
     return;
   }
 
+  // 2. Static Assets (CSS, JS) - Cache First
+  if (
+    event.request.destination === 'style' || 
+    event.request.destination === 'script' || 
+    event.request.destination === 'font'
+  ) {
+    event.respondWith(
+      caches.open(ASSET_CACHE).then((cache) => {
+        return cache.match(event.request).then((response) => {
+          const fetchPromise = fetch(event.request).then((networkResponse) => {
+            if (networkResponse.ok) {
+              cache.put(event.request, networkResponse.clone());
+            }
+            return networkResponse;
+          });
+          return response || fetchPromise;
+        });
+      })
+    );
+    return;
+  }
+
+  // 3. Images - Cache First
+  if (event.request.destination === 'image') {
+    event.respondWith(
+      caches.open(IMAGE_CACHE).then((cache) => {
+        return cache.match(event.request).then((response) => {
+          const fetchPromise = fetch(event.request).then((networkResponse) => {
+            if (networkResponse.ok) {
+              cache.put(event.request, networkResponse.clone());
+            }
+            return networkResponse;
+          });
+          return response || fetchPromise;
+        });
+      })
+    );
+    return;
+  }
+
+  // 4. Everything else - Generic match
   event.respondWith(
-    (async () => {
-      try {
-        // Try to fetch from network first (network first strategy for dynamic content)
-        const networkResponse = await fetch(event.request);
-        
-        // If successful, update cache with fresh content
-        if (networkResponse.ok) {
-          try {
-            const cache = await caches.open(CACHE_NAME);
-            await cache.put(event.request, networkResponse.clone());
-          } catch (cacheError) {
-            console.warn('[ServiceWorker] Failed to cache response:', cacheError);
-          }
-        }
-        
-        return networkResponse;
-      } catch (error) {
-        // Network failed, try to serve from cache
-        console.log('[ServiceWorker] Network failed, serving from cache:', event.request.url);
-        
-        const cachedResponse = await caches.match(event.request);
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-        
-        // If requesting an HTML page and no cache available, serve offline page
-        if (event.request.headers.get('accept')?.includes('text/html')) {
-          const offlineResponse = await caches.match(OFFLINE_URL);
-          if (offlineResponse) {
-            return offlineResponse;
-          }
-        }
-        
-        // If all else fails, throw the error
-        throw error;
-      }
-    })()
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request);
+    })
   );
 });
-
-// Handle background sync for form submissions when back online
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'contact-form-sync') {
-    event.waitUntil(syncContactForms());
-  }
-});
-
-// Function to sync contact forms when back online
-async function syncContactForms() {
-  try {
-    // Get stored form submissions from IndexedDB
-    const db = await openDB();
-    const forms = await getStoredForms(db);
-    
-    for (const formData of forms) {
-      try {
-        await fetch('https://formspree.io/f/mpwjnwrz', {
-          method: 'POST',
-          body: formData.data
-        });
-        
-        // Remove from storage after successful submission
-        await removeStoredForm(db, formData.id);
-        
-        // Notify client of successful sync
-        self.clients.matchAll().then(clients => {
-          clients.forEach(client => {
-            client.postMessage({
-              type: 'FORM_SYNC_SUCCESS',
-              formId: formData.id
-            });
-          });
-        });
-      } catch (error) {
-        console.error('Failed to sync form:', error);
-      }
-    }
-  } catch (error) {
-    console.error('Background sync failed:', error);
-  }
-}
-
-// IndexedDB helpers for offline form storage
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('ITServicesDB', 1);
-    
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
-    
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-      if (!db.objectStoreNames.contains('forms')) {
-        db.createObjectStore('forms', { keyPath: 'id', autoIncrement: true });
-      }
-    };
-  });
-}
-
-function getStoredForms(db) {
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(['forms'], 'readonly');
-    const store = transaction.objectStore('forms');
-    const request = store.getAll();
-    
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
-  });
-}
-
-function removeStoredForm(db, id) {
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(['forms'], 'readwrite');
-    const store = transaction.objectStore('forms');
-    const request = store.delete(id);
-    
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
-  });
-}
 
 // Push notification handling
 self.addEventListener('push', (event) => {
   if (!event.data) return;
-  
   try {
     const data = event.data.json();
     const options = {
@@ -214,51 +118,23 @@ self.addEventListener('push', (event) => {
       icon: data.icon || '/assets/logo.svg',
       badge: data.badge || '/favicon.svg',
       vibrate: [100, 50, 100],
-      data: {
-        url: data.data?.url || '/forum'
-      },
-      actions: [
-        {
-          action: 'open',
-          title: 'View Post',
-        }
-      ]
+      data: { url: data.data?.url || '/forum' }
     };
-    
-    event.waitUntil(
-      self.registration.showNotification(data.title || 'SL Tech Forum', options)
-    );
+    event.waitUntil(self.registration.showNotification(data.title || 'ITS Freetown', options));
   } catch (err) {
     console.error('Push error:', err);
   }
 });
 
-// Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  
   const urlToOpen = event.notification.data?.url || '/forum';
-  
   event.waitUntil(
     clients.matchAll({ type: 'window' }).then((windowClients) => {
-      // If a window is already open at the URL, focus it
-      for (let i = 0; i < windowClients.length; i++) {
-        const client = windowClients[i];
-        if (client.url === urlToOpen && 'focus' in client) {
-          return client.focus();
-        }
+      for (const client of windowClients) {
+        if (client.url === urlToOpen && 'focus' in client) return client.focus();
       }
-      // If no window is open, open a new one
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
-      }
+      if (clients.openWindow) return clients.openWindow(urlToOpen);
     })
   );
-});
-
-// Message handling from main thread
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
 });

@@ -165,12 +165,15 @@ export default function RootLayout({
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
         />
         
-        {/* PWA Meta Tags - Updated */}
-        <meta name="theme-color" content="#1e3a8a" />
+        {/* PWA Meta Tags - Optimized for Play Store and iOS */}
+        <meta name="theme-color" content="#172554" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="IT Services Freetown" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="ITS Freetown" />
+        <meta name="application-name" content="ITS Freetown" />
+        <meta name="msapplication-TileColor" content="#172554" />
+        <meta name="msapplication-tap-highlight" content="no" />
         
         {/* Favicon - Using Site Logo */}
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
