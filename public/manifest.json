@@ -1,6 +1,7 @@
 {
   "name": "IT Services Freetown - Professional Computer & Mobile Repair",
   "short_name": "ITS Freetown",
+  "id": "/its-freetown-pwa",
   "description": "Professional computer and mobile repair services in Freetown, Sierra Leone. Same day service, 1-month warranty, and expert technicians.",
   "start_url": "/",
   "display": "standalone",
@@ -11,28 +12,45 @@
   "lang": "en",
   "dir": "ltr",
   "categories": ["business", "productivity", "utilities"],
-  "display_override": ["standalone", "browser"],
+  "iarc_rating_id": "",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
   "screenshots": [
     {
       "src": "/assets/images/slide01.jpg",
-      "sizes": "1280x720",
+      "sizes": "1350x1050",
       "type": "image/jpeg",
       "form_factor": "wide",
-      "label": "ITS Freetown Repair Services"
+      "label": "Professional Repair Services"
+    },
+    {
+      "src": "/assets/pwa-mobile-screenshot.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "ITS Freetown Mobile App"
     }
   ],
   "icons": [
     {
-      "src": "/assets/logo.png",
-      "sizes": "192x192",
+      "src": "/assets/pwa-icon-512.png",
+      "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/logo.png",
-      "sizes": "512x512",
+      "src": "/assets/pwa-icon-512.png",
+      "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "/assets/logo.png",
+      "sizes": "1024x575",
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/apple-touch-icon.png",
@@ -49,8 +67,8 @@
       "url": "/book-appointment",
       "icons": [
         {
-          "src": "/assets/logo.png",
-          "sizes": "192x192",
+          "src": "/apple-touch-icon.png",
+          "sizes": "180x180",
           "type": "image/png"
         }
       ]
@@ -62,8 +80,8 @@
       "url": "/track-repair",
       "icons": [
         {
-          "src": "/assets/logo.png",
-          "sizes": "192x192",
+          "src": "/apple-touch-icon.png",
+          "sizes": "180x180",
           "type": "image/png"
         }
       ]
@@ -75,8 +93,8 @@
       "url": "/forum", 
       "icons": [
         {
-          "src": "/assets/logo.png",
-          "sizes": "192x192",
+          "src": "/apple-touch-icon.png",
+          "sizes": "180x180",
           "type": "image/png"
         }
       ]
@@ -88,8 +106,8 @@
       "url": "/troubleshoot", 
       "icons": [
         {
-          "src": "/assets/logo.png",
-          "sizes": "192x192",
+          "src": "/apple-touch-icon.png",
+          "sizes": "180x180",
           "type": "image/png"
         }
       ]
