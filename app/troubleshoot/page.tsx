@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 // Formspree hooks removed in favor of native fetch API for robustness
 import { Brain, Send, Smartphone, Monitor, HelpCircle, CheckCircle, AlertCircle, Lightbulb } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -264,7 +264,7 @@ export default function Troubleshoot() {
   }
 
   return (
-    <>
+    <React.Fragment>
       <LoadingOverlay show={pageLoading} progress={progress} variant="modern" />
       <div className="min-h-screen bg-gray-50 relative overflow-hidden">
       <PageBanner
@@ -412,15 +412,15 @@ export default function Troubleshoot() {
               className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
               {isLoading ? (
-                <>
+                <React.Fragment>
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                   AI Analyzing...
-                </>
+                </React.Fragment>
               ) : (
-                <>
+                <React.Fragment>
                   <Brain className="w-5 h-5 mr-2" />
                   Get AI Diagnosis
-                </>
+                </React.Fragment>
               )}
             </button>
           </form>
@@ -554,6 +554,6 @@ export default function Troubleshoot() {
           </div>
         )}
       </div>
-    </>
+    </React.Fragment>
   )
 }

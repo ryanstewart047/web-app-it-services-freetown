@@ -22,7 +22,7 @@ export function usePageLoader(options: UsePageLoaderOptions = {}): UsePageLoader
 
   useEffect(() => {
     // Determine if we should show the loader at all (e.g., skip for bots)
-    const isBot = typeof navigator !== 'undefined' && /Googlebot|AdsBot-Google|bingbot/i.test(navigator.userAgent);
+    const isBot = typeof navigator !== 'undefined' && /Googlebot|AdsBot-Google|Mediapartners-Google|bingbot/i.test(navigator.userAgent);
     
     if (isBot) {
       setIsComplete(true);

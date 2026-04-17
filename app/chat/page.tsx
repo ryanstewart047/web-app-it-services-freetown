@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
@@ -169,7 +169,7 @@ export default function Chat() {
   }
 
   return (
-    <>
+    <React.Fragment>
       <LoadingOverlay show={isLoading} progress={progress} variant="modern" />
       <PageBanner
         title="AI Chat Support"
@@ -269,12 +269,12 @@ export default function Chat() {
                       </p>
                     </div>
                   ) : (
-                    <>
+                    <React.Fragment>
                       <div className="whitespace-pre-line text-sm">{message.content}</div>
                       <p className="text-xs opacity-70 mt-1">
                         {isClient ? message.timestamp.toLocaleTimeString() : '--:--:--'}
                       </p>
-                    </>
+                    </React.Fragment>
                   )}
                 </div>
               </div>
