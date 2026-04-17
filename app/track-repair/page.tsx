@@ -111,12 +111,9 @@ export default function TrackRepair() {
     if (trackingId) saveSession(trackingId);
   };
 
-  if (isLoading) {
-    return <LoadingOverlay progress={progress} variant="modern" />;
-  }
-
   return (
     <>
+      <LoadingOverlay show={isLoading} progress={progress} variant="modern" />
       {/* Hero Section */}
       <PageBanner
         title="Track Your Repair"

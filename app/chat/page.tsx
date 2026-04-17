@@ -168,12 +168,9 @@ export default function Chat() {
     }
   }
 
-  if (isLoading) {
-    return <LoadingOverlay progress={progress} variant="modern" />;
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
+      <LoadingOverlay show={isLoading} progress={progress} variant="modern" />
       <PageBanner
         title="AI Chat Support"
         subtitle="Get instant help with your device issues"

@@ -13,12 +13,9 @@ export default function LearnMore() {
   // Initialize scroll animations
   useScrollAnimations()
 
-  if (isLoading) {
-    return <LoadingOverlay progress={progress} variant="modern" />;
-  }
-
   return (
     <>
+      <LoadingOverlay show={isLoading} progress={progress} variant="modern" />
       {/* Hero Section */}
       <PageBanner
         title="Learn More About IT Services Freetown"

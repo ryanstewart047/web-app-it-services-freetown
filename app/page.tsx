@@ -22,12 +22,9 @@ export default function Home() {
   // Initialize scroll animations
   useScrollAnimations()
 
-  if (isLoading) {
-    return <LoadingOverlay progress={progress} variant="modern" />
-  }
-
   return (
     <>
+      <LoadingOverlay show={isLoading} progress={progress} variant="modern" />
       <Hero />
       <Services />
       <MobileRepairPricing />

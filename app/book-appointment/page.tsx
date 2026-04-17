@@ -682,12 +682,9 @@ export default function BookAppointment() {
     }
   }, []);
 
-  if (isLoading) {
-    return <LoadingOverlay progress={progress} variant="modern" />;
-  }
-
   return (
     <>
+      <LoadingOverlay show={isLoading} progress={progress} variant="modern" />
       {/* Unsaved Changes Warning Modal */}
       {showLeaveWarning && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(4px)' }}>

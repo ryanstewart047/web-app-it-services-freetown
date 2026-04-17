@@ -6,15 +6,18 @@ interface LoadingOverlayProps {
   variant?: 'modern' | 'minimal' | 'dots' | 'pulse'
   message?: string
   progress?: number
+  show?: boolean // New prop to control visibility without unmounting
 }
 
 export default function LoadingOverlay({ 
   variant = 'modern', 
   message = 'Loading expert repair services...',
-  progress: externalProgress
+  progress: externalProgress,
+  show = true
 }: LoadingOverlayProps) {
   const [internalProgress, setInternalProgress] = useState(0)
   const [currentTip, setCurrentTip] = useState(0)
+  const [shouldRender, setShouldRender] = useState(true)
 
   // Use external progress if provided, otherwise use internal
   const progress = externalProgress !== undefined ? externalProgress : internalProgress
@@ -50,6 +53,20 @@ export default function LoadingOverlay({
       clearInterval(tipInterval)
     }
   }, [])
+
+  // Handle unmounting after animation
+  useEffect(() => {
+    if (!show) {
+      const timer = setTimeout(() => {
+        setShouldRender(false)
+      }, 1000) // Match transition duration
+      return () => clearTimeout(timer)
+    } else {
+      setShouldRender(true)
+    }
+  }, [show])
+
+  if (!shouldRender) return null
 
   const renderLoader = () => {
     switch (variant) {
@@ -166,8 +183,15 @@ export default function LoadingOverlay({
   }
 
   return (
-    <div className="loading-overlay-pro fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-blue-50">
-      {renderLoader()}
+    <div 
+      className={`loading-overlay-pro fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-blue-50 transition-all duration-1000 ease-in-out ${
+        show ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none translate-y-full lg:translate-y-0 lg:scale-110'
+      }`}
+      aria-hidden={!show}
+    >
+      <div className={`transition-all duration-700 delay-100 ${show ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
+        {renderLoader()}
+      </div>
     </div>
   )
 }

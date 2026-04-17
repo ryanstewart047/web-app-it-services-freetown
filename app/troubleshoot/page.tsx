@@ -134,10 +134,6 @@ export default function Troubleshoot() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [deviceType, issueDescription, name, phone, email, isLoading]);
 
-  if (pageLoading) {
-    return <LoadingOverlay progress={progress} variant="modern" />;
-  }
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
@@ -268,7 +264,9 @@ export default function Troubleshoot() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 relative overflow-hidden">
+    <>
+      <LoadingOverlay show={pageLoading} progress={progress} variant="modern" />
+      <div className="min-h-screen bg-gray-50 relative overflow-hidden">
       <PageBanner
         title="AI-Powered Troubleshooting"
         subtitle="Describe your device issue and get instant AI-powered repair suggestions and step-by-step solutions"
@@ -556,6 +554,6 @@ export default function Troubleshoot() {
           </div>
         )}
       </div>
-    </div>
+    </>
   )
 }
