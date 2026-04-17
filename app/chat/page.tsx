@@ -169,7 +169,7 @@ export default function Chat() {
   }
 
   return (
-    <React.Fragment>
+    <>
       <LoadingOverlay show={isLoading} progress={progress} variant="modern" />
       <div className="min-h-screen bg-gray-50">
         <PageBanner
@@ -383,6 +383,6 @@ export default function Chat() {
       </div>
         </div>
       </div>
-    </React.Fragment>
+    </>
   )
 }

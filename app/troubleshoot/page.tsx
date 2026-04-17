@@ -264,7 +264,7 @@ export default function Troubleshoot() {
   }
 
   return (
-    <React.Fragment>
+    <>
       <LoadingOverlay show={pageLoading} progress={progress} variant="modern" />
       <div className="min-h-screen bg-gray-50 relative overflow-hidden">
       <PageBanner
@@ -555,6 +555,6 @@ export default function Troubleshoot() {
         )}
       </div>
     </div>
-  </React.Fragment>
+  </>
 )
 }
