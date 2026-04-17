@@ -171,12 +171,13 @@ export default function Chat() {
   return (
     <React.Fragment>
       <LoadingOverlay show={isLoading} progress={progress} variant="modern" />
-      <PageBanner
-        title="AI Chat Support"
-        subtitle="Get instant help with your device issues"
-        icon="fas fa-comments"
-        compact
-      />
+      <div className="min-h-screen bg-gray-50">
+        <PageBanner
+          title="AI Chat Support"
+          subtitle="Get instant help with your device issues"
+          icon="fas fa-comments"
+          compact
+        />
 
       {/* Ad Banner - Top */}
       <div className="max-w-4xl mx-auto px-4 py-6">
@@ -380,6 +381,8 @@ export default function Chat() {
           </div>
         </div>
       </div>
-    </div>
+        </div>
+      </div>
+    </React.Fragment>
   )
 }

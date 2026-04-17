@@ -554,6 +554,7 @@ export default function Troubleshoot() {
           </div>
         )}
       </div>
-    </React.Fragment>
-  )
+    </div>
+  </React.Fragment>
+)
 }
