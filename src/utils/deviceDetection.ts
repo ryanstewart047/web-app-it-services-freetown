@@ -161,12 +161,7 @@ export function shouldShowInstallBanner(): boolean {
     console.log('PWA Banner: Not showing - app is installed')
     return false
   }
-  
-  // Don't show if not mobile or not supported
-  if (!shouldShowPWAInstall() || !isPWASupported()) {
-    console.log('PWA Banner: Not showing - not mobile or not supported')
-    return false
-  }
+
   // Don't show if user dismissed it this session
   try {
     if (sessionStorage.getItem('pwa-banner-closed') === 'true') {
@@ -174,7 +169,20 @@ export function shouldShowInstallBanner(): boolean {
       return false
     }
   } catch (e) {}
-  
+
+  // NOTE: We do NOT block desktop browsers here.
+  // The browser's beforeinstallprompt event is the authoritative signal
+  // that the PWA is installable. If it fires, we always show the banner.
+  // For iOS (which never fires beforeinstallprompt), we use the isMobile check.
+  const device = detectDevice()
+  if (device.isIOS) {
+    // iOS doesn't support beforeinstallprompt, so we check service worker support
+    if (!('serviceWorker' in navigator)) {
+      console.log('PWA Banner: Not showing - iOS without service worker support')
+      return false
+    }
+  }
+
   console.log('PWA Banner: Should show banner')
   return true
 }
