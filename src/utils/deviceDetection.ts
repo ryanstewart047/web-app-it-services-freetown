@@ -132,7 +132,13 @@ export function isPWAInstalled(): boolean {
     return true
   }
 
-  // 2. Previously installed (user may be visiting the site in the browser
+  // 2. Checked via URL parameters from Android TWA or Manifest start_url
+  if (window.location.search.includes('source=pwa')) {
+    markPWAInstalled()
+    return true
+  }
+
+  // 3. Previously installed (user may be visiting the site in the browser
   //    but the PWA is already on their home screen)
   try {
     if (localStorage.getItem('pwa-was-installed') === 'true') {

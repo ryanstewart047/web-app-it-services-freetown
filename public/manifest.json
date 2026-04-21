@@ -3,7 +3,7 @@
   "short_name": "ITS Freetown",
   "id": "/its-freetown-pwa",
   "description": "Professional computer and mobile repair services in Freetown, Sierra Leone. Same day service, 1-month warranty, and expert technicians.",
-  "start_url": "/",
+  "start_url": "/?source=pwa",
   "display": "standalone",
   "background_color": "#172554",
   "theme_color": "#172554",
