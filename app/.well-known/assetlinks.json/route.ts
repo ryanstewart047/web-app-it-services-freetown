@@ -9,7 +9,7 @@ export async function GET() {
         namespace: "android_app",
         package_name: "com.itservicesfreetown.app",
         sha256_cert_fingerprints: [
-          "YOUR_SHA256_FINGERPRINT_GOES_HERE"
+          "D6:93:5D:02:92:00:38:27:07:AD:01:BE:EF:C8:DB:AC:27:67:92:B6:18:F1:B0:0C:F6:4C:AA:8F:95:7C:11:6A"
         ]
       }
     }
