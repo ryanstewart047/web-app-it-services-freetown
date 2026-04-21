@@ -28,19 +28,24 @@ export default function PWAInstallBanner() {
     // Log device info for debugging
     logDeviceInfo()
     
-    // Check if we should show the banner
-    if (!shouldShowInstallBanner()) {
-      console.log('PWA Install Banner: Not showing banner based on current state')
-      return
-    }
-
-    console.log('PWA Install Banner: Initializing for device:', device)
-
     const handleBeforeInstallPrompt = (e: any) => {
       console.log('PWA Install Banner: beforeinstallprompt event fired')
+      
+      // If this event fires, the browser guarantees the app is NOT installed.
+      // So if our local storage thinks it IS installed, they must have uninstalled it!
+      try {
+        if (localStorage.getItem('pwa-was-installed') === 'true') {
+          console.log('PWA Install Banner: Detected app uninstall, clearing local storage flags.')
+          localStorage.removeItem('pwa-was-installed')
+        }
+      } catch (err) {}
+
       e.preventDefault()
       setDeferredPrompt(e)
-      setShowBanner(true)
+      
+      if (shouldShowInstallBanner()) {
+        setShowBanner(true)
+      }
     }
 
     // Monitor installation state changes
