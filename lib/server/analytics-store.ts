@@ -80,8 +80,8 @@ function mapRepairRow(row: any): RepairBooking {
 		notes: row.notes || undefined,
 		lastUpdated: row.updatedAt?.toISOString?.() ?? new Date().toISOString(),
 		address: row.customer?.address ?? undefined,
-		diagnosticImages: undefined,
-		diagnosticNotes: undefined,
+		diagnosticImages: row.diagnosticImages ?? undefined,
+		diagnosticNotes: row.diagnosticNotes ?? undefined,
 	};
 }
 
@@ -361,6 +361,8 @@ export async function updateRepair(input: UpdateRepairInput): Promise<RepairBook
 		if (input.status === 'completed') {
 			updateData.dateCompleted = new Date();
 		}
+		if (input.diagnosticImages !== undefined) updateData.diagnosticImages = input.diagnosticImages;
+		if (input.diagnosticNotes !== undefined) updateData.diagnosticNotes = input.diagnosticNotes;
 
 		const updated = await prisma.repair.update({
 			where: { trackingId: input.trackingId },
