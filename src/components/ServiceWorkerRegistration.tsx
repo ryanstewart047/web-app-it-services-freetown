@@ -32,7 +32,7 @@ export default function ServiceWorkerRegistration() {
                     if ('Notification' in window && Notification.permission === 'granted') {
                       new Notification('IT Services Freetown', {
                         body: 'New content available! Tap to refresh.',
-                        icon: '/assets/logo.png',
+                        icon: '/assets/logo.svg',
                         badge: '/assets/favicon-52x52.png'
                       })
                     }

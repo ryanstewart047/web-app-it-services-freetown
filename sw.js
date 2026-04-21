@@ -11,7 +11,7 @@ const CACHE_FILES = [
   '/chat.html',
   '/troubleshoot.html',
   '/assets/css/output.css',
-  '/assets/logo.png',
+  '/assets/logo.svg',
   '/assets/logo.svg',
   '/assets/favicon-52x52.png',
   '/assets/favicon-16x16.png',
@@ -210,7 +210,7 @@ self.addEventListener('push', (event) => {
   const data = event.data.json();
   const options = {
     body: data.body,
-    icon: '/assets/logo.png',
+    icon: '/assets/logo.svg',
     badge: '/assets/favicon-52x52.png',
     vibrate: [100, 50, 100],
     data: {

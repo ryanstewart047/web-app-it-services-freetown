@@ -126,12 +126,12 @@ export default function NetworkMonitor() {
             {/* Site Logo */}
             <div className="network-status-icon bg-white/20 p-2 rounded-xl backdrop-blur-sm">
               <img 
-                src="/assets/logo.png" 
+                src="/assets/logo.svg" 
                 alt="IT Services Freetown" 
                 className="w-8 h-8 object-contain"
                 onError={(e) => {
-                  // Fallback to SVG if PNG fails
-                  (e.target as HTMLImageElement).src = "/assets/logo.svg"
+                  // Fallback to PNG if SVG fails
+                  (e.target as HTMLImageElement).src = "/assets/logo.png"
                 }}
               />
             </div>

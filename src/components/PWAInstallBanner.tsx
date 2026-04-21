@@ -168,12 +168,12 @@ export default function PWAInstallBanner() {
           {/* Site Logo */}
           <div className="pwa-banner-icon bg-white/10 p-2 md:p-3 rounded-xl backdrop-blur-sm flex items-center justify-center">
             <img 
-              src="/assets/logo.png" 
+              src="/assets/logo.svg" 
               alt="IT Services Freetown" 
               className="w-auto h-10 sm:h-12 max-w-[130px] object-contain drop-shadow-md"
               onError={(e) => {
-                // Fallback to SVG if PNG fails
-                (e.target as HTMLImageElement).src = "/assets/logo.svg"
+                // Fallback to PNG if SVG fails
+                (e.target as HTMLImageElement).src = "/assets/logo.png"
               }}
             />
           </div>

@@ -211,7 +211,7 @@ export default function Footer() {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-3 mb-4">
               <Image 
-             src="/assets/logo.png"
+             src="/assets/logo.svg"
              alt="IT Services Freetown Logo"
              width={56}
              height={56}

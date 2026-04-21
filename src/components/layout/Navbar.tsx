@@ -74,7 +74,7 @@ export default function Navbar() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
               <Image 
-                src="/assets/logo.png" 
+                src="/assets/logo.svg" 
                 alt="IT Services Freetown Logo" 
                 width={56} 
                 height={56} 
