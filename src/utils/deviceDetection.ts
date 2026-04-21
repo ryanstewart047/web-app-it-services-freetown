@@ -161,6 +161,13 @@ export function shouldShowInstallBanner(): boolean {
     console.log('PWA Banner: Not showing - not mobile or not supported')
     return false
   }
+  // Don't show if user dismissed it this session
+  try {
+    if (sessionStorage.getItem('pwa-banner-closed') === 'true') {
+      console.log('PWA Banner: Not showing - dismissed this session')
+      return false
+    }
+  } catch (e) {}
   
   console.log('PWA Banner: Should show banner')
   return true

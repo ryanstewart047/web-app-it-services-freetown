@@ -134,8 +134,20 @@ export default function PWAInstallBanner() {
   }
 
   const handleClose = () => {
+    try {
+      sessionStorage.setItem('pwa-banner-closed', 'true')
+    } catch (e) {}
     setShowBanner(false)
   }
+
+  // Check session storage on render directly as a backup
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem('pwa-banner-closed') === 'true') {
+        setShowBanner(false)
+      }
+    } catch (e) {}
+  }, [])
 
   // Don't show banner if conditions are not met
   if (!showBanner || !shouldShowInstallBanner()) {
