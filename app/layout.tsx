@@ -166,13 +166,13 @@ export default function RootLayout({
         />
         
         {/* PWA Meta Tags - Optimized for Play Store and iOS */}
-        <meta name="theme-color" content="#172554" />
+        <meta name="theme-color" content="#ffffff" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="ITS Freetown" />
         <meta name="application-name" content="ITS Freetown" />
-        <meta name="msapplication-TileColor" content="#172554" />
+        <meta name="msapplication-TileColor" content="#ffffff" />
         <meta name="msapplication-tap-highlight" content="no" />
         
         {/* Favicon - Using Site Logo */}
