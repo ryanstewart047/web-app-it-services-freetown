@@ -641,14 +641,11 @@ ${htmlContent || content || 'Empty draft'}`
     }
   }
 
-  if (isLoading) {
-    return <LoadingOverlay />
-  }
-
-  // Show login form if not authenticated
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-20 flex items-center justify-center">
+  return (
+    <>
+      <LoadingOverlay show={isLoading} />
+      {!isAuthenticated ? (
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-20 flex items-center justify-center">
         <div className="max-w-md w-full mx-auto px-4">
           <div className="bg-white rounded-2xl shadow-2xl p-8 scroll-animate">
             <div className="text-center mb-8">
@@ -715,11 +712,8 @@ ${htmlContent || content || 'Empty draft'}`
           </div>
         </div>
       </div>
-    )
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-20">
+      ) : (
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-20">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Idle Warning Banner */}
         {showIdleWarning && (
@@ -1587,5 +1581,6 @@ Tips:
         }
       `}</style>
     </div>
+    </>
   )
 }

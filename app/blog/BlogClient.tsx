@@ -444,11 +444,9 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
 
   // Expanded posts logic is now handled by dedicated article pages
 
-  if (isLoading) {
-    return <LoadingOverlay />
-  }
-
   return (
+    <>
+      <LoadingOverlay show={isLoading} />
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Hero Header */}
       <PageBanner
@@ -692,5 +690,6 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
         </footer>
       </main>
     </div>
+    </>
   )
 }

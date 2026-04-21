@@ -33,11 +33,9 @@ export default function LoadingDemo() {
     }, 200)
   }
 
-  if (showDemo) {
-    return <LoadingOverlay progress={progress} variant={currentVariant} />
-  }
-
   return (
+    <>
+      <LoadingOverlay show={showDemo} progress={progress} variant={currentVariant} />
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
       <div className="max-w-4xl mx-auto px-4">
         <div className="text-center mb-12">
@@ -175,5 +173,6 @@ export default function LoadingDemo() {
         </div>
       </div>
     </div>
+    </>
   )
 }
