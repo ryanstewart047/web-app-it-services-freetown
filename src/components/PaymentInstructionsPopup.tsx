@@ -1,7 +1,8 @@
 'use client'
 
-import { X, Phone, MessageCircle, Copy, CheckCircle } from 'lucide-react'
-import { useState } from 'react'
+import { X, Phone, MessageCircle, Copy, CheckCircle, Smartphone } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { detectDevice } from '@/utils/deviceDetection'
 
 interface PaymentInstructionsPopupProps {
   orderNumber: string
@@ -15,11 +16,22 @@ export default function PaymentInstructionsPopup({
   onClose 
 }: PaymentInstructionsPopupProps) {
   const [copiedField, setCopiedField] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    setIsMobile(detectDevice().isMobile)
+  }, [])
 
   const paymentDetails = {
     orangeMoney: '076210320',
-    afriMoney: '033399391',
+    afriMoney: '088294631',
     whatsapp: '+23233399391'
+  }
+
+  const ussdCodes = {
+    // URL-encode the '#' symbol to '%23' for cross-platform compatibility
+    orangeMoney: 'tel:*144*2*2*241586%23',
+    afriMoney: 'tel:*161*6*2*088294631%23'
   }
 
   const copyToClipboard = (text: string, field: string) => {
@@ -89,45 +101,67 @@ export default function PaymentInstructionsPopup({
               </h3>
               
               {/* Orange Money */}
-              <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3 sm:p-4 mb-2 sm:mb-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-orange-400 text-xs sm:text-sm font-medium mb-1">Orange Money</p>
-                    <p className="text-white text-base sm:text-lg font-bold">{paymentDetails.orangeMoney}</p>
-                  </div>
+              <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3 sm:p-4 mb-2 sm:mb-3 flex flex-col sm:flex-row justify-between sm:items-center">
+                <div className="mb-3 sm:mb-0">
+                  <p className="text-orange-400 text-xs sm:text-sm font-medium mb-1">Orange Money</p>
+                  <p className="text-white text-base sm:text-lg font-bold">
+                    {isMobile ? '*144*2*2*241586#' : paymentDetails.orangeMoney}
+                  </p>
+                </div>
+                {isMobile ? (
+                  <a
+                    href={ussdCodes.orangeMoney}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-lg transition-colors shadow-md"
+                  >
+                    <Smartphone className="w-4 h-4" />
+                    Pay via USSD
+                  </a>
+                ) : (
                   <button
                     onClick={() => copyToClipboard(paymentDetails.orangeMoney, 'orange')}
-                    className="p-2 hover:bg-orange-500/20 rounded-lg transition-colors"
+                    className="p-2 hover:bg-orange-500/20 rounded-lg transition-colors flex items-center justify-center self-end sm:self-auto gap-2 bg-gray-800 sm:bg-transparent"
                     title="Copy number"
                   >
+                    <span className="text-orange-400 text-xs sm:hidden mr-1">Copy Number</span>
                     {copiedField === 'orange' ? (
                       <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
                     ) : (
                       <Copy className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400" />
                     )}
                   </button>
-                </div>
+                )}
               </div>
 
               {/* AfriMoney */}
-              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 sm:p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-green-400 text-xs sm:text-sm font-medium mb-1">AfriMoney</p>
-                    <p className="text-white text-base sm:text-lg font-bold">{paymentDetails.afriMoney}</p>
-                  </div>
+              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 sm:p-4 flex flex-col sm:flex-row justify-between sm:items-center">
+                <div className="mb-3 sm:mb-0">
+                  <p className="text-green-400 text-xs sm:text-sm font-medium mb-1">AfriMoney</p>
+                  <p className="text-white text-base sm:text-lg font-bold">
+                    {isMobile ? '*161*6*2*088294631#' : paymentDetails.afriMoney}
+                  </p>
+                </div>
+                {isMobile ? (
+                  <a
+                    href={ussdCodes.afriMoney}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold rounded-lg transition-colors shadow-md"
+                  >
+                    <Smartphone className="w-4 h-4" />
+                    Pay via USSD
+                  </a>
+                ) : (
                   <button
                     onClick={() => copyToClipboard(paymentDetails.afriMoney, 'afri')}
-                    className="p-2 hover:bg-green-500/20 rounded-lg transition-colors"
+                    className="p-2 hover:bg-green-500/20 rounded-lg transition-colors flex items-center justify-center self-end sm:self-auto gap-2 bg-gray-800 sm:bg-transparent"
                     title="Copy number"
                   >
+                    <span className="text-green-400 text-xs sm:hidden mr-1">Copy Number</span>
                     {copiedField === 'afri' ? (
                       <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
                     ) : (
                       <Copy className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
                     )}
                   </button>
-                </div>
+                )}
               </div>
             </div>
 
