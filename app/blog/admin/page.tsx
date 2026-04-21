@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 import { usePageLoader } from '@/hooks/usePageLoader'
@@ -62,6 +62,80 @@ const quillFormats = [
   'align',
   'link'
 ]
+
+const AdminLoginForm = ({ isLoading, handleLogin, password, setPassword, showPasswordError, setShowPasswordError, router }: any) => {
+  return (
+    <>
+      <LoadingOverlay show={isLoading} />
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-20 flex items-center justify-center">
+        <div className="max-w-md w-full mx-auto px-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 scroll-animate">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4" style={{ background: 'linear-gradient(135deg, #ef4444 0%, #040e40 100%)' }}>
+                <Lock className="w-8 h-8 text-white" />
+              </div>
+              <h1 className="text-3xl font-bold mb-2" style={{ color: '#040e40' }}>
+                Admin Access Required
+              </h1>
+              <p className="text-gray-600">
+                Enter the admin password to create blog posts
+              </p>
+            </div>
+
+            <form onSubmit={handleLogin} className="space-y-6" data-no-analytics="true">
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    setShowPasswordError(false)
+                  }}
+                  className={`w-full px-4 py-3 rounded-xl border ${showPasswordError ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#ef4444] focus:ring-[#ef4444]'} focus:outline-none focus:ring-2 transition-colors`}
+                  placeholder="Enter password..."
+                  data-lpignore="true"
+                  data-form-type="other"
+                />
+                {showPasswordError && (
+                  <p className="mt-2 text-sm text-red-600 animate-pulse">
+                    Incorrect password. Please try again.
+                  </p>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl hover:from-red-600 hover:to-red-700 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!password}
+              >
+                Access Admin Dashboard
+              </button>
+            </form>
+
+            <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+              <button
+                onClick={() => router.push('/blog')}
+                className="text-gray-600 hover:text-gray-900 text-sm flex items-center justify-center mx-auto"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Blog
+              </button>
+            </div>
+
+            <div className="mt-8 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
+              <p className="font-semibold mb-1">💡 Admin Password:</p>
+              <p className="text-xs">Contact the site administrator for access</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
 
 export default function BlogAdminPage() {
   // Admin session management - auto-logout after 5 minutes of inactivity
@@ -639,81 +713,24 @@ ${htmlContent || content || 'Empty draft'}`
     } else {
       router.push('/blog')
     }
+  };
+
+  if (!isAuthenticated) {
+    return <AdminLoginForm
+      isLoading={isLoading}
+      handleLogin={handleLogin}
+      password={password}
+      setPassword={setPassword}
+      showPasswordError={showPasswordError}
+      setShowPasswordError={setShowPasswordError}
+      router={router}
+    />
   }
 
   return (
     <>
       <LoadingOverlay show={isLoading} />
-      {!isAuthenticated ? (
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-20 flex items-center justify-center">
-        <div className="max-w-md w-full mx-auto px-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 scroll-animate">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4" style={{ background: 'linear-gradient(135deg, #ef4444 0%, #040e40 100%)' }}>
-                <Lock className="w-8 h-8 text-white" />
-              </div>
-              <h1 className="text-3xl font-bold mb-2" style={{ color: '#040e40' }}>
-                Admin Access Required
-              </h1>
-              <p className="text-gray-600">
-                Enter the admin password to create blog posts
-              </p>
-            </div>
-
-            <form onSubmit={handleLogin} className="space-y-6" data-no-analytics="true">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Admin Password
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value)
-                    setShowPasswordError(false)
-                  }}
-                  className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all ${
-                    showPasswordError ? 'border-red-500' : 'border-gray-200'
-                  }`}
-                  placeholder="Enter admin password"
-                  required
-                  autoFocus
-                />
-                {showPasswordError && (
-                  <p className="text-red-500 text-sm mt-2">
-                    ❌ Incorrect password. Please try again.
-                  </p>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                className="w-full px-6 py-4 rounded-xl font-semibold text-white transition-all duration-300 hover:scale-105 shadow-lg"
-                style={{ background: 'linear-gradient(135deg, #ef4444 0%, #040e40 100%)' }}
-              >
-                Login as Admin
-              </button>
-            </form>
-
-            <div className="mt-6 text-center">
-              <button
-                onClick={() => router.push('/blog')}
-                className="text-gray-600 hover:text-gray-900 text-sm flex items-center justify-center mx-auto"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Blog
-              </button>
-            </div>
-
-            <div className="mt-8 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
-              <p className="font-semibold mb-1">💡 Admin Password:</p>
-              <p className="text-xs">Contact the site administrator for access</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      ) : (
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-20">
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-20">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Idle Warning Banner */}
         {showIdleWarning && (
@@ -1580,7 +1597,7 @@ Tips:
           font-style: italic;
         }
       `}</style>
-    </div>
+      </div>
     </>
   )
 }
