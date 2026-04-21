@@ -12,10 +12,12 @@ const CACHE_FILES = [
   '/troubleshoot.html',
   '/assets/css/output.css',
   '/assets/logo.svg',
-  '/assets/logo.svg',
+  '/assets/pwa-icon-192.png',
+  '/assets/pwa-icon-512.png',
   '/assets/favicon-52x52.png',
   '/assets/favicon-16x16.png',
   '/manifest.json',
+  '/?source=pwa',
   // Add Font Awesome for offline use
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
