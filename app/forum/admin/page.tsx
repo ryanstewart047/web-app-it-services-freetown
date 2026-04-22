@@ -36,9 +36,32 @@ export default function AdminDashboardPage() {
   // Notification State
   const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string, tempPassword?: string } | null>(null);
 
+  // Global Banner State
+  const [showBannerModal, setShowBannerModal] = useState(false);
+  const [bannerSettings, setBannerSettings] = useState({
+    enabled: false,
+    message: '',
+    link: '',
+    color: 'bg-red-600'
+  });
+  const [savingBanner, setSavingBanner] = useState(false);
+
   useEffect(() => {
     fetchUsers();
+    fetchBannerSettings();
   }, []);
+
+  const fetchBannerSettings = async () => {
+    try {
+      const res = await fetch('/api/admin/banner');
+      if (res.ok) {
+        const data = await res.json();
+        setBannerSettings(data);
+      }
+    } catch (e) {
+      console.error('Failed to fetch banner settings:', e);
+    }
+  };
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -182,6 +205,33 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handleSaveBanner = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingBanner(true);
+    try {
+      const response = await fetch('/api/admin/banner', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bannerSettings)
+      });
+
+      if (response.ok) {
+        setNotification({ type: 'success', message: 'Global banner settings updated successfully.' });
+        const updated = await response.json();
+        setBannerSettings(updated);
+        setShowBannerModal(false);
+      } else {
+        setNotification({ type: 'error', message: 'Failed to update banner settings.' });
+      }
+    } catch (error) {
+      console.error('Error saving banner:', error);
+      setNotification({ type: 'error', message: 'Network error occurred while saving banner.' });
+    } finally {
+      setSavingBanner(false);
+      setTimeout(() => setNotification(null), 5000);
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center mt-32">
@@ -202,13 +252,22 @@ export default function AdminDashboardPage() {
             </h1>
             <p className="text-sm text-slate-400 mt-1">Manage network access, technician identity, and global directives.</p>
          </div>
-         <button 
-           onClick={() => setShowBroadcastModal(true)}
-           className="bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase tracking-widest py-3 px-6 rounded-lg transition-all shadow-lg shadow-red-500/20 w-fit flex items-center gap-2 border border-red-500/50"
-         >
-           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
-           Dispatch Broadcast
-         </button>
+         <div className="flex items-center gap-3">
+           <button 
+             onClick={() => setShowBannerModal(true)}
+             className="bg-slate-800 hover:bg-slate-700 text-red-400 font-bold text-xs uppercase tracking-widest py-3 px-6 rounded-lg transition-all border border-slate-700 flex items-center gap-2 shadow-lg"
+           >
+             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+             Global Banner Admin
+           </button>
+           <button 
+             onClick={() => setShowBroadcastModal(true)}
+             className="bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase tracking-widest py-3 px-6 rounded-lg transition-all shadow-lg shadow-red-500/20 w-fit flex items-center gap-2 border border-red-500/50"
+           >
+             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
+             Dispatch Broadcast
+           </button>
+         </div>
       </div>
 
       {notification && (
@@ -343,6 +402,104 @@ export default function AdminDashboardPage() {
                 <button type="submit" disabled={submittingBroadcast} className="px-5 py-2.5 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white bg-red-600 rounded-lg hover:bg-red-500 disabled:opacity-50 transition-all shadow-lg shadow-red-500/20">
                    {submittingBroadcast && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
                    {submittingBroadcast ? 'TRANSMITTING...' : 'DISPATCH TO ALL'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Global Banner Modal */}
+      {showBannerModal && (
+        <div className="fixed inset-0 bg-[#04091a]/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-sans">
+          <div className="bg-slate-900 rounded-2xl shadow-2xl border border-red-500/30 w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] ring-1 ring-red-500/10 relative">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/10 rounded-full blur-[80px] pointer-events-none"></div>
+
+            <div className="border-b border-slate-800 px-6 py-5 flex justify-between items-center bg-slate-900/80 z-10">
+              <h2 className="text-lg font-bold text-red-400 tracking-wide uppercase flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                Manage Global Banner
+              </h2>
+              <button onClick={() => setShowBannerModal(false)} className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-all">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveBanner} className="px-6 py-5 space-y-6 z-10 overflow-y-auto">
+              <div className="flex items-center justify-between bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                <div>
+                  <h4 className="text-sm font-bold text-white uppercase tracking-wider">Banner Visibility</h4>
+                  <p className="text-xs text-slate-400 mt-1">Enable or disable the announcement across the site.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setBannerSettings(prev => ({ ...prev, enabled: !prev.enabled }))}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    bannerSettings.enabled ? 'bg-red-600' : 'bg-slate-700'
+                  }`}
+                >
+                  <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    bannerSettings.enabled ? 'translate-x-5' : 'translate-x-0'
+                  }`} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Announcement Message</label>
+                  <input
+                    type="text"
+                    required
+                    value={bannerSettings.message}
+                    onChange={e => setBannerSettings(prev => ({ ...prev, message: e.target.value }))}
+                    className="w-full bg-slate-800 border-slate-700 rounded-lg focus:border-red-500 focus:ring-red-500 shadow-inner px-4 py-3 text-white border"
+                    placeholder="e.g. 🚨 SPECIAL UPDATE: New server maintenance scheduled..."
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Action Link (Optional)</label>
+                  <input
+                    type="text"
+                    value={bannerSettings.link || ''}
+                    onChange={e => setBannerSettings(prev => ({ ...prev, link: e.target.value }))}
+                    className="w-full bg-slate-800 border-slate-700 rounded-lg focus:border-red-500 focus:ring-red-500 shadow-inner px-4 py-3 text-white border"
+                    placeholder="https://wa.me/..."
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Visual Theme</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {[
+                    { label: 'Safety Red', value: 'bg-red-600' },
+                    { label: 'Deep Blue', value: 'bg-blue-700' },
+                    { label: 'Emerald Green', value: 'bg-emerald-600' },
+                    { label: 'Orange Alert', value: 'bg-orange-600' },
+                    { label: 'Dark Charcoal', value: 'bg-gray-900' },
+                  ].map(theme => (
+                    <button
+                      key={theme.value}
+                      type="button"
+                      onClick={() => setBannerSettings(prev => ({ ...prev, color: theme.value }))}
+                      className={`flex items-center gap-2 p-3 rounded-xl border transition-all text-xs font-bold ${
+                        bannerSettings.color === theme.value
+                          ? 'border-red-500 bg-red-500/10 text-white'
+                          : 'border-slate-700 bg-slate-800 text-slate-400 hover:border-slate-500'
+                      }`}
+                    >
+                      <div className={`w-3 h-3 rounded-full ${theme.value} shrink-0`} />
+                      {theme.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-4 flex justify-end gap-3 border-t border-slate-800">
+                <button type="button" onClick={() => setShowBannerModal(false)} className="px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-300 bg-transparent border border-slate-700 hover:border-slate-500 rounded-lg transition-all">Cancel</button>
+                <button type="submit" disabled={savingBanner} className="px-5 py-2.5 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white bg-red-600 rounded-lg hover:bg-red-500 disabled:opacity-50 transition-all shadow-lg shadow-red-500/20">
+                   {savingBanner && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
+                   {savingBanner ? 'SYNCING...' : 'UPDATE LIVE BANNER'}
                 </button>
               </div>
             </form>

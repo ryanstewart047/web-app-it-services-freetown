@@ -55,13 +55,6 @@ export default function AdminPage() {
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [lastActivity, setLastActivity] = useState(Date.now());
   const [showIdleWarning, setShowIdleWarning] = useState(false);
-  const [bannerSettings, setBannerSettings] = useState({
-    enabled: false,
-    message: '',
-    link: '',
-    color: 'bg-red-600'
-  });
-  const [savingBanner, setSavingBanner] = useState(false);
 
   // Check for saved session on mount
   useEffect(() => {
@@ -236,11 +229,10 @@ export default function AdminPage() {
         }
       }
 
-      const [analyticsRes, formsRes, repairsRes, bannerRes] = await Promise.all([
+      const [analyticsRes, formsRes, repairsRes] = await Promise.all([
         fetch('/api/analytics/visitor/'),
         fetch('/api/analytics/forms/'),
         fetch('/api/analytics/repairs/'),
-        fetch('/api/admin/banner'),
       ]);
 
       if (analyticsRes.ok) {
@@ -256,11 +248,6 @@ export default function AdminPage() {
       if (repairsRes.ok) {
         const data = await repairsRes.json();
         setRepairs(data);
-      }
-
-      if (bannerRes.ok) {
-        const data = await bannerRes.json();
-        setBannerSettings(data);
       }
     } catch (err) {
       console.error('Error loading data:', err);
@@ -423,32 +410,6 @@ export default function AdminPage() {
       alert('❌ Error deleting submissions. Please try again.');
     } finally {
       setBulkDeleting(false);
-    }
-  };
-
-  const handleSaveBanner = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSavingBanner(true);
-    try {
-      const response = await fetch('/api/admin/banner', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bannerSettings)
-      });
-
-      if (response.ok) {
-        alert('✅ Banner settings updated successfully');
-        // Refresh to get latest lastUpdated timestamp
-        const updated = await response.json();
-        setBannerSettings(updated);
-      } else {
-        alert('❌ Failed to update banner settings');
-      }
-    } catch (error) {
-      console.error('Error saving banner:', error);
-      alert('❌ Error saving banner settings');
-    } finally {
-      setSavingBanner(false);
     }
   };
 
@@ -779,101 +740,6 @@ export default function AdminPage() {
         <SectionHeader title="Repair operations" description="Track active jobs, update statuses, and keep customers informed." />
         <RepairManagement repairs={repairs} onUpdate={loadData} statusSummary={statusSummary} />
       </section>
-
-      <section id="banner" className="space-y-6">
-        <SectionHeader title="Global Notification Banner" description="Display important announcements at the top of every page." />
-        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          <form onSubmit={handleSaveBanner} className="space-y-6">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-4 dark:border-gray-800">
-              <div className="space-y-1">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100">Banner Visibility</h4>
-                <p className="text-sm text-gray-500">Enable or disable the global site banner.</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setBannerSettings(prev => ({ ...prev, enabled: !prev.enabled }))}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ${
-                  bannerSettings.enabled ? 'bg-red-600' : 'bg-gray-200 dark:bg-gray-700'
-                }`}
-              >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    bannerSettings.enabled ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Banner Message</label>
-                <input
-                  type="text"
-                  value={bannerSettings.message}
-                  onChange={e => setBannerSettings(prev => ({ ...prev, message: e.target.value }))}
-                  placeholder="e.g. 🚨 Special Discount: 20% off all iPhone screen repairs this week!"
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Action Link (Optional)</label>
-                <input
-                  type="text"
-                  value={bannerSettings.link || ''}
-                  onChange={e => setBannerSettings(prev => ({ ...prev, link: e.target.value }))}
-                  placeholder="e.g. /repairs or https://example.com"
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Theme Color</label>
-              <div className="flex flex-wrap gap-4">
-                {[
-                  { label: 'Safety Red', value: 'bg-red-600' },
-                  { label: 'Deep Blue', value: 'bg-blue-700' },
-                  { label: 'Emerald Green', value: 'bg-emerald-600' },
-                  { label: 'Orange Alert', value: 'bg-orange-600' },
-                  { label: 'Dark Charcoal', value: 'bg-gray-900' },
-                ].map(theme => (
-                  <button
-                    key={theme.value}
-                    type="button"
-                    onClick={() => setBannerSettings(prev => ({ ...prev, color: theme.value }))}
-                    className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition-all ${
-                      bannerSettings.color === theme.value
-                        ? 'border-red-500 bg-red-50 text-red-700 dark:border-red-400 dark:bg-red-900/30 dark:text-red-300'
-                        : 'border-gray-200 bg-white text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400'
-                    }`}
-                  >
-                    <div className={`h-3 w-3 rounded-full ${theme.value}`} />
-                    {theme.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                disabled={savingBanner}
-                className="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-700 disabled:opacity-50 dark:bg-red-600 dark:hover:bg-red-500"
-              >
-                {savingBanner ? (
-                  <>
-                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
                     Update Banner Settings
                   </>
                 )}
