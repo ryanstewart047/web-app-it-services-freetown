@@ -10,6 +10,7 @@ import PWAInstallBanner from '@/components/PWAInstallBanner';
 import NetworkMonitor from '@/components/NetworkMonitor';
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration';
 import OfferPopup from '@/components/OfferPopup';
+import GlobalBanner from '@/components/GlobalBanner';
 
 interface ConditionalLayoutProps {
   children: React.ReactNode;
@@ -26,6 +27,9 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
     // Admin pages, Portfolio, Donation, and Forum page - clean layout with minimal components
     return (
       <>
+        <div className="sticky top-0 z-50">
+          <GlobalBanner />
+        </div>
         {children}
         <ServiceWorkerRegistration />
         <NetworkMonitor />
@@ -37,7 +41,10 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
   return (
     <>
       <div className="min-h-screen flex flex-col">
-        <Navbar />
+        <div className="sticky top-0 z-50">
+          <GlobalBanner />
+          <Navbar />
+        </div>
         <main className="flex-1 main-content">
           {children}
         </main>
