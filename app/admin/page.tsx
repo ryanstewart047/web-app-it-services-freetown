@@ -740,14 +740,6 @@ export default function AdminPage() {
         <SectionHeader title="Repair operations" description="Track active jobs, update statuses, and keep customers informed." />
         <RepairManagement repairs={repairs} onUpdate={loadData} statusSummary={statusSummary} />
       </section>
-                    Update Banner Settings
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
-      </section>
 
     </div>
   );
