@@ -14,6 +14,7 @@ import NetworkMonitor from '../src/components/NetworkMonitor'
 import { AnalyticsProvider } from '../src/components/AnalyticsTracker'
 import ConditionalLayout from '@/components/ConditionalLayout'
 import ForumPromoCard from '@/components/ForumPromoCard'
+import GlobalBanner from '@/components/GlobalBanner'
 
 
 const inter = Inter({ 
@@ -299,6 +300,7 @@ export default function RootLayout({
           trackPerformance: true,
           sessionTimeout: 30
         }}>
+          <GlobalBanner />
           <ConditionalLayout>
             {children}
           </ConditionalLayout>
