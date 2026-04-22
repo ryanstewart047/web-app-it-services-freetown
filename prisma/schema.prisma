@@ -353,3 +353,12 @@ model PushSubscription {
   createdAt    DateTime   @default(now())
   Technician   Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
 }
+
+model BannerSettings {
+  id          String   @id @default("active")
+  enabled     Boolean  @default(false)
+  message     String   @default("Welcome to IT Services Freetown!")
+  link        String?
+  color       String   @default("bg-red-600")
+  updatedAt   DateTime @updatedAt
+}

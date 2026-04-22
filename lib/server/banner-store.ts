@@ -1,10 +1,9 @@
-import fs from 'fs/promises';
-import path from 'path';
+import { prisma } from '@/lib/prisma';
 
 export interface BannerSettings {
   enabled: boolean;
   message: string;
-  link?: string;
+  link?: string | null;
   color: string;
   lastUpdated: string;
 }
@@ -16,39 +15,55 @@ const DEFAULT_BANNER: BannerSettings = {
   lastUpdated: new Date().toISOString()
 };
 
-const DATA_FILE_PATH = process.env.APP_DATA_FILE
-  ? path.resolve(process.cwd(), path.dirname(process.env.APP_DATA_FILE), 'banner-settings.json')
-  : path.resolve(process.cwd(), 'data/banner-settings.json');
-
 export async function getBannerSettings(): Promise<BannerSettings> {
   try {
-    const dir = path.dirname(DATA_FILE_PATH);
-    await fs.mkdir(dir, { recursive: true });
+    const banner = await prisma.bannerSettings.findUnique({
+      where: { id: 'active' }
+    });
     
-    const content = await fs.readFile(DATA_FILE_PATH, 'utf-8');
-    const parsed = JSON.parse(content);
-    return { ...DEFAULT_BANNER, ...parsed };
-  } catch {
+    if (!banner) return DEFAULT_BANNER;
+    
+    return {
+      enabled: banner.enabled,
+      message: banner.message,
+      link: banner.link,
+      color: banner.color,
+      lastUpdated: banner.updatedAt.toISOString()
+    };
+  } catch (error) {
+    console.error('[BannerStore] Failed to fetch banner settings:', error);
     return DEFAULT_BANNER;
   }
 }
 
 export async function updateBannerSettings(settings: Partial<BannerSettings>): Promise<BannerSettings> {
   try {
-    const current = await getBannerSettings();
-    const updated: BannerSettings = {
-      ...current,
-      ...settings,
-      lastUpdated: new Date().toISOString()
-    };
-
-    const dir = path.dirname(DATA_FILE_PATH);
-    await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(DATA_FILE_PATH, JSON.stringify(updated, null, 2), 'utf-8');
+    const updated = await prisma.bannerSettings.upsert({
+      where: { id: 'active' },
+      update: {
+        enabled: settings.enabled,
+        message: settings.message,
+        link: settings.link,
+        color: settings.color,
+      },
+      create: {
+        id: 'active',
+        enabled: settings.enabled ?? false,
+        message: settings.message ?? 'Welcome to IT Services Freetown!',
+        link: settings.link,
+        color: settings.color ?? 'bg-red-600',
+      }
+    });
     
-    return updated;
+    return {
+      enabled: updated.enabled,
+      message: updated.message,
+      link: updated.link,
+      color: updated.color,
+      lastUpdated: updated.updatedAt.toISOString()
+    };
   } catch (error) {
-    console.error('[BannerStore] Failed to write banner settings:', error);
+    console.error('[BannerStore] Failed to update banner settings:', error);
     throw new Error('Failed to update banner settings');
   }
 }

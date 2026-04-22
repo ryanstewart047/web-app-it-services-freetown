@@ -77,7 +77,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Skip chrome-extension and other unsupported schemes
+  // Skip chrome-extension, data URLs, and other unsupported schemes
+  // cache.put() only supports http and https protocols
+  if (!event.request.url.startsWith('http')) {
+    return;
+  }
+
+  // Further check for common non-cacheable patterns
   const url = new URL(event.request.url);
   if (url.protocol !== 'http:' && url.protocol !== 'https:') {
     return;
