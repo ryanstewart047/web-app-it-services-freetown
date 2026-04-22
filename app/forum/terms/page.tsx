@@ -191,7 +191,10 @@ export default function TermsPage() {
   const allAccepted = SECTIONS.every(s => accepted[s.id]);
 
   const handleSubmit = async () => {
-    if (!allAccepted) return;
+    // Automatically accept all if the user clicks the "I Accept All" button
+    const fullAcceptance = SECTIONS.reduce((acc, s) => ({ ...acc, [s.id]: true }), {});
+    setAccepted(fullAcceptance);
+
     setSubmitting(true);
     setError('');
     try {
@@ -328,7 +331,7 @@ export default function TermsPage() {
               <p className={`text-sm font-bold ${allAccepted ? 'text-green-300' : 'text-slate-400'}`}>
                 {allAccepted
                   ? '✅ All three documents accepted. You may now access the forum.'
-                  : `📌 ${SECTIONS.filter(s => !accepted[s.id]).length} document(s) remaining — accept all to continue.`}
+                  : `📌 Click below to accept all documents and enter the forum.`}
               </p>
               {!allAccepted && (
                 <div className="flex flex-wrap gap-2 mt-2">
@@ -347,7 +350,7 @@ export default function TermsPage() {
 
             <button
               onClick={handleSubmit}
-              disabled={!allAccepted || submitting}
+              disabled={submitting}
               className="shrink-0 px-8 py-3.5 rounded-xl font-bold text-sm uppercase tracking-widest transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-500/20 disabled:shadow-none flex items-center gap-2"
             >
               {submitting ? (
