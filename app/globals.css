@@ -99,6 +99,19 @@ nav {
   50% { transform: translateY(-20px) rotate(180deg); }
 }
 
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+.animate-marquee {
+  animation: marquee 20s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
 /* Prose Styles for Blog Content - Matching HTML Preview */
 .prose {
   color: #1f2937;
