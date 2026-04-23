@@ -99,16 +99,20 @@ nav {
   50% { transform: translateY(-20px) rotate(180deg); }
 }
 
+/* Seamless infinite marquee for notification banner */
 @keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-100%); }
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
-.animate-marquee {
-  animation: marquee 20s linear infinite;
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 18s linear infinite;
+  will-change: transform;
 }
 
-.animate-marquee:hover {
+.marquee-track:hover {
   animation-play-state: paused;
 }
 

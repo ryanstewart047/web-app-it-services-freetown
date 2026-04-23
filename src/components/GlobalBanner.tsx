@@ -43,18 +43,29 @@ export default function GlobalBanner() {
   return (
     <div className={`relative ${banner.color} text-white`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="py-3 flex items-center justify-between flex-wrap">
+        <div className="py-3.5 flex items-center justify-between flex-wrap">
           <div className="w-0 flex-1 flex items-center overflow-hidden">
             <span className="flex p-2 rounded-lg flex-shrink-0 z-10 bg-inherit">
               <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
               </svg>
             </span>
-            <div className="flex-1 overflow-hidden relative h-6 ml-2">
-              <p className="absolute whitespace-nowrap animate-marquee sm:static sm:animate-none sm:whitespace-normal sm:truncate font-medium text-white text-sm sm:text-base pr-4">
-                {banner.message}
-              </p>
+            {/* Mobile: seamless marquee loop. Desktop: static centered text */}
+            <div className="flex-1 overflow-hidden relative ml-2 sm:hidden">
+              <div className="marquee-track gap-16">
+                <span className="font-semibold text-white text-base whitespace-nowrap pr-16">
+                  {banner.message}
+                </span>
+                {/* Duplicate for seamless loop */}
+                <span className="font-semibold text-white text-base whitespace-nowrap pr-16" aria-hidden="true">
+                  {banner.message}
+                </span>
+              </div>
             </div>
+            {/* Desktop: static text */}
+            <p className="hidden sm:block font-semibold text-white text-lg truncate ml-2 pr-4">
+              {banner.message}
+            </p>
           </div>
           
           {banner.link && (
