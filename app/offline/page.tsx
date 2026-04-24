@@ -1,11 +1,41 @@
 'use client';
 
 import Link from 'next/link';
-import { WifiOff, Phone, MapPin, RefreshCcw } from 'lucide-react';
+import { useState } from 'react';
+import { WifiOff, Phone, MapPin, RefreshCcw, CheckCircle, XCircle } from 'lucide-react';
 
 export default function OfflinePage() {
-  const handleRetry = () => {
-    window.location.href = '/';
+  const [checking, setChecking] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'success' | 'failed'>('idle');
+
+  const handleRetry = async () => {
+    setChecking(true);
+    setStatus('idle');
+
+    try {
+      // Ping a fast, cache-busted endpoint to confirm real connectivity
+      const res = await fetch(`/api/ping?t=${Date.now()}`, {
+        method: 'HEAD',
+        cache: 'no-store',
+      });
+
+      if (res.ok || res.status < 500) {
+        // Online — hard reload to bypass any cached offline page
+        setStatus('success');
+        setTimeout(() => {
+          window.location.reload();
+        }, 400);
+      } else {
+        setStatus('failed');
+      }
+    } catch {
+      // Still offline
+      setStatus('failed');
+    } finally {
+      setChecking(false);
+      // Reset failed status after 3s so user can try again
+      setTimeout(() => setStatus('idle'), 3000);
+    }
   };
 
   return (
@@ -54,10 +84,37 @@ export default function OfflinePage() {
 
           <button 
             onClick={handleRetry}
-            className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-900/40 transition-all flex items-center justify-center gap-2 group active:scale-95"
+            disabled={checking || status === 'success'}
+            className={`w-full py-4 font-bold rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 group active:scale-95 disabled:cursor-not-allowed
+              ${status === 'failed'  ? 'bg-red-600 hover:bg-red-700 shadow-red-900/40' :
+                status === 'success' ? 'bg-green-600 shadow-green-900/40' :
+                'bg-blue-600 hover:bg-blue-700 shadow-blue-900/40'}
+              text-white`}
           >
-            <RefreshCcw className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
-            Try Reconnecting
+            {checking ? (
+              <>
+                <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+                Checking connection…
+              </>
+            ) : status === 'success' ? (
+              <>
+                <CheckCircle className="w-5 h-5" />
+                Connected! Reloading…
+              </>
+            ) : status === 'failed' ? (
+              <>
+                <XCircle className="w-5 h-5" />
+                Still offline — try again
+              </>
+            ) : (
+              <>
+                <RefreshCcw className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
+                Try Reconnecting
+              </>
+            )}
           </button>
 
           <p className="mt-8 text-[11px] text-white/30 font-medium">
