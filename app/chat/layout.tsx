@@ -3,9 +3,6 @@ import { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'AI Chat Support - Get Instant Tech Help',
   description: 'Chat with our AI assistant for instant tech support. Get help with device issues, repair inquiries, and troubleshooting from IT Services Freetown.',
-  alternates: {
-    canonical: 'https://www.itservicesfreetown.com/chat',
-  },
   keywords: ['tech chat support', 'AI tech help', 'repair chat', 'tech support Freetown', 'instant help'],
   openGraph: {
     title: 'AI Chat Support | IT Services Freetown',
