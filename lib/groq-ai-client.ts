@@ -1,15 +1,14 @@
 /**
- * Client-side AI API Integration Service
- * 🟢 ACTIVE: Google Gemini 2.0 Flash (via backend proxy at /api/groq)
+ * Client-side AI API Integration Service (Groq via Backend Proxy)
+ * 🟢 ACTIVE: Groq llama-3.1-8b-instant
  * SECURITY: API calls go through backend proxy to protect the API key
  */
 
-// API Endpoint — same proxy URL, backend now calls Gemini instead of Groq
-const GROQ_PROXY_URL = '/api/groq'  // Route name kept as-is to avoid breaking changes
+const GROQ_PROXY_URL = '/api/groq'
 
-// 🟢 ACTIVE: Google Gemini 2.0 Flash (model set in backend /api/groq/route.ts)
-// 🔴 GROQ (commented out — uncomment to switch back)
-// const GROQ_MODEL = 'llama-3.1-8b-instant'
+// 🟢 ACTIVE: Groq
+// 🔴 GEMINI (commented out — uncomment to switch back)
+// const GEMINI_MODEL = 'gemini-1.5-flash'
 
 interface GroqMessage {
   role: 'system' | 'user' | 'assistant'
@@ -154,7 +153,7 @@ export async function generateChatResponseClient(context: ChatContext): Promise<
     ]
     
     const requestBody = {
-      model: 'gemini-2.0-flash',  // Handled by backend proxy
+      model: 'llama-3.1-8b-instant',
       messages: messages,
       temperature: 0.6,
       max_tokens: 180,
@@ -163,7 +162,7 @@ export async function generateChatResponseClient(context: ChatContext): Promise<
     }
     
     console.log('📤 [CLIENT-SIDE] Request preview:', { 
-      model: 'gemini-2.0-flash', 
+      model: 'llama-3.1-8b-instant', 
       messageCount: messages.length,
       userMessage: context.userMessage.substring(0, 50) + '...'
     })
@@ -436,7 +435,7 @@ Provide 3 to 5 steps only. Make every step count.`
     ]
     
     const requestBody = {
-      model: 'gemini-2.0-flash',  // Handled by backend proxy
+      model: 'llama-3.1-8b-instant',  // Handled by backend proxy
       messages: messages,
       temperature: 0.5,
       max_tokens: 1000,
@@ -448,7 +447,7 @@ Provide 3 to 5 steps only. Make every step count.`
     console.log('📤 [CLIENT-SIDE] Request body preview:', {
       deviceType: context.deviceType,
       issue: context.issueDescription,
-      model: 'gemini-2.0-flash'
+      model: 'llama-3.1-8b-instant'
     })
     
     // Call our secure backend proxy instead of Groq directly
