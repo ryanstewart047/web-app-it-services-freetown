@@ -1,14 +1,15 @@
 /**
- * Client-side AI API Integration Service (Using Groq via Backend Proxy)
- * SECURITY: API calls now go through backend proxy to protect the API key
+ * Client-side AI API Integration Service
+ * 🟢 ACTIVE: Google Gemini 2.0 Flash (via backend proxy at /api/groq)
+ * SECURITY: API calls go through backend proxy to protect the API key
  */
 
-// API Endpoints
-// Always use local API route when running on Vercel
-// Only use external URL if explicitly set for static GitHub Pages deployment
-const GROQ_PROXY_URL = '/api/groq'  // Use local API route (works for Vercel and local dev)
-  
-const GROQ_MODEL = 'llama-3.1-8b-instant'  // Fast, free, and excellent for chat support
+// API Endpoint — same proxy URL, backend now calls Gemini instead of Groq
+const GROQ_PROXY_URL = '/api/groq'  // Route name kept as-is to avoid breaking changes
+
+// 🟢 ACTIVE: Google Gemini 2.0 Flash (model set in backend /api/groq/route.ts)
+// 🔴 GROQ (commented out — uncomment to switch back)
+// const GROQ_MODEL = 'llama-3.1-8b-instant'
 
 interface GroqMessage {
   role: 'system' | 'user' | 'assistant'
@@ -145,8 +146,7 @@ export async function generateChatResponseClient(context: ChatContext): Promise<
 18. **NEVER write bullet-point walls of text. Short = better. If in doubt, say less.**`
 
   try {
-    console.log('🔍 [CLIENT-SIDE] Calling Groq AI via Backend Proxy:', context.userMessage)
-    console.log('🤖 [CLIENT-SIDE] Model:', GROQ_MODEL)
+    console.log('🔍 [CLIENT-SIDE] Calling AI via Backend Proxy:', context.userMessage)
     
     const messages: GroqMessage[] = [
       { role: 'system', content: systemMessage },
@@ -154,7 +154,7 @@ export async function generateChatResponseClient(context: ChatContext): Promise<
     ]
     
     const requestBody = {
-      model: GROQ_MODEL,
+      model: 'gemini-2.0-flash',  // Handled by backend proxy
       messages: messages,
       temperature: 0.6,
       max_tokens: 180,
@@ -163,7 +163,7 @@ export async function generateChatResponseClient(context: ChatContext): Promise<
     }
     
     console.log('📤 [CLIENT-SIDE] Request preview:', { 
-      model: GROQ_MODEL, 
+      model: 'gemini-2.0-flash', 
       messageCount: messages.length,
       userMessage: context.userMessage.substring(0, 50) + '...'
     })
@@ -426,7 +426,7 @@ Provide 3 to 5 steps only. Make every step count.`
     ]
     
     const requestBody = {
-      model: GROQ_MODEL,
+      model: 'gemini-2.0-flash',  // Handled by backend proxy
       messages: messages,
       temperature: 0.5,
       max_tokens: 1000,
@@ -438,7 +438,7 @@ Provide 3 to 5 steps only. Make every step count.`
     console.log('📤 [CLIENT-SIDE] Request body preview:', {
       deviceType: context.deviceType,
       issue: context.issueDescription,
-      model: GROQ_MODEL
+      model: 'gemini-2.0-flash'
     })
     
     // Call our secure backend proxy instead of Groq directly
