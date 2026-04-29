@@ -177,16 +177,16 @@ export async function generateChatResponseClient(context: ChatContext): Promise<
       body: JSON.stringify(requestBody)
     })
 
-    console.log('📥 [CLIENT-SIDE] Backend proxy response status:', response.status)
+    console.log('📥 [CLIENT-SIDE] Gemini AI response status:', response.status)
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('❌ [CLIENT-SIDE] Backend proxy error response:', errorText)
+      console.error('❌ [CLIENT-SIDE] Gemini proxy error response:', errorText)
       throw new Error(`Backend proxy error: ${response.status} - ${errorText}`)
     }
 
     const data: GroqAPIResponse = await response.json()
-    console.log('✅ [CLIENT-SIDE] Groq AI response received via proxy')
+    console.log('✅ [CLIENT-SIDE] Gemini AI response received via proxy')
     console.log('💬 [CLIENT-SIDE] Tokens used:', data.usage)
     
     if (data.choices && data.choices.length > 0) {
@@ -197,7 +197,7 @@ export async function generateChatResponseClient(context: ChatContext): Promise<
     
     throw new Error('No response generated')
   } catch (error) {
-    console.error('❌ [CLIENT-SIDE] Error calling Groq AI via proxy:', error)
+    console.error('❌ [CLIENT-SIDE] Error calling Gemini AI via proxy:', error)
     console.log('🔄 [CLIENT-SIDE] Using fallback response for:', context.userMessage)
     
     // Provide a contextual fallback response based on the user's message
@@ -232,8 +232,13 @@ function generateFallbackChatResponse(userMessage: string): string {
     return `📞 +232 33 399 391 | 📧 support@itservicesfreetown.com | 📍 No. 1 Regent Highway, Jui Junction, Freetown.`
   }
 
-  // Services overview
-  if (msg.includes('what services') || msg.includes('what do you') || msg.includes('what can you do') || msg.includes('services') && !msg.includes('repair')) {
+  // Repair services — computer, laptop, mobile, phone
+  if (msg.includes('repair') || msg.includes('fix') || msg.includes('broken') || msg.includes('laptop') || msg.includes('computer') || msg.includes('pc') || msg.includes('phone') || msg.includes('mobile') || msg.includes('iphone') || msg.includes('samsung') || msg.includes('tecno') || msg.includes('infinix')) {
+    return `Yes, we repair computers, laptops, and all mobile phone brands. Bring your device to No. 1 Regent Highway, Jui Junction or call +232 33 399 391 to book.`
+  }
+
+  // Services overview — 'do you', 'can you', 'what services'
+  if (msg.includes('what services') || msg.includes('what do you') || msg.includes('what can you') || msg.includes('do you') || msg.includes('can you') || (msg.includes('services') && !msg.includes('repair'))) {
     return `We handle computer repair, mobile repair, mobile unlocking, data recovery, networking, web development, graphics design, POS software, and on-site visits. What do you need help with?`
   }
   
