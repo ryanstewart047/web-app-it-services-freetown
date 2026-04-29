@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 // 🟢 ACTIVE: Google Gemini API
 // ============================================================
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
-const GEMINI_MODEL = 'gemini-2.0-flash'
+const GEMINI_MODEL = 'gemini-1.5-flash'  // Higher free quota: 60 req/min vs 15 for 2.0-flash
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`
 
 // ============================================================
@@ -86,6 +86,32 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       const errorData = await response.text()
       console.error('Gemini API error:', response.status, errorData)
+
+      // On rate limit, retry once after a short delay
+      if (response.status === 429) {
+        console.warn('Gemini rate limit hit, retrying after 2s...')
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        const retry = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(geminiBody),
+        })
+        if (!retry.ok) {
+          const retryError = await retry.text()
+          console.error('Gemini retry also failed:', retry.status, retryError)
+          return NextResponse.json(
+            { error: 'AI service temporarily unavailable — rate limit exceeded. Please try again in a moment.', details: retry.statusText },
+            { status: 429 }
+          )
+        }
+        const retryData = await retry.json()
+        const retryText = retryData.candidates?.[0]?.content?.parts?.[0]?.text || ''
+        return NextResponse.json({
+          choices: [{ message: { role: 'assistant', content: retryText }, finish_reason: 'stop' }],
+          usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 }
+        })
+      }
+
       return NextResponse.json(
         { error: 'AI service temporarily unavailable', details: response.statusText },
         { status: response.status }

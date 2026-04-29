@@ -347,6 +347,11 @@ function generateFallbackChatResponse(userMessage: string): string {
     return `Yes, we do on-site visits — home, office, wherever you need us. Call +232 33 399 391 to schedule.`
   }
   
+  // Human agent / live support
+  if (msg.includes('human') || msg.includes('agent') || msg.includes('person') || msg.includes('speak to') || msg.includes('talk to') || msg.includes('real person') || msg.includes('live support') || msg.includes('whatsapp')) {
+    return `To speak with a human, call us directly on +232 33 399 391 or message us on WhatsApp: https://chat.whatsapp.com/FuS9EBvCF455geNHqQl3Iz?mode=r_t`
+  }
+
   // Thank you
   if (msg.includes('thank') || msg.includes('thanks') || msg.includes('appreciate') || msg.includes('helpful')) {
     return `You're welcome! 😊 Anything else I can help with? We're at itservicesfreetown.com or call +232 33 399 391 anytime.`
