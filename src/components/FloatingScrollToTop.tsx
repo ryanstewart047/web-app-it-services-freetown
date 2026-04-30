@@ -36,7 +36,7 @@ export default function FloatingScrollToTop() {
     <button
       onClick={scrollToTop}
       className={`
-        fixed bottom-6 left-6 z-50
+        fixed bottom-[5.5rem] left-4 z-50
         w-12 h-12 rounded-full
         text-white shadow-lg hover:shadow-xl
         transition-all duration-300 ease-in-out
