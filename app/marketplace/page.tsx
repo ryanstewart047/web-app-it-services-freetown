@@ -312,9 +312,9 @@ export default function MarketplacePage() {
             </div>
 
             {/* Cart */}
-            <button
-              onClick={() => window.location.href = '/cart'}
-              className="relative flex items-center gap-1 sm:gap-2 px-3 py-2 sm:px-6 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all text-sm sm:text-base z-10 cursor-pointer"
+            <Link
+              href="/cart"
+              className="relative flex items-center gap-1 sm:gap-2 px-3 py-2 sm:px-6 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all text-sm sm:text-base z-10 cursor-pointer shadow-lg"
             >
               <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="hidden sm:inline">Cart</span>
@@ -323,7 +323,7 @@ export default function MarketplacePage() {
                   {cartCount}
                 </span>
               )}
-            </button>
+            </Link>
           </div>
 
           {/* Mobile Search */}

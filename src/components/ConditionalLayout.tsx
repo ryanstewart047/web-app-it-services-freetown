@@ -34,9 +34,9 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
         <main className="pb-16 md:pb-0">
           {children}
         </main>
-        <MobileBottomNav />
         <ServiceWorkerRegistration />
         <NetworkMonitor />
+        <MobileBottomNav />
       </>
     );
   }
@@ -54,7 +54,6 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
         </main>
         <Footer />
       </div>
-      <MobileBottomNav />
       <CookiePopup />
       <OfferPopup delay={5000} />
       <StaticChatFloat />
@@ -62,6 +61,7 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
       <PWAInstallBanner />
       <NetworkMonitor />
       <ServiceWorkerRegistration />
+      <MobileBottomNav />
     </>
   );
 }

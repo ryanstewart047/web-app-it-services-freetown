@@ -40,15 +40,15 @@ export default function MobileBottomNav() {
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-xl border-t border-gray-100 shadow-[0_-5px_20px_rgba(0,0,0,0.05)] pb-safe">
-      <div className="flex justify-around items-center h-16 px-2">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-[9999] bg-white/95 backdrop-blur-xl border-t border-gray-100 shadow-[0_-10px_30px_rgba(0,0,0,0.1)] pb-safe">
+      <div className="flex justify-around items-center h-16 px-2 relative">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href));
           return (
             <Link 
               key={item.href}
               href={item.href}
-              className="flex flex-col items-center justify-center flex-1 py-1 group"
+              className="flex flex-col items-center justify-center flex-1 py-1 group relative z-10"
             >
               <div className={`text-xl transition-all duration-300 transform ${isActive ? `${item.activeColor} scale-110 -translate-y-1` : 'text-gray-400 group-hover:text-gray-600'}`}>
                 <i className={item.icon}></i>
