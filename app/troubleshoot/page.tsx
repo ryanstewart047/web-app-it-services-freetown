@@ -9,7 +9,7 @@ import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
 import { openChatFloat } from '@/lib/chat-float-controller'
 import { generateTroubleshootingResponseClient, isStaticDeployment } from '@/lib/groq-ai-client'
-import { DisplayAd, InArticleAd } from '@/components/AdSense'
+import { DisplayAd, InArticleAd, MultiplexAd } from '@/components/AdSense'
 import PageBanner from '@/components/PageBanner'
 
 interface TroubleshootingStep {
@@ -550,6 +550,11 @@ export default function Troubleshoot() {
                   </button>
                 </div>
               </div>
+            </div>
+
+            {/* Bottom Ad Section */}
+            <div className="my-12">
+              <MultiplexAd />
             </div>
           </div>
         )}

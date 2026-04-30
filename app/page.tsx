@@ -14,6 +14,8 @@ import LoadingOverlay from '@/components/LoadingOverlay'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 import { usePageLoader } from '@/hooks/usePageLoader'
 
+import { DisplayAd, MultiplexAd } from '@/components/AdSense'
+
 export default function Home() {
   const { isLoading, progress } = usePageLoader({
     minLoadTime: 2000
@@ -27,11 +29,23 @@ export default function Home() {
       <LoadingOverlay show={isLoading} progress={progress} variant="modern" />
       <Hero />
       <Services />
+      
+      {/* Ad Section */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <DisplayAd />
+      </div>
+
       <MobileRepairPricing />
       <WhyFreetown />
       <CommonIssues />
       <WhyChooseUs />
       <TrackRecord />
+
+      {/* Multiplex Ad Section */}
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        <MultiplexAd />
+      </div>
+
       <CallToAction />
       <Contact />
       <PWAInstallBanner />

@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { Building2, Phone, Mail, MapPin, Users, Award, Clock, Shield } from 'lucide-react';
 import PageBanner from '@/components/PageBanner';
+import { DisplayAd, MultiplexAd } from '@/components/AdSense';
 
 export const metadata: Metadata = {
   title: 'About Us | IT Services Freetown',
@@ -40,9 +41,14 @@ export default function AboutPage() {
           </div>
         </section>
 
+        {/* Ad Section */}
+        <div className="mb-12">
+          <DisplayAd />
+        </div>
+
         {/* Why Choose Us */}
         <section className="mb-12">
-          <h2 className="text-3xl font-bold text-white text-center mb-8">Why Choose Us?</h2>
+          <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">Why Choose Us?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-white rounded-xl shadow-lg p-6 text-center hover:shadow-2xl transition-all">
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -190,6 +196,11 @@ export default function AboutPage() {
             </Link>
           </div>
         </section>
+
+        {/* Multiplex Ad */}
+        <div className="mt-12">
+          <MultiplexAd />
+        </div>
 
         {/* Back to Home */}
         <div className="text-center mt-12">

@@ -6,6 +6,7 @@ import TrackingDebug from '@/components/TrackingDebug';
 import { usePageLoader } from '@/hooks/usePageLoader';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import PageBanner from '@/components/PageBanner';
+import { DisplayAd, MultiplexAd } from '@/components/AdSense';
 
 const SESSION_KEY = 'its_track_session';
 const IDLE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
@@ -121,8 +122,13 @@ export default function TrackRepair() {
         icon="fas fa-search"
       />
 
+      {/* Top Ad */}
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <DisplayAd />
+      </div>
+
       {/* Main Content */}
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-red-50 py-12">
+      <div className="bg-gradient-to-br from-gray-50 via-white to-red-50 py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {!showStatus ? (
@@ -164,14 +170,6 @@ export default function TrackRepair() {
                     value={trackingId}
                     onChange={(e) => setTrackingId(e.target.value.toUpperCase())}
                     className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl transition-all duration-300 text-lg placeholder-gray-400 font-mono"
-                    onFocus={(e) => {
-                      e.target.style.borderColor = '#040e40';
-                      e.target.style.boxShadow = '0 0 0 4px rgba(4, 14, 64, 0.1)';
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#d1d5db';
-                      e.target.style.boxShadow = 'none';
-                    }}
                     placeholder="Enter tracking ID (e.g., ITS-250926-1234)"
                     required
                   />
@@ -190,44 +188,6 @@ export default function TrackRepair() {
                   Track My Repair
                 </button>
               </form>
-
-              {/* Demo Tracking IDs */}
-              <div className="mt-8 p-6 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg border">
-                <h4 className="font-semibold text-gray-900 mb-3">
-                  <i className="fas fa-flask mr-2 text-blue-500"></i>
-                  Try Demo Tracking IDs
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <button
-                    onClick={() => setTrackingId('ITS-250926-1001')}
-                    className="text-left p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors duration-300 border"
-                  >
-                    <div className="font-mono text-sm text-blue-600">ITS-250926-1001</div>
-                    <div className="text-xs text-gray-600">iPhone 14 Screen Repair</div>
-                  </button>
-                  <button
-                    onClick={() => setTrackingId('ITS-250926-1002')}
-                    className="text-left p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors duration-300 border"
-                  >
-                    <div className="font-mono text-sm text-blue-600">ITS-250926-1002</div>
-                    <div className="text-xs text-gray-600">MacBook Pro Diagnosis</div>
-                  </button>
-                  <button
-                    onClick={() => setTrackingId('ITS-250926-1003')}
-                    className="text-left p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors duration-300 border"
-                  >
-                    <div className="font-mono text-sm text-blue-600">ITS-250926-1003</div>
-                    <div className="text-xs text-gray-600">Samsung Galaxy Repair</div>
-                  </button>
-                  <button
-                    onClick={() => setTrackingId('ITS-250926-1004')}
-                    className="text-left p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors duration-300 border"
-                  >
-                    <div className="font-mono text-sm text-blue-600">ITS-250926-1004</div>
-                    <div className="text-xs text-gray-600">Dell Laptop Hardware Fix</div>
-                  </button>
-                </div>
-              </div>
             </div>
           ) : (
             /* Status Display */
@@ -252,10 +212,12 @@ export default function TrackRepair() {
               <AppointmentStatus key={refreshKey} trackingId={trackingId} />
             </div>
           )}
-
-          {/* Information Cards */}
-          {/* ...existing code... */}
         </div>
+      </div>
+
+      {/* Bottom Ad */}
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        <MultiplexAd />
       </div>
 
       {/* Debug Component for Mobile Testing */}

@@ -13,22 +13,15 @@ interface AdSenseProps {
 /**
  * Google AdSense Component
  * 
- * Setup Instructions:
- * 1. ✅ Applied for Google AdSense - Publisher ID: ca-pub-9989697800650646
- * 2. ⏳ Waiting for approval (usually takes 1-2 weeks)
- * 3. After approval: Get your ad slot IDs from AdSense dashboard
- * 4. Replace the placeholder adSlot IDs below with your actual ad unit IDs
- * 5. Set ADSENSE_APPROVED=true in environment variables
- * 
- * Current Status: Auto ads enabled (manual ad units hidden until approval)
- * Once approved, set ADSENSE_APPROVED=true to enable manual ad placements
+ * Status: PROD-READY with User-Provided IDs
+ * Publisher ID: ca-pub-9989697800650646
  */
 
 // Check if AdSense is approved (set this to true after approval)
 const ADSENSE_APPROVED = process.env.NEXT_PUBLIC_ADSENSE_APPROVED === 'true'
 
 export default function AdSense({
-  adSlot = '0000000000', // Replace with your ad slot ID after approval
+  adSlot = '1036914951', // Default to Display Ad ID
   adFormat = 'auto',
   adLayout,
   adStyle = { display: 'block' },
@@ -64,7 +57,7 @@ export default function AdSense({
         ref={adRef}
         className="adsbygoogle"
         style={adStyle}
-        data-ad-client="ca-pub-9989697800650646" // Your actual Publisher ID
+        data-ad-client="ca-pub-9989697800650646" 
         data-ad-slot={adSlot}
         data-ad-format={adFormat}
         data-ad-layout={adLayout}
@@ -75,14 +68,14 @@ export default function AdSense({
 }
 
 /**
- * Predefined AdSense Layouts
+ * Predefined AdSense Layouts with Production IDs
  */
 
 // Responsive Display Ad (works everywhere)
 export function DisplayAd({ className }: { className?: string }) {
   return (
     <AdSense
-      adSlot="1111111111" // Replace with your display ad slot
+      adSlot="1036914951" 
       adFormat="auto"
       className={className}
     />
@@ -93,7 +86,7 @@ export function DisplayAd({ className }: { className?: string }) {
 export function InArticleAd({ className }: { className?: string }) {
   return (
     <AdSense
-      adSlot="2222222222" // Replace with your in-article ad slot
+      adSlot="4541969135" 
       adFormat="auto"
       className={className}
     />
@@ -104,7 +97,7 @@ export function InArticleAd({ className }: { className?: string }) {
 export function MultiplexAd({ className }: { className?: string }) {
   return (
     <AdSense
-      adSlot="3333333333" // Replace with your multiplex ad slot
+      adSlot="6836036542" 
       adFormat="auto"
       adLayout="multiplex"
       className={className}
@@ -116,7 +109,7 @@ export function MultiplexAd({ className }: { className?: string }) {
 export function InFeedAd({ className }: { className?: string }) {
   return (
     <AdSense
-      adSlot="4444444444" // Replace with your in-feed ad slot
+      adSlot="1357402596" 
       adFormat="auto"
       className={className}
     />
@@ -127,7 +120,7 @@ export function InFeedAd({ className }: { className?: string }) {
 export function HorizontalAd({ className }: { className?: string }) {
   return (
     <AdSense
-      adSlot="5555555555" // Replace with your horizontal ad slot
+      adSlot="1036914951" // Reusing Display ID for horizontal
       adFormat="horizontal"
       className={className}
       adStyle={{ display: 'block' }}

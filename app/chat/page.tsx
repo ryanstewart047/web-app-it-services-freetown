@@ -5,7 +5,7 @@ import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
 import { openChatFloat } from '@/lib/chat-float-controller'
-import { DisplayAd } from '@/components/AdSense'
+import { DisplayAd, MultiplexAd } from '@/components/AdSense'
 import PageBanner from '@/components/PageBanner'
 import { 
   generateChatResponseClient, 
@@ -380,6 +380,11 @@ export default function Chat() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Ad Banner - Bottom */}
+      <div className="max-w-4xl mx-auto px-4 pb-12">
+        <MultiplexAd />
       </div>
       </div>
     </>

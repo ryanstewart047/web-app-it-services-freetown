@@ -95,6 +95,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
+import { DisplayAd, InArticleAd, MultiplexAd } from '@/components/AdSense'
+
 export default async function BlogPostPage({ params }: Props) {
   const posts = await fetchBlogPosts();
   const post = posts.find((p) => p.id === params.id);
@@ -130,6 +132,11 @@ export default async function BlogPostPage({ params }: Props) {
           Back to all posts
         </Link>
         
+        {/* Top Ad */}
+        <div className="mb-8">
+          <DisplayAd />
+        </div>
+
         <article className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 md:p-12">
           {/* Structured Data for the article */}
           <script
@@ -177,6 +184,11 @@ export default async function BlogPostPage({ params }: Props) {
             </div>
           </header>
           
+          {/* In-Article Ad */}
+          <div className="mb-10">
+            <InArticleAd />
+          </div>
+
           {/* Main Content */}
           <div 
             className="prose prose-lg md:prose-xl max-w-none text-gray-700 leading-relaxed" 
@@ -202,6 +214,11 @@ export default async function BlogPostPage({ params }: Props) {
             </div>
           )}
         </article>
+
+        {/* Bottom Ad */}
+        <div className="mt-12">
+          <MultiplexAd />
+        </div>
       </main>
     </div>
   );

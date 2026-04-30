@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ShoppingCart, Trash2, Plus, Minus, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { DisplayAd, MultiplexAd } from '@/components/AdSense';
 
 interface CartItem {
   productId: string;
@@ -141,6 +142,11 @@ export default function CartPage() {
           <p className="text-gray-400">{cartItems.length} item(s) in your cart</p>
         </div>
 
+        {/* Top Ad */}
+        <div className="mb-8">
+          <DisplayAd />
+        </div>
+
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
@@ -257,9 +263,6 @@ export default function CartPage() {
                   <p className="text-red-400 text-sm font-semibold text-center">
                     ⚠️ Cannot proceed: Some items are out of stock
                   </p>
-                  <p className="text-red-300 text-xs text-center mt-2">
-                    Please remove out of stock items to continue
-                  </p>
                 </div>
               )}
 
@@ -272,7 +275,7 @@ export default function CartPage() {
                     : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white hover:scale-105'
                 }`}
               >
-                {hasOutOfStock ? 'Cannot Proceed - Out of Stock Items' : 'Proceed to Checkout'}
+                Proceed to Checkout
               </button>
 
               <Link
@@ -283,6 +286,11 @@ export default function CartPage() {
               </Link>
             </div>
           </div>
+        </div>
+
+        {/* Bottom Ad */}
+        <div className="mt-12">
+          <MultiplexAd />
         </div>
       </div>
     </div>
