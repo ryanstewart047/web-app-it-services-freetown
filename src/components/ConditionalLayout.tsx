@@ -31,7 +31,7 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
         <div className="sticky top-0 z-50">
           <GlobalBanner />
         </div>
-        <main className="pb-16 md:pb-0">
+        <main className="w-full pb-16 md:pb-0">
           {children}
         </main>
         <ServiceWorkerRegistration />
@@ -44,12 +44,12 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
   // Regular pages - full layout with navbar, footer, and all components
   return (
     <>
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen w-full flex flex-col">
         <div className="sticky top-0 z-50">
           <GlobalBanner />
           <Navbar />
         </div>
-        <main className="flex-1 main-content pb-16 md:pb-0">
+        <main className="flex-1 w-full main-content pb-16 md:pb-0">
           {children}
         </main>
         <Footer />

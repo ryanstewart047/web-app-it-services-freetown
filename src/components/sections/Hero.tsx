@@ -140,7 +140,7 @@ export default function Hero() {
                  <i className="fas fa-calendar-plus mr-2"></i>Book Repair Now
               </Link>
               <Link href="/track-repair" 
-                 className="bg-white hover:bg-gray-100 text-lg px-8 py-4 text-center rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-lg border-2 border-white inline-flex items-center ml-4"
+                 className="bg-white hover:bg-gray-100 text-lg px-8 py-4 text-center rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-lg border-2 border-white inline-flex items-center"
                  style={{color: '#040e40'}}>
                  <i className="fas fa-search mr-2"></i>Track Your Repair
               </Link>
