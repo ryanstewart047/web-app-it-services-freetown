@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { ShoppingCart, Heart, Share2, Check, ArrowLeft, Star, Truck, Shield, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { DisplayAd, MultiplexAd } from '@/components/AdSense';
 
 interface Product {
   id: string;
@@ -267,7 +268,8 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 pt-12">
+        <DisplayAd className="mb-8" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Images Gallery */}
           <div>
@@ -540,6 +542,9 @@ export default function ProductDetailPage() {
             </div>
           </div>
         </div>
+      </div>
+      <div className="container mx-auto px-4 py-12">
+        <MultiplexAd />
       </div>
     </div>
   );

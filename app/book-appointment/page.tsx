@@ -9,6 +9,7 @@ import LoadingOverlay from '@/components/LoadingOverlay';
 import { saveBooking } from '@/lib/unified-booking-storage';
 import PageBanner from '@/components/PageBanner';
 import dynamic from 'next/dynamic';
+import { DisplayAd, MultiplexAd } from '@/components/AdSense';
 
 const ReCAPTCHA = dynamic(() => import('react-google-recaptcha'), { ssr: false });
 
@@ -741,6 +742,11 @@ export default function BookAppointment() {
         subtitle="Schedule your device repair with our expert technicians. Fast, reliable, and professional service."
         icon="fas fa-calendar-plus"
       />
+
+      {/* Ad Section - Top */}
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <DisplayAd />
+      </div>
 
       {/* Progress Indicator */}
       <div className="bg-[#040e40] py-6">
@@ -1521,7 +1527,10 @@ export default function BookAppointment() {
             </div>
           </div>
         </div>
-      )}
+      {/* Ad Section - Bottom */}
+      <div className="max-w-4xl mx-auto px-4 pb-12">
+        <MultiplexAd />
+      </div>
     </>
   );
 }
