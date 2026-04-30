@@ -30,6 +30,16 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [cartCount, setCartCount] = useState(0);
+
+  useEffect(() => {
+    updateCartCount();
+  }, []);
+
+  const updateCartCount = () => {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    setCartCount(cart.reduce((sum: number, item: any) => sum + item.quantity, 0));
+  };
 
   useEffect(() => {
     if (params?.slug) {
@@ -128,7 +138,10 @@ export default function ProductDetailPage() {
     }
 
     localStorage.setItem('cart', JSON.stringify(cart));
-    // Toast notification instead of alert for better UX
+    updateCartCount();
+    toast.success('Product added to cart!');
+    
+    // Dispatch event for other components
     if (typeof window !== 'undefined') {
       const event = new CustomEvent('cartUpdated');
       window.dispatchEvent(event);
@@ -259,16 +272,29 @@ export default function ProductDetailPage() {
       />
       
       {/* Header */}
-      <div className="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700">
-        <div className="container mx-auto px-4 py-4">
+      <div className="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700 sticky top-[64px] sm:top-[72px] z-30">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/marketplace" className="inline-flex items-center gap-2 text-red-400 hover:text-red-300 transition-colors">
             <ArrowLeft className="w-5 h-5" />
             Back to Marketplace
           </Link>
+          
+          <Link
+            href="/cart"
+            className="relative flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all text-sm z-10 cursor-pointer shadow-lg"
+          >
+            <ShoppingCart className="w-4 h-4" />
+            <span>Cart</span>
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center pointer-events-none">
+                {cartCount}
+              </span>
+            )}
+          </Link>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 pt-12">
+      <div className="container mx-auto px-4 pt-16 sm:pt-20">
         <DisplayAd className="mb-8" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Images Gallery */}

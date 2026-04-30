@@ -5,6 +5,7 @@ import { Search, Filter, ShoppingCart, Grid, List, ChevronDown, Heart, Star } fr
 import Link from 'next/link';
 import { getWishlistSessionId } from '@/utils/wishlistSession';
 import { DisplayAd, MultiplexAd } from '@/components/AdSense';
+import toast from 'react-hot-toast';
 
 interface Product {
   id: string;
@@ -202,7 +203,7 @@ export default function MarketplacePage() {
 
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartCount();
-    alert('Product added to cart!');
+    toast.success('Product added to cart!');
   };
 
   // Enhanced filter and search products
@@ -288,7 +289,7 @@ export default function MarketplacePage() {
       <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 -z-10 pointer-events-none"></div>
       
       {/* Main content */}
-      <div className="min-h-screen pt-16">
+      <div className="min-h-screen pt-24 sm:pt-28">
       {/* Header - Search and Cart */}
       <header className="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700">
         <div className="container mx-auto px-4 py-4">
