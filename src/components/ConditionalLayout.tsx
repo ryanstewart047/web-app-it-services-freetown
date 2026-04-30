@@ -12,6 +12,7 @@ import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration';
 import OfferPopup from '@/components/OfferPopup';
 import GlobalBanner from '@/components/GlobalBanner';
 import MobileBottomNav from '@/components/layout/MobileBottomNav';
+import SplashScreen from '@/components/SplashScreen';
 
 interface ConditionalLayoutProps {
   children: React.ReactNode;
@@ -28,6 +29,7 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
     // Admin pages, Portfolio, Donation, and Forum page - clean layout with minimal components
     return (
       <>
+        <SplashScreen />
         <div className="sticky top-0 z-50">
           <GlobalBanner />
         </div>
@@ -44,6 +46,7 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
   // Regular pages - full layout with navbar, footer, and all components
   return (
     <>
+      <SplashScreen />
       <div className="min-h-screen w-full flex flex-col">
         <div className="sticky top-0 z-50">
           <GlobalBanner />
