@@ -998,8 +998,8 @@ h3:not(.animate-on-scroll),
 /* Chat Float Button Styles */
 .chat-float-container {
   position: fixed !important;
-  bottom: 1.5rem !important;
-  right: 1.5rem !important;
+  bottom: 5.5rem !important;
+  right: 1rem !important;
   z-index: 9999 !important;
   pointer-events: auto !important;
 }
@@ -1008,6 +1008,7 @@ h3:not(.animate-on-scroll),
   pointer-events: auto !important;
   cursor: pointer !important;
   display: block !important;
+  transform: scale(0.85) !important;
 }
 
 .chat-float-button:hover {

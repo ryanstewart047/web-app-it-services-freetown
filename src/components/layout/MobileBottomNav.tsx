@@ -14,9 +14,9 @@ export default function MobileBottomNav() {
       activeColor: 'text-red-600'
     },
     {
-      label: 'Shop',
-      href: '/marketplace',
-      icon: 'fas fa-shopping-bag',
+      label: 'Chat',
+      href: '/chat',
+      icon: 'fas fa-comments',
       activeColor: 'text-green-500'
     },
     {
