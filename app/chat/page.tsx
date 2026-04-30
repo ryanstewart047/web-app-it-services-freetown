@@ -168,6 +168,83 @@ export default function Chat() {
     }
   }
 
+  const renderMessageContent = (content: string) => {
+    // Regex for URLs (including http, https, and common site paths)
+    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|(?:\/|itservicesfreetown\.com\/)[a-zA-Z0-9\-\._~:\/\?#\[\]@!\$&'\(\)\*\+,;=%]+)/gi;
+    
+    // Regex for Bold text (**text**)
+    const boldRegex = /\*\*([^*]+)\*\*/g;
+
+    // Process bold text first by wrapping in placeholders, then handle URLs
+    // This is a simple way to avoid conflicts between regexes
+    let parts: (string | JSX.Element)[] = [content];
+
+    // 1. Handle Bold
+    let newParts: (string | JSX.Element)[] = [];
+    parts.forEach(part => {
+      if (typeof part === 'string') {
+        const subParts = part.split(boldRegex);
+        for (let i = 0; i < subParts.length; i++) {
+          if (i % 2 === 1) {
+            newParts.push(<strong key={`bold-${i}`} className="font-bold">{subParts[i]}</strong>);
+          } else if (subParts[i]) {
+            newParts.push(subParts[i]);
+          }
+        }
+      } else {
+        newParts.push(part);
+      }
+    });
+    parts = newParts;
+
+    // 2. Handle URLs
+    newParts = [];
+    parts.forEach((part, partIdx) => {
+      if (typeof part === 'string') {
+        const subParts = part.split(urlRegex);
+        const matches = part.match(urlRegex) || [];
+        
+        let matchIdx = 0;
+        for (let i = 0; i < subParts.length; i++) {
+          // The split with capturing group returns the matches at odd indices
+          // But our regex has multiple groups or might be complex. 
+          // Let's use a simpler approach: check if subParts[i] matches the regex.
+          const isUrl = matches.includes(subParts[i]);
+          
+          if (isUrl) {
+            let url = subParts[i];
+            // Ensure URL is absolute for the href
+            let href = url;
+            if (url.startsWith('/')) {
+              href = url; // Internal link
+            } else if (!url.startsWith('http')) {
+              href = `https://${url}`;
+            }
+            
+            newParts.push(
+              <a 
+                key={`link-${partIdx}-${i}`} 
+                href={href} 
+                target={url.startsWith('/') ? '_self' : '_blank'}
+                rel="noopener noreferrer" 
+                className="text-blue-600 hover:underline font-bold bg-blue-50 px-1 rounded mx-0.5 inline-flex items-center"
+              >
+                {url.startsWith('/') ? <i className="fas fa-external-link-alt text-[10px] mr-1"></i> : null}
+                {url}
+              </a>
+            );
+          } else if (subParts[i]) {
+            newParts.push(subParts[i]);
+          }
+        }
+      } else {
+        newParts.push(part);
+      }
+    });
+
+    return newParts;
+  };
+
   return (
     <>
       <LoadingOverlay show={isLoading} progress={progress} variant="modern" />
@@ -271,7 +348,9 @@ export default function Chat() {
                     </div>
                   ) : (
                     <React.Fragment>
-                      <div className="whitespace-pre-line text-sm">{message.content}</div>
+                      <div className="whitespace-pre-line text-sm">
+                        {renderMessageContent(message.content)}
+                      </div>
                       <p className="text-xs opacity-70 mt-1">
                         {isClient ? message.timestamp.toLocaleTimeString() : '--:--:--'}
                       </p>
