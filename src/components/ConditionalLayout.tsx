@@ -11,6 +11,7 @@ import NetworkMonitor from '@/components/NetworkMonitor';
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration';
 import OfferPopup from '@/components/OfferPopup';
 import GlobalBanner from '@/components/GlobalBanner';
+import MobileBottomNav from '@/components/layout/MobileBottomNav';
 
 interface ConditionalLayoutProps {
   children: React.ReactNode;
@@ -30,7 +31,10 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
         <div className="sticky top-0 z-50">
           <GlobalBanner />
         </div>
-        {children}
+        <main className="pb-16 md:pb-0">
+          {children}
+        </main>
+        <MobileBottomNav />
         <ServiceWorkerRegistration />
         <NetworkMonitor />
       </>
@@ -45,11 +49,12 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
           <GlobalBanner />
           <Navbar />
         </div>
-        <main className="flex-1 main-content">
+        <main className="flex-1 main-content pb-16 md:pb-0">
           {children}
         </main>
         <Footer />
       </div>
+      <MobileBottomNav />
       <CookiePopup />
       <OfferPopup delay={5000} />
       <StaticChatFloat />
