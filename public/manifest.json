@@ -48,13 +48,13 @@
     },
     {
       "src": "/assets/pwa-icon.png",
-      "sizes": "813x813",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
       "src": "/assets/logo.png",
-      "sizes": "1024x575",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
@@ -74,7 +74,7 @@
       "icons": [
         {
           "src": "/assets/pwa-icon.png",
-          "sizes": "813x813",
+          "sizes": "512x512",
           "type": "image/png"
         }
       ]
@@ -87,7 +87,7 @@
       "icons": [
         {
           "src": "/assets/pwa-icon.png",
-          "sizes": "813x813",
+          "sizes": "512x512",
           "type": "image/png"
         }
       ]
@@ -100,7 +100,7 @@
       "icons": [
         {
           "src": "/assets/pwa-icon.png",
-          "sizes": "813x813",
+          "sizes": "512x512",
           "type": "image/png"
         }
       ]
@@ -113,7 +113,7 @@
       "icons": [
         {
           "src": "/assets/pwa-icon.png",
-          "sizes": "813x813",
+          "sizes": "512x512",
           "type": "image/png"
         }
       ]
