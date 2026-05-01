@@ -78,9 +78,9 @@ export default function CartPage() {
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 py-12">
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="text-center py-20">
-            <ShoppingCart className="w-24 h-24 text-gray-600 mx-auto mb-6" />
-            <h2 className="text-3xl font-bold text-white mb-4">Your Cart is Empty</h2>
-            <p className="text-gray-400 mb-8">Add some products to get started!</p>
+            <ShoppingCart className="w-24 h-24 text-gray-200 mx-auto mb-6" />
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Your Cart is Empty</h2>
+            <p className="text-gray-600 mb-8">Add some products to get started!</p>
             <Link
               href="/marketplace"
               className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all"
@@ -95,19 +95,19 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 py-12">
+    <div className="min-h-screen bg-white py-12">
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
           <Link
             href="/marketplace"
-            className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 mb-4 transition-colors"
+            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4 transition-colors font-medium"
           >
             <ArrowLeft className="w-5 h-5" />
             Continue Shopping
           </Link>
-          <h1 className="text-4xl font-bold text-white mb-2">Shopping Cart</h1>
-          <p className="text-gray-400">{enrichedCart.length} item(s) in your cart</p>
+          <h1 className="text-4xl font-black text-gray-900 mb-2">Shopping Cart</h1>
+          <p className="text-gray-500 font-medium">{enrichedCart.length} item(s) in your cart</p>
         </div>
 
         {/* Top Ad */}
@@ -121,13 +121,13 @@ export default function CartPage() {
             {enrichedCart.map((item) => (
               <div
                 key={item.productId}
-                className={`bg-gray-800/50 backdrop-blur-sm border rounded-xl p-6 hover:border-blue-500/50 transition-all ${
-                  item.outOfStock ? 'border-red-500/50 opacity-75' : 'border-gray-700'
+                className={`bg-white border rounded-2xl p-6 shadow-sm hover:shadow-md transition-all ${
+                  item.outOfStock ? 'border-red-100 bg-red-50/30' : 'border-gray-100'
                 }`}
               >
                 {item.outOfStock && (
-                  <div className="mb-4 bg-red-500/20 border border-red-500 rounded-lg p-3">
-                    <p className="text-red-400 text-sm font-semibold flex items-center gap-2">
+                  <div className="mb-4 bg-red-50 border border-red-100 rounded-lg p-3">
+                    <p className="text-red-600 text-sm font-bold flex items-center gap-2">
                       <span className="text-lg">⚠️</span>
                       This item is currently out of stock
                     </p>
@@ -152,33 +152,33 @@ export default function CartPage() {
 
                   {/* Product Details */}
                   <div className="flex-1">
-                    <h3 className="text-white font-semibold mb-2">{item.name}</h3>
-                    <p className="text-blue-400 font-bold text-lg mb-4">
+                    <h3 className="text-gray-900 font-bold mb-2">{item.name}</h3>
+                    <p className="text-blue-600 font-black text-lg mb-4">
                       Le {item.price.toLocaleString()}
                     </p>
                     {!item.outOfStock && item.stock !== undefined && item.stock < 5 && (
-                      <p className="text-yellow-400 text-sm mb-2">
+                      <p className="text-yellow-600 text-sm font-bold mb-2">
                         Only {item.stock} left in stock
                       </p>
                     )}
 
                     {/* Quantity Controls */}
                     <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2 bg-gray-900 rounded-lg p-1">
+                      <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg p-1">
                         <button
                           onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                          className="p-2 hover:bg-gray-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="p-2 hover:bg-gray-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                           disabled={item.quantity <= 1 || item.outOfStock}
                         >
-                          <Minus className="w-4 h-4 text-white" />
+                          <Minus className="w-4 h-4 text-gray-600" />
                         </button>
-                        <span className="text-white font-semibold px-4">{item.quantity}</span>
+                        <span className="text-gray-900 font-black px-4">{item.quantity}</span>
                         <button
                           onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                          className="p-2 hover:bg-gray-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="p-2 hover:bg-gray-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                           disabled={item.outOfStock}
                         >
-                          <Plus className="w-4 h-4 text-white" />
+                          <Plus className="w-4 h-4 text-gray-600" />
                         </button>
                       </div>
 
@@ -194,8 +194,8 @@ export default function CartPage() {
 
                   {/* Item Total */}
                   <div className="text-right">
-                    <p className="text-gray-400 text-sm mb-2">Subtotal</p>
-                    <p className="text-white font-bold text-xl">
+                    <p className="text-gray-500 text-sm mb-1 font-medium">Subtotal</p>
+                    <p className="text-gray-900 font-black text-xl">
                       Le {(item.price * item.quantity).toLocaleString()}
                     </p>
                   </div>
@@ -206,22 +206,22 @@ export default function CartPage() {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 sticky top-24">
-              <h2 className="text-2xl font-bold text-white mb-6">Order Summary</h2>
+            <div className="bg-gray-50 border border-gray-100 rounded-2xl p-6 sticky top-24 shadow-sm">
+              <h2 className="text-2xl font-black text-gray-900 mb-6">Order Summary</h2>
 
               <div className="space-y-4 mb-6">
-                <div className="flex justify-between text-gray-300">
+                <div className="flex justify-between text-gray-600 font-medium">
                   <span>Subtotal</span>
-                  <span>Le {calculateSubtotal().toLocaleString()}</span>
+                  <span className="text-gray-900 font-bold">Le {calculateSubtotal().toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-gray-300">
+                <div className="flex justify-between text-gray-600 font-medium">
                   <span>GST (2%)</span>
-                  <span>Le {(calculateSubtotal() * 0.02).toLocaleString()}</span>
+                  <span className="text-gray-900 font-bold">Le {(calculateSubtotal() * 0.02).toLocaleString()}</span>
                 </div>
-                <div className="border-t border-gray-700 pt-4">
-                  <div className="flex justify-between text-white text-xl font-bold">
+                <div className="border-t border-gray-200 pt-4">
+                  <div className="flex justify-between text-gray-900 text-xl font-black">
                     <span>Total</span>
-                    <span>Le {calculateTotal().toLocaleString()}</span>
+                    <span className="text-blue-600">Le {calculateTotal().toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -237,10 +237,10 @@ export default function CartPage() {
               <button
                 onClick={() => router.push('/checkout')}
                 disabled={hasOutOfStock}
-                className={`w-full py-4 font-bold rounded-xl transition-all transform shadow-lg ${
+                className={`w-full py-4 font-black rounded-xl transition-all transform shadow-lg ${
                   hasOutOfStock
-                    ? 'bg-gray-600 text-gray-400 cursor-not-allowed opacity-50'
-                    : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white hover:scale-105'
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/20 hover:shadow-xl hover:-translate-y-1'
                 }`}
               >
                 Proceed to Checkout
@@ -248,7 +248,7 @@ export default function CartPage() {
 
               <Link
                 href="/marketplace"
-                className="block text-center text-blue-400 hover:text-blue-300 mt-4 transition-colors"
+                className="block text-center text-blue-600 hover:text-blue-700 mt-4 transition-colors font-bold"
               >
                 Continue Shopping
               </Link>
