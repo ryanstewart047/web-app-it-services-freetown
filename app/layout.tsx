@@ -14,6 +14,7 @@ import NetworkMonitor from '../src/components/NetworkMonitor'
 import { AnalyticsProvider } from '../src/components/AnalyticsTracker'
 import ConditionalLayout from '@/components/ConditionalLayout'
 import ForumPromoCard from '@/components/ForumPromoCard'
+import { CartProvider } from '@/contexts/CartContext'
 
 
 const inter = Inter({ 
@@ -290,21 +291,23 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.className} bg-gray-50 min-h-screen`}>
-        <AnalyticsProvider config={{
-          enabled: true,
-          trackPageViews: true,
-          trackClicks: true,
-          trackFormInteractions: true,
-          trackErrors: true,
-          trackPerformance: true,
-          sessionTimeout: 30
-        }}>
-          <ConditionalLayout>
-            {children}
-          </ConditionalLayout>
-          <ForumPromoCard />
-          <Toaster position="top-right" />
-        </AnalyticsProvider>
+        <CartProvider>
+          <AnalyticsProvider config={{
+            enabled: true,
+            trackPageViews: true,
+            trackClicks: true,
+            trackFormInteractions: true,
+            trackErrors: true,
+            trackPerformance: true,
+            sessionTimeout: 30
+          }}>
+            <ConditionalLayout>
+              {children}
+            </ConditionalLayout>
+            <ForumPromoCard />
+            <Toaster position="top-right" />
+          </AnalyticsProvider>
+        </CartProvider>
       </body>
     </html>
   )

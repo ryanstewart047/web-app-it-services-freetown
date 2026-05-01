@@ -5,17 +5,11 @@ import { useRouter } from 'next/navigation';
 import { ShoppingCart, Trash2, CreditCard, Smartphone, DollarSign, ArrowLeft, Check } from 'lucide-react';
 import Link from 'next/link';
 
-interface CartItem {
-  productId: string;
-  name: string;
-  price: number;
-  image: string;
-  quantity: number;
-}
+import { useCart } from '@/contexts/CartContext';
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const { cart, removeFromCart, cartTotal, clearCart, isHydrated } = useCart();
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'mobile_money' | 'cash'>('mobile_money');
   
@@ -28,12 +22,7 @@ export default function CheckoutPage() {
     notes: ''
   });
 
-  useEffect(() => {
-    const savedCart = JSON.parse(localStorage.getItem('cart') || '[]');
-    setCart(savedCart);
-  }, []);
-
-  const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = cartTotal;
   const gst = subtotal * 0.02; // 2% GST
   const shipping = 0; // Free shipping - cost included in product prices
   const total = subtotal + gst + shipping;
@@ -77,7 +66,7 @@ export default function CheckoutPage() {
         console.log('[Checkout] Order created:', order);
         console.log('[Checkout] Redirecting to:', `/order-confirmation/${order.orderNumber}`);
         
-        localStorage.removeItem('cart');
+        clearCart();
         router.push(`/order-confirmation/${order.orderNumber}`);
       } else {
         const errorData = await response.json();
@@ -92,19 +81,16 @@ export default function CheckoutPage() {
     }
   };
 
-  const updateQuantity = (productId: string, newQuantity: number) => {
-    const updatedCart = cart.map(item =>
-      item.productId === productId ? { ...item, quantity: Math.max(1, newQuantity) } : item
+  if (!isHydrated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading checkout...</p>
+        </div>
+      </div>
     );
-    setCart(updatedCart);
-    localStorage.setItem('cart', JSON.stringify(updatedCart));
-  };
-
-  const removeItem = (productId: string) => {
-    const updatedCart = cart.filter(item => item.productId !== productId);
-    setCart(updatedCart);
-    localStorage.setItem('cart', JSON.stringify(updatedCart));
-  };
+  }
 
   if (cart.length === 0) {
     return (
@@ -312,7 +298,7 @@ export default function CheckoutPage() {
                     <div className="text-right">
                       <p className="text-white font-semibold">Le {(item.price * item.quantity).toFixed(2)}</p>
                       <button
-                        onClick={() => removeItem(item.productId)}
+                        onClick={() => removeFromCart(item.productId)}
                         className="text-red-400 hover:text-red-300 text-sm"
                       >
                         Remove

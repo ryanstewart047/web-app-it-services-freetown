@@ -7,6 +7,7 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { getWishlistSessionId } from '@/utils/wishlistSession';
 import { DisplayAd, MultiplexAd } from '@/components/AdSense';
+import { useCart } from '@/contexts/CartContext';
 
 interface Product {
   id: string;
@@ -31,18 +32,12 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [cartCount, setCartCount] = useState(0);
+  const { cartCount, addToCart: contextAddToCart } = useCart();
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    updateCartCount();
     fetchWishlist();
   }, []);
-
-  const updateCartCount = () => {
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    setCartCount(cart.reduce((sum: number, item: any) => sum + item.quantity, 0));
-  };
 
   useEffect(() => {
     if (params?.slug) {
@@ -178,42 +173,15 @@ export default function ProductDetailPage() {
   const addToCart = () => {
     if (!product) return;
 
-    let cart: any[] = [];
-    try {
-      const parsed = JSON.parse(localStorage.getItem('cart') || '[]');
-      if (Array.isArray(parsed)) {
-        cart = parsed;
-      } else {
-        localStorage.removeItem('cart');
-      }
-    } catch (e) {
-      console.error("Cart parse error", e);
-      localStorage.removeItem('cart');
-    }
+    contextAddToCart({
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.images[0]?.url,
+      quantity
+    });
 
-    const existingItem = cart.find((item: any) => item.productId === product.id);
-
-    if (existingItem) {
-      existingItem.quantity += quantity;
-    } else {
-      cart.push({
-        productId: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.images[0]?.url,
-        quantity
-      });
-    }
-
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartCount();
     toast.success('Product added to cart!');
-    
-    // Dispatch event for other components
-    if (typeof window !== 'undefined') {
-      const event = new CustomEvent('cartUpdated');
-      window.dispatchEvent(event);
-    }
 
     // Automatically open the cart page
     router.push('/cart');

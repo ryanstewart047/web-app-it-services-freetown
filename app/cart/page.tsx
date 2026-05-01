@@ -5,109 +5,64 @@ import Link from 'next/link';
 import { ShoppingCart, Trash2, Plus, Minus, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { DisplayAd, MultiplexAd } from '@/components/AdSense';
-
-interface CartItem {
-  productId: string;
-  name: string;
-  price: number;
-  image: string;
-  quantity: number;
-  stock?: number; // Available stock from database
-  outOfStock?: boolean; // Flag to indicate if item is out of stock
-}
+import { useCart, CartItem } from '@/contexts/CartContext';
 
 export default function CartPage() {
   const router = useRouter();
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const { cart, updateQuantity, removeFromCart, cartTotal, isHydrated } = useCart();
+  const [enrichedCart, setEnrichedCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasOutOfStock, setHasOutOfStock] = useState(false);
 
   useEffect(() => {
-    loadCart();
-  }, []);
+    if (!isHydrated) return;
 
-  const loadCart = async () => {
-    try {
-      let cart: CartItem[] = [];
+    const loadStockInfo = async () => {
       try {
-        const storedCart = JSON.parse(localStorage.getItem('cart') || '[]');
-        if (Array.isArray(storedCart)) {
-          // Filter out null or corrupted items
-          cart = storedCart.filter(item => item && item.productId && typeof item.price === 'number');
+        if (cart.length > 0) {
+          const response = await fetch('/api/products');
+          
+          if (response.ok) {
+            const allProducts = await response.json();
+            
+            const updatedCart = cart.map((item: CartItem) => {
+              const product = allProducts.find((p: any) => p.id === item.productId);
+              return {
+                ...item,
+                stock: product?.stock || 0,
+                outOfStock: !product || product.stock === 0
+              };
+            });
+            
+            setEnrichedCart(updatedCart);
+            setHasOutOfStock(updatedCart.some((item: CartItem) => item.outOfStock));
+          } else {
+            setEnrichedCart(cart);
+            setHasOutOfStock(false);
+          }
         } else {
-          localStorage.removeItem('cart'); // Clear corrupted non-array data
+          setEnrichedCart([]);
+          setHasOutOfStock(false);
         }
-      } catch (e) {
-        console.error('JSON parse error on cart data, resetting cart');
-        localStorage.removeItem('cart');
+      } catch (error) {
+        console.error('Error fetching stock:', error);
+        setEnrichedCart(cart);
+      } finally {
+        setLoading(false);
       }
-      
-      // Fetch current product stock information
-      if (cart.length > 0) {
-        const productIds = cart.map((item: CartItem) => item.productId);
-        const response = await fetch('/api/products');
-        
-        if (response.ok) {
-          const allProducts = await response.json();
-          
-          // Update cart items with current stock info
-          const updatedCart = cart.map((item: CartItem) => {
-            const product = allProducts.find((p: any) => p.id === item.productId);
-            return {
-              ...item,
-              stock: product?.stock || 0,
-              outOfStock: !product || product.stock === 0
-            };
-          });
-          
-          setCartItems(updatedCart);
-          
-          // Check if any items are out of stock
-          const hasOutOfStockItems = updatedCart.some((item: CartItem) => item.outOfStock);
-          setHasOutOfStock(hasOutOfStockItems);
-        } else {
-          setCartItems(cart);
-        }
-      } else {
-        setCartItems(cart);
-      }
-    } catch (error) {
-      console.error('Error loading cart:', error);
-      setCartItems([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  const updateQuantity = (productId: string, newQuantity: number) => {
-    if (newQuantity < 1) return;
-    
-    const updatedCart = cartItems.map(item =>
-      item.productId === productId ? { ...item, quantity: newQuantity } : item
-    );
-    
-    setCartItems(updatedCart);
-    localStorage.setItem('cart', JSON.stringify(updatedCart));
-  };
+    loadStockInfo();
+  }, [cart, isHydrated]);
 
-  const removeItem = (productId: string) => {
-    const updatedCart = cartItems.filter(item => item.productId !== productId);
-    setCartItems(updatedCart);
-    localStorage.setItem('cart', JSON.stringify(updatedCart));
-  };
-
-  const calculateSubtotal = () => {
-    if (!Array.isArray(cartItems)) return 0;
-    return cartItems.reduce((total, item) => total + ((item.price || 0) * (item.quantity || 1)), 0);
-  };
+  const calculateSubtotal = () => cartTotal;
 
   const calculateTotal = () => {
-    const subtotal = calculateSubtotal();
-    const gst = subtotal * 0.02; // 2% GST
-    return subtotal + gst;
+    const gst = cartTotal * 0.02; // 2% GST
+    return cartTotal + gst;
   };
 
-  if (loading) {
+  if (loading || !isHydrated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 flex items-center justify-center">
         <div className="text-center">
@@ -118,7 +73,7 @@ export default function CartPage() {
     );
   }
 
-  if (cartItems.length === 0) {
+  if (enrichedCart.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 py-12">
         <div className="container mx-auto px-4 max-w-4xl">
@@ -152,7 +107,7 @@ export default function CartPage() {
             Continue Shopping
           </Link>
           <h1 className="text-4xl font-bold text-white mb-2">Shopping Cart</h1>
-          <p className="text-gray-400">{cartItems.length} item(s) in your cart</p>
+          <p className="text-gray-400">{enrichedCart.length} item(s) in your cart</p>
         </div>
 
         {/* Top Ad */}
@@ -163,7 +118,7 @@ export default function CartPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
-            {cartItems.map((item) => (
+            {enrichedCart.map((item) => (
               <div
                 key={item.productId}
                 className={`bg-gray-800/50 backdrop-blur-sm border rounded-xl p-6 hover:border-blue-500/50 transition-all ${
@@ -228,7 +183,7 @@ export default function CartPage() {
                       </div>
 
                       <button
-                        onClick={() => removeItem(item.productId)}
+                        onClick={() => removeFromCart(item.productId)}
                         className="p-2 hover:bg-red-500/20 rounded-lg transition-colors group"
                         title="Remove from cart"
                       >
