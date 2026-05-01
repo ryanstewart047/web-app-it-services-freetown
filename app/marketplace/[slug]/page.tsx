@@ -337,7 +337,7 @@ export default function ProductDetailPage() {
         <DisplayAd className="mb-8" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Images Gallery */}
-          <div className="bg-white border border-gray-100 p-6 sm:p-8 rounded-3xl shadow-xl flex flex-col">
+          <div className="bg-white border border-gray-100 p-6 sm:p-8 rounded-3xl shadow-xl flex flex-col lg:h-fit">
             {/* Main Image */}
             <div className="bg-transparent rounded-2xl overflow-hidden mb-6 aspect-square relative flex items-center justify-center group">
               {/* Subtle background glow based on theme */}
@@ -367,7 +367,7 @@ export default function ProductDetailPage() {
 
             {/* Thumbnail Gallery */}
             {product.images.length > 1 && (
-              <div className="grid grid-cols-4 sm:grid-cols-5 gap-3 sm:gap-4 mt-auto">
+              <div className="grid grid-cols-4 sm:grid-cols-5 gap-3 sm:gap-4 mt-4">
                 {product.images.map((image, index) => (
                   <button
                     key={index}
