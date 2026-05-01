@@ -188,7 +188,19 @@ export default function MarketplacePage() {
   // This prevents console spam when database is not configured
 
   const addToCart = (product: Product) => {
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    let cart: any[] = [];
+    try {
+      const parsed = JSON.parse(localStorage.getItem('cart') || '[]');
+      if (Array.isArray(parsed)) {
+        cart = parsed;
+      } else {
+        localStorage.removeItem('cart');
+      }
+    } catch (e) {
+      console.error("Cart parse error", e);
+      localStorage.removeItem('cart');
+    }
+
     const existingItem = cart.find((item: any) => item.productId === product.id);
 
     if (existingItem) {

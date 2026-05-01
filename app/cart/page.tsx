@@ -28,7 +28,19 @@ export default function CartPage() {
 
   const loadCart = async () => {
     try {
-      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      let cart: CartItem[] = [];
+      try {
+        const storedCart = JSON.parse(localStorage.getItem('cart') || '[]');
+        if (Array.isArray(storedCart)) {
+          // Filter out null or corrupted items
+          cart = storedCart.filter(item => item && item.productId && typeof item.price === 'number');
+        } else {
+          localStorage.removeItem('cart'); // Clear corrupted non-array data
+        }
+      } catch (e) {
+        console.error('JSON parse error on cart data, resetting cart');
+        localStorage.removeItem('cart');
+      }
       
       // Fetch current product stock information
       if (cart.length > 0) {
@@ -85,7 +97,8 @@ export default function CartPage() {
   };
 
   const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    if (!Array.isArray(cartItems)) return 0;
+    return cartItems.reduce((total, item) => total + ((item.price || 0) * (item.quantity || 1)), 0);
   };
 
   const calculateTotal = () => {
