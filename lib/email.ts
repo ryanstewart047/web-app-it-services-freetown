@@ -375,5 +375,86 @@ IT Services Freetown - Auto-generated notification`
       </div>
     `,
     text: `Repair Completed - ${data.repairId}\n\nDear ${data.customerName},\n\nYour ${data.deviceType} repair is complete!\n\nTotal Cost: $${data.totalCost}\nPickup Instructions: ${data.pickupInstructions}\n\nThank you for choosing IT Services Freetown!`
+  }),
+  orderConfirmation: (data: {
+    orderNumber: string;
+    customerName: string;
+    total: number;
+    items: { name: string; quantity: number; price: number }[];
+    paymentMethod: string;
+  }) => ({
+    subject: `Order Confirmation - ${data.orderNumber}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+        <div style="background-color: #040e40; color: white; padding: 30px; text-align: center;">
+          <h1 style="margin: 0; font-size: 24px;">Thank You for Your Order!</h1>
+          <p style="margin: 10px 0 0; opacity: 0.8;">Order ${data.orderNumber}</p>
+        </div>
+        <div style="padding: 30px; background-color: white;">
+          <p>Hi ${data.customerName},</p>
+          <p>We've received your order and we're getting it ready for you. You'll receive another email once your order has been processed.</p>
+          
+          <div style="margin: 30px 0; border-top: 1px solid #e5e7eb; padding-top: 20px;">
+            <h3 style="margin-top: 0; color: #374151;">Order Summary</h3>
+            ${data.items.map(item => `
+              <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span style="color: #6b7280;">${item.name} x ${item.quantity}</span>
+                <span style="font-weight: bold; color: #111827;">Le ${(item.price * item.quantity).toLocaleString()}</span>
+              </div>
+            `).join('')}
+            <div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid #e5e7eb; display: flex; justify-content: space-between;">
+              <span style="font-weight: bold; color: #111827; font-size: 18px;">Total</span>
+              <span style="font-weight: bold; color: #dc2626; font-size: 18px;">Le ${data.total.toLocaleString()}</span>
+            </div>
+          </div>
+
+          <div style="background-color: #f9fafb; border-radius: 8px; padding: 15px; margin-bottom: 30px;">
+            <p style="margin: 0; font-size: 14px; color: #4b5563;"><strong>Payment Method:</strong> ${data.paymentMethod.replace('_', ' ').toUpperCase()}</p>
+          </div>
+
+          <p style="color: #6b7280; font-size: 14px;">If you have any questions, please contact our support team at <a href="tel:+23233399391" style="color: #040e40; text-decoration: none;">+232 33 399 391</a>.</p>
+        </div>
+        <div style="background-color: #f3f4f6; padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;">
+          <p style="margin: 0;">© 2026 IT Services Freetown. All rights reserved.</p>
+        </div>
+      </div>
+    `,
+    text: `Order Confirmation - ${data.orderNumber}\n\nHi ${data.customerName},\n\nThank you for your order! Your total is Le ${data.total.toLocaleString()}.\n\nItems:\n${data.items.map(item => `- ${item.name} x ${item.quantity}: Le ${(item.price * item.quantity).toLocaleString()}`).join('\n')}\n\nPayment Method: ${data.paymentMethod}\n\nContact us: +232 33 399 391`
+  }),
+  adminOrderNotification: (data: {
+    orderNumber: string;
+    customerName: string;
+    customerPhone: string;
+    total: number;
+    items: { name: string; quantity: number }[];
+    paymentMethod: string;
+  }) => ({
+    subject: `🔔 New Order - ${data.orderNumber} | ${data.customerName}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 2px solid #dc2626; border-radius: 12px; overflow: hidden;">
+        <div style="background-color: #dc2626; color: white; padding: 20px; text-align: center;">
+          <h2 style="margin: 0;">New Order Received!</h2>
+          <p style="margin: 5px 0 0;">${data.orderNumber}</p>
+        </div>
+        <div style="padding: 25px;">
+          <h3 style="color: #111827; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px;">Customer Details</h3>
+          <p><strong>Name:</strong> ${data.customerName}</p>
+          <p><strong>Phone:</strong> ${data.customerPhone}</p>
+          <p><strong>Payment:</strong> ${data.paymentMethod}</p>
+
+          <h3 style="color: #111827; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; margin-top: 25px;">Items Ordered</h3>
+          <ul style="padding-left: 20px; color: #374151;">
+            ${data.items.map(item => `<li>${item.name} x ${item.quantity}</li>`).join('')}
+          </ul>
+          
+          <p style="font-size: 18px; font-weight: bold; margin-top: 20px;">Total Amount: Le ${data.total.toLocaleString()}</p>
+          
+          <div style="margin-top: 30px; text-align: center;">
+            <a href="tel:${data.customerPhone}" style="display: inline-block; background-color: #dc2626; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold;">Call Customer</a>
+          </div>
+        </div>
+      </div>
+    `,
+    text: `NEW ORDER - ${data.orderNumber}\n\nCustomer: ${data.customerName}\nPhone: ${data.customerPhone}\nPayment: ${data.paymentMethod}\n\nItems:\n${data.items.map(item => `- ${item.name} x ${item.quantity}`).join('\n')}\n\nTotal: Le ${data.total.toLocaleString()}`
   })
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ShoppingCart, Trash2, CreditCard, Smartphone, DollarSign, ArrowLeft, Check } from 'lucide-react';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
 
 import { useCart } from '@/contexts/CartContext';
 
@@ -29,6 +30,29 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Form Validation
+    if (!formData.customerName.trim()) {
+      toast.error('Please enter your full name');
+      return;
+    }
+    if (!formData.customerEmail.trim() || !formData.customerEmail.includes('@')) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+    if (!formData.customerPhone.trim()) {
+      toast.error('Please enter your phone number');
+      return;
+    }
+    if (!formData.customerAddress.trim()) {
+      toast.error('Please enter your delivery address');
+      return;
+    }
+    if (paymentMethod === 'mobile_money' && !formData.mobileMoneyNumber.trim()) {
+      toast.error('Please enter your mobile money number');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -64,18 +88,18 @@ export default function CheckoutPage() {
       if (response.ok) {
         const order = await response.json();
         console.log('[Checkout] Order created:', order);
-        console.log('[Checkout] Redirecting to:', `/order-confirmation/${order.orderNumber}`);
+        toast.success('Order placed successfully!');
         
         clearCart();
         router.push(`/order-confirmation/${order.orderNumber}`);
       } else {
         const errorData = await response.json();
         console.error('[Checkout] Error response:', errorData);
-        alert(`Failed to place order: ${errorData.error || 'Unknown error'}`);
+        toast.error(errorData.error || 'Failed to place order. Please try again.');
       }
     } catch (error) {
       console.error('[Checkout] Error placing order:', error);
-      alert('An error occurred. Please try again.');
+      toast.error('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }

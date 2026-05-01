@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { sendEmail, emailTemplates } from '@/lib/email';
 
 // POST create new order
 export async function POST(request: NextRequest) {
@@ -72,6 +73,51 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[Order Creation] Order created successfully:', orderNumber);
+
+    // Send Confirmation Emails
+    try {
+      // 1. Send to Customer
+      const customerEmailData = emailTemplates.orderConfirmation({
+        orderNumber: order.orderNumber,
+        customerName: order.customerName,
+        total: order.total,
+        items: order.items.map(item => ({
+          name: (item as any).product?.name || 'Product',
+          quantity: item.quantity,
+          price: item.price
+        })),
+        paymentMethod: order.paymentMethod
+      });
+
+      await sendEmail({
+        to: order.customerEmail,
+        ...customerEmailData
+      });
+
+      // 2. Send to Admin
+      const adminEmailData = emailTemplates.adminOrderNotification({
+        orderNumber: order.orderNumber,
+        customerName: order.customerName,
+        customerPhone: order.customerPhone,
+        total: order.total,
+        items: order.items.map(item => ({
+          name: (item as any).product?.name || 'Product',
+          quantity: item.quantity
+        })),
+        paymentMethod: order.paymentMethod
+      });
+
+      await sendEmail({
+        to: process.env.ADMIN_EMAIL || 'info@itservicesfreetown.com',
+        ...adminEmailData
+      });
+
+      console.log('[Order Creation] Notification emails sent');
+    } catch (emailError) {
+      console.error('[Order Creation] Failed to send notification emails:', emailError);
+      // We don't fail the order if emails fail
+    }
+
     return NextResponse.json(order, { status: 201 });
   } catch (error) {
     console.error('Error creating order:', error);
