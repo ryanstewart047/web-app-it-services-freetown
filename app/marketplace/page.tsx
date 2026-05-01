@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Search, Filter, ShoppingCart, Grid, List, ChevronDown, Heart, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -198,38 +198,40 @@ export default function MarketplacePage() {
   };
 
   // Enhanced filter and search products
-  let filteredProducts = products.filter(product => {
-    // Enhanced search - searches in multiple fields
-    const searchLower = searchTerm.toLowerCase().trim();
-    const matchesSearch = searchLower === '' || (
-      product.name.toLowerCase().includes(searchLower) ||
-      product.description.toLowerCase().includes(searchLower) ||
-      product.brand?.toLowerCase().includes(searchLower) ||
-      product.category.name.toLowerCase().includes(searchLower) ||
-      // Search by price (e.g., user types "5000" to find products around that price)
-      (product.price.toString().includes(searchLower)) ||
-      // Match partial words (e.g., "lap" matches "laptop")
-      product.name.toLowerCase().split(' ').some(word => word.startsWith(searchLower)) ||
-      product.description.toLowerCase().split(' ').some(word => word.startsWith(searchLower))
-    );
-    const matchesCategory = selectedCategory === 'all' || product.category.slug === selectedCategory;
-    return matchesSearch && matchesCategory && product.stock > 0;
-  });
+  const filteredProducts = useMemo(() => {
+    let filtered = products.filter(product => {
+      // Enhanced search - searches in multiple fields
+      const searchLower = searchTerm.toLowerCase().trim();
+      const matchesSearch = searchLower === '' || (
+        product.name.toLowerCase().includes(searchLower) ||
+        product.description.toLowerCase().includes(searchLower) ||
+        product.brand?.toLowerCase().includes(searchLower) ||
+        product.category.name.toLowerCase().includes(searchLower) ||
+        // Search by price (e.g., user types "5000" to find products around that price)
+        (product.price.toString().includes(searchLower)) ||
+        // Match partial words (e.g., "lap" matches "laptop")
+        product.name.toLowerCase().split(' ').some(word => word.startsWith(searchLower)) ||
+        product.description.toLowerCase().split(' ').some(word => word.startsWith(searchLower))
+      );
+      const matchesCategory = selectedCategory === 'all' || product.category.slug === selectedCategory;
+      return matchesSearch && matchesCategory && product.stock > 0;
+    });
 
-  // Sort products
-  filteredProducts = filteredProducts.sort((a, b) => {
-    switch (sortBy) {
-      case 'price-low':
-        return a.price - b.price;
-      case 'price-high':
-        return b.price - a.price;
-      case 'name':
-        return a.name.localeCompare(b.name);
-      case 'newest':
-      default:
-        return 0;
-    }
-  });
+    // Sort products
+    return filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'price-low':
+          return a.price - b.price;
+        case 'price-high':
+          return b.price - a.price;
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'newest':
+        default:
+          return 0;
+      }
+    });
+  }, [products, searchTerm, selectedCategory, sortBy]);
 
   // Infinite scroll: load more products when user scrolls
   useEffect(() => {
