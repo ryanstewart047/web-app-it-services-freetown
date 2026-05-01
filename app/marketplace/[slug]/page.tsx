@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ShoppingCart, Heart, Share2, Check, ArrowLeft, Star, Truck, Shield, RefreshCw } from 'lucide-react';
+import { ShoppingCart, Heart, Share2, Check, ArrowLeft, Star, Truck, Shield, RefreshCw, ZoomIn, ZoomOut, X } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { getWishlistSessionId } from '@/utils/wishlistSession';
@@ -32,6 +32,7 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [isZoomed, setIsZoomed] = useState(false);
   const { cartCount, addToCart: contextAddToCart } = useCart();
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
 
@@ -339,7 +340,10 @@ export default function ProductDetailPage() {
           {/* Images Gallery */}
           <div className="bg-white border border-gray-100 p-6 sm:p-8 rounded-3xl shadow-xl flex flex-col lg:h-fit">
             {/* Main Image */}
-            <div className="bg-transparent rounded-2xl overflow-hidden mb-6 aspect-square relative flex items-center justify-center group">
+            <div 
+              className="bg-transparent rounded-2xl overflow-hidden mb-6 aspect-square relative flex items-center justify-center group cursor-zoom-in"
+              onClick={() => setIsZoomed(true)}
+            >
               {/* Subtle background glow based on theme */}
               <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
               
@@ -633,6 +637,29 @@ export default function ProductDetailPage() {
       <div className="container mx-auto px-4 py-12">
         <MultiplexAd />
       </div>
+
+      {/* Fullscreen Image Zoom Overlay */}
+      {isZoomed && product.images[selectedImage] && (
+        <div className="fixed inset-0 z-[100] bg-black/90 flex flex-col items-center justify-center p-4 backdrop-blur-sm cursor-zoom-out" onClick={() => setIsZoomed(false)}>
+          {/* Controls */}
+          <div className="absolute top-6 right-6 flex items-center gap-4 z-50">
+            <button 
+              onClick={(e) => { e.stopPropagation(); setIsZoomed(false); }}
+              className="p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          
+          <img
+            src={product.images[selectedImage].url}
+            alt={product.images[selectedImage].alt || product.name}
+            className="w-auto h-auto max-w-full max-h-full object-contain scale-100 sm:scale-125 transition-transform duration-300"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <p className="absolute bottom-6 text-white/60 text-sm">Click anywhere to close</p>
+        </div>
+      )}
     </div>
   );
 }
