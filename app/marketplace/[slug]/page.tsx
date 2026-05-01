@@ -202,6 +202,9 @@ export default function ProductDetailPage() {
       const event = new CustomEvent('cartUpdated');
       window.dispatchEvent(event);
     }
+
+    // Automatically open the cart page
+    router.push('/cart');
   };
 
   const buyNow = () => {

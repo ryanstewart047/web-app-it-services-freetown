@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, Filter, ShoppingCart, Grid, List, ChevronDown, Heart, Star } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { getWishlistSessionId } from '@/utils/wishlistSession';
 import { DisplayAd, MultiplexAd } from '@/components/AdSense';
 import toast from 'react-hot-toast';
@@ -32,6 +33,7 @@ interface Category {
 }
 
 export default function MarketplacePage() {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -204,6 +206,15 @@ export default function MarketplacePage() {
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartCount();
     toast.success('Product added to cart!');
+    
+    // Dispatch event for other components
+    if (typeof window !== 'undefined') {
+      const event = new CustomEvent('cartUpdated');
+      window.dispatchEvent(event);
+    }
+    
+    // Automatically open the cart page
+    router.push('/cart');
   };
 
   // Enhanced filter and search products
@@ -291,7 +302,7 @@ export default function MarketplacePage() {
       {/* Main content */}
       <div className="min-h-screen pt-24 sm:pt-28">
       {/* Header - Search and Cart */}
-      <header className="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700">
+      <header className="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700 sticky top-[64px] sm:top-[72px] z-30">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="text-2xl font-bold text-white">

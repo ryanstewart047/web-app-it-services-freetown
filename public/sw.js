@@ -48,6 +48,9 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
+  
+  // Ignore non-HTTP/HTTPS schemes (like chrome-extension://)
+  if (!url.protocol.startsWith('http')) return;
 
   // 1. Navigation requests (Pages) - Network First, fallback to Offline
   if (event.request.mode === 'navigate') {
