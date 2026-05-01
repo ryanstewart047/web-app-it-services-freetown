@@ -95,7 +95,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white py-12">
+    <div className="min-h-screen bg-white py-8 sm:py-12 overflow-x-hidden">
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
@@ -106,8 +106,8 @@ export default function CartPage() {
             <ArrowLeft className="w-5 h-5" />
             Continue Shopping
           </Link>
-          <h1 className="text-4xl font-black text-gray-900 mb-2">Shopping Cart</h1>
-          <p className="text-gray-500 font-medium">{enrichedCart.length} item(s) in your cart</p>
+          <h1 className="text-2xl sm:text-4xl font-black text-gray-900 mb-2">Shopping Cart</h1>
+          <p className="text-gray-500 font-medium text-sm sm:text-base">{enrichedCart.length} item(s) in your cart</p>
         </div>
 
         {/* Top Ad */}
@@ -121,7 +121,7 @@ export default function CartPage() {
             {enrichedCart.map((item) => (
               <div
                 key={item.productId}
-                className={`bg-white border rounded-2xl p-6 shadow-sm hover:shadow-md transition-all ${
+                className={`bg-white border rounded-2xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all ${
                   item.outOfStock ? 'border-red-100 bg-red-50/30' : 'border-gray-100'
                 }`}
               >
@@ -133,71 +133,103 @@ export default function CartPage() {
                     </p>
                   </div>
                 )}
-                <div className="flex gap-4">
-                  {/* Product Image */}
-                  <div className="relative">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className={`w-24 h-24 object-cover rounded-lg ${
-                        item.outOfStock ? 'grayscale' : ''
-                      }`}
-                    />
-                    {item.outOfStock && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
-                        <span className="text-red-400 font-bold text-xs">OUT OF STOCK</span>
-                      </div>
-                    )}
-                  </div>
+                <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                  {/* Product Image and Details Group */}
+                  <div className="flex gap-4 flex-1">
+                    {/* Product Image */}
+                    <div className="relative flex-shrink-0">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className={`w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg ${
+                          item.outOfStock ? 'grayscale' : ''
+                        }`}
+                      />
+                      {item.outOfStock && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
+                          <span className="text-red-400 font-bold text-[10px] sm:text-xs text-center px-1">OUT OF STOCK</span>
+                        </div>
+                      )}
+                    </div>
 
-                  {/* Product Details */}
-                  <div className="flex-1">
-                    <h3 className="text-gray-900 font-bold mb-2">{item.name}</h3>
-                    <p className="text-blue-600 font-black text-lg mb-4">
-                      Le {item.price.toLocaleString()}
-                    </p>
-                    {!item.outOfStock && item.stock !== undefined && item.stock < 5 && (
-                      <p className="text-yellow-600 text-sm font-bold mb-2">
-                        Only {item.stock} left in stock
+                    {/* Product Details */}
+                    <div className="flex-1 min-w-0 overflow-hidden">
+                      <h3 className="text-gray-900 font-bold mb-1 text-sm sm:text-base line-clamp-2 break-words">{item.name}</h3>
+                      <p className="text-blue-600 font-black text-base sm:text-lg mb-2 sm:mb-4">
+                        Le {item.price.toLocaleString()}
                       </p>
-                    )}
+                      {!item.outOfStock && item.stock !== undefined && item.stock < 5 && (
+                        <p className="text-yellow-600 text-xs font-bold mb-2">
+                          Only {item.stock} left
+                        </p>
+                      )}
+                      
+                      {/* Desktop Quantity Controls - Hidden on Mobile */}
+                      <div className="hidden sm:flex items-center gap-4">
+                        <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg p-1">
+                          <button
+                            onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                            className="p-1.5 hover:bg-gray-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                            disabled={item.quantity <= 1 || item.outOfStock}
+                          >
+                            <Minus className="w-3.5 h-3.5 text-gray-600" />
+                          </button>
+                          <span className="text-gray-900 font-black px-2 text-sm">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                            className="p-1.5 hover:bg-gray-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                            disabled={item.outOfStock}
+                          >
+                            <Plus className="w-3.5 h-3.5 text-gray-600" />
+                          </button>
+                        </div>
 
-                    {/* Quantity Controls */}
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg p-1">
                         <button
-                          onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                          className="p-2 hover:bg-gray-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                          disabled={item.quantity <= 1 || item.outOfStock}
+                          onClick={() => removeFromCart(item.productId)}
+                          className="p-2 hover:bg-red-500/10 rounded-lg transition-colors group"
+                          title="Remove from cart"
                         >
-                          <Minus className="w-4 h-4 text-gray-600" />
-                        </button>
-                        <span className="text-gray-900 font-black px-4">{item.quantity}</span>
-                        <button
-                          onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                          className="p-2 hover:bg-gray-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                          disabled={item.outOfStock}
-                        >
-                          <Plus className="w-4 h-4 text-gray-600" />
+                          <Trash2 className="w-4 h-4 text-gray-400 group-hover:text-red-500" />
                         </button>
                       </div>
-
-                      <button
-                        onClick={() => removeFromCart(item.productId)}
-                        className="p-2 hover:bg-red-500/20 rounded-lg transition-colors group"
-                        title="Remove from cart"
-                      >
-                        <Trash2 className="w-5 h-5 text-gray-400 group-hover:text-red-400" />
-                      </button>
                     </div>
                   </div>
 
-                  {/* Item Total */}
-                  <div className="text-right">
-                    <p className="text-gray-500 text-sm mb-1 font-medium">Subtotal</p>
-                    <p className="text-gray-900 font-black text-xl">
-                      Le {(item.price * item.quantity).toLocaleString()}
-                    </p>
+                  {/* Mobile Quantity and Total Footer */}
+                  <div className="flex flex-row sm:flex-col justify-between items-center sm:items-end gap-3 pt-4 sm:pt-0 border-t sm:border-t-0 border-gray-100 sm:min-w-[140px]">
+                    {/* Mobile Quantity Controls - Visible only on Mobile */}
+                    <div className="flex sm:hidden items-center gap-3">
+                      <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg p-1">
+                        <button
+                          onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                          className="p-1.5 hover:bg-gray-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                          disabled={item.quantity <= 1 || item.outOfStock}
+                        >
+                          <Minus className="w-3.5 h-3.5 text-gray-600" />
+                        </button>
+                        <span className="text-gray-900 font-black px-2 text-sm">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                          className="p-1.5 hover:bg-gray-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                          disabled={item.outOfStock}
+                        >
+                          <Plus className="w-3.5 h-3.5 text-gray-600" />
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => removeFromCart(item.productId)}
+                        className="p-2 text-red-500 font-bold text-sm"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="text-gray-500 text-[10px] sm:text-xs mb-0.5 font-medium uppercase tracking-wider">Subtotal</p>
+                      <p className="text-gray-900 font-black text-lg sm:text-xl">
+                        Le {(item.price * item.quantity).toLocaleString()}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -206,22 +238,22 @@ export default function CartPage() {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-gray-50 border border-gray-100 rounded-2xl p-6 sticky top-24 shadow-sm">
+            <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 sm:p-6 lg:sticky lg:top-24 shadow-sm">
               <h2 className="text-2xl font-black text-gray-900 mb-6">Order Summary</h2>
 
               <div className="space-y-4 mb-6">
-                <div className="flex justify-between text-gray-600 font-medium">
-                  <span>Subtotal</span>
-                  <span className="text-gray-900 font-bold">Le {calculateSubtotal().toLocaleString()}</span>
+                <div className="flex justify-between items-center gap-4 text-gray-600 font-medium">
+                  <span className="shrink-0">Subtotal</span>
+                  <span className="text-gray-900 font-bold truncate">Le {calculateSubtotal().toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-gray-600 font-medium">
-                  <span>GST (2%)</span>
-                  <span className="text-gray-900 font-bold">Le {(calculateSubtotal() * 0.02).toLocaleString()}</span>
+                <div className="flex justify-between items-center gap-4 text-gray-600 font-medium">
+                  <span className="shrink-0">GST (2%)</span>
+                  <span className="text-gray-900 font-bold truncate">Le {(calculateSubtotal() * 0.02).toLocaleString()}</span>
                 </div>
                 <div className="border-t border-gray-200 pt-4">
-                  <div className="flex justify-between text-gray-900 text-xl font-black">
-                    <span>Total</span>
-                    <span className="text-blue-600">Le {calculateTotal().toLocaleString()}</span>
+                  <div className="flex justify-between items-center gap-4 text-gray-900 text-lg sm:text-xl font-black">
+                    <span className="shrink-0">Total</span>
+                    <span className="text-blue-600 break-all text-right">Le {calculateTotal().toLocaleString()}</span>
                   </div>
                 </div>
               </div>
