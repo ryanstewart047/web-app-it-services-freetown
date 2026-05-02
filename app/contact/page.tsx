@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { Phone, Mail, MapPin, Clock, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import PageBanner from '@/components/PageBanner';
-import { DisplayAd, MultiplexAd } from '@/components/AdSense';
 
 export const metadata: Metadata = {
   title: 'Contact Us - IT Services Freetown',
@@ -85,11 +84,6 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
-
-      {/* Ad Section */}
-      <div className="max-w-6xl mx-auto px-4 pb-16">
-        <DisplayAd />
-      </div>
 
       {/* Business Hours */}
       <section className="pb-16 px-4">
@@ -204,11 +198,6 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
-
-      {/* Multiplex Ad */}
-      <div className="max-w-4xl mx-auto px-4 pb-16">
-        <MultiplexAd />
-      </div>
 
       {/* Back to Home */}
       <section className="pb-16 px-4">
