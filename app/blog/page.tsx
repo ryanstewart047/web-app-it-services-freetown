@@ -453,7 +453,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
         </div>
 
         {/* Blog Posts */}
-        <div className="space-y-8">{posts.length === 0 ? (
+        <div className={posts.length === 0 ? "space-y-8" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"}>{posts.length === 0 ? (
             <div className="text-center py-20 scroll-animate">
               <div className="bg-white rounded-3xl shadow-lg p-12 max-w-md mx-auto">
                 <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto mb-6 flex items-center justify-center">
@@ -465,22 +465,40 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
             </div>
           ) : (
             posts.map((post, index) => (
-              <div key={post.id}>
+              <div key={post.id} className="h-full">
                 <article 
-                  className="group bg-white rounded-3xl shadow-lg overflow-hidden scroll-animate hover:shadow-2xl transition-all duration-500 border border-gray-100"
+                  className="group bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-500 flex flex-col h-full scroll-animate"
                 >
-                {/* Post Header with Gradient Bar */}
-                <div className="h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+                {/* Media Header */}
+                {post.image ? (
+                  <div className="h-48 sm:h-56 relative overflow-hidden bg-gray-100 cursor-pointer shrink-0" onClick={() => togglePostExpansion(post.id)}>
+                    <img 
+                      src={post.image} 
+                      alt={post.title} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                ) : post.media && post.media.length > 0 && post.media[0].type === 'image' ? (
+                  <div className="h-48 sm:h-56 relative overflow-hidden bg-gray-100 cursor-pointer shrink-0" onClick={() => togglePostExpansion(post.id)}>
+                    <img 
+                      src={post.media[0].url} 
+                      alt={post.media[0].caption || post.title} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                ) : (
+                  <div className="h-4 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 shrink-0"></div>
+                )}
                 
-                <div className="p-8 md:p-10">
+                <div className="p-6 md:p-8 flex flex-col flex-grow">
                   {/* Meta Info */}
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-6">
-                    <div className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-full">
-                      <Calendar className="w-4 h-4 text-blue-600" />
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mb-4">
+                    <div className="flex items-center gap-1.5 bg-blue-50 px-2.5 py-1 rounded-full">
+                      <Calendar className="w-3.5 h-3.5 text-blue-600" />
                       <span className="font-medium text-blue-900">{formatDate(post.date)}</span>
                     </div>
-                    <div className="flex items-center gap-2 bg-purple-50 px-3 py-1.5 rounded-full">
-                      <User className="w-4 h-4 text-purple-600" />
+                    <div className="flex items-center gap-1.5 bg-purple-50 px-2.5 py-1 rounded-full">
+                      <User className="w-3.5 h-3.5 text-purple-600" />
                       <span className="font-medium text-purple-900">{post.author}</span>
                     </div>
                   </div>
@@ -488,42 +506,44 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                   {/* Title - Clickable */}
                   <h2 
                     onClick={() => togglePostExpansion(post.id)}
-                    className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-900 via-purple-900 to-pink-900 bg-clip-text text-transparent leading-tight group-hover:scale-[1.02] transition-transform duration-300 cursor-pointer hover:opacity-80"
+                    className="text-2xl font-bold mb-4 bg-gradient-to-r from-blue-900 via-purple-900 to-pink-900 bg-clip-text text-transparent leading-tight group-hover:scale-[1.02] transition-transform duration-300 cursor-pointer hover:opacity-80"
                   >
                     {post.title}
                   </h2>
 
                   {/* Content - Excerpt or Full */}
-                  <div className="prose prose-lg max-w-none mb-8 leading-relaxed">
+                  <div className="prose prose-md max-w-none mb-6 leading-relaxed flex-grow">
                     {expandedPosts[post.id] ? (
                       <div>
-                        <div dangerouslySetInnerHTML={{ __html: post.content }} />
+                        <div dangerouslySetInnerHTML={{ __html: post.content }} className="text-sm" />
                         <button
                           onClick={() => togglePostExpansion(post.id)}
-                          className="mt-6 text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-2 transition-colors"
+                          className="mt-6 text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-2 transition-colors text-sm"
                         >
                           ← Read less
                         </button>
                       </div>
                     ) : (
-                      <div>
-                        <p>{getExcerpt(post.content)}</p>
-                        <button
-                          onClick={() => togglePostExpansion(post.id)}
-                          className="mt-4 text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-2 transition-colors"
-                        >
-                          Read more →
-                        </button>
+                      <div className="flex flex-col h-full">
+                        <p className="text-sm line-clamp-3 text-gray-600">{getExcerpt(post.content).replace(/(<([^>]+)>)/gi, "")}</p>
+                        <div className="mt-auto pt-4">
+                          <button
+                            onClick={() => togglePostExpansion(post.id)}
+                            className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-2 transition-colors text-sm"
+                          >
+                            Read more →
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
 
-                  {/* Media Display - Only show when expanded */}
-                  {expandedPosts[post.id] && post.media && post.media.length > 0 && (
-                    <div className="mt-8 space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {post.media.map((item) => (
-                          <div key={item.id} className="rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
+                  {/* Media Display - Show remaining media when expanded */}
+                  {expandedPosts[post.id] && post.media && post.media.length > 1 && (
+                    <div className="mt-4 space-y-4">
+                      <div className="grid grid-cols-1 gap-4">
+                        {post.media.slice(1).map((item) => (
+                          <div key={item.id} className="rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
                             {item.type === 'image' ? (
                               <img 
                                 src={item.url} 
@@ -538,7 +558,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                               />
                             )}
                             {item.caption && (
-                              <p className="text-sm text-gray-600 mt-3 px-2 italic">{item.caption}</p>
+                              <p className="text-xs text-gray-600 mt-2 px-2 italic">{item.caption}</p>
                             )}
                           </div>
                         ))}
@@ -548,56 +568,55 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                 </div>
 
                 {/* Engagement Bar */}
-                <div className="border-t border-gray-100 px-8 md:px-10 py-6 bg-gradient-to-r from-gray-50 to-slate-50">
-                  <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="border-t border-gray-100 px-6 py-4 bg-gradient-to-r from-gray-50 to-slate-50 mt-auto shrink-0">
+                  <div className="flex items-center justify-between flex-wrap gap-3">
                     {/* Like/Dislike Buttons */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleLike(post.id)}
-                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm ${
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all duration-300 shadow-sm ${
                           userVotes[post.id] === 'like'
                             ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-blue-200'
-                            : 'bg-white text-gray-600 hover:bg-blue-50 hover:text-blue-600 hover:shadow-md'
+                            : 'bg-white text-gray-600 hover:bg-blue-50 hover:text-blue-600'
                         }`}
                       >
-                        <ThumbsUp className="w-5 h-5" />
+                        <ThumbsUp className="w-4 h-4" />
                         <span className="font-bold">{post.likes}</span>
                       </button>
 
                       <button
                         onClick={() => handleDislike(post.id)}
-                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm ${
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all duration-300 shadow-sm ${
                           userVotes[post.id] === 'dislike'
                             ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-red-200'
                             : 'bg-white text-gray-600 hover:bg-red-50 hover:text-red-600 hover:shadow-md'
                         }`}
                       >
-                        <ThumbsDown className="w-5 h-5" />
+                        <ThumbsDown className="w-4 h-4" />
                         <span className="font-bold">{post.dislikes}</span>
                       </button>
                     </div>
 
                     {/* Comments and Share Buttons */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <button
                         onClick={() => toggleComments(post.id)}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition-all duration-300 shadow-sm hover:shadow-md font-medium"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm bg-white text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition-all duration-300 shadow-sm hover:shadow-md font-medium"
                       >
-                        <MessageCircle className="w-5 h-5" />
+                        <MessageCircle className="w-4 h-4" />
                         <span className="font-bold">{post.comments.length}</span>
-                        <span className="hidden sm:inline">Comments</span>
                       </button>
 
                       <button
                         onClick={() => handleShare(post)}
-                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm hover:shadow-md ${
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 shadow-sm hover:shadow-md ${
                           copiedPostId === post.id
                             ? 'bg-gradient-to-r from-green-500 to-green-600 text-white'
                             : 'bg-white text-gray-600 hover:bg-green-50 hover:text-green-600'
                         }`}
                       >
-                        <Share2 className="w-5 h-5" />
-                        <span className="hidden sm:inline">{copiedPostId === post.id ? 'Copied!' : 'Share'}</span>
+                        <Share2 className="w-4 h-4" />
+                        <span className="hidden xl:inline">{copiedPostId === post.id ? 'Copied' : 'Share'}</span>
                       </button>
                     </div>
                   </div>
@@ -605,7 +624,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
 
                 {/* Comments Section */}
                 {showComments[post.id] && (
-                  <div className="border-t border-gray-100 px-8 md:px-10 py-8 bg-gradient-to-br from-gray-50 to-slate-50">
+                  <div className="border-t border-gray-100 px-6 py-6 bg-gradient-to-br from-gray-50 to-slate-50 mt-auto">
                     {/* Add Comment Form */}
                     <div className="mb-8">
                       <h3 className="font-bold text-xl text-gray-900 mb-6 flex items-center gap-2">
