@@ -463,8 +463,9 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
         </div>
 
         {/* Blog Posts */}
-        <div className="space-y-8">{posts.length === 0 ? (
-            <div className="text-center py-20 scroll-animate">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {posts.length === 0 ? (
+            <div className="text-center py-20 scroll-animate col-span-full">
               <div className="bg-white rounded-3xl shadow-lg p-12 max-w-md mx-auto">
                 <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto mb-6 flex items-center justify-center">
                   <MessageCircle className="w-10 h-10 text-white" />
@@ -474,190 +475,61 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
               </div>
             </div>
           ) : (
-            posts.map((post, index) => (
-              <div key={post.id}>
-                <article 
-                  className="group bg-white rounded-3xl shadow-lg overflow-hidden scroll-animate hover:shadow-2xl transition-all duration-500 border border-gray-100"
-                >
-                {/* Post Header with Gradient Bar */}
-                <div className="h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
-                
-                <div className="p-8 md:p-10">
-                  {/* Meta Info */}
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-6">
-                    <div className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-full">
-                      <Calendar className="w-4 h-4 text-blue-600" />
-                      <span className="font-medium text-blue-900">{formatDate(post.date)}</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-purple-50 px-3 py-1.5 rounded-full">
-                      <User className="w-4 h-4 text-purple-600" />
-                      <span className="font-medium text-purple-900">{post.author}</span>
-                    </div>
-                  </div>
+            posts.map((post, index) => {
+              const firstImage = post.media && post.media.find(m => m.type === 'image');
+              return (
+              <div key={post.id} className="flex flex-col h-full">
+                <Link href={`/blog/${post.id}`} className="group flex flex-col h-full bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 border border-gray-100 scroll-animate">
+                  {/* Post Header with Gradient Bar */}
+                  <div className="h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
 
-                  {/* Title - Link */}
-                  <Link href={`/blog/${post.id}`}>
-                    <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-900 via-purple-900 to-pink-900 bg-clip-text text-transparent leading-tight group-hover:scale-[1.02] transition-transform duration-300 cursor-pointer hover:opacity-80">
+                  <div className="p-6 md:p-8 flex flex-col h-full">
+                    {/* Title */}
+                    <h2 className="text-2xl md:text-3xl font-bold mb-4 text-gray-900 group-hover:text-blue-600 transition-colors duration-300 line-clamp-2">
                       {post.title}
                     </h2>
-                  </Link>
-
-                  {/* Content - Excerpt */}
-                  <div className="prose prose-lg max-w-none mb-8 leading-relaxed">
-                    <div>
-                      <p>{getExcerpt(post.content)}</p>
-                      <Link
-                        href={`/blog/${post.id}`}
-                        className="mt-4 text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-2 transition-colors"
-                      >
-                        Read more →
-                      </Link>
-                    </div>
-                  </div>
-
-                  {/* Media Display - Only show when expanded */}
-                  {expandedPosts[post.id] && post.media && post.media.length > 0 && (
-                    <div className="mt-8 space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {post.media.map((item) => (
-                          <div key={item.id} className="rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
-                            {item.type === 'image' ? (
-                              <img 
-                                src={item.url} 
-                                alt={item.caption || 'Post image'} 
-                                className="w-full h-auto object-cover"
-                              />
-                            ) : (
-                              <video 
-                                src={item.url} 
-                                controls 
-                                className="w-full h-auto"
-                              />
-                            )}
-                            {item.caption && (
-                              <p className="text-sm text-gray-600 mt-3 px-2 italic">{item.caption}</p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Engagement Bar */}
-                <div className="border-t border-gray-100 px-8 md:px-10 py-6 bg-gradient-to-r from-gray-50 to-slate-50">
-                  <div className="flex items-center justify-between flex-wrap gap-4">
-                    {/* Like/Dislike Buttons */}
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => handleLike(post.id)}
-                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm ${
-                          userVotes[post.id] === 'like'
-                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-blue-200'
-                            : 'bg-white text-gray-600 hover:bg-blue-50 hover:text-blue-600 hover:shadow-md'
-                        }`}
-                      >
-                        <ThumbsUp className="w-5 h-5" />
-                        <span className="font-bold">{post.likes}</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleDislike(post.id)}
-                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm ${
-                          userVotes[post.id] === 'dislike'
-                            ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-red-200'
-                            : 'bg-white text-gray-600 hover:bg-red-50 hover:text-red-600 hover:shadow-md'
-                        }`}
-                      >
-                        <ThumbsDown className="w-5 h-5" />
-                        <span className="font-bold">{post.dislikes}</span>
-                      </button>
-                    </div>
-
-                    {/* Comments and Share Buttons */}
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => toggleComments(post.id)}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition-all duration-300 shadow-sm hover:shadow-md font-medium"
-                      >
-                        <MessageCircle className="w-5 h-5" />
-                        <span className="font-bold">{post.comments.length}</span>
-                        <span className="hidden sm:inline">Comments</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleShare(post)}
-                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm hover:shadow-md ${
-                          copiedPostId === post.id
-                            ? 'bg-gradient-to-r from-green-500 to-green-600 text-white'
-                            : 'bg-white text-gray-600 hover:bg-green-50 hover:text-green-600'
-                        }`}
-                      >
-                        <Share2 className="w-5 h-5" />
-                        <span className="hidden sm:inline">{copiedPostId === post.id ? 'Copied!' : 'Share'}</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Comments Section */}
-                {showComments[post.id] && (
-                  <div className="border-t border-gray-100 px-8 md:px-10 py-8 bg-gradient-to-br from-gray-50 to-slate-50">
-                    {/* Add Comment Form */}
-                    <div className="mb-8">
-                      <h3 className="font-bold text-xl text-gray-900 mb-6 flex items-center gap-2">
-                        <MessageCircle className="w-6 h-6 text-purple-600" />
-                        Leave a Comment
-                      </h3>
-                      <div className="space-y-4">
-                        <input
-                          type="text"
-                          placeholder="Your name"
-                          value={commentAuthors[post.id] || ''}
-                          onChange={(e) => setCommentAuthors({ ...commentAuthors, [post.id]: e.target.value })}
-                          className="w-full px-5 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white shadow-sm"
+                    
+                    {/* Image with Hover Animation */}
+                    {firstImage && (
+                      <div className="relative w-full aspect-video rounded-2xl overflow-hidden mb-6 shadow-md">
+                        <img 
+                          src={firstImage.url} 
+                          alt={firstImage.caption || post.title} 
+                          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                         />
-                        <div className="flex gap-3">
-                          <input
-                            type="text"
-                            placeholder="Write a comment..."
-                            value={commentInputs[post.id] || ''}
-                            onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
-                            onKeyPress={(e) => e.key === 'Enter' && handleAddComment(post.id)}
-                            className="flex-1 px-5 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white shadow-sm"
-                          />
-                          <button
-                            onClick={() => handleAddComment(post.id)}
-                            className="px-6 py-3 rounded-xl font-bold text-white transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg bg-gradient-to-r from-purple-600 to-pink-600"
-                          >
-                            <Send className="w-5 h-5" />
-                          </button>
-                        </div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                       </div>
-                    </div>
+                    )}
 
-                    {/* Comments List */}
-                    <div className="space-y-4">
-                      {post.comments.length === 0 ? (
-                        <div className="text-center py-8">
-                          <p className="text-gray-400">No comments yet. Be the first to comment!</p>
-                        </div>
-                      ) : (
-                        post.comments.map((comment) => (
-                          <div key={comment.id} className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100">
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex items-center gap-2">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
-                                  {comment.author.charAt(0).toUpperCase()}
-                                </div>
-                                <span className="font-bold text-gray-900">{comment.author}</span>
-                              </div>
-                              <span className="text-sm text-gray-400">{formatCommentDate(comment.timestamp)}</span>
-                            </div>
-                            <p className="text-gray-700 ml-12">{comment.content}</p>
-                          </div>
-                        ))
-                      )}
+                    {/* Excerpt */}
+                    <p className="text-gray-600 mb-6 line-clamp-3 leading-relaxed">
+                      {/* Using the same getExcerpt logic from before, assuming it's available */}
+                      {post.content.replace(/<[^>]+>/g, '').substring(0, 150)}...
+                    </p>
+
+                    {/* Meta Info */}
+                    <div className="mt-auto pt-6 border-t border-gray-100 flex flex-wrap justify-between items-center gap-4 text-sm text-gray-500">
+                      <div className="flex items-center gap-3">
+                        <span className="font-medium text-purple-600 bg-purple-50 px-3 py-1 rounded-full">{post.author}</span>
+                        <span className="font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">{new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                      </div>
+                      <span className="text-blue-600 font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center">
+                        Read Story →
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+
+                {/* Insert In-Feed Ad after every 3 posts to match grid columns */}
+                {(index + 1) % 3 === 0 && index < posts.length - 1 && (
+                  <div className="mt-8 col-span-full scroll-animate">
+                    <InFeedAd />
+                  </div>
+                )}
+              </div>
+              )
+            })
+          )}
                     </div>
                   </div>
                 )}
