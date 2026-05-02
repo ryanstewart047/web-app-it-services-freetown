@@ -463,7 +463,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
         </div>
 
         {/* Blog Posts */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {posts.length === 0 ? (
             <div className="text-center py-20 scroll-animate col-span-full">
               <div className="bg-white rounded-3xl shadow-lg p-12 max-w-md mx-auto">
@@ -479,13 +479,13 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
               const firstImage = post.media && post.media.find(m => m.type === 'image');
               return (
               <div key={post.id} className="flex flex-col h-full">
-                <Link href={`/blog/${post.id}`} className="group flex flex-col h-full bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 border border-gray-100 scroll-animate">
+                <Link href={`/blog/${post.id}`} className="group flex flex-col h-full bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 border border-gray-100 scroll-animate">
                   {/* Post Header with Gradient Bar */}
                   <div className="h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
 
-                  <div className="p-6 md:p-8 flex flex-col h-full">
+                  <div className="p-5 md:p-6 flex flex-col h-full">
                     {/* Title */}
-                    <h2 className="text-2xl md:text-3xl font-bold mb-4 text-gray-900 group-hover:text-blue-600 transition-colors duration-300 line-clamp-2">
+                    <h2 className="text-xl md:text-2xl font-bold mb-4 text-gray-900 group-hover:text-blue-600 transition-colors duration-300 line-clamp-2">
                       {post.title}
                     </h2>
                     
