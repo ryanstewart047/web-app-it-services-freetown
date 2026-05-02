@@ -655,7 +655,7 @@ export default function ProductDetailPage() {
             src={product.images[selectedImage].url}
             alt={product.images[selectedImage].alt || product.name}
             className="w-auto h-auto max-w-full max-h-full object-contain scale-100 sm:scale-125 transition-transform duration-300"
-            onClick={(e) => e.stopPropagation()}
+            onClick={() => setIsZoomed(false)}
           />
           <p className="absolute bottom-6 text-white/60 text-sm">Click anywhere to close</p>
         </div>

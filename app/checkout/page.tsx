@@ -49,7 +49,7 @@ export default function CheckoutPage() {
       return;
     }
     if (paymentMethod === 'mobile_money' && !formData.mobileMoneyNumber.trim()) {
-      toast.error('Please enter your mobile money number');
+      toast.error('Please enter your Orange Money number');
       return;
     }
 
@@ -235,14 +235,18 @@ export default function CheckoutPage() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                        paymentMethod === 'mobile_money' ? 'bg-blue-600' : 'bg-gray-200'
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center overflow-hidden ${
+                        paymentMethod === 'mobile_money' ? 'bg-[#FF7900]' : 'bg-gray-100'
                       }`}>
-                        <Smartphone className={`w-6 h-6 ${paymentMethod === 'mobile_money' ? 'text-white' : 'text-gray-600'}`} />
+                        <img 
+                          src="https://upload.wikimedia.org/wikipedia/commons/c/c8/Orange_logo.svg" 
+                          alt="Orange Money"
+                          className="w-6 h-6 object-contain"
+                        />
                       </div>
                       <div className="text-left">
-                        <h3 className="text-gray-900 font-bold text-lg">Mobile Money</h3>
-                        <p className="text-gray-500 text-sm">Orange Money, Afrimoney, etc.</p>
+                        <h3 className="text-gray-900 font-bold text-lg">Orange Money</h3>
+                        <p className="text-gray-500 text-sm">Pay securely via Orange Money</p>
                       </div>
                     </div>
                     {paymentMethod === 'mobile_money' && (
@@ -253,17 +257,17 @@ export default function CheckoutPage() {
 
                 {paymentMethod === 'mobile_money' && (
                   <div className="pl-4">
-                    <label className="block text-gray-700 font-bold mb-2">Mobile Money Number *</label>
+                    <label className="block text-gray-700 font-bold mb-2">Orange Money Number *</label>
                     <input
                       type="tel"
                       required
                       value={formData.mobileMoneyNumber}
                       onChange={(e) => setFormData({ ...formData, mobileMoneyNumber: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 text-gray-900 rounded-lg border border-gray-200 focus:border-blue-500 focus:outline-none"
-                      placeholder="+232 XX XXX XXX"
+                      className="w-full px-4 py-3 bg-gray-50 text-gray-900 rounded-lg border border-gray-200 focus:border-[#FF7900] focus:outline-none"
+                      placeholder="+232 7X XXX XXX"
                     />
                     <p className="text-gray-500 text-sm mt-2">
-                      You will receive a payment prompt on this number
+                      You will receive an Orange Money prompt on this number
                     </p>
                   </div>
                 )}
