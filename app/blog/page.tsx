@@ -458,7 +458,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                 >
                 {/* Media Header */}
                 {post.image ? (
-                  <Link href={`/blog/${post.id}`} className="h-48 sm:h-56 relative overflow-hidden bg-gray-100 cursor-pointer shrink-0 block">
+                  <Link href={`/blog/${post.id}`} className="h-40 sm:h-48 relative overflow-hidden bg-gray-100 cursor-pointer shrink-0 block">
                     <img 
                       src={post.image} 
                       alt={post.title} 
@@ -466,7 +466,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                     />
                   </Link>
                 ) : post.media && post.media.length > 0 && post.media[0].type === 'image' ? (
-                  <Link href={`/blog/${post.id}`} className="h-48 sm:h-56 relative overflow-hidden bg-gray-100 cursor-pointer shrink-0 block">
+                  <Link href={`/blog/${post.id}`} className="h-40 sm:h-48 relative overflow-hidden bg-gray-100 cursor-pointer shrink-0 block">
                     <img 
                       src={post.media[0].url} 
                       alt={post.media[0].caption || post.title} 
@@ -477,7 +477,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                   <div className="h-4 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 shrink-0"></div>
                 )}
                 
-                <div className="p-6 md:p-8 flex flex-col flex-grow">
+                <div className="p-5 md:p-6 flex flex-col flex-grow">
                   {/* Meta Info */}
                   <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mb-3">
                     <div className="flex items-center gap-1.5 bg-blue-50 px-2.5 py-1 rounded-full">
@@ -493,7 +493,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                   {/* Title - Clickable */}
                   <Link href={`/blog/${post.id}`} className="group-hover:opacity-80 transition-opacity">
                     <h2 
-                      className="text-2xl font-bold mb-3 bg-gradient-to-r from-blue-900 via-purple-900 to-pink-900 bg-clip-text text-transparent leading-tight transition-transform duration-300 cursor-pointer"
+                      className="text-xl font-bold mb-2 bg-gradient-to-r from-blue-900 via-purple-900 to-pink-900 bg-clip-text text-transparent leading-tight transition-transform duration-300 cursor-pointer"
                     >
                       {post.title}
                     </h2>
@@ -501,8 +501,8 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
 
                   {/* Content - Excerpt or Full */}
                   <div className="prose prose-md max-w-none text-sm text-gray-600 leading-relaxed flex-grow flex flex-col">
-                    <p className="line-clamp-3 m-0">{getExcerpt(post.content).replace(/(<([^>]+)>)/gi, "")}</p>
-                    <div className="mt-4">
+                    <p className="line-clamp-2 m-0">{getExcerpt(post.content).replace(/(<([^>]+)>)/gi, "")}</p>
+                    <div className="mt-3">
                       <Link
                         href={`/blog/${post.id}`}
                         className="text-blue-600 hover:text-blue-700 font-semibold inline-flex items-center gap-1.5 transition-colors text-sm"
