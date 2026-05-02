@@ -458,7 +458,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                 >
                 {/* Media Header */}
                 {post.image ? (
-                  <Link href={`/blog/${post.id}`} className="h-40 sm:h-48 relative overflow-hidden bg-gray-100 cursor-pointer shrink-0 block">
+                  <Link href={`/blog/${post.id}`} className="h-32 sm:h-40 relative overflow-hidden bg-gray-100 cursor-pointer shrink-0 block">
                     <img 
                       src={post.image} 
                       alt={post.title} 
@@ -466,7 +466,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                     />
                   </Link>
                 ) : post.media && post.media.length > 0 && post.media[0].type === 'image' ? (
-                  <Link href={`/blog/${post.id}`} className="h-40 sm:h-48 relative overflow-hidden bg-gray-100 cursor-pointer shrink-0 block">
+                  <Link href={`/blog/${post.id}`} className="h-32 sm:h-40 relative overflow-hidden bg-gray-100 cursor-pointer shrink-0 block">
                     <img 
                       src={post.media[0].url} 
                       alt={post.media[0].caption || post.title} 
@@ -474,18 +474,18 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                     />
                   </Link>
                 ) : (
-                  <div className="h-4 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 shrink-0"></div>
+                  <div className="h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 shrink-0"></div>
                 )}
                 
-                <div className="px-5 pt-5 pb-4 md:px-6 md:pt-6 md:pb-5 flex flex-col flex-grow">
+                <div className="p-4 md:p-5 flex flex-col flex-grow">
                   {/* Meta Info */}
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mb-3">
-                    <div className="flex items-center gap-1.5 bg-blue-50 px-2.5 py-1 rounded-full">
-                      <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] text-gray-500 mb-2">
+                    <div className="flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded-full">
+                      <Calendar className="w-3 h-3 text-blue-600" />
                       <span className="font-medium text-blue-900">{formatDate(post.date)}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-purple-50 px-2.5 py-1 rounded-full">
-                      <User className="w-3.5 h-3.5 text-purple-600" />
+                    <div className="flex items-center gap-1 bg-purple-50 px-2 py-0.5 rounded-full">
+                      <User className="w-3 h-3 text-purple-600" />
                       <span className="font-medium text-purple-900">{post.author}</span>
                     </div>
                   </div>
@@ -493,19 +493,19 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                   {/* Title - Clickable */}
                   <Link href={`/blog/${post.id}`} className="group-hover:opacity-80 transition-opacity">
                     <h2 
-                      className="text-xl font-bold mb-2 bg-gradient-to-r from-blue-900 via-purple-900 to-pink-900 bg-clip-text text-transparent leading-tight transition-transform duration-300 cursor-pointer"
+                      className="text-lg font-bold mb-1.5 bg-gradient-to-r from-blue-900 via-purple-900 to-pink-900 bg-clip-text text-transparent leading-tight transition-transform duration-300 cursor-pointer line-clamp-2"
                     >
                       {post.title}
                     </h2>
                   </Link>
 
                   {/* Content - Excerpt or Full */}
-                  <div className="prose prose-md max-w-none text-sm text-gray-600 leading-relaxed flex-grow flex flex-col">
+                  <div className="prose prose-sm max-w-none text-[13px] text-gray-600 leading-snug flex-grow flex flex-col">
                     <p className="line-clamp-2 m-0">{getExcerpt(post.content).replace(/(<([^>]+)>)/gi, "")}</p>
-                    <div className="mt-auto pt-3">
+                    <div className="mt-auto pt-2">
                       <Link
                         href={`/blog/${post.id}`}
-                        className="text-blue-600 hover:text-blue-700 font-semibold inline-flex items-center gap-1.5 transition-colors text-sm"
+                        className="text-blue-600 hover:text-blue-700 font-semibold inline-flex items-center gap-1 transition-colors text-[13px]"
                       >
                         Read more →
                       </Link>
@@ -514,25 +514,25 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                 </div>
 
                 {/* Engagement Bar */}
-                <div className="border-t border-gray-100 px-6 py-4 bg-gradient-to-r from-gray-50 to-slate-50 mt-auto shrink-0">
-                  <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="border-t border-gray-100 px-4 py-3 bg-gradient-to-r from-gray-50 to-slate-50 mt-auto shrink-0">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
                     {/* Like/Dislike Buttons */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => handleLike(post.id)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all duration-300 shadow-sm ${
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs transition-all duration-300 shadow-sm ${
                           userVotes[post.id] === 'like'
                             ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-blue-200'
                             : 'bg-white text-gray-600 hover:bg-blue-50 hover:text-blue-600'
                         }`}
                       >
-                        <ThumbsUp className="w-4 h-4" />
+                        <ThumbsUp className="w-3.5 h-3.5" />
                         <span className="font-bold">{post.likes}</span>
                       </button>
 
                       <button
                         onClick={() => handleDislike(post.id)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all duration-300 shadow-sm ${
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs transition-all duration-300 shadow-sm ${
                           userVotes[post.id] === 'dislike'
                             ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-red-200'
                             : 'bg-white text-gray-600 hover:bg-red-50 hover:text-red-600 hover:shadow-md'
@@ -544,24 +544,24 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                     </div>
 
                     {/* Comments and Share Buttons */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => toggleComments(post.id)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm bg-white text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition-all duration-300 shadow-sm hover:shadow-md font-medium"
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs bg-white text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition-all duration-300 shadow-sm hover:shadow-md font-medium"
                       >
-                        <MessageCircle className="w-4 h-4" />
+                        <MessageCircle className="w-3.5 h-3.5" />
                         <span className="font-bold">{post.comments.length}</span>
                       </button>
 
                       <button
                         onClick={() => handleShare(post)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 shadow-sm hover:shadow-md ${
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all duration-300 shadow-sm hover:shadow-md ${
                           copiedPostId === post.id
                             ? 'bg-gradient-to-r from-green-500 to-green-600 text-white'
                             : 'bg-white text-gray-600 hover:bg-green-50 hover:text-green-600'
                         }`}
                       >
-                        <Share2 className="w-4 h-4" />
+                        <Share2 className="w-3.5 h-3.5" />
                         <span className="hidden xl:inline">{copiedPostId === post.id ? 'Copied' : 'Share'}</span>
                       </button>
                     </div>
