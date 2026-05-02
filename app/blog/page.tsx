@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
@@ -44,7 +45,6 @@ export default function BlogPage() {
   const [commentAuthors, setCommentAuthors] = useState<{ [key: string]: string }>({})
   const [showComments, setShowComments] = useState<{ [key: string]: boolean }>({})
   const [userVotes, setUserVotes] = useState<{ [key: string]: 'like' | 'dislike' | null }>({})
-  const [expandedPosts, setExpandedPosts] = useState<{ [key: string]: boolean }>({})
   const [copiedPostId, setCopiedPostId] = useState<string | null>(null)
 
   useScrollAnimations()
@@ -216,12 +216,6 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
         if (shareImage) {
           twitterImage.setAttribute('content', shareImage)
         }
-        
-        // Expand the post automatically when accessed via hash
-        setExpandedPosts(prev => ({
-          ...prev,
-          [postId]: true
-        }))
         
         // Scroll to the post
         setTimeout(() => {
@@ -425,13 +419,6 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
     return strippedContent.substring(0, maxLength).trim() + '...'
   }
 
-  const togglePostExpansion = (postId: string) => {
-    setExpandedPosts(prev => ({
-      ...prev,
-      [postId]: !prev[postId]
-    }))
-  }
-
   if (isLoading) {
     return <LoadingOverlay />
   }
@@ -471,28 +458,28 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                 >
                 {/* Media Header */}
                 {post.image ? (
-                  <div className="h-48 sm:h-56 relative overflow-hidden bg-gray-100 cursor-pointer shrink-0" onClick={() => togglePostExpansion(post.id)}>
+                  <Link href={`/blog/${post.id}`} className="h-48 sm:h-56 relative overflow-hidden bg-gray-100 cursor-pointer shrink-0 block">
                     <img 
                       src={post.image} 
                       alt={post.title} 
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                  </div>
+                  </Link>
                 ) : post.media && post.media.length > 0 && post.media[0].type === 'image' ? (
-                  <div className="h-48 sm:h-56 relative overflow-hidden bg-gray-100 cursor-pointer shrink-0" onClick={() => togglePostExpansion(post.id)}>
+                  <Link href={`/blog/${post.id}`} className="h-48 sm:h-56 relative overflow-hidden bg-gray-100 cursor-pointer shrink-0 block">
                     <img 
                       src={post.media[0].url} 
                       alt={post.media[0].caption || post.title} 
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                  </div>
+                  </Link>
                 ) : (
                   <div className="h-4 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 shrink-0"></div>
                 )}
                 
                 <div className="p-6 md:p-8 flex flex-col flex-grow">
                   {/* Meta Info */}
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mb-4">
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mb-3">
                     <div className="flex items-center gap-1.5 bg-blue-50 px-2.5 py-1 rounded-full">
                       <Calendar className="w-3.5 h-3.5 text-blue-600" />
                       <span className="font-medium text-blue-900">{formatDate(post.date)}</span>
@@ -504,67 +491,26 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                   </div>
 
                   {/* Title - Clickable */}
-                  <h2 
-                    onClick={() => togglePostExpansion(post.id)}
-                    className="text-2xl font-bold mb-4 bg-gradient-to-r from-blue-900 via-purple-900 to-pink-900 bg-clip-text text-transparent leading-tight group-hover:scale-[1.02] transition-transform duration-300 cursor-pointer hover:opacity-80"
-                  >
-                    {post.title}
-                  </h2>
+                  <Link href={`/blog/${post.id}`} className="group-hover:opacity-80 transition-opacity">
+                    <h2 
+                      className="text-2xl font-bold mb-3 bg-gradient-to-r from-blue-900 via-purple-900 to-pink-900 bg-clip-text text-transparent leading-tight transition-transform duration-300 cursor-pointer"
+                    >
+                      {post.title}
+                    </h2>
+                  </Link>
 
                   {/* Content - Excerpt or Full */}
-                  <div className="prose prose-md max-w-none mb-6 leading-relaxed flex-grow">
-                    {expandedPosts[post.id] ? (
-                      <div>
-                        <div dangerouslySetInnerHTML={{ __html: post.content }} className="text-sm" />
-                        <button
-                          onClick={() => togglePostExpansion(post.id)}
-                          className="mt-6 text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-2 transition-colors text-sm"
-                        >
-                          ← Read less
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col h-full">
-                        <p className="text-sm line-clamp-3 text-gray-600">{getExcerpt(post.content).replace(/(<([^>]+)>)/gi, "")}</p>
-                        <div className="mt-auto pt-4">
-                          <button
-                            onClick={() => togglePostExpansion(post.id)}
-                            className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-2 transition-colors text-sm"
-                          >
-                            Read more →
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Media Display - Show remaining media when expanded */}
-                  {expandedPosts[post.id] && post.media && post.media.length > 1 && (
-                    <div className="mt-4 space-y-4">
-                      <div className="grid grid-cols-1 gap-4">
-                        {post.media.slice(1).map((item) => (
-                          <div key={item.id} className="rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-                            {item.type === 'image' ? (
-                              <img 
-                                src={item.url} 
-                                alt={item.caption || 'Post image'} 
-                                className="w-full h-auto object-cover"
-                              />
-                            ) : (
-                              <video 
-                                src={item.url} 
-                                controls 
-                                className="w-full h-auto"
-                              />
-                            )}
-                            {item.caption && (
-                              <p className="text-xs text-gray-600 mt-2 px-2 italic">{item.caption}</p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                  <div className="prose prose-md max-w-none text-sm text-gray-600 leading-relaxed flex-grow flex flex-col">
+                    <p className="line-clamp-3 m-0">{getExcerpt(post.content).replace(/(<([^>]+)>)/gi, "")}</p>
+                    <div className="mt-4">
+                      <Link
+                        href={`/blog/${post.id}`}
+                        className="text-blue-600 hover:text-blue-700 font-semibold inline-flex items-center gap-1.5 transition-colors text-sm"
+                      >
+                        Read more →
+                      </Link>
                     </div>
-                  )}
+                  </div>
                 </div>
 
                 {/* Engagement Bar */}
