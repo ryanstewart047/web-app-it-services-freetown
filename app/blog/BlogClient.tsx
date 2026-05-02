@@ -463,7 +463,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
         </div>
 
         {/* Blog Posts */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
           {posts.length === 0 ? (
             <div className="text-center py-20 scroll-animate col-span-full">
               <div className="bg-white rounded-3xl shadow-lg p-12 max-w-md mx-auto">
@@ -481,17 +481,17 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
               <div key={post.id} className="flex flex-col h-full">
                 <Link href={`/blog/${post.id}`} className="group flex flex-col h-full bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 border border-gray-100 scroll-animate">
                   {/* Post Header with Gradient Bar */}
-                  <div className="h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+                  <div className="h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
 
-                  <div className="p-5 md:p-6 flex flex-col h-full">
+                  <div className="p-4 md:p-5 flex flex-col h-full">
                     {/* Title */}
-                    <h2 className="text-xl md:text-2xl font-bold mb-4 text-gray-900 group-hover:text-blue-600 transition-colors duration-300 line-clamp-2">
+                    <h2 className="text-lg md:text-xl font-bold mb-3 text-gray-900 group-hover:text-blue-600 transition-colors duration-300 line-clamp-2 leading-snug">
                       {post.title}
                     </h2>
                     
                     {/* Image with Hover Animation */}
                     {firstImage && (
-                      <div className="relative w-full aspect-video rounded-2xl overflow-hidden mb-6 shadow-md">
+                      <div className="relative w-full h-36 md:h-40 rounded-xl overflow-hidden mb-4 shadow-sm">
                         <img 
                           src={firstImage.url} 
                           alt={firstImage.caption || post.title} 
@@ -502,19 +502,19 @@ At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Ro
                     )}
 
                     {/* Excerpt */}
-                    <p className="text-gray-600 mb-6 line-clamp-3 leading-relaxed">
+                    <p className="text-gray-500 text-sm mb-4 line-clamp-2 leading-relaxed">
                       {/* Using the same getExcerpt logic from before, assuming it's available */}
-                      {post.content.replace(/<[^>]+>/g, '').substring(0, 150)}...
+                      {post.content.replace(/<[^>]+>/g, '').substring(0, 100)}...
                     </p>
 
                     {/* Meta Info */}
-                    <div className="mt-auto pt-6 border-t border-gray-100 flex flex-wrap justify-between items-center gap-4 text-sm text-gray-500">
-                      <div className="flex items-center gap-3">
-                        <span className="font-medium text-purple-600 bg-purple-50 px-3 py-1 rounded-full">{post.author}</span>
-                        <span className="font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">{new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                    <div className="mt-auto pt-4 border-t border-gray-100 flex flex-wrap justify-between items-center gap-2 text-xs text-gray-500">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-purple-600 bg-purple-50 px-2 py-0.5 rounded-md truncate max-w-[80px]">{post.author}</span>
+                        <span className="font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">{new Date(post.date).toLocaleDateString('en-US', { year: '2-digit', month: 'short', day: 'numeric' })}</span>
                       </div>
                       <span className="text-blue-600 font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center">
-                        Read Story →
+                        Read →
                       </span>
                     </div>
                   </div>
