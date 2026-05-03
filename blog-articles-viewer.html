@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog Articles - Ready to Import</title>
+    <title>Blog - IT Services Freetown</title>
     <style>
         * {
             margin: 0;
@@ -12,192 +12,156 @@
         }
         
         body {
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
             line-height: 1.6;
-            color: #1a1a1a;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
+            color: #2c3e50;
+            background: #ffffff;
         }
         
-        .header {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 4rem 2rem;
+            padding: 80px 40px;
             text-align: center;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
         }
         
-        .header h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.5px;
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            pointer-events: none;
         }
         
-        .header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            font-weight: 300;
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -5%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+            pointer-events: none;
         }
         
-        .container {
-            max-width: 1400px;
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 700px;
             margin: 0 auto;
-            padding: 3rem 2rem;
         }
         
-        .section-title {
-            text-align: center;
-            margin-bottom: 3rem;
-            color: #1a1a1a;
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
         }
         
-        .section-title h2 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
+        .hero p {
+            font-size: 1.3rem;
+            opacity: 0.95;
+            font-weight: 300;
+            margin-bottom: 30px;
         }
         
-        .section-title p {
-            font-size: 1.1rem;
-            color: #666;
-        }
-        
-        .instructions {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 15px;
-            margin-bottom: 3rem;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-            border-left: 5px solid #2a5298;
-        }
-        
-        .instructions h2 {
-            color: #2a5298;
-            margin-bottom: 1.5rem;
-            font-size: 1.8rem;
-        }
-        
-        .instructions ol {
-            margin-left: 2rem;
-            margin-bottom: 1rem;
-        }
-        
-        .instructions li {
-            margin-bottom: 0.8rem;
-            line-height: 1.8;
-        }
-        
-        .instructions .highlight {
-            background: linear-gradient(135deg, #fff5e6 0%, #ffe8cc 100%);
-            padding: 1.5rem;
-            border-left: 4px solid #ff9800;
-            margin: 1.5rem 0;
-            border-radius: 8px;
-        }
-        
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-        
-        .stat-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(42, 82, 152, 0.15);
-        }
-        
-        .stat-card .number {
-            font-size: 3rem;
-            font-weight: 700;
-            color: #2a5298;
-            margin-bottom: 0.5rem;
-        }
-        
-        .stat-card .label {
-            color: #666;
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 0.95rem;
             font-weight: 600;
+            backdrop-filter: blur(10px);
         }
         
-        .article-list {
+        /* Main Container */
+        .main-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 60px 40px;
+        }
+        
+        /* Articles Grid */
+        .articles-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 2rem;
-            margin-bottom: 3rem;
+            gap: 30px;
+            margin-top: 50px;
         }
         
+        /* Article Card */
         .article-card {
             background: white;
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
             height: 100%;
             position: relative;
-            border-left: 4px solid #2a5298;
-        }
-        
-        .article-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #2a5298 0%, #6b9bd1 100%);
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.4s ease;
-            z-index: 1;
-            display: none;
-        }
-        
-        .article-card:hover::before {
-            transform: scaleX(1);
         }
         
         .article-card:hover {
-            box-shadow: 0 12px 24px rgba(42, 82, 152, 0.15);
+            transform: translateY(-8px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.15);
         }
         
-        .article-image {
+        .article-thumbnail {
             width: 100%;
-            height: 140px;
+            height: 180px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
+            font-size: 4rem;
             color: white;
-            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .article-thumbnail::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1), transparent 70%);
+            animation: shimmer 3s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translate(-100%, -100%) rotate(45deg); }
+            100% { transform: translate(100%, 100%) rotate(45deg); }
+        }
+        
+        .article-content-wrapper {
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
         }
         
         .article-header {
-            padding: 1.2rem 1.2rem 0.8rem;
-            flex-shrink: 0;
+            margin-bottom: 12px;
         }
         
-        .article-header h3 {
-            font-size: 1.1rem;
-            margin-bottom: 0.6rem;
+        .article-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 8px;
             line-height: 1.4;
-            color: #1a1a1a;
-            font-weight: 600;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -206,30 +170,23 @@
         
         .article-meta {
             display: flex;
-            gap: 0.8rem;
-            font-size: 0.75rem;
-            opacity: 0.7;
+            gap: 12px;
+            font-size: 0.85rem;
+            color: #7f8c8d;
             flex-wrap: wrap;
         }
         
-        .article-meta span {
+        .article-meta-item {
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 4px;
         }
         
-        .article-body {
-            padding: 1rem 1.2rem;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .excerpt {
+        .article-excerpt {
+            font-size: 0.95rem;
             color: #555;
-            margin-bottom: 0.8rem;
-            font-size: 0.85rem;
-            line-height: 1.5;
+            line-height: 1.6;
+            margin: 15px 0;
             flex-grow: 1;
             display: -webkit-box;
             -webkit-line-clamp: 3;
@@ -237,411 +194,281 @@
             overflow: hidden;
         }
         
-        .tags {
+        .article-tags {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.4rem;
-            margin-bottom: 0.8rem;
-            margin-top: auto;
+            gap: 6px;
+            margin: 15px 0;
+            padding-top: 15px;
+            border-top: 1px solid #ecf0f1;
         }
         
         .tag {
-            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
-            color: #2a5298;
-            padding: 0.3rem 0.7rem;
-            border-radius: 16px;
-            font-size: 0.7rem;
+            background: #f0f3ff;
+            color: #667eea;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
             font-weight: 600;
-            border: 1px solid rgba(42, 82, 152, 0.2);
+            text-transform: capitalize;
         }
         
-        .article-content {
-            background: #f9f9f9;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin-top: 1rem;
+        /* Hidden Content */
+        .article-full-content {
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.4s ease;
-        }
-        
-        .article-content.expanded {
-            max-height: 2000px;
-        }
-        
-        .article-content h2 {
-            color: #1a1a1a;
-            margin-top: 1.5rem;
-            margin-bottom: 1rem;
-            font-size: 1.3rem;
-            font-weight: 600;
-        }
-        
-        .article-content h3 {
-            color: #333;
-            margin-top: 1.2rem;
-            margin-bottom: 0.8rem;
-            font-size: 1.1rem;
-        }
-        
-        .article-content h4 {
+            padding: 0 25px;
+            font-size: 0.95rem;
             color: #555;
-            margin-top: 1rem;
-            margin-bottom: 0.6rem;
-            font-size: 1rem;
         }
         
-        .article-content ul, .article-content ol {
-            margin-left: 2rem;
-            margin-bottom: 1rem;
+        .article-full-content.expanded {
+            max-height: 2000px;
+            padding: 20px 25px;
+            border-top: 1px solid #ecf0f1;
         }
         
-        .article-content li {
-            margin-bottom: 0.5rem;
+        .article-full-content h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 15px 0 10px 0;
         }
         
-        .article-content p {
-            margin-bottom: 1rem;
-        }
-        
-        .article-content strong {
-            color: #1a1a1a;
+        .article-full-content h3 {
+            font-size: 1.15rem;
             font-weight: 600;
+            color: #34495e;
+            margin: 12px 0 8px 0;
         }
         
-        .actions {
+        .article-full-content ul, .article-full-content ol {
+            margin-left: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .article-full-content li {
+            margin-bottom: 6px;
+        }
+        
+        .article-full-content p {
+            margin-bottom: 10px;
+        }
+        
+        /* Actions */
+        .article-actions {
             display: flex;
-            gap: 0.8rem;
-            padding: 1rem 1.2rem;
-            background: linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%);
-            border-top: 1px solid #e0e0e0;
-            flex-shrink: 0;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ecf0f1;
         }
         
         .btn {
-            padding: 0.7rem 1rem;
+            flex: 1;
+            padding: 10px 12px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 0.8rem;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-weight: 600;
-            flex: 1;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #2a5298 0%, #6b9bd1 100%);
-            color: white;
-            border: none;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(42, 82, 152, 0.4);
-        }
-        
-        .btn-success {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-            border: none;
-        }
-        
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
-        }
-        
-        .btn-secondary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-        }
-        
-        .btn-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-        
-        .copy-notification {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-            padding: 1.2rem 2rem;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            display: none;
-            animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.320, 1);
-            z-index: 1000;
-            font-weight: 600;
             letter-spacing: 0.5px;
         }
         
-        .copy-notification.show {
-            display: block;
+        .btn-view {
+            background: #667eea;
+            color: white;
         }
         
-        @keyframes slideUp {
-            from {
-                transform: translateY(100px) translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0) translateX(0);
-                opacity: 1;
-            }
+        .btn-view:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
         
-        /* Tablet devices */
-        @media (max-width: 1024px) {
-            .article-list {
+        .btn-copy {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-copy:hover {
+            background: #229954;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+        }
+        
+        .btn-title {
+            background: #e8f1f8;
+            color: #667eea;
+        }
+        
+        .btn-title:hover {
+            background: #d4e6f4;
+            transform: translateY(-2px);
+        }
+        
+        /* Notification */
+        .notification {
+            position: fixed;
+            bottom: -100px;
+            right: 30px;
+            background: #27ae60;
+            color: white;
+            padding: 16px 28px;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            font-weight: 600;
+            z-index: 1000;
+            transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .notification.show {
+            bottom: 30px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .articles-grid {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 2rem;
+                gap: 25px;
             }
             
-            .container {
-                padding: 2rem 1.5rem;
-            }
-            
-            .header h1 {
-                font-size: 2.2rem;
+            .hero h1 {
+                font-size: 2.8rem;
             }
         }
         
-        /* Mobile devices */
         @media (max-width: 768px) {
-            .article-list {
+            .articles-grid {
                 grid-template-columns: 1fr;
-                gap: 1.5rem;
+                gap: 20px;
             }
             
-            .header {
-                padding: 2rem 1.5rem;
+            .hero {
+                padding: 50px 25px;
             }
             
-            .header h1 {
-                font-size: 1.8rem;
-            }
-            
-            .header p {
-                font-size: 1rem;
-            }
-            
-            .container {
-                padding: 1.5rem;
-            }
-            
-            .section-title h2 {
-                font-size: 1.8rem;
-            }
-            
-            .instructions {
-                padding: 1.5rem;
-            }
-            
-            .article-image {
-                height: 120px;
+            .hero h1 {
                 font-size: 2rem;
             }
             
-            .article-header h3 {
-                font-size: 1.1rem;
+            .hero p {
+                font-size: 1rem;
             }
             
-            .article-body {
-                padding: 1.2rem;
+            .main-container {
+                padding: 40px 20px;
             }
             
-            .excerpt {
+            .article-thumbnail {
+                height: 150px;
+                font-size: 3rem;
+            }
+            
+            .article-content-wrapper {
+                padding: 20px;
+            }
+            
+            .article-title {
+                font-size: 1.15rem;
+            }
+            
+            .article-excerpt {
                 font-size: 0.9rem;
             }
             
             .article-meta {
                 font-size: 0.8rem;
-                gap: 0.8rem;
-            }
-            
-            .actions {
-                flex-direction: column;
-                padding: 1rem;
-                gap: 0.7rem;
             }
             
             .btn {
-                padding: 0.7rem 1rem;
-                font-size: 0.85rem;
+                padding: 8px 10px;
+                font-size: 0.75rem;
             }
             
-            .stats {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1.5rem;
+            .article-actions {
+                flex-direction: column;
             }
         }
         
-        /* Small mobile devices */
         @media (max-width: 480px) {
-            .header {
-                padding: 1.5rem 1rem;
+            .hero {
+                padding: 40px 15px;
             }
             
-            .header h1 {
-                font-size: 1.4rem;
-                margin-bottom: 0.5rem;
+            .hero h1 {
+                font-size: 1.6rem;
             }
             
-            .header p {
-                font-size: 0.9rem;
-            }
-            
-            .container {
-                padding: 1rem;
-            }
-            
-            .section-title h2 {
-                font-size: 1.5rem;
-            }
-            
-            .section-title p {
+            .hero p {
                 font-size: 0.95rem;
             }
             
-            .instructions {
-                padding: 1.2rem;
-                border-radius: 10px;
-                margin-bottom: 2rem;
+            .main-container {
+                padding: 25px 15px;
             }
             
-            .instructions h2 {
-                font-size: 1.3rem;
-                margin-bottom: 1rem;
+            .article-thumbnail {
+                height: 120px;
+                font-size: 2.5rem;
             }
             
-            .instructions ol {
-                margin-left: 1.5rem;
-                font-size: 0.9rem;
+            .article-content-wrapper {
+                padding: 15px;
             }
             
-            .stats {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-                margin-bottom: 2rem;
+            .article-title {
+                font-size: 1rem;
+                margin-bottom: 6px;
             }
             
-            .stat-card {
-                padding: 1.5rem 1rem;
-            }
-            
-            .stat-card .number {
-                font-size: 2rem;
-            }
-            
-            .stat-card .label {
+            .article-excerpt {
                 font-size: 0.85rem;
+                margin: 10px 0;
             }
             
-            .article-card {
-                border-radius: 12px;
-            }
-            
-            .article-image {
-                height: 100px;
-                font-size: 1.8rem;
-            }
-            
-            .article-body {
-                padding: 1rem;
-            }
-            
-            .excerpt {
-                font-size: 0.85rem;
-                margin-bottom: 1rem;
+            .article-meta {
+                font-size: 0.75rem;
+                gap: 8px;
             }
             
             .tag {
-                font-size: 0.75rem;
-                padding: 0.3rem 0.6rem;
-            }
-            
-            .actions {
-                padding: 1rem;
-                gap: 0.6rem;
+                font-size: 0.7rem;
+                padding: 4px 10px;
             }
             
             .btn {
-                padding: 0.6rem 0.8rem;
-                font-size: 0.8rem;
+                padding: 7px 8px;
+                font-size: 0.7rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="container">
-            <h1>📝 Blog Articles Ready for Import</h1>
-            <p>8 comprehensive articles for IT Services Freetown</p>
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">✨ Expert Tech Insights & Solutions</div>
+            <h1>Blog & Knowledge Base</h1>
+            <p>Stay updated with the latest IT tips, device repair guides, and technology news for Sierra Leone</p>
         </div>
     </div>
     
-    <div class="container">
-        <div class="instructions">
-            <h2>📋 How to Import These Articles</h2>
-            <ol>
-                <li>Click <strong>"View Full Article"</strong> on any article below</li>
-                <li>Click <strong>"Copy HTML"</strong> to copy the article content</li>
-                <li>Go to <a href="https://www.itservicesfreetown.com/blog/admin" target="_blank"><strong>Blog Admin Panel</strong></a> (requires authentication)</li>
-                <li>Paste the HTML into the editor, add title and tags</li>
-                <li>Click <strong>"Publish Post"</strong></li>
-                <li>Repeat for all 8 articles</li>
-            </ol>
-            
-            <div class="highlight">
-                <strong>⚠️ After importing all articles:</strong><br>
-                Go to <a href="https://adsense.google.com" target="_blank">Google AdSense</a> and request a re-review for your site!
-            </div>
-        </div>
-        
-        <div class="stats">
-            <div class="stat-card">
-                <div class="number">8</div>
-                <div class="label">Articles</div>
-            </div>
-            <div class="stat-card">
-                <div class="number">~10,610</div>
-                <div class="label">Total Words</div>
-            </div>
-            <div class="stat-card">
-                <div class="number">800-1,850</div>
-                <div class="label">Words/Article</div>
-            </div>
-            <div class="stat-card">
-                <div class="number">100%</div>
-                <div class="label">Original Content</div>
-            </div>
-        </div>
-        
-        <div class="article-list" id="articleList">
-            <!-- Articles will be loaded here by JavaScript -->
+    <!-- Main Content -->
+    <div class="main-container">
+        <div class="articles-grid" id="articleList">
+            <!-- Articles loaded by JavaScript -->
         </div>
     </div>
     
-    <div class="copy-notification" id="copyNotification">
-        ✓ Copied to clipboard!
-    </div>
+    <!-- Notification -->
+    <div class="notification" id="copyNotification"></div>
     
     <script>
-        const articles = [
-            {
-                title: "Complete Guide to Computer Repair Services in Freetown, Sierra Leone",
-                author: "IT Services Freetown",
-                wordCount: 837,
-                tags: ["computer repair", "freetown", "sierra leone", "it services", "maintenance"],
-                excerpt: "A comprehensive guide to finding reliable computer repair services in Freetown, including common problems, cost considerations, and tips for choosing the right service provider.",
-                content: document.createElement('div')
-            }
-        ];
+        const emojis = ['📱', '🖥️', '🔧', '💻', '⚙️', '🛠️', '🔌', '📡'];
         
         // Load articles from JSON files
         async function loadArticles() {
@@ -677,41 +504,39 @@
         
         function displayArticles(articles) {
             const container = document.getElementById('articleList');
-            const emojis = ['📱', '🖥️', '🔧', '💻', '⚙️', '🛠️', '🔌', '📡'];
             
             container.innerHTML = articles.map((article, index) => {
                 const wordCount = article.content.replace(/<[^>]+>/g, ' ').split(/\s+/).length;
                 const emoji = emojis[index % emojis.length];
+                const tagsHTML = article.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
                 
                 return `
                     <div class="article-card">
-                        <div class="article-image">${emoji}</div>
-                        <div class="article-header">
-                            <h3>${article.title}</h3>
-                            <div class="article-meta">
-                                <span>✍️ ${article.author}</span>
-                                <span>📝 ~${wordCount} words</span>
+                        <div class="article-thumbnail">${emoji}</div>
+                        <div class="article-content-wrapper">
+                            <div class="article-header">
+                                <div class="article-title">${article.title}</div>
+                                <div class="article-meta">
+                                    <div class="article-meta-item">✍️ ${article.author}</div>
+                                    <div class="article-meta-item">📝 ~${wordCount} words</div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="article-body">
-                            <div class="excerpt">${article.excerpt}</div>
-                            <div class="tags">
-                                ${article.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                            </div>
-                            <div class="article-content" id="content-${index}">
+                            <div class="article-excerpt">${article.excerpt}</div>
+                            <div class="article-tags">${tagsHTML}</div>
+                            <div class="article-full-content" id="content-${index}">
                                 ${article.content}
                             </div>
-                        </div>
-                        <div class="actions">
-                            <button class="btn btn-primary" onclick="toggleContent(${index})">
-                                <span id="btn-text-${index}">View Full Article</span>
-                            </button>
-                            <button class="btn btn-success" onclick="copyHTML(${index}, '${article.title.replace(/'/g, "\\'")}')">
-                                Copy HTML
-                            </button>
-                            <button class="btn btn-secondary" onclick="copyTitle('${article.title.replace(/'/g, "\\'")}')">
-                                Copy Title
-                            </button>
+                            <div class="article-actions">
+                                <button class="btn btn-view" onclick="toggleContent(${index})">
+                                    <span id="btn-text-${index}">📖 Read</span>
+                                </button>
+                                <button class="btn btn-copy" onclick="copyHTML(${index}, '${article.title.replace(/'/g, "\\'")}')">
+                                    📋 Copy
+                                </button>
+                                <button class="btn btn-title" onclick="copyTitle('${article.title.replace(/'/g, "\\'")}')">
+                                    ✏️ Title
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -721,21 +546,14 @@
         function displayManualArticles() {
             const container = document.getElementById('articleList');
             container.innerHTML = `
-                <div class="instructions">
-                    <h2>📁 Article Files Location</h2>
-                    <p>The articles are stored in these JSON files:</p>
-                    <ul>
-                        <li><strong>content/blog-articles.json</strong> - Articles 1-3</li>
-                        <li><strong>content/blog-articles-2.json</strong> - Articles 4-5</li>
-                        <li><strong>content/blog-articles-4.json</strong> - Articles 6-7</li>
+                <div style="grid-column: 1 / -1; padding: 40px 20px; text-align: center; background: white; border-radius: 12px; box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);">
+                    <h2 style="font-size: 1.8rem; color: #2c3e50; margin-bottom: 15px;">📁 Articles Not Found</h2>
+                    <p style="color: #555; margin-bottom: 10px;">The articles are stored in JSON files:</p>
+                    <ul style="text-align: left; display: inline-block; margin: 15px 0; color: #555;">
+                        <li>content/blog-articles.json</li>
+                        <li>content/blog-articles-2.json</li>
+                        <li>content/blog-articles-4.json</li>
                     </ul>
-                    <p>You can:</p>
-                    <ol>
-                        <li>Open these files in your editor</li>
-                        <li>Copy the "content" field from each article (it's HTML)</li>
-                        <li>Paste directly into your blog admin panel</li>
-                    </ol>
-                    <p><strong>Or use the combined file:</strong> <code>content/all-blog-articles.json</code></p>
                 </div>
             `;
         }
@@ -746,10 +564,10 @@
             
             if (content.classList.contains('expanded')) {
                 content.classList.remove('expanded');
-                btnText.textContent = 'View Full Article';
+                btnText.textContent = '📖 Read';
             } else {
                 content.classList.add('expanded');
-                btnText.textContent = 'Hide Article';
+                btnText.textContent = '📖 Close';
             }
         }
         
@@ -758,7 +576,7 @@
             const html = content.innerHTML;
             
             navigator.clipboard.writeText(html).then(() => {
-                showNotification(`Article "${title}" HTML copied!`);
+                showNotification(`✓ HTML copied!`);
             }).catch(err => {
                 alert('Failed to copy. Please select and copy manually.');
             });
@@ -766,7 +584,7 @@
         
         function copyTitle(title) {
             navigator.clipboard.writeText(title).then(() => {
-                showNotification('Title copied!');
+                showNotification(`✓ Title copied!`);
             });
         }
         
