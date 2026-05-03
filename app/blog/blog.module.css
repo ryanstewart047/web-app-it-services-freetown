@@ -172,6 +172,182 @@
   background: linear-gradient(135deg, rgba(31, 75, 184, 0.16), rgba(228, 87, 46, 0.16));
 }
 
+.storyVisual {
+  position: relative;
+  aspect-ratio: 4 / 4.8;
+  min-height: 24rem;
+  overflow: hidden;
+  border-radius: 1.75rem;
+  background: linear-gradient(135deg, #dbeafe, #fff1e6);
+  isolation: isolate;
+}
+
+.storyVisual::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(4, 14, 64, 0.05) 0%, rgba(4, 14, 64, 0.22) 36%, rgba(4, 14, 64, 0.94) 100%),
+    linear-gradient(120deg, rgba(255, 255, 255, 0.1), transparent 35%);
+  z-index: 1;
+}
+
+.storyImage {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  transition:
+    transform 420ms ease,
+    filter 420ms ease;
+}
+
+.storyCard:hover .storyImage,
+.storyCard:focus-within .storyImage {
+  transform: scale(1.08);
+  filter: saturate(1.08);
+}
+
+.storyTopMeta {
+  position: absolute;
+  inset: 1rem 1rem auto;
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.storyOverlay {
+  pointer-events: none;
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 3;
+  padding: 5rem 1.1rem 1.1rem;
+}
+
+.storyTitle {
+  color: white;
+  font-size: clamp(1.45rem, 2vw, 2rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  text-shadow: 0 12px 30px rgba(2, 6, 23, 0.35);
+}
+
+.storySubMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  color: rgba(226, 232, 240, 0.92);
+}
+
+.storyExcerpt {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 0;
+  max-height: 0;
+  opacity: 0;
+  color: rgba(226, 232, 240, 0.88);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  transform: translateY(0.75rem);
+  transition:
+    max-height 240ms ease,
+    opacity 240ms ease,
+    transform 240ms ease,
+    margin-top 240ms ease;
+}
+
+.storyCard:hover .storyExcerpt,
+.storyCard:focus-within .storyExcerpt {
+  margin-top: 0.7rem;
+  max-height: 3rem;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.storyFooterRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.85rem;
+  margin-top: 0.95rem;
+}
+
+.storyReadHint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.storyReadHintIcon {
+  transition: transform 220ms ease;
+}
+
+.storyCard:hover .storyReadHintIcon,
+.storyCard:focus-within .storyReadHintIcon {
+  transform: translateX(4px);
+}
+
+.storyActionRail {
+  pointer-events: auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.storyActionButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.12);
+  padding: 0.5rem 0.68rem;
+  color: white;
+  box-shadow: 0 12px 26px rgba(2, 6, 23, 0.18);
+  backdrop-filter: blur(12px);
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease;
+}
+
+.storyActionButton:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.storyActionActiveBlue {
+  background: rgba(37, 99, 235, 0.92);
+  border-color: rgba(191, 219, 254, 0.4);
+}
+
+.storyActionActiveRed {
+  background: rgba(220, 38, 38, 0.92);
+  border-color: rgba(254, 202, 202, 0.4);
+}
+
+.storyPlaceholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  color: #0f1b61;
+  z-index: 0;
+}
+
 .metaChip {
   display: inline-flex;
   align-items: center;
@@ -400,5 +576,30 @@
 
   .featureContent {
     padding: 1.25rem;
+  }
+
+  .storyVisual {
+    aspect-ratio: 4 / 5.1;
+    min-height: 21rem;
+  }
+
+  .storyOverlay {
+    padding: 4rem 0.95rem 0.95rem;
+  }
+
+  .storyExcerpt {
+    margin-top: 0.65rem;
+    max-height: 3rem;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .storyFooterRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .storyActionRail {
+    justify-content: flex-start;
   }
 }

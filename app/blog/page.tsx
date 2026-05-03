@@ -694,113 +694,123 @@ export default function BlogPage() {
                         id={`post-${post.id}`}
                         className={`${styles.storyCard} group scroll-animate overflow-hidden`}
                       >
-                        <div className="flex h-full flex-col p-5 sm:p-6">
-                          <div className="flex flex-wrap items-center gap-2">
+                        <div className={styles.storyVisual}>
+                          <Link
+                            href={`/blog/${post.id}`}
+                            aria-label={`Read article: ${post.title}`}
+                            className="absolute inset-0 z-[2]"
+                          />
+
+                          {image ? (
+                            <img
+                              src={image}
+                              alt={post.title}
+                              className={styles.storyImage}
+                            />
+                          ) : (
+                            <div className={styles.storyPlaceholder}>
+                              <div>
+                                <BookOpenText className="mx-auto h-14 w-14" />
+                                <p className="mt-4 text-sm font-semibold uppercase tracking-[0.18em] text-primary-950/70">
+                                  Featured insight
+                                </p>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className={`${styles.storyTopMeta} pointer-events-none`}>
                             <span className={`${styles.tagBase} ${getTagClass(category)}`}>
                               {category}
                             </span>
-                            <span className={`${styles.metaChip} text-xs font-semibold`}>
+                            <span className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/15 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white backdrop-blur-md">
                               <Clock3 className="h-3.5 w-3.5" />
-                              {getReadingTime(post.content)} min read
+                              {getReadingTime(post.content)} min
                             </span>
                           </div>
 
-                          {image && (
-                            <Link
-                              href={`/blog/${post.id}`}
-                              className={`${styles.storyMedia} mt-5 block overflow-hidden`}
-                            >
-                              <img
-                                src={image}
-                                alt={post.title}
-                                className="h-52 w-full object-cover transition duration-500 group-hover:scale-105"
-                              />
-                            </Link>
-                          )}
-
-                          <div className="mt-5 flex items-center gap-2 text-xs font-medium text-slate-500">
-                            <span className={`${styles.metaChip} text-xs`}>
-                              <Calendar className="h-3.5 w-3.5" />
-                              {formatShortDate(post.date)}
-                            </span>
-                            <span className={`${styles.metaChip} text-xs`}>
-                              <User className="h-3.5 w-3.5" />
-                              {post.author}
-                            </span>
-                          </div>
-
-                          <Link href={`/blog/${post.id}`} className="mt-4 block">
-                            <h3 className="text-2xl font-black leading-tight text-slate-900 transition hover:text-primary-900">
-                              {post.title}
-                            </h3>
-                          </Link>
-
-                          <p className="mt-3 text-sm leading-7 text-slate-600">
-                            {getExcerpt(post.content, 155)}
-                          </p>
-
-                          <div className="mt-auto pt-6">
-                            <div className="flex items-center justify-between gap-3">
-                              <Link
-                                href={`/blog/${post.id}`}
-                                className="inline-flex items-center gap-2 text-sm font-semibold text-primary-950 transition hover:text-blue-700"
-                              >
-                                Read article
-                                <ArrowRight className="h-4 w-4" />
-                              </Link>
-                              <span className="text-xs uppercase tracking-[0.18em] text-slate-400">
-                                {post.comments.length} comments
+                          <div className={styles.storyOverlay}>
+                            <div className={styles.storySubMeta}>
+                              <span className="inline-flex items-center gap-1.5">
+                                <Calendar className="h-3.5 w-3.5" />
+                                {formatShortDate(post.date)}
+                              </span>
+                              <span className="inline-flex items-center gap-1.5">
+                                <User className="h-3.5 w-3.5" />
+                                {post.author}
                               </span>
                             </div>
 
-                            <div className="mt-4 flex flex-wrap gap-2">
-                              <button
-                                type="button"
-                                onClick={() => handleLike(post.id)}
-                                className={`${styles.iconButton} ${
-                                  userVotes[post.id] === 'like'
-                                    ? styles.iconButtonActiveBlue
-                                    : ''
-                                }`}
-                              >
-                                <ThumbsUp className="h-4 w-4" />
-                                <span className="text-sm font-semibold">{post.likes}</span>
-                              </button>
+                            <h3 className={`${styles.storyTitle} mt-3`}>
+                              {post.title}
+                            </h3>
 
-                              <button
-                                type="button"
-                                onClick={() => handleDislike(post.id)}
-                                className={`${styles.iconButton} ${
-                                  userVotes[post.id] === 'dislike'
-                                    ? styles.iconButtonActiveRed
-                                    : ''
-                                }`}
-                              >
-                                <ThumbsDown className="h-4 w-4" />
-                                <span className="text-sm font-semibold">{post.dislikes}</span>
-                              </button>
+                            <p className={styles.storyExcerpt}>
+                              {getExcerpt(post.content, 110)}
+                            </p>
 
-                              <button
-                                type="button"
-                                onClick={() => toggleComments(post.id)}
-                                className={styles.iconButton}
-                              >
-                                <MessageCircle className="h-4 w-4" />
-                                <span className="text-sm font-semibold">
-                                  {showComments[post.id] ? 'Hide' : 'Reply'}
-                                </span>
-                              </button>
+                            <div className={styles.storyFooterRow}>
+                              <span className={styles.storyReadHint}>
+                                Read article
+                                <ArrowRight className={`${styles.storyReadHintIcon} h-4 w-4`} />
+                              </span>
 
-                              <button
-                                type="button"
-                                onClick={() => handleShare(post)}
-                                className={styles.iconButton}
-                              >
-                                <Share2 className="h-4 w-4" />
-                                <span className="text-sm font-semibold">
-                                  {copiedPostId === post.id ? 'Copied' : 'Share'}
-                                </span>
-                              </button>
+                              <div className={styles.storyActionRail}>
+                                <button
+                                  type="button"
+                                  title="Like article"
+                                  aria-label={`Like ${post.title}`}
+                                  onClick={() => handleLike(post.id)}
+                                  className={`${styles.storyActionButton} ${
+                                    userVotes[post.id] === 'like'
+                                      ? styles.storyActionActiveBlue
+                                      : ''
+                                  }`}
+                                >
+                                  <ThumbsUp className="h-4 w-4" />
+                                  <span className="text-xs font-semibold">{post.likes}</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  title="Dislike article"
+                                  aria-label={`Dislike ${post.title}`}
+                                  onClick={() => handleDislike(post.id)}
+                                  className={`${styles.storyActionButton} ${
+                                    userVotes[post.id] === 'dislike'
+                                      ? styles.storyActionActiveRed
+                                      : ''
+                                  }`}
+                                >
+                                  <ThumbsDown className="h-4 w-4" />
+                                  <span className="text-xs font-semibold">{post.dislikes}</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  title={showComments[post.id] ? 'Hide comments' : 'Open comments'}
+                                  aria-label={showComments[post.id] ? 'Hide comments' : 'Open comments'}
+                                  onClick={() => toggleComments(post.id)}
+                                  className={styles.storyActionButton}
+                                >
+                                  <MessageCircle className="h-4 w-4" />
+                                  <span className="text-xs font-semibold">
+                                    {post.comments.length}
+                                  </span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  title={copiedPostId === post.id ? 'Copied link' : 'Share article'}
+                                  aria-label={copiedPostId === post.id ? 'Copied link' : 'Share article'}
+                                  onClick={() => handleShare(post)}
+                                  className={styles.storyActionButton}
+                                >
+                                  <Share2 className="h-4 w-4" />
+                                  <span className="text-xs font-semibold">
+                                    {copiedPostId === post.id ? 'OK' : 'Share'}
+                                  </span>
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
