@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog - IT Services Freetown</title>
+    <title>Blog Articles - Ready to Import</title>
     <style>
         * {
             margin: 0;
@@ -12,460 +12,367 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
-            color: #2c3e50;
-            background: #ffffff;
+            color: #333;
+            background: #f5f5f5;
         }
         
-        /* Hero Section */
-        .hero {
+        .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 80px 40px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .instructions {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .instructions h2 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+        
+        .instructions ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .instructions li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .instructions .highlight {
+            background: #fff3cd;
+            padding: 1rem;
+            border-left: 4px solid #ffc107;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
             text-align: center;
-            position: relative;
-            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
         
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -10%;
-            width: 600px;
-            height: 600px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            pointer-events: none;
+        .stat-card .number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
         }
         
-        .hero::after {
-            content: '';
-            position: absolute;
-            bottom: -30%;
-            left: -5%;
-            width: 400px;
-            height: 400px;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 50%;
-            pointer-events: none;
+        .stat-card .label {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
-        .hero-content {
-            position: relative;
-            z-index: 1;
-            max-width: 700px;
-            margin: 0 auto;
-        }
-        
-        .hero h1 {
-            font-size: 3.5rem;
-            font-weight: 800;
-            margin-bottom: 15px;
-            letter-spacing: -1px;
-        }
-        
-        .hero p {
-            font-size: 1.3rem;
-            opacity: 0.95;
-            font-weight: 300;
-            margin-bottom: 30px;
-        }
-        
-        .hero-badge {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 10px 20px;
-            border-radius: 50px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            backdrop-filter: blur(10px);
-        }
-        
-        /* Main Container */
-        .main-container {
-            max-width: 1300px;
-            margin: 0 auto;
-            padding: 60px 40px;
-        }
-        
-        /* Articles Grid */
-        .articles-grid {
+        .article-list {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
-            margin-top: 50px;
+            gap: 2rem;
         }
         
-        /* Article Card */
         .article-card {
             background: white;
-            border-radius: 16px;
+            border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
             display: flex;
             flex-direction: column;
             height: 100%;
-            position: relative;
         }
         
         .article-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.15);
-        }
-        
-        .article-thumbnail {
-            width: 100%;
-            height: 180px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 4rem;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .article-thumbnail::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1), transparent 70%);
-            animation: shimmer 3s infinite;
-        }
-        
-        @keyframes shimmer {
-            0% { transform: translate(-100%, -100%) rotate(45deg); }
-            100% { transform: translate(100%, 100%) rotate(45deg); }
-        }
-        
-        .article-content-wrapper {
-            padding: 25px;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         }
         
         .article-header {
-            margin-bottom: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
         }
         
-        .article-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 8px;
-            line-height: 1.4;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+        .article-header h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
         }
         
         .article-meta {
             display: flex;
-            gap: 12px;
-            font-size: 0.85rem;
-            color: #7f8c8d;
+            gap: 1rem;
+            font-size: 0.9rem;
+            opacity: 0.9;
             flex-wrap: wrap;
         }
         
-        .article-meta-item {
+        .article-meta span {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 0.3rem;
         }
         
-        .article-excerpt {
-            font-size: 0.95rem;
-            color: #555;
-            line-height: 1.6;
-            margin: 15px 0;
+        .article-body {
+            padding: 1.5rem;
             flex-grow: 1;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
         
-        .article-tags {
+        .excerpt {
+            color: #666;
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+        
+        .tags {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
-            margin: 15px 0;
-            padding-top: 15px;
-            border-top: 1px solid #ecf0f1;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
         }
         
         .tag {
-            background: #f0f3ff;
+            background: #e7f0ff;
             color: #667eea;
-            padding: 5px 12px;
+            padding: 0.3rem 0.8rem;
             border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: capitalize;
+            font-size: 0.85rem;
         }
         
-        /* Hidden Content */
-        .article-full-content {
+        .article-content {
+            background: #f9f9f9;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.4s ease;
-            padding: 0 25px;
-            font-size: 0.95rem;
+            transition: max-height 0.3s ease;
+        }
+        
+        .article-content.expanded {
+            max-height: none;
+        }
+        
+        .article-content h2 {
+            color: #333;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .article-content h3 {
+            color: #444;
+            margin-top: 1.2rem;
+            margin-bottom: 0.8rem;
+            font-size: 1.2rem;
+        }
+        
+        .article-content h4 {
             color: #555;
+            margin-top: 1rem;
+            margin-bottom: 0.6rem;
+            font-size: 1.1rem;
         }
         
-        .article-full-content.expanded {
-            max-height: 2000px;
-            padding: 20px 25px;
-            border-top: 1px solid #ecf0f1;
+        .article-content ul, .article-content ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
         }
         
-        .article-full-content h2 {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #2c3e50;
-            margin: 15px 0 10px 0;
+        .article-content li {
+            margin-bottom: 0.5rem;
         }
         
-        .article-full-content h3 {
-            font-size: 1.15rem;
-            font-weight: 600;
-            color: #34495e;
-            margin: 12px 0 8px 0;
+        .article-content p {
+            margin-bottom: 1rem;
         }
         
-        .article-full-content ul, .article-full-content ol {
-            margin-left: 20px;
-            margin-bottom: 10px;
+        .article-content strong {
+            color: #333;
         }
         
-        .article-full-content li {
-            margin-bottom: 6px;
-        }
-        
-        .article-full-content p {
-            margin-bottom: 10px;
-        }
-        
-        /* Actions */
-        .article-actions {
+        .actions {
             display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #ecf0f1;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            background: #f9f9f9;
+            border-top: 1px solid #e0e0e0;
         }
         
         .btn {
-            flex: 1;
-            padding: 10px 12px;
+            padding: 0.8rem 1.5rem;
             border: none;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            font-weight: 600;
+            border-radius: 5px;
+            font-size: 1rem;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            transition: all 0.2s;
+            font-weight: 500;
+            flex: 1;
         }
         
-        .btn-view {
+        .btn-primary {
             background: #667eea;
             color: white;
         }
         
-        .btn-view:hover {
+        .btn-primary:hover {
             background: #5568d3;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
         
-        .btn-copy {
-            background: #27ae60;
+        .btn-secondary {
+            background: #6c757d;
             color: white;
         }
         
-        .btn-copy:hover {
-            background: #229954;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+        .btn-secondary:hover {
+            background: #5a6268;
         }
         
-        .btn-title {
-            background: #e8f1f8;
-            color: #667eea;
+        .btn-success {
+            background: #28a745;
+            color: white;
         }
         
-        .btn-title:hover {
-            background: #d4e6f4;
-            transform: translateY(-2px);
+        .btn-success:hover {
+            background: #218838;
         }
         
-        /* Notification */
-        .notification {
+        .copy-notification {
             position: fixed;
-            bottom: -100px;
-            right: 30px;
-            background: #27ae60;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
             color: white;
-            padding: 16px 28px;
-            border-radius: 8px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            font-weight: 600;
-            z-index: 1000;
-            transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 1rem 1.5rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: none;
+            animation: slideIn 0.3s ease;
         }
         
-        .notification.show {
-            bottom: 30px;
+        .copy-notification.show {
+            display: block;
         }
         
-        /* Responsive */
-        @media (max-width: 1200px) {
-            .articles-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 25px;
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
             }
-            
-            .hero h1 {
-                font-size: 2.8rem;
+            to {
+                transform: translateX(0);
+                opacity: 1;
             }
         }
         
         @media (max-width: 768px) {
-            .articles-grid {
+            .container {
+                padding: 1rem;
+            }
+            
+            .article-list {
                 grid-template-columns: 1fr;
-                gap: 20px;
+                gap: 1.5rem;
             }
             
-            .hero {
-                padding: 50px 25px;
-            }
-            
-            .hero h1 {
-                font-size: 2rem;
-            }
-            
-            .hero p {
-                font-size: 1rem;
-            }
-            
-            .main-container {
-                padding: 40px 20px;
-            }
-            
-            .article-thumbnail {
-                height: 150px;
-                font-size: 3rem;
-            }
-            
-            .article-content-wrapper {
-                padding: 20px;
-            }
-            
-            .article-title {
-                font-size: 1.15rem;
-            }
-            
-            .article-excerpt {
-                font-size: 0.9rem;
-            }
-            
-            .article-meta {
-                font-size: 0.8rem;
-            }
-            
-            .btn {
-                padding: 8px 10px;
-                font-size: 0.75rem;
-            }
-            
-            .article-actions {
+            .actions {
                 flex-direction: column;
             }
-        }
-        
-        @media (max-width: 480px) {
-            .hero {
-                padding: 40px 15px;
-            }
-            
-            .hero h1 {
-                font-size: 1.6rem;
-            }
-            
-            .hero p {
-                font-size: 0.95rem;
-            }
-            
-            .main-container {
-                padding: 25px 15px;
-            }
-            
-            .article-thumbnail {
-                height: 120px;
-                font-size: 2.5rem;
-            }
-            
-            .article-content-wrapper {
-                padding: 15px;
-            }
-            
-            .article-title {
-                font-size: 1rem;
-                margin-bottom: 6px;
-            }
-            
-            .article-excerpt {
-                font-size: 0.85rem;
-                margin: 10px 0;
-            }
-            
-            .article-meta {
-                font-size: 0.75rem;
-                gap: 8px;
-            }
-            
-            .tag {
-                font-size: 0.7rem;
-                padding: 4px 10px;
-            }
             
             .btn {
-                padding: 7px 8px;
-                font-size: 0.7rem;
+                width: 100%;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Hero Section -->
-    <div class="hero">
-        <div class="hero-content">
-            <div class="hero-badge">✨ Expert Tech Insights & Solutions</div>
-            <h1>Blog & Knowledge Base</h1>
-            <p>Stay updated with the latest IT tips, device repair guides, and technology news for Sierra Leone</p>
+    <div class="header">
+        <div class="container">
+            <h1>📝 Blog Articles Ready for Import</h1>
+            <p>8 comprehensive articles for IT Services Freetown</p>
         </div>
     </div>
     
-    <!-- Main Content -->
-    <div class="main-container">
-        <div class="articles-grid" id="articleList">
-            <!-- Articles loaded by JavaScript -->
+    <div class="container">
+        <div class="instructions">
+            <h2>📋 How to Import These Articles</h2>
+            <ol>
+                <li>Click <strong>"View Full Article"</strong> on any article below</li>
+                <li>Click <strong>"Copy HTML"</strong> to copy the article content</li>
+                <li>Go to <a href="https://www.itservicesfreetown.com/blog/admin" target="_blank"><strong>Blog Admin Panel</strong></a> (requires authentication)</li>
+                <li>Paste the HTML into the editor, add title and tags</li>
+                <li>Click <strong>"Publish Post"</strong></li>
+                <li>Repeat for all 8 articles</li>
+            </ol>
+            
+            <div class="highlight">
+                <strong>⚠️ After importing all articles:</strong><br>
+                Go to <a href="https://adsense.google.com" target="_blank">Google AdSense</a> and request a re-review for your site!
+            </div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="number">8</div>
+                <div class="label">Articles</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">~10,610</div>
+                <div class="label">Total Words</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">800-1,850</div>
+                <div class="label">Words/Article</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">100%</div>
+                <div class="label">Original Content</div>
+            </div>
+        </div>
+        
+        <div class="article-list" id="articleList">
+            <!-- Articles will be loaded here by JavaScript -->
         </div>
     </div>
     
-    <!-- Notification -->
-    <div class="notification" id="copyNotification"></div>
+    <div class="copy-notification" id="copyNotification">
+        ✓ Copied to clipboard!
+    </div>
     
     <script>
         const emojis = ['📱', '🖥️', '🔧', '💻', '⚙️', '🛠️', '🔌', '📡'];

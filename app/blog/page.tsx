@@ -121,7 +121,7 @@ function rehydratePosts(rawPosts: any[]): BlogPost[] {
 }
 
 function getTagClass(category: string) {
-  if (category === 'Repair Guide') return styles.tagRepair
+  if (category === 'Expert Guide') return styles.tagRepair
   if (category === 'Data Care') return styles.tagData
   if (category === 'Buying Advice') return styles.tagBuyer
   if (category === 'Device Tips') return styles.tagDevice

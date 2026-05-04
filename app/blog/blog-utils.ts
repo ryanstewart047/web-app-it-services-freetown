@@ -85,7 +85,7 @@ export function getPostCategory(post: Pick<BlogPost, 'title' | 'content'>) {
   const haystack = `${post.title} ${stripHtml(post.content)}`.toLowerCase()
 
   if (/(repair|replace|fix|broken|screen|battery)/.test(haystack)) {
-    return 'Repair Guide'
+    return 'Expert Guide'
   }
 
   if (/(backup|data|privacy|security|protect|password)/.test(haystack)) {
