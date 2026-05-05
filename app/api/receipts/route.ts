@@ -68,6 +68,7 @@ export async function POST(request: NextRequest) {
           items: data.items,
           notes: data.notes || null,
           paymentMethod: data.paymentMethod,
+          paymentStatus: data.paymentStatus || 'paid',
           amountPaid: data.amountPaid,
           subtotal: data.subtotal,
           change: data.change
@@ -90,6 +91,7 @@ export async function POST(request: NextRequest) {
           items: data.items,
           notes: data.notes || null,
           paymentMethod: data.paymentMethod,
+          paymentStatus: data.paymentStatus || 'paid',
           amountPaid: data.amountPaid,
           subtotal: data.subtotal,
           change: data.change

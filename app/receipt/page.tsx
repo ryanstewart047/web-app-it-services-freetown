@@ -26,6 +26,7 @@ interface SavedReceipt {
   items: ReceiptItem[]
   notes: string
   paymentMethod: string
+  paymentStatus: 'paid' | 'half_payment' | 'pending'
   amountPaid: number
   subtotal: number
   change: number
@@ -60,6 +61,7 @@ export default function ReceiptGenerator() {
   ])
   const [notes, setNotes] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('Cash')
+  const [paymentStatus, setPaymentStatus] = useState<'paid' | 'half_payment' | 'pending'>('paid')
   const [amountPaid, setAmountPaid] = useState(0)
 
   // Receipt storage and search
@@ -176,6 +178,7 @@ export default function ReceiptGenerator() {
       items: items.filter(item => item.description), // Only save items with descriptions
       notes,
       paymentMethod,
+      paymentStatus,
       amountPaid,
       subtotal: calculateSubtotal(),
       change: calculateChange(),
@@ -274,6 +277,7 @@ export default function ReceiptGenerator() {
     setItems(receipt.items)
     setNotes(receipt.notes)
     setPaymentMethod(receipt.paymentMethod)
+    setPaymentStatus(receipt.paymentStatus || 'paid')
     setAmountPaid(receipt.amountPaid)
     setShowSearchResults(false)
     setShowHistory(false)
@@ -558,6 +562,7 @@ www.itservicesfreetown.com
     setCustomerAddress('')
     setItems([{ id: '1', description: '', quantity: 1, unitPrice: 0, total: 0 }])
     setNotes('')
+    setPaymentStatus('paid')
     setAmountPaid(0)
   }
 
@@ -767,6 +772,39 @@ www.itservicesfreetown.com
           {/* Search Results */}
           {(showSearchResults || showHistory) && (
             <div className="mb-6 bg-white rounded-xl shadow-lg p-6">
+              {showHistory && (
+                <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-blue-600" />
+                    Revenue & Analytics Summary
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white p-4 rounded-lg shadow-sm">
+                      <p className="text-sm text-gray-500 font-semibold mb-1">Total Repair Revenue</p>
+                      <p className="text-2xl font-bold text-green-600">
+                        SLE {allReceipts.filter(r => r.receiptType === 'repair' && (r.paymentStatus === 'paid' || r.paymentStatus === 'half_payment' || !r.paymentStatus)).reduce((sum, r) => sum + r.amountPaid, 0).toFixed(2)}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">From Paid & Half-Paid receipts</p>
+                    </div>
+                    <div className="bg-white p-4 rounded-lg shadow-sm">
+                      <p className="text-sm text-gray-500 font-semibold mb-1">Total Purchase Revenue</p>
+                      <p className="text-2xl font-bold text-blue-600">
+                        SLE {allReceipts.filter(r => r.receiptType === 'purchase' && (r.paymentStatus === 'paid' || r.paymentStatus === 'half_payment' || !r.paymentStatus)).reduce((sum, r) => sum + r.amountPaid, 0).toFixed(2)}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">From Paid & Half-Paid receipts</p>
+                    </div>
+                    <div className="bg-white p-4 rounded-lg shadow-sm">
+                      <p className="text-sm text-gray-500 font-semibold mb-1">Status Breakdown</p>
+                      <div className="flex flex-col gap-1 text-sm font-medium">
+                        <div className="flex justify-between"><span className="text-green-600">Paid:</span> <span>{allReceipts.filter(r => r.paymentStatus === 'paid' || !r.paymentStatus).length}</span></div>
+                        <div className="flex justify-between"><span className="text-orange-500">Half Paid:</span> <span>{allReceipts.filter(r => r.paymentStatus === 'half_payment').length}</span></div>
+                        <div className="flex justify-between"><span className="text-red-500">Pending:</span> <span>{allReceipts.filter(r => r.paymentStatus === 'pending').length}</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-900">
                   {showHistory ? `All Receipts (${allReceipts.length})` : `Search Results (${searchResults.length})`}
@@ -798,6 +836,17 @@ www.itservicesfreetown.com
                           }`}>
                             {receipt.receiptType.toUpperCase()}
                           </span>
+                          {receipt.paymentStatus && (
+                            <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                              receipt.paymentStatus === 'paid' 
+                                ? 'bg-green-100 text-green-700' 
+                                : receipt.paymentStatus === 'half_payment' 
+                                ? 'bg-orange-100 text-orange-700' 
+                                : 'bg-red-100 text-red-700'
+                            }`}>
+                              {receipt.paymentStatus.replace('_', ' ').toUpperCase()}
+                            </span>
+                          )}
                         </div>
                         <p className="text-gray-700"><span className="font-semibold">Customer:</span> {receipt.customerName}</p>
                         <p className="text-gray-600 text-sm"><span className="font-semibold">Phone:</span> {receipt.customerPhone}</p>
@@ -1016,6 +1065,22 @@ www.itservicesfreetown.com
                 </select>
               </div>
 
+              {/* Payment Status */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Payment Status
+                </label>
+                <select
+                  value={paymentStatus}
+                  onChange={(e) => setPaymentStatus(e.target.value as 'paid' | 'half_payment' | 'pending')}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="paid">Paid (Full)</option>
+                  <option value="half_payment">Half Payment</option>
+                  <option value="pending">Pending</option>
+                </select>
+              </div>
+
               {/* Amount Paid */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -1190,7 +1255,7 @@ www.itservicesfreetown.com
               <div className="space-y-0.5 text-gray-600" style={{ fontSize: '12px', lineHeight: '1.5' }}>
                 <p><span className="font-semibold">Receipt #:</span> {receiptNumber}</p>
                 <p><span className="font-semibold">Date:</span> {new Date(receiptDate).toLocaleDateString()}</p>
-                <p><span className="font-semibold">Payment:</span> {paymentMethod}</p>
+                <p><span className="font-semibold">Payment:</span> {paymentMethod} ({paymentStatus.replace('_', ' ').toUpperCase()})</p>
               </div>
             </div>
           </div>
