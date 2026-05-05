@@ -425,21 +425,22 @@ export default function BlogAdminPage() {
           messages: [
             {
               role: 'system',
-              content: `You are a professional tech blog writer for IT Services Freetown, a computer and mobile repair service. Write engaging, informative blog posts that help customers understand tech issues and solutions. Include practical tips, clear explanations, and always mention contacting IT Services Freetown at +23233399391 or visiting #1 Regent Highway Jui Junction when professional help is needed. Keep the tone friendly but professional.`
+              content: `You are an expert, professional tech blog writer for IT Services Freetown, a computer and mobile repair service. Write highly engaging, informative, and modern blog posts that help customers understand tech issues and solutions. You must use well-structured HTML format (e.g., <h2>, <h3>, <p>, <strong>, <em>, <u>, <ul>, <li>, <blockquote>) to ensure the post is ready for a rich text editor. Do NOT use markdown. Ensure there is proper spacing, clear headings, structured paragraphs, and underlined text for emphasis where appropriate. Always mention contacting IT Services Freetown at +23233399391 or visiting #1 Regent Highway Jui Junction when professional help is needed. Keep the tone friendly, modern, and highly professional.`
             },
             {
               role: 'user',
-              content: `Write a detailed blog post about: "${topic}". 
+              content: `Write a detailed, beautifully formatted HTML blog post about: "\${topic}". 
 
 Requirements:
-- Write 300-500 words
-- Use clear paragraphs (no markdown formatting)
-- Include practical tips or steps
-- Make it engaging and easy to understand
-- Add a call-to-action mentioning IT Services Freetown contact: +23233399391 and location: #1 Regent Highway Jui Junction
-- Focus on helping customers solve problems or learn about tech
+- Write 400-600 words of rich content.
+- MUST output ONLY valid HTML code (do NOT wrap it in \`\`\`html or markdown blocks, just return raw HTML).
+- Use proper HTML tags for structure: <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>, <u>, <blockquote>.
+- Include a logical flow with an introduction, main points with headings, practical tips or steps, and a conclusion.
+- Use underlining (<u>) to highlight key technical terms or important concepts.
+- Add a compelling call-to-action mentioning IT Services Freetown contact: +23233399391 and location: #1 Regent Highway Jui Junction.
+- Ensure the formatting is modern, readable, and visually appealing for a blog post.
 
-Write the content now:`
+Write the HTML content now:`
             }
           ],
           temperature: 0.7,
