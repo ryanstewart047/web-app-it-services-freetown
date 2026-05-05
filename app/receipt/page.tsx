@@ -1305,6 +1305,15 @@ www.itservicesfreetown.com
                 <span className="font-bold text-gray-900">Change:</span>
                 <span className="font-bold text-blue-600">SLE {calculateChange().toFixed(2)}</span>
               </div>
+              <div className="flex justify-between items-center mt-2 border-t border-gray-300 pt-2" style={{ fontSize: '14px' }}>
+                <span className="font-bold text-gray-900">Payment Status:</span>
+                <span className={`font-bold ${
+                  paymentStatus === 'paid' ? 'text-green-600' : 
+                  paymentStatus === 'half_payment' ? 'text-orange-500' : 'text-red-600'
+                }`}>
+                  {paymentStatus.replace('_', ' ').toUpperCase()}
+                </span>
+              </div>
             </div>
           </div>
 
