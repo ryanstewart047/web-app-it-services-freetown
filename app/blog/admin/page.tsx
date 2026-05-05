@@ -41,16 +41,38 @@ interface BlogPost {
 
 // Rich text editor configuration
 const quillModules = {
-  toolbar: [
-    [{ 'header': [1, 2, 3, false] }],
-    ['bold', 'italic', 'underline', 'strike'],
-    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-    [{ 'color': [] }, { 'background': [] }],
-    [{ 'font': [] }],
-    [{ 'align': [] }],
-    ['link'],
-    ['clean']
-  ],
+  toolbar: {
+    container: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'font': [] }],
+      [{ 'align': [] }],
+      ['link', 'image', 'video'],
+      ['clean']
+    ],
+    handlers: {
+      image: function() {
+        const url = prompt('Enter image URL (e.g. from Imgur or PostImages):');
+        if (url) {
+          // @ts-ignore
+          const quill = this.quill;
+          const range = quill.getSelection(true);
+          quill.insertEmbed(range.index, 'image', url);
+        }
+      },
+      video: function() {
+        const url = prompt('Enter video URL (e.g. YouTube embed URL):');
+        if (url) {
+          // @ts-ignore
+          const quill = this.quill;
+          const range = quill.getSelection(true);
+          quill.insertEmbed(range.index, 'video', url);
+        }
+      }
+    }
+  }
 }
 
 const quillFormats = [
@@ -60,7 +82,9 @@ const quillFormats = [
   'color', 'background',
   'font',
   'align',
-  'link'
+  'link',
+  'image',
+  'video'
 ]
 
 const AdminLoginForm = ({ isLoading, handleLogin, password, setPassword, showPasswordError, setShowPasswordError, router }: any) => {
