@@ -190,16 +190,69 @@ export default function BlogAdminPage() {
   const [editorMode, setEditorMode] = useState<'rich' | 'html'>('rich') // 'rich' for WYSIWYG, 'html' for HTML preview
   const [htmlContent, setHtmlContent] = useState('')
   const [editingPostId, setEditingPostId] = useState<string | null>(null)
+  const [lastAutoSaved, setLastAutoSaved] = useState<Date | null>(null)
+  const autoSavePromptedRef = React.useRef(false)
 
   useScrollAnimations()
 
-  // Check if user is already authenticated
+  // Check if user is already authenticated and load auto-save
   useEffect(() => {
     const adminAuth = localStorage.getItem('blog_admin_auth')
     if (adminAuth === 'authenticated') {
       setIsAuthenticated(true)
     }
+
+    // Load auto-save on mount
+    const autoSaved = localStorage.getItem('blog_auto_save')
+    if (autoSaved && !autoSavePromptedRef.current) {
+      try {
+        const draft = JSON.parse(autoSaved)
+        const draftTime = new Date(draft.timestamp).getTime()
+        const now = new Date().getTime()
+        // If the auto-save is from the last 24 hours
+        if (now - draftTime < 24 * 60 * 60 * 1000) {
+          autoSavePromptedRef.current = true;
+          if (confirm('You have an auto-saved draft from a previous session. Would you like to restore it?')) {
+            setTitle(draft.title || '')
+            setContent(draft.content || '')
+            setHtmlContent(draft.htmlContent || '')
+            setAuthor(draft.author || 'IT Services Freetown')
+            setMedia(draft.media || [])
+            if (draft.editingPostId) {
+              setEditingPostId(draft.editingPostId)
+            }
+            toast.success('Draft restored!')
+          } else {
+             localStorage.removeItem('blog_auto_save')
+          }
+        }
+      } catch (e) {
+        console.error('Error parsing auto-save', e)
+      }
+    }
   }, [])
+
+  // Auto-save effect
+  useEffect(() => {
+    if (!title && !content && !htmlContent && media.length === 0) return;
+
+    const timer = setTimeout(() => {
+      const draft = {
+        title,
+        content,
+        htmlContent,
+        author,
+        media,
+        timestamp: new Date().toISOString(),
+        isAutoSave: true,
+        editingPostId
+      }
+      localStorage.setItem('blog_auto_save', JSON.stringify(draft))
+      setLastAutoSaved(new Date());
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [title, content, htmlContent, author, media, editingPostId]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -348,6 +401,8 @@ export default function BlogAdminPage() {
       if (result.success) {
         setPublishProgress(100)
         toast.success(editingPostId ? '✅ Blog post updated successfully!' : '✅ Blog post published to GitHub Issues!')
+        localStorage.removeItem('blog_auto_save');
+        setLastAutoSaved(null);
         
         setTimeout(() => {
           setIsPublishing(false)
@@ -406,6 +461,9 @@ export default function BlogAdminPage() {
 
       // Save to localStorage (without media)
       localStorage.setItem('blog_posts', JSON.stringify(posts))
+
+      localStorage.removeItem('blog_auto_save');
+      setLastAutoSaved(null);
 
       toast.success('Blog post saved locally!')
       
@@ -779,7 +837,12 @@ ${htmlContent || content || 'Empty draft'}`
               <ArrowLeft className="w-5 h-5 mr-2" />
               Back to Blog
             </button>
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-center">
+              {lastAutoSaved && (
+                <span className="text-xs text-gray-400 mr-2 hidden sm:inline">
+                  Auto-saved {lastAutoSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              )}
               <button
                 type="button"
                 onClick={toggleManagePosts}
