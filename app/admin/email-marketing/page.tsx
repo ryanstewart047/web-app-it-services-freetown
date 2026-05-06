@@ -49,28 +49,59 @@ export default function EmailMarketingPage() {
   }, [])
 
   const insertButton = () => {
-    if (!quillRef.current) return
-    const quill = quillRef.current.getEditor()
-    const range = quill.getSelection()
-    const index = range ? range.index : quill.getLength()
-    
-    const buttonHtml = `<a href="${btnUrl}" class="email-button" style="display: inline-block; background-color: #dc2626; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">${btnText}</a>`
-    
-    quill.clipboard.dangerouslyPasteHTML(index, buttonHtml)
-    setShowBtnModal(false)
+    try {
+      const buttonHtml = `<a href="${btnUrl}" class="email-button" style="display: inline-block; background-color: #dc2626; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">${btnText}</a>`
+      const quill = quillRef.current?.getEditor()
+      
+      if (quill) {
+        quill.focus()
+        const range = quill.getSelection()
+        const index = range ? range.index : quill.getLength()
+        quill.clipboard.dangerouslyPasteHTML(index, buttonHtml)
+        // Explicitly update content state from editor
+        setTimeout(() => setContent(quill.root.innerHTML), 100)
+      } else {
+        // Fallback: Append to content if editor not ready
+        setContent(prev => prev + '<p>' + buttonHtml + '</p>')
+      }
+      setShowBtnModal(false)
+    } catch (e) {
+      console.error('Insert button error:', e)
+      // Extreme fallback
+      setContent(prev => prev + `<p><a href="${btnUrl}" style="color:red;font-weight:bold;">${btnText}</a></p>`)
+      setShowBtnModal(false)
+    }
   }
 
   const insertImage = () => {
-    if (!imageUrl || !quillRef.current) return
-    const quill = quillRef.current.getEditor()
-    const range = quill.getSelection()
-    const index = range ? range.index : quill.getLength()
-
-    const imgHtml = `<img src="${imageUrl}" alt="Email Image" style="max-width: 100%; height: auto; display: block; margin: 15px 0; border-radius: 8px;" />`
-    
-    quill.clipboard.dangerouslyPasteHTML(index, imgHtml)
-    setShowImgModal(false)
-    setImageUrl('')
+    if (!imageUrl) {
+      alert('Please enter an image URL first.')
+      return
+    }
+    try {
+      const imgHtml = `<img src="${imageUrl}" alt="Email Image" style="max-width: 100%; height: auto; display: block; margin: 15px 0; border-radius: 8px;" />`
+      const quill = quillRef.current?.getEditor()
+      
+      if (quill) {
+        quill.focus()
+        const range = quill.getSelection()
+        const index = range ? range.index : quill.getLength()
+        quill.clipboard.dangerouslyPasteHTML(index, imgHtml)
+        // Explicitly update content state from editor
+        setTimeout(() => setContent(quill.root.innerHTML), 100)
+      } else {
+        // Fallback
+        setContent(prev => prev + '<p>' + imgHtml + '</p>')
+      }
+      setShowImgModal(false)
+      setImageUrl('')
+    } catch (e) {
+      console.error('Insert image error:', e)
+      // Extreme fallback
+      setContent(prev => prev + `<p><img src="${imageUrl}" style="max-width:100%" /></p>`)
+      setShowImgModal(false)
+      setImageUrl('')
+    }
   }
 
   const fetchLeads = async () => {
@@ -101,6 +132,7 @@ export default function EmailMarketingPage() {
         setContent(data.content)
         setShowAi(false)
         setAiPrompt('')
+        alert('AI content generated and placed in editor!')
       } else {
         alert('AI generation failed: ' + (data.error || 'Unknown error'))
       }
@@ -127,12 +159,21 @@ export default function EmailMarketingPage() {
   }
 
   const handleSend = async () => {
-    if (!subject || !content || selectedEmails.size === 0) {
-      alert('Please provide a subject, content, and select at least one recipient.')
+    // Basic validation
+    if (!subject) {
+      alert('Please enter a campaign subject.')
+      return
+    }
+    if (!content || content === '<p><br></p>') {
+      alert('Please write some content for your email.')
+      return
+    }
+    if (selectedEmails.size === 0) {
+      alert('Please select at least one recipient from the list on the right.')
       return
     }
 
-    if (!confirm(`Send this email to ${selectedEmails.size} recipients?`)) return
+    if (!confirm(`Confirm: Send this campaign to ${selectedEmails.size} recipients now?`)) return
 
     setSending(true)
     try {
@@ -145,14 +186,17 @@ export default function EmailMarketingPage() {
           recipients: Array.from(selectedEmails)
         })
       })
-      const data = await res.json()
-      if (data.success) {
-        alert(`Success! Campaign sent to ${data.sent} recipients. ${data.failed} failed.`)
-      } else {
-        alert('Failed to send: ' + data.error)
+      
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.error || 'Failed to send emails')
       }
-    } catch (e) {
-      alert('Error sending campaign')
+
+      const data = await res.json()
+      alert(`🎉 Campaign blast successful!\n\nSent: ${data.sent}\nFailed: ${data.failed}`)
+      
+    } catch (e: any) {
+      alert('❌ Error sending campaign: ' + e.message)
     } finally {
       setSending(false)
     }
@@ -257,6 +301,13 @@ export default function EmailMarketingPage() {
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Email Body (HTML Editor)</label>
                 <div className="flex gap-2">
                   <button 
+                    onClick={() => { setContent(''); if(quillRef.current) quillRef.current.getEditor().setText(''); }}
+                    className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-50 transition"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    Clear Editor
+                  </button>
+                  <button 
                     onClick={() => { setShowImgModal(!showImgModal); setShowBtnModal(false); }}
                     className="flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 transition"
                   >
@@ -332,6 +383,20 @@ export default function EmailMarketingPage() {
                     className="h-[500px] overflow-hidden rounded-2xl border-slate-100 bg-slate-50 text-slate-800"
                   />
                 </div>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:p-8">
+              <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-slate-500">Live Mobile Preview</h3>
+              <div className="mx-auto max-w-[375px] rounded-[3rem] border-[8px] border-slate-900 bg-white shadow-2xl">
+                <div className="h-6 w-full bg-slate-900"></div>
+                <div className="h-[500px] overflow-y-auto p-4 text-sm">
+                  <div className="mb-4 border-b border-slate-100 pb-2">
+                    <p className="text-[10px] text-slate-400">Subject: <span className="text-slate-900 font-bold">{subject || '(No Subject)'}</span></p>
+                  </div>
+                  <div dangerouslySetInnerHTML={{ __html: content }} className="preview-content" />
+                </div>
+                <div className="h-6 w-full bg-slate-900"></div>
               </div>
             </div>
 
