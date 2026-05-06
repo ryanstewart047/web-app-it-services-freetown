@@ -77,8 +77,20 @@ export function formatCommentDate(date: Date) {
   return date.toLocaleDateString()
 }
 
-export function getPrimaryImage(post: Pick<BlogPost, 'image' | 'media'>) {
-  return post.image || post.media?.find((item) => item.type === 'image')?.url
+export function getPrimaryImage(post: Partial<BlogPost>) {
+  if (post.image) return post.image
+  
+  const mediaImage = post.media?.find((item) => item.type === 'image')?.url
+  if (mediaImage) return mediaImage
+
+  if (post.content) {
+    const imgMatch = post.content.match(/<img[^>]+src="([^">]+)"/)
+    if (imgMatch && imgMatch[1]) {
+      return imgMatch[1]
+    }
+  }
+  
+  return undefined
 }
 
 export function getPostCategory(post: Pick<BlogPost, 'title' | 'content'>) {
