@@ -180,8 +180,8 @@ export default function ArticleInteractions({
         <div className={styles.storyActionRail}>
           <button
             onClick={handleLike}
-            className={`${styles.storyActionButton} ${
-              userVote === 'like' ? styles.storyActionActiveBlue : ''
+            className={`${styles.iconButton} ${
+              userVote === 'like' ? styles.iconButtonActiveBlue : ''
             }`}
           >
             <ThumbsUp className="h-5 w-5" />
@@ -190,8 +190,8 @@ export default function ArticleInteractions({
           
           <button
             onClick={handleDislike}
-            className={`${styles.storyActionButton} ${
-              userVote === 'dislike' ? styles.storyActionActiveRed : ''
+            className={`${styles.iconButton} ${
+              userVote === 'dislike' ? styles.iconButtonActiveRed : ''
             }`}
           >
             <ThumbsDown className="h-5 w-5" />
@@ -200,7 +200,7 @@ export default function ArticleInteractions({
 
           <button
             onClick={() => setShowComments(!showComments)}
-            className={styles.storyActionButton}
+            className={styles.iconButton}
           >
             <MessageCircle className="h-5 w-5" />
             <span className="text-sm font-semibold">{comments.length} Comments</span>
@@ -208,7 +208,7 @@ export default function ArticleInteractions({
           
           <button
             onClick={handleShare}
-            className={styles.storyActionButton}
+            className={styles.iconButton}
           >
             <Share2 className="h-5 w-5" />
             <span className="text-sm font-semibold">{copiedLink ? 'Copied!' : 'Share'}</span>
