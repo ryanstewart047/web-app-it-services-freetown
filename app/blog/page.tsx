@@ -611,7 +611,7 @@ export default function BlogPage() {
                         type="button"
                         title="Like article"
                         aria-label={`Like ${featuredPost.title}`}
-                        onClick={(e) => { e.preventDefault(); handleLike(featuredPost.id) }}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleLike(featuredPost.id); }}
                         className={`${styles.storyActionButton} ${
                           userVotes[featuredPost.id] === 'like'
                             ? styles.storyActionActiveBlue
@@ -626,7 +626,7 @@ export default function BlogPage() {
                         type="button"
                         title="Dislike article"
                         aria-label={`Dislike ${featuredPost.title}`}
-                        onClick={(e) => { e.preventDefault(); handleDislike(featuredPost.id) }}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDislike(featuredPost.id); }}
                         className={`${styles.storyActionButton} ${
                           userVotes[featuredPost.id] === 'dislike'
                             ? styles.storyActionActiveRed
@@ -641,7 +641,7 @@ export default function BlogPage() {
                         type="button"
                         title="Share article"
                         aria-label={`Share ${featuredPost.title}`}
-                        onClick={(e) => { e.preventDefault(); handleShare(featuredPost) }}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleShare(featuredPost); }}
                         className={styles.storyActionButton}
                       >
                         <Share2 className="h-4 w-4" />
@@ -805,7 +805,7 @@ export default function BlogPage() {
                                   type="button"
                                   title="Like article"
                                   aria-label={`Like ${post.title}`}
-                                  onClick={() => handleLike(post.id)}
+                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleLike(post.id); }}
                                   className={`${styles.storyActionButton} ${
                                     userVotes[post.id] === 'like'
                                       ? styles.storyActionActiveBlue
@@ -820,7 +820,7 @@ export default function BlogPage() {
                                   type="button"
                                   title="Dislike article"
                                   aria-label={`Dislike ${post.title}`}
-                                  onClick={() => handleDislike(post.id)}
+                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDislike(post.id); }}
                                   className={`${styles.storyActionButton} ${
                                     userVotes[post.id] === 'dislike'
                                       ? styles.storyActionActiveRed
@@ -835,7 +835,7 @@ export default function BlogPage() {
                                   type="button"
                                   title={showComments[post.id] ? 'Hide comments' : 'Open comments'}
                                   aria-label={showComments[post.id] ? 'Hide comments' : 'Open comments'}
-                                  onClick={() => toggleComments(post.id)}
+                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleComments(post.id); }}
                                   className={styles.storyActionButton}
                                 >
                                   <MessageCircle className="h-4 w-4" />
@@ -848,7 +848,7 @@ export default function BlogPage() {
                                   type="button"
                                   title={copiedPostId === post.id ? 'Copied link' : 'Share article'}
                                   aria-label={copiedPostId === post.id ? 'Copied link' : 'Share article'}
-                                  onClick={() => handleShare(post)}
+                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleShare(post); }}
                                   className={styles.storyActionButton}
                                 >
                                   <Share2 className="h-4 w-4" />

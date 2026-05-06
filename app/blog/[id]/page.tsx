@@ -9,8 +9,9 @@ import {
   ThumbsUp,
   User,
 } from 'lucide-react'
-import { fetchBlogPosts } from '@/lib/github-blog-storage'
+import { fetchBlogPosts, fetchPostComments } from '@/lib/github-blog-storage'
 import { DisplayAd, InArticleAd, MultiplexAd } from '@/components/AdSense'
+import ArticleInteractions from './ArticleInteractions'
 import styles from '../blog.module.css'
 import {
   formatLongDate,
@@ -146,6 +147,8 @@ export default async function BlogPostPage({ params }: Props) {
       </div>
     )
   }
+
+  const comments = await fetchPostComments(parseInt(post.id, 10))
 
   const publishedDate = formatLongDate(post.date)
   const readingTime = getReadingTime(post.content)
@@ -378,6 +381,14 @@ export default async function BlogPostPage({ params }: Props) {
                 </div>
               </section>
             )}
+
+            <ArticleInteractions
+              postId={post.id}
+              postTitle={post.title}
+              initialLikes={post.likes || 0}
+              initialDislikes={post.dislikes || 0}
+              initialComments={comments}
+            />
           </article>
         </div>
 
