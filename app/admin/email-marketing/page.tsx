@@ -43,10 +43,22 @@ export default function EmailMarketingPage() {
   const [btnText, setBtnText] = useState('Click Here')
   const [btnUrl, setBtnUrl] = useState('https://')
   const [imageUrl, setImageUrl] = useState('')
+  const [isConfigured, setIsConfigured] = useState<boolean | null>(null)
 
   useEffect(() => {
     fetchLeads()
+    checkConfig()
   }, [])
+
+  const checkConfig = async () => {
+    try {
+      const res = await fetch('/api/admin/email-marketing/config-check')
+      const data = await res.json()
+      setIsConfigured(data.configured)
+    } catch (e) {
+      setIsConfigured(false)
+    }
+  }
 
   const insertButton = () => {
     try {
@@ -187,12 +199,12 @@ export default function EmailMarketingPage() {
         })
       })
       
+      const data = await res.json()
+
       if (!res.ok) {
-        const errorData = await res.json()
-        throw new Error(errorData.error || 'Failed to send emails')
+        throw new Error(data.error || 'Failed to send emails')
       }
 
-      const data = await res.json()
       alert(`🎉 Campaign blast successful!\n\nSent: ${data.sent}\nFailed: ${data.failed}`)
       
     } catch (e: any) {
@@ -249,6 +261,26 @@ export default function EmailMarketingPage() {
             </button>
           </div>
         </div>
+
+        {/* Configuration Warning */}
+        {isConfigured === false && (
+          <div className="mb-8 rounded-3xl border-2 border-red-200 bg-red-50 p-6 shadow-lg shadow-red-100 animate-in fade-in slide-in-from-top-4">
+            <div className="flex items-start gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
+                <Mail className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-red-900">Email System Not Configured</h3>
+                <p className="mt-1 text-sm text-red-700">
+                  Your SMTP settings are missing or using placeholder values. Emails will <strong>not be delivered</strong> to customers until you update your <code>.env.local</code> file with valid <code>SMTP_USER</code> and <code>SMTP_PASS</code>.
+                </p>
+                <Link href="/EMAIL_SETUP_GUIDE.md" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 transition">
+                  View Setup Guide <ArrowLeft className="h-3 w-3 rotate-180" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* AI Generation Panel */}
         {showAi && (
