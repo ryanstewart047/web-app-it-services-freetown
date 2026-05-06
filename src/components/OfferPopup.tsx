@@ -69,7 +69,7 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
       {/* Popup Card */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 pointer-events-none">
         <div 
-          className="rounded-xl md:rounded-2xl shadow-2xl max-w-xs sm:max-w-sm md:max-w-2xl lg:max-w-3xl w-full overflow-hidden pointer-events-auto transform transition-all duration-300 animate-scale-in"
+          className="rounded-xl md:rounded-2xl shadow-2xl max-w-xs sm:max-w-sm md:max-w-2xl lg:max-w-3xl w-full overflow-hidden pointer-events-auto transform animate-elastic-pop"
           style={{ backgroundColor: offer.backgroundColor || '#ffffff' }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -147,18 +147,18 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
       </div>
 
       <style jsx>{`
-        @keyframes scale-in {
+        @keyframes elastic-pop {
           from {
             opacity: 0;
-            transform: scale(0.9);
+            transform: scale(0.5) translateY(40px);
           }
           to {
             opacity: 1;
-            transform: scale(1);
+            transform: scale(1) translateY(0);
           }
         }
-        .animate-scale-in {
-          animation: scale-in 0.3s ease-out;
+        .animate-elastic-pop {
+          animation: elastic-pop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
         
         @keyframes badge-shake {
