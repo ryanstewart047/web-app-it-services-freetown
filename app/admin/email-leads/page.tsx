@@ -44,6 +44,7 @@ export default function EmailLeadsPage() {
   const [activeSource, setActiveSource] = useState('all')
   const [deleting, setDeleting] = useState<string | null>(null)
   const [downloading, setDownloading] = useState(false)
+  const [syncing, setSyncing] = useState(false)
 
   const fetchLeads = async (src = activeSource, q = search) => {
     setLoading(true)
@@ -64,6 +65,25 @@ export default function EmailLeadsPage() {
       console.error('Failed to fetch leads:', e)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSync = async () => {
+    if (!confirm('This will import emails from all previous orders, appointments, and registrations. Continue?')) return
+    setSyncing(true)
+    try {
+      const res = await fetch('/api/admin/email-leads/sync', { method: 'POST' })
+      const data = await res.json()
+      if (data.success) {
+        alert(`Success! Imported ${data.syncCount} existing leads.`)
+        fetchLeads()
+      } else {
+        alert('Sync failed: ' + data.error)
+      }
+    } catch (e) {
+      alert('Error during sync')
+    } finally {
+      setSyncing(false)
     }
   }
 
@@ -130,6 +150,14 @@ export default function EmailLeadsPage() {
             </div>
           </div>
           <div className="flex gap-3">
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-700 shadow-sm transition hover:bg-amber-100 disabled:opacity-50"
+            >
+              <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+              {syncing ? 'Syncing...' : 'Sync Existing Data'}
+            </button>
             <button
               onClick={() => fetchLeads()}
               className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
