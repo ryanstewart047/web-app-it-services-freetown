@@ -20,7 +20,14 @@ export default function ForumPromoCard() {
       return;
     }
 
-    const timer = setTimeout(() => setVisible(true), 5000);
+    // 60% chance to show the popup on this page load
+    const shouldShow = Math.random() > 0.4;
+    if (!shouldShow) return;
+
+    // Random delay between 3 and 10 seconds
+    const randomDelay = Math.floor(Math.random() * 7000) + 3000;
+
+    const timer = setTimeout(() => setVisible(true), randomDelay);
     return () => clearTimeout(timer);
   }, [isForumPage]);
 
@@ -33,13 +40,13 @@ export default function ForumPromoCard() {
     setTimeout(() => {
       setDismissed(true);
       sessionStorage.setItem('forum_promo_dismissed', '1');
-    }, 300);
+    }, 500); // Wait for transition to finish
   };
 
   return (
     <div
-      className={`fixed bottom-20 left-4 sm:left-6 z-[80] transition-all duration-500 ease-out ${
-        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'
+      className={`fixed bottom-20 left-4 sm:left-6 z-[80] origin-bottom-left transition-all duration-[800ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+        visible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-12 scale-50 pointer-events-none'
       }`}
     >
       <div className="group relative">
