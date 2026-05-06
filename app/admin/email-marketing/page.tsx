@@ -38,8 +38,10 @@ export default function EmailMarketingPage() {
   const [generating, setGenerating] = useState(false)
   const [showAi, setShowAi] = useState(false)
   const [showBtnModal, setShowBtnModal] = useState(false)
+  const [showImgModal, setShowImgModal] = useState(false)
   const [btnText, setBtnText] = useState('Click Here')
   const [btnUrl, setBtnUrl] = useState('https://')
+  const [imageUrl, setImageUrl] = useState('')
 
   useEffect(() => {
     fetchLeads()
@@ -49,6 +51,14 @@ export default function EmailMarketingPage() {
     const buttonHtml = `<a href="${btnUrl}" class="email-button" style="display: inline-block; background-color: #dc2626; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">${btnText}</a>`
     setContent(content + '<p>' + buttonHtml + '</p>')
     setShowBtnModal(false)
+  }
+
+  const insertImage = () => {
+    if (!imageUrl) return
+    const imgHtml = `<img src="${imageUrl}" alt="Email Image" style="max-width: 100%; height: auto; display: block; margin: 15px 0; border-radius: 8px;" />`
+    setContent(content + '<p>' + imgHtml + '</p>')
+    setShowImgModal(false)
+    setImageUrl('')
   }
 
   const fetchLeads = async () => {
@@ -233,14 +243,42 @@ export default function EmailMarketingPage() {
 
               <div className="mb-4 flex items-center justify-between">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Email Body (HTML Editor)</label>
-                <button 
-                  onClick={() => setShowBtnModal(!showBtnModal)}
-                  className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-100 transition"
-                >
-                  <LinkIcon className="h-3 w-3" />
-                  Insert Red Button
-                </button>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => { setShowImgModal(!showImgModal); setShowBtnModal(false); }}
+                    className="flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 transition"
+                  >
+                    <ImageIcon className="h-3 w-3" />
+                    Insert Image URL
+                  </button>
+                  <button 
+                    onClick={() => { setShowBtnModal(!showBtnModal); setShowImgModal(false); }}
+                    className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-100 transition"
+                  >
+                    <LinkIcon className="h-3 w-3" />
+                    Insert Red Button
+                  </button>
+                </div>
               </div>
+
+              {showImgModal && (
+                <div className="mb-4 rounded-2xl border border-blue-100 bg-blue-50/30 p-4 animate-in zoom-in-95 duration-200">
+                  <div>
+                    <label className="mb-1 block text-[10px] font-bold text-blue-800 uppercase">Paste Image URL</label>
+                    <div className="flex gap-2">
+                      <input 
+                        placeholder="https://example.com/photo.jpg"
+                        value={imageUrl}
+                        onChange={e => setImageUrl(e.target.value)}
+                        className="flex-1 rounded-lg border border-blue-100 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                      />
+                      <button onClick={insertImage} className="rounded-lg bg-blue-600 px-6 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 hover:bg-blue-700">Add</button>
+                      <button onClick={() => setShowImgModal(false)} className="px-2 py-2 text-xs font-bold text-slate-500">Cancel</button>
+                    </div>
+                  </div>
+                  <p className="mt-2 text-[10px] text-blue-600/60 italic">Note: Use a direct link to an image (ending in .jpg, .png, etc.)</p>
+                </div>
+              )}
 
               {showBtnModal && (
                 <div className="mb-4 rounded-2xl border border-red-100 bg-red-50/30 p-4 animate-in zoom-in-95 duration-200">
