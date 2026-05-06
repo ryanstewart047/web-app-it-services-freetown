@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { Send, Users, Image as ImageIcon, Type, Link as LinkIcon, CheckSquare, Square, Trash2, RefreshCw, Mail, ArrowLeft, Sparkles, Wand2 } from 'lucide-react'
 import Link from 'next/link'
@@ -28,6 +28,7 @@ const modules = {
 }
 
 export default function EmailMarketingPage() {
+  const quillRef = useRef<any>(null)
   const [leads, setLeads] = useState<EmailLead[]>([])
   const [selectedEmails, setSelectedEmails] = useState<Set<string>>(new Set())
   const [subject, setSubject] = useState('')
@@ -48,15 +49,26 @@ export default function EmailMarketingPage() {
   }, [])
 
   const insertButton = () => {
+    if (!quillRef.current) return
+    const quill = quillRef.current.getEditor()
+    const range = quill.getSelection()
+    const index = range ? range.index : quill.getLength()
+    
     const buttonHtml = `<a href="${btnUrl}" class="email-button" style="display: inline-block; background-color: #dc2626; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">${btnText}</a>`
-    setContent(content + '<p>' + buttonHtml + '</p>')
+    
+    quill.clipboard.dangerouslyPasteHTML(index, buttonHtml)
     setShowBtnModal(false)
   }
 
   const insertImage = () => {
-    if (!imageUrl) return
+    if (!imageUrl || !quillRef.current) return
+    const quill = quillRef.current.getEditor()
+    const range = quill.getSelection()
+    const index = range ? range.index : quill.getLength()
+
     const imgHtml = `<img src="${imageUrl}" alt="Email Image" style="max-width: 100%; height: auto; display: block; margin: 15px 0; border-radius: 8px;" />`
-    setContent(content + '<p>' + imgHtml + '</p>')
+    
+    quill.clipboard.dangerouslyPasteHTML(index, imgHtml)
     setShowImgModal(false)
     setImageUrl('')
   }
@@ -311,6 +323,7 @@ export default function EmailMarketingPage() {
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Email Body (HTML Editor)</label>
                 <div className="quill-wrapper">
                   <ReactQuill
+                    ref={quillRef}
                     theme="snow"
                     value={content}
                     onChange={setContent}
