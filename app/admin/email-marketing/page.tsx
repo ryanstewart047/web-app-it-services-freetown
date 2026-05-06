@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import { Send, Users, Image as ImageIcon, Type, Link as LinkIcon, CheckSquare, Square, Trash2, RefreshCw, Mail, ArrowLeft } from 'lucide-react'
+import { Send, Users, Image as ImageIcon, Type, Link as LinkIcon, CheckSquare, Square, Trash2, RefreshCw, Mail, ArrowLeft, Sparkles, Wand2 } from 'lucide-react'
 import Link from 'next/link'
 import 'react-quill/dist/quill.snow.css'
 
@@ -34,6 +34,9 @@ export default function EmailMarketingPage() {
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [aiPrompt, setAiPrompt] = useState('')
+  const [generating, setGenerating] = useState(false)
+  const [showAi, setShowAi] = useState(false)
 
   useEffect(() => {
     fetchLeads()
@@ -49,6 +52,31 @@ export default function EmailMarketingPage() {
       console.error('Failed to fetch leads')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleAiGenerate = async () => {
+    if (!aiPrompt) return
+    setGenerating(true)
+    try {
+      const res = await fetch('/api/admin/email-marketing/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: aiPrompt })
+      })
+      const data = await res.json()
+      if (data.subject && data.content) {
+        setSubject(data.subject)
+        setContent(data.content)
+        setShowAi(false)
+        setAiPrompt('')
+      } else {
+        alert('AI generation failed: ' + (data.error || 'Unknown error'))
+      }
+    } catch (e) {
+      alert('Error during AI generation')
+    } finally {
+      setGenerating(false)
     }
   }
 
@@ -121,6 +149,17 @@ export default function EmailMarketingPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowAi(!showAi)}
+              className={`flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-black transition ${
+                showAi 
+                  ? 'bg-amber-100 text-amber-700 ring-2 ring-amber-200' 
+                  : 'bg-white text-slate-700 shadow-sm border border-slate-100 hover:bg-slate-50'
+              }`}
+            >
+              <Sparkles className={`h-4 w-4 ${generating ? 'animate-pulse' : ''}`} />
+              AI Assistant
+            </button>
             <div className="rounded-xl bg-white px-4 py-2 shadow-sm border border-slate-100">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Recipients Selected</p>
               <p className="text-xl font-black text-blue-600">{selectedEmails.size} <span className="text-xs text-slate-300 font-normal">/ {leads.length}</span></p>
@@ -135,6 +174,35 @@ export default function EmailMarketingPage() {
             </button>
           </div>
         </div>
+
+        {/* AI Generation Panel */}
+        {showAi && (
+          <div className="mb-8 overflow-hidden rounded-3xl border-2 border-amber-200 bg-amber-50/50 p-6 shadow-lg shadow-amber-100 animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="mb-4 flex items-center gap-2">
+              <Wand2 className="h-5 w-5 text-amber-600" />
+              <h2 className="text-lg font-black text-amber-900">AI Email Marketing Writer</h2>
+            </div>
+            <div className="flex flex-col gap-4 sm:flex-row">
+              <input
+                type="text"
+                placeholder="e.g. Write a promotional email for 20% off screen repairs this week..."
+                value={aiPrompt}
+                onChange={e => setAiPrompt(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleAiGenerate()}
+                className="flex-1 rounded-2xl border border-amber-200 bg-white px-6 py-4 text-slate-900 outline-none focus:ring-4 focus:ring-amber-100"
+              />
+              <button
+                onClick={handleAiGenerate}
+                disabled={generating || !aiPrompt}
+                className="flex items-center justify-center gap-2 rounded-2xl bg-amber-600 px-8 py-4 text-sm font-black text-white transition hover:bg-amber-700 disabled:opacity-50"
+              >
+                {generating ? <RefreshCw className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}
+                {generating ? 'AI is Writing...' : 'Generate Email'}
+              </button>
+            </div>
+            <p className="mt-3 text-xs text-amber-600">The AI will automatically draft a subject line and a professional HTML body for you.</p>
+          </div>
+        )}
 
         <div className="grid gap-8 lg:grid-cols-[1fr,400px]">
           
