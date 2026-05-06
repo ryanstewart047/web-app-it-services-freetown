@@ -554,10 +554,15 @@ export default function BlogPage() {
 
           {featuredPost ? (
             <section className="mt-10 grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_22rem]">
-              <Link
-                href={`/blog/${featuredPost.id}`}
-                className={`${styles.featureCard} scroll-animate block`}
+              <div
+                className={`${styles.featureCard} scroll-animate block group`}
               >
+                <Link
+                  href={`/blog/${featuredPost.id}`}
+                  className="absolute inset-0 z-[2]"
+                  aria-label={`Read featured article: ${featuredPost.title}`}
+                />
+                
                 <div className={styles.featureMedia}>
                   {getPrimaryImage(featuredPost) ? (
                     <img
@@ -577,7 +582,7 @@ export default function BlogPage() {
                   )}
                 </div>
 
-                <div className={styles.featureContent}>
+                <div className={`${styles.featureContent} z-[3] pointer-events-none w-full`}>
                   <span className={styles.featureBadge}>
                     <Sparkles className="h-4 w-4" />
                     Featured article
@@ -589,22 +594,63 @@ export default function BlogPage() {
                     {getExcerpt(featuredPost.content, 220)}
                   </p>
 
-                  <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-blue-50/85">
-                    <span className="inline-flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      {formatLongDate(featuredPost.date)}
-                    </span>
-                    <span className="inline-flex items-center gap-2">
-                      <Clock3 className="h-4 w-4" />
-                      {getReadingTime(featuredPost.content)} min read
-                    </span>
-                    <span className="inline-flex items-center gap-2">
-                      <TrendingUp className="h-4 w-4" />
-                      {featuredPost.likes} likes
-                    </span>
+                  <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between pointer-events-auto">
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-blue-50/85">
+                      <span className="inline-flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        {formatLongDate(featuredPost.date)}
+                      </span>
+                      <span className="inline-flex items-center gap-2">
+                        <Clock3 className="h-4 w-4" />
+                        {getReadingTime(featuredPost.content)} min read
+                      </span>
+                    </div>
+
+                    <div className={styles.storyActionRail}>
+                      <button
+                        type="button"
+                        title="Like article"
+                        aria-label={`Like ${featuredPost.title}`}
+                        onClick={(e) => { e.preventDefault(); handleLike(featuredPost.id) }}
+                        className={`${styles.storyActionButton} ${
+                          userVotes[featuredPost.id] === 'like'
+                            ? styles.storyActionActiveBlue
+                            : ''
+                        }`}
+                      >
+                        <ThumbsUp className="h-4 w-4" />
+                        <span className="text-xs font-semibold">{featuredPost.likes}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        title="Dislike article"
+                        aria-label={`Dislike ${featuredPost.title}`}
+                        onClick={(e) => { e.preventDefault(); handleDislike(featuredPost.id) }}
+                        className={`${styles.storyActionButton} ${
+                          userVotes[featuredPost.id] === 'dislike'
+                            ? styles.storyActionActiveRed
+                            : ''
+                        }`}
+                      >
+                        <ThumbsDown className="h-4 w-4" />
+                        <span className="text-xs font-semibold">{featuredPost.dislikes}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        title="Share article"
+                        aria-label={`Share ${featuredPost.title}`}
+                        onClick={(e) => { e.preventDefault(); handleShare(featuredPost) }}
+                        className={styles.storyActionButton}
+                      >
+                        <Share2 className="h-4 w-4" />
+                        <span className="text-xs font-semibold">Share</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </Link>
+              </div>
 
               <aside className="space-y-4">
                 <div className={`${styles.insightCard} scroll-animate rounded-[1.75rem] p-5`}>
