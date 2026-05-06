@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { captureEmailLead } from '@/lib/email-leads'
 
 const prisma = new PrismaClient()
 
@@ -98,6 +99,10 @@ export async function POST(request: NextRequest) {
         }
       })
       console.log('✅ Receipt created:', receipt.receiptNumber)
+      // Capture email lead silently if customer provided email
+      if (data.customerEmail) {
+        captureEmailLead({ email: data.customerEmail, name: data.customerName, phone: data.customerPhone, source: 'receipt' })
+      }
       return NextResponse.json(receipt, { status: 201 })
     }
   } catch (error) {

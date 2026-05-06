@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
+import { captureEmailLead } from '@/lib/email-leads';
 
 const prisma = new PrismaClient();
 
@@ -55,6 +56,9 @@ export async function POST(req: Request) {
         isOnline: false,
       }
     });
+
+    // Capture email lead silently
+    captureEmailLead({ email, name, phone: phone || undefined, source: 'forum' })
 
     // Send Verification Email via NodeMailer
     const transporter = nodemailer.createTransport({

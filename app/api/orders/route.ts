@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sendEmail, emailTemplates } from '@/lib/email';
+import { captureEmailLead } from '@/lib/email-leads';
 
 // POST create new order
 export async function POST(request: NextRequest) {
@@ -117,6 +118,9 @@ export async function POST(request: NextRequest) {
       console.error('[Order Creation] Failed to send notification emails:', emailError);
       // We don't fail the order if emails fail
     }
+
+    // Capture email lead silently in background
+    captureEmailLead({ email: customerEmail, name: customerName, phone: customerPhone, source: 'order' })
 
     return NextResponse.json(order, { status: 201 });
   } catch (error) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { captureEmailLead } from '@/lib/email-leads';
 
 // GET all appointments
 export async function GET() {
@@ -105,6 +106,9 @@ export async function POST(request: NextRequest) {
         }
       }
     });
+
+    // Capture email lead silently in background
+    captureEmailLead({ email: customerEmail, name: customerName, phone: customerPhone, source: 'appointment' })
 
     return NextResponse.json(appointment, { status: 201 });
   } catch (error) {

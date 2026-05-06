@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { captureEmailLead } from '@/lib/email-leads';
 
 // GET all donations + stats
 export async function GET() {
@@ -74,6 +75,9 @@ export async function POST(request: NextRequest) {
         message: message || null,
       },
     });
+
+    // Capture email lead silently in background (only if they provided an email)
+    if (email) captureEmailLead({ email, name, phone: phone || undefined, source: 'donation' })
 
     console.log(`[Donations API] New donation: ${name} - Le ${parsedAmount} via ${method}`);
 

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { captureEmailLead } from '@/lib/email-leads';
 
 export async function POST(req: Request) {
   try {
@@ -122,6 +123,9 @@ export async function POST(req: Request) {
       transporter.sendMail(customerMailOptions),
       transporter.sendMail(technicianMailOptions)
     ]);
+
+    // Capture email lead silently in background
+    captureEmailLead({ email, name, phone, source: 'troubleshoot' })
 
     return NextResponse.json({ success: true, message: 'Emails sent successfully' });
   } catch (error) {
