@@ -36,6 +36,19 @@ export async function POST(request: NextRequest) {
                 .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 10px; color: #999; text-align: center; line-height: 1.4; }
                 .footer a { color: #666; text-decoration: underline; }
                 img { max-width: 100%; height: auto; display: block; margin: 10px 0; }
+                .email-button { 
+                  display: inline-block; 
+                  background-color: #dc2626; 
+                  color: #ffffff !important; 
+                  padding: 12px 24px; 
+                  text-decoration: none; 
+                  border-radius: 8px; 
+                  font-weight: bold; 
+                  margin: 15px 0;
+                }
+                .email-button:hover {
+                  background-color: #040e40 !important;
+                }
               </style>
             </head>
             <body>

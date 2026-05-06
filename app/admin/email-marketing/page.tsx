@@ -37,10 +37,19 @@ export default function EmailMarketingPage() {
   const [aiPrompt, setAiPrompt] = useState('')
   const [generating, setGenerating] = useState(false)
   const [showAi, setShowAi] = useState(false)
+  const [showBtnModal, setShowBtnModal] = useState(false)
+  const [btnText, setBtnText] = useState('Click Here')
+  const [btnUrl, setBtnUrl] = useState('https://')
 
   useEffect(() => {
     fetchLeads()
   }, [])
+
+  const insertButton = () => {
+    const buttonHtml = `<a href="${btnUrl}" class="email-button" style="display: inline-block; background-color: #dc2626; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">${btnText}</a>`
+    setContent(content + '<p>' + buttonHtml + '</p>')
+    setShowBtnModal(false)
+  }
 
   const fetchLeads = async () => {
     setLoading(true)
@@ -221,6 +230,44 @@ export default function EmailMarketingPage() {
                   />
                 </div>
               </div>
+
+              <div className="mb-4 flex items-center justify-between">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Email Body (HTML Editor)</label>
+                <button 
+                  onClick={() => setShowBtnModal(!showBtnModal)}
+                  className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-100 transition"
+                >
+                  <LinkIcon className="h-3 w-3" />
+                  Insert Red Button
+                </button>
+              </div>
+
+              {showBtnModal && (
+                <div className="mb-4 rounded-2xl border border-red-100 bg-red-50/30 p-4 animate-in zoom-in-95 duration-200">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-1 block text-[10px] font-bold text-red-800 uppercase">Button Text</label>
+                      <input 
+                        value={btnText}
+                        onChange={e => setBtnText(e.target.value)}
+                        className="w-full rounded-lg border border-red-100 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-200"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-[10px] font-bold text-red-800 uppercase">Link URL</label>
+                      <input 
+                        value={btnUrl}
+                        onChange={e => setBtnUrl(e.target.value)}
+                        className="w-full rounded-lg border border-red-100 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-200"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-4 flex justify-end gap-2">
+                    <button onClick={() => setShowBtnModal(false)} className="px-4 py-2 text-xs font-bold text-slate-500">Cancel</button>
+                    <button onClick={insertButton} className="rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-red-200 hover:bg-red-700">Add to Email</button>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Email Body (HTML Editor)</label>
