@@ -238,8 +238,8 @@ export default function EmailMarketingPage() {
             </div>
 
             <div className="rounded-3xl border border-blue-100 bg-blue-50 p-6 text-sm text-blue-800">
-              <h3 className="mb-2 font-bold">Pro Tip: Personalization</h3>
-              <p className="opacity-80">You can paste images directly into the editor. Links will be automatically tracked for engagement. Every email will include your official business footer and an unsubscribe link.</p>
+              <h3 className="mb-2 font-bold">Pro Tip: Personalization & Images</h3>
+              <p className="opacity-80">You can paste images directly into the editor, but for best compatibility with Gmail and Outlook, we recommend using <strong>Image URLs</strong>. Links will be automatically tracked for engagement. Every email will include your official business footer and an unsubscribe link.</p>
             </div>
           </div>
 
