@@ -29,6 +29,7 @@ const modules = {
 
 export default function EmailMarketingPage() {
   const quillRef = useRef<any>(null)
+  const lastRange = useRef<any>(null)
   const [leads, setLeads] = useState<EmailLead[]>([])
   const [selectedEmails, setSelectedEmails] = useState<Set<string>>(new Set())
   const [subject, setSubject] = useState('')
@@ -50,6 +51,13 @@ export default function EmailMarketingPage() {
     checkConfig()
   }, [])
 
+  // Track cursor position whenever it changes
+  const handleSelectionChange = (range: any) => {
+    if (range) {
+      lastRange.current = range
+    }
+  }
+
   const checkConfig = async () => {
     try {
       const res = await fetch('/api/admin/email-marketing/config-check')
@@ -67,19 +75,17 @@ export default function EmailMarketingPage() {
       
       if (quill) {
         quill.focus()
-        const range = quill.getSelection()
-        const index = range ? range.index : quill.getLength()
+        // Use remembered range or current or end
+        const index = lastRange.current ? lastRange.current.index : quill.getLength()
         quill.clipboard.dangerouslyPasteHTML(index, buttonHtml)
         // Explicitly update content state from editor
         setTimeout(() => setContent(quill.root.innerHTML), 100)
       } else {
-        // Fallback: Append to content if editor not ready
         setContent(prev => prev + '<p>' + buttonHtml + '</p>')
       }
       setShowBtnModal(false)
     } catch (e) {
       console.error('Insert button error:', e)
-      // Extreme fallback
       setContent(prev => prev + `<p><a href="${btnUrl}" style="color:red;font-weight:bold;">${btnText}</a></p>`)
       setShowBtnModal(false)
     }
@@ -96,20 +102,18 @@ export default function EmailMarketingPage() {
       
       if (quill) {
         quill.focus()
-        const range = quill.getSelection()
-        const index = range ? range.index : quill.getLength()
+        // Use remembered range or current or end
+        const index = lastRange.current ? lastRange.current.index : quill.getLength()
         quill.clipboard.dangerouslyPasteHTML(index, imgHtml)
         // Explicitly update content state from editor
         setTimeout(() => setContent(quill.root.innerHTML), 100)
       } else {
-        // Fallback
         setContent(prev => prev + '<p>' + imgHtml + '</p>')
       }
       setShowImgModal(false)
       setImageUrl('')
     } catch (e) {
       console.error('Insert image error:', e)
-      // Extreme fallback
       setContent(prev => prev + `<p><img src="${imageUrl}" style="max-width:100%" /></p>`)
       setShowImgModal(false)
       setImageUrl('')
@@ -410,6 +414,7 @@ export default function EmailMarketingPage() {
                     theme="snow"
                     value={content}
                     onChange={setContent}
+                    onChangeSelection={handleSelectionChange}
                     modules={modules}
                     placeholder="Start designing your email here..."
                     className="h-[500px] overflow-hidden rounded-2xl border-slate-100 bg-slate-50 text-slate-800"
