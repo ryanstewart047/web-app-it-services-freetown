@@ -45,11 +45,18 @@ export default function EmailMarketingPage() {
   const [btnUrl, setBtnUrl] = useState('https://')
   const [imageUrl, setImageUrl] = useState('')
   const [isConfigured, setIsConfigured] = useState<boolean | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     fetchLeads()
     checkConfig()
   }, [])
+
+  const filteredLeads = leads.filter(lead => 
+    lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (lead.name && lead.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    lead.source.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   // Track cursor position whenever it changes
   const handleSelectionChange = (range: any) => {
@@ -66,6 +73,25 @@ export default function EmailMarketingPage() {
     } catch (e) {
       setIsConfigured(false)
     }
+  }
+
+  const toggleSelectAll = () => {
+    const next = new Set(selectedEmails)
+    const allFilteredEmails = filteredLeads.map(l => l.email)
+    const allFilteredSelected = allFilteredEmails.every(email => next.has(email))
+
+    if (allFilteredSelected) {
+      // Deselect only filtered ones
+      allFilteredEmails.forEach(email => next.delete(email))
+    } else {
+      // Select all filtered ones
+      allFilteredEmails.forEach(email => next.add(email))
+    }
+    setSelectedEmails(next)
+  }
+
+  const deselectAll = () => {
+    setSelectedEmails(new Set())
   }
 
   const insertButton = () => {
@@ -156,14 +182,6 @@ export default function EmailMarketingPage() {
       alert('Error during AI generation')
     } finally {
       setGenerating(false)
-    }
-  }
-
-  const toggleSelectAll = () => {
-    if (selectedEmails.size === leads.length) {
-      setSelectedEmails(new Set())
-    } else {
-      setSelectedEmails(new Set(leads.map(l => l.email)))
     }
   }
 
@@ -452,19 +470,31 @@ export default function EmailMarketingPage() {
                     <Users className="h-5 w-5 text-blue-500" />
                     Recipient List
                   </h2>
-                  <button 
-                    onClick={toggleSelectAll}
-                    className="text-xs font-bold text-blue-600 hover:underline"
-                  >
-                    {selectedEmails.size === leads.length ? 'Deselect All' : 'Select All'}
-                  </button>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={toggleSelectAll}
+                      className="text-xs font-bold text-blue-600 hover:underline"
+                    >
+                      {filteredLeads.every(l => selectedEmails.has(l.email)) ? 'Deselect Filtered' : 'Select Filtered'}
+                    </button>
+                    {selectedEmails.size > 0 && (
+                      <button 
+                        onClick={deselectAll}
+                        className="text-xs font-bold text-red-600 hover:underline border-l border-slate-200 pl-2"
+                      >
+                        Clear All
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <input 
                     type="text" 
-                    placeholder="Search leads..."
-                    className="w-full rounded-xl border border-slate-100 bg-slate-50 py-2 pl-9 pr-4 text-xs outline-none focus:border-blue-200 focus:bg-white"
+                    placeholder="Search by name, email or source..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full rounded-xl border border-slate-100 bg-slate-50 py-2 pl-9 pr-4 text-xs outline-none focus:border-blue-200 focus:bg-white transition"
                   />
                 </div>
               </div>
@@ -475,13 +505,13 @@ export default function EmailMarketingPage() {
                     <RefreshCw className="h-6 w-6 animate-spin" />
                     <p className="text-xs font-medium">Loading leads...</p>
                   </div>
-                ) : leads.length === 0 ? (
+                ) : filteredLeads.length === 0 ? (
                   <div className="py-20 text-center">
-                    <p className="text-xs font-medium text-slate-400">No leads found</p>
+                    <p className="text-xs font-medium text-slate-400">No leads match your search</p>
                   </div>
                 ) : (
                   <div className="space-y-1">
-                    {leads.map(lead => (
+                    {filteredLeads.map(lead => (
                       <button
                         key={lead.id}
                         onClick={() => toggleEmail(lead.email)}
@@ -515,8 +545,8 @@ export default function EmailMarketingPage() {
 
               <div className="border-t border-slate-100 bg-slate-50/50 p-6">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-slate-500 uppercase tracking-widest">Total Leads</span>
-                  <span className="font-black text-slate-900">{leads.length}</span>
+                  <span className="font-bold text-slate-500 uppercase tracking-widest">Total Selected</span>
+                  <span className="font-black text-blue-600">{selectedEmails.size} / {leads.length}</span>
                 </div>
               </div>
             </div>
