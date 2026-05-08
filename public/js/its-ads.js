@@ -15,11 +15,14 @@
       
       if (containers.length > 0) {
         console.log(`ITS Ad Network: Found ${containers.length} container(s).`);
-        // Detect if we are running on localhost for testing
+        // Detect if we are running on our own domain or localhost
+        const isSameDomain = window.location.hostname.includes('itservicesfreetown.com');
         const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const baseUrl = isLocal ? window.location.origin : CONFIG.apiBase;
         
-        console.log(`ITS Ad Network: Using API base ${baseUrl}`);
+        // Use relative path if on same domain/local to avoid CORS blocks
+        const baseUrl = (isSameDomain || isLocal) ? '' : CONFIG.apiBase;
+        
+        console.log(`ITS Ad Network: Using base ${baseUrl || 'relative'}`);
 
         try {
           const response = await fetch(`${baseUrl}/api/ads/serve`);
