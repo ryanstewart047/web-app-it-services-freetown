@@ -10,26 +10,35 @@
 
   async function init() {
     const findAndRender = async () => {
+      console.log('ITS Ad Network: Checking for containers...');
       const containers = document.querySelectorAll(`.${CONFIG.containerClass}`);
+      
       if (containers.length > 0) {
+        console.log(`ITS Ad Network: Found ${containers.length} container(s).`);
         // Detect if we are running on localhost for testing
         const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         const baseUrl = isLocal ? window.location.origin : CONFIG.apiBase;
+        
+        console.log(`ITS Ad Network: Using API base ${baseUrl}`);
 
         try {
           const response = await fetch(`${baseUrl}/api/ads/serve`);
           const data = await response.json();
+          console.log('ITS Ad Network: API Response received', data);
 
           if (data.ad) {
+            console.log('ITS Ad Network: Ad data found, rendering...');
             containers.forEach(container => {
               if (!container.getAttribute('data-its-loaded')) {
                 renderAd(container, data.ad, baseUrl);
                 container.setAttribute('data-its-loaded', 'true');
               }
             });
+          } else {
+            console.warn('ITS Ad Network: No active ads found in database.');
           }
         } catch (error) {
-          console.error('ITS Ad Network Error:', error);
+          console.error('ITS Ad Network API Error:', error);
         }
         return true;
       }
