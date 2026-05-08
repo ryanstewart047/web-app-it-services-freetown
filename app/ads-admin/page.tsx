@@ -44,7 +44,12 @@ export default function AdsAdminPage() {
         return;
       }
       const data = await res.json();
-      setAds(data);
+      if (Array.isArray(data)) {
+        setAds(data);
+      } else {
+        console.error('API returned non-array data:', data);
+        setError('Received invalid data from server.');
+      }
     } catch (err) {
       setError('Failed to load ads.');
     } finally {
