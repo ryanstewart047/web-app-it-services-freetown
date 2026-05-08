@@ -19,10 +19,10 @@
         const isSameDomain = window.location.hostname.includes('itservicesfreetown.com');
         const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         
-        // Use relative path if on same domain/local to avoid CORS blocks
-        const baseUrl = (isSameDomain || isLocal) ? '' : CONFIG.apiBase;
+        // Use current origin if on same domain/local to avoid CORS blocks
+        const baseUrl = (isSameDomain || isLocal) ? window.location.origin : CONFIG.apiBase;
         
-        console.log(`ITS Ad Network: Using base ${baseUrl || 'relative'}`);
+        console.log(`ITS Ad Network: Using base ${baseUrl}`);
 
         try {
           const response = await fetch(`${baseUrl}/api/ads/serve`);

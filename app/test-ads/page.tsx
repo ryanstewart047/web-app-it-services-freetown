@@ -40,7 +40,7 @@ export default function TestAdsPage() {
       </div>
 
       {/* The IT Services Freetown Ad Network Script */}
-      <Script src="/js/its-ads.js" strategy="afterInteractive" />
+      <Script src="/js/its-ads.js?v=3" strategy="afterInteractive" />
     </div>
   );
 }
