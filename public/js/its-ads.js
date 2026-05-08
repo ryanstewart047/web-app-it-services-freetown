@@ -9,22 +9,52 @@
   };
 
   async function init() {
-    const containers = document.querySelectorAll(`.${CONFIG.containerClass}`);
-    if (containers.length === 0) return;
+    const findAndRender = async () => {
+      const containers = document.querySelectorAll(`.${CONFIG.containerClass}`);
+      if (containers.length > 0) {
+        // Detect if we are running on localhost for testing
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const baseUrl = isLocal ? window.location.origin : CONFIG.apiBase;
 
-    // Detect if we are running on localhost for testing
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const baseUrl = isLocal ? window.location.origin : CONFIG.apiBase;
+        try {
+          const response = await fetch(`${baseUrl}/api/ads/serve`);
+          const data = await response.json();
 
-    try {
-      const response = await fetch(`${baseUrl}/api/ads/serve`);
-      const data = await response.json();
-
-      if (data.ad) {
-        containers.forEach(container => renderAd(container, data.ad, baseUrl));
+          if (data.ad) {
+            containers.forEach(container => {
+              if (!container.getAttribute('data-its-loaded')) {
+                renderAd(container, data.ad, baseUrl);
+                container.setAttribute('data-its-loaded', 'true');
+              }
+            });
+          }
+        } catch (error) {
+          console.error('ITS Ad Network Error:', error);
+        }
+        return true;
       }
-    } catch (error) {
-      console.error('ITS Ad Network Error:', error);
+      return false;
+    };
+
+    // Try immediately
+    const found = await findAndRender();
+    
+    // If not found (common in React/Next.js apps), watch the DOM
+    if (!found) {
+      const observer = new MutationObserver(async (mutations, obs) => {
+        const nowFound = await findAndRender();
+        if (nowFound) {
+          obs.disconnect(); // Stop watching once we've found and rendered
+        }
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+
+      // Also try one more time after 2 seconds just in case
+      setTimeout(findAndRender, 2000);
     }
   }
 
