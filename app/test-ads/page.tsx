@@ -1,6 +1,5 @@
-'use client';
-
 import React from 'react';
+import Script from 'next/script';
 
 export default function TestAdsPage() {
   return (
@@ -41,7 +40,7 @@ export default function TestAdsPage() {
       </div>
 
       {/* The IT Services Freetown Ad Network Script */}
-      <script src="/js/its-ads.js"></script>
+      <Script src="/js/its-ads.js" strategy="afterInteractive" />
     </div>
   );
 }
