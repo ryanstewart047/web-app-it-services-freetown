@@ -37,8 +37,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(ad);
   } catch (error) {
-    console.error('Create Ad Error:', error);
-    return NextResponse.json({ error: 'Failed to create ad' }, { status: 500 });
+    console.error('Create Ad Error Details:', error);
+    return NextResponse.json({ error: `Failed to create ad: ${error instanceof Error ? error.message : 'Unknown error'}` }, { status: 500 });
   }
 }
 

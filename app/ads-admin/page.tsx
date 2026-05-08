@@ -223,7 +223,45 @@ export default function AdsAdminPage() {
             <label htmlFor="active" className="text-sm font-medium text-gray-700 dark:text-gray-300">Active (Visible on network)</label>
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {/* Live Preview Section */}
+          <div className="mt-8 border-t pt-8">
+            <h4 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-4">Live Preview</h4>
+            <div className="max-w-sm mx-auto">
+              <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md transition-all dark:border-gray-800 dark:bg-gray-900">
+                <div className="aspect-video w-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                  {formData.imageUrl ? (
+                    <img src={formData.imageUrl} alt="Ad Preview" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="text-gray-400 text-xs text-center p-4">
+                      <svg className="w-8 h-8 mx-auto mb-2 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      Banner image will appear here
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <h4 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+                    {formData.title || 'Your Ad Title Here'}
+                  </h4>
+                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    {formData.description || 'Add a description to catch people\'s attention...'}
+                  </p>
+                  <div className="mt-4 flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Sponsored</span>
+                    <span className="text-sm font-semibold text-red-600">Learn More →</span>
+                  </div>
+                </div>
+              </div>
+              <p className="mt-3 text-center text-xs text-gray-400">This is how your ad will look on other websites.</p>
+            </div>
+          </div>
+
+          {error && (
+            <div className="rounded-xl bg-red-50 p-4 border border-red-200">
+              <p className="text-sm text-red-600 font-medium">❌ {error}</p>
+            </div>
+          )}
 
           <button
             type="submit"
