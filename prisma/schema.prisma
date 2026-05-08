@@ -376,3 +376,19 @@ model EmailLead {
   @@index([source])
   @@index([createdAt])
 }
+
+model CustomAd {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  imageUrl    String   // Link to the banner image
+  targetUrl   String   // Where the ad leads to
+  active      Boolean  @default(true)
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([active])
+  @@index([createdAt])
+}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITS Ad Network Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .bg-navy { background-color: #040e40; }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 sm:p-10">
+    <div class="max-w-2xl mx-auto space-y-10">
+        <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-200">
+            <h1 class="text-2xl font-bold mb-4 text-gray-900">Partner Website Preview</h1>
+            <p class="text-gray-600 mb-6">
+                This simulates how your ads will appear on a different website (like a local blog or news portal).
+            </p>
+            
+            <div class="border-t pt-6">
+                <h2 class="text-sm font-semibold uppercase text-gray-400 mb-4">Advertisement</h2>
+                
+                <!-- This is the container where the ad will appear -->
+                <div class="its-ad-unit"></div>
+                
+            </div>
+
+            <p class="mt-6 text-gray-600">
+                The ad above is being "served" live from your database. Every time this page loads, it counts as one "Impression."
+            </p>
+        </div>
+
+        <div class="bg-navy text-white p-6 sm:p-8 rounded-3xl shadow-sm">
+            <h2 class="text-xl font-bold mb-4">Testing Instructions</h2>
+            <ol class="list-decimal list-inside space-y-3 text-gray-300 text-sm">
+                <li>Go to your <a href="/ads-admin" class="text-red-400 font-bold underline hover:text-red-300 transition-colors">Ads Admin Dashboard</a>.</li>
+                <li>Create your first ad (upload a banner and add a link).</li>
+                <li>Refresh this test page to see your ad appear!</li>
+                <li>Click the ad to verify that "Clicks" are being tracked in your dashboard.</li>
+            </ol>
+        </div>
+        
+        <div class="text-center">
+            <a href="/admin" class="text-sm text-gray-500 hover:text-red-600 transition-colors">← Back to Admin Control</a>
+        </div>
+    </div>
+
+    <!-- The IT Services Freetown Ad Network Script -->
+    <script src="/js/its-ads.js"></script>
+</body>
+</html>
