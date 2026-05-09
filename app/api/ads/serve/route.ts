@@ -15,7 +15,8 @@ export async function GET(request: NextRequest) {
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type',
+          'Access-Control-Allow-Headers': 'Content-Type, Accept',
+          'Cache-Control': 'no-store, max-age=0'
         }
       });
     }
@@ -24,20 +25,19 @@ export async function GET(request: NextRequest) {
     const randomAd = ads[Math.floor(Math.random() * ads.length)];
 
     // Increment impressions in the background
-    // We don't await this to keep the response fast
     prisma.customAd.update({
       where: { id: randomAd.id },
       data: { impressions: { increment: 1 } }
     }).catch(err => console.error('Failed to increment impressions:', err));
 
-    const response = NextResponse.json({ ad: randomAd });
-
-    // Add CORS headers so other websites can fetch the ad
-    response.headers.set('Access-Control-Allow-Origin', '*');
-    response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
-
-    return response;
+    return NextResponse.json({ ad: randomAd }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Accept',
+        'Cache-Control': 'no-store, max-age=0'
+      }
+    });
   } catch (error) {
     console.error('Ad Serve Error:', error);
     return NextResponse.json(
@@ -46,6 +46,8 @@ export async function GET(request: NextRequest) {
         status: 500,
         headers: {
           'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Accept',
         }
       }
     );

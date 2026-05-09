@@ -334,16 +334,20 @@ export default function AdsAdminPage() {
       <div className="rounded-3xl bg-[#040e40] p-8 text-white">
         <h3 className="text-xl font-bold">Network Embed Code</h3>
         <p className="mt-2 text-sm text-gray-300">
-          Give this code to other website owners to show your ads on their site.
+          Give this code to other website owners. They can place the <code>&lt;div&gt;</code> where they want the ad, or just paste the script anywhere for automatic injection.
         </p>
         
         <div className="mt-6 space-y-4">
           <div className="rounded-xl bg-black/30 p-4 font-mono text-xs text-blue-300 overflow-x-auto whitespace-pre">
 {`<div class="its-ad-unit"></div>
-<script src="https://itservicesfreetown.com/js/its-ads.js"></script>`}
+<script src="${typeof window !== 'undefined' ? window.location.origin : 'https://itservicesfreetown.com'}/js/its-ads.js"></script>`}
           </div>
           <button
-            onClick={copyEmbedCode}
+            onClick={() => {
+              const code = `<div class="its-ad-unit"></div>\n<script src="${window.location.origin}/js/its-ads.js"></script>`;
+              navigator.clipboard.writeText(code);
+              alert('Embed code copied to clipboard!');
+            }}
             className="rounded-xl bg-white/10 px-4 py-2 text-xs font-bold transition hover:bg-white/20"
           >
             Copy Embed Code

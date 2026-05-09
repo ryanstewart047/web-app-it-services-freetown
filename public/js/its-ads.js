@@ -2,35 +2,55 @@
   // IT Services Freetown - Ad Network Client
   // This script fetches and displays internal promotions.
   
+  // Try to find the script tag that loaded this script to determine the base URL
+  const scriptTag = document.currentScript || (function() {
+    const scripts = document.getElementsByTagName('script');
+    for (let i = scripts.length - 1; i >= 0; i--) {
+      if (scripts[i].src && scripts[i].src.includes('its-ads.js')) {
+        return scripts[i];
+      }
+    }
+    return null;
+  })();
+
   const CONFIG = {
-    apiBase: 'https://itservicesfreetown.com',
+    apiBase: scriptTag ? new URL(scriptTag.src).origin : 'https://itservicesfreetown.com',
     containerClass: 'its-ad-unit',
     fallbackColor: '#040e40'
   };
 
   async function init() {
+    console.log('ITS Ad Network: Initializing...');
+    
     const findAndRender = async () => {
-      console.log('ITS Ad Network: Checking for containers...');
-      const containers = document.querySelectorAll(`.${CONFIG.containerClass}`);
+      let containers = document.querySelectorAll(`.${CONFIG.containerClass}`);
       
+      // If no containers found and we have a script tag, create one at the script tag's location
+      if (containers.length === 0 && scriptTag && !scriptTag.getAttribute('data-its-injected')) {
+        console.log('ITS Ad Network: No containers found, injecting fallback at script location.');
+        const fallbackContainer = document.createElement('div');
+        fallbackContainer.className = CONFIG.containerClass;
+        scriptTag.parentNode.insertBefore(fallbackContainer, scriptTag.nextSibling);
+        scriptTag.setAttribute('data-its-injected', 'true');
+        containers = [fallbackContainer];
+      }
+
       if (containers.length > 0) {
         console.log(`ITS Ad Network: Found ${containers.length} container(s).`);
-        // Detect if we are running on our own domain or localhost
-        const isSameDomain = window.location.hostname.includes('itservicesfreetown.com');
-        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const baseUrl = CONFIG.apiBase;
         
-        // Use current origin if on same domain/local to avoid CORS blocks
-        const baseUrl = (isSameDomain || isLocal) ? window.location.origin : CONFIG.apiBase;
-        
-        console.log(`ITS Ad Network: Using base ${baseUrl}`);
-
         try {
-          const response = await fetch(`${baseUrl}/api/ads/serve`);
+          const response = await fetch(`${baseUrl}/api/ads/serve`, {
+            cache: 'no-store',
+            headers: { 'Accept': 'application/json' }
+          });
+          
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+          
           const data = await response.json();
           console.log('ITS Ad Network: API Response received', data);
 
           if (data.ad) {
-            console.log('ITS Ad Network: Ad data found, rendering...');
             containers.forEach(container => {
               if (!container.getAttribute('data-its-loaded')) {
                 renderAd(container, data.ad, baseUrl);
@@ -38,7 +58,7 @@
               }
             });
           } else {
-            console.warn('ITS Ad Network: No active ads found in database.');
+            console.warn('ITS Ad Network: No active ads found.');
           }
         } catch (error) {
           console.error('ITS Ad Network API Error:', error);
@@ -51,13 +71,11 @@
     // Try immediately
     const found = await findAndRender();
     
-    // If not found (common in React/Next.js apps), watch the DOM
+    // If not found, watch the DOM
     if (!found) {
       const observer = new MutationObserver(async (mutations, obs) => {
         const nowFound = await findAndRender();
-        if (nowFound) {
-          obs.disconnect(); // Stop watching once we've found and rendered
-        }
+        if (nowFound) obs.disconnect();
       });
 
       observer.observe(document.body, {
@@ -65,13 +83,24 @@
         subtree: true
       });
 
-      // Also try one more time after 2 seconds just in case
-      setTimeout(findAndRender, 2000);
+      // Periodic check as a fallback for slow loading sites
+      let attempts = 0;
+      const interval = setInterval(async () => {
+        attempts++;
+        const nowFound = await findAndRender();
+        if (nowFound || attempts > 5) clearInterval(interval);
+      }, 1000);
     }
   }
 
   function renderAd(container, ad, baseUrl) {
     const clickUrl = `${baseUrl}/api/ads/click?id=${ad.id}`;
+    
+    // Make image URL absolute if it's relative
+    let imageUrl = ad.imageUrl;
+    if (imageUrl && !imageUrl.startsWith('http')) {
+      imageUrl = `${baseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+    }
     
     // Inject Styles
     if (!document.getElementById('its-ad-styles')) {
@@ -147,7 +176,7 @@
     const html = `
       <div class="its-ad-card">
         <a href="${clickUrl}" target="_blank" class="its-ad-link">
-          ${ad.imageUrl ? `<img src="${ad.imageUrl}" alt="${ad.title}" class="its-ad-img">` : ''}
+          ${imageUrl ? `<img src="${imageUrl}" alt="${ad.title}" class="its-ad-img">` : ''}
           <div class="its-ad-content">
             <h4 class="its-ad-title">${ad.title}</h4>
             ${ad.description ? `<p class="its-ad-desc">${ad.description}</p>` : ''}
