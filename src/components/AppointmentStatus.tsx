@@ -428,12 +428,15 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
                 {appointment.diagnosticImages.map((image, index) => {
                   const imageData = typeof image === 'string' ? image : image.data;
                   return (
-                    <div key={index} className="relative group">
+                    <div 
+                      key={index} 
+                      className="relative group cursor-pointer"
+                      onClick={() => window.open(imageData, '_blank')}
+                    >
                       <img 
                         src={imageData} 
                         alt={`Diagnostic image ${index + 1}`}
-                        className="w-full h-48 object-cover rounded-lg shadow-md cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => window.open(imageData, '_blank')}
+                        className="w-full h-48 object-cover rounded-lg shadow-md transition-opacity group-hover:opacity-90"
                       />
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all rounded-lg flex items-center justify-center">
                         <i className="fas fa-search-plus text-white opacity-0 group-hover:opacity-100 text-2xl transition-opacity"></i>
