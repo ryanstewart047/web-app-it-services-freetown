@@ -511,11 +511,11 @@ export default function BlogAdminPage() {
             },
             {
               role: 'user',
-              content: `Write a detailed, beautifully formatted HTML blog post about: "\${topic}". 
+              content: `Write a detailed, beautifully formatted HTML blog post about: "${topic}". 
 
 Requirements:
 - Write 400-600 words of rich content.
-- MUST output ONLY valid HTML code (do NOT wrap it in \`\`\`html or markdown blocks, just return raw HTML).
+- MUST output ONLY valid HTML code (do NOT wrap it in backticks or markdown blocks, just return raw HTML).
 - Use proper HTML tags for structure: <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>, <u>, <blockquote>.
 - Include a logical flow with an introduction, main points with headings, practical tips or steps, and a conclusion.
 - Use underlining (<u>) to highlight key technical terms or important concepts.
