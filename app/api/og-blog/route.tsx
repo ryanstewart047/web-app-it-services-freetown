@@ -10,9 +10,15 @@ export async function GET(request: NextRequest) {
     const title = searchParams.get('title') || 'Blog Post'
     const author = searchParams.get('author') || 'IT Services Freetown'
     const date = searchParams.get('date') || new Date().toLocaleDateString()
-    const image = searchParams.get('image') || ''
+    let image = searchParams.get('image') || ''
     const excerpt = searchParams.get('excerpt') || ''
     const likes = searchParams.get('likes') || '0'
+
+    // Ensure image URL is absolute for the OG engine
+    if (image && image.startsWith('/')) {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.itservicesfreetown.com'
+      image = `${baseUrl}${image}`
+    }
 
     // Truncate text to fit in preview
     const truncatedTitle = title.length > 80 ? title.substring(0, 77) + '...' : title

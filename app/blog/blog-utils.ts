@@ -81,12 +81,29 @@ export function getPrimaryImage(post: Partial<BlogPost>) {
   if (post.image) return post.image
   
   const mediaImage = post.media?.find((item) => item.type === 'image')?.url
-  if (mediaImage) return mediaImage
+  if (mediaImage) {
+    if (mediaImage.startsWith('/')) {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.itservicesfreetown.com'
+      return `${baseUrl}${mediaImage}`
+    }
+    return mediaImage
+  }
 
   if (post.content) {
-    const imgMatch = post.content.match(/<img[^>]+src="([^">]+)"/)
+    // Improved regex to handle different quote types and attribute orders
+    const imgMatch = post.content.match(/<img[^>]+src=["']([^"']+)["']/i) || 
+                     post.content.match(/<img[^>]+src=([^>\s]+)/i)
+    
     if (imgMatch && imgMatch[1]) {
-      return imgMatch[1]
+      let imageUrl = imgMatch[1]
+      
+      // If it's a relative path, make it absolute
+      if (imageUrl.startsWith('/')) {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.itservicesfreetown.com'
+        return `${baseUrl}${imageUrl}`
+      }
+      
+      return imageUrl
     }
   }
   
