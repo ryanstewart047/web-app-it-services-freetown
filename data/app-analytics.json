@@ -1,16 +1,40 @@
 {
   "forms": {
-    "submissions": [],
+    "submissions": [
+      {
+        "id": "FORM-1778996222867-dxlqswxm",
+        "formType": "repair-booking",
+        "timestamp": "2026-05-17T05:37:02.867Z",
+        "fields": {
+          "trackingId": "ITS-260516-3165",
+          "customerName": "Admin Test",
+          "name": "Admin Test",
+          "email": "test@adminfix.com",
+          "phone": "+23277123456",
+          "address": "",
+          "deviceType": "computer",
+          "deviceModel": "MacBook Pro",
+          "serviceType": "repair",
+          "issueDescription": "Test admin data collection",
+          "issue": "Test admin data collection",
+          "preferredDate": "2026-05-19",
+          "preferredTime": "11:00",
+          "notes": "Preferred time: 11:00"
+        },
+        "page": "/book-appointment",
+        "trackingId": "ITS-260516-3165"
+      }
+    ],
     "views": {
       "contact": 1,
-      "repair-booking": 5,
+      "repair-booking": 6,
       "troubleshoot": 1
     },
     "conversions": {}
   },
   "repairs": [],
   "meta": {
-    "version": 8,
-    "updatedAt": "2026-03-12T08:33:18.719Z"
+    "version": 10,
+    "updatedAt": "2026-05-17T05:37:06.002Z"
   }
 }
