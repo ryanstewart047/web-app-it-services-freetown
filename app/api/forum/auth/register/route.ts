@@ -4,12 +4,34 @@ import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 import { captureEmailLead } from '@/lib/email-leads';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { getClientIp } from '@/lib/auth-utils';
 
 const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   try {
-    const { name, email, phone, expertise, password } = await req.json();
+    const { name, email, phone, expertise, password, honeypot } = await req.json();
+    
+    // IP-based Rate Limiting
+    const ip = getClientIp(req);
+    const { allowed, retryAfter } = checkRateLimit(`register_${ip}`, {
+      maxAttempts: 3,
+      windowMs: 60 * 60 * 1000, // 3 attempts per hour
+      blockDurationMs: 24 * 60 * 60 * 1000 // 24 hour block if exceeded
+    });
+    
+    if (!allowed) {
+      return NextResponse.json({ 
+        error: `Too many registration attempts. Please try again in ${Math.ceil(retryAfter! / 3600)} hours.` 
+      }, { status: 429 });
+    }
+
+    // Bot detection (honeypot)
+    if (honeypot) {
+      console.log('Bot detected via honeypot');
+      return NextResponse.json({ success: true, message: 'Registration successful! Please check your email.' });
+    }
 
     if (!name || !email || !password) {
       return NextResponse.json({ error: 'Name, email, and password are required' }, { status: 400 });
@@ -34,10 +56,29 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'This email domain is not allowed. Please use a real email address.' }, { status: 400 });
     }
 
+    // --- Email Normalization (to prevent alias spam like g.m.a.i.l@gmail.com) ---
+    let normalizedEmail = email.toLowerCase().trim();
+    if (emailDomain === 'gmail.com' || emailDomain === 'googlemail.com') {
+      const [local, domain] = normalizedEmail.split('@');
+      const cleanLocal = local.split('+')[0].replace(/\./g, '');
+      normalizedEmail = `${cleanLocal}@${domain}`;
+    } else if (emailDomain === 'outlook.com' || emailDomain === 'hotmail.com') {
+      const [local, domain] = normalizedEmail.split('@');
+      const cleanLocal = local.split('+')[0];
+      normalizedEmail = `${cleanLocal}@${domain}`;
+    }
 
-    const existingTech = await prisma.technician.findUnique({ where: { email } });
+    const existingTech = await prisma.technician.findFirst({ 
+      where: { 
+        OR: [
+          { email: email },
+          { email: normalizedEmail }
+        ]
+      } 
+    });
+    
     if (existingTech) {
-      return NextResponse.json({ error: 'Email already in use' }, { status: 400 });
+      return NextResponse.json({ error: 'This email address is already registered.' }, { status: 400 });
     }
 
     const salt = await bcrypt.genSalt(10);

@@ -25,7 +25,7 @@ function generateStrongPassword(): string {
 }
 
 export default function Register() {
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '', expertise: '', password: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', expertise: '', password: '', honeypot: '' });
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<{type: 'error' | 'success', message: string} | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -141,6 +141,19 @@ export default function Register() {
                   className="w-full bg-slate-800/50 border border-slate-700/80 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-inner text-sm"
                   placeholder="tech@it-services.com"
                   value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})}
+                />
+              </div>
+
+              {/* Honeypot field for bot detection */}
+              <div className="hidden" aria-hidden="true">
+                <input
+                  type="text"
+                  name="honeypot"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={formData.honeypot}
+                  onChange={e => setFormData({...formData, honeypot: e.target.value})}
+                  placeholder="Leave this blank"
                 />
               </div>
 

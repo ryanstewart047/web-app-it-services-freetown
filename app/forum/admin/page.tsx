@@ -16,6 +16,7 @@ interface Technician {
   active: boolean;
   role: string;
   createdAt: string;
+  emailVerified: boolean;
 }
 
 export default function AdminDashboardPage() {
@@ -261,7 +262,7 @@ export default function AdminDashboardPage() {
                <thead className="bg-slate-800/80 text-xs uppercase font-bold tracking-widest text-slate-300 border-b border-slate-700/50">
                   <tr>
                      <th className="px-6 py-4">Technician</th>
-                     <th className="px-6 py-4">System Identity</th>
+                     <th className="px-6 py-4">Identity & Verification</th>
                      <th className="px-6 py-4">Status</th>
                      <th className="px-6 py-4 text-right">Administrative Actions</th>
                   </tr>
@@ -280,9 +281,14 @@ export default function AdminDashboardPage() {
                               </div>
                            </div>
                         </td>
-                        <td className="px-6 py-4 font-mono text-xs">
+                         <td className="px-6 py-4 font-mono text-xs">
                            <div className="text-slate-300">{u.email}</div>
-                           <div className="text-slate-500">{u.phone || 'No direct comms'}</div>
+                           <div className="flex items-center gap-2 mt-1">
+                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${u.emailVerified ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'}`}>
+                                 {u.emailVerified ? 'VERIFIED' : 'UNVERIFIED'}
+                              </span>
+                              <span className="text-slate-500">{u.phone || 'No Phone'}</span>
+                           </div>
                         </td>
                         <td className="px-6 py-4">
                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-widest border ${u.active ? (u.isOnline ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-slate-700/50 text-slate-300 border-slate-600/50') : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>

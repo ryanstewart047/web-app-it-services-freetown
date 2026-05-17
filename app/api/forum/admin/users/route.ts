@@ -48,6 +48,7 @@ export async function GET() {
         active: true,
         role: true,
         createdAt: true,
+        emailVerified: true,
       },
       orderBy: { createdAt: 'desc' }
     });
