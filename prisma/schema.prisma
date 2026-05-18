@@ -383,6 +383,7 @@ model CustomAd {
   description String?
   imageUrl    String   // Link to the banner image
   targetUrl   String   // Where the ad leads to
+  size        String   @default("rectangle") // "rectangle" | "square" | "leaderboard" | "skyscraper"
   active      Boolean  @default(true)
   impressions Int      @default(0)
   clicks      Int      @default(0)

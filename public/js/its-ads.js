@@ -117,6 +117,10 @@
           transition: transform 0.2s ease, box-shadow 0.2s ease;
           background: white;
           margin: 10px 0;
+          box-sizing: border-box;
+        }
+        .its-ad-card * {
+          box-sizing: border-box;
         }
         .its-ad-card:hover {
           transform: translateY(-2px);
@@ -126,6 +130,7 @@
           text-decoration: none;
           color: inherit;
           display: block;
+          width: 100%;
         }
         .its-ad-img {
           width: 100%;
@@ -169,12 +174,71 @@
           font-size: 14px;
           font-weight: 600;
         }
+
+        /* Specific Layouts based on data-size attribute */
+        .its-ad-card[data-size="square"] {
+          max-width: 320px;
+          margin: 10px auto;
+        }
+        .its-ad-card[data-size="square"] .its-ad-img {
+          aspect-ratio: 1 / 1;
+        }
+
+        .its-ad-card[data-size="skyscraper"] {
+          max-width: 280px;
+          margin: 10px auto;
+        }
+        .its-ad-card[data-size="skyscraper"] .its-ad-img {
+          aspect-ratio: 9 / 16;
+          max-height: 400px;
+        }
+
+        .its-ad-card[data-size="leaderboard"] {
+          max-width: 100%;
+        }
+        .its-ad-card[data-size="leaderboard"] .its-ad-link {
+          display: flex;
+          flex-direction: row;
+          align-items: stretch;
+        }
+        .its-ad-card[data-size="leaderboard"] .its-ad-img {
+          width: 40%;
+          max-width: 300px;
+          height: auto;
+          aspect-ratio: auto;
+          border-bottom: none;
+          border-right: 1px solid #f3f4f6;
+        }
+        .its-ad-card[data-size="leaderboard"] .its-ad-content {
+          width: 60%;
+          flex-grow: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 14px 20px;
+        }
+        @media (max-width: 640px) {
+          .its-ad-card[data-size="leaderboard"] .its-ad-link {
+            flex-direction: column;
+          }
+          .its-ad-card[data-size="leaderboard"] .its-ad-img {
+            width: 100%;
+            max-width: 100%;
+            aspect-ratio: 21 / 9;
+            border-right: none;
+            border-bottom: 1px solid #f3f4f6;
+          }
+          .its-ad-card[data-size="leaderboard"] .its-ad-content {
+            width: 100%;
+          }
+        }
       `;
       document.head.appendChild(style);
     }
 
+    const adSize = ad.size || 'rectangle';
     const html = `
-      <div class="its-ad-card">
+      <div class="its-ad-card" data-size="${adSize}">
         <a href="${clickUrl}" target="_blank" class="its-ad-link">
           ${imageUrl ? `<img src="${imageUrl}" alt="${ad.title}" class="its-ad-img">` : ''}
           <div class="its-ad-content">

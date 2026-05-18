@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, description, imageUrl, targetUrl } = body;
+    const { title, description, imageUrl, targetUrl, size } = body;
 
     if (!title || !imageUrl || !targetUrl) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
         description,
         imageUrl,
         targetUrl,
+        size: size || 'rectangle',
       }
     });
 
@@ -46,21 +47,27 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, title, description, imageUrl, targetUrl, active } = body;
+    const { id, title, description, imageUrl, targetUrl, size, active } = body;
 
     if (!id) {
       return NextResponse.json({ error: 'Missing ad ID' }, { status: 400 });
     }
 
+    const updateData: any = {
+      title,
+      description,
+      imageUrl,
+      targetUrl,
+      active,
+    };
+
+    if (size !== undefined) {
+      updateData.size = size;
+    }
+
     const ad = await prisma.customAd.update({
       where: { id },
-      data: {
-        title,
-        description,
-        imageUrl,
-        targetUrl,
-        active,
-      }
+      data: updateData
     });
 
     return NextResponse.json(ad);
