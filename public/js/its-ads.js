@@ -108,6 +108,7 @@
       style.id = 'its-ad-styles';
       style.textContent = `
         .its-ad-card {
+          position: relative;
           border: 1px solid #e5e7eb;
           border-radius: 12px;
           overflow: hidden;
@@ -175,6 +176,63 @@
           font-weight: 600;
         }
 
+        /* AdChoices / Info Badge */
+        .its-ad-info-badge {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          z-index: 20;
+          display: flex;
+          align-items: center;
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(4px);
+          -webkit-backdrop-filter: blur(4px);
+          border: 1px solid rgba(0, 0, 0, 0.1);
+          border-radius: 20px;
+          padding: 4px 6px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          cursor: default;
+          transition: max-width 0.3s ease, padding 0.3s ease, background 0.2s ease, box-shadow 0.2s ease;
+          max-width: 24px;
+          overflow: hidden;
+          white-space: nowrap;
+        }
+        .its-ad-info-icon {
+          font-size: 12px;
+          line-height: 1;
+          color: #6b7280;
+          font-weight: 800;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 14px;
+          height: 14px;
+          font-family: monospace;
+          flex-shrink: 0;
+        }
+        .its-ad-info-text {
+          font-size: 11px;
+          font-weight: 600;
+          color: #1f2937;
+          opacity: 0;
+          transition: opacity 0.2s ease, margin-left 0.2s ease;
+          margin-left: 0px;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .its-ad-info-badge:hover {
+          max-width: 260px;
+          padding: 4px 10px;
+          background: rgba(255, 255, 255, 1);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .its-ad-info-badge:hover .its-ad-info-text {
+          opacity: 1;
+          margin-left: 6px;
+        }
+        .its-ad-info-badge:hover .its-ad-info-icon {
+          color: #040e40;
+        }
+
         /* Specific Layouts based on data-size attribute */
         .its-ad-card[data-size="square"] {
           max-width: 320px;
@@ -239,6 +297,10 @@
     const adSize = ad.size || 'rectangle';
     const html = `
       <div class="its-ad-card" data-size="${adSize}">
+        <div class="its-ad-info-badge" title="Sponsored Advertisement">
+          <span class="its-ad-info-icon">i</span>
+          <span class="its-ad-info-text">Ads by IT Services Freetown</span>
+        </div>
         <a href="${clickUrl}" target="_blank" class="its-ad-link">
           ${imageUrl ? `<img src="${imageUrl}" alt="${ad.title}" class="its-ad-img">` : ''}
           <div class="its-ad-content">

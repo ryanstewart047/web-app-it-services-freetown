@@ -269,11 +269,19 @@ export default function AdsAdminPage() {
           <div className="mt-8 border-t pt-8">
             <h4 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-4">Live Preview ({formData.size})</h4>
             <div className="w-full">
-              <div className={`relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md transition-all dark:border-gray-800 dark:bg-gray-900 ${
+              <div className={`group/ad relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md transition-all dark:border-gray-800 dark:bg-gray-900 ${
                 formData.size === 'square' ? 'max-w-[320px] mx-auto' :
                 formData.size === 'skyscraper' ? 'max-w-[280px] mx-auto' :
                 formData.size === 'leaderboard' ? 'w-full flex flex-col sm:flex-row items-stretch' : 'max-w-md mx-auto'
               }`}>
+                {/* AdChoices Info Badge */}
+                <div className="absolute top-2 right-2 z-20 flex items-center bg-white/90 backdrop-blur-md border border-gray-200/80 dark:border-gray-700/80 dark:bg-gray-900/90 rounded-full px-1.5 py-0.5 shadow-sm transition-all duration-300 max-w-[24px] overflow-hidden hover:max-w-[240px] cursor-default group/badge">
+                  <span className="text-xs font-bold text-gray-500 dark:text-gray-400 font-mono w-3.5 h-3.5 flex items-center justify-center shrink-0 group-hover/badge:text-[#040e40] dark:group-hover/badge:text-red-500">i</span>
+                  <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-200 ml-1.5 opacity-0 whitespace-nowrap transition-opacity duration-200 group-hover/badge:opacity-100">
+                    Ads by IT Services Freetown
+                  </span>
+                </div>
+
                 <div className={`bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden ${
                   formData.size === 'square' ? 'aspect-square w-full' :
                   formData.size === 'skyscraper' ? 'aspect-[9/16] w-full max-h-[360px]' :
@@ -303,7 +311,7 @@ export default function AdsAdminPage() {
                   </div>
                 </div>
               </div>
-              <p className="mt-3 text-center text-xs text-gray-400">This is how your ad will look on other websites when formatted as {formData.size}.</p>
+              <p className="mt-3 text-center text-xs text-gray-400">This is how your ad will look on other websites when formatted as {formData.size}. Hover over the 'i' icon to see the advertiser badge.</p>
             </div>
           </div>
 
