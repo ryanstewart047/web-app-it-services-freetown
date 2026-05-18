@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Users, Sparkles, ChevronRight, X } from 'lucide-react';
 
 export default function ForumPromoCard() {
   const pathname = usePathname();
@@ -20,14 +21,8 @@ export default function ForumPromoCard() {
       return;
     }
 
-    // 60% chance to show the popup on this page load
-    const shouldShow = Math.random() > 0.4;
-    if (!shouldShow) return;
-
-    // Random delay between 3 and 10 seconds
-    const randomDelay = Math.floor(Math.random() * 7000) + 3000;
-
-    const timer = setTimeout(() => setVisible(true), randomDelay);
+    // Show reliably after 2.5 seconds for premium user engagement
+    const timer = setTimeout(() => setVisible(true), 2500);
     return () => clearTimeout(timer);
   }, [isForumPage]);
 
@@ -40,45 +35,64 @@ export default function ForumPromoCard() {
     setTimeout(() => {
       setDismissed(true);
       sessionStorage.setItem('forum_promo_dismissed', '1');
-    }, 500); // Wait for transition to finish
+    }, 500);
   };
 
   return (
     <div
-      className={`fixed bottom-20 left-4 sm:left-6 z-[80] origin-bottom-left transition-all duration-[800ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
-        visible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-12 scale-50 pointer-events-none'
+      className={`fixed top-1/2 -translate-y-1/2 right-4 sm:right-6 z-[90] transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        visible ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-16 scale-95 pointer-events-none'
       }`}
     >
-      <div className="group relative">
-        <Link
-          href="/forum/auth/register"
-          className="flex items-center gap-3 bg-[#0b1120] text-white px-4 py-2.5 rounded-full shadow-2xl border border-slate-700/60 hover:border-blue-500/50 transition-all hover:scale-105"
-        >
-          <div className="relative flex h-2.5 w-2.5 shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
-          </div>
-          
-          <div className="flex flex-col">
-            <span className="text-[11px] font-bold tracking-tight text-slate-100 leading-none">SL-Tech-Stack</span>
-            <span className="text-[9px] text-blue-400 font-bold uppercase tracking-wider mt-0.5">Join Community</span>
+      <div className="group relative max-w-xs w-72 sm:w-80">
+        {/* Glow backdrop */}
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600 to-[#040e40] rounded-3xl blur-lg opacity-60 group-hover:opacity-100 transition duration-500 animate-pulse"></div>
+        
+        {/* Solid container with red and #040e40 gradient */}
+        <div className="relative bg-[#040e40] bg-gradient-to-br from-red-950 via-[#040e40] to-[#020724] border-2 border-red-500/40 hover:border-red-500/80 rounded-3xl p-5.5 shadow-[0_20px_50px_rgba(0,0,0,0.8)] transition-all duration-300">
+          {/* Header row with glowing status dot & close button */}
+          <div className="flex items-center justify-between mb-3.5">
+            <div className="flex items-center gap-2 px-3 py-1 bg-black/40 border border-white/20 rounded-full shadow-inner">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
+              </span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-white drop-shadow">Live Forum</span>
+            </div>
+
+            <button
+              onClick={handleDismiss}
+              className="w-8 h-8 rounded-full bg-black/60 hover:bg-black text-white border border-white/20 flex items-center justify-center transition-all shadow-md"
+              title="Dismiss"
+            >
+              <X className="w-4 h-4 text-white" />
+            </button>
           </div>
 
-          <div className="w-px h-6 bg-slate-700/50 mx-1"></div>
-          
-          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600/20 group-hover:bg-blue-600 transition-colors">
-            <i className="fas fa-arrow-right text-[10px] text-blue-400 group-hover:text-white"></i>
-          </div>
-        </Link>
+          {/* Body Content */}
+          <Link href="/forum/auth/register" className="block text-left group/link">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-red-600 to-rose-500 text-white flex items-center justify-center flex-shrink-0 shadow-xl shadow-red-600/40 border border-white/30 group-hover/link:scale-110 transition-transform duration-300">
+                <Users className="w-6 h-6 text-white" />
+              </div>
+              <div className="space-y-1.5 flex-1">
+                <h4 className="font-black text-lg text-white tracking-tight flex items-center gap-1.5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                  <span className="text-white">SL-Tech-Stack</span>
+                  <Sparkles className="w-4 h-4 text-amber-300 fill-amber-300 animate-pulse flex-shrink-0" />
+                </h4>
+                <p className="text-xs font-bold text-white line-clamp-3 leading-relaxed drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] tracking-wide">
+                  Join Sierra Leone&apos;s active developer & tech repair community. Ask questions & share expertise!
+                </p>
+              </div>
+            </div>
 
-        {/* Tiny Close Button */}
-        <button
-          onClick={handleDismiss}
-          className="absolute -top-2 -right-2 w-5 h-5 bg-slate-800 border border-slate-700 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-colors shadow-lg opacity-0 group-hover:opacity-100"
-          title="Close"
-        >
-          <i className="fas fa-times text-[8px]"></i>
-        </button>
+            {/* Action CTA Button */}
+            <div className="mt-5 flex items-center justify-between px-4 py-3 bg-gradient-to-r from-red-600 hover:from-red-500 to-blue-700 hover:to-blue-600 text-white font-black text-xs rounded-xl shadow-lg shadow-black/50 transition-all group-hover/link:shadow-red-500/30 border border-white/30 uppercase tracking-wider">
+              <span className="text-white">Join Community Portal</span>
+              <ChevronRight className="w-4 h-4 text-white group-hover/link:translate-x-1.5 transition-transform" />
+            </div>
+          </Link>
+        </div>
       </div>
     </div>
   );
