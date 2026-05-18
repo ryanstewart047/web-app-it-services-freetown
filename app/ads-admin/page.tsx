@@ -116,7 +116,6 @@ export default function AdsAdminPage() {
       });
 
       if (res.ok) {
-        // Optimistically update UI for immediate responsiveness
         setAds(prev => prev.map(item => item.id === ad.id ? { ...item, active: !ad.active } : item));
       } else {
         const data = await res.json();
@@ -147,6 +146,9 @@ export default function AdsAdminPage() {
       </div>
     );
   }
+
+  const productionCode = `<div class="its-ad-unit"></div>\n<script src="https://itservicesfreetown.com/js/its-ads.js"></script>`;
+  const localTestCode = `<div class="its-ad-unit"></div>\n<script src="http://localhost:3000/js/its-ads.js"></script>`;
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 px-4 py-10 sm:px-6">
@@ -182,7 +184,7 @@ export default function AdsAdminPage() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="space-y-6 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-8 animate-fadeIn">
+        <form onSubmit={handleSubmit} className="space-y-6 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-8">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white">{editingAd ? 'Edit Ad' : 'New Advertisement'}</h3>
           
           <div className="grid gap-6 md:grid-cols-2">
@@ -193,7 +195,7 @@ export default function AdsAdminPage() {
                 required
                 value={formData.title}
                 onChange={e => setFormData({ ...formData, title: e.target.value })}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-red-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-red-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 text-gray-900 dark:text-white"
                 placeholder="e.g. Free PC Health Check"
               />
             </div>
@@ -204,7 +206,7 @@ export default function AdsAdminPage() {
                 required
                 value={formData.targetUrl}
                 onChange={e => setFormData({ ...formData, targetUrl: e.target.value })}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-red-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-red-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 text-gray-900 dark:text-white"
                 placeholder="https://itservicesfreetown.com/book"
               />
             </div>
@@ -217,7 +219,7 @@ export default function AdsAdminPage() {
               required
               value={formData.imageUrl}
               onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-red-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-red-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 text-gray-900 dark:text-white"
               placeholder="https://example.com/banner.jpg"
             />
           </div>
@@ -227,7 +229,7 @@ export default function AdsAdminPage() {
             <textarea
               value={formData.description}
               onChange={e => setFormData({ ...formData, description: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-red-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-red-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 text-gray-900 dark:text-white"
               rows={2}
               placeholder="Short catchy description..."
             />
@@ -363,27 +365,60 @@ export default function AdsAdminPage() {
       </div>
 
       {/* Embed Section */}
-      <div className="rounded-3xl bg-[#040e40] p-8 text-white shadow-xl">
-        <h3 className="text-xl font-bold">Network Embed Code</h3>
-        <p className="mt-2 text-sm text-gray-300">
-          Give this code to other website owners. They can place the <code>&lt;div&gt;</code> where they want the ad, or just paste the script anywhere for automatic injection.
-        </p>
-        
-        <div className="mt-6 space-y-4">
-          <div className="rounded-xl bg-black/40 p-4 font-mono text-xs text-blue-300 overflow-x-auto whitespace-pre border border-white/10">
-{`<div class="its-ad-unit"></div>
-<script src="${typeof window !== 'undefined' ? window.location.origin : 'https://itservicesfreetown.com'}/js/its-ads.js"></script>`}
+      <div className="rounded-3xl bg-[#040e40] p-8 text-white shadow-xl space-y-6">
+        <div>
+          <h3 className="text-xl font-bold">Network Embed Code</h3>
+          <p className="mt-2 text-sm text-gray-300">
+            Give this code to other website owners. They can place the <code>&lt;div&gt;</code> where they want the ad, or just paste the script anywhere for automatic injection.
+          </p>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Production Code */}
+          <div className="rounded-2xl bg-black/40 p-5 border border-white/10 flex flex-col justify-between space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-green-400">Production Code</h4>
+                <span className="text-[10px] bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full font-semibold">Live Websites</span>
+              </div>
+              <p className="text-xs text-gray-400 mb-3">Use this code for real live external websites. It connects directly to your live production domain.</p>
+              <div className="rounded-xl bg-black/60 p-3 font-mono text-xs text-blue-300 overflow-x-auto whitespace-pre border border-white/5">
+                {productionCode}
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(productionCode);
+                alert('Production Embed Code copied to clipboard!');
+              }}
+              className="w-full rounded-xl bg-white/10 px-4 py-2.5 text-xs font-bold transition hover:bg-white/20 border border-white/10 text-white"
+            >
+              Copy Production Code
+            </button>
           </div>
-          <button
-            onClick={() => {
-              const code = `<div class="its-ad-unit"></div>\n<script src="${window.location.origin}/js/its-ads.js"></script>`;
-              navigator.clipboard.writeText(code);
-              alert('Embed code copied to clipboard!');
-            }}
-            className="rounded-xl bg-white/10 px-5 py-2.5 text-xs font-bold transition hover:bg-white/20 border border-white/10"
-          >
-            Copy Embed Code
-          </button>
+
+          {/* Local Test Code */}
+          <div className="rounded-2xl bg-black/40 p-5 border border-white/10 flex flex-col justify-between space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400">Local Test Code</h4>
+                <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-semibold">Localhost Only</span>
+              </div>
+              <p className="text-xs text-gray-400 mb-3">Use this when testing an HTML file on your local machine while running <code>localhost:3000</code>.</p>
+              <div className="rounded-xl bg-black/60 p-3 font-mono text-xs text-blue-300 overflow-x-auto whitespace-pre border border-white/5">
+                {localTestCode}
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(localTestCode);
+                alert('Local Test Embed Code copied to clipboard!');
+              }}
+              className="w-full rounded-xl bg-white/10 px-4 py-2.5 text-xs font-bold transition hover:bg-white/20 border border-white/10 text-white"
+            >
+              Copy Local Test Code
+            </button>
+          </div>
         </div>
       </div>
     </div>
