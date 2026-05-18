@@ -100,6 +100,33 @@ export default function AdsAdminPage() {
     setShowForm(true);
   };
 
+  const handleToggleActive = async (ad: Ad) => {
+    try {
+      const res = await fetch('/api/ads', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: ad.id,
+          title: ad.title,
+          description: ad.description,
+          imageUrl: ad.imageUrl,
+          targetUrl: ad.targetUrl,
+          active: !ad.active
+        }),
+      });
+
+      if (res.ok) {
+        // Optimistically update UI for immediate responsiveness
+        setAds(prev => prev.map(item => item.id === ad.id ? { ...item, active: !ad.active } : item));
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to toggle ad status.');
+      }
+    } catch (err) {
+      alert('Network error while toggling ad.');
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this ad?')) return;
 
@@ -111,12 +138,6 @@ export default function AdsAdminPage() {
     } catch (err) {
       alert('Failed to delete ad.');
     }
-  };
-
-  const copyEmbedCode = () => {
-    const code = `<div class="its-ad-unit"></div>\n<script src="https://itservicesfreetown.com/js/its-ads.js"></script>`;
-    navigator.clipboard.writeText(code);
-    alert('Embed code copied to clipboard!');
   };
 
   if (loading) {
@@ -161,7 +182,7 @@ export default function AdsAdminPage() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="space-y-6 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-8">
+        <form onSubmit={handleSubmit} className="space-y-6 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-8 animate-fadeIn">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white">{editingAd ? 'Edit Ad' : 'New Advertisement'}</h3>
           
           <div className="grid gap-6 md:grid-cols-2">
@@ -288,12 +309,12 @@ export default function AdsAdminPage() {
                   <img src={ad.imageUrl} alt={ad.title} className="h-full w-full object-cover" />
                 </div>
                 <div className="p-6">
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between gap-2">
                     <div>
                       <h4 className="font-bold text-gray-900 dark:text-white">{ad.title}</h4>
-                      <p className="text-[10px] text-gray-500 truncate max-w-[150px]">Target: {ad.targetUrl}</p>
+                      <p className="text-[10px] text-gray-500 truncate max-w-[180px]">Target: {ad.targetUrl}</p>
                     </div>
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${ad.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                    <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider flex-shrink-0 ${ad.active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 border border-gray-200 dark:border-gray-700'}`}>
                       {ad.active ? 'Active' : 'Paused'}
                     </span>
                   </div>
@@ -301,18 +322,29 @@ export default function AdsAdminPage() {
                   <div className="mt-4 grid grid-cols-2 gap-4 border-t border-gray-100 pt-4 dark:border-gray-800">
                     <div className="text-center">
                       <p className="text-xl font-bold text-red-600">{ad.impressions}</p>
-                      <p className="text-[10px] uppercase text-gray-500">Impressions</p>
+                      <p className="text-[10px] uppercase text-gray-500 font-semibold">Impressions</p>
                     </div>
                     <div className="text-center border-l border-gray-100 dark:border-gray-800">
                       <p className="text-xl font-bold text-gray-900 dark:text-white">{ad.clicks}</p>
-                      <p className="text-[10px] uppercase text-gray-500">Clicks</p>
+                      <p className="text-[10px] uppercase text-gray-500 font-semibold">Clicks</p>
                     </div>
                   </div>
 
+                  {/* Actions Row */}
                   <div className="mt-6 flex gap-2">
                     <button
+                      onClick={() => handleToggleActive(ad)}
+                      className={`flex-1 rounded-xl py-2 text-xs font-bold transition flex items-center justify-center gap-1 ${
+                        ad.active 
+                          ? 'bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/80' 
+                          : 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/80'
+                      }`}
+                    >
+                      {ad.active ? 'Disable Ad' : 'Enable Ad'}
+                    </button>
+                    <button
                       onClick={() => handleEdit(ad)}
-                      className="flex-1 rounded-xl border border-gray-200 bg-gray-50 py-2 text-xs font-semibold hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
+                      className="flex-1 rounded-xl border border-gray-200 bg-gray-50 py-2 text-xs font-semibold hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
                     >
                       Edit
                     </button>
@@ -331,14 +363,14 @@ export default function AdsAdminPage() {
       </div>
 
       {/* Embed Section */}
-      <div className="rounded-3xl bg-[#040e40] p-8 text-white">
+      <div className="rounded-3xl bg-[#040e40] p-8 text-white shadow-xl">
         <h3 className="text-xl font-bold">Network Embed Code</h3>
         <p className="mt-2 text-sm text-gray-300">
           Give this code to other website owners. They can place the <code>&lt;div&gt;</code> where they want the ad, or just paste the script anywhere for automatic injection.
         </p>
         
         <div className="mt-6 space-y-4">
-          <div className="rounded-xl bg-black/30 p-4 font-mono text-xs text-blue-300 overflow-x-auto whitespace-pre">
+          <div className="rounded-xl bg-black/40 p-4 font-mono text-xs text-blue-300 overflow-x-auto whitespace-pre border border-white/10">
 {`<div class="its-ad-unit"></div>
 <script src="${typeof window !== 'undefined' ? window.location.origin : 'https://itservicesfreetown.com'}/js/its-ads.js"></script>`}
           </div>
@@ -348,7 +380,7 @@ export default function AdsAdminPage() {
               navigator.clipboard.writeText(code);
               alert('Embed code copied to clipboard!');
             }}
-            className="rounded-xl bg-white/10 px-4 py-2 text-xs font-bold transition hover:bg-white/20"
+            className="rounded-xl bg-white/10 px-5 py-2.5 text-xs font-bold transition hover:bg-white/20 border border-white/10"
           >
             Copy Embed Code
           </button>
