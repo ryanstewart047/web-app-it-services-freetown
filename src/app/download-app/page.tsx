@@ -1,9 +1,59 @@
 'use client';
 
 import { useState } from 'react';
+import { Download, Apple, Windows, Linux } from 'lucide-react';
 
 export default function DownloadAppPage() {
   const [selectedOS, setSelectedOS] = useState('windows');
+  const [downloadError, setDownloadError] = useState('');
+  const [downloadingFile, setDownloadingFile] = useState('');
+
+  const downloadLinks = {
+    windows: [
+      { name: 'Windows Installer', file: 'IT.Services.Device.Detector.Setup.1.0.0.exe' },
+      { name: 'Windows Portable', file: 'IT.Services.Device.Detector.1.0.0.exe' },
+    ],
+    mac: [
+      { name: 'macOS (Intel)', file: 'IT.Services.Device.Detector-1.0.0-x64.dmg' },
+      { name: 'macOS (Apple Silicon)', file: 'IT.Services.Device.Detector-1.0.0-arm64.dmg' },
+    ],
+    linux: [
+      { name: 'Linux AppImage', file: 'IT.Services.Device.Detector-1.0.0.AppImage' },
+      { name: 'Linux Debian', file: 'it-services-device-detector_1.0.0_amd64.deb' },
+    ],
+  };
+
+  const handleDownload = async (fileName) => {
+    setDownloadingFile(fileName);
+    setDownloadError('');
+    
+    try {
+      const url = `https://github.com/ryanstewart047/device-detector/releases/download/v1.0.0/${fileName}`;
+      
+      // Check if the release exists
+      const response = await fetch(url, { method: 'HEAD' });
+      
+      if (response.ok || response.status === 302 || response.status === 301) {
+        // File found, open in new tab
+        window.open(url, '_blank');
+      } else if (response.status === 404) {
+        setDownloadError('Release files are not yet available. Please check back soon or contact support.');
+      } else {
+        setDownloadError('Error downloading file. Please try again later.');
+      }
+    } catch (error) {
+      setDownloadError('Release files are being prepared. Please check back soon or contact support at support@itservicesfreetown.com');
+    } finally {
+      setDownloadingFile('');
+    }
+  };
+
+  const currentOS = downloadLinks[selectedOS];
+  const platforms = [
+    { id: 'windows', label: 'Windows', icon: Windows, color: 'text-blue-600' },
+    { id: 'mac', label: 'macOS', icon: Apple, color: 'text-gray-900' },
+    { id: 'linux', label: 'Linux', icon: Linux, color: 'text-orange-600' },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -13,45 +63,60 @@ export default function DownloadAppPage() {
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Choose Your Platform</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button
-              onClick={() => setSelectedOS('windows')}
-              className={`p-4 rounded-lg border-2 transition-all ${
-                selectedOS === 'windows'
-                  ? 'border-blue-600 bg-blue-50'
-                  : 'border-gray-200 bg-white hover:border-gray-300'
-              }`}
-            >
-              <p className="font-semibold text-gray-900">Windows</p>
-            </button>
-            <button
-              onClick={() => setSelectedOS('mac')}
-              className={`p-4 rounded-lg border-2 transition-all ${
-                selectedOS === 'mac'
-                  ? 'border-blue-600 bg-blue-50'
-                  : 'border-gray-200 bg-white hover:border-gray-300'
-              }`}
-            >
-              <p className="font-semibold text-gray-900">macOS</p>
-            </button>
-            <button
-              onClick={() => setSelectedOS('linux')}
-              className={`p-4 rounded-lg border-2 transition-all ${
-                selectedOS === 'linux'
-                  ? 'border-blue-600 bg-blue-50'
-                  : 'border-gray-200 bg-white hover:border-gray-300'
-              }`}
-            >
-              <p className="font-semibold text-gray-900">Linux</p>
-            </button>
+            {platforms.map(({ id, label, icon: Icon, color }) => (
+              <button
+                key={id}
+                onClick={() => setSelectedOS(id)}
+                className={`p-6 rounded-lg border-2 transition-all ${
+                  selectedOS === id
+                    ? 'border-blue-600 bg-blue-50'
+                    : 'border-gray-200 bg-white hover:border-gray-300'
+                }`}
+              >
+                <Icon className={`w-10 h-10 mx-auto mb-3 ${color}`} />
+                <p className="font-semibold text-gray-900">{label}</p>
+              </button>
+            ))}
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-8">
-          <h3 className="text-xl font-bold text-gray-900 mb-6">Download Now</h3>
-          <p className="text-gray-600">Selected platform: {selectedOS}</p>
-          <button className="mt-4 px-6 py-2 bg-gradient-to-r from-red-600 to-[#040e40] text-white rounded-lg hover:from-red-700 hover:to-[#0a1a5c]">
-            Download
-          </button>
+          <h3 className="text-xl font-bold text-gray-900 mb-6">Available Downloads</h3>
+          
+          {downloadError && (
+            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-yellow-800">{downloadError}</p>
+            </div>
+          )}
+          
+          <div className="space-y-3">
+            {currentOS.map((version, idx) => (
+              <div
+                key={idx}
+                className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+              >
+                <p className="font-semibold text-gray-900">{version.name}</p>
+                <button
+                  onClick={() => handleDownload(version.file)}
+                  disabled={downloadingFile === version.file}
+                  className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-colors ${
+                    downloadingFile === version.file
+                      ? 'bg-gray-400 text-white cursor-not-allowed'
+                      : 'bg-gradient-to-r from-red-600 to-[#040e40] text-white hover:from-red-700 hover:to-[#0a1a5c]'
+                  }`}
+                >
+                  <Download className="w-4 h-4" />
+                  {downloadingFile === version.file ? 'Downloading...' : 'Download'}
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-900">
+              <strong>Need help?</strong> Contact us at <a href="mailto:support@itservicesfreetown.com" className="text-blue-600 hover:underline">support@itservicesfreetown.com</a> or call <a href="tel:+23233399391" className="text-blue-600 hover:underline">+232 33 399391</a>
+            </p>
+          </div>
         </div>
       </div>
     </div>
