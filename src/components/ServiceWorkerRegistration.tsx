@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { shouldShowPWAInstall, isPWASupported, logDeviceInfo } from '@/utils/deviceDetection'
+import { BRAND_LOGO_SRC, BRAND_NAME } from '@/lib/brand'
 
 export default function ServiceWorkerRegistration() {
   useEffect(() => {
@@ -30,9 +31,9 @@ export default function ServiceWorkerRegistration() {
                     
                     // Optionally show a notification to the user
                     if ('Notification' in window && Notification.permission === 'granted') {
-                      new Notification('IT Services Freetown', {
+                      new Notification(BRAND_NAME, {
                         body: 'New content available! Tap to refresh.',
-                        icon: '/assets/logo.svg',
+                        icon: BRAND_LOGO_SRC,
                         badge: '/assets/favicon-52x52.png'
                       })
                     }

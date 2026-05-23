@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Moon, Sun, Mail, Phone, MapPin, Linkedin, Github, Globe, Code, Database, Server, Layout, Smartphone, Award, GraduationCap, Briefcase, ExternalLink, ChevronRight, Lock, X, Upload, Save, Share2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { BRAND_LOGO_SRC } from '@/lib/brand';
 
 export default function PortfolioPage() {
   const [darkMode, setDarkMode] = useState(true);
@@ -420,7 +421,7 @@ export default function PortfolioPage() {
       name: 'IT Services Freetown',
       url: 'https://www.itservicesfreetown.com',
       description: 'Comprehensive IT services platform for device repairs, sales, and technical support',
-      image: '/assets/logo.png',
+      image: BRAND_LOGO_SRC,
       category: 'Full Stack Web Application',
       year: '2024-2025',
       technologies: ['Next.js', 'TypeScript', 'Tailwind CSS', 'Airtable', 'Vercel'],

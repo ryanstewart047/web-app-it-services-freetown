@@ -15,6 +15,7 @@ import { AnalyticsProvider } from '../src/components/AnalyticsTracker'
 import ConditionalLayout from '@/components/ConditionalLayout'
 import ForumPromoCard from '@/components/ForumPromoCard'
 import { CartProvider } from '@/contexts/CartContext'
+import { BRAND_LOGO_URL, BRAND_SITE_URL } from '@/lib/brand'
 
 
 const inter = Inter({ 
@@ -24,7 +25,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.itservicesfreetown.com'),
+  metadataBase: new URL(BRAND_SITE_URL),
   title: {
     default: 'IT Services Freetown - #1 Computer & Mobile Repair in Sierra Leone',
     template: '%s | IT Services Freetown'
@@ -197,7 +198,7 @@ export default function RootLayout({
               name: 'IT Services Freetown',
               alternateName: 'IT Services SL',
               description: 'Professional computer and mobile repair services in Freetown, Sierra Leone. Same-day service, 1-month warranty, 95% success rate.',
-              url: 'https://www.itservicesfreetown.com',
+              url: BRAND_SITE_URL,
               telephone: '+23233399391',
               email: 'support@itservicesfreetown.com',
               address: {
@@ -222,7 +223,7 @@ export default function RootLayout({
               ],
               priceRange: '$$',
               image: 'https://www.itservicesfreetown.com/assets/images/slide01.jpg',
-              logo: 'https://www.itservicesfreetown.com/assets/logo.svg',
+              logo: BRAND_LOGO_URL,
               sameAs: [
                 'https://www.facebook.com/itservicesfreetown',
                 'https://twitter.com/itservicesft',
@@ -277,8 +278,8 @@ export default function RootLayout({
               '@context': 'https://schema.org',
               '@type': 'Organization',
               name: 'IT Services Freetown',
-              url: 'https://itservicesfreetown.com',
-              logo: 'https://itservicesfreetown.com/assets/logo.svg',
+              url: BRAND_SITE_URL,
+              logo: BRAND_LOGO_URL,
               contactPoint: {
                 '@type': 'ContactPoint',
                 telephone: '+23233399391',

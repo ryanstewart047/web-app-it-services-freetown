@@ -12,6 +12,7 @@ import {
   logDeviceInfo,
   monitorInstallationState
 } from '@/utils/deviceDetection'
+import { BRAND_LOGO_SRC, BRAND_LOGO_FALLBACK_SRC, BRAND_NAME } from '@/lib/brand'
 
 export default function PWAInstallBanner() {
   const [showBanner, setShowBanner] = useState(false)
@@ -179,12 +180,11 @@ export default function PWAInstallBanner() {
           {/* Site Logo */}
           <div className="pwa-banner-icon bg-white/10 p-2 md:p-3 rounded-xl backdrop-blur-sm flex items-center justify-center">
             <img 
-              src="/assets/logo.svg" 
-              alt="IT Services Freetown" 
+              src={BRAND_LOGO_SRC}
+              alt={BRAND_NAME}
               className="w-auto h-10 sm:h-12 max-w-[130px] object-contain drop-shadow-md"
               onError={(e) => {
-                // Fallback to PNG if SVG fails
-                (e.target as HTMLImageElement).src = "/assets/logo.png"
+                (e.target as HTMLImageElement).src = BRAND_LOGO_FALLBACK_SRC
               }}
             />
           </div>

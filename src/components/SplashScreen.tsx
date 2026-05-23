@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import { BRAND_LOGO_SRC, BRAND_NAME } from '@/lib/brand'
 
 export default function SplashScreen() {
   const [isVisible, setIsVisible] = useState(true)
@@ -71,8 +72,8 @@ export default function SplashScreen() {
             {/* Actual Logo */}
             <div className="relative w-24 h-24 md:w-32 md:h-32 animate-breathe">
               <Image 
-                src="/assets/logo.svg" 
-                alt="IT Services Freetown Logo" 
+                src={BRAND_LOGO_SRC}
+                alt={`${BRAND_NAME} Logo`}
                 fill
                 className="object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]"
                 priority

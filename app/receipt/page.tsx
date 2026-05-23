@@ -6,6 +6,7 @@ import { Lock, Printer, Download, Plus, Trash2, Save, FileText, Search, History 
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import { useAdminSession } from '../../src/hooks/useAdminSession'
+import { BRAND_LOGO_FALLBACK_SRC, BRAND_LOGO_SRC, BRAND_NAME } from '@/lib/brand'
 
 interface ReceiptItem {
   id: string
@@ -710,9 +711,12 @@ www.itservicesfreetown.com
           <div className="mb-8 flex items-center gap-4">
             <a href="/" className="flex-shrink-0 hover:opacity-80 transition-opacity" title="Back to Homepage">
               <img 
-                src="/assets/logo.png" 
-                alt="IT Services Freetown" 
+                src={BRAND_LOGO_SRC}
+                alt={BRAND_NAME}
                 className="h-12 w-auto"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = BRAND_LOGO_FALLBACK_SRC
+                }}
               />
             </a>
             <div>
@@ -1218,10 +1222,13 @@ www.itservicesfreetown.com
             <div className="flex justify-center mb-4">
               <a href="/" className="inline-block hover:opacity-80 transition-opacity no-print-link">
                 <img 
-                  src="/assets/logo.png" 
-                  alt="IT Services Freetown" 
+                  src={BRAND_LOGO_SRC}
+                  alt={BRAND_NAME}
                   className="h-20 w-auto"
                   style={{ maxHeight: '80px' }}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = BRAND_LOGO_FALLBACK_SRC
+                  }}
                 />
               </a>
             </div>

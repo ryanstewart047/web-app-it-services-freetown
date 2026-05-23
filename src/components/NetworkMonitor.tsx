@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { BRAND_LOGO_SRC, BRAND_LOGO_FALLBACK_SRC, BRAND_NAME } from '@/lib/brand'
 
 interface NetworkStatus {
   isOnline: boolean
@@ -126,12 +127,11 @@ export default function NetworkMonitor() {
             {/* Site Logo */}
             <div className="network-status-icon bg-white/20 p-2 rounded-xl backdrop-blur-sm">
               <img 
-                src="/assets/logo.svg" 
-                alt="IT Services Freetown" 
+                src={BRAND_LOGO_SRC}
+                alt={BRAND_NAME}
                 className="w-8 h-8 object-contain"
                 onError={(e) => {
-                  // Fallback to PNG if SVG fails
-                  (e.target as HTMLImageElement).src = "/assets/logo.png"
+                  (e.target as HTMLImageElement).src = BRAND_LOGO_FALLBACK_SRC
                 }}
               />
             </div>

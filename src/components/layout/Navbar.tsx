@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { BRAND_LOGO_SRC, BRAND_NAME } from '@/lib/brand';
 
 function MegaMenuLink({ href, icon, title, description, color, bg }: { 
   href: string; 
@@ -74,8 +75,8 @@ export default function Navbar() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
               <Image 
-                src="/assets/logo.svg" 
-                alt="IT Services Freetown Logo" 
+                src={BRAND_LOGO_SRC}
+                alt={`${BRAND_NAME} Logo`}
                 width={56} 
                 height={56} 
                 className="h-12 sm:h-14 hover:opacity-80 transition-opacity cursor-pointer"

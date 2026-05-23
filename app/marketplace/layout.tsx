@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { BRAND_LOGO_URL, BRAND_SITE_URL } from '@/lib/brand';
 
 export const metadata: Metadata = {
   title: 'Buy Laptops & IT Products in Freetown Sierra Leone | IT Services Marketplace',
@@ -61,7 +62,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Buy Laptops & IT Products in Freetown Sierra Leone | Best Prices',
     description: 'Shop quality laptops, computers, and IT equipment in Freetown, Sierra Leone. Dell, HP, Lenovo. Free delivery. Genuine products with warranty.',
-    url: 'https://www.itservicesfreetown.com/marketplace',
+    url: `${BRAND_SITE_URL}/marketplace`,
     siteName: 'IT Services Freetown',
     locale: 'en_SL',
     type: 'website',
@@ -78,10 +79,10 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Buy Laptops & IT Products in Freetown Sierra Leone',
     description: 'Shop quality laptops, computers, phones in Freetown. Dell, HP, Lenovo. Free delivery in Sierra Leone.',
-    images: ['https://www.itservicesfreetown.com/og-marketplace.jpg'],
+    images: [`${BRAND_SITE_URL}/og-marketplace.jpg`],
   },
   alternates: {
-    canonical: 'https://www.itservicesfreetown.com/marketplace',
+    canonical: `${BRAND_SITE_URL}/marketplace`,
   },
   robots: {
     index: true,
@@ -112,7 +113,7 @@ export default function MarketplaceLayout({
             '@type': 'Store',
             name: 'IT Services Freetown - Computer & Laptop Store Sierra Leone',
             description: 'Leading computer and laptop store in Freetown, Sierra Leone. Buy Dell, HP, Lenovo laptops, smartphones, and IT equipment. Best prices in Freetown with free delivery across Sierra Leone.',
-            url: 'https://www.itservicesfreetown.com/marketplace',
+            url: `${BRAND_SITE_URL}/marketplace`,
             telephone: '+23233399391',
             address: {
               '@type': 'PostalAddress',
@@ -143,7 +144,7 @@ export default function MarketplaceLayout({
             currenciesAccepted: 'SLL, USD',
             paymentAccepted: ['Cash', 'Mobile Money', 'Bank Transfer', 'Orange Money', 'Afrimoney'],
             openingHours: 'Mo-Sa 08:00-18:00',
-            image: 'https://www.itservicesfreetown.com/logo.png',
+            image: BRAND_LOGO_URL,
             sameAs: [
               'https://www.facebook.com/itservicesfreetown',
               'https://twitter.com/itservicesfreetown',
@@ -160,7 +161,7 @@ export default function MarketplaceLayout({
                     '@type': 'Brand',
                     name: 'HP',
                   },
-                  image: 'https://www.itservicesfreetown.com/logo.png',
+                  image: BRAND_LOGO_URL,
                   sku: 'HP-ZBOOK-15V-G5',
                   aggregateRating: {
                     '@type': 'AggregateRating',
@@ -189,7 +190,7 @@ export default function MarketplaceLayout({
                     priceCurrency: 'SLL',
                     priceValidUntil: '2025-12-31',
                     availability: 'https://schema.org/InStock',
-                    url: 'https://www.itservicesfreetown.com/marketplace',
+                    url: `${BRAND_SITE_URL}/marketplace`,
                     seller: {
                       '@type': 'Organization',
                       name: 'IT Services Freetown',
@@ -204,7 +205,7 @@ export default function MarketplaceLayout({
                     '@type': 'Brand',
                     name: 'Dell',
                   },
-                  image: 'https://www.itservicesfreetown.com/logo.png',
+                  image: BRAND_LOGO_URL,
                   sku: 'DELL-5590-I7',
                   aggregateRating: {
                     '@type': 'AggregateRating',
@@ -233,7 +234,7 @@ export default function MarketplaceLayout({
                     priceCurrency: 'SLL',
                     priceValidUntil: '2025-12-31',
                     availability: 'https://schema.org/InStock',
-                    url: 'https://www.itservicesfreetown.com/marketplace',
+                    url: `${BRAND_SITE_URL}/marketplace`,
                     seller: {
                       '@type': 'Organization',
                       name: 'IT Services Freetown',
@@ -248,7 +249,7 @@ export default function MarketplaceLayout({
                     '@type': 'Brand',
                     name: 'HP',
                   },
-                  image: 'https://www.itservicesfreetown.com/logo.png',
+                  image: BRAND_LOGO_URL,
                   sku: 'HP-250-G5-I3',
                   aggregateRating: {
                     '@type': 'AggregateRating',
@@ -277,7 +278,7 @@ export default function MarketplaceLayout({
                     priceCurrency: 'SLL',
                     priceValidUntil: '2025-12-31',
                     availability: 'https://schema.org/InStock',
-                    url: 'https://www.itservicesfreetown.com/marketplace',
+                    url: `${BRAND_SITE_URL}/marketplace`,
                     seller: {
                       '@type': 'Organization',
                       name: 'IT Services Freetown',
@@ -292,7 +293,7 @@ export default function MarketplaceLayout({
                     '@type': 'Brand',
                     name: 'Western Digital',
                   },
-                  image: 'https://www.itservicesfreetown.com/logo.png',
+                  image: BRAND_LOGO_URL,
                   sku: 'WD-SN530-256GB',
                   aggregateRating: {
                     '@type': 'AggregateRating',
@@ -321,7 +322,7 @@ export default function MarketplaceLayout({
                     priceCurrency: 'SLL',
                     priceValidUntil: '2025-12-31',
                     availability: 'https://schema.org/InStock',
-                    url: 'https://www.itservicesfreetown.com/marketplace',
+                    url: `${BRAND_SITE_URL}/marketplace`,
                     seller: {
                       '@type': 'Organization',
                       name: 'IT Services Freetown',

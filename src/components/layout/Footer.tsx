@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
+import { BRAND_LOGO_SRC, BRAND_NAME } from '@/lib/brand'
 
 export default function Footer() {
   const [showAdminPanel, setShowAdminPanel] = useState(false)
@@ -238,8 +239,8 @@ export default function Footer() {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-3 mb-4">
               <Image 
-             src="/assets/logo.svg"
-             alt="IT Services Freetown Logo"
+             src={BRAND_LOGO_SRC}
+             alt={`${BRAND_NAME} Logo`}
              width={56}
              height={56}
              className="footer-logo"
