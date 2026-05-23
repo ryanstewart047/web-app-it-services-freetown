@@ -1,50 +1,60 @@
 'use client';
 
 import { Download, CheckCircle, Smartphone, Shield, Zap, Database, Monitor, ArrowRight } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import PageBanner from '@/components/PageBanner';
 
-const GITHUB_REPOSITORY_URL = 'https://github.com/ryanstewart047/web-app-it-services-freetown';
-const GITHUB_RELEASES_URL = `${GITHUB_REPOSITORY_URL}/releases`;
-const GITHUB_LATEST_DOWNLOAD_URL = `${GITHUB_RELEASES_URL}/latest/download`;
-const CURRENT_RELEASE_VERSION = '1.1.0';
+import {
+  CURRENT_RELEASE_VERSION,
+  GITHUB_RELEASES_URL,
+  GITHUB_REPOSITORY_URL,
+  downloadAssets,
+} from '@/lib/device-detector-release';
+import type { PlatformKey } from '@/lib/device-detector-release';
 
-type PlatformKey = 'windows' | 'mac' | 'linux';
-
-interface DownloadAsset {
-  href: string;
-  label: string;
-  description: string;
-  size: string;
-  checksum?: string;
-  featured?: boolean;
+interface DownloadStatsResponse {
+  assetCounts: Record<string, number>;
+  totalDownloads: number;
+  releaseTag: string;
+  publishedAt?: string;
+  source: 'github';
 }
-
-const downloadAssets: Record<PlatformKey, DownloadAsset[]> = {
-  windows: [
-    {
-      href: `${GITHUB_LATEST_DOWNLOAD_URL}/IT.Services.Device.Detector.Setup.${CURRENT_RELEASE_VERSION}.exe`,
-      label: 'Windows Installer',
-      description: 'Recommended - Full installation with shortcuts',
-      size: '73.4 MB',
-      checksum: 'sha256:5f8120f72a215bcbad926735bbf402812079d63e97d569e5a05dd04c29bf5eec',
-      featured: true,
-    },
-    {
-      href: `${GITHUB_LATEST_DOWNLOAD_URL}/IT.Services.Device.Detector.${CURRENT_RELEASE_VERSION}.exe`,
-      label: 'Windows Portable',
-      description: 'No installation required - Run anywhere',
-      size: '73.1 MB',
-      checksum: 'sha256:7a2311024e8780830072f5893a9bfada54d4e11600c062f6286a8592a202b0d8',
-    },
-  ],
-  mac: [],
-  linux: [],
-};
 
 export default function DownloadAppPage() {
   const [os, setOS] = useState<PlatformKey>('windows');
+  const [downloadStats, setDownloadStats] = useState<DownloadStatsResponse | null>(null);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
   const selectedDownloads = downloadAssets[os];
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadDownloadStats = async () => {
+      try {
+        const response = await fetch('/api/download-app/stats');
+        if (!response.ok) {
+          throw new Error(`Failed to load download stats (${response.status})`);
+        }
+
+        const data = (await response.json()) as DownloadStatsResponse;
+        if (isMounted) {
+          setDownloadStats(data);
+        }
+      } catch (error) {
+        console.error('Failed to load download stats:', error);
+      } finally {
+        if (isMounted) {
+          setIsLoadingStats(false);
+        }
+      }
+    };
+
+    loadDownloadStats();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
@@ -139,7 +149,12 @@ export default function DownloadAppPage() {
                       )}
                     </div>
                   </div>
-                  <div className={`text-sm ${asset.featured ? 'text-blue-100' : 'text-gray-300'}`}>{asset.size}</div>
+                  <div className="text-right">
+                    <div className={`text-sm ${asset.featured ? 'text-blue-100' : 'text-gray-300'}`}>{asset.size}</div>
+                    <div className={`mt-2 text-xs font-semibold ${asset.featured ? 'text-blue-200' : 'text-gray-400'}`}>
+                      {formatDownloadCount(downloadStats?.assetCounts[asset.id], isLoadingStats)}
+                    </div>
+                  </div>
                 </a>
               ))}
             </div>
@@ -154,6 +169,9 @@ export default function DownloadAppPage() {
                   </p>
                   <p className="text-green-200 text-sm mb-2">
                     Your website now points to the current GitHub release assets instead of the outdated v1.0.0 filenames that caused 404 errors.
+                  </p>
+                  <p className="mb-2 inline-flex rounded-full bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-200">
+                    {formatTotalDownloadCount(downloadStats?.totalDownloads, isLoadingStats)}
                   </p>
                   <p className="text-green-300 text-xs">
                     Windows is the only supported public release right now. macOS and Linux stay disabled on this page until installers are actually published on GitHub.
@@ -352,6 +370,30 @@ export default function DownloadAppPage() {
       </div>
     </div>
   );
+}
+
+function formatDownloadCount(count: number | undefined, isLoading: boolean) {
+  if (typeof count === 'number') {
+    return `${count.toLocaleString()} GitHub download${count === 1 ? '' : 's'}`;
+  }
+
+  if (isLoading) {
+    return 'Loading download count...';
+  }
+
+  return 'GitHub count unavailable';
+}
+
+function formatTotalDownloadCount(count: number | undefined, isLoading: boolean) {
+  if (typeof count === 'number') {
+    return `Official GitHub downloads: ${count.toLocaleString()}`;
+  }
+
+  if (isLoading) {
+    return 'Loading official GitHub downloads...';
+  }
+
+  return 'Official GitHub download count unavailable';
 }
 
 function WindowsLogo({ className }: { className?: string }) {
