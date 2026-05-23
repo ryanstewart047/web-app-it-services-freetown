@@ -5,6 +5,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Users, Sparkles, ChevronRight, X } from 'lucide-react';
 
+const SHOW_DELAY_MS = 10000;
+const MIN_VISIBLE_MS = 5000;
+const EXIT_ANIMATION_MS = 500;
+
 export default function ForumPromoCard() {
   const pathname = usePathname();
   const [visible, setVisible] = useState(false);
@@ -12,8 +16,20 @@ export default function ForumPromoCard() {
 
   const isForumPage = pathname === '/forum' || pathname?.startsWith('/forum/');
 
+  const dismissPromo = () => {
+    setVisible(false);
+
+    window.setTimeout(() => {
+      setDismissed(true);
+      sessionStorage.setItem('forum_promo_dismissed', '1');
+    }, EXIT_ANIMATION_MS);
+  };
+
   useEffect(() => {
-    if (isForumPage) return;
+    if (isForumPage) {
+      setVisible(false);
+      return;
+    }
 
     const wasDismissed = sessionStorage.getItem('forum_promo_dismissed');
     if (wasDismissed) {
@@ -21,21 +37,31 @@ export default function ForumPromoCard() {
       return;
     }
 
-    // Show reliably after 2.5 seconds for premium user engagement
-    const timer = setTimeout(() => setVisible(true), 2500);
+    const timer = window.setTimeout(() => setVisible(true), SHOW_DELAY_MS);
     return () => clearTimeout(timer);
   }, [isForumPage]);
+
+  useEffect(() => {
+    if (!visible || isForumPage) return;
+
+    const autoDismissTimer = window.setTimeout(() => {
+      setVisible(false);
+
+      window.setTimeout(() => {
+        setDismissed(true);
+        sessionStorage.setItem('forum_promo_dismissed', '1');
+      }, EXIT_ANIMATION_MS);
+    }, MIN_VISIBLE_MS);
+
+    return () => clearTimeout(autoDismissTimer);
+  }, [visible, isForumPage]);
 
   if (isForumPage || dismissed) return null;
 
   const handleDismiss = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setVisible(false);
-    setTimeout(() => {
-      setDismissed(true);
-      sessionStorage.setItem('forum_promo_dismissed', '1');
-    }, 500);
+    dismissPromo();
   };
 
   return (
