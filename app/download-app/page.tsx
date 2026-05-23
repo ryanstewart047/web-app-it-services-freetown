@@ -4,16 +4,47 @@ import { Download, CheckCircle, Smartphone, Shield, Zap, Database, Monitor, Arro
 import { useState } from 'react';
 import PageBanner from '@/components/PageBanner';
 
-export default function DownloadAppPage() {
-  const [os, setOS] = useState<'windows' | 'mac' | 'linux'>('windows');
-  const [downloadError, setDownloadError] = useState(false);
+const GITHUB_REPOSITORY_URL = 'https://github.com/ryanstewart047/web-app-it-services-freetown';
+const GITHUB_RELEASES_URL = `${GITHUB_REPOSITORY_URL}/releases`;
+const GITHUB_LATEST_DOWNLOAD_URL = `${GITHUB_RELEASES_URL}/latest/download`;
+const CURRENT_RELEASE_VERSION = '1.1.0';
 
-  const handleDownload = (url: string) => {
-    // Track download attempt
-    setDownloadError(false);
-    // Open in new tab
-    window.open(url, '_blank');
-  };
+type PlatformKey = 'windows' | 'mac' | 'linux';
+
+interface DownloadAsset {
+  href: string;
+  label: string;
+  description: string;
+  size: string;
+  checksum?: string;
+  featured?: boolean;
+}
+
+const downloadAssets: Record<PlatformKey, DownloadAsset[]> = {
+  windows: [
+    {
+      href: `${GITHUB_LATEST_DOWNLOAD_URL}/IT.Services.Device.Detector.Setup.${CURRENT_RELEASE_VERSION}.exe`,
+      label: 'Windows Installer',
+      description: 'Recommended - Full installation with shortcuts',
+      size: '73.4 MB',
+      checksum: 'sha256:5f8120f72a215bcbad926735bbf402812079d63e97d569e5a05dd04c29bf5eec',
+      featured: true,
+    },
+    {
+      href: `${GITHUB_LATEST_DOWNLOAD_URL}/IT.Services.Device.Detector.${CURRENT_RELEASE_VERSION}.exe`,
+      label: 'Windows Portable',
+      description: 'No installation required - Run anywhere',
+      size: '73.1 MB',
+      checksum: 'sha256:7a2311024e8780830072f5893a9bfada54d4e11600c062f6286a8592a202b0d8',
+    },
+  ],
+  mac: [],
+  linux: [],
+};
+
+export default function DownloadAppPage() {
+  const [os, setOS] = useState<PlatformKey>('windows');
+  const selectedDownloads = downloadAssets[os];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
@@ -48,140 +79,69 @@ export default function DownloadAppPage() {
                     : 'border-gray-600 bg-gray-700/30 hover:border-gray-500'
                 }`}
               >
-                <div className="text-4xl mb-3">🪟</div>
+                <div className="mb-3 flex justify-center">
+                  <WindowsLogo className="h-10 w-10 text-white" />
+                </div>
                 <div className="text-lg font-semibold text-white">Windows</div>
                 <div className="text-sm text-gray-400">10, 11 (64-bit)</div>
               </button>
               <button
-                onClick={() => setOS('mac')}
-                className={`p-6 rounded-xl border-2 transition-all ${
-                  os === 'mac'
-                    ? 'border-blue-500 bg-blue-500/20'
-                    : 'border-gray-600 bg-gray-700/30 hover:border-gray-500'
-                }`}
+                disabled
+                aria-disabled="true"
+                title="macOS download is not available yet"
+                className="cursor-not-allowed rounded-xl border-2 border-gray-700 bg-gray-700/20 p-6 opacity-60 transition-all"
               >
-                <div className="text-4xl mb-3">🍎</div>
+                <div className="mb-3 flex justify-center">
+                  <AppleLogo className="h-10 w-10 text-gray-200" />
+                </div>
                 <div className="text-lg font-semibold text-white">macOS</div>
-                <div className="text-sm text-gray-400">10.13+</div>
+                <div className="text-sm text-gray-400">Coming soon</div>
               </button>
               <button
-                onClick={() => setOS('linux')}
-                className={`p-6 rounded-xl border-2 transition-all ${
-                  os === 'linux'
-                    ? 'border-blue-500 bg-blue-500/20'
-                    : 'border-gray-600 bg-gray-700/30 hover:border-gray-500'
-                }`}
+                disabled
+                aria-disabled="true"
+                title="Linux download is not available yet"
+                className="cursor-not-allowed rounded-xl border-2 border-gray-700 bg-gray-700/20 p-6 opacity-60 transition-all"
               >
-                <div className="text-4xl mb-3">🐧</div>
+                <div className="mb-3 flex justify-center">
+                  <Monitor className="h-10 w-10 text-gray-200" />
+                </div>
                 <div className="text-lg font-semibold text-white">Linux</div>
-                <div className="text-sm text-gray-400">Ubuntu, Fedora, Debian</div>
+                <div className="text-sm text-gray-400">Coming soon</div>
               </button>
             </div>
 
             {/* Download Buttons */}
             <div className="space-y-4">
-              {os === 'windows' && (
-                <>
-                  <a
-                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector.Setup.1.0.0.exe"
-                    className="flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-8 py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Download className="w-6 h-6" />
-                      <div className="text-left">
-                        <div className="font-bold text-lg">Windows Installer</div>
-                        <div className="text-sm text-blue-100">Recommended - Full installation with shortcuts</div>
+              {selectedDownloads.map((asset) => (
+                <a
+                  key={asset.label}
+                  href={asset.href}
+                  className={`flex items-center justify-between px-8 py-4 rounded-xl transition-all ${
+                    asset.featured
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white transform hover:scale-105 shadow-lg'
+                      : 'bg-gray-700 hover:bg-gray-600 text-white'
+                  }`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <div className="flex items-center gap-3">
+                    <Download className="w-6 h-6" />
+                    <div className="text-left">
+                      <div className={`font-bold ${asset.featured ? 'text-lg' : ''}`}>{asset.label}</div>
+                      <div className={`text-sm ${asset.featured ? 'text-blue-100' : 'text-gray-300'}`}>
+                        {asset.description}
                       </div>
+                      {asset.checksum && (
+                        <div className={`mt-1 text-xs break-all ${asset.featured ? 'text-blue-200' : 'text-gray-400'}`}>
+                          {asset.checksum}
+                        </div>
+                      )}
                     </div>
-                    <div className="text-sm text-blue-100">~90 MB</div>
-                  </a>
-                  <a
-                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector.1.0.0.exe"
-                    className="flex items-center justify-between bg-gray-700 hover:bg-gray-600 text-white px-8 py-4 rounded-xl transition-all"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Download className="w-6 h-6" />
-                      <div className="text-left">
-                        <div className="font-bold">Windows Portable</div>
-                        <div className="text-sm text-gray-300">No installation required - Run anywhere</div>
-                      </div>
-                    </div>
-                    <div className="text-sm text-gray-300">~87 MB</div>
-                  </a>
-                </>
-              )}
-              {os === 'mac' && (
-                <>
-                  <a
-                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector-1.0.0-arm64.dmg"
-                    className="flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-8 py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Download className="w-6 h-6" />
-                      <div className="text-left">
-                        <div className="font-bold text-lg">macOS DMG (Apple Silicon)</div>
-                        <div className="text-sm text-blue-100">Recommended - For M1/M2/M3 Macs</div>
-                      </div>
-                    </div>
-                    <div className="text-sm text-blue-100">~100 MB</div>
-                  </a>
-                  <a
-                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector-1.0.0-arm64-mac.zip"
-                    className="flex items-center justify-between bg-gray-700 hover:bg-gray-600 text-white px-8 py-4 rounded-xl transition-all"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Download className="w-6 h-6" />
-                      <div className="text-left">
-                        <div className="font-bold">macOS ZIP (Apple Silicon)</div>
-                        <div className="text-sm text-gray-300">Portable archive for M1/M2/M3</div>
-                      </div>
-                    </div>
-                    <div className="text-sm text-gray-300">~73 MB</div>
-                  </a>
-                </>
-              )}
-              {os === 'linux' && (
-                <>
-                  <a
-                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/IT.Services.Device.Detector-1.0.0.AppImage"
-                    className="flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-8 py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Download className="w-6 h-6" />
-                      <div className="text-left">
-                        <div className="font-bold text-lg">Linux AppImage</div>
-                        <div className="text-sm text-blue-100">Recommended - Universal, run anywhere</div>
-                      </div>
-                    </div>
-                    <div className="text-sm text-blue-100">~73 MB</div>
-                  </a>
-                  <a
-                    href="https://github.com/ryanstewart047/web-app-it-services-freetown/releases/latest/download/it-services-device-detector_1.0.0_amd64.deb"
-                    className="flex items-center justify-between bg-gray-700 hover:bg-gray-600 text-white px-8 py-4 rounded-xl transition-all"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Download className="w-6 h-6" />
-                      <div className="text-left">
-                        <div className="font-bold">Debian Package (.deb)</div>
-                        <div className="text-sm text-gray-300">For Ubuntu, Debian, Linux Mint</div>
-                      </div>
-                    </div>
-                    <div className="text-sm text-gray-300">~69 MB</div>
-                  </a>
-                </>
-              )}
+                  </div>
+                  <div className={`text-sm ${asset.featured ? 'text-blue-100' : 'text-gray-300'}`}>{asset.size}</div>
+                </a>
+              ))}
             </div>
 
             {/* Release Status Notice */}
@@ -190,13 +150,18 @@ export default function DownloadAppPage() {
                 <div className="text-2xl">✅</div>
                 <div className="flex-1">
                   <p className="text-green-200 font-bold mb-2">
-                    v1.0.0 Released - All Installers Available!
+                    v{CURRENT_RELEASE_VERSION} Released - Windows Download Only
                   </p>
                   <p className="text-green-200 text-sm mb-2">
-                    Pre-built installers for Windows, macOS, and Linux are now available on GitHub Releases.
+                    Your website now points to the current GitHub release assets instead of the outdated v1.0.0 filenames that caused 404 errors.
                   </p>
                   <p className="text-green-300 text-xs">
-                    Want to build from source? Check out our <a href="https://github.com/ryanstewart047/web-app-it-services-freetown/tree/main/desktop-app" className="underline hover:text-green-100" target="_blank" rel="noopener noreferrer">GitHub repository</a>
+                    Windows is the only supported public release right now. macOS and Linux stay disabled on this page until installers are actually published on GitHub.
+                  </p>
+                  <p className="mt-2 text-green-300 text-xs">
+                    Need another platform later? Watch the{' '}
+                    <a href={GITHUB_RELEASES_URL} className="underline hover:text-green-100" target="_blank" rel="noopener noreferrer">GitHub releases page</a>
+                    {' '}for the next publish.
                   </p>
                 </div>
               </div>
@@ -214,16 +179,25 @@ export default function DownloadAppPage() {
             {/* Alternate: Or wait for official release */}
             <div className="mt-4 p-3 bg-gray-800/50 border border-gray-700 rounded-lg">
               <p className="text-gray-300 text-xs text-center">
-                💡 <strong>Prefer pre-built installers?</strong> Check back soon or watch the 
+                💡 <strong>Need source code or future builds?</strong> Visit the
                 <a 
-                  href="https://github.com/ryanstewart047/web-app-it-services-freetown" 
+                  href={GITHUB_REPOSITORY_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-400 hover:text-blue-300 underline mx-1"
                 >
                   GitHub repository
                 </a>
-                for the v1.0.0 release announcement.
+                or browse
+                <a
+                  href={GITHUB_RELEASES_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:text-blue-300 underline mx-1"
+                >
+                  all releases
+                </a>
+                for updates.
               </p>
             </div>
           </div>
@@ -377,6 +351,22 @@ export default function DownloadAppPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function WindowsLogo({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className={className}>
+      <path d="M1 3.5 10.5 2v9H1v-7.5Zm10.5 7.5H23V0L11.5 1.7V11ZM1 12.9h9.5V22L1 20.5v-7.6Zm10.5 0H23V24l-11.5-1.7v-9.4Z" />
+    </svg>
+  );
+}
+
+function AppleLogo({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className={className}>
+      <path d="M16.37 12.58c.03 3.12 2.73 4.16 2.76 4.17-.02.07-.43 1.5-1.42 2.97-.86 1.27-1.75 2.53-3.16 2.56-1.39.03-1.84-.82-3.43-.82-1.6 0-2.09.8-3.4.85-1.36.05-2.4-1.37-3.27-2.63-1.78-2.57-3.13-7.27-1.31-10.43.9-1.57 2.53-2.57 4.3-2.59 1.34-.03 2.61.91 3.43.91.82 0 2.37-1.12 3.99-.96.68.03 2.59.28 3.81 2.06-.1.06-2.27 1.32-2.3 3.91ZM14.79 4.79c.72-.88 1.2-2.1 1.07-3.29-1.04.04-2.3.69-3.05 1.57-.67.77-1.25 2.01-1.09 3.2 1.16.09 2.35-.59 3.07-1.48Z" />
+    </svg>
   );
 }
 
