@@ -144,6 +144,10 @@ export default function Hero() {
                  style={{color: '#040e40'}}>
                  <i className="fas fa-search mr-2"></i>Track Your Repair
               </Link>
+              <Link href="/download-app"
+                 className="bg-[#040e40]/70 hover:bg-[#040e40] text-white text-lg px-8 py-4 text-center rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-lg border-2 border-white/30 inline-flex items-center backdrop-blur-sm">
+                 <i className="fas fa-download mr-2"></i>Download Desktop App
+              </Link>
             </div>
             
             {/* Enhanced Quick Stats */}
