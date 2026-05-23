@@ -10,16 +10,16 @@ export default function DownloadAppPage() {
 
   const downloadLinks = {
     windows: [
-      { name: 'Windows Installer', file: 'IT.Services.Device.Detector.Setup.1.0.0.exe' },
-      { name: 'Windows Portable', file: 'IT.Services.Device.Detector.1.0.0.exe' },
+      { name: 'Windows Installer', file: 'IT.Services.Device.Detector.Setup.1.1.0.exe', size: '73.4 MB' },
+      { name: 'Windows Portable', file: 'IT.Services.Device.Detector.1.1.0.exe', size: '73.1 MB' },
     ],
     mac: [
-      { name: 'macOS (Intel)', file: 'IT.Services.Device.Detector-1.0.0-x64.dmg' },
-      { name: 'macOS (Apple Silicon)', file: 'IT.Services.Device.Detector-1.0.0-arm64.dmg' },
+      { name: 'macOS (Intel)', file: 'IT.Services.Device.Detector-1.1.0-x64.dmg', size: 'Coming soon' },
+      { name: 'macOS (Apple Silicon)', file: 'IT.Services.Device.Detector-1.1.0-arm64.dmg', size: 'Coming soon' },
     ],
     linux: [
-      { name: 'Linux AppImage', file: 'IT.Services.Device.Detector-1.0.0.AppImage' },
-      { name: 'Linux Debian', file: 'it-services-device-detector_1.0.0_amd64.deb' },
+      { name: 'Linux AppImage', file: 'IT.Services.Device.Detector-1.1.0.AppImage', size: 'Coming soon' },
+      { name: 'Linux Debian', file: 'it-services-device-detector_1.1.0_amd64.deb', size: 'Coming soon' },
     ],
   };
 
@@ -28,7 +28,7 @@ export default function DownloadAppPage() {
     setDownloadError('');
     
     try {
-      const url = `https://github.com/ryanstewart047/device-detector/releases/download/v1.0.0/${fileName}`;
+      const url = `https://github.com/ryanstewart047/device-detector/releases/download/v1.1.0/${fileName}`;
       
       // Check if the release exists
       const response = await fetch(url, { method: 'HEAD' });
@@ -95,7 +95,10 @@ export default function DownloadAppPage() {
                 key={idx}
                 className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
               >
-                <p className="font-semibold text-gray-900">{version.name}</p>
+                <div>
+                  <p className="font-semibold text-gray-900">{version.name}</p>
+                  <p className="text-sm text-gray-500">{version.size}</p>
+                </div>
                 <button
                   onClick={() => handleDownload(version.file)}
                   disabled={downloadingFile === version.file}
