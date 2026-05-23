@@ -142,11 +142,6 @@ export default function DownloadAppPage() {
                       <div className={`text-sm ${asset.featured ? 'text-blue-100' : 'text-gray-300'}`}>
                         {asset.description}
                       </div>
-                      {asset.checksum && (
-                        <div className={`mt-1 text-xs break-all ${asset.featured ? 'text-blue-200' : 'text-gray-400'}`}>
-                          {asset.checksum}
-                        </div>
-                      )}
                     </div>
                   </div>
                   <div className="text-right">
@@ -165,21 +160,16 @@ export default function DownloadAppPage() {
                 <div className="text-2xl">✅</div>
                 <div className="flex-1">
                   <p className="text-green-200 font-bold mb-2">
-                    v{CURRENT_RELEASE_VERSION} Released - Windows Download Only
+                    Windows Download Available
                   </p>
                   <p className="text-green-200 text-sm mb-2">
-                    Your website now points to the current GitHub release assets instead of the outdated v1.0.0 filenames that caused 404 errors.
+                    Download the latest Windows version of IT Services Device Detector from our official GitHub release.
                   </p>
                   <p className="mb-2 inline-flex rounded-full bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-200">
                     {formatTotalDownloadCount(downloadStats?.totalDownloads, isLoadingStats)}
                   </p>
                   <p className="text-green-300 text-xs">
-                    Windows is the only supported public release right now. macOS and Linux stay disabled on this page until installers are actually published on GitHub.
-                  </p>
-                  <p className="mt-2 text-green-300 text-xs">
-                    Need another platform later? Watch the{' '}
-                    <a href={GITHUB_RELEASES_URL} className="underline hover:text-green-100" target="_blank" rel="noopener noreferrer">GitHub releases page</a>
-                    {' '}for the next publish.
+                    Fast, direct download with official release tracking.
                   </p>
                 </div>
               </div>

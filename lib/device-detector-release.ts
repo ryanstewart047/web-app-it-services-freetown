@@ -7,7 +7,6 @@ export interface DeviceDetectorDownloadAsset {
   label: string;
   description: string;
   size: string;
-  checksum?: string;
   featured?: boolean;
 }
 
@@ -27,7 +26,6 @@ export const downloadAssets: Record<PlatformKey, DeviceDetectorDownloadAsset[]> 
       label: 'Windows Installer',
       description: 'Recommended - Full installation with shortcuts',
       size: '73.4 MB',
-      checksum: 'sha256:5f8120f72a215bcbad926735bbf402812079d63e97d569e5a05dd04c29bf5eec',
       featured: true,
     },
     {
@@ -37,7 +35,6 @@ export const downloadAssets: Record<PlatformKey, DeviceDetectorDownloadAsset[]> 
       label: 'Windows Portable',
       description: 'No installation required - Run anywhere',
       size: '73.1 MB',
-      checksum: 'sha256:7a2311024e8780830072f5893a9bfada54d4e11600c062f6286a8592a202b0d8',
     },
   ],
   mac: [],
