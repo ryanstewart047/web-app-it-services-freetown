@@ -28,7 +28,7 @@ export default function DownloadAppPage() {
     setDownloadError('');
     
     try {
-      const url = `https://github.com/ryanstewart047/device-detector/releases/download/v1.1.0/${fileName}`;
+      const url = `https://github.com/ryanstewart047/web-app-it-services-freetown/releases/download/v1.1.0/${fileName}`;
       
       // Check if the release exists
       const response = await fetch(url, { method: 'HEAD' });
