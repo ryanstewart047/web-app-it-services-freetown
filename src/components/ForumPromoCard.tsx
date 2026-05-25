@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Users, Sparkles, ChevronRight, X } from 'lucide-react';
 
+const FORUM_PROMO_ENABLED = false;
 const SHOW_DELAY_MS = 10000;
 const MIN_VISIBLE_MS = 5000;
 const EXIT_ANIMATION_MS = 500;
@@ -26,6 +27,11 @@ export default function ForumPromoCard() {
   };
 
   useEffect(() => {
+    if (!FORUM_PROMO_ENABLED) {
+      setVisible(false);
+      return;
+    }
+
     if (isForumPage) {
       setVisible(false);
       return;
@@ -42,6 +48,7 @@ export default function ForumPromoCard() {
   }, [isForumPage]);
 
   useEffect(() => {
+    if (!FORUM_PROMO_ENABLED) return;
     if (!visible || isForumPage) return;
 
     const autoDismissTimer = window.setTimeout(() => {
@@ -56,7 +63,7 @@ export default function ForumPromoCard() {
     return () => clearTimeout(autoDismissTimer);
   }, [visible, isForumPage]);
 
-  if (isForumPage || dismissed) return null;
+  if (!FORUM_PROMO_ENABLED || isForumPage || dismissed) return null;
 
   const handleDismiss = (e: React.MouseEvent) => {
     e.preventDefault();
