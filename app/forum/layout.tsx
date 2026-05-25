@@ -1,5 +1,10 @@
 import { Metadata } from 'next';
 import ForumLayoutClient from './ForumLayoutClient';
+import {
+  BRAND_APPLE_TOUCH_ICON_SRC,
+  BRAND_FAVICON_ICO_SRC,
+  BRAND_FAVICON_SVG_SRC,
+} from '@/lib/brand';
 
 export const metadata: Metadata = {
   title: 'Technicians Forum | IT Services Freetown',
@@ -27,11 +32,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/forum-favicon.svg', type: 'image/svg+xml' },
-      { url: '/forum-favicon.ico', type: 'image/x-icon' },
+      { url: BRAND_FAVICON_SVG_SRC, type: 'image/svg+xml' },
+      { url: BRAND_FAVICON_ICO_SRC, type: 'image/x-icon' },
     ],
     apple: [
-      { url: '/forum-favicon.svg' }
+      { url: BRAND_APPLE_TOUCH_ICON_SRC }
     ],
   },
   alternates: {

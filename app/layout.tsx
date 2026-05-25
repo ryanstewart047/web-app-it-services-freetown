@@ -15,7 +15,13 @@ import { AnalyticsProvider } from '../src/components/AnalyticsTracker'
 import ConditionalLayout from '@/components/ConditionalLayout'
 import ForumPromoCard from '@/components/ForumPromoCard'
 import { CartProvider } from '@/contexts/CartContext'
-import { BRAND_LOGO_URL, BRAND_SITE_URL } from '@/lib/brand'
+import {
+  BRAND_APPLE_TOUCH_ICON_SRC,
+  BRAND_FAVICON_ICO_SRC,
+  BRAND_FAVICON_SVG_SRC,
+  BRAND_LOGO_URL,
+  BRAND_SITE_URL,
+} from '@/lib/brand'
 
 
 const inter = Inter({ 
@@ -178,14 +184,14 @@ export default function RootLayout({
         <meta name="msapplication-tap-highlight" content="no" />
         
         {/* Favicon - Using Site Logo */}
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/svg+xml" href={BRAND_FAVICON_SVG_SRC} />
+        <link rel="icon" type="image/x-icon" href={BRAND_FAVICON_ICO_SRC} />
         
         {/* Apple Touch Icons - PNG format required for Apple devices */}
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon.png" />
-        <link rel="apple-touch-icon" sizes="167x167" href="/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" href={BRAND_APPLE_TOUCH_ICON_SRC} />
+        <link rel="apple-touch-icon" sizes="180x180" href={BRAND_APPLE_TOUCH_ICON_SRC} />
+        <link rel="apple-touch-icon" sizes="152x152" href={BRAND_APPLE_TOUCH_ICON_SRC} />
+        <link rel="apple-touch-icon" sizes="167x167" href={BRAND_APPLE_TOUCH_ICON_SRC} />
         
         {/* Structured Data - Local Business Schema */}
         <script
