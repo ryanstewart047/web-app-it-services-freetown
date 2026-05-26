@@ -10,7 +10,7 @@ import {
   User,
 } from 'lucide-react'
 import { fetchBlogPosts, fetchPostComments } from '@/lib/github-blog-storage'
-import { DisplayAd, InArticleAd, MultiplexAd, SponsoredAdBlock } from '@/components/AdSense'
+import { DisplayAd, InArticleAd, MultiplexAd } from '@/components/AdSense'
 import ArticleInteractions from './ArticleInteractions'
 import styles from '../blog.module.css'
 import {
@@ -235,13 +235,7 @@ export default async function BlogPostPage({ params }: Props) {
         </section>
 
         <div className="mt-8">
-          <SponsoredAdBlock
-            eyebrow="Sponsored"
-            title="Helpful offers related to this topic"
-            description="Relevant promotions help keep our repair explainers and support articles free for everyone."
-          >
-            <DisplayAd className="mx-auto max-w-4xl" />
-          </SponsoredAdBlock>
+          <DisplayAd />
         </div>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)]">
@@ -346,14 +340,7 @@ export default async function BlogPostPage({ params }: Props) {
             </div>
 
             <div className="my-8">
-              <SponsoredAdBlock
-                compact
-                eyebrow="Sponsored"
-                title="Relevant tools and services"
-                description="A short sponsored break placed between article sections."
-              >
-                <InArticleAd />
-              </SponsoredAdBlock>
+              <InArticleAd />
             </div>
 
             <div
@@ -406,13 +393,7 @@ export default async function BlogPostPage({ params }: Props) {
         </div>
 
         <div className="mt-12">
-          <SponsoredAdBlock
-            eyebrow="Partner offers"
-            title="Continue exploring useful device-related offers"
-            description="This section highlights relevant promotions in a more content-friendly format at the end of the article."
-          >
-            <MultiplexAd />
-          </SponsoredAdBlock>
+          <MultiplexAd />
         </div>
 
         <section className={`${styles.ctaPanel} mt-12 p-6 sm:p-8`}>

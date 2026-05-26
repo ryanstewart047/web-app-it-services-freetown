@@ -27,7 +27,7 @@ import toast from 'react-hot-toast'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
-import { DisplayAd, InFeedAd, MultiplexAd, SponsoredAdBlock } from '@/components/AdSense'
+import { DisplayAd, InFeedAd } from '@/components/AdSense'
 import {
   addComment,
   addReaction,
@@ -549,14 +549,7 @@ export default function BlogPage() {
           </section>
 
           <div className="mt-8 scroll-animate">
-            <SponsoredAdBlock
-              className="mx-auto max-w-6xl"
-              eyebrow="Sponsored"
-              title="Helpful offers while you browse"
-              description="Relevant tech promotions help us keep repair guides, troubleshooting articles, and device tips free to read."
-            >
-              <DisplayAd className="mx-auto max-w-4xl" />
-            </SponsoredAdBlock>
+            <DisplayAd className="mx-auto max-w-4xl" />
           </div>
 
           {featuredPost ? (
@@ -659,7 +652,7 @@ export default function BlogPage() {
                 </div>
               </div>
 
-              <aside className="space-y-4 self-start xl:sticky xl:top-28">
+              <aside className="space-y-4">
                 <div className={`${styles.insightCard} scroll-animate rounded-[1.75rem] p-5`}>
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
                     Popular right now
@@ -694,17 +687,6 @@ export default function BlogPage() {
                     This new layout is tuned for fast scanning first, deep reading second, so customers can
                     find the right answer before committing to a repair.
                   </p>
-                </div>
-
-                <div className="scroll-animate">
-                  <SponsoredAdBlock
-                    compact
-                    eyebrow="Partner spotlight"
-                    title="Tech deals and useful tools"
-                    description="A small sponsored space for readers looking for accessories, software, or device-care extras."
-                  >
-                    <DisplayAd className="mx-auto" />
-                  </SponsoredAdBlock>
                 </div>
               </aside>
             </section>
@@ -971,14 +953,7 @@ export default function BlogPage() {
                       {(index + 1) % 3 === 0 && index < libraryPosts.length - 1 && (
                         <div className="md:col-span-2 xl:col-span-3">
                           <div className="scroll-animate">
-                            <SponsoredAdBlock
-                              compact
-                              eyebrow="Sponsored"
-                              title="More offers for device owners"
-                              description="A short sponsored break before the next round of articles."
-                            >
-                              <InFeedAd />
-                            </SponsoredAdBlock>
+                            <InFeedAd />
                           </div>
                         </div>
                       )}
@@ -990,14 +965,7 @@ export default function BlogPage() {
           )}
 
           <div className="mt-12 scroll-animate">
-            <SponsoredAdBlock
-              className="mx-auto max-w-6xl"
-              eyebrow="Sponsored"
-              title="Discover more device-related offers"
-              description="This sponsored section helps fund the blog while showing readers relevant products and services."
-            >
-              <MultiplexAd />
-            </SponsoredAdBlock>
+            <DisplayAd className="mx-auto max-w-4xl" />
           </div>
 
           <section className={`${styles.ctaPanel} mt-14 scroll-animate p-6 sm:p-8`}>
