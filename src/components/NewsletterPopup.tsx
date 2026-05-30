@@ -120,7 +120,7 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
               <div className="absolute bottom-0 left-0 w-40 h-40 bg-red-200/30 rounded-full blur-3xl"></div>
               
               <img
-                src="/assets/newsletter-woman.jpg"
+                src="/assets/newsletter-woman.png"
                 alt="African woman smiling at laptop"
                 className="relative z-10 w-full h-full object-cover rounded-xl shadow-lg"
                 onError={(e) => {
