@@ -109,52 +109,83 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
       
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
           
-          {/* Header */}
-          <div className="bg-gradient-to-r from-[#040e40] to-red-600 p-6 text-white relative">
-            <button
-              onClick={handleClose}
-              className="absolute top-4 right-4 p-1 hover:bg-white/20 rounded-lg transition-colors"
-              aria-label="Close"
-            >
-              <X className="w-5 h-5" />
-            </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 min-h-[500px] md:min-h-auto">
             
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Mail className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold">Stay in the Loop</h3>
-                <p className="text-sm text-white/90">Weekly insights from IT Services Freetown</p>
-              </div>
+            {/* Left Side - Image */}
+            <div className="hidden md:flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-6 relative overflow-hidden">
+              {/* Decorative background elements */}
+              <div className="absolute top-0 right-0 w-40 h-40 bg-blue-200/30 rounded-full blur-3xl"></div>
+              <div className="absolute bottom-0 left-0 w-40 h-40 bg-red-200/30 rounded-full blur-3xl"></div>
+              
+              <img
+                src="/assets/newsletter-woman.jpg"
+                alt="African woman smiling at laptop"
+                className="relative z-10 w-full h-full object-cover rounded-xl shadow-lg"
+                onError={(e) => {
+                  // Fallback to a placeholder if image not found
+                  e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500"%3E%3Crect fill="%23E5E7EB" width="400" height="500"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="20" fill="%23999"%3EAdd your photo here%3C/text%3E%3C/svg%3E'
+                }}
+              />
             </div>
-          </div>
-
-          {/* Content */}
-          <div className="p-6">
-            {success ? (
-              <div className="text-center py-4">
-                <div className="flex justify-center mb-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                    <CheckCircle className="w-6 h-6 text-green-600" />
+            
+            {/* Right Side - Form */}
+            <div className="p-8 flex flex-col justify-center">
+              
+              {/* Close Button - Mobile */}
+              <button
+                onClick={handleClose}
+                className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-lg transition-colors md:hidden"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+              
+              {/* Close Button - Desktop */}
+              <button
+                onClick={handleClose}
+                className="hidden md:block absolute top-6 right-6 p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+              
+              <div className="mb-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#040e40] to-red-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Mail className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">Stay in the Loop</h3>
+                    <p className="text-sm text-gray-600">Weekly insights & exclusive tips</p>
                   </div>
                 </div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-2">Thank You!</h4>
-                <p className="text-gray-600 text-sm">
-                  You're now subscribed to our weekly newsletter. Check your email for confirmation!
+              </div>
+            {success ? (
+              <div className="text-center">
+                <div className="flex justify-center mb-4">
+                  <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-8 h-8 text-green-600" />
+                  </div>
+                </div>
+                <h4 className="text-xl font-bold text-gray-900 mb-2">Thank You!</h4>
+                <p className="text-gray-600 mb-6">
+                  You're now subscribed to IT Services Freetown's weekly newsletter. Check your email for confirmation!
+                </p>
+                <p className="text-sm text-gray-500">
+                  Expect weekly tips on computer & mobile repair, tech news, and exclusive offers.
                 </p>
               </div>
             ) : (
               <>
-                <p className="text-gray-600 text-sm mb-4 leading-relaxed">
-                  Get the latest computer and mobile repair tips, exclusive offers, and IT service updates delivered to your inbox every week.
+                <p className="text-gray-600 text-sm mb-6 leading-relaxed">
+                  Join thousands of Freetown residents getting weekly computer and mobile repair tips, exclusive service updates, and special offers delivered right to your inbox.
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-4" data-form-type="newsletter">
                   <div>
-                    <label htmlFor="newsletter-email" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="newsletter-email" className="block text-sm font-semibold text-gray-700 mb-2">
                       Email Address
                     </label>
                     <input
@@ -167,19 +198,19 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
                         setError('')
                       }}
                       placeholder="your@email.com"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all duration-200"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all duration-200"
                       disabled={isLoading}
                       required
                     />
                     {error && (
-                      <p className="text-red-500 text-xs mt-1">{error}</p>
+                      <p className="text-red-500 text-xs mt-2">{error}</p>
                     )}
                   </div>
 
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full bg-gradient-to-r from-[#040e40] to-red-600 hover:from-[#040e40]/90 hover:to-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full bg-gradient-to-r from-[#040e40] to-red-600 hover:from-[#040e40]/90 hover:to-red-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
                   >
                     {isLoading ? (
                       <>
@@ -189,17 +220,18 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
                     ) : (
                       <>
                         <Mail className="w-4 h-4" />
-                        Subscribe Now
+                        Subscribe to Newsletter
                       </>
                     )}
                   </button>
 
-                  <p className="text-xs text-gray-500 text-center">
-                    We respect your privacy. Unsubscribe anytime.
+                  <p className="text-xs text-gray-500 text-center leading-relaxed">
+                    We respect your privacy and never spam. You can unsubscribe anytime with one click.
                   </p>
                 </form>
               </>
             )}
+            </div>
           </div>
         </div>
       </div>
