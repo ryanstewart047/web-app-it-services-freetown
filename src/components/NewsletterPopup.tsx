@@ -114,7 +114,7 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
           <div className="grid grid-cols-1 md:grid-cols-2 min-h-[500px] md:min-h-auto">
             
             {/* Left Side - Image */}
-            <div className="hidden md:flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-6 relative overflow-hidden">
+            <div className="flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-4 md:p-6 relative overflow-hidden min-h-[300px] md:min-h-auto">
               {/* Decorative background elements */}
               <div className="absolute top-0 right-0 w-40 h-40 bg-blue-200/30 rounded-full blur-3xl"></div>
               <div className="absolute bottom-0 left-0 w-40 h-40 bg-red-200/30 rounded-full blur-3xl"></div>
