@@ -6,6 +6,7 @@ import {
   recordFormView
 } from '@/lib/server/analytics-store';
 import { captureEmailLead } from '@/lib/email-leads';
+import { checkRateLimit, getClientIp, createRateLimitKey } from '@/lib/server/rate-limiter';
 
 export async function GET() {
   try {
@@ -62,6 +63,27 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting: Max 10 form submissions per hour per IP
+    const clientIp = getClientIp(request.headers);
+    const rateLimitKey = createRateLimitKey(clientIp, '/api/analytics/forms');
+    const rateLimit = checkRateLimit(rateLimitKey, {
+      maxRequests: 10,
+      windowMs: 60 * 60 * 1000 // 1 hour
+    });
+
+    if (rateLimit.isLimited) {
+      console.warn(`[Forms API] Rate limit exceeded for IP: ${clientIp}`);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Too many submissions',
+          message: 'Please wait before submitting another form. You can submit again in approximately ' +
+            Math.ceil((rateLimit.resetTime - Date.now()) / 60000) + ' minutes.'
+        },
+        { status: 429 }
+      );
+    }
+
     const data = await request.json();
 
     // Handle direct form submission data (compatibility mode)

@@ -1,7 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import dynamic from 'next/dynamic'
 import { X, Mail, CheckCircle } from 'lucide-react'
+
+const ReCAPTCHA = dynamic(() => import('react-google-recaptcha'), { ssr: false })
 
 interface NewsletterPopupProps {
   delay?: number // Delay in milliseconds before showing popup
@@ -13,6 +16,7 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
   const [isLoading, setIsLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+  const recaptchaRef = useRef<any>(null)
 
   useEffect(() => {
     // Show popup after delay on each page load
@@ -35,6 +39,25 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
     setError('')
 
     try {
+      // Get CAPTCHA token
+      let captchaToken = null
+      if (recaptchaRef.current) {
+        captchaToken = await recaptchaRef.current.executeAsync()
+      }
+
+      // Verify CAPTCHA
+      if (captchaToken) {
+        const captchaResponse = await fetch('/api/verify-recaptcha', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: captchaToken })
+        })
+
+        if (!captchaResponse.ok) {
+          throw new Error('CAPTCHA verification failed')
+        }
+      }
+
       // Submit to form analytics API with newsletter type
       const response = await fetch('/api/analytics/forms', {
         method: 'POST',
@@ -51,7 +74,8 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
       })
 
       if (!response.ok) {
-        throw new Error('Failed to subscribe')
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to subscribe')
       }
 
       const data = await response.json()
@@ -72,6 +96,9 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
       setError(err instanceof Error ? err.message : 'An error occurred. Please try again.')
     } finally {
       setIsLoading(false)
+      if (recaptchaRef.current) {
+        recaptchaRef.current.reset()
+      }
     }
   }
 
@@ -191,6 +218,17 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
                       <p className="text-red-500 text-xs mt-2">{error}</p>
                     )}
                   </div>
+
+                  {/* Google reCAPTCHA */}
+                  {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && (
+                    <div className="flex justify-center my-3">
+                      <ReCAPTCHA
+                        ref={recaptchaRef}
+                        sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+                        size="compact"
+                      />
+                    </div>
+                  )}
 
                   <button
                     type="submit"
