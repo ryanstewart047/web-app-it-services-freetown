@@ -4,7 +4,7 @@ interface EmailLeadInput {
   email: string
   name?: string
   phone?: string
-  source: 'appointment' | 'order' | 'troubleshoot' | 'donation' | 'forum' | 'receipt'
+  source: 'appointment' | 'order' | 'troubleshoot' | 'donation' | 'forum' | 'receipt' | 'newsletter'
 }
 
 /**

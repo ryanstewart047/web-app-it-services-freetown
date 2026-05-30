@@ -5,6 +5,7 @@ import {
   recordFormSubmission,
   recordFormView
 } from '@/lib/server/analytics-store';
+import { captureEmailLead } from '@/lib/email-leads';
 
 export async function GET() {
   try {
@@ -189,6 +190,14 @@ export async function POST(request: NextRequest) {
         trackingId: data.trackingId
       });
 
+      // Capture newsletter email lead if form type is newsletter
+      if (formType === 'newsletter' && fields.email) {
+        await captureEmailLead({
+          email: fields.email,
+          source: 'newsletter'
+        });
+      }
+
       return NextResponse.json({
         success: true,
         submissionId: submission.id,
@@ -223,6 +232,14 @@ export async function POST(request: NextRequest) {
         page: data.page,
         trackingId
       });
+
+      // Capture newsletter email lead if form type is newsletter
+      if (formType === 'newsletter' && fields.email) {
+        await captureEmailLead({
+          email: fields.email,
+          source: 'newsletter'
+        });
+      }
 
       return NextResponse.json({
         success: true,

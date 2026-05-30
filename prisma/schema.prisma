@@ -369,7 +369,7 @@ model EmailLead {
   email     String
   name      String?
   phone     String?
-  source    String   // "appointment" | "order" | "troubleshoot" | "donation" | "forum" | "receipt"
+  source    String   // "appointment" | "order" | "troubleshoot" | "donation" | "forum" | "receipt" | "newsletter"
   createdAt DateTime @default(now())
 
   @@index([email])
