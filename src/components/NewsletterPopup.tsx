@@ -1,10 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import dynamic from 'next/dynamic'
+import { useState, useEffect } from 'react'
 import { X, Mail, CheckCircle } from 'lucide-react'
-
-const ReCAPTCHA = dynamic(() => import('react-google-recaptcha'), { ssr: false })
 
 interface NewsletterPopupProps {
   delay?: number // Delay in milliseconds before showing popup
@@ -16,7 +13,6 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
   const [isLoading, setIsLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
-  const recaptchaRef = useRef<any>(null)
 
   useEffect(() => {
     // Show popup after delay on each page load
@@ -39,25 +35,6 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
     setError('')
 
     try {
-      // Get CAPTCHA token
-      let captchaToken = null
-      if (recaptchaRef.current) {
-        captchaToken = await recaptchaRef.current.executeAsync()
-      }
-
-      // Verify CAPTCHA
-      if (captchaToken) {
-        const captchaResponse = await fetch('/api/verify-recaptcha', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token: captchaToken })
-        })
-
-        if (!captchaResponse.ok) {
-          throw new Error('CAPTCHA verification failed')
-        }
-      }
-
       // Submit to form analytics API with newsletter type
       const response = await fetch('/api/analytics/forms', {
         method: 'POST',
@@ -96,9 +73,6 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
       setError(err instanceof Error ? err.message : 'An error occurred. Please try again.')
     } finally {
       setIsLoading(false)
-      if (recaptchaRef.current) {
-        recaptchaRef.current.reset()
-      }
     }
   }
 
@@ -123,13 +97,13 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
         <div className="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto md:overflow-visible animate-in fade-in slide-in-from-bottom-4 duration-300">
           
-          {/* Close Button */}
+          {/* Close Button - Fixed to stay visible during scroll */}
           <button
             onClick={handleClose}
-            className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1 hover:bg-gray-100 rounded-lg transition-colors z-10"
+            className="sticky top-0 right-0 float-right p-2 sm:p-3 hover:bg-gray-100 rounded-bl-lg transition-colors z-20 bg-white/95 backdrop-blur-sm"
             aria-label="Close"
           >
-            <X className="w-5 h-5 text-gray-600" />
+            <X className="w-6 h-6 text-gray-600 hover:text-gray-900" />
           </button>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
@@ -209,17 +183,6 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
                       <p className="text-red-500 text-xs mt-2">{error}</p>
                     )}
                   </div>
-
-                  {/* Google reCAPTCHA */}
-                  {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && (
-                    <div className="flex justify-center my-3">
-                      <ReCAPTCHA
-                        ref={recaptchaRef}
-                        sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
-                        size="compact"
-                      />
-                    </div>
-                  )}
 
                   <button
                     type="submit"
