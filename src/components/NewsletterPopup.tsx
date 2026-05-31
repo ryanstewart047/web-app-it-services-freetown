@@ -121,7 +121,16 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
       
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto md:overflow-visible animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto md:overflow-visible animate-in fade-in slide-in-from-bottom-4 duration-300">
+          
+          {/* Close Button */}
+          <button
+            onClick={handleClose}
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1 hover:bg-gray-100 rounded-lg transition-colors z-10"
+            aria-label="Close"
+          >
+            <X className="w-5 h-5 text-gray-600" />
+          </button>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
             
@@ -144,24 +153,6 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
             
             {/* Right Side - Form */}
             <div className="p-4 sm:p-6 md:p-8 flex flex-col justify-center">
-              
-              {/* Close Button - Mobile */}
-              <button
-                onClick={handleClose}
-                className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-lg transition-colors md:hidden"
-                aria-label="Close"
-              >
-                <X className="w-5 h-5 text-gray-600" />
-              </button>
-              
-              {/* Close Button - Desktop */}
-              <button
-                onClick={handleClose}
-                className="absolute top-2 right-2 md:top-6 md:right-6 p-1 hover:bg-gray-100 rounded-lg transition-colors"
-                aria-label="Close"
-              >
-                <X className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
-              </button>
               
               <div className="mb-3 md:mb-6">
                 <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3">

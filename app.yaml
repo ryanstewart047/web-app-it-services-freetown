@@ -1,0 +1,56 @@
+name: its-freetown
+services:
+- name: api
+  github:
+    branch: main
+    repo: ryanstewart047/web-app-it-services-freetown
+  build_command: npm run build
+  dockerfile_path: Dockerfile
+  http_port: 3000
+  source_dir: /
+  envs:
+  - key: NODE_ENV
+    value: production
+    scope: UNSET
+  - key: NEXT_PUBLIC_SITE_URL
+    value: ""
+    scope: UNSET
+  - key: ADMIN_PASSWORD_HASH
+    value: ${admin_password_hash}
+    scope: RUN_TIME
+  - key: DATABASE_URL
+    value: ${db.connection_string}
+    scope: RUN_TIME
+  - key: NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+    value: ${recaptcha_site_key}
+    scope: RUN_TIME
+  - key: RECAPTCHA_SECRET_KEY
+    value: ${recaptcha_secret}
+    scope: RUN_TIME
+  - key: FORM_SIGNING_KEY
+    value: ${form_signing_key}
+    scope: RUN_TIME
+  health_check:
+    http_path: /api/admin/auth
+  http_port_is_public: true
+  internal_ports:
+  - 3000
+  routes:
+  - path: /
+    preserve_path_prefix: true
+  run_command: npm start
+
+databases:
+- engine: PG
+  name: db
+  production: true
+  version: "15"
+static_sites:
+- github:
+    branch: main
+    repo: ryanstewart047/web-app-it-services-freetown
+  name: static
+  source_dir: public
+  routes:
+  - path: /public
+    preserve_path_prefix: true
