@@ -6,6 +6,7 @@ import {
   recordFormView
 } from '@/lib/server/analytics-store';
 import { captureEmailLead } from '@/lib/email-leads';
+import { sendEmail, emailTemplates } from '@/lib/email';
 import { checkRateLimit, getClientIp, createRateLimitKey } from '@/lib/server/rate-limiter';
 
 export async function GET() {
@@ -221,16 +222,16 @@ export async function POST(request: NextRequest) {
         
         // Send confirmation email to subscriber
         try {
-          const { sendEmail, emailTemplates } = await import('@/lib/email');
+          const emailTemplate = emailTemplates.newsletterConfirmation({ email: fields.email });
           await sendEmail({
             to: fields.email,
-            subject: emailTemplates.newsletterConfirmation({ email: fields.email }).subject,
-            html: emailTemplates.newsletterConfirmation({ email: fields.email }).html,
-            text: emailTemplates.newsletterConfirmation({ email: fields.email }).text,
+            subject: emailTemplate.subject,
+            html: emailTemplate.html,
+            text: emailTemplate.text,
           });
-          console.log(`Newsletter confirmation email sent to: ${fields.email}`);
+          console.log(`✅ Newsletter confirmation email sent to: ${fields.email}`);
         } catch (error) {
-          console.error('Failed to send newsletter confirmation email:', error);
+          console.error('❌ Failed to send newsletter confirmation email:', error);
           // Don't fail the submission if email fails
         }
       }
