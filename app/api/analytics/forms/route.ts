@@ -218,6 +218,21 @@ export async function POST(request: NextRequest) {
           email: fields.email,
           source: 'newsletter'
         });
+        
+        // Send confirmation email to subscriber
+        try {
+          const { sendEmail, emailTemplates } = await import('@/lib/email');
+          await sendEmail({
+            to: fields.email,
+            subject: emailTemplates.newsletterConfirmation({ email: fields.email }).subject,
+            html: emailTemplates.newsletterConfirmation({ email: fields.email }).html,
+            text: emailTemplates.newsletterConfirmation({ email: fields.email }).text,
+          });
+          console.log(`Newsletter confirmation email sent to: ${fields.email}`);
+        } catch (error) {
+          console.error('Failed to send newsletter confirmation email:', error);
+          // Don't fail the submission if email fails
+        }
       }
 
       return NextResponse.json({
