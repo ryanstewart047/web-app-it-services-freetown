@@ -51,14 +51,23 @@ export default function BookAppointment() {
   const [showLeaveWarning, setShowLeaveWarning] = useState(false);
   const pendingNavigation = useRef<string | null>(null);
 
-  // Auto-verify reCAPTCHA on localhost for easier testing
+  // Auto-verify reCAPTCHA on localhost and preview/staging for easier testing
   useEffect(() => {
-    if (typeof window !== 'undefined' && 
-       (window.location.hostname === 'localhost' || 
-        window.location.hostname === '127.0.0.1' || 
-        window.location.hostname.includes('gitpod.io'))) {
-      console.log('Local environment detected, auto-verifying reCAPTCHA');
-      setCaptchaVerified(true);
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('gitpod.io');
+      const isPreview = hostname.includes('vercel.app') || hostname.includes('preview') || hostname.includes('staging');
+      
+      if (isLocalhost || isPreview) {
+        console.log('Test environment detected, auto-verifying reCAPTCHA');
+        setCaptchaVerified(true);
+      }
+      
+      // Also allow submission if reCAPTCHA sitekey is not configured
+      if (!process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY) {
+        console.log('reCAPTCHA not configured, allowing submission without verification');
+        setCaptchaVerified(true);
+      }
     }
   }, []);
 
