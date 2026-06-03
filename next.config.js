@@ -173,11 +173,11 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
               "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
               "img-src 'self' data: https: blob:",
-              "connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com https://www.google.com",
+              "connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com https://www.google.com https://formspree.io",
               "frame-src 'self' https://www.google.com https://www.facebook.com",
               "object-src 'none'",
               "base-uri 'self'",
-              "form-action 'self'",
+              "form-action 'self' https://formspree.io",
               "frame-ancestors 'none'",
               "upgrade-insecure-requests"
             ].join('; '),
