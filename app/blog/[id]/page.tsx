@@ -56,19 +56,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       }
     }
 
-    const shareImage = getPrimaryImage(post)
     const contentPreview = getExcerpt(post.content, 200)
     const canonicalUrl = `https://www.itservicesfreetown.com/blog/${params.id}`
 
     const ogImageUrl = new URL('/api/og-blog', 'https://www.itservicesfreetown.com')
-    ogImageUrl.searchParams.set('title', post.title)
-    ogImageUrl.searchParams.set('author', post.author)
-    ogImageUrl.searchParams.set('date', formatLongDate(post.date))
-    ogImageUrl.searchParams.set('excerpt', contentPreview)
-    ogImageUrl.searchParams.set('likes', post.likes.toString())
-    if (shareImage) {
-      ogImageUrl.searchParams.set('image', shareImage)
-    }
+    ogImageUrl.searchParams.set('id', params.id)
 
     return {
       title: post.title,

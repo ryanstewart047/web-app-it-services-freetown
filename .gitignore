@@ -67,3 +67,4 @@ static-build/
 *.deb
 *.AppImage
 *.zip
+/temp-next-dev.log

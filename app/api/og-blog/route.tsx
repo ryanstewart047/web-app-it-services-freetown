@@ -1,23 +1,98 @@
 import { ImageResponse } from 'next/og'
 import { NextRequest } from 'next/server'
+import { fetchBlogPosts } from '@/lib/github-blog-storage'
+import { formatLongDate, getExcerpt, getPrimaryImage } from '@/app/blog/blog-utils'
 
 export const runtime = 'edge'
 
+async function getImageAsBase64(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+      },
+    })
+    if (!response.ok) {
+      console.error(`Failed to fetch image: ${response.status} ${response.statusText}`)
+      return null
+    }
+    const arrayBuffer = await response.arrayBuffer()
+    const contentType = response.headers.get('content-type') || 'image/png'
+    
+    // Convert ArrayBuffer to Base64 in Edge runtime
+    let binary = ''
+    const bytes = new Uint8Array(arrayBuffer)
+    const len = bytes.byteLength
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i])
+    }
+    const base64 = btoa(binary)
+    return `data:${contentType};base64,${base64}`
+  } catch (error) {
+    console.error('Error fetching image for Base64 conversion:', error)
+    return null
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
+    const { searchParams, origin } = new URL(request.url)
     
-    const title = searchParams.get('title') || 'Blog Post'
-    const author = searchParams.get('author') || 'IT Services Freetown'
-    const date = searchParams.get('date') || new Date().toLocaleDateString()
+    const id = searchParams.get('id')
+    let title = searchParams.get('title') || 'Blog Post'
+    let author = searchParams.get('author') || 'IT Services Freetown'
+    let date = searchParams.get('date') || new Date().toLocaleDateString()
     let image = searchParams.get('image') || ''
-    const excerpt = searchParams.get('excerpt') || ''
-    const likes = searchParams.get('likes') || '0'
+    let excerpt = searchParams.get('excerpt') || ''
+    let likes = searchParams.get('likes') || '0'
+
+    if (id) {
+      try {
+        const posts = await fetchBlogPosts()
+        const post = posts.find((p) => p.id === id)
+        if (post) {
+          title = post.title
+          author = post.author
+          date = formatLongDate(post.date)
+          excerpt = getExcerpt(post.content, 200)
+          likes = post.likes.toString()
+          image = getPrimaryImage(post) || ''
+        }
+      } catch (err) {
+        console.error('Error fetching blog post in OG API:', err)
+      }
+    }
+
+    // Determine the base URL dynamically from the request origin
+    const baseUrl = origin || process.env.NEXT_PUBLIC_BASE_URL || 'https://www.itservicesfreetown.com'
+    const fallbackImage = `${baseUrl}/assets/images/slide01.jpg`
+
+    // Fall back to the default site banner if no image is defined for the post
+    if (!image) {
+      image = fallbackImage
+    }
 
     // Ensure image URL is absolute for the OG engine
     if (image && image.startsWith('/')) {
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.itservicesfreetown.com'
       image = `${baseUrl}${image}`
+    }
+
+    // Convert image to Base64 to bypass hotlink blocks and catch fetch errors gracefully
+    if (image && !image.startsWith('data:')) {
+      const base64Image = await getImageAsBase64(image)
+      if (base64Image) {
+        image = base64Image
+      } else if (image !== fallbackImage) {
+        // If fetching the custom image failed, fall back to our default site banner
+        const base64Fallback = await getImageAsBase64(fallbackImage)
+        if (base64Fallback) {
+          image = base64Fallback
+        } else {
+          image = ''
+        }
+      } else {
+        image = ''
+      }
     }
 
     // Truncate text to fit in preview

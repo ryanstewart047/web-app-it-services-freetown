@@ -34,7 +34,7 @@ import {
   fetchBlogPosts,
   fetchPostComments,
 } from '@/lib/github-blog-storage'
-import styles from './blog.module.css'
+import styles from '../blog.module.css'
 import {
   BlogFilter,
   BlogPost,
@@ -47,7 +47,7 @@ import {
   getReadingTime,
   sortPosts,
   stripHtml,
-} from './blog-utils'
+} from '../blog-utils'
 
 const FILTER_OPTIONS: { key: BlogFilter; label: string }[] = [
   { key: 'all', label: 'Editor picks' },

@@ -78,7 +78,13 @@ export function formatCommentDate(date: Date) {
 }
 
 export function getPrimaryImage(post: Partial<BlogPost>) {
-  if (post.image) return post.image
+  if (post.image) {
+    if (post.image.startsWith('/')) {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.itservicesfreetown.com'
+      return `${baseUrl}${post.image}`
+    }
+    return post.image
+  }
   
   const mediaImage = post.media?.find((item) => item.type === 'image')?.url
   if (mediaImage) {
