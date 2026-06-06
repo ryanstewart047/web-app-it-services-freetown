@@ -38,11 +38,17 @@ export function middleware(request: NextRequest) {
   }
 
   const lowValueExactPaths = [
+    '/admin',
+    '/ads-admin',
+    '/banner-admin',
+    '/checkout',
+    '/cart',
     '/loading-demo',
     '/loading-status',
     '/network-test',
     '/offer-test',
     '/test-offer',
+    '/test-ads',
     '/offer-debug',
     '/chat-demo',
     '/sound-demo',
@@ -50,23 +56,38 @@ export function middleware(request: NextRequest) {
     '/favicon-generator',
     '/favicon-png-generator',
     '/blog/admin',
+    '/forum/admin',
+    '/forum/settings',
+    '/forum/verify',
+    '/madinaface3bridgeproject/admin',
     '/offer-admin',
     '/admin-panel',
+    '/receipt',
+    '/unsubscribe',
+    '/articles-viewer',
+    '/connect-agent',
+    '/offline',
   ];
 
   const lowValuePrefixPaths = [
     '/admin/',
     '/api/',
+    '/forum/admin/',
+    '/forum/auth/',
+    '/order-confirmation/',
     '/pwa-test',
     '/loading-',
+    '/s/',
     '/test-',
     '/debug',
   ];
 
+  const lowValueSuffixPaths = ['-test'];
+
   const isLowValuePath =
     lowValueExactPaths.includes(pathname) ||
     lowValuePrefixPaths.some((prefix) => pathname.startsWith(prefix)) ||
-    pathname.includes('-test');
+    lowValueSuffixPaths.some((suffix) => pathname.endsWith(suffix));
 
   const response = NextResponse.next();
 

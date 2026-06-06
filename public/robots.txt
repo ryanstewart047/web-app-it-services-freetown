@@ -1,28 +1,85 @@
 User-agent: *
 Allow: /
-
-# Specifically allow AdSense crawler
-User-agent: Mediapartners-Google
-Allow: /
-
-# Block admin and API routes
-Disallow: /admin/
-Disallow: /blog/admin/
-Disallow: /offer-admin/
+Disallow: /admin
 Disallow: /api/
-
-# Block test/debug pages
+Disallow: /checkout
+Disallow: /cart
+Disallow: /order-confirmation/
+Disallow: /_next/
+Disallow: /admin-panel
+Disallow: /admin-panel.html
+Disallow: /ads-admin
+Disallow: /banner-admin
+Disallow: /blog/admin
+Disallow: /forum/admin
+Disallow: /forum/auth/
+Disallow: /forum/settings
+Disallow: /forum/verify
+Disallow: /madinaface3bridgeproject/admin
+Disallow: /offer-admin
+Disallow: /receipt
+Disallow: /unsubscribe
+Disallow: /offline
+Disallow: /s/
+Disallow: /loading-demo
+Disallow: /loading-status
+Disallow: /network-test
+Disallow: /offer-test
+Disallow: /test-offer
+Disallow: /test-ads
+Disallow: /offer-debug
+Disallow: /chat-demo
+Disallow: /sound-demo
+Disallow: /animation-test
+Disallow: /favicon-generator
+Disallow: /favicon-png-generator
+Disallow: /pwa-test
+Disallow: /articles-viewer
+Disallow: /connect-agent
 Disallow: /test-
-Disallow: /debug
-Disallow: /-test
+Disallow: /*-test$
+Disallow: /*debug*
 
-# Allow important pages explicitly
-Allow: /blog
-Allow: /marketplace
-Allow: /book-appointment
-Allow: /troubleshoot
-Allow: /about
-Allow: /contact
+User-agent: Googlebot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /checkout
+Disallow: /cart
+Disallow: /order-confirmation/
+Disallow: /_next/
+Disallow: /admin-panel
+Disallow: /admin-panel.html
+Disallow: /ads-admin
+Disallow: /banner-admin
+Disallow: /blog/admin
+Disallow: /forum/admin
+Disallow: /forum/auth/
+Disallow: /forum/settings
+Disallow: /forum/verify
+Disallow: /madinaface3bridgeproject/admin
+Disallow: /offer-admin
+Disallow: /receipt
+Disallow: /unsubscribe
+Disallow: /offline
+Disallow: /s/
+Disallow: /loading-demo
+Disallow: /loading-status
+Disallow: /network-test
+Disallow: /offer-test
+Disallow: /test-offer
+Disallow: /test-ads
+Disallow: /offer-debug
+Disallow: /chat-demo
+Disallow: /sound-demo
+Disallow: /animation-test
+Disallow: /favicon-generator
+Disallow: /favicon-png-generator
+Disallow: /pwa-test
+Disallow: /articles-viewer
+Disallow: /connect-agent
+Disallow: /test-
+Disallow: /*-test$
+Disallow: /*debug*
 
-# Sitemap location
-Sitemap: https://itservicesfreetown.com/sitemap.xml
+Sitemap: https://www.itservicesfreetown.com/sitemap.xml
