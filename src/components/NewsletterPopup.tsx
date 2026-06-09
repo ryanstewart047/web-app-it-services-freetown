@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { X, Mail, CheckCircle } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 interface NewsletterPopupProps {
   delay?: number // Delay in milliseconds before showing popup
@@ -62,6 +63,7 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
       if (data.success) {
         setSuccess(true)
         setEmail('')
+        toast.success('Subscription succeeded! Welcome to our newsletter.')
         
         // Close popup after 3 seconds
         setTimeout(() => {
@@ -72,7 +74,9 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
       }
     } catch (err) {
       console.error('Newsletter subscription error:', err)
-      setError(err instanceof Error ? err.message : 'An error occurred. Please try again.')
+      const errorMsg = err instanceof Error ? err.message : 'An error occurred. Please try again.'
+      setError(errorMsg)
+      toast.error(errorMsg)
     } finally {
       setIsLoading(false)
     }
