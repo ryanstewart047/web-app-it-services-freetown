@@ -35,28 +35,30 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
     setError('')
 
     try {
-      // Submit to form analytics API with newsletter type
-      const response = await fetch('/api/analytics/forms', {
+      const response = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          type: 'submission',
-          formType: 'newsletter',
-          fields: {
-            email: email
-          }
-        })
+        body: JSON.stringify({ email })
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to subscribe')
+      const data = await response.json()
+
+      if (response.status === 409) {
+        // Already subscribed — treat as success so the popup closes happily
+        setSuccess(true)
+        setEmail('')
+        setTimeout(() => {
+          setIsVisible(false)
+        }, 3000)
+        return
       }
 
-      const data = await response.json()
-      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to subscribe')
+      }
+
       if (data.success) {
         setSuccess(true)
         setEmail('')
@@ -66,7 +68,7 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
           setIsVisible(false)
         }, 3000)
       } else {
-        throw new Error(data.message || 'Failed to subscribe')
+        throw new Error(data.error || 'Failed to subscribe')
       }
     } catch (err) {
       console.error('Newsletter subscription error:', err)
@@ -75,6 +77,7 @@ export default function NewsletterPopup({ delay = 8000 }: NewsletterPopupProps) 
       setIsLoading(false)
     }
   }
+
 
   const handleClose = () => {
     setIsVisible(false)
