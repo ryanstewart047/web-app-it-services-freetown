@@ -118,19 +118,22 @@ export default function EmailLeadsPage() {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Remove this email lead?')) return
-    setDeleting(id)
+  const handleDelete = async (lead: EmailLead) => {
+    if (!confirm(`Remove ALL email leads for ${lead.email}? This deletes every entry across all sources.`)) return
+    setDeleting(lead.id)
     try {
-      await fetch(`/api/admin/email-leads?id=${id}`, { method: 'DELETE' })
-      setLeads(prev => prev.filter(l => l.id !== id))
-      setTotal(prev => prev - 1)
+      const res = await fetch(`/api/admin/email-leads?email=${encodeURIComponent(lead.email)}`, { method: 'DELETE' })
+      if (res.ok) {
+        setLeads(prev => prev.filter(l => l.email !== lead.email))
+        // Refresh stats in background
+        fetchLeads(activeSource, search)
+      }
     } finally {
       setDeleting(null)
     }
   }
 
-  const sources = ['all', 'appointment', 'order', 'troubleshoot', 'donation', 'forum', 'receipt']
+  const sources = ['all', 'appointment', 'order', 'troubleshoot', 'donation', 'forum', 'receipt', 'newsletter']
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
@@ -310,12 +313,13 @@ export default function EmailLeadsPage() {
                       </td>
                       <td className="px-5 py-3.5 text-right">
                         <button
-                          onClick={() => handleDelete(lead.id)}
+                          onClick={() => handleDelete(lead)}
                           disabled={deleting === lead.id}
+                          title="Deletes ALL entries for this email address"
                           className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 transition hover:bg-red-100 disabled:opacity-40"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
-                          {deleting === lead.id ? '…' : 'Remove'}
+                          {deleting === lead.id ? '…' : 'Remove All'}
                         </button>
                       </td>
                     </tr>

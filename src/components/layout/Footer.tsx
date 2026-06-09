@@ -11,6 +11,40 @@ export default function Footer() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
+  // Newsletter form state
+  const [nlEmail, setNlEmail] = useState('')
+  const [nlStatus, setNlStatus] = useState<'idle' | 'loading' | 'success' | 'duplicate' | 'error'>('idle')
+  const [nlError, setNlError] = useState('')
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!nlEmail.trim()) return
+    setNlStatus('loading')
+    setNlError('')
+    try {
+      const res = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: nlEmail.trim() }),
+      })
+      if (res.status === 409) {
+        const data = await res.json()
+        setNlStatus('duplicate')
+        setNlError(data.error || 'This email is already subscribed to our newsletter.')
+      } else if (res.ok) {
+        setNlStatus('success')
+        setNlEmail('')
+      } else {
+        const data = await res.json()
+        setNlStatus('error')
+        setNlError(data.error || 'Something went wrong. Please try again.')
+      }
+    } catch {
+      setNlStatus('error')
+      setNlError('Network error. Please try again.')
+    }
+  }
+
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -442,7 +476,62 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Newsletter Subscribe */}
+        <div className="border-t border-red-900/30 mt-8 pt-8">
+          <div className="max-w-2xl mx-auto text-center">
+            <h3 className="text-lg font-bold text-white mb-1">
+              <i className="fas fa-envelope-open-text text-red-400 mr-2" aria-hidden="true" />
+              Stay in the Loop
+            </h3>
+            <p className="text-gray-400 text-sm mb-5">
+              Get repair tips, device guides, and exclusive offers delivered to your inbox.
+            </p>
+
+            {nlStatus === 'success' ? (
+              <div className="inline-flex items-center gap-2 rounded-xl bg-green-500/10 border border-green-500/30 px-5 py-3 text-sm font-semibold text-green-400">
+                <i className="fas fa-check-circle" aria-hidden="true" />
+                You&apos;re subscribed! Check your inbox for updates.
+              </div>
+            ) : (
+              <form
+                onSubmit={handleNewsletterSubmit}
+                className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+                data-no-analytics="true"
+              >
+                <input
+                  type="email"
+                  value={nlEmail}
+                  onChange={(e) => setNlEmail(e.target.value)}
+                  placeholder="Enter your email address"
+                  required
+                  aria-label="Email address for newsletter"
+                  className="flex-1 rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+                <button
+                  type="submit"
+                  disabled={nlStatus === 'loading'}
+                  className="rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 disabled:opacity-60 px-5 py-2.5 text-sm font-bold text-white transition-all hover:scale-105 disabled:scale-100 whitespace-nowrap"
+                >
+                  {nlStatus === 'loading' ? (
+                    <><i className="fas fa-spinner fa-spin mr-1" aria-hidden="true" /> Subscribing…</>
+                  ) : (
+                    <><i className="fas fa-paper-plane mr-1" aria-hidden="true" /> Subscribe</>
+                  )}
+                </button>
+              </form>
+            )}
+
+            {(nlStatus === 'duplicate' || nlStatus === 'error') && (
+              <p className={`mt-3 text-xs font-medium ${nlStatus === 'duplicate' ? 'text-amber-400' : 'text-red-400'}`}>
+                <i className={`fas ${nlStatus === 'duplicate' ? 'fa-info-circle' : 'fa-exclamation-circle'} mr-1`} aria-hidden="true" />
+                {nlError}
+              </p>
+            )}
+          </div>
+        </div>
+
         {/* Legal Links */}
+
         <div className="border-t border-red-900/30 mt-8 pt-6">
           <div className="flex flex-wrap justify-center gap-4 mb-6 text-sm">
             <Link href="/privacy" className="text-gray-400 hover:text-red-400 transition-colors">
