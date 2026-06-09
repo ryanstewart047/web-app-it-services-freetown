@@ -48,6 +48,11 @@ next-env.d.ts
 
 # IDE
 .vscode/settings.json
+
+# Docker (local development only)
+Dockerfile
+docker-compose.yml
+.dockerignore
 .idea/
 
 # OS generated files

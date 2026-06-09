@@ -34,6 +34,8 @@ Disallow: /animation-test
 Disallow: /favicon-generator
 Disallow: /favicon-png-generator
 Disallow: /pwa-test
+Disallow: /articles-viewer
+Disallow: /connect-agent
 Disallow: /test-
 Disallow: /*-test$
 Disallow: /*debug*
@@ -74,6 +76,8 @@ Disallow: /animation-test
 Disallow: /favicon-generator
 Disallow: /favicon-png-generator
 Disallow: /pwa-test
+Disallow: /articles-viewer
+Disallow: /connect-agent
 Disallow: /test-
 Disallow: /*-test$
 Disallow: /*debug*

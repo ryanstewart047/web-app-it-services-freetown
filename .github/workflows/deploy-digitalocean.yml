@@ -1,0 +1,58 @@
+name: Deploy to DigitalOcean App Platform
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+env:
+  APP_NAME: its-freetown
+  REGISTRY: registry.digitalocean.com
+
+jobs:
+  deploy:
+    name: Deploy to DigitalOcean
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Login to DigitalOcean Container Registry
+        run: |
+          doctl registry login --expiry-seconds 3600
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t ${{ env.REGISTRY }}/${{ secrets.DIGITALOCEAN_REGISTRY }}/${{ env.APP_NAME }}:${{ github.sha }} \
+            -t ${{ env.REGISTRY }}/${{ secrets.DIGITALOCEAN_REGISTRY }}/${{ env.APP_NAME }}:latest \
+            .
+
+      - name: Push Docker image to DigitalOcean Registry
+        run: |
+          docker push ${{ env.REGISTRY }}/${{ secrets.DIGITALOCEAN_REGISTRY }}/${{ env.APP_NAME }}:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/${{ secrets.DIGITALOCEAN_REGISTRY }}/${{ env.APP_NAME }}:latest
+
+      - name: Deploy via App Platform
+        run: |
+          doctl apps create-deployment ${{ secrets.DIGITALOCEAN_APP_ID }} \
+            --source-digest ${{ github.sha }} || \
+          doctl apps update ${{ secrets.DIGITALOCEAN_APP_ID }} \
+            --spec spec.yaml
+
+      - name: Wait for deployment
+        run: |
+          doctl apps wait ${{ secrets.DIGITALOCEAN_APP_ID }}
+
+      - name: Get deployment info
+        run: |
+          doctl apps describe ${{ secrets.DIGITALOCEAN_APP_ID }} --format ID,DefaultIngress

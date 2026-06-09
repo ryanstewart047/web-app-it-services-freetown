@@ -421,6 +421,88 @@ IT Services Freetown - Auto-generated notification`
     `,
     text: `Order Confirmation - ${data.orderNumber}\n\nHi ${data.customerName},\n\nThank you for your order! Your total is Le ${data.total.toLocaleString()}.\n\nItems:\n${data.items.map(item => `- ${item.name} x ${item.quantity}: Le ${(item.price * item.quantity).toLocaleString()}`).join('\n')}\n\nPayment Method: ${data.paymentMethod}\n\nContact us: +232 33 399 391`
   }),
+  newsletterConfirmation: (data: {
+    email: string
+  }) => ({
+    subject: '🎉 Welcome to IT Services Freetown Newsletter!',
+    html: `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #040e40 0%, #dc2626 100%); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+        <div style="background: linear-gradient(135deg, #040e40 0%, #dc2626 100%); padding: 40px 20px; text-align: center; color: white;">
+          <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 30px;">
+            ✉️
+          </div>
+          <h1 style="margin: 0; font-size: 28px; font-weight: bold;">Welcome!</h1>
+          <p style="margin: 10px 0 0; font-size: 16px; opacity: 0.9;">You're now part of our community</p>
+        </div>
+        
+        <div style="padding: 40px 30px; background: white;">
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+            Thank you for subscribing to <strong>IT Services Freetown's Newsletter</strong>! 🎊
+          </p>
+          
+          <div style="background: linear-gradient(135deg, #f0f9ff 0%, #fef2f2 100%); border-left: 4px solid #dc2626; padding: 20px; border-radius: 8px; margin: 30px 0;">
+            <h3 style="color: #040e40; margin-top: 0;">What You'll Get:</h3>
+            <ul style="color: #374151; line-height: 1.8; padding-left: 20px;">
+              <li>✅ Weekly computer & mobile repair tips</li>
+              <li>✅ Exclusive service updates & special offers</li>
+              <li>✅ Tech troubleshooting guides</li>
+              <li>✅ First access to new services</li>
+              <li>✅ Freetown-specific tech news</li>
+            </ul>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 25px 0;">
+            Our newsletter is curated for residents and businesses in Freetown who want to keep their devices running smoothly. Expect practical advice, special discounts, and valuable insights delivered straight to your inbox every week.
+          </p>
+          
+          <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 25px 0; text-align: center;">
+            <p style="color: #6b7280; margin: 0; font-size: 14px;">
+              <strong>Need immediate help?</strong><br>
+              <a href="tel:+23233399391" style="color: #dc2626; text-decoration: none; font-weight: bold;">Call us: +232 33 399 391</a>
+            </p>
+          </div>
+          
+          <p style="color: #374151; font-size: 14px; line-height: 1.6; margin-top: 25px;">
+            <strong>P.S.</strong> Check your email next Monday for your first exclusive tip from our expert technicians!
+          </p>
+        </div>
+        
+        <div style="background: #f3f4f6; padding: 25px; text-align: center; border-top: 1px solid #e5e7eb;">
+          <p style="color: #6b7280; font-size: 13px; margin: 10px 0;">
+            <strong>IT Services Freetown</strong><br>
+            #1 Regent Highway, Jui Junction, Freetown, Sierra Leone<br>
+            <a href="tel:+23233399391" style="color: #dc2626; text-decoration: none;">+232 33 399 391</a> | 
+            <a href="https://itservicesfreetown.com" style="color: #dc2626; text-decoration: none;">Visit Our Website</a>
+          </p>
+          <p style="color: #9ca3af; font-size: 12px; margin: 15px 0 0;">
+            You received this email because you subscribed to our newsletter.<br>
+            <a href="%unsubscribe_url%" style="color: #6b7280; text-decoration: none;">Unsubscribe from this list</a>
+          </p>
+        </div>
+      </div>
+    `,
+    text: `Welcome to IT Services Freetown Newsletter!
+
+Thank you for subscribing! You're now part of our community.
+
+WHAT YOU'LL GET:
+✓ Weekly computer & mobile repair tips
+✓ Exclusive service updates & special offers
+✓ Tech troubleshooting guides
+✓ First access to new services
+✓ Freetown-specific tech news
+
+Expect practical advice, special discounts, and valuable insights delivered to your inbox every week.
+
+NEED IMMEDIATE HELP?
+Call us: +232 33 399 391
+
+---
+IT Services Freetown
+#1 Regent Highway, Jui Junction, Freetown, Sierra Leone
++232 33 399 391`
+  }),
+
   adminOrderNotification: (data: {
     orderNumber: string;
     customerName: string;

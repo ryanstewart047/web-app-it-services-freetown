@@ -36,6 +36,8 @@ export default function robots(): MetadataRoute.Robots {
     '/favicon-generator',
     '/favicon-png-generator',
     '/pwa-test',
+    '/articles-viewer',
+    '/connect-agent',
     '/test-',
     '/*-test$',
     '/*debug*',

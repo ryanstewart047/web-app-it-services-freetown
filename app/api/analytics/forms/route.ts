@@ -5,6 +5,9 @@ import {
   recordFormSubmission,
   recordFormView
 } from '@/lib/server/analytics-store';
+import { captureEmailLead } from '@/lib/email-leads';
+import { sendEmail, emailTemplates } from '@/lib/email';
+import { checkRateLimit, getClientIp, createRateLimitKey } from '@/lib/server/rate-limiter';
 
 export async function GET() {
   try {
@@ -61,6 +64,27 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting: Max 10 form submissions per hour per IP
+    const clientIp = getClientIp(request.headers);
+    const rateLimitKey = createRateLimitKey(clientIp, '/api/analytics/forms');
+    const rateLimit = checkRateLimit(rateLimitKey, {
+      maxRequests: 10,
+      windowMs: 60 * 60 * 1000 // 1 hour
+    });
+
+    if (rateLimit.isLimited) {
+      console.warn(`[Forms API] Rate limit exceeded for IP: ${clientIp}`);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Too many submissions',
+          message: 'Please wait before submitting another form. You can submit again in approximately ' +
+            Math.ceil((rateLimit.resetTime - Date.now()) / 60000) + ' minutes.'
+        },
+        { status: 429 }
+      );
+    }
+
     const data = await request.json();
 
     // Handle direct form submission data (compatibility mode)
@@ -189,6 +213,29 @@ export async function POST(request: NextRequest) {
         trackingId: data.trackingId
       });
 
+      // Capture newsletter email lead if form type is newsletter
+      if (formType === 'newsletter' && fields.email) {
+        await captureEmailLead({
+          email: fields.email,
+          source: 'newsletter'
+        });
+        
+        // Send confirmation email to subscriber
+        try {
+          const emailTemplate = emailTemplates.newsletterConfirmation({ email: fields.email });
+          await sendEmail({
+            to: fields.email,
+            subject: emailTemplate.subject,
+            html: emailTemplate.html,
+            text: emailTemplate.text,
+          });
+          console.log(`✅ Newsletter confirmation email sent to: ${fields.email}`);
+        } catch (error) {
+          console.error('❌ Failed to send newsletter confirmation email:', error);
+          // Don't fail the submission if email fails
+        }
+      }
+
       return NextResponse.json({
         success: true,
         submissionId: submission.id,
@@ -223,6 +270,14 @@ export async function POST(request: NextRequest) {
         page: data.page,
         trackingId
       });
+
+      // Capture newsletter email lead if form type is newsletter
+      if (formType === 'newsletter' && fields.email) {
+        await captureEmailLead({
+          email: fields.email,
+          source: 'newsletter'
+        });
+      }
 
       return NextResponse.json({
         success: true,

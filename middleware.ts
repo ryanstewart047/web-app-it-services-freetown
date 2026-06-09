@@ -2,7 +2,18 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, protocol } = request.nextUrl;
+
+  // Enforce HTTPS in production only (skip for development, Docker, and localhost)
+  if (
+    process.env.NODE_ENV === 'production' && 
+    protocol === 'http:' && 
+    !process.env.DOCKER_ENV
+  ) {
+    const secureUrl = new URL(request.url);
+    secureUrl.protocol = 'https:';
+    return NextResponse.redirect(secureUrl, 308);
+  }
 
   // Remove trailing slashes (except for root)
   if (pathname !== '/' && pathname.endsWith('/')) {
@@ -53,6 +64,8 @@ export function middleware(request: NextRequest) {
     '/admin-panel',
     '/receipt',
     '/unsubscribe',
+    '/articles-viewer',
+    '/connect-agent',
     '/offline',
   ];
 

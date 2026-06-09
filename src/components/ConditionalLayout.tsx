@@ -10,6 +10,7 @@ import PWAInstallBanner from '@/components/PWAInstallBanner';
 import NetworkMonitor from '@/components/NetworkMonitor';
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration';
 import OfferPopup from '@/components/OfferPopup';
+import NewsletterPopup from '@/components/NewsletterPopup';
 import GlobalBanner from '@/components/GlobalBanner';
 import MobileBottomNav from '@/components/layout/MobileBottomNav';
 import SplashScreen from '@/components/SplashScreen';
@@ -59,6 +60,7 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
       </div>
       <CookiePopup />
       <OfferPopup delay={5000} />
+      <NewsletterPopup delay={8000} />
       <StaticChatFloat />
       <FloatingScrollToTop />
       <PWAInstallBanner />

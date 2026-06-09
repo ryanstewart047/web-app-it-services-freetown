@@ -162,6 +162,26 @@ const nextConfig = {
             key: 'Strict-Transport-Security',
             value: 'max-age=31536000; includeSubDomains',
           },
+          // Content Security Policy
+          // Allows scripts/styles from own domain and Google reCAPTCHA/Analytics
+          // Prevents inline scripts and external script injections
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+              "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
+              "img-src 'self' data: https: blob:",
+              "connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com https://www.google.com https://formspree.io https://api.github.com",
+              "frame-src 'self' https://www.google.com https://www.facebook.com",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self' https://formspree.io",
+              "frame-ancestors 'none'",
+              "upgrade-insecure-requests"
+            ].join('; '),
+          },
         ],
       },
     ];
