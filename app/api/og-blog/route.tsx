@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 import { NextRequest } from 'next/server'
 import { fetchBlogPosts } from '@/lib/github-blog-storage'
-import { formatLongDate, getExcerpt, getPrimaryImage } from '@/app/blog/blog-utils'
+import { formatLongDate, getExcerpt, getPrimaryImage } from '../../blog/blog-utils'
 
 export const runtime = 'edge'
 
