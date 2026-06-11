@@ -22,7 +22,7 @@ const MobileRepairPricing: React.FC = () => {
     {
       id: 'computer',
       name: 'PC/Laptop',
-      icon: 'https://images.pexels.com/photos/7974/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=400',
+      icon: 'https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?auto=compress&cs=tinysrgb&w=400',
       services: [
         { name: 'Inspection/Diagnosis', price: 'Le 50' },
         { name: 'Screen Replacement', price: 'Varies (+ parts)' },
@@ -38,7 +38,7 @@ const MobileRepairPricing: React.FC = () => {
     {
       id: 'networking',
       name: 'Networking',
-      icon: 'https://images.pexels.com/photos/2881229/pexels-photo-2881229.jpeg?auto=compress&cs=tinysrgb&w=400',
+      icon: 'https://images.pexels.com/photos/159304/network-cable-ethernet-computer-159304.jpeg?auto=compress&cs=tinysrgb&w=400',
       services: [
         { name: 'Network Setup & Configuration', price: 'Le 500+' },
         { name: 'Router Installation', price: 'Le 500+' },
@@ -50,7 +50,7 @@ const MobileRepairPricing: React.FC = () => {
     {
       id: 'website',
       name: 'Website Development',
-      icon: 'https://images.pexels.com/photos/326505/pexels-photo-326505.jpeg?auto=compress&cs=tinysrgb&w=400',
+      icon: 'https://images.pexels.com/photos/270360/pexels-photo-270360.jpeg?auto=compress&cs=tinysrgb&w=400',
       services: [
         { name: 'Landing Page', price: '$50+' },
         { name: 'Portfolio Website', price: '$50+' },
@@ -65,7 +65,7 @@ const MobileRepairPricing: React.FC = () => {
     {
       id: 'app',
       name: 'App Development',
-      icon: 'https://images.pexels.com/photos/177598/pexels-photo-177598.jpeg?auto=compress&cs=tinysrgb&w=400',
+      icon: 'https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?auto=compress&cs=tinysrgb&w=400',
       services: [
         { name: 'Mobile App Development', price: 'Custom Quote' },
         { name: 'Web App Development', price: 'Custom Quote' },
@@ -76,7 +76,7 @@ const MobileRepairPricing: React.FC = () => {
     {
       id: 'tecno',
       name: 'Tecno',
-      icon: 'https://images.pexels.com/photos/404280/pexels-photo-404280.jpeg?auto=compress&cs=tinysrgb&w=400',
+      icon: 'https://images.pexels.com/photos/1440727/pexels-photo-1440727.jpeg?auto=compress&cs=tinysrgb&w=400',
       services: [
         { name: 'Screen Replacement', price: 'Le 350 - Le 700' },
         { name: 'Charging Board Change', price: 'Le 75' },
@@ -88,7 +88,7 @@ const MobileRepairPricing: React.FC = () => {
     {
       id: 'samsung',
       name: 'Samsung',
-      icon: 'https://images.pexels.com/photos/47261/pexels-photo-47261.jpeg?auto=compress&cs=tinysrgb&w=400',
+      icon: '/images/brands/samsung.png',
       services: [
         { name: 'LCD Change', price: 'Le 500 - Le 1400+' },
         { name: 'Charging Board', price: 'Le 120 - Le 250+' },
@@ -100,7 +100,7 @@ const MobileRepairPricing: React.FC = () => {
     {
       id: 'itel',
       name: 'iTel',
-      icon: 'https://images.pexels.com/photos/1092644/pexels-photo-1092644.jpeg?auto=compress&cs=tinysrgb&w=400',
+      icon: 'https://images.pexels.com/photos/5244010/pexels-photo-5244010.jpeg?auto=compress&cs=tinysrgb&w=400',
       services: [
         { name: 'Screen Replacement', price: 'Le 350 - Le 700' },
         { name: 'Charging Board Change', price: 'Le 75' },
@@ -112,7 +112,7 @@ const MobileRepairPricing: React.FC = () => {
     {
       id: 'infinix',
       name: 'Infinix',
-      icon: 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&cs=tinysrgb&w=400',
+      icon: 'https://images.pexels.com/photos/3780681/pexels-photo-3780681.jpeg?auto=compress&cs=tinysrgb&w=400',
       services: [
         { name: 'Screen Replacement', price: 'Le 350 - Le 700' },
         { name: 'Charging Board Change', price: 'Le 75' },
@@ -124,7 +124,7 @@ const MobileRepairPricing: React.FC = () => {
     {
       id: 'iphone',
       name: 'iPhone',
-      icon: 'https://images.pexels.com/photos/788946/pexels-photo-788946.jpeg?auto=compress&cs=tinysrgb&w=400',
+      icon: '/images/brands/iphone.png',
       services: [
         { name: 'LCD Change', price: 'Le 1400 - Le 5000+' },
         { name: 'Battery Replacement', price: 'Le 250 - Le 800+' },
@@ -133,7 +133,7 @@ const MobileRepairPricing: React.FC = () => {
     {
       id: 'oppo',
       name: 'OPPO',
-      icon: 'https://images.pexels.com/photos/3850231/pexels-photo-3850231.jpeg?auto=compress&cs=tinysrgb&w=400',
+      icon: '/images/brands/oppo.png',
       services: [
         { name: 'Screen/LCD Replacement', price: 'Le 500 - Le 1200+' },
         { name: 'Battery Replacement', price: 'Le 200 - Le 400+' },
@@ -148,7 +148,7 @@ const MobileRepairPricing: React.FC = () => {
     {
       id: 'motorola',
       name: 'Motorola',
-      icon: 'https://images.pexels.com/photos/1092644/pexels-photo-1092644.jpeg?auto=compress&cs=tinysrgb&w=400',
+      icon: '/images/brands/motorola.png',
       services: [
         { name: 'Screen/LCD Replacement', price: 'Le 500 - Le 1000+' },
         { name: 'Battery Replacement', price: 'Le 200 - Le 350+' },
@@ -163,7 +163,7 @@ const MobileRepairPricing: React.FC = () => {
     {
       id: 'huawei',
       name: 'Huawei',
-      icon: 'https://images.pexels.com/photos/699122/pexels-photo-699122.jpeg?auto=compress&cs=tinysrgb&w=400',
+      icon: '/images/brands/huawei.png',
       services: [
         { name: 'Screen/LCD Replacement', price: 'Le 600 - Le 1500+' },
         { name: 'Battery Replacement', price: 'Le 250 - Le 500+' },
@@ -178,7 +178,7 @@ const MobileRepairPricing: React.FC = () => {
     {
       id: 'redmi',
       name: 'Redmi',
-      icon: 'https://images.pexels.com/photos/404280/pexels-photo-404280.jpeg?auto=compress&cs=tinysrgb&w=400',
+      icon: '/images/brands/redmi.png',
       services: [
         { name: 'Screen/LCD Replacement', price: 'Le 400 - Le 900+' },
         { name: 'Battery Replacement', price: 'Le 150 - Le 350+' },
@@ -193,7 +193,7 @@ const MobileRepairPricing: React.FC = () => {
     {
       id: 'xiaomi',
       name: 'Xiaomi',
-      icon: 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&cs=tinysrgb&w=400',
+      icon: 'https://images.pexels.com/photos/1092651/pexels-photo-1092651.jpeg?auto=compress&cs=tinysrgb&w=400',
       services: [
         { name: 'Screen/LCD Replacement', price: 'Le 500 - Le 1200+' },
         { name: 'Battery Replacement', price: 'Le 200 - Le 400+' },
