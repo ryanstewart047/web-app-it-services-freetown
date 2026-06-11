@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { sendEmail, emailTemplates } from '@/lib/email'
 
 // POST /api/newsletter/subscribe
 export async function POST(request: NextRequest) {
@@ -18,29 +19,54 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 })
     }
 
-    // Check for existing newsletter subscription
+    // Check for existing lead with this email across all sources
     const existing = await prisma.emailLead.findFirst({
       where: {
         email: normalizedEmail,
-        source: 'newsletter',
       },
     })
 
     if (existing) {
-      return NextResponse.json(
-        { error: 'This email is already subscribed to our newsletter.' },
-        { status: 409 } // 409 Conflict
-      )
+      if (existing.source === 'newsletter') {
+        return NextResponse.json(
+          { error: 'This email is already subscribed to our newsletter.' },
+          { status: 409 } // 409 Conflict
+        )
+      }
+
+      // If it exists but with another source, update it to newsletter
+      await prisma.emailLead.update({
+        where: { id: existing.id },
+        data: {
+          source: 'newsletter',
+          name: name?.trim() || existing.name,
+        },
+      })
+    } else {
+      // Create the new newsletter subscription
+      await prisma.emailLead.create({
+        data: {
+          email: normalizedEmail,
+          name: name?.trim() || null,
+          source: 'newsletter',
+        },
+      })
     }
 
-    // Create the new newsletter subscription
-    await prisma.emailLead.create({
-      data: {
-        email: normalizedEmail,
-        name: name?.trim() || null,
-        source: 'newsletter',
-      },
-    })
+    // Send confirmation email to subscriber
+    try {
+      const emailTemplate = emailTemplates.newsletterConfirmation({ email: normalizedEmail });
+      await sendEmail({
+        to: normalizedEmail,
+        subject: emailTemplate.subject,
+        html: emailTemplate.html,
+        text: emailTemplate.text,
+      });
+      console.log(`✅ Newsletter confirmation email sent to: ${normalizedEmail}`);
+    } catch (error) {
+      console.error('❌ Failed to send newsletter confirmation email:', error);
+      // Don't fail the subscription if email fails
+    }
 
     return NextResponse.json({ success: true, message: 'Successfully subscribed to our newsletter!' })
   } catch (error) {

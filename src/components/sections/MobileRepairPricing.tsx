@@ -130,6 +130,81 @@ const MobileRepairPricing: React.FC = () => {
         { name: 'Battery Replacement', price: 'Le 250 - Le 800+' },
       ],
     },
+    {
+      id: 'oppo',
+      name: 'OPPO',
+      icon: 'https://images.pexels.com/photos/3850231/pexels-photo-3850231.jpeg?auto=compress&cs=tinysrgb&w=400',
+      services: [
+        { name: 'Screen/LCD Replacement', price: 'Le 500 - Le 1200+' },
+        { name: 'Battery Replacement', price: 'Le 200 - Le 400+' },
+        { name: 'Charging Port Repair', price: 'Le 100 - Le 200+' },
+        { name: 'Camera Glass Replacement', price: 'Le 150 - Le 300+' },
+        { name: 'Speaker Change', price: 'Le 100 - Le 200+' },
+        { name: 'Water Damage Repair', price: 'Le 200 (+ parts if needed)' },
+        { name: 'Back Glass/Cover Replacement', price: 'Le 150 - Le 300+' },
+        { name: 'Software & IMEI Repair', price: 'Le 150 - Le 250+' },
+      ],
+    },
+    {
+      id: 'motorola',
+      name: 'Motorola',
+      icon: 'https://images.pexels.com/photos/1092644/pexels-photo-1092644.jpeg?auto=compress&cs=tinysrgb&w=400',
+      services: [
+        { name: 'Screen/LCD Replacement', price: 'Le 500 - Le 1000+' },
+        { name: 'Battery Replacement', price: 'Le 200 - Le 350+' },
+        { name: 'Charging Port Repair', price: 'Le 100 - Le 200+' },
+        { name: 'Speaker Change', price: 'Le 100 - Le 180+' },
+        { name: 'Water Damage Repair', price: 'Le 200 (+ parts if needed)' },
+        { name: 'Back Cover Replacement', price: 'Le 150 - Le 250+' },
+        { name: 'Microphone/Earpiece Repair', price: 'Le 100 - Le 200+' },
+        { name: 'Software Flashing & Unlock', price: 'Le 150 - Le 300+' },
+      ],
+    },
+    {
+      id: 'huawei',
+      name: 'Huawei',
+      icon: 'https://images.pexels.com/photos/699122/pexels-photo-699122.jpeg?auto=compress&cs=tinysrgb&w=400',
+      services: [
+        { name: 'Screen/LCD Replacement', price: 'Le 600 - Le 1500+' },
+        { name: 'Battery Replacement', price: 'Le 250 - Le 500+' },
+        { name: 'Charging Port Repair', price: 'Le 120 - Le 250+' },
+        { name: 'Camera Glass Replacement', price: 'Le 150 - Le 300+' },
+        { name: 'Speaker Change', price: 'Le 120 - Le 200+' },
+        { name: 'Water Damage Repair', price: 'Le 250 (+ parts if needed)' },
+        { name: 'Back Glass/Cover Replacement', price: 'Le 200 - Le 400+' },
+        { name: 'Software & EMUI Repair', price: 'Le 150 - Le 300+' },
+      ],
+    },
+    {
+      id: 'redmi',
+      name: 'Redmi',
+      icon: 'https://images.pexels.com/photos/404280/pexels-photo-404280.jpeg?auto=compress&cs=tinysrgb&w=400',
+      services: [
+        { name: 'Screen/LCD Replacement', price: 'Le 400 - Le 900+' },
+        { name: 'Battery Replacement', price: 'Le 150 - Le 350+' },
+        { name: 'Charging Port Repair', price: 'Le 100 - Le 200+' },
+        { name: 'Camera Glass Replacement', price: 'Le 100 - Le 250+' },
+        { name: 'Speaker Change', price: 'Le 80 - Le 180+' },
+        { name: 'Water Damage Repair', price: 'Le 180 (+ parts if needed)' },
+        { name: 'Back Cover Replacement', price: 'Le 120 - Le 250+' },
+        { name: 'MIUI Software Repair', price: 'Le 150 - Le 250+' },
+      ],
+    },
+    {
+      id: 'xiaomi',
+      name: 'Xiaomi',
+      icon: 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&cs=tinysrgb&w=400',
+      services: [
+        { name: 'Screen/LCD Replacement', price: 'Le 500 - Le 1200+' },
+        { name: 'Battery Replacement', price: 'Le 200 - Le 400+' },
+        { name: 'Charging Port Repair', price: 'Le 100 - Le 200+' },
+        { name: 'Camera Glass Replacement', price: 'Le 150 - Le 280+' },
+        { name: 'Speaker Change', price: 'Le 100 - Le 200+' },
+        { name: 'Water Damage Repair', price: 'Le 200 (+ parts if needed)' },
+        { name: 'Back Glass/Cover Replacement', price: 'Le 150 - Le 300+' },
+        { name: 'MIUI Software & IMEI Repair', price: 'Le 150 - Le 280+' },
+      ],
+    },
   ];
 
   const handleDeviceClick = (device: DeviceBrand) => {
@@ -161,7 +236,7 @@ const MobileRepairPricing: React.FC = () => {
 
           {/* Device Grid */}
           <div className="overflow-x-auto pb-4 -mx-4 px-4 md:overflow-x-visible">
-            <div className="flex md:grid md:grid-cols-3 lg:grid-cols-6 gap-6 min-w-max md:min-w-0">
+            <div className="flex md:grid md:grid-cols-3 lg:grid-cols-7 gap-6 min-w-max md:min-w-0">
               {devices.map((device) => (
                 <div
                   key={device.id}
@@ -265,13 +340,17 @@ const MobileRepairPricing: React.FC = () => {
                           service.name.includes('Screen') || service.name.includes('LCD') ? 'fa-desktop' :
                           service.name.includes('Battery') ? 'fa-battery-three-quarters' :
                           service.name.includes('Charging') ? 'fa-charging-station' :
+                          service.name.includes('Camera') ? 'fa-camera' :
                           service.name.includes('Speaker') ? 'fa-volume-up' :
+                          service.name.includes('Back Glass') || service.name.includes('Back Cover') ? 'fa-mobile-alt' :
+                          service.name.includes('Software') || service.name.includes('MIUI') || service.name.includes('EMUI') || service.name.includes('IMEI') ? 'fa-code' :
+                          service.name.includes('Microphone') || service.name.includes('Earpiece') ? 'fa-microphone' :
                           service.name.includes('Inspection') || service.name.includes('Diagnosis') ? 'fa-search' :
                           service.name.includes('Keyboard') ? 'fa-keyboard' :
                           service.name.includes('Hard Drive') || service.name.includes('SSD') ? 'fa-hdd' :
                           service.name.includes('RAM') ? 'fa-memory' :
                           service.name.includes('Motherboard') ? 'fa-microchip' :
-                          service.name.includes('Software') ? 'fa-download' :
+                          service.name.includes('Software Installation') ? 'fa-download' :
                           service.name.includes('Virus') ? 'fa-shield-virus' :
                           'fa-tools'
                         } text-red-600`}></i>

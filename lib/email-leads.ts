@@ -18,13 +18,34 @@ export async function captureEmailLead(input: EmailLeadInput): Promise<void> {
 
     const normalizedEmail = input.email.toLowerCase().trim()
 
-    // Check for an existing lead with the same email + source before creating
+    // Check for an existing lead with the same email before creating
     const existing = await prisma.emailLead.findFirst({
-      where: { email: normalizedEmail, source: input.source },
-      select: { id: true },
+      where: { email: normalizedEmail },
     })
 
-    if (existing) return // already captured — skip silently
+    if (existing) {
+      // Update fields if they are not already set in the database
+      const updateData: any = {}
+      if (!existing.name && input.name?.trim()) {
+        updateData.name = input.name.trim()
+      }
+      if (!existing.phone && input.phone?.trim()) {
+        updateData.phone = input.phone.trim()
+      }
+      // If the existing source is not 'newsletter' but the new source is 'newsletter',
+      // update the source to 'newsletter' to subscribe them.
+      if (existing.source !== 'newsletter' && input.source === 'newsletter') {
+        updateData.source = 'newsletter'
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        await prisma.emailLead.update({
+          where: { id: existing.id },
+          data: updateData,
+        })
+      }
+      return // already captured — skip silently or update
+    }
 
     await prisma.emailLead.create({
       data: {

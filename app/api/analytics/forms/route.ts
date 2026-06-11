@@ -214,43 +214,6 @@ export async function POST(request: NextRequest) {
         trackingId: data.trackingId
       });
 
-      // Capture newsletter email lead if form type is newsletter
-      if (formType === 'newsletter' && fields.email) {
-        const emailLower = fields.email.toLowerCase().trim();
-        const existingLead = await prisma.emailLead.findFirst({
-          where: {
-            email: emailLower
-          }
-        });
-
-        if (existingLead) {
-          return NextResponse.json({
-            success: false,
-            error: 'already_subscribed',
-            message: 'This email is already subscribed to our newsletter.'
-          }, { status: 400 });
-        }
-
-        await captureEmailLead({
-          email: fields.email,
-          source: 'newsletter'
-        });
-        
-        // Send confirmation email to subscriber
-        try {
-          const emailTemplate = emailTemplates.newsletterConfirmation({ email: fields.email });
-          await sendEmail({
-            to: fields.email,
-            subject: emailTemplate.subject,
-            html: emailTemplate.html,
-            text: emailTemplate.text,
-          });
-          console.log(`✅ Newsletter confirmation email sent to: ${fields.email}`);
-        } catch (error) {
-          console.error('❌ Failed to send newsletter confirmation email:', error);
-          // Don't fail the submission if email fails
-        }
-      }
 
       return NextResponse.json({
         success: true,
@@ -279,24 +242,6 @@ export async function POST(request: NextRequest) {
         ? data.trackingId.trim()
         : undefined;
 
-      // Capture newsletter email lead if form type is newsletter
-      if (formType === 'newsletter' && fields.email) {
-        const emailLower = fields.email.toLowerCase().trim();
-        const existingLead = await prisma.emailLead.findFirst({
-          where: {
-            email: emailLower
-          }
-        });
-
-        if (existingLead) {
-          return NextResponse.json({
-            success: false,
-            error: 'already_subscribed',
-            message: 'This email is already subscribed to our newsletter.'
-          }, { status: 400 });
-        }
-      }
-
       const { submission, repair } = await recordFormSubmission({
         formType,
         fields,
@@ -304,29 +249,6 @@ export async function POST(request: NextRequest) {
         page: data.page,
         trackingId
       });
-
-      // Capture newsletter email lead if form type is newsletter
-      if (formType === 'newsletter' && fields.email) {
-        await captureEmailLead({
-          email: fields.email,
-          source: 'newsletter'
-        });
-
-        // Send confirmation email to subscriber
-        try {
-          const emailTemplate = emailTemplates.newsletterConfirmation({ email: fields.email });
-          await sendEmail({
-            to: fields.email,
-            subject: emailTemplate.subject,
-            html: emailTemplate.html,
-            text: emailTemplate.text,
-          });
-          console.log(`✅ Newsletter confirmation email sent to: ${fields.email}`);
-        } catch (error) {
-          console.error('❌ Failed to send newsletter confirmation email:', error);
-          // Don't fail the submission if email fails
-        }
-      }
 
       return NextResponse.json({
         success: true,
