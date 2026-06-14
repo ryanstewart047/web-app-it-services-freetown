@@ -57,9 +57,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 
     const contentPreview = getExcerpt(post.content, 200)
-    const canonicalUrl = `https://www.itservicesfreetown.com/blog/${params.id}`
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.itservicesfreetown.com'
+    const canonicalUrl = `${baseUrl}/blog/${params.id}`
 
-    const ogImageUrl = new URL('/api/og-blog', 'https://www.itservicesfreetown.com')
+    const ogImageUrl = new URL('/api/og-blog', baseUrl)
     ogImageUrl.searchParams.set('id', params.id)
 
     return {

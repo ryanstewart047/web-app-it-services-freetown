@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Search, Filter, ShoppingCart, Grid, List, ChevronDown, Heart, Star } from 'lucide-react';
+import { Search, Filter, ShoppingCart, Grid, List, ChevronDown, Heart, Star, Share2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getWishlistSessionId } from '@/utils/wishlistSession';
@@ -195,6 +195,38 @@ export default function MarketplacePage() {
     
     // Automatically open the cart page
     router.push('/cart');
+  };
+
+  const handleShare = async (product: Product) => {
+    const shareUrl = `${window.location.origin}/marketplace/${product.slug}`;
+    const truncatedDesc = product.description.length > 100 
+      ? product.description.substring(0, 100) + '...' 
+      : product.description;
+    const shareText = `${product.name}\n\nLe ${product.price.toLocaleString()}\n\n${truncatedDesc}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: product.name,
+          text: shareText,
+          url: shareUrl,
+        });
+        toast.success('Shared successfully!');
+        return;
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Share failed:', error);
+        }
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success('Product link copied!');
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      toast.error('Failed to copy link');
+    }
   };
 
   // Enhanced filter and search products
@@ -539,6 +571,17 @@ export default function MarketplacePage() {
                             className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all text-sm"
                           >
                             <ShoppingCart className="w-4 h-4" /> Add
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleShare(product);
+                            }}
+                            className="p-2.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg border border-gray-200 transition-all cursor-pointer flex items-center justify-center"
+                            title="Share Product"
+                          >
+                            <Share2 className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
