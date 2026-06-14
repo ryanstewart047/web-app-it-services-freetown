@@ -113,66 +113,106 @@ export default function PaymentInstructionsPopup({
               </h3>
               
               {/* Orange Money */}
-              <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3 sm:p-4 mb-2 sm:mb-3 flex flex-col sm:flex-row justify-between sm:items-center">
-                <div className="mb-3 sm:mb-0">
-                  <p className="text-orange-400 text-xs sm:text-sm font-medium mb-1">Orange Money</p>
-                  <p className="text-white text-base sm:text-lg font-bold">
-                    {isMobile ? '*144*2*2*241586#' : paymentDetails.orangeMoney}
-                  </p>
+              <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3 sm:p-4 mb-2 sm:mb-3 flex flex-col gap-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-orange-400 text-xs sm:text-sm font-medium mb-1">Orange Money</p>
+                    <p className="text-white text-base sm:text-lg font-bold">
+                      {isMobile ? '*144*2*2*241586#' : paymentDetails.orangeMoney}
+                    </p>
+                  </div>
+                  {isMobile ? (
+                    <a
+                      href={ussdCodes.orangeMoney}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-lg transition-colors shadow-md"
+                    >
+                      <Smartphone className="w-4 h-4" />
+                      Pay via USSD
+                    </a>
+                  ) : (
+                    <button
+                      onClick={() => copyToClipboard(paymentDetails.orangeMoney, 'orange')}
+                      className="p-2 hover:bg-orange-500/20 rounded-lg transition-colors flex items-center justify-center gap-2 bg-gray-800"
+                      title="Copy number"
+                    >
+                      <span className="text-orange-400 text-xs mr-1">Copy Number</span>
+                      {copiedField === 'orange' ? (
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                      ) : (
+                        <Copy className="w-4 h-4 text-orange-400" />
+                      )}
+                    </button>
+                  )}
                 </div>
-                {isMobile ? (
-                  <a
-                    href={ussdCodes.orangeMoney}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-lg transition-colors shadow-md"
-                  >
-                    <Smartphone className="w-4 h-4" />
-                    Pay via USSD
-                  </a>
-                ) : (
-                  <button
-                    onClick={() => copyToClipboard(paymentDetails.orangeMoney, 'orange')}
-                    className="p-2 hover:bg-orange-500/20 rounded-lg transition-colors flex items-center justify-center self-end sm:self-auto gap-2 bg-gray-800 sm:bg-transparent"
-                    title="Copy number"
-                  >
-                    <span className="text-orange-400 text-xs sm:hidden mr-1">Copy Number</span>
-                    {copiedField === 'orange' ? (
-                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
-                    ) : (
-                      <Copy className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400" />
-                    )}
-                  </button>
+
+                {!isMobile && (
+                  <div className="border-t border-orange-500/20 pt-3 flex flex-col sm:flex-row items-center gap-4">
+                    <div className="bg-white p-2 rounded-lg flex-shrink-0">
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent('tel:*144*2*2*241586#')}`}
+                        alt="Orange Money USSD QR Code"
+                        className="w-[110px] h-[110px]"
+                      />
+                    </div>
+                    <div className="text-center sm:text-left">
+                      <p className="text-orange-300 text-xs font-bold mb-1">Scan to Pay via Orange Money</p>
+                      <p className="text-gray-400 text-[11px] leading-relaxed">
+                        Scan this QR code with your mobile phone camera or scanner to quickly dial the USSD code: <code className="text-white font-mono bg-orange-500/20 px-1 py-0.5 rounded">*144*2*2*241586#</code>
+                      </p>
+                    </div>
+                  </div>
                 )}
               </div>
 
               {/* AfriMoney */}
-              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 sm:p-4 flex flex-col sm:flex-row justify-between sm:items-center">
-                <div className="mb-3 sm:mb-0">
-                  <p className="text-green-400 text-xs sm:text-sm font-medium mb-1">AfriMoney</p>
-                  <p className="text-white text-base sm:text-lg font-bold">
-                    {isMobile ? '*161*6*2*088294631#' : paymentDetails.afriMoney}
-                  </p>
+              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 sm:p-4 flex flex-col gap-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-green-400 text-xs sm:text-sm font-medium mb-1">AfriMoney</p>
+                    <p className="text-white text-base sm:text-lg font-bold">
+                      {isMobile ? '*161*6*2*088294631#' : paymentDetails.afriMoney}
+                    </p>
+                  </div>
+                  {isMobile ? (
+                    <a
+                      href={ussdCodes.afriMoney}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold rounded-lg transition-colors shadow-md"
+                    >
+                      <Smartphone className="w-4 h-4" />
+                      Pay via USSD
+                    </a>
+                  ) : (
+                    <button
+                      onClick={() => copyToClipboard(paymentDetails.afriMoney, 'afri')}
+                      className="p-2 hover:bg-green-500/20 rounded-lg transition-colors flex items-center justify-center gap-2 bg-gray-800"
+                      title="Copy number"
+                    >
+                      <span className="text-green-400 text-xs mr-1">Copy Number</span>
+                      {copiedField === 'afri' ? (
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                      ) : (
+                        <Copy className="w-4 h-4 text-green-400" />
+                      )}
+                    </button>
+                  )}
                 </div>
-                {isMobile ? (
-                  <a
-                    href={ussdCodes.afriMoney}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold rounded-lg transition-colors shadow-md"
-                  >
-                    <Smartphone className="w-4 h-4" />
-                    Pay via USSD
-                  </a>
-                ) : (
-                  <button
-                    onClick={() => copyToClipboard(paymentDetails.afriMoney, 'afri')}
-                    className="p-2 hover:bg-green-500/20 rounded-lg transition-colors flex items-center justify-center self-end sm:self-auto gap-2 bg-gray-800 sm:bg-transparent"
-                    title="Copy number"
-                  >
-                    <span className="text-green-400 text-xs sm:hidden mr-1">Copy Number</span>
-                    {copiedField === 'afri' ? (
-                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
-                    ) : (
-                      <Copy className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
-                    )}
-                  </button>
+
+                {!isMobile && (
+                  <div className="border-t border-green-500/20 pt-3 flex flex-col sm:flex-row items-center gap-4">
+                    <div className="bg-white p-2 rounded-lg flex-shrink-0">
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent('tel:*161*6*2*088294631#')}`}
+                        alt="AfriMoney USSD QR Code"
+                        className="w-[110px] h-[110px]"
+                      />
+                    </div>
+                    <div className="text-center sm:text-left">
+                      <p className="text-green-300 text-xs font-bold mb-1">Scan to Pay via AfriMoney</p>
+                      <p className="text-gray-400 text-[11px] leading-relaxed">
+                        Scan this QR code with your mobile phone camera or scanner to quickly dial the USSD code: <code className="text-white font-mono bg-green-500/20 px-1 py-0.5 rounded">*161*6*2*088294631#</code>
+                      </p>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>

@@ -277,13 +277,31 @@ export default function CheckoutPage() {
                     </p>
 
                     {isDesktop && (
-                      <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3 text-amber-900 shadow-sm">
-                        <Smartphone className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0 animate-bounce" />
-                        <div>
-                          <h4 className="font-bold text-sm">USSD Payment System Notice</h4>
-                          <p className="text-xs text-amber-700 mt-1 leading-relaxed">
-                            Since you are currently on a computer, please have your mobile device ready nearby. Mobile payments can be completed easily only on your mobile device using the USSD system or via the incoming approval prompt.
-                          </p>
+                      <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 shadow-sm space-y-4">
+                        <div className="flex items-start gap-3">
+                          <Smartphone className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0 animate-bounce" />
+                          <div>
+                            <h4 className="font-bold text-sm">USSD Payment System Notice</h4>
+                            <p className="text-xs text-amber-700 mt-1 leading-relaxed">
+                              Since you are currently on a computer, please note that mobile payments can only be completed easily on your mobile device using the USSD system. Please have your mobile phone nearby to dial the code or approve the prompt.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="border-t border-amber-200 pt-3 flex flex-col sm:flex-row items-center gap-4">
+                          <div className="bg-white p-2 rounded-lg border border-amber-200/50 flex-shrink-0">
+                            <img
+                              src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent('tel:*144*2*2*241586#')}`}
+                              alt="Orange Money USSD QR Code"
+                              className="w-[110px] h-[110px]"
+                            />
+                          </div>
+                          <div className="text-center sm:text-left">
+                            <p className="text-amber-800 text-xs font-bold mb-1">Scan to Pay via Orange Money</p>
+                            <p className="text-amber-700 text-[11px] leading-relaxed">
+                              Scan this QR code with your mobile phone camera or scanner to quickly dial the USSD code: <code className="text-amber-900 font-mono bg-amber-200/50 px-1 py-0.5 rounded">*144*2*2*241586#</code>
+                            </p>
+                          </div>
                         </div>
                       </div>
                     )}
