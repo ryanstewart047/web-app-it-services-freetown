@@ -93,6 +93,18 @@ export default function PaymentInstructionsPopup({
               </div>
             </div>
 
+            {!isMobile && (
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-start gap-3 text-amber-200">
+                <Smartphone className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0 animate-bounce" />
+                <div>
+                  <h4 className="font-bold text-sm text-amber-400">USSD Payment Notice</h4>
+                  <p className="text-xs text-amber-350 mt-1 leading-relaxed">
+                    Since you are currently on a computer, please note that mobile payments can only be completed easily on your mobile device using the USSD system. Please have your mobile phone nearby to dial the code or approve the prompt.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Payment Instructions */}
             <div>
               <h3 className="text-white font-semibold mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base">

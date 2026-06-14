@@ -7,12 +7,18 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 
 import { useCart } from '@/contexts/CartContext';
+import { detectDevice } from '@/utils/deviceDetection';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, removeFromCart, cartTotal, clearCart, isHydrated } = useCart();
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'mobile_money' | 'cash'>('mobile_money');
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    setIsDesktop(detectDevice().isDesktop);
+  }, []);
   
   const [formData, setFormData] = useState({
     customerName: '',
@@ -269,6 +275,18 @@ export default function CheckoutPage() {
                     <p className="text-gray-500 text-sm mt-2">
                       You will receive an Orange Money prompt on this number
                     </p>
+
+                    {isDesktop && (
+                      <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3 text-amber-900 shadow-sm">
+                        <Smartphone className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0 animate-bounce" />
+                        <div>
+                          <h4 className="font-bold text-sm">USSD Payment System Notice</h4>
+                          <p className="text-xs text-amber-700 mt-1 leading-relaxed">
+                            Since you are currently on a computer, please have your mobile device ready nearby. Mobile payments can be completed easily only on your mobile device using the USSD system or via the incoming approval prompt.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
