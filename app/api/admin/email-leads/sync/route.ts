@@ -12,13 +12,32 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    // Read optional `since` timestamp from the request body.
+    // If provided, only import source records created AFTER this date.
+    // This is the "high-watermark" that prevents deleted leads from
+    // being re-imported on subsequent syncs.
+    let sinceDate: Date | undefined = undefined
+    try {
+      const body = await request.json()
+      if (body?.since) {
+        sinceDate = new Date(body.since)
+        // Validate the date is sensible
+        if (isNaN(sinceDate.getTime())) sinceDate = undefined
+      }
+    } catch {
+      // No body or invalid JSON – treat as first-time full sync
+    }
+
+    const dateFilter = sinceDate ? { gt: sinceDate } : undefined
     let syncCount = 0
 
     // 1. Sync from Customers (source: appointment)
-    const customers = await prisma.customer.findMany()
+    const customers = await prisma.customer.findMany({
+      where: dateFilter ? { createdAt: dateFilter } : undefined
+    })
     for (const c of customers) {
       const exists = await prisma.emailLead.findFirst({
-        where: { email: c.email.toLowerCase(), source: 'appointment' }
+        where: { email: c.email.toLowerCase() }
       })
       if (!exists) {
         await prisma.emailLead.create({
@@ -27,7 +46,7 @@ export async function POST(request: NextRequest) {
             name: c.name.trim(),
             phone: c.phone.trim(),
             source: 'appointment',
-            createdAt: c.createdAt // Preserve original date
+            createdAt: c.createdAt
           }
         })
         syncCount++
@@ -35,10 +54,12 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Sync from Orders (source: order)
-    const orders = await prisma.order.findMany()
+    const orders = await prisma.order.findMany({
+      where: dateFilter ? { createdAt: dateFilter } : undefined
+    })
     for (const o of orders) {
       const exists = await prisma.emailLead.findFirst({
-        where: { email: o.customerEmail.toLowerCase(), source: 'order' }
+        where: { email: o.customerEmail.toLowerCase() }
       })
       if (!exists) {
         await prisma.emailLead.create({
@@ -56,11 +77,14 @@ export async function POST(request: NextRequest) {
 
     // 3. Sync from Receipts (source: receipt)
     const receipts = await prisma.receipt.findMany({
-      where: { customerEmail: { not: null } }
+      where: {
+        customerEmail: { not: null },
+        ...(dateFilter ? { createdAt: dateFilter } : {})
+      }
     })
     for (const r of receipts) {
       const exists = await prisma.emailLead.findFirst({
-        where: { email: r.customerEmail!.toLowerCase(), source: 'receipt' }
+        where: { email: r.customerEmail!.toLowerCase() }
       })
       if (!exists) {
         await prisma.emailLead.create({
@@ -78,11 +102,14 @@ export async function POST(request: NextRequest) {
 
     // 4. Sync from Donations (source: donation)
     const donations = await prisma.donation.findMany({
-      where: { email: { not: null } }
+      where: {
+        email: { not: null },
+        ...(dateFilter ? { createdAt: dateFilter } : {})
+      }
     })
     for (const d of donations) {
       const exists = await prisma.emailLead.findFirst({
-        where: { email: d.email!.toLowerCase(), source: 'donation' }
+        where: { email: d.email!.toLowerCase() }
       })
       if (!exists) {
         await prisma.emailLead.create({
@@ -99,10 +126,12 @@ export async function POST(request: NextRequest) {
     }
 
     // 5. Sync from Technicians (source: forum)
-    const technicians = await prisma.technician.findMany()
+    const technicians = await prisma.technician.findMany({
+      where: dateFilter ? { createdAt: dateFilter } : undefined
+    })
     for (const t of technicians) {
       const exists = await prisma.emailLead.findFirst({
-        where: { email: t.email.toLowerCase(), source: 'forum' }
+        where: { email: t.email.toLowerCase() }
       })
       if (!exists) {
         await prisma.emailLead.create({
@@ -118,7 +147,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true, syncCount })
+    return NextResponse.json({
+      success: true,
+      syncCount,
+      syncedAt: new Date().toISOString(),
+      incremental: !!sinceDate
+    })
   } catch (error) {
     console.error('[EmailLead Sync] Error:', error)
     return NextResponse.json({ error: 'Sync failed' }, { status: 500 })

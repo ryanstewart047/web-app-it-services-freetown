@@ -95,13 +95,30 @@ export default function EmailLeadsPage() {
   }
 
   const handleSync = async () => {
-    if (!confirm('This will import emails from all previous orders, appointments, and registrations. Continue?')) return
+    // Read the high-watermark: the timestamp of the last successful sync.
+    // On first sync this is undefined and we do a full import.
+    // On subsequent syncs we only import records created AFTER this date,
+    // so manually-deleted leads are never re-imported.
+    const lastSyncAt = localStorage.getItem('emailLeads_lastSyncAt') ?? undefined
+
+    const confirmMsg = lastSyncAt
+      ? `This will import NEW emails added since ${new Date(lastSyncAt).toLocaleString()}. Previously deleted leads will NOT be re-imported. Continue?`
+      : 'This will do a one-time import of ALL existing emails. Any emails you delete after this will never return on future syncs. Continue?'
+
+    if (!confirm(confirmMsg)) return
     setSyncing(true)
     try {
-      const res = await fetch('/api/admin/email-leads/sync', { method: 'POST' })
+      const res = await fetch('/api/admin/email-leads/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(lastSyncAt ? { since: lastSyncAt } : {})
+      })
       const data = await res.json()
       if (data.success) {
-        alert(`Success! Imported ${data.syncCount} existing leads.`)
+        // Save the sync timestamp so the next sync is incremental
+        localStorage.setItem('emailLeads_lastSyncAt', data.syncedAt)
+        const label = data.incremental ? 'new' : 'existing'
+        alert(`Success! Imported ${data.syncCount} ${label} leads.`)
         fetchLeads()
       } else {
         alert('Sync failed: ' + data.error)
