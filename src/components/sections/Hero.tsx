@@ -154,8 +154,8 @@ export default function Hero() {
                   <span className="text-[9px] uppercase tracking-wider text-slate-400 font-black -mb-0.5 leading-none">Facebook Page</span>
                   <div className="h-[28px] overflow-hidden flex items-center">
                     <iframe
-                      src="https://www.facebook.com/plugins/like.php?href=https%3A%2F%2Fwww.facebook.com%2Fitservicefreetown&width=150&layout=button_count&action=like&size=large&share=false&height=28&appId"
-                      width="150"
+                      src="https://www.facebook.com/plugins/like.php?href=https%3A%2F%2Fwww.facebook.com%2Fitservicefreetown&width=220&layout=button_count&action=like&size=large&share=false&height=28&appId"
+                      width="220"
                       height="28"
                       style={{ border: 'none', overflow: 'hidden' }}
                       scrolling="no"
