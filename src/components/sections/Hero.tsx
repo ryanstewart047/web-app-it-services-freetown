@@ -148,6 +148,24 @@ export default function Hero() {
                  className="bg-[#040e40]/70 hover:bg-[#040e40] text-white text-lg px-8 py-4 text-center rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-lg border-2 border-white/30 inline-flex items-center backdrop-blur-sm">
                  <i className="fas fa-download mr-2"></i>Download Desktop App
               </Link>
+              <div className="bg-white hover:bg-gray-50 text-slate-800 text-lg px-5 py-4 rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-lg border-2 border-white inline-flex items-center gap-3 h-[60px] min-w-[220px]">
+                <i className="fab fa-facebook text-[#1877f2] text-2xl flex-shrink-0"></i>
+                <div className="flex flex-col items-start justify-center">
+                  <span className="text-[9px] uppercase tracking-wider text-slate-400 font-black -mb-0.5 leading-none">Facebook Page</span>
+                  <div className="h-[28px] overflow-hidden flex items-center">
+                    <iframe
+                      src="https://www.facebook.com/plugins/like.php?href=https%3A%2F%2Fwww.facebook.com%2Fitservicefreetown&width=150&layout=button_count&action=like&size=large&share=false&height=28&appId"
+                      width="150"
+                      height="28"
+                      style={{ border: 'none', overflow: 'hidden' }}
+                      scrolling="no"
+                      frameBorder="0"
+                      allowFullScreen={true}
+                      allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
             
             {/* Enhanced Quick Stats */}
