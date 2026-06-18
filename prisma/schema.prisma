@@ -364,6 +364,16 @@ model BannerSettings {
   updatedAt   DateTime @updatedAt
 }
 
+model NewsletterSettings {
+  id           String   @id @default("active")
+  enabled      Boolean  @default(true)
+  delaySeconds Int      @default(8)
+  headline     String   @default("Stay in the Loop")
+  bodyText     String   @default("Join thousands of Freetown residents getting weekly computer and mobile repair tips, exclusive service updates, and special offers delivered right to your inbox.")
+  buttonText   String   @default("Subscribe Now")
+  updatedAt    DateTime @updatedAt
+}
+
 model EmailLead {
   id             String   @id @default(cuid())
   email          String
