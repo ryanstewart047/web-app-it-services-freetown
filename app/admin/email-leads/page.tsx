@@ -9,6 +9,7 @@ interface EmailLead {
   name: string | null
   phone: string | null
   source: string
+  deliveryFailed: boolean
   createdAt: string
 }
 
@@ -45,6 +46,31 @@ export default function EmailLeadsPage() {
   const [deleting, setDeleting] = useState<string | null>(null)
   const [downloading, setDownloading] = useState(false)
   const [syncing, setSyncing] = useState(false)
+  const [cleaning, setCleaning] = useState(false)
+
+  const handleCleanBounced = async () => {
+    const bouncedCount = leads.filter(l => l.deliveryFailed).length
+    if (bouncedCount === 0) {
+      alert('No bounced emails found.')
+      return
+    }
+    if (!confirm(`Are you sure you want to permanently remove all ${bouncedCount} bounced emails? This will delete them from all sources.`)) return
+    setCleaning(true)
+    try {
+      const res = await fetch('/api/admin/email-leads?failed=true', { method: 'DELETE' })
+      const data = await res.json()
+      if (data.success) {
+        alert(`Successfully removed ${data.deleted} bounced emails!`)
+        fetchLeads(activeSource, search)
+      } else {
+        alert('Failed to delete: ' + data.error)
+      }
+    } catch (e) {
+      alert('Error during delete operation')
+    } finally {
+      setCleaning(false)
+    }
+  }
 
   const fetchLeads = async (src = activeSource, q = search) => {
     setLoading(true)
@@ -153,6 +179,16 @@ export default function EmailLeadsPage() {
             </div>
           </div>
           <div className="flex gap-3">
+            {leads.some(l => l.deliveryFailed) && (
+              <button
+                onClick={handleCleanBounced}
+                disabled={cleaning}
+                className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 shadow-sm transition hover:bg-red-100 disabled:opacity-50"
+              >
+                <Trash2 className="h-4 w-4" />
+                {cleaning ? 'Cleaning...' : 'Clean Bounced'}
+              </button>
+            )}
             <button
               onClick={handleSync}
               disabled={syncing}
@@ -180,7 +216,7 @@ export default function EmailLeadsPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
@@ -192,7 +228,18 @@ export default function EmailLeadsPage() {
               </div>
             </div>
           </div>
-          {stats.slice(0, 3).map(s => (
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-50">
+                <Mail className="h-4 w-4 text-red-600" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Bounced Emails</p>
+                <p className="text-2xl font-black text-red-600">{leads.filter(l => l.deliveryFailed).length}</p>
+              </div>
+            </div>
+          </div>
+          {stats.slice(0, 2).map(s => (
             <div key={s.source} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-50">
@@ -277,21 +324,25 @@ export default function EmailLeadsPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                   {leads.map(lead => (
-                    <tr key={lead.id} className="transition hover:bg-slate-50/60">
-                      <td className="px-5 py-3.5 font-semibold text-slate-800">
+                    <tr key={lead.id} className={`transition hover:bg-slate-50/60 ${lead.deliveryFailed ? 'opacity-60 bg-red-50/10' : ''}`}>
+                      <td className={`px-5 py-3.5 font-semibold ${lead.deliveryFailed ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
                         {lead.name || <span className="text-slate-300">—</span>}
                       </td>
                       <td className="px-5 py-3.5">
                         <a
-                          href={`mailto:${lead.email}`}
-                          className="font-mono text-blue-600 transition hover:text-blue-800 hover:underline"
+                          href={lead.deliveryFailed ? undefined : `mailto:${lead.email}`}
+                          className={`font-mono transition ${
+                            lead.deliveryFailed
+                              ? 'text-slate-400 cursor-not-allowed line-through'
+                              : 'text-blue-600 hover:text-blue-800 hover:underline'
+                          }`}
                         >
                           {lead.email}
                         </a>
                       </td>
-                      <td className="px-5 py-3.5 text-slate-500">
+                      <td className={`px-5 py-3.5 ${lead.deliveryFailed ? 'text-slate-300 line-through' : 'text-slate-500'}`}>
                         {lead.phone ? (
-                          <a href={`tel:${lead.phone}`} className="hover:text-slate-800 hover:underline">
+                          <a href={lead.deliveryFailed ? undefined : `tel:${lead.phone}`} className={lead.deliveryFailed ? undefined : "hover:text-slate-800 hover:underline"}>
                             {lead.phone}
                           </a>
                         ) : (
@@ -299,9 +350,15 @@ export default function EmailLeadsPage() {
                         )}
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-bold ${SOURCE_COLORS[lead.source] || 'bg-slate-100 text-slate-600 border-slate-200'}`}>
-                          {SOURCE_LABELS[lead.source] || lead.source}
-                        </span>
+                        {lead.deliveryFailed ? (
+                          <span className="inline-flex items-center rounded-full border border-red-200 bg-red-100 px-2.5 py-1 text-[11px] font-bold text-red-700">
+                            Bounced
+                          </span>
+                        ) : (
+                          <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-bold ${SOURCE_COLORS[lead.source] || 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                            {SOURCE_LABELS[lead.source] || lead.source}
+                          </span>
+                        )}
                       </td>
                       <td className="px-5 py-3.5 text-slate-400">
                         <span className="inline-flex items-center gap-1.5">

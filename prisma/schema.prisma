@@ -365,12 +365,13 @@ model BannerSettings {
 }
 
 model EmailLead {
-  id        String   @id @default(cuid())
-  email     String
-  name      String?
-  phone     String?
-  source    String   // "appointment" | "order" | "troubleshoot" | "donation" | "forum" | "receipt" | "newsletter"
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  email          String
+  name           String?
+  phone          String?
+  source         String   // "appointment" | "order" | "troubleshoot" | "donation" | "forum" | "receipt" | "newsletter"
+  deliveryFailed Boolean  @default(false)
+  createdAt      DateTime @default(now())
 
   @@index([email])
   @@index([source])

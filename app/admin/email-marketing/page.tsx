@@ -14,6 +14,7 @@ interface EmailLead {
   email: string
   name: string | null
   source: string
+  deliveryFailed: boolean
 }
 
 const modules = {
@@ -77,7 +78,11 @@ export default function EmailMarketingPage() {
 
   const toggleSelectAll = () => {
     const next = new Set(selectedEmails)
-    const allFilteredEmails = filteredLeads.map(l => l.email)
+    const validFilteredLeads = filteredLeads.filter(l => !l.deliveryFailed)
+    const allFilteredEmails = validFilteredLeads.map(l => l.email)
+    
+    if (allFilteredEmails.length === 0) return
+
     const allFilteredSelected = allFilteredEmails.every(email => next.has(email))
 
     if (allFilteredSelected) {
@@ -186,10 +191,63 @@ export default function EmailMarketingPage() {
   }
 
   const toggleEmail = (email: string) => {
+    const lead = leads.find(l => l.email === email)
+    if (lead?.deliveryFailed) return // Don't toggle failed emails
+
     const next = new Set(selectedEmails)
     if (next.has(email)) next.delete(email)
     else next.add(email)
     setSelectedEmails(next)
+  }
+
+  const [cleaning, setCleaning] = useState(false)
+
+  const handleDeleteLead = async (email: string) => {
+    if (!confirm(`Delete all entries for ${email} from the database?`)) return
+    try {
+      const res = await fetch(`/api/admin/email-leads?email=${encodeURIComponent(email)}`, { method: 'DELETE' })
+      if (res.ok) {
+        setLeads(prev => prev.filter(l => l.email !== email))
+        const next = new Set(selectedEmails)
+        next.delete(email)
+        setSelectedEmails(next)
+      } else {
+        alert('Failed to delete lead')
+      }
+    } catch (e) {
+      console.error('Delete error:', e)
+    }
+  }
+
+  const handleCleanBounced = async () => {
+    const count = leads.filter(l => l.deliveryFailed).length
+    if (count === 0) {
+      alert('No bounced emails to clean.')
+      return
+    }
+    if (!confirm(`Are you sure you want to permanently remove all ${count} bounced emails?`)) return
+    setCleaning(true)
+    try {
+      const res = await fetch('/api/admin/email-leads?failed=true', { method: 'DELETE' })
+      const data = await res.json()
+      if (data.success) {
+        alert(`Successfully removed ${data.deleted} bounced emails!`)
+        // Filter out deleted leads from local state
+        setLeads(prev => prev.filter(l => !l.deliveryFailed))
+        // Deselect any that were removed just in case
+        const next = new Set(selectedEmails)
+        leads.forEach(l => {
+          if (l.deliveryFailed) next.delete(l.email)
+        })
+        setSelectedEmails(next)
+      } else {
+        alert('Failed to clean bounced emails: ' + data.error)
+      }
+    } catch (e) {
+      alert('Error cleaning bounced emails')
+    } finally {
+      setCleaning(false)
+    }
   }
 
   const handleSend = async () => {
@@ -475,7 +533,10 @@ export default function EmailMarketingPage() {
                       onClick={toggleSelectAll}
                       className="text-xs font-bold text-blue-600 hover:underline"
                     >
-                      {filteredLeads.every(l => selectedEmails.has(l.email)) ? 'Deselect Filtered' : 'Select Filtered'}
+                      {filteredLeads.filter(l => !l.deliveryFailed).length > 0 &&
+                       filteredLeads.filter(l => !l.deliveryFailed).every(l => selectedEmails.has(l.email)) 
+                        ? 'Deselect Filtered' 
+                        : 'Select Filtered'}
                     </button>
                     {selectedEmails.size > 0 && (
                       <button 
@@ -483,6 +544,15 @@ export default function EmailMarketingPage() {
                         className="text-xs font-bold text-red-600 hover:underline border-l border-slate-200 pl-2"
                       >
                         Clear All
+                      </button>
+                    )}
+                    {leads.some(l => l.deliveryFailed) && (
+                      <button 
+                        onClick={handleCleanBounced}
+                        disabled={cleaning}
+                        className="text-xs font-bold text-amber-600 hover:underline border-l border-slate-200 pl-2"
+                      >
+                        {cleaning ? 'Cleaning…' : 'Clean Bounced'}
                       </button>
                     )}
                   </div>
@@ -515,28 +585,51 @@ export default function EmailMarketingPage() {
                       <button
                         key={lead.id}
                         onClick={() => toggleEmail(lead.email)}
+                        disabled={lead.deliveryFailed}
                         className={`flex w-full items-center gap-3 rounded-xl p-3 text-left transition ${
-                          selectedEmails.has(lead.email) 
-                            ? 'bg-blue-50 border border-blue-100' 
-                            : 'hover:bg-slate-50 border border-transparent'
+                          lead.deliveryFailed
+                            ? 'opacity-50 bg-slate-50/50 cursor-not-allowed border border-slate-100'
+                            : selectedEmails.has(lead.email) 
+                              ? 'bg-blue-50 border border-blue-100' 
+                              : 'hover:bg-slate-50 border border-transparent'
                         }`}
                       >
                         <div className="flex-shrink-0">
-                          {selectedEmails.has(lead.email) ? (
+                          {lead.deliveryFailed ? (
+                            <div className="h-5 w-5 rounded border border-red-300 bg-red-50 flex items-center justify-center text-[10px] font-black text-red-500">✕</div>
+                          ) : selectedEmails.has(lead.email) ? (
                             <CheckSquare className="h-5 w-5 text-blue-600" />
                           ) : (
                             <Square className="h-5 w-5 text-slate-300" />
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className={`truncate text-sm font-bold ${selectedEmails.has(lead.email) ? 'text-blue-900' : 'text-slate-800'}`}>
+                          <p className={`truncate text-sm font-bold ${lead.deliveryFailed ? 'text-slate-400 line-through' : selectedEmails.has(lead.email) ? 'text-blue-900' : 'text-slate-800'}`}>
                             {lead.name || 'Anonymous Customer'}
                           </p>
                           <p className="truncate text-[10px] text-slate-500">{lead.email}</p>
                         </div>
-                        <div className="rounded-full bg-slate-100 px-2 py-0.5 text-[8px] font-black uppercase text-slate-400">
-                          {lead.source}
-                        </div>
+                        {lead.deliveryFailed ? (
+                          <div className="rounded-full bg-red-100 px-2 py-0.5 text-[8px] font-black uppercase text-red-600 border border-red-200">
+                            Bounced
+                          </div>
+                        ) : (
+                          <div className="rounded-full bg-slate-100 px-2 py-0.5 text-[8px] font-black uppercase text-slate-400">
+                            {lead.source}
+                          </div>
+                        )}
+                        {lead.deliveryFailed && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteLead(lead.email);
+                            }}
+                            className="p-1 text-slate-400 hover:text-red-600 transition rounded-lg ml-1"
+                            title="Remove this lead"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
                       </button>
                     ))}
                   </div>

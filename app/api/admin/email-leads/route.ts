@@ -65,15 +65,22 @@ export async function GET(request: NextRequest) {
   })
 }
 
-// DELETE all leads matching an email address
+// DELETE leads matching an email address OR delete all failed leads if failed=true
 export async function DELETE(request: NextRequest) {
   if (!checkAuth(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const { searchParams } = new URL(request.url)
+  const failed = searchParams.get('failed')
+
+  if (failed === 'true') {
+    const result = await prisma.emailLead.deleteMany({ where: { deliveryFailed: true } })
+    return NextResponse.json({ success: true, deleted: result.count })
+  }
+
   const email = searchParams.get('email')
-  if (!email) return NextResponse.json({ error: 'email required' }, { status: 400 })
+  if (!email) return NextResponse.json({ error: 'email or failed=true required' }, { status: 400 })
 
   const normalizedEmail = email.toLowerCase().trim()
   const result = await prisma.emailLead.deleteMany({ where: { email: normalizedEmail } })

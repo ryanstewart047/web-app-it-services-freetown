@@ -37,6 +37,11 @@ export async function captureEmailLead(input: EmailLeadInput): Promise<void> {
       if (existing.source !== 'newsletter' && input.source === 'newsletter') {
         updateData.source = 'newsletter'
       }
+      
+      // If the email previously failed to deliver, reset the flag upon new submission activity
+      if (existing.deliveryFailed) {
+        updateData.deliveryFailed = false
+      }
 
       if (Object.keys(updateData).length > 0) {
         await prisma.emailLead.update({

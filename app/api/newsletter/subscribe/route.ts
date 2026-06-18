@@ -27,19 +27,20 @@ export async function POST(request: NextRequest) {
     })
 
     if (existing) {
-      if (existing.source === 'newsletter') {
+      if (existing.source === 'newsletter' && !existing.deliveryFailed) {
         return NextResponse.json(
           { error: 'This email is already subscribed to our newsletter.' },
           { status: 409 } // 409 Conflict
         )
       }
 
-      // If it exists but with another source, update it to newsletter
+      // If it exists but with another source (or if it previously failed), update it to newsletter and reset deliveryFailed
       await prisma.emailLead.update({
         where: { id: existing.id },
         data: {
           source: 'newsletter',
           name: name?.trim() || existing.name,
+          deliveryFailed: false,
         },
       })
     } else {
