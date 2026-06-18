@@ -148,10 +148,23 @@ export default function Hero() {
                  className="bg-[#040e40]/70 hover:bg-[#040e40] text-white text-lg px-8 py-4 text-center rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-lg border-2 border-white/30 inline-flex items-center backdrop-blur-sm">
                  <i className="fas fa-download mr-2"></i>Download Desktop App
               </Link>
-              <div className="h-[70px] w-[220px] overflow-hidden rounded-lg bg-white p-1 shadow-lg flex items-center justify-center hover:scale-105 transition-transform duration-300">
+              {/* Mobile Facebook Button (Direct link to avoid iframe pop-up/login flash issues on mobile browsers) */}
+              <a href="https://www.facebook.com/itservicefreetown"
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 className="flex sm:hidden bg-white hover:bg-gray-50 text-slate-800 text-lg px-5 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-lg border-2 border-white items-center gap-3 h-[60px] min-w-[220px]">
+                <i className="fab fa-facebook text-[#1877f2] text-2xl flex-shrink-0"></i>
+                <div className="flex flex-col items-start justify-center">
+                  <span className="text-[9px] uppercase tracking-wider text-slate-400 font-black leading-none mb-0.5">Follow Us</span>
+                  <span className="text-sm font-bold text-slate-700 leading-none">3.9K+ Followers</span>
+                </div>
+              </a>
+
+              {/* Desktop Facebook Button (Official live widget with follower count) */}
+              <div className="hidden sm:flex h-[70px] w-[280px] overflow-hidden rounded-lg bg-white p-1 shadow-lg items-center justify-center hover:scale-105 transition-transform duration-300">
                 <iframe
-                  src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2Fitservicefreetown&tabs=&width=220&height=70&small_header=true&adapt_container_width=true&hide_cover=true&show_facepile=false&appId"
-                  width="220"
+                  src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2Fitservicefreetown&tabs=&width=280&height=70&small_header=true&adapt_container_width=true&hide_cover=true&show_facepile=false&appId"
+                  width="280"
                   height="70"
                   style={{ border: 'none', overflow: 'hidden' }}
                   scrolling="no"
