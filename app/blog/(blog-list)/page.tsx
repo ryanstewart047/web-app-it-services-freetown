@@ -2,12 +2,14 @@
 
 import {
   Fragment,
+  Suspense,
   startTransition,
   useDeferredValue,
   useEffect,
   useState,
 } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import {
   ArrowRight,
   BookOpenText,
@@ -128,8 +130,9 @@ function getTagClass(category: string) {
   return styles.tagInsight
 }
 
-export default function BlogPage() {
+function BlogPageContent() {
   const { isLoading } = usePageLoader()
+  const searchParams = useSearchParams()
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({})
   const [commentAuthors, setCommentAuthors] = useState<Record<string, string>>({})
@@ -144,6 +147,13 @@ export default function BlogPage() {
   const deferredQuery = useDeferredValue(searchQuery)
 
   useScrollAnimations()
+
+  useEffect(() => {
+    const query = searchParams ? searchParams.get('search') || searchParams.get('tag') || searchParams.get('q') : ''
+    if (query) {
+      setSearchQuery(query)
+    }
+  }, [searchParams])
 
   useEffect(() => {
     const loadPosts = async () => {
@@ -1001,5 +1011,13 @@ export default function BlogPage() {
         </main>
       </div>
     </>
+  )
+}
+
+export default function BlogPage() {
+  return (
+    <Suspense fallback={<LoadingOverlay />}>
+      <BlogPageContent />
+    </Suspense>
   )
 }

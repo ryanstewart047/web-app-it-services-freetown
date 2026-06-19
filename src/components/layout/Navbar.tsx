@@ -33,8 +33,10 @@ function MegaMenuLink({ href, icon, title, description, color, bg }: {
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [supportDropdownOpen, setSupportDropdownOpen] = useState(false);
+  const [blogDropdownOpen, setBlogDropdownOpen] = useState(false);
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const blogRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
   const toggleMobileMenu = () => {
@@ -44,6 +46,7 @@ export default function Navbar() {
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
     setSupportDropdownOpen(false);
+    setBlogDropdownOpen(false);
     setMobileDropdownOpen(false);
   };
 
@@ -52,6 +55,7 @@ export default function Navbar() {
   };
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const blogTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleMouseEnter = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -62,6 +66,17 @@ export default function Navbar() {
     timeoutRef.current = setTimeout(() => {
       setSupportDropdownOpen(false);
     }, 200); // 200ms delay to make it smooth and avoid accidental closing
+  };
+
+  const handleBlogMouseEnter = () => {
+    if (blogTimeoutRef.current) clearTimeout(blogTimeoutRef.current);
+    setBlogDropdownOpen(true);
+  };
+
+  const handleBlogMouseLeave = () => {
+    blogTimeoutRef.current = setTimeout(() => {
+      setBlogDropdownOpen(false);
+    }, 200);
   };
 
   // Close dropdown when clicking outside
@@ -81,6 +96,24 @@ export default function Navbar() {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [supportDropdownOpen]);
+
+  // Close blog dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (blogRef.current && !blogRef.current.contains(event.target as Node)) {
+        setBlogDropdownOpen(false);
+      }
+    };
+
+    if (blogDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      if (blogTimeoutRef.current) clearTimeout(blogTimeoutRef.current);
+    };
+  }, [blogDropdownOpen]);
 
   return (
     <nav className="bg-white shadow-lg w-full">
@@ -115,7 +148,105 @@ export default function Navbar() {
               <span className="absolute inset-0 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 opacity-0 group-hover:opacity-75 blur-md transition-opacity duration-300 -z-10"></span>
             </Link>
             
-            <Link href="/blog" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/blog' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Blog</Link>
+            {/* Blog Mega Menu (Desktop) */}
+            <div 
+              className="relative" 
+              onMouseEnter={handleBlogMouseEnter}
+              onMouseLeave={handleBlogMouseLeave}
+              ref={blogRef}
+            >
+              <Link 
+                href="/blog" 
+                className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-all duration-300 ${
+                  blogDropdownOpen || pathname === '/blog' ? 'text-red-600 font-semibold' : 'text-gray-700 hover:text-[#040e40]'
+                }`}
+              >
+                Blog
+                <i className={`fas fa-chevron-down text-[10px] transition-transform duration-300 ${blogDropdownOpen ? 'rotate-180' : ''}`}></i>
+              </Link>
+              
+              {/* Mega Menu Container */}
+              <div 
+                onClick={() => setBlogDropdownOpen(false)}
+                className={`absolute right-0 mt-0 w-[500px] bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 p-6 z-50 transition-all duration-300 origin-top-right before:absolute before:inset-x-0 before:-top-4 before:h-4 before:content-[''] ${
+                  blogDropdownOpen 
+                    ? 'opacity-100 translate-y-2 pointer-events-auto scale-100' 
+                    : 'opacity-0 translate-y-4 pointer-events-none scale-95'
+                }`}
+              >
+                <div className="grid grid-cols-2 gap-6">
+                  {/* Column 1: Popular Topics */}
+                  <div className="space-y-4">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-2">Popular Topics</h3>
+                    <div className="space-y-2">
+                      <MegaMenuLink 
+                        href="/blog?search=computer%20repair" 
+                        icon="fas fa-laptop" 
+                        title="PC & Laptop Repair" 
+                        description="Guides on troubleshooting and hardware repair"
+                        color="text-blue-600"
+                        bg="bg-blue-50"
+                      />
+                      <MegaMenuLink 
+                        href="/blog?search=power%20surge" 
+                        icon="fas fa-bolt" 
+                        title="Power Protection" 
+                        description="Surge protectors, stabilizers, and UPS advice"
+                        color="text-amber-600"
+                        bg="bg-amber-50"
+                      />
+                      <MegaMenuLink 
+                        href="/blog?search=backup" 
+                        icon="fas fa-hdd" 
+                        title="Data & Backups" 
+                        description="Backup strategies for home and business data"
+                        color="text-emerald-600"
+                        bg="bg-emerald-50"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Column 2: Tech Guides */}
+                  <div className="space-y-4">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-2">Hardware Guides</h3>
+                    <div className="space-y-2">
+                      <MegaMenuLink 
+                        href="/blog?search=ssd" 
+                        icon="fas fa-microchip" 
+                        title="SSD vs HDD Storage" 
+                        description="Speed & reliability comparison for local setups"
+                        color="text-indigo-600"
+                        bg="bg-indigo-50"
+                      />
+                      <MegaMenuLink 
+                        href="/blog?search=troubleshooting" 
+                        icon="fas fa-tools" 
+                        title="DIY Troubleshooting" 
+                        description="Common issues you can fix yourself"
+                        color="text-purple-600"
+                        bg="bg-purple-50"
+                      />
+                      <MegaMenuLink 
+                        href="/blog?search=business" 
+                        icon="fas fa-briefcase" 
+                        title="Business Technology" 
+                        description="Best IT solutions for local organizations"
+                        color="text-rose-600"
+                        bg="bg-rose-50"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mega Menu Footer */}
+                <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
+                  <span className="text-[10px] text-gray-500 font-medium italic">New Guides Published Weekly</span>
+                  <Link href="/blog" className="text-[10px] font-bold text-red-600 hover:text-red-700 uppercase tracking-wider flex items-center gap-1">
+                    View All Articles <i className="fas fa-arrow-right text-[8px]"></i>
+                  </Link>
+                </div>
+              </div>
+            </div>
 
             <Link href="/forum" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname?.startsWith('/forum') ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>
               <i className="fas fa-users mr-1"></i> Tech Forum
@@ -143,6 +274,7 @@ export default function Navbar() {
               
               {/* Mega Menu Container */}
               <div 
+                onClick={() => setSupportDropdownOpen(false)}
                 className={`absolute right-0 mt-0 w-[600px] bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 p-6 z-50 transition-all duration-300 origin-top-right before:absolute before:inset-x-0 before:-top-4 before:h-4 before:content-[''] ${
                   supportDropdownOpen 
                     ? 'opacity-100 translate-y-2 pointer-events-auto scale-100' 
