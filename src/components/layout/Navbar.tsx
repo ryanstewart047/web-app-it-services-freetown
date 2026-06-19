@@ -51,6 +51,19 @@ export default function Navbar() {
     setSupportDropdownOpen(!supportDropdownOpen);
   };
 
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setSupportDropdownOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setSupportDropdownOpen(false);
+    }, 200); // 200ms delay to make it smooth and avoid accidental closing
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -65,6 +78,7 @@ export default function Navbar() {
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [supportDropdownOpen]);
 
@@ -114,8 +128,9 @@ export default function Navbar() {
             {/* Get Support Mega Menu (Desktop) */}
             <div 
               className="relative" 
-              onMouseEnter={() => setSupportDropdownOpen(true)}
-              onMouseLeave={() => setSupportDropdownOpen(false)}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+              ref={dropdownRef}
             >
               <button 
                 className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-all duration-300 ${
@@ -128,7 +143,7 @@ export default function Navbar() {
               
               {/* Mega Menu Container */}
               <div 
-                className={`absolute right-0 mt-0 w-[600px] bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 p-6 z-50 transition-all duration-300 origin-top-right ${
+                className={`absolute right-0 mt-0 w-[600px] bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 p-6 z-50 transition-all duration-300 origin-top-right before:absolute before:inset-x-0 before:-top-4 before:h-4 before:content-[''] ${
                   supportDropdownOpen 
                     ? 'opacity-100 translate-y-2 pointer-events-auto scale-100' 
                     : 'opacity-0 translate-y-4 pointer-events-none scale-95'
