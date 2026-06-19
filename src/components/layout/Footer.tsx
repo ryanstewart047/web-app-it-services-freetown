@@ -261,6 +261,24 @@ export default function Footer() {
               <h4 className="text-white font-semibold text-sm">Email Marketing</h4>
               <p className="text-gray-400 text-xs mt-1">Send HTML campaigns</p>
             </Link>
+            <Link 
+              href="/admin/newsletter" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              onClick={handleClose}
+            >
+              <i className="fas fa-envelope text-indigo-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+              <h4 className="text-white font-semibold text-sm">Newsletter Popup</h4>
+              <p className="text-gray-400 text-xs mt-1">Popup settings & stats</p>
+            </Link>
+            <Link 
+              href="/ads-admin" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              onClick={handleClose}
+            >
+              <i className="fas fa-ad text-yellow-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+              <h4 className="text-white font-semibold text-sm">Manage Ads</h4>
+              <p className="text-gray-400 text-xs mt-1">Custom ad banners</p>
+            </Link>
           </div>
                 </>
               )}
