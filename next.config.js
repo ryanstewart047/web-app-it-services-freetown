@@ -68,6 +68,16 @@ const nextConfig = {
   // Enable compression
   compress: true,
   
+  // Rewrites for static files that need programmatic serving
+  async rewrites() {
+    return [
+      {
+        source: '/ads.txt',
+        destination: '/api/adstxt',
+      },
+    ];
+  },
+
   // Redirects for common issues
   async redirects() {
     return [
@@ -121,15 +131,6 @@ const nextConfig = {
   // Handle 404s and set proper headers
   async headers() {
     return [
-      {
-        source: '/ads.txt',
-        headers: [
-          {
-            key: 'Content-Type',
-            value: 'text/plain; charset=utf-8',
-          },
-        ],
-      },
       {
         source: '/:path*',
         headers: [

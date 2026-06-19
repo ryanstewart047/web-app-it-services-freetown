@@ -279,6 +279,24 @@ export default function Footer() {
               <h4 className="text-white font-semibold text-sm">Manage Ads</h4>
               <p className="text-gray-400 text-xs mt-1">Custom ad banners</p>
             </Link>
+            <Link 
+              href="/admin/products/bulk-upload" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              onClick={handleClose}
+            >
+              <i className="fas fa-file-upload text-green-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+              <h4 className="text-white font-semibold text-sm">Bulk Upload</h4>
+              <p className="text-gray-400 text-xs mt-1">Upload multiple products</p>
+            </Link>
+            <Link 
+              href="/madinaface3bridgeproject/admin" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              onClick={handleClose}
+            >
+              <i className="fas fa-bridge-water text-blue-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+              <h4 className="text-white font-semibold text-sm">Bridge Gallery Admin</h4>
+              <p className="text-gray-400 text-xs mt-1">Manage project photos</p>
+            </Link>
           </div>
                 </>
               )}
