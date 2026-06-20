@@ -15,6 +15,10 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'mobile_money' | 'cash'>('mobile_money');
   const [isDesktop, setIsDesktop] = useState(false);
+  
+  const [discountCode, setDiscountCode] = useState('');
+  const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; amount: number; type: string } | null>(null);
+  const [validatingDiscount, setValidatingDiscount] = useState(false);
 
   useEffect(() => {
     setIsDesktop(detectDevice().isDesktop);
@@ -32,7 +36,36 @@ export default function CheckoutPage() {
   const subtotal = cartTotal;
   const gst = subtotal * 0.02; // 2% GST
   const shipping = 0; // Free shipping - cost included in product prices
-  const total = subtotal + gst + shipping;
+  let total = subtotal + gst + shipping;
+
+  if (appliedDiscount) {
+    total -= appliedDiscount.amount;
+  }
+  if (total < 0) total = 0;
+
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim()) return;
+    setValidatingDiscount(true);
+    try {
+      const res = await fetch('/api/discount/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: discountCode, email: formData.customerEmail, subtotal })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setAppliedDiscount({ code: discountCode.toUpperCase(), amount: data.calculatedDiscount, type: data.discountType });
+        toast.success('Discount applied!');
+      } else {
+        toast.error(data.error || 'Invalid discount code');
+        setAppliedDiscount(null);
+      }
+    } catch (error) {
+      toast.error('Failed to validate code');
+    } finally {
+      setValidatingDiscount(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,6 +109,8 @@ export default function CheckoutPage() {
         subtotal,
         tax: gst,
         total,
+        discountCode: appliedDiscount?.code || null,
+        discountAmount: appliedDiscount?.amount || 0,
         paymentMethod,
         mobileMoneyNumber: paymentMethod === 'mobile_money' ? formData.mobileMoneyNumber : null,
         notes: formData.notes
@@ -372,6 +407,26 @@ export default function CheckoutPage() {
                 ))}
               </div>
 
+              {/* Discount Code */}
+              <div className="border-t border-gray-200 pt-4 mb-4">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={discountCode}
+                    onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                    placeholder="Discount code"
+                    className="flex-1 px-4 py-2 bg-white text-gray-900 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all uppercase"
+                  />
+                  <button
+                    onClick={handleApplyDiscount}
+                    disabled={validatingDiscount || !discountCode.trim()}
+                    className="px-4 py-2 bg-gray-900 hover:bg-black text-white font-bold rounded-xl transition-all disabled:opacity-50"
+                  >
+                    {validatingDiscount ? '...' : 'Apply'}
+                  </button>
+                </div>
+              </div>
+
               {/* Totals */}
               <div className="border-t border-gray-200 pt-4 space-y-3">
                 <div className="flex justify-between text-gray-600 font-medium">
@@ -386,6 +441,12 @@ export default function CheckoutPage() {
                   <div className="flex justify-between text-gray-600 font-medium">
                     <span>GST (2%)</span>
                     <span className="text-gray-900 font-bold">Le {gst.toLocaleString()}</span>
+                  </div>
+                )}
+                {appliedDiscount && (
+                  <div className="flex justify-between text-green-600 font-medium">
+                    <span>Discount ({appliedDiscount.code})</span>
+                    <span className="font-bold">- Le {appliedDiscount.amount.toLocaleString()}</span>
                   </div>
                 )}
                 <div className="border-t border-gray-200 pt-3 flex justify-between text-xl font-black text-gray-900">

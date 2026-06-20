@@ -280,6 +280,15 @@ export default function Footer() {
               <p className="text-gray-400 text-xs mt-1">Custom ad banners</p>
             </Link>
             <Link 
+              href="/admin/discount-codes" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              onClick={handleClose}
+            >
+              <i className="fas fa-ticket-alt text-teal-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+              <h4 className="text-white font-semibold text-sm">Discount Codes</h4>
+              <p className="text-gray-400 text-xs mt-1">Manage promo codes</p>
+            </Link>
+            <Link 
               href="/admin/products/bulk-upload" 
               className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
               onClick={handleClose}

@@ -16,6 +16,8 @@ export async function POST(request: NextRequest) {
       subtotal,
       tax,
       total,
+      discountCode,
+      discountAmount,
       paymentMethod,
       mobileMoneyNumber,
       notes
@@ -40,6 +42,8 @@ export async function POST(request: NextRequest) {
         subtotal: parseFloat(subtotal),
         tax: parseFloat(tax) || 0,
         total: parseFloat(total),
+        discountCode,
+        discountAmount: parseFloat(discountAmount) || 0,
         paymentMethod,
         mobileMoneyNumber,
         notes,
@@ -68,6 +72,18 @@ export async function POST(request: NextRequest) {
         data: {
           stock: {
             decrement: parseInt(item.quantity)
+          }
+        }
+      });
+    }
+
+    // Increment discount code usage if one was applied
+    if (discountCode) {
+      await prisma.discountCode.update({
+        where: { code: discountCode },
+        data: {
+          timesUsed: {
+            increment: 1
           }
         }
       });
