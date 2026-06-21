@@ -1,6 +1,14 @@
 (function() {
   // IT Services Freetown - Ad Network Client
   // This script fetches and displays internal promotions.
+  const CANONICAL_API_BASE = 'https://www.itservicesfreetown.com';
+  const DEFAULT_AD = {
+    title: 'Free Mobile & PC Diagnostic From Top Technicians in Freetown',
+    description: 'Visit IT Services Freetown for computer and mobile repair support at Jui Junction.',
+    imageUrl: 'https://github.com/ryanstewart047/freetown-website-images/blob/main/images/Get%20It%20Fixed.png?raw=true',
+    targetUrl: 'https://www.itservicesfreetown.com/book-appointment',
+    size: 'leaderboard'
+  };
   
   // Try to find the script tag that loaded this script to determine the base URL
   const scriptTag = document.currentScript || (function() {
@@ -13,8 +21,93 @@
     return null;
   })();
 
+  function getScriptOrigin() {
+    if (!scriptTag || !scriptTag.src) {
+      return CANONICAL_API_BASE;
+    }
+
+    try {
+      return new URL(scriptTag.src).origin;
+    } catch (error) {
+      return CANONICAL_API_BASE;
+    }
+  }
+
+  function resolveApiBase() {
+    const configuredBase = scriptTag && scriptTag.getAttribute('data-api-base');
+    if (configuredBase) {
+      return canonicalizeApiBase(configuredBase);
+    }
+
+    return canonicalizeApiBase(getScriptOrigin());
+  }
+
+  function canonicalizeApiBase(value) {
+    const scriptOrigin = value.replace(/\/+$/, '');
+
+    try {
+      const url = new URL(scriptOrigin);
+      const hostname = url.hostname.toLowerCase();
+
+      if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]') {
+        return scriptOrigin;
+      }
+
+      if (hostname === 'itservicesfreetown.com' || hostname === 'www.itservicesfreetown.com') {
+        return CANONICAL_API_BASE;
+      }
+    } catch (error) {
+      return CANONICAL_API_BASE;
+    }
+
+    return CANONICAL_API_BASE;
+  }
+
+  function escapeHtml(value) {
+    return String(value || '').replace(/[&<>"']/g, function(character) {
+      return {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[character];
+    });
+  }
+
+  function normalizeUrl(value, baseUrl, fallback) {
+    if (!value) {
+      return fallback || '';
+    }
+
+    try {
+      const url = new URL(value, baseUrl);
+      if (url.protocol === 'http:' || url.protocol === 'https:') {
+        return url.href;
+      }
+    } catch (error) {
+      // Ignore malformed URLs and use the fallback below.
+    }
+
+    return fallback || '';
+  }
+
+  function normalizeSize(size) {
+    const allowedSizes = ['rectangle', 'square', 'leaderboard', 'skyscraper'];
+    return allowedSizes.includes(size) ? size : 'rectangle';
+  }
+
+  function renderIntoContainers(containers, ad, baseUrl) {
+    containers.forEach(container => {
+      if (!container.getAttribute('data-its-loaded')) {
+        renderAd(container, ad, baseUrl);
+        container.setAttribute('data-its-loaded', 'true');
+      }
+    });
+  }
+
   const CONFIG = {
-    apiBase: scriptTag ? new URL(scriptTag.src).origin : 'https://itservicesfreetown.com',
+    apiBase: resolveApiBase(),
     containerClass: 'its-ad-unit',
     fallbackColor: '#040e40'
   };
@@ -41,6 +134,8 @@
         
         try {
           const response = await fetch(`${baseUrl}/api/ads/serve`, {
+            mode: 'cors',
+            credentials: 'omit',
             cache: 'no-store',
             headers: { 'Accept': 'application/json' }
           });
@@ -50,18 +145,15 @@
           const data = await response.json();
           console.log('ITS Ad Network: API Response received', data);
 
-          if (data.ad) {
-            containers.forEach(container => {
-              if (!container.getAttribute('data-its-loaded')) {
-                renderAd(container, data.ad, baseUrl);
-                container.setAttribute('data-its-loaded', 'true');
-              }
-            });
+          if (data && data.ad) {
+            renderIntoContainers(containers, data.ad, baseUrl);
           } else {
             console.warn('ITS Ad Network: No active ads found.');
+            renderIntoContainers(containers, DEFAULT_AD, baseUrl);
           }
         } catch (error) {
           console.error('ITS Ad Network API Error:', error);
+          renderIntoContainers(containers, DEFAULT_AD, baseUrl);
         }
         return true;
       }
@@ -94,13 +186,18 @@
   }
 
   function renderAd(container, ad, baseUrl) {
-    const clickUrl = `${baseUrl}/api/ads/click?id=${ad.id}`;
+    const targetUrl = normalizeUrl(ad.targetUrl, baseUrl, DEFAULT_AD.targetUrl);
+    const clickUrl = ad.id
+      ? `${baseUrl}/api/ads/click?id=${encodeURIComponent(ad.id)}`
+      : targetUrl;
     
     // Make image URL absolute if it's relative
-    let imageUrl = ad.imageUrl;
-    if (imageUrl && !imageUrl.startsWith('http')) {
-      imageUrl = `${baseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
-    }
+    const imageUrl = normalizeUrl(ad.imageUrl, baseUrl, DEFAULT_AD.imageUrl);
+    const adSize = normalizeSize(ad.size || DEFAULT_AD.size);
+    const title = escapeHtml(ad.title || DEFAULT_AD.title);
+    const description = escapeHtml(ad.description || DEFAULT_AD.description);
+    const escapedImageUrl = escapeHtml(imageUrl);
+    const escapedClickUrl = escapeHtml(clickUrl);
     
     // Inject Styles
     if (!document.getElementById('its-ad-styles')) {
@@ -294,21 +391,20 @@
       document.head.appendChild(style);
     }
 
-    const adSize = ad.size || 'rectangle';
     const html = `
       <div class="its-ad-card" data-size="${adSize}">
         <div class="its-ad-info-badge" title="Sponsored Advertisement">
           <span class="its-ad-info-icon">i</span>
           <span class="its-ad-info-text">Ads by IT Services Freetown</span>
         </div>
-        <a href="${clickUrl}" target="_blank" class="its-ad-link">
-          ${imageUrl ? `<img src="${imageUrl}" alt="${ad.title}" class="its-ad-img">` : ''}
+        <a href="${escapedClickUrl}" target="_blank" rel="noopener sponsored" class="its-ad-link">
+          ${escapedImageUrl ? `<img src="${escapedImageUrl}" alt="${title}" class="its-ad-img">` : ''}
           <div class="its-ad-content">
-            <h4 class="its-ad-title">${ad.title}</h4>
-            ${ad.description ? `<p class="its-ad-desc">${ad.description}</p>` : ''}
+            <h4 class="its-ad-title">${title}</h4>
+            ${description ? `<p class="its-ad-desc">${description}</p>` : ''}
             <div class="its-ad-footer">
               <span class="its-ad-badge">Sponsored by IT Services Freetown</span>
-              <span class="its-ad-cta">Learn More →</span>
+              <span class="its-ad-cta">Learn More &rarr;</span>
             </div>
           </div>
         </a>
