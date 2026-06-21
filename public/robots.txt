@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
+Allow: /ads.txt
 Disallow: /admin
 Disallow: /api/
 Disallow: /checkout
@@ -42,6 +43,7 @@ Disallow: /*debug*
 
 User-agent: Googlebot
 Allow: /
+Allow: /ads.txt
 Disallow: /admin
 Disallow: /api/
 Disallow: /checkout

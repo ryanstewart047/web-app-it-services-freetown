@@ -47,12 +47,12 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: '/',
+        allow: ['/', '/ads.txt'],
         disallow: blockedPaths,
       },
       {
         userAgent: 'Googlebot',
-        allow: '/',
+        allow: ['/', '/ads.txt'],
         disallow: blockedPaths,
       },
     ],
