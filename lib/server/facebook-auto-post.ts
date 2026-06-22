@@ -246,7 +246,14 @@ async function publishPhotoToFacebook(message: string, photoUrl: string) {
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok || data.error) {
-    const message = data?.error?.message || `Facebook API returned ${response.status}`;
+    const details = [
+      data?.error?.message || `Facebook API returned ${response.status}`,
+      data?.error?.type ? `type: ${data.error.type}` : '',
+      data?.error?.code ? `code: ${data.error.code}` : '',
+      data?.error?.error_subcode ? `subcode: ${data.error.error_subcode}` : '',
+      data?.error?.fbtrace_id ? `trace: ${data.error.fbtrace_id}` : '',
+    ].filter(Boolean);
+    const message = details.join(' | ');
     throw new Error(message);
   }
 
@@ -348,6 +355,7 @@ export async function runFacebookAutoPost(options: { force?: boolean; triggeredB
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown Facebook posting error';
+    console.error('[FacebookAutoPost] Publish failed:', errorMessage);
     const log = await db.facebookAutoPostLog.create({
       data: {
         status: 'error',

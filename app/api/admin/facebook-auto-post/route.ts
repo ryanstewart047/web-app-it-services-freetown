@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const result = await runFacebookAutoPost({ force: true, triggeredBy: 'admin' });
-    return NextResponse.json(result, { status: result.status === 'error' ? 500 : 200 });
+    return NextResponse.json(result);
   } catch (error) {
     console.error('[FacebookAutoPost POST]', error);
     return NextResponse.json({ error: 'Failed to publish Facebook post' }, { status: 500 });
