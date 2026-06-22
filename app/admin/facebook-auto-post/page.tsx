@@ -329,7 +329,7 @@ export default function FacebookAutoPostAdminPage() {
                 className="mt-3 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               />
               <span className="mt-2 block text-xs text-slate-500">
-                The deployment checks hourly and only posts after this interval has passed.
+                Vercel Hobby checks once daily. Use an external scheduler for faster intervals.
               </span>
             </label>
 

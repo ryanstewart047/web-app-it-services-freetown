@@ -19,13 +19,13 @@ The Facebook token must be a Page access token with permission to publish posts/
 
 ## Scheduler
 
-`vercel.json` runs this endpoint hourly:
+`vercel.json` runs this endpoint daily:
 
 ```text
 /api/cron/facebook-auto-post
 ```
 
-The endpoint only posts when automation is enabled and the configured minimum interval has passed. For example, if the panel is set to 24 hours, the hourly check will skip until the next post is due. You can also trigger a post manually from the admin panel.
+The endpoint only posts when automation is enabled and the configured minimum interval has passed. Vercel Hobby accounts only support daily cron jobs, so use an external scheduler with `CRON_SECRET` if you need checks more often than once per day. You can also trigger a post manually from the admin panel.
 
 Vercel Cron requests are accepted when they arrive with Vercel's official `vercel-cron/1.0` user agent. `CRON_SECRET` is still recommended for external schedulers or manual server-to-server calls.
 
