@@ -84,4 +84,10 @@ Disallow: /test-
 Disallow: /*-test$
 Disallow: /*debug*
 
+User-agent: Google-adstxt
+Allow: /ads.txt
+
+User-agent: Mediapartners-Google
+Allow: /
+
 Sitemap: https://www.itservicesfreetown.com/sitemap.xml

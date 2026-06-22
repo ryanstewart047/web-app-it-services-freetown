@@ -55,6 +55,14 @@ export default function robots(): MetadataRoute.Robots {
         allow: ['/', '/ads.txt'],
         disallow: blockedPaths,
       },
+      {
+        userAgent: 'Google-adstxt',
+        allow: ['/ads.txt'],
+      },
+      {
+        userAgent: 'Mediapartners-Google',
+        allow: ['/'],
+      },
     ],
     sitemap: 'https://www.itservicesfreetown.com/sitemap.xml',
   };
