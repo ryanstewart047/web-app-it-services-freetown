@@ -376,6 +376,37 @@ model NewsletterSettings {
   updatedAt    DateTime @updatedAt
 }
 
+model FacebookAutoPostSettings {
+  id              String    @id @default("active")
+  enabled         Boolean   @default(false)
+  intervalHours   Int       @default(24)
+  messageTemplate String    @default("{topic}\n\nNeed help with a phone, laptop, or computer in Freetown? Book a diagnostic with IT Services Freetown today.\n\n{link}\n\n{hashtags}")
+  linkUrl         String?
+  topics          Json?
+  photoUrls       Json?
+  hashtags        Json?
+  lastPostAt      DateTime?
+  nextPostAfter   DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model FacebookAutoPostLog {
+  id             String   @id @default(cuid())
+  status         String
+  triggeredBy    String   @default("cron")
+  topic          String?
+  message        String?
+  photoUrl       String?
+  facebookPostId String?
+  facebookPhotoId String?
+  error          String?
+  createdAt      DateTime @default(now())
+
+  @@index([status])
+  @@index([createdAt])
+}
+
 model EmailLead {
   id             String   @id @default(cuid())
   email          String
