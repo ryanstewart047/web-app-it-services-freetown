@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { hasAdminSession } from '@/lib/server/admin-session';
 import {
+  clearFacebookAutoPostLogs,
   getFacebookAutoPostDashboard,
   runFacebookAutoPost,
   updateFacebookAutoPostSettings,
@@ -58,5 +59,19 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[FacebookAutoPost POST]', error);
     return NextResponse.json({ error: 'Failed to publish Facebook post' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  if (!hasAdminSession(request)) {
+    return unauthorized();
+  }
+
+  try {
+    const count = await clearFacebookAutoPostLogs();
+    return NextResponse.json({ success: true, deleted: count });
+  } catch (error) {
+    console.error('[FacebookAutoPost DELETE]', error);
+    return NextResponse.json({ error: 'Failed to clear logs' }, { status: 500 });
   }
 }

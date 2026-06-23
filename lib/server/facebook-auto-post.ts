@@ -171,6 +171,11 @@ export async function getFacebookAutoPostDashboard() {
   };
 }
 
+export async function clearFacebookAutoPostLogs(): Promise<number> {
+  const result = await db.facebookAutoPostLog.deleteMany({});
+  return result.count;
+}
+
 export async function updateFacebookAutoPostSettings(input: Partial<FacebookAutoPostSettingsDto>) {
   const intervalHours = clampNumber(input.intervalHours, 1, 168, 24);
   const topics = asStringList(input.topics, DEFAULT_TOPICS);

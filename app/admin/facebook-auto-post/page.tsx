@@ -15,6 +15,7 @@ import {
   Send,
   ToggleLeft,
   ToggleRight,
+  Trash2,
 } from 'lucide-react';
 
 interface Settings {
@@ -116,6 +117,7 @@ export default function FacebookAutoPostAdminPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [posting, setPosting] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -201,6 +203,30 @@ export default function FacebookAutoPostAdminPage() {
     }
   }
 
+  async function clearLogs() {
+    if (!confirm('Clear all recent run logs? This cannot be undone.')) return;
+
+    setClearing(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const response = await fetch('/api/admin/facebook-auto-post', { method: 'DELETE' });
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to clear logs');
+      }
+
+      setLogs([]);
+      setMessage(`Cleared ${data.deleted} log ${data.deleted === 1 ? 'entry' : 'entries'}.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to clear logs');
+    } finally {
+      setClearing(false);
+    }
+  }
+
   async function postNow() {
     if (!confirm('Publish a random Facebook post now?')) {
       return;
@@ -260,6 +286,14 @@ export default function FacebookAutoPostAdminPage() {
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             Refresh
+          </button>
+          <button
+            onClick={clearLogs}
+            disabled={clearing || loading || logs.length === 0}
+            className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 shadow-sm transition hover:bg-red-50 disabled:opacity-40"
+          >
+            {clearing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+            Clear Logs
           </button>
           <button
             onClick={postNow}
