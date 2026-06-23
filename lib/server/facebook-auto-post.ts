@@ -98,6 +98,25 @@ function randomItem(values: string[]): string {
   return values[Math.floor(Math.random() * values.length)];
 }
 
+/**
+ * Picks the next item using rotation: avoids items used in recent history.
+ * Once all items have been used, the cycle resets and starts over.
+ * Falls back to random if items list is empty or history is empty.
+ */
+function pickRotating(items: string[], recentlyUsed: string[]): string {
+  if (items.length === 0) return '';
+  if (items.length === 1) return items[0];
+
+  // Find items NOT in the recent history window
+  const unused = items.filter(item => !recentlyUsed.includes(item));
+
+  // If all items have been used (full cycle complete), reset and pick any
+  const pool = unused.length > 0 ? unused : items;
+
+  // Among the pool, pick randomly so order isn't always the same
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 function normalizeLinkUrl(value: unknown): string {
   const raw = String(value || '').trim();
   if (!raw) {
@@ -349,9 +368,23 @@ export async function runFacebookAutoPost(options: { force?: boolean; triggeredB
     };
   }
 
-  const topic = randomItem(settings.topics);
-  const photoUrl = randomItem(settings.photoUrls);
-  const message = buildMessage(settings, topic);
+  // Fetch recent successful logs to power topic/photo rotation
+  // Use a window of max(topics.length, photoUrls.length) so each item
+  // gets used before repeating.
+  const rotationWindow = Math.max(settings.topics.length, settings.photoUrls.length, 1);
+  const recentLogs = await db.facebookAutoPostLog.findMany({
+    where: { status: 'success' },
+    orderBy: { createdAt: 'desc' },
+    take: rotationWindow,
+    select: { topic: true, photoUrl: true },
+  });
+
+  const recentTopics  = recentLogs.map((l: { topic: string | null }) => l.topic).filter(Boolean) as string[];
+  const recentPhotos  = recentLogs.map((l: { photoUrl: string | null }) => l.photoUrl).filter(Boolean) as string[];
+
+  const topic    = pickRotating(settings.topics, recentTopics);
+  const photoUrl = pickRotating(settings.photoUrls, recentPhotos);
+  const message  = buildMessage(settings, topic);
 
   try {
     const result = await publishPhotoToFacebook(message, photoUrl);
