@@ -145,7 +145,7 @@ function serializeLog(log: any): FacebookAutoPostLogDto {
 export function getFacebookConfigStatus(): FacebookAutoPostConfigStatus {
   const hasPageId = Boolean(process.env.FACEBOOK_PAGE_ID);
   const hasAccessToken = Boolean(process.env.FACEBOOK_PAGE_ACCESS_TOKEN);
-  const graphVersion = process.env.FACEBOOK_GRAPH_API_VERSION || 'v23.0';
+  const graphVersion = process.env.FACEBOOK_GRAPH_API_VERSION || 'v25.0';
 
   return {
     hasPageId,
@@ -222,10 +222,44 @@ function buildMessage(settings: FacebookAutoPostSettingsDto, topic: string): str
   return message.slice(0, 5000);
 }
 
+async function publishToFacebookFeed(message: string) {
+  const pageId = process.env.FACEBOOK_PAGE_ID;
+  const accessToken = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
+  const graphVersion = process.env.FACEBOOK_GRAPH_API_VERSION || 'v25.0';
+
+  if (!pageId || !accessToken) {
+    throw new Error('Facebook page ID or page access token is not configured');
+  }
+
+  const endpoint = `https://graph.facebook.com/${graphVersion}/${encodeURIComponent(pageId)}/feed`;
+  const body = new URLSearchParams({
+    access_token: accessToken,
+    message,
+  });
+
+  const response = await fetch(endpoint, { method: 'POST', body });
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok || data.error) {
+    const details = [
+      data?.error?.message || `Facebook API returned ${response.status}`,
+      data?.error?.type ? `type: ${data.error.type}` : '',
+      data?.error?.code ? `code: ${data.error.code}` : '',
+      data?.error?.fbtrace_id ? `trace: ${data.error.fbtrace_id}` : '',
+    ].filter(Boolean);
+    throw new Error(details.join(' | '));
+  }
+
+  return {
+    facebookPhotoId: null,
+    facebookPostId: data.id ? String(data.id) : null,
+  };
+}
+
 async function publishPhotoToFacebook(message: string, photoUrl: string) {
   const pageId = process.env.FACEBOOK_PAGE_ID;
   const accessToken = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
-  const graphVersion = process.env.FACEBOOK_GRAPH_API_VERSION || 'v23.0';
+  const graphVersion = process.env.FACEBOOK_GRAPH_API_VERSION || 'v25.0';
 
   if (!pageId || !accessToken) {
     throw new Error('Facebook page ID or page access token is not configured');
@@ -239,10 +273,7 @@ async function publishPhotoToFacebook(message: string, photoUrl: string) {
     published: 'true',
   });
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    body,
-  });
+  const response = await fetch(endpoint, { method: 'POST', body });
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok || data.error) {
@@ -253,8 +284,15 @@ async function publishPhotoToFacebook(message: string, photoUrl: string) {
       data?.error?.error_subcode ? `subcode: ${data.error.error_subcode}` : '',
       data?.error?.fbtrace_id ? `trace: ${data.error.fbtrace_id}` : '',
     ].filter(Boolean);
-    const message = details.join(' | ');
-    throw new Error(message);
+    const errMsg = details.join(' | ');
+
+    // If photo posting fails due to permissions, fall back to a text-only feed post
+    if (data?.error?.code === 200) {
+      console.warn('[FacebookAutoPost] Photo post failed (permissions). Falling back to text-only feed post.');
+      return publishToFacebookFeed(message);
+    }
+
+    throw new Error(errMsg);
   }
 
   return {
