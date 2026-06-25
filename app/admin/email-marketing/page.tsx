@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
-import { Send, Users, Image as ImageIcon, Type, Link as LinkIcon, CheckSquare, Square, Trash2, RefreshCw, Mail, ArrowLeft, Sparkles, Wand2 } from 'lucide-react'
+import { Send, Users, Image as ImageIcon, Link as LinkIcon, CheckSquare, Square, Trash2, RefreshCw, Mail, ArrowLeft, Sparkles, Wand2, Calendar, ToggleLeft, ToggleRight, Plus, X, FlaskConical, History, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import 'react-quill/dist/quill.snow.css'
 
@@ -17,6 +17,25 @@ interface EmailLead {
   deliveryFailed: boolean
 }
 
+interface NewsletterSettings {
+  id: string
+  enabled: boolean
+  subjectPrefix: string
+  topics: string[]
+  lastSentAt: string | null
+}
+
+interface NewsletterLog {
+  id: string
+  status: string
+  topic: string
+  subject: string
+  imageUrl: string | null
+  recipients: number
+  error: string | null
+  createdAt: string
+}
+
 const modules = {
   toolbar: [
     [{ header: [1, 2, 3, false] }],
@@ -27,6 +46,17 @@ const modules = {
     ['clean'],
   ],
 }
+
+const DEFAULT_TOPICS = [
+  "5 Essential Tips to Keep Your Laptop from Overheating in Freetown's Heat",
+  "How to Protect Your Smartphone Screen from Scratches and Accidental Drops",
+  "Warning Signs Your Computer Hard Drive is About to Fail (And How to Save Your Data)",
+  "Easy Ways to Boost Your Home Wi-Fi Signal Strength and Speed",
+  "Why You Should Stop Leaving Your Phone Plugs and Laptop Chargers in the Outlet",
+  "How to Clean Your Phone Charging Port Safely (Fix Charging Issues)",
+  "How to Secure Your Social Media Accounts from Hackers (2-Factor Authentication)",
+  "What to Do Immediately if You Spill Water or Tea on Your Laptop"
+]
 
 export default function EmailMarketingPage() {
   const quillRef = useRef<any>(null)
@@ -48,9 +78,23 @@ export default function EmailMarketingPage() {
   const [isConfigured, setIsConfigured] = useState<boolean | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
 
+  // --- Weekly Newsletter State ---
+  const [newsletterSettings, setNewsletterSettings] = useState<NewsletterSettings | null>(null)
+  const [newsletterLogs, setNewsletterLogs] = useState<NewsletterLog[]>([])
+  const [showNewsletterPanel, setShowNewsletterPanel] = useState(false)
+  const [newsletterLoading, setNewsletterLoading] = useState(false)
+  const [savingSettings, setSavingSettings] = useState(false)
+  const [testEmail, setTestEmail] = useState('')
+  const [testTopic, setTestTopic] = useState('')
+  const [sendingTest, setSendingTest] = useState(false)
+  const [newTopic, setNewTopic] = useState('')
+  const [showLogs, setShowLogs] = useState(false)
+
   useEffect(() => {
     fetchLeads()
     checkConfig()
+    fetchNewsletterSettings()
+    fetchNewsletterLogs()
   }, [])
 
   const filteredLeads = leads.filter(lead => 
@@ -73,6 +117,113 @@ export default function EmailMarketingPage() {
       setIsConfigured(data.configured)
     } catch (e) {
       setIsConfigured(false)
+    }
+  }
+
+  const fetchNewsletterSettings = async () => {
+    try {
+      const res = await fetch('/api/admin/email-marketing/newsletter-settings')
+      if (res.ok) {
+        const data = await res.json()
+        setNewsletterSettings({
+          ...data,
+          topics: Array.isArray(data.topics) ? data.topics : DEFAULT_TOPICS
+        })
+      }
+    } catch (e) {
+      console.error('Failed to fetch newsletter settings')
+    }
+  }
+
+  const fetchNewsletterLogs = async () => {
+    try {
+      const res = await fetch('/api/admin/email-marketing/newsletter-logs')
+      if (res.ok) {
+        const data = await res.json()
+        setNewsletterLogs(data.logs || [])
+      }
+    } catch (e) {
+      console.error('Failed to fetch newsletter logs')
+    }
+  }
+
+  const saveNewsletterSettings = async () => {
+    if (!newsletterSettings) return
+    setSavingSettings(true)
+    try {
+      const res = await fetch('/api/admin/email-marketing/newsletter-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newsletterSettings)
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setNewsletterSettings({ ...data, topics: Array.isArray(data.topics) ? data.topics : DEFAULT_TOPICS })
+        alert('✅ Newsletter settings saved successfully!')
+      } else {
+        alert('❌ Failed to save settings.')
+      }
+    } catch (e) {
+      alert('❌ Error saving settings.')
+    } finally {
+      setSavingSettings(false)
+    }
+  }
+
+  const sendTestNewsletter = async () => {
+    if (!testEmail) {
+      alert('Please enter a test email address.')
+      return
+    }
+    setSendingTest(true)
+    try {
+      const res = await fetch('/api/admin/email-marketing/newsletter-trigger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ testEmail, topic: testTopic || undefined })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        alert(`✅ Test newsletter sent!\n\nTopic: ${data.topic}\nSubject: ${data.subject}\nSent to: ${data.recipient}`)
+        fetchNewsletterLogs()
+      } else {
+        alert('❌ Failed to send test: ' + (data.error || 'Unknown error'))
+      }
+    } catch (e) {
+      alert('❌ Error sending test newsletter.')
+    } finally {
+      setSendingTest(false)
+    }
+  }
+
+  const addTopic = () => {
+    if (!newTopic.trim()) return
+    if (!newsletterSettings) return
+    setNewsletterSettings(prev => prev ? {
+      ...prev,
+      topics: [...prev.topics, newTopic.trim()]
+    } : prev)
+    setNewTopic('')
+  }
+
+  const removeTopic = (index: number) => {
+    if (!newsletterSettings) return
+    setNewsletterSettings(prev => prev ? {
+      ...prev,
+      topics: prev.topics.filter((_, i) => i !== index)
+    } : prev)
+  }
+
+  const clearNewsletterLogs = async () => {
+    if (!confirm('Clear all newsletter run history logs?')) return
+    try {
+      const res = await fetch('/api/admin/email-marketing/newsletter-logs', { method: 'DELETE' })
+      if (res.ok) {
+        setNewsletterLogs([])
+        alert('✅ Logs cleared.')
+      }
+    } catch (e) {
+      alert('❌ Failed to clear logs.')
     }
   }
 
@@ -644,6 +795,217 @@ export default function EmailMarketingPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* ========== WEEKLY AUTO-NEWSLETTER PANEL ========== */}
+        <div className="mt-10 rounded-3xl border-2 border-emerald-100 bg-white shadow-sm overflow-hidden">
+          {/* Panel Header */}
+          <button
+            onClick={() => setShowNewsletterPanel(!showNewsletterPanel)}
+            className="w-full flex items-center justify-between p-6 hover:bg-emerald-50/50 transition"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-200">
+                <Calendar className="h-6 w-6 text-white" />
+              </div>
+              <div className="text-left">
+                <h2 className="text-xl font-black text-slate-900">Weekly Auto-Newsletter</h2>
+                <p className="text-sm text-slate-500">Fires every Monday at 9 AM — AI writes it, Pollinations generates the image, system sends it</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {newsletterSettings && (
+                <span className={`rounded-full px-3 py-1 text-xs font-black ${newsletterSettings.enabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                  {newsletterSettings.enabled ? '● Active' : '○ Inactive'}
+                </span>
+              )}
+              {showNewsletterPanel ? <ChevronUp className="h-5 w-5 text-slate-400" /> : <ChevronDown className="h-5 w-5 text-slate-400" />}
+            </div>
+          </button>
+
+          {showNewsletterPanel && (
+            <div className="border-t border-emerald-100 p-6 space-y-8">
+
+              {/* Enable/Disable toggle */}
+              {newsletterSettings && (
+                <div className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 p-5">
+                  <div>
+                    <p className="font-black text-slate-800">Enable Automated Weekly Send</p>
+                    <p className="text-sm text-slate-500 mt-0.5">When enabled, the system automatically sends every Monday at 9:00 AM.</p>
+                    {newsletterSettings.lastSentAt && (
+                      <p className="mt-1 text-xs text-slate-400">Last sent: {new Date(newsletterSettings.lastSentAt).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setNewsletterSettings(prev => prev ? { ...prev, enabled: !prev.enabled } : prev)}
+                    className="flex-shrink-0"
+                  >
+                    {newsletterSettings.enabled
+                      ? <ToggleRight className="h-10 w-10 text-emerald-500" />
+                      : <ToggleLeft className="h-10 w-10 text-slate-300" />}
+                  </button>
+                </div>
+              )}
+
+              {/* Subject Prefix */}
+              {newsletterSettings && (
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-500">Email Subject Prefix</label>
+                  <input
+                    type="text"
+                    value={newsletterSettings.subjectPrefix}
+                    onChange={e => setNewsletterSettings(prev => prev ? { ...prev, subjectPrefix: e.target.value } : prev)}
+                    placeholder="e.g. IT Services Freetown: "
+                    className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-5 py-3.5 text-slate-900 font-semibold outline-none focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-50 transition"
+                  />
+                  <p className="mt-1 text-xs text-slate-400">This text appears before the AI-generated subject line. Example: <em>IT Services Freetown: 5 Tips to Protect Your Phone Screen</em></p>
+                </div>
+              )}
+
+              {/* Topics Pool */}
+              {newsletterSettings && (
+                <div>
+                  <label className="mb-3 block text-xs font-bold uppercase tracking-wider text-slate-500">Newsletter Topics Pool ({newsletterSettings.topics.length} topics)</label>
+                  <p className="mb-3 text-sm text-slate-500">The system rotates through these topics automatically, using each one before repeating. The AI generates unique content for each topic every week.</p>
+                  <div className="space-y-2 mb-4">
+                    {newsletterSettings.topics.map((topic, index) => (
+                      <div key={index} className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-2.5">
+                        <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-black text-emerald-700">{index + 1}</span>
+                        <p className="flex-1 text-sm text-slate-700">{topic}</p>
+                        <button
+                          onClick={() => removeTopic(index)}
+                          className="text-slate-300 hover:text-red-500 transition flex-shrink-0"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newTopic}
+                      onChange={e => setNewTopic(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && addTopic()}
+                      placeholder="Add a new newsletter topic..."
+                      className="flex-1 rounded-xl border border-slate-100 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-emerald-300 focus:ring-2 focus:ring-emerald-50 transition"
+                    />
+                    <button
+                      onClick={addTopic}
+                      disabled={!newTopic.trim()}
+                      className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-black text-white hover:bg-emerald-700 disabled:opacity-40 transition"
+                    >
+                      <Plus className="h-4 w-4" /> Add
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Save Settings */}
+              <div className="flex justify-end">
+                <button
+                  onClick={saveNewsletterSettings}
+                  disabled={savingSettings || !newsletterSettings}
+                  className="flex items-center gap-2 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 px-8 py-3.5 text-sm font-black text-white shadow-lg shadow-emerald-200 hover:from-emerald-700 hover:to-teal-800 disabled:opacity-50 transition hover:scale-105"
+                >
+                  {savingSettings ? <RefreshCw className="h-4 w-4 animate-spin" /> : null}
+                  {savingSettings ? 'Saving...' : 'Save Settings'}
+                </button>
+              </div>
+
+              {/* Test Send Section */}
+              <div className="rounded-2xl border-2 border-amber-100 bg-amber-50/40 p-5">
+                <div className="mb-4 flex items-center gap-2">
+                  <FlaskConical className="h-5 w-5 text-amber-600" />
+                  <h3 className="font-black text-amber-900">Send a Test Newsletter Now</h3>
+                </div>
+                <p className="mb-4 text-sm text-amber-700">This will generate a full newsletter email using AI (with a unique illustration) and send it to the address below. The next rotating topic will be selected automatically unless you specify one.</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-[10px] font-bold uppercase text-amber-700">Test Recipient Email</label>
+                    <input
+                      type="email"
+                      value={testEmail}
+                      onChange={e => setTestEmail(e.target.value)}
+                      placeholder="support@itservicesfreetown.com"
+                      className="w-full rounded-xl border border-amber-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[10px] font-bold uppercase text-amber-700">Override Topic (optional)</label>
+                    <input
+                      type="text"
+                      value={testTopic}
+                      onChange={e => setTestTopic(e.target.value)}
+                      placeholder="Leave blank to use next rotation topic"
+                      className="w-full rounded-xl border border-amber-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition"
+                    />
+                  </div>
+                </div>
+                <div className="mt-4 flex justify-end">
+                  <button
+                    onClick={sendTestNewsletter}
+                    disabled={sendingTest || !testEmail}
+                    className="flex items-center gap-2 rounded-2xl bg-amber-600 px-8 py-3 text-sm font-black text-white shadow-md shadow-amber-200 hover:bg-amber-700 disabled:opacity-50 transition"
+                  >
+                    {sendingTest ? <RefreshCw className="h-4 w-4 animate-spin" /> : <FlaskConical className="h-4 w-4" />}
+                    {sendingTest ? 'Generating & Sending...' : 'Send Test Email'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Run History Logs */}
+              <div>
+                <button
+                  onClick={() => setShowLogs(!showLogs)}
+                  className="flex w-full items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 px-5 py-3.5 hover:bg-slate-100 transition"
+                >
+                  <div className="flex items-center gap-2">
+                    <History className="h-4 w-4 text-slate-500" />
+                    <span className="font-black text-sm text-slate-700">Run History ({newsletterLogs.length} logs)</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {newsletterLogs.length > 0 && (
+                      <button
+                        onClick={e => { e.stopPropagation(); clearNewsletterLogs() }}
+                        className="text-xs font-bold text-red-500 hover:underline"
+                      >
+                        Clear All
+                      </button>
+                    )}
+                    {showLogs ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
+                  </div>
+                </button>
+
+                {showLogs && (
+                  <div className="mt-2 space-y-2">
+                    {newsletterLogs.length === 0 ? (
+                      <p className="py-8 text-center text-sm text-slate-400">No newsletter runs logged yet. Send a test to see history here.</p>
+                    ) : (
+                      newsletterLogs.slice(0, 20).map(log => (
+                        <div key={log.id} className={`rounded-xl border px-4 py-3 text-sm ${log.status === 'success' ? 'border-emerald-100 bg-emerald-50' : 'border-red-100 bg-red-50'}`}>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1">
+                              <p className="font-bold text-slate-800 line-clamp-1">{log.topic}</p>
+                              <p className="text-xs text-slate-500 mt-0.5">{log.subject}</p>
+                            </div>
+                            <div className="flex-shrink-0 text-right">
+                              <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${log.status === 'success' ? 'bg-emerald-200 text-emerald-800' : 'bg-red-200 text-red-800'}`}>
+                                {log.status === 'success' ? `✓ ${log.recipients} sent` : '✕ Failed'}
+                              </span>
+                              <p className="mt-1 text-[10px] text-slate-400">{new Date(log.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+                            </div>
+                          </div>
+                          {log.error && <p className="mt-1 text-xs text-red-600 font-medium">{log.error}</p>}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+
+            </div>
+          )}
         </div>
 
       </div>

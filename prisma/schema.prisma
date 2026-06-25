@@ -453,3 +453,27 @@ model DiscountCode {
 
   @@index([code])
 }
+
+model WeeklyNewsletterSettings {
+  id            String    @id @default("active")
+  enabled       Boolean   @default(false)
+  subjectPrefix String    @default("IT Services Freetown: ")
+  topics        Json?     // Array of string topics (e.g. ["5 battery tips", "screen safety"])
+  lastSentAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model WeeklyNewsletterLog {
+  id         String   @id @default(cuid())
+  status     String   // "success" | "failed"
+  topic      String
+  subject    String
+  imageUrl   String?
+  recipients Int
+  error      String?
+  createdAt  DateTime @default(now())
+
+  @@index([status])
+  @@index([createdAt])
+}
