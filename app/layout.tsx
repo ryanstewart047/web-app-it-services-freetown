@@ -141,6 +141,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: '/',
   },
+  other: {
+    'fb:app_id': '2508538602950972',
+  },
 }
 
 export default function RootLayout({
