@@ -651,16 +651,65 @@ export default function EmailMarketingPage() {
             </div>
 
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:p-8">
-              <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-slate-500">Live Mobile Preview</h3>
-              <div className="mx-auto max-w-[375px] rounded-[3rem] border-[8px] border-slate-900 bg-white shadow-2xl">
-                <div className="h-6 w-full bg-slate-900"></div>
-                <div className="h-[500px] overflow-y-auto p-4 text-sm">
-                  <div className="mb-4 border-b border-slate-100 pb-2">
-                    <p className="text-[10px] text-slate-400">Subject: <span className="text-slate-900 font-bold">{subject || '(No Subject)'}</span></p>
-                  </div>
-                  <div dangerouslySetInnerHTML={{ __html: content }} className="preview-content" />
+              <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-slate-500">Live Mobile Preview (iPhone 12)</h3>
+              
+              {/* iPhone 12 Container */}
+              <div className="relative mx-auto w-[320px] h-[650px] rounded-[40px] border-[10px] border-slate-900 bg-slate-900 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.4)] ring-4 ring-slate-800 ring-opacity-30">
+                {/* Ring / Silent Toggle */}
+                <div className="absolute top-[80px] -left-[13px] h-[20px] w-[3px] rounded-l bg-slate-800"></div>
+                {/* Volume Up */}
+                <div className="absolute top-[120px] -left-[13px] h-[40px] w-[3px] rounded-l bg-slate-800"></div>
+                {/* Volume Down */}
+                <div className="absolute top-[170px] -left-[13px] h-[40px] w-[3px] rounded-l bg-slate-800"></div>
+                {/* Side Power Button */}
+                <div className="absolute top-[140px] -right-[13px] h-[60px] w-[3px] rounded-r bg-slate-800"></div>
+
+                {/* The Notch */}
+                <div className="absolute top-0 left-1/2 z-50 h-[22px] w-[140px] -translate-x-1/2 rounded-b-[14px] bg-slate-900 flex items-center justify-center gap-1.5 pb-1">
+                  {/* Speaker */}
+                  <div className="h-[3px] w-[35px] rounded-full bg-zinc-700"></div>
+                  {/* Camera */}
+                  <div className="h-[6px] w-[6px] rounded-full bg-zinc-800 border border-zinc-700/50"></div>
                 </div>
-                <div className="h-6 w-full bg-slate-900"></div>
+
+                {/* Screen Content Wrapper */}
+                <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[30px] bg-white pt-[22px] pb-[16px]">
+                  {/* Status Bar */}
+                  <div className="flex h-[24px] items-center justify-between px-6 text-[10px] font-bold text-slate-800 select-none bg-slate-50 border-b border-slate-100">
+                    <span>9:41</span>
+                    <div className="flex items-center gap-1">
+                      {/* Signal */}
+                      <svg className="h-2.5 w-2.5 text-slate-800" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M2 22h20V2z" />
+                      </svg>
+                      {/* Wifi */}
+                      <svg className="h-2.5 w-2.5 text-slate-800" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 21l-12-12c4.4-4.4 11.6-4.4 16 0z" />
+                      </svg>
+                      {/* Battery */}
+                      <div className="h-3 w-5 rounded-sm border border-slate-800 p-0.5 flex items-center">
+                        <div className="h-full w-full bg-slate-800 rounded-2xs"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mail Header / App bar */}
+                  <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-2 text-xs text-slate-500 font-semibold select-none">
+                    <div className="h-6 w-6 rounded-full bg-blue-500 flex items-center justify-center text-[10px] font-black text-white">ITS</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-slate-800 truncate text-[11px]">IT Services Freetown</p>
+                      <p className="text-[9px] text-slate-400 truncate">Subject: {subject || '(No Subject)'}</p>
+                    </div>
+                  </div>
+
+                  {/* Email Body Scroll Area */}
+                  <div className="flex-1 overflow-y-auto p-4 text-xs scrollbar-thin">
+                    <div dangerouslySetInnerHTML={{ __html: content }} className="preview-content" />
+                  </div>
+
+                  {/* Home Indicator */}
+                  <div className="absolute bottom-1 left-1/2 h-[4px] w-[110px] -translate-x-1/2 rounded-full bg-slate-800 z-50"></div>
+                </div>
               </div>
             </div>
 
