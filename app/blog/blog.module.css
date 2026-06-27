@@ -159,6 +159,9 @@
     transform 180ms ease,
     box-shadow 180ms ease,
     border-color 180ms ease;
+  margin-inline: auto;
+  width: 100%;
+  max-width: 380px;
 }
 
 .storyCard:hover {
