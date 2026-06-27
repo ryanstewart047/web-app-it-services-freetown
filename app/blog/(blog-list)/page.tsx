@@ -739,7 +739,7 @@ function BlogPageContent() {
                 </div>
               </div>
 
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                 {libraryPosts.map((post, index) => {
                   const category = getPostCategory(post)
                   const image = getPrimaryImage(post)
@@ -961,7 +961,7 @@ function BlogPageContent() {
                       </article>
 
                       {(index + 1) % 3 === 0 && index < libraryPosts.length - 1 && (
-                        <div className="col-span-full">
+                        <div className="md:col-span-2 xl:col-span-3">
                           <div className="scroll-animate">
                             <InFeedAd />
                           </div>

@@ -222,20 +222,15 @@
   position: absolute;
   inset: auto 0 0;
   z-index: 3;
-  padding: 4rem 1.1rem 1.1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  width: 100%;
+  padding: 5rem 1.1rem 1.1rem;
 }
 
 .storyTitle {
   color: white;
-  font-size: clamp(1.15rem, 1.5vw, 1.35rem);
+  font-size: clamp(1.45rem, 2vw, 2rem);
   font-weight: 900;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  line-height: 1;
+  letter-spacing: -0.03em;
   text-wrap: balance;
   text-shadow: 0 12px 30px rgba(2, 6, 23, 0.35);
 }
@@ -244,7 +239,6 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
   gap: 0.65rem;
   color: rgba(226, 232, 240, 0.92);
 }
@@ -278,21 +272,18 @@
 
 .storyFooterRow {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.65rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.85rem;
   margin-top: 0.95rem;
-  width: 100%;
 }
 
 .storyReadHint {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 0.45rem;
   color: rgba(255, 255, 255, 0.92);
-  font-size: 0.82rem;
+  font-size: 0.88rem;
   font-weight: 700;
 }
 
@@ -309,8 +300,8 @@
   pointer-events: auto;
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.4rem;
+  justify-content: flex-end;
+  gap: 0.45rem;
 }
 
 .storyActionButton {
@@ -371,8 +362,8 @@
   display: inline-flex;
   align-items: center;
   border-radius: 9999px;
-  padding: 0.35rem 0.65rem;
-  font-size: 0.68rem;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
@@ -599,12 +590,12 @@
 
   .storyFooterRow {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     gap: 0.75rem;
   }
 
   .storyActionRail {
-    justify-content: center;
+    justify-content: flex-start;
   }
 }
 
@@ -649,8 +640,8 @@
   }
 
   .storyTitle {
-    font-size: clamp(1.15rem, 5vw, 1.35rem);
-    line-height: 1.1;
+    font-size: clamp(1.35rem, 6.6vw, 1.9rem);
+    line-height: 0.98;
   }
 
   .storySubMeta {
@@ -671,7 +662,7 @@
   }
 
   .storyActionRail {
-    justify-content: center;
+    justify-content: flex-start;
     gap: 0.35rem;
   }
 
