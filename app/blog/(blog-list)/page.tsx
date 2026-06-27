@@ -961,7 +961,7 @@ function BlogPageContent() {
                       </article>
 
                       {(index + 1) % 3 === 0 && index < libraryPosts.length - 1 && (
-                        <div className="md:col-span-2 xl:col-span-3">
+                        <div className="col-span-full">
                           <div className="scroll-animate">
                             <InFeedAd />
                           </div>
