@@ -1327,3 +1327,12 @@ h3:not(.animate-on-scroll),
   border-left-color: #3b82f6 !important;
   background-color: #1e293b !important;
 }
+
+/* Auto-collapse unfilled Google AdSense ads to prevent blank white spaces */
+.adsbygoogle[data-ad-status="unfilled"],
+.adsense-container:has(ins.adsbygoogle[data-ad-status="unfilled"]) {
+  display: none !important;
+  height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
