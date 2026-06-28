@@ -12,44 +12,63 @@ interface AdSenseProps {
 
 /**
  * Google AdSense Component
- * 
- * Status: PROD-READY with User-Provided IDs
+ *
  * Publisher ID: ca-pub-9989697800650646
+ * Optimised for fast load: uses IntersectionObserver with 200px early trigger
+ * so ads are requested before they scroll into view.
  */
 
-// Check if AdSense is approved (set this to true after approval)
 const ADSENSE_APPROVED = process.env.NEXT_PUBLIC_ADSENSE_APPROVED === 'true'
+const PUB_ID = 'ca-pub-9989697800650646'
 
 export default function AdSense({
-  adSlot = '1036914951', // Default to Display Ad ID
+  adSlot = '1036914951',
   adFormat = 'auto',
   adLayout,
   adStyle = { display: 'block' },
-  className = ''
+  className = '',
 }: AdSenseProps) {
   const adRef = useRef<HTMLModElement>(null)
-  const isAdPushed = useRef(false)
-  
-  // Don't render manual ads until AdSense is approved to prevent 400 errors
-  if (!ADSENSE_APPROVED) {
-    return null
-  }
-  
+  const pushed = useRef(false)
+
   useEffect(() => {
-    try {
-      // Only push ad once and if the element exists
-      if (typeof window !== 'undefined' && adRef.current && !isAdPushed.current) {
-        // Check if ad is already initialized
-        const adElement = adRef.current
-        if (!adElement.getAttribute('data-ad-status')) {
-          ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({})
-          isAdPushed.current = true
+    if (!ADSENSE_APPROVED || pushed.current || !adRef.current) return
+
+    const el = adRef.current
+
+    const push = () => {
+      if (pushed.current) return
+      try {
+        if (typeof window !== 'undefined' && !el.getAttribute('data-ad-status')) {
+          ;((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({})
+          pushed.current = true
         }
+      } catch (err) {
+        console.error('AdSense push error:', err)
       }
-    } catch (err) {
-      console.error('AdSense error:', err)
+    }
+
+    // Use IntersectionObserver with a 200px early margin so the ad
+    // is requested before it visually enters the viewport.
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting) {
+            push()
+            observer.disconnect()
+          }
+        },
+        { rootMargin: '200px 0px', threshold: 0 }
+      )
+      observer.observe(el)
+      return () => observer.disconnect()
+    } else {
+      // Fallback for older browsers — push immediately
+      push()
     }
   }, [])
+
+  if (!ADSENSE_APPROVED) return null
 
   return (
     <div className={`adsense-container ${className}`}>
@@ -57,73 +76,53 @@ export default function AdSense({
         ref={adRef}
         className="adsbygoogle"
         style={adStyle}
-        data-ad-client="ca-pub-9989697800650646" 
+        data-ad-client={PUB_ID}
         data-ad-slot={adSlot}
         data-ad-format={adFormat}
-        data-ad-layout={adLayout}
+        {...(adLayout ? { 'data-ad-layout': adLayout } : {})}
         data-full-width-responsive="true"
       />
     </div>
   )
 }
 
-/**
- * Predefined AdSense Layouts with Production IDs
- */
+// ─── Predefined layouts ────────────────────────────────────────────────────
 
-// Responsive Display Ad (works everywhere)
+/** Responsive Display Ad */
 export function DisplayAd({ className }: { className?: string }) {
-  return (
-    <AdSense
-      adSlot="1036914951" 
-      adFormat="auto"
-      className={className}
-    />
-  )
+  return <AdSense adSlot="1036914951" adFormat="auto" className={className} />
 }
 
-// In-Article Ad (for blog posts)
+/** In-Article Ad */
 export function InArticleAd({ className }: { className?: string }) {
-  return (
-    <AdSense
-      adSlot="4541969135" 
-      adFormat="auto"
-      className={className}
-    />
-  )
+  return <AdSense adSlot="4541969135" adFormat="fluid" adLayout="in-article" className={className} />
 }
 
-// Multiplex Ad (native ad grid)
+/** Multiplex / native grid Ad */
 export function MultiplexAd({ className }: { className?: string }) {
   return (
     <AdSense
-      adSlot="6836036542" 
-      adFormat="auto"
-      adLayout="multiplex"
+      adSlot="6836036542"
+      adFormat="autorelaxed"
+      adLayout="in-article"
       className={className}
     />
   )
 }
 
-// In-Feed Ad (for blog lists)
+/** In-Feed Ad */
 export function InFeedAd({ className }: { className?: string }) {
-  return (
-    <AdSense
-      adSlot="1357402596" 
-      adFormat="auto"
-      className={className}
-    />
-  )
+  return <AdSense adSlot="1357402596" adFormat="fluid" adLayout="in-article" className={className} />
 }
 
-// Horizontal Ad (for headers/footers)
+/** Horizontal banner Ad */
 export function HorizontalAd({ className }: { className?: string }) {
   return (
     <AdSense
-      adSlot="1036914951" // Reusing Display ID for horizontal
+      adSlot="1036914951"
       adFormat="horizontal"
-      className={className}
       adStyle={{ display: 'block' }}
+      className={className}
     />
   )
 }
