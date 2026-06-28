@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface AdSenseProps {
   adSlot?: string
@@ -14,8 +14,7 @@ interface AdSenseProps {
  * Google AdSense Component
  *
  * Publisher ID: ca-pub-9989697800650646
- * Optimised for fast load: uses IntersectionObserver with 200px early trigger
- * so ads are requested before they scroll into view.
+ * Optimized for fast load & automatic collapse of unfilled ads on all devices
  */
 
 const ADSENSE_APPROVED = process.env.NEXT_PUBLIC_ADSENSE_APPROVED === 'true'
@@ -28,13 +27,31 @@ export default function AdSense({
   adStyle = { display: 'block' },
   className = '',
 }: AdSenseProps) {
+  const [isUnfilled, setIsUnfilled] = useState(false)
   const adRef = useRef<HTMLModElement>(null)
   const pushed = useRef(false)
 
   useEffect(() => {
-    if (!ADSENSE_APPROVED || pushed.current || !adRef.current) return
+    if (!ADSENSE_APPROVED || !adRef.current) return
 
     const el = adRef.current
+
+    // Check initial state in case it was set instantly
+    if (el.getAttribute('data-ad-status') === 'unfilled') {
+      setIsUnfilled(true)
+    }
+
+    // Set up a MutationObserver to watch for Google's status changes
+    const statusObserver = new MutationObserver(() => {
+      if (el.getAttribute('data-ad-status') === 'unfilled') {
+        setIsUnfilled(true)
+      }
+    })
+
+    statusObserver.observe(el, {
+      attributes: true,
+      attributeFilter: ['data-ad-status']
+    })
 
     const push = () => {
       if (pushed.current) return
@@ -48,27 +65,34 @@ export default function AdSense({
       }
     }
 
-    // Use IntersectionObserver with a 200px early margin so the ad
-    // is requested before it visually enters the viewport.
+    let scrollObserver: IntersectionObserver | null = null
+
+    // Use IntersectionObserver with a 200px early margin
     if ('IntersectionObserver' in window) {
-      const observer = new IntersectionObserver(
+      scrollObserver = new IntersectionObserver(
         (entries) => {
           if (entries[0].isIntersecting) {
             push()
-            observer.disconnect()
+            scrollObserver?.disconnect()
           }
         },
         { rootMargin: '200px 0px', threshold: 0 }
       )
-      observer.observe(el)
-      return () => observer.disconnect()
+      scrollObserver.observe(el)
     } else {
       // Fallback for older browsers — push immediately
       push()
     }
+
+    return () => {
+      statusObserver.disconnect()
+      if (scrollObserver) {
+        scrollObserver.disconnect()
+      }
+    }
   }, [])
 
-  if (!ADSENSE_APPROVED) return null
+  if (!ADSENSE_APPROVED || isUnfilled) return null
 
   return (
     <div className={`adsense-container ${className}`}>
