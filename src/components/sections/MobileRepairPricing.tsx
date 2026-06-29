@@ -193,7 +193,7 @@ const MobileRepairPricing: React.FC = () => {
     {
       id: 'xiaomi',
       name: 'Xiaomi',
-      icon: 'https://images.pexels.com/photos/1092651/pexels-photo-1092651.jpeg?auto=compress&cs=tinysrgb&w=400',
+      icon: 'https://images.pexels.com/photos/699122/pexels-photo-699122.jpeg?auto=compress&cs=tinysrgb&w=400',
       services: [
         { name: 'Screen/LCD Replacement', price: 'Le 500 - Le 1200+' },
         { name: 'Battery Replacement', price: 'Le 200 - Le 400+' },
