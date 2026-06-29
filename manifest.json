@@ -55,6 +55,12 @@
   "related_applications": [],
   "prefer_related_applications": false,
   "dir": "ltr",
+  "scope_extensions": [
+    {
+      "type": "origin",
+      "origin": "https://itservicesfreetown.com"
+    }
+  ],
   "shortcuts": [
     {
       "name": "Book Appointment",

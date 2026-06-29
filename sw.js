@@ -1,25 +1,17 @@
 // Service Worker for IT Services Freetown PWA
-const CACHE_NAME = 'it-services-freetown-v1.0.0';
-const OFFLINE_URL = '/index.html';
+const CACHE_NAME = 'it-services-freetown-v2.0.0';
+const OFFLINE_URL = '/';
 
 // Files to cache for offline functionality
+// NOTE: Only cache files that actually exist — Next.js serves routes, not .html files
 const CACHE_FILES = [
   '/',
-  '/index.html',
-  '/book-appointment.html',
-  '/track-repair.html',
-  '/chat.html',
-  '/troubleshoot.html',
-  '/assets/css/output.css',
+  '/manifest.json',
   '/assets/logo.svg',
   '/assets/pwa-icon-192.png',
   '/assets/pwa-icon-512.png',
-  '/assets/favicon-52x52.png',
-  '/assets/favicon-16x16.png',
-  '/manifest.json',
+  '/favicon.ico',
   '/?source=pwa',
-  // Add Font Awesome for offline use
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 
 // Install event - cache files
