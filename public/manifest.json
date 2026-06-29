@@ -123,6 +123,7 @@
   "prefer_related_applications": false,
   "scope_extensions": [
     {
+      "type": "origin",
       "origin": "https://itservicesfreetown.com"
     }
   ],

@@ -89,6 +89,26 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip third-party ad/analytics domains — let the browser handle them natively
+  // to avoid FetchEvent network errors caused by CORS/opaque responses
+  const BYPASS_DOMAINS = [
+    'pagead2.googlesyndication.com',
+    'tpc.googlesyndication.com',
+    'googleads.g.doubleclick.net',
+    'ep1.adtrafficquality.google',
+    'ep2.adtrafficquality.google',
+    'fundingchoicesmessages.google.com',
+    'adservice.google.com',
+    'www.googletagmanager.com',
+    'www.google-analytics.com',
+    'www.googleadservices.com',
+    'adtrafficquality.google',
+  ];
+
+  if (BYPASS_DOMAINS.some(domain => url.hostname.includes(domain))) {
+    return;
+  }
+
   event.respondWith(
     (async () => {
       try {
