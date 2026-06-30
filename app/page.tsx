@@ -3,7 +3,7 @@
 import Hero from '@/components/sections/Hero'
 import Services from '@/components/sections/Services'
 import WhyChooseUs from '@/components/sections/WhyChooseUs'
-import WhyFreetown from '@/components/sections/WhyFreetown'
+// import WhyFreetown from '@/components/sections/WhyFreetown'
 import CommonIssues from '@/components/sections/CommonIssues'
 import TrackRecord from '@/components/sections/TrackRecord'
 import MobileRepairPricing from '@/components/sections/MobileRepairPricing'
@@ -36,7 +36,7 @@ export default function Home() {
       </div>
 
       <MobileRepairPricing />
-      <WhyFreetown />
+      {/* <WhyFreetown /> */}
       <CommonIssues />
       <WhyChooseUs />
       <TrackRecord />
