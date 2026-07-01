@@ -10,8 +10,10 @@ import PageBanner from '@/components/PageBanner'
 import { 
   generateChatResponseClient, 
   isRepairTrackingQueryClient, 
+  extractTrackingIdClient,
   handleRepairTrackingClient, 
   isCustomerLookupQuery,
+  hasCustomerLookupInfo,
   handleCustomerLookup,
   isStaticDeployment 
 } from '@/lib/groq-ai-client'
@@ -25,6 +27,75 @@ interface Message {
   trackingData?: any
 }
 
+const CHAT_SESSION_STORAGE_KEY = 'its-chat-support-session-v1'
+
+const initialAssistantMessage =
+  'Hello! I\'m Alison, your AI assistant at IT Services Freetown. How can I help you today?\n\n🔧 I can help you with:\n• Device troubleshooting and repair advice\n• Booking new appointments\n• **Tracking your existing repairs** (just provide your tracking ID)\n• **Finding your repair** by name, email, or phone number\n• General IT support questions\n• Connecting you with our live agents\n\nWhat would you like assistance with?'
+
+const createMessage = (
+  content: string,
+  sender: 'user' | 'bot' | 'agent',
+  type: 'text' | 'system' | 'transfer' | 'tracking' = 'text',
+  trackingData?: any
+): Message => ({
+  id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  content,
+  sender,
+  timestamp: new Date(),
+  type,
+  trackingData
+})
+
+const createInitialMessage = (): Message =>
+  createMessage(initialAssistantMessage, 'bot')
+
+const buildConversationHistory = (chatMessages: Message[]) =>
+  chatMessages
+    .filter(message => message.type !== 'system' && message.content.trim().length > 0)
+    .map(message => ({
+      role: message.sender === 'user' ? 'user' as const : 'assistant' as const,
+      content: message.content
+    }))
+    .slice(-12)
+
+const hasPendingCustomerLookup = (chatMessages: Message[]) => {
+  const recentText = chatMessages
+    .slice(-6)
+    .map(message => message.content.toLowerCase())
+    .join(' ')
+
+  return [
+    'forgot my tracking',
+    'lost my tracking',
+    'find my repair',
+    'find your repair',
+    'provide one of the following',
+    'your full name',
+    'your email address',
+    'your phone number',
+    'please provide your tracking id'
+  ].some(phrase => recentText.includes(phrase))
+}
+
+const isLostTrackingLookupMessage = (message: string) => {
+  const msg = message.toLowerCase()
+
+  return [
+    'forgot my tracking',
+    'lost my tracking',
+    'do not have my tracking',
+    'don\'t have my tracking',
+    'dont have my tracking',
+    'do not know my tracking',
+    'don\'t know my tracking',
+    'dont know my tracking',
+    'find my repair',
+    'find my tracking',
+    'look up my repair',
+    'lookup my repair'
+  ].some(phrase => msg.includes(phrase))
+}
+
 export default function Chat() {
   const { isLoading, progress } = usePageLoader({
     minLoadTime: 1600
@@ -34,15 +105,7 @@ export default function Chat() {
   useScrollAnimations()
   
   const [isClient, setIsClient] = useState(false)
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      content: 'Hello! I\'m Alison, your AI assistant at IT Services Freetown. How can I help you today?\n\n🔧 I can help you with:\n• Device troubleshooting and repair advice\n• Booking new appointments\n• **Tracking your existing repairs** (just provide your tracking ID)\n• **Finding your repair** by name, email, or phone number\n• General IT support questions\n• Connecting you with our live agents\n\nWhat would you like assistance with?',
-      sender: 'bot',
-      timestamp: new Date(),
-      type: 'text'
-    }
-  ])
+  const [messages, setMessages] = useState<Message[]>(() => [createInitialMessage()])
   
   const [inputMessage, setInputMessage] = useState('')
   const [isTyping, setIsTyping] = useState(false)
@@ -50,7 +113,47 @@ export default function Chat() {
 
   useEffect(() => {
     setIsClient(true)
+    const savedMessages = window.sessionStorage.getItem(CHAT_SESSION_STORAGE_KEY)
+
+    if (!savedMessages) return
+
+    try {
+      const parsedMessages = JSON.parse(savedMessages)
+
+      if (!Array.isArray(parsedMessages)) return
+
+      const restoredMessages = parsedMessages
+        .filter((message: any) => typeof message?.content === 'string' && ['user', 'bot', 'agent'].includes(message?.sender))
+        .map((message: any) => {
+          const restoredTimestamp = message.timestamp ? new Date(message.timestamp) : new Date()
+
+          return {
+            ...message,
+            timestamp: Number.isNaN(restoredTimestamp.getTime()) ? new Date() : restoredTimestamp,
+            type: message.type || 'text'
+          }
+        })
+
+      if (restoredMessages.length > 0) {
+        setMessages(restoredMessages)
+      }
+    } catch (error) {
+      console.warn('Unable to restore chat session:', error)
+      window.sessionStorage.removeItem(CHAT_SESSION_STORAGE_KEY)
+    }
   }, [])
+
+  useEffect(() => {
+    if (!isClient) return
+
+    window.sessionStorage.setItem(
+      CHAT_SESSION_STORAGE_KEY,
+      JSON.stringify(messages.map(message => ({
+        ...message,
+        timestamp: message.timestamp.toISOString()
+      })))
+    )
+  }, [isClient, messages])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -60,18 +163,42 @@ export default function Chat() {
     scrollToBottom()
   }, [messages])
 
-  const getBotResponse = async (userMessage: string) => {
+  const getBotResponse = async (userMessage: string, previousMessages: Message[] = messages) => {
     setIsTyping(true)
     
     // Minimum typing delay (3 seconds) so the bot feels more natural
     const minDelay = new Promise(resolve => setTimeout(resolve, 3000))
     
     try {
+      const conversationHistory = buildConversationHistory(previousMessages)
+      const shouldAllowBareNameLookup = hasPendingCustomerLookup(previousMessages)
+      const hasTrackingId = extractTrackingIdClient(userMessage) !== null
+      const shouldRunLookupFollowUp =
+        shouldAllowBareNameLookup && hasCustomerLookupInfo(userMessage, { allowBareName: true })
+      const shouldRunDirectLookup =
+        isCustomerLookupQuery(userMessage) &&
+        (isLostTrackingLookupMessage(userMessage) || !isRepairTrackingQueryClient(userMessage))
+      const shouldRunCustomerLookup =
+        !hasTrackingId && (shouldRunLookupFollowUp || shouldRunDirectLookup)
+
       // Check if we're in a static deployment (GitHub Pages)
       const useClientSide = isStaticDeployment()
       console.log('Using client-side AI for chat:', useClientSide)
       
       if (useClientSide) {
+        // Handle customer lookup by name/email/phone, including follow-up names after a lookup prompt
+        if (shouldRunCustomerLookup) {
+          const [lookupResult] = await Promise.all([
+            handleCustomerLookup(userMessage, { allowBareName: shouldAllowBareNameLookup }),
+            minDelay
+          ])
+          addMessage(lookupResult.response, 'bot',
+            lookupResult.source === 'repair_tracking' ? 'tracking' : 'text',
+            lookupResult.trackingData)
+          setIsTyping(false)
+          return
+        }
+
         // Handle repair tracking queries first (client-side)
         if (isRepairTrackingQueryClient(userMessage)) {
           const [trackingResult] = await Promise.all([
@@ -85,23 +212,11 @@ export default function Chat() {
           return
         }
 
-        // Handle customer lookup by name/email/phone
-        if (isCustomerLookupQuery(userMessage)) {
-          const [lookupResult] = await Promise.all([
-            handleCustomerLookup(userMessage),
-            minDelay
-          ])
-          addMessage(lookupResult.response, 'bot',
-            lookupResult.source === 'repair_tracking' ? 'tracking' : 'text',
-            lookupResult.trackingData)
-          setIsTyping(false)
-          return
-        }
-
         // Use client-side Google AI API for static deployments
         const [aiResponse] = await Promise.all([
           generateChatResponseClient({
             userMessage,
+            conversationHistory,
             systemContext: 'chat_support'
           }),
           minDelay
@@ -116,7 +231,7 @@ export default function Chat() {
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ message: userMessage }),
+            body: JSON.stringify({ message: userMessage, conversationHistory }),
           }),
           minDelay
         ])
@@ -140,25 +255,26 @@ export default function Chat() {
   }
 
   const addMessage = (content: string, sender: 'user' | 'bot' | 'agent', type: 'text' | 'system' | 'transfer' | 'tracking' = 'text', trackingData?: any) => {
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      content,
-      sender,
-      timestamp: new Date(),
-      type,
-      trackingData
-    }
+    const newMessage = createMessage(content, sender, type, trackingData)
     setMessages(prev => [...prev, newMessage])
+    return newMessage
   }
 
   const sendMessage = () => {
     if (!inputMessage.trim()) return
 
-    addMessage(inputMessage, 'user')
-    const userMsg = inputMessage
+    const userMsg = inputMessage.trim()
+    const previousMessages = messages
+    addMessage(userMsg, 'user')
     setInputMessage('')
     
-    getBotResponse(userMsg)
+    getBotResponse(userMsg, previousMessages)
+  }
+
+  const sendQuickMessage = (displayMessage: string, aiMessage = displayMessage) => {
+    const previousMessages = messages
+    addMessage(displayMessage, 'user')
+    getBotResponse(aiMessage, previousMessages)
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -202,7 +318,7 @@ export default function Chat() {
     parts.forEach((part, partIdx) => {
       if (typeof part === 'string') {
         const subParts = part.split(urlRegex);
-        const matches = part.match(urlRegex) || [];
+        const matches: string[] = part.match(urlRegex) || [];
         
         let matchIdx = 0;
         for (let i = 0; i < subParts.length; i++) {
@@ -382,39 +498,27 @@ export default function Chat() {
             <p className="text-sm text-gray-600 mb-3">Quick actions:</p>
             <div className="flex flex-wrap gap-2">
               <button
-                onClick={() => {
-                  addMessage('I need help booking an appointment', 'user')
-                  getBotResponse('book appointment')
-                }}
+                onClick={() => sendQuickMessage('I need help booking an appointment', 'book appointment')}
                 className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm hover:bg-red-200 transition-colors"
               >
                 Book Appointment
               </button>
               <button
-                onClick={() => {
-                  addMessage('I want to track my repair', 'user')
-                  getBotResponse('track my repair')
-                }}
+                onClick={() => sendQuickMessage('I want to track my repair', 'track my repair')}
                 className="px-3 py-1 bg-[#040e40]/10 text-[#040e40] rounded-full text-sm hover:bg-[#040e40]/20 transition-colors"
               >
                 <i className="fas fa-search mr-1"></i>
                 Track Repair
               </button>
               <button
-                onClick={() => {
-                  addMessage('I lost my tracking ID, can you find my repair?', 'user')
-                  getBotResponse('find my repair, I lost my tracking ID')
-                }}
+                onClick={() => sendQuickMessage('I lost my tracking ID, can you find my repair?', 'find my repair, I lost my tracking ID')}
                 className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm hover:bg-purple-200 transition-colors"
               >
                 <i className="fas fa-user-search mr-1"></i>
                 Find My Repair
               </button>
               <button
-                onClick={() => {
-                  addMessage('ITS-250926-1001', 'user')
-                  getBotResponse('ITS-250926-1001')
-                }}
+                onClick={() => sendQuickMessage('ITS-250926-1001')}
                 className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition-colors"
               >
                 Demo: ITS-250926-1001

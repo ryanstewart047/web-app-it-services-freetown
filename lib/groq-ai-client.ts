@@ -15,6 +15,11 @@ interface GroqMessage {
   content: string
 }
 
+interface ConversationHistoryMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
 interface GroqAPIResponse {
   choices: Array<{
     message: {
@@ -31,8 +36,12 @@ interface GroqAPIResponse {
 
 interface ChatContext {
   userMessage: string
-  conversationHistory?: string[]
+  conversationHistory?: Array<string | ConversationHistoryMessage>
   systemContext?: string
+}
+
+interface CustomerLookupOptions {
+  allowBareName?: boolean
 }
 
 interface TroubleshootingContext {
@@ -50,6 +59,24 @@ function isStaticDeployment(): boolean {
   // Always use client-side AI for static export deployments
   // This includes local dev, GitHub Pages, and custom domains
   return true
+}
+
+function normalizeConversationHistory(history?: Array<string | ConversationHistoryMessage>): ConversationHistoryMessage[] {
+  if (!history) return []
+
+  return history
+    .map((entry) => {
+      if (typeof entry === 'string') {
+        return { role: 'user' as const, content: entry }
+      }
+
+      return {
+        role: entry.role === 'assistant' ? 'assistant' as const : 'user' as const,
+        content: entry.content
+      }
+    })
+    .filter((entry) => entry.content.trim().length > 0)
+    .slice(-12)
 }
 
 /**
@@ -142,13 +169,16 @@ export async function generateChatResponseClient(context: ChatContext): Promise<
 15. For booking, give only: the /book-appointment link OR the phone number — not both
 16. Only invite reviews when a customer is clearly satisfied and wrapping up
 17. Share WhatsApp group only if the user asks about community or staying updated
-18. **NEVER write bullet-point walls of text. Short = better. If in doubt, say less.**`
+18. Use the recent conversation history. If the customer answers with a name, email, or phone after you asked for lookup details, treat it as the requested repair lookup info and do not greet them like a new chat.
+19. **NEVER write bullet-point walls of text. Short = better. If in doubt, say less.**`
 
   try {
     console.log('🔍 [CLIENT-SIDE] Calling AI via Backend Proxy:', context.userMessage)
     
+    const historyMessages = normalizeConversationHistory(context.conversationHistory)
     const messages: GroqMessage[] = [
       { role: 'system', content: systemMessage },
+      ...historyMessages,
       { role: 'user', content: context.userMessage }
     ]
     
@@ -969,7 +999,7 @@ async function searchRepairsByCustomerInfoClient(info: {
  * Extract customer info (name, email, phone) from a chat message.
  * Returns null if no identifiable info found.
  */
-function extractCustomerInfo(message: string): { name?: string; email?: string; phone?: string } | null {
+function extractCustomerInfo(message: string, options: CustomerLookupOptions = {}): { name?: string; email?: string; phone?: string } | null {
   const info: { name?: string; email?: string; phone?: string } = {};
 
   // Extract email
@@ -999,7 +1029,31 @@ function extractCustomerInfo(message: string): { name?: string; email?: string; 
     }
   }
 
+  if (options.allowBareName) {
+    const bareName = message.trim().replace(/\s+/g, ' ');
+    const words = bareName.split(' ').filter(Boolean);
+    const commonNonNames = new Set([
+      'yes', 'no', 'ok', 'okay', 'thanks', 'thank you', 'hello', 'hi', 'hey',
+      'track repair', 'book appointment', 'call me', 'help me'
+    ]);
+
+    const looksLikeBareName =
+      words.length >= 1 &&
+      words.length <= 4 &&
+      !commonNonNames.has(bareName.toLowerCase()) &&
+      /^[a-zA-Z][a-zA-Z.'-]*(\s+[a-zA-Z][a-zA-Z.'-]*){0,3}$/.test(bareName);
+
+    if (looksLikeBareName) {
+      info.name = bareName;
+      return info;
+    }
+  }
+
   return null;
+}
+
+export function hasCustomerLookupInfo(message: string, options: CustomerLookupOptions = {}): boolean {
+  return extractCustomerInfo(message, options) !== null;
 }
 
 /**
@@ -1022,12 +1076,12 @@ export function isCustomerLookupQuery(message: string): boolean {
 /**
  * Handle customer lookup by name/email/phone — find their tracking ID(s)
  */
-export async function handleCustomerLookup(message: string): Promise<{
+export async function handleCustomerLookup(message: string, options: CustomerLookupOptions = {}): Promise<{
   response: string;
   source: string;
   trackingData?: any;
 }> {
-  const customerInfo = extractCustomerInfo(message);
+  const customerInfo = extractCustomerInfo(message, options);
 
   if (!customerInfo) {
     return {
