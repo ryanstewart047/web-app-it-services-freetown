@@ -91,6 +91,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
+      url: `${baseUrl}/repair-cost-checker-freetown`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.85,
+    },
+    {
       url: `${baseUrl}/troubleshoot`,
       lastModified: new Date(),
       changeFrequency: 'weekly',

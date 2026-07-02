@@ -286,7 +286,23 @@ export default function Navbar() {
                   <div className="space-y-4">
                     <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-2">Support Resources</h3>
                     <div className="space-y-2">
-                      <MegaMenuLink 
+                      <MegaMenuLink
+                        href="/repair-cost-checker-freetown"
+                        icon="fas fa-calculator"
+                        title="Repair Cost Checker"
+                        description="Estimate repair prices before booking"
+                        color="text-red-600"
+                        bg="bg-red-50"
+                      />
+                      <MegaMenuLink
+                        href="/repair-showcase"
+                        icon="fas fa-camera-retro"
+                        title="Repair Showcase"
+                        description="Before & After repair gallery"
+                        color="text-teal-600"
+                        bg="bg-teal-50"
+                      />
+                      <MegaMenuLink
                         href="/repair-guides" 
                         icon="fas fa-book-medical" 
                         title="Repair Guides" 
@@ -448,6 +464,22 @@ export default function Navbar() {
               
               {mobileDropdownOpen && (
                 <div className="mt-2 ml-6 mr-2 bg-gradient-to-br from-gray-50 to-red-50 rounded-lg border-2 border-[#040e40]/10 overflow-hidden">
+                  <Link
+                    href="/repair-cost-checker-freetown"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
+                    onClick={closeMobileMenu}
+                  >
+                    <i className="fas fa-calculator w-5 text-red-600"></i>
+                    <span className="ml-3 font-medium">Repair Cost Checker</span>
+                  </Link>
+                  <Link
+                    href="/repair-showcase"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
+                    onClick={closeMobileMenu}
+                  >
+                    <i className="fas fa-camera-retro w-5 text-teal-600"></i>
+                    <span className="ml-3 font-medium">Repair Showcase</span>
+                  </Link>
                   <Link
                     href="/repair-guides"
                     className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
