@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { CheckCircle2, Clock, MapPin, MessageCircle, Phone, ArrowRight, ShieldCheck, HelpCircle } from 'lucide-react'
 import { seoServices } from '@/data/seo-services'
 import { DisplayAd, MultiplexAd } from '@/components/AdSense'
+import { AffiliateProductCard } from '@/components/ui/AffiliateProductCard'
 import Image from 'next/image'
 
 export const dynamicParams = false
@@ -168,6 +169,34 @@ export default function RepairServicePage({ params }: { params: { slug: string }
                 </p>
               </details>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Recommended Accessories (Affiliate) */}
+      <section className="py-12 px-4 bg-slate-50 border-t border-slate-200">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8 text-center">
+            <h2 className="text-3xl font-bold text-slate-900 mb-4">Recommended Repair Accessories</h2>
+            <p className="text-slate-600">Top-rated tools and accessories recommended by our expert technicians.</p>
+          </div>
+          
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <AffiliateProductCard
+              title="Professional Repair Tool Kit"
+              description="A complete precision screwdriver set, perfect for opening phones, laptops, and tablets safely."
+              affiliateLink="https://amzn.to/4p3vuFx"
+            />
+            <AffiliateProductCard
+              title="Premium Device Cleaning Kit"
+              description="Keep your newly repaired device spotless with this safe, anti-static cleaning kit."
+              affiliateLink="https://amzn.to/4auoL1A"
+            />
+            <AffiliateProductCard
+              title="High-Quality Screen Protector"
+              description="Protect your screen from future drops and scratches with industry-leading tempered glass."
+              affiliateLink="https://amzn.to/44IIoiU"
+            />
           </div>
         </div>
       </section>

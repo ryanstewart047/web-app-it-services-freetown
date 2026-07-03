@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getWishlistSessionId } from '@/utils/wishlistSession';
 import { DisplayAd, MultiplexAd } from '@/components/AdSense';
+import { AffiliateProductCard } from '@/components/ui/AffiliateProductCard';
 import toast from 'react-hot-toast';
 import { useCart } from '@/contexts/CartContext';
 
@@ -607,6 +608,42 @@ export default function MarketplacePage() {
       <div className="container mx-auto px-4 py-8">
         <MultiplexAd />
       </div>
+
+      {/* Amazon Affiliate Section */}
+      <section className="bg-[#040e40] py-14 px-4">
+        <div className="container mx-auto">
+          <div className="text-center mb-10">
+            <span className="inline-block bg-red-600 text-white text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4">
+              Also Available on Amazon
+            </span>
+            <h2 className="text-3xl font-bold text-white mb-3">Top Accessories for Your Devices</h2>
+            <p className="text-slate-300 max-w-xl mx-auto">
+              Highly rated tools and accessories recommended by our technicians — delivered straight to your door.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <AffiliateProductCard
+              title="Professional Repair Tool Kit"
+              description="A complete precision screwdriver set trusted by technicians. Perfect for safely opening phones, laptops, and tablets without damage."
+              affiliateLink="https://amzn.to/4p3vuFx"
+              buttonText="Shop on Amazon"
+            />
+            <AffiliateProductCard
+              title="Premium Device Cleaning Kit"
+              description="Anti-static cleaning solution and microfibre cloths for keeping your screens and keyboards spotless after every repair."
+              affiliateLink="https://amzn.to/4auoL1A"
+              buttonText="Shop on Amazon"
+            />
+            <AffiliateProductCard
+              title="High-Quality Screen Protector"
+              description="Military-grade tempered glass screen protector. Protect your freshly repaired screen from future cracks and scratches."
+              affiliateLink="https://amzn.to/44IIoiU"
+              buttonText="Shop on Amazon"
+            />
+          </div>
+        </div>
+      </section>
 
       {/* Image Zoom Modal ... existing ... */}
       {zoomedImage && (
