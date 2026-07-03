@@ -138,9 +138,6 @@ export const metadata: Metadata = {
   verification: {
     google: 'C_qQ737j2Bhg-AVVx_SwZ_diTB_ycwlOxgn68tefCw4',
   },
-  alternates: {
-    canonical: '/',
-  },
   other: {
     'fb:app_id': '2508538602950972',
   },
