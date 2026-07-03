@@ -352,6 +352,12 @@ class AnalyticsTracker {
   public trackPageView(performance?: any) {
     if (!this.config.trackPageViews || typeof window === 'undefined') return;
 
+    // Do not track admin page views to avoid skewing data
+    if (window.location.pathname.startsWith('/admin')) {
+      console.log('[Analytics] Skipping admin page view');
+      return;
+    }
+
     console.log('[Analytics] Tracking page view:', window.location.pathname);
 
     const visitorData: VisitorData = {
