@@ -24,6 +24,29 @@ const DEFAULTS: PopupSettings = {
   buttonText: 'Subscribe Now',
 }
 
+const DISMISS_KEY = 'newsletter_dismissed_at'
+const COOLDOWN_MS = 4 * 60 * 60 * 1000 // 4 hours in milliseconds
+
+function isDismissedRecently(): boolean {
+  try {
+    const raw = localStorage.getItem(DISMISS_KEY)
+    if (!raw) return false
+    const dismissedAt = parseInt(raw, 10)
+    if (isNaN(dismissedAt)) return false
+    return Date.now() - dismissedAt < COOLDOWN_MS
+  } catch {
+    return false
+  }
+}
+
+function recordDismissal(): void {
+  try {
+    localStorage.setItem(DISMISS_KEY, Date.now().toString())
+  } catch {
+    // localStorage unavailable (private mode, etc.) — silently ignore
+  }
+}
+
 export default function NewsletterPopup({ delay }: NewsletterPopupProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [email, setEmail] = useState('')
@@ -52,6 +75,9 @@ export default function NewsletterPopup({ delay }: NewsletterPopupProps) {
 
     // Respect admin toggle — don't show if disabled
     if (!popupSettings.enabled) return
+
+    // Don't show if this device dismissed it within the last 4 hours
+    if (isDismissedRecently()) return
 
     const delayMs = delay !== undefined
       ? delay
@@ -123,6 +149,7 @@ export default function NewsletterPopup({ delay }: NewsletterPopupProps) {
   }
 
   const handleClose = () => {
+    recordDismissal() // Save dismissal timestamp — suppresses popup for 4 hours on this device
     setIsVisible(false)
   }
 
