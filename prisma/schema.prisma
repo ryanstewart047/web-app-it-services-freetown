@@ -477,3 +477,33 @@ model WeeklyNewsletterLog {
   @@index([status])
   @@index([createdAt])
 }
+
+model AnalyticsVisitor {
+  id        String   @id @default(cuid())
+  sessionId String
+  page      String
+  source    String   // Parsed from referrer
+  referrer  String
+  userAgent String
+  country   String
+  device    String
+  timestamp DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([page])
+  @@index([source])
+  @@index([device])
+  @@index([country])
+  @@index([timestamp])
+}
+
+model AnalyticsSession {
+  id           String   @id @default(cuid())
+  sessionId    String   @unique
+  startTime    DateTime @default(now())
+  lastActivity DateTime @default(now())
+  pageViews    Int      @default(1)
+  duration     Int      @default(0) // in milliseconds
+  
+  @@index([pageViews])
+}

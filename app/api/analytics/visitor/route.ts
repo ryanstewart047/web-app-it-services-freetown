@@ -1,106 +1,125 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-interface VisitorRecord {
-  id: string;
-  sessionId: string;
-  page: string;
-  referrer: string;
-  userAgent: string;
-  country: string;
-  device: string;
-  timestamp: string;
-}
-
-interface SessionRecord {
-  id: string;
-  startTime: string;
-  lastActivity: string;
-  pageViews: number;
-  duration: number;
-}
-
-interface VisitorAnalyticsState {
-  visitors: VisitorRecord[];
-  sessions: Map<string, SessionRecord>;
-  pageViews: Map<string, number>;
-  trafficSources: Map<string, number>;
-  countries: Map<string, number>;
-  devices: Map<string, number>;
-}
-
-// In-memory storage for analytics (in production, you'd use a database)
-const analyticsData: VisitorAnalyticsState = {
-  visitors: [],
-  sessions: new Map(),
-  pageViews: new Map(),
-  trafficSources: new Map(),
-  countries: new Map(),
-  devices: new Map(),
-};
+import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    // Calculate analytics from stored data
-  const totalVisitors = analyticsData.visitors.length;
-  const uniqueVisitors = new Set(analyticsData.visitors.map((visitor) => visitor.sessionId)).size;
-    const totalSessions = analyticsData.sessions.size;
-    
-    // Calculate bounce rate (sessions with only 1 page view)
-    let singlePageSessions = 0;
-    analyticsData.sessions.forEach((session) => {
-      if (session.pageViews === 1) singlePageSessions++;
+    // Total Visitors (all recorded events)
+    const totalVisitors = await prisma.analyticsVisitor.count();
+
+    // Unique Visitors (count of distinct sessions)
+    const uniqueVisitorsResult = await prisma.analyticsVisitor.groupBy({
+      by: ['sessionId'],
     });
-    const bounceRate = totalSessions > 0 ? (singlePageSessions / totalSessions * 100).toFixed(1) : "0.0";
+    const uniqueVisitors = uniqueVisitorsResult.length;
 
-    // Top pages
-    const topPages = Array.from(analyticsData.pageViews.entries())
-      .map(([path, visits]) => ({ path, visits }))
-      .sort((a, b) => b.visits - a.visits)
-      .slice(0, 10);
+    // Total Sessions
+    const totalSessions = await prisma.analyticsSession.count();
 
-    // Traffic sources
-    const trafficSources = Array.from(analyticsData.trafficSources.entries())
-      .map(([source, visits]) => ({ source, visits }))
-      .sort((a, b) => b.visits - a.visits)
-      .slice(0, 10);
-
-    // Device breakdown
-    const deviceBreakdown = Array.from(analyticsData.devices.entries())
-      .map(([device, count]) => ({
-        device,
-        count,
-        percentage: totalVisitors > 0 ? ((count / totalVisitors) * 100).toFixed(1) : "0.0"
-      }))
-      .sort((a, b) => b.count - a.count);
-
-    // Country breakdown
-    const countryBreakdown = Array.from(analyticsData.countries.entries())
-      .map(([country, count]) => ({
-        country,
-        count,
-        percentage: totalVisitors > 0 ? ((count / totalVisitors) * 100).toFixed(1) : "0.0"
-      }))
-      .sort((a, b) => b.count - a.count);
-
-    // Recent visitors (last 10)
-    const recentVisitors = analyticsData.visitors
-      .slice(-10)
-      .reverse()
-      .map((visitor) => ({
-        ...visitor,
-        timestamp: new Date(visitor.timestamp).toLocaleString(),
-      }));
-
-    // Average session duration
-    let totalDuration = 0;
-    let sessionsWithDuration = 0;
-    analyticsData.sessions.forEach((session) => {
-      if (session.duration > 0) {
-        totalDuration += session.duration;
-        sessionsWithDuration++;
-      }
+    // Bounce Rate (sessions with pageViews === 1)
+    const singlePageSessions = await prisma.analyticsSession.count({
+      where: {
+        pageViews: 1,
+      },
     });
-    const averageSessionDuration = sessionsWithDuration > 0 ? Math.round(totalDuration / sessionsWithDuration) : 0;
+    const bounceRate = totalSessions > 0 ? ((singlePageSessions / totalSessions) * 100).toFixed(1) : "0.0";
+
+    // Top Pages
+    const topPagesResult = await prisma.analyticsVisitor.groupBy({
+      by: ['page'],
+      _count: {
+        page: true,
+      },
+      orderBy: {
+        _count: {
+          page: 'desc',
+        },
+      },
+      take: 10,
+    });
+    const topPages = topPagesResult.map(item => ({
+      path: item.page,
+      visits: item._count.page,
+    }));
+
+    // Traffic Sources
+    const trafficSourcesResult = await prisma.analyticsVisitor.groupBy({
+      by: ['source'],
+      _count: {
+        source: true,
+      },
+      orderBy: {
+        _count: {
+          source: 'desc',
+        },
+      },
+      take: 10,
+    });
+    const trafficSources = trafficSourcesResult.map(item => ({
+      source: item.source,
+      visits: item._count.source,
+    }));
+
+    // Device Breakdown
+    const deviceBreakdownResult = await prisma.analyticsVisitor.groupBy({
+      by: ['device'],
+      _count: {
+        device: true,
+      },
+      orderBy: {
+        _count: {
+          device: 'desc',
+        },
+      },
+    });
+    const deviceBreakdown = deviceBreakdownResult.map(item => ({
+      device: item.device,
+      count: item._count.device,
+      percentage: totalVisitors > 0 ? ((item._count.device / totalVisitors) * 100).toFixed(1) : "0.0",
+    }));
+
+    // Country Breakdown
+    const countryBreakdownResult = await prisma.analyticsVisitor.groupBy({
+      by: ['country'],
+      _count: {
+        country: true,
+      },
+      orderBy: {
+        _count: {
+          country: 'desc',
+        },
+      },
+    });
+    const countryBreakdown = countryBreakdownResult.map(item => ({
+      country: item.country,
+      count: item._count.country,
+      percentage: totalVisitors > 0 ? ((item._count.country / totalVisitors) * 100).toFixed(1) : "0.0",
+    }));
+
+    // Recent Visitors (last 10)
+    const recentVisitorsData = await prisma.analyticsVisitor.findMany({
+      orderBy: {
+        timestamp: 'desc',
+      },
+      take: 10,
+    });
+    const recentVisitors = recentVisitorsData.map(visitor => ({
+      ...visitor,
+      timestamp: visitor.timestamp.toLocaleString(),
+    }));
+
+    // Average Session Duration
+    const sessionsWithDuration = await prisma.analyticsSession.aggregate({
+      _avg: {
+        duration: true,
+      },
+      where: {
+        duration: {
+          gt: 0,
+        },
+      },
+    });
+    const avgDurationMs = sessionsWithDuration._avg.duration || 0;
+    const averageSessionDuration = avgDurationMs > 0 ? Math.round(avgDurationMs / 60000) : 0;
 
     return NextResponse.json({
       totalVisitors,
@@ -126,56 +145,61 @@ export async function POST(request: NextRequest) {
 
     // Extract device info
     const deviceType = data.device?.type || 'Unknown';
+    const page = data.path || data.page || '/';
+    const referrer = data.referrer || 'direct';
     
+    let source = 'Direct';
+    if (referrer !== 'direct') {
+      try {
+        source = new URL(referrer).hostname;
+      } catch (e) {
+        source = referrer;
+      }
+    }
+    
+    // Create session ID safely
+    const sessionId = typeof data.sessionId === 'string' && data.sessionId.length 
+      ? data.sessionId 
+      : `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
     // Create visitor record
-    const visitor: VisitorRecord = {
-      id: `visitor_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      sessionId: typeof data.sessionId === 'string' && data.sessionId.length ? data.sessionId : `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      page: data.path || data.page || '/',
-      referrer: data.referrer || 'direct',
-      userAgent: data.userAgent || 'unknown',
-      country: data.country || 'Unknown',
-      device: deviceType,
-      timestamp: new Date().toISOString(),
-    };
-
-    analyticsData.visitors.push(visitor);
-
-    // Update page views
-    const currentViews = analyticsData.pageViews.get(visitor.page) || 0;
-    analyticsData.pageViews.set(visitor.page, currentViews + 1);
-
-    // Update traffic sources
-  const source = visitor.referrer === 'direct' ? 'Direct' : new URL(visitor.referrer || 'http://direct').hostname;
-    const currentSourceViews = analyticsData.trafficSources.get(source) || 0;
-    analyticsData.trafficSources.set(source, currentSourceViews + 1);
-
-    // Update countries
-    const currentCountryViews = analyticsData.countries.get(visitor.country) || 0;
-    analyticsData.countries.set(visitor.country, currentCountryViews + 1);
-
-    // Update devices
-    const currentDeviceViews = analyticsData.devices.get(visitor.device) || 0;
-    analyticsData.devices.set(visitor.device, currentDeviceViews + 1);
+    const visitor = await prisma.analyticsVisitor.create({
+      data: {
+        sessionId,
+        page,
+        source,
+        referrer,
+        userAgent: data.userAgent || 'unknown',
+        country: data.country || 'Unknown',
+        device: deviceType,
+      }
+    });
 
     // Update or create session
-    if (analyticsData.sessions.has(visitor.sessionId)) {
-      const session = analyticsData.sessions.get(visitor.sessionId);
-      if (session) {
-        session.pageViews += 1;
-        session.lastActivity = new Date().toISOString();
-        if (session.startTime) {
-          session.duration = Date.now() - new Date(session.startTime).getTime();
+    // We fetch the existing session first to calculate duration correctly
+    const existingSession = await prisma.analyticsSession.findUnique({
+      where: { sessionId }
+    });
+
+    if (existingSession) {
+      const duration = Date.now() - existingSession.startTime.getTime();
+      await prisma.analyticsSession.update({
+        where: { sessionId },
+        data: {
+          pageViews: {
+            increment: 1
+          },
+          lastActivity: new Date(),
+          duration
         }
-        analyticsData.sessions.set(visitor.sessionId, session);
-      }
+      });
     } else {
-      analyticsData.sessions.set(visitor.sessionId, {
-        id: visitor.sessionId,
-        startTime: new Date().toISOString(),
-        lastActivity: new Date().toISOString(),
-        pageViews: 1,
-        duration: 0
+      await prisma.analyticsSession.create({
+        data: {
+          sessionId,
+          pageViews: 1,
+          duration: 0,
+        }
       });
     }
 
