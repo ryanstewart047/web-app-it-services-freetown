@@ -628,18 +628,24 @@ export default function MarketplacePage() {
               description="A complete precision screwdriver set trusted by technicians. Perfect for safely opening phones, laptops, and tablets without damage."
               affiliateLink="https://amzn.to/4p3vuFx"
               buttonText="Shop on Amazon"
+              iconName="wrench"
+              badge="Best Seller"
             />
             <AffiliateProductCard
               title="Premium Device Cleaning Kit"
               description="Anti-static cleaning solution and microfibre cloths for keeping your screens and keyboards spotless after every repair."
               affiliateLink="https://amzn.to/4auoL1A"
               buttonText="Shop on Amazon"
+              iconName="sparkles"
+              badge="Top Rated"
             />
             <AffiliateProductCard
               title="High-Quality Screen Protector"
               description="Military-grade tempered glass screen protector. Protect your freshly repaired screen from future cracks and scratches."
               affiliateLink="https://amzn.to/44IIoiU"
               buttonText="Shop on Amazon"
+              iconName="smartphone"
+              badge="#1 Pick"
             />
           </div>
         </div>

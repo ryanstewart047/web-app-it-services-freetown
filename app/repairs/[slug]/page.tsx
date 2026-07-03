@@ -186,16 +186,22 @@ export default function RepairServicePage({ params }: { params: { slug: string }
               title="Professional Repair Tool Kit"
               description="A complete precision screwdriver set, perfect for opening phones, laptops, and tablets safely."
               affiliateLink="https://amzn.to/4p3vuFx"
+              iconName="wrench"
+              badge="Best Seller"
             />
             <AffiliateProductCard
               title="Premium Device Cleaning Kit"
               description="Keep your newly repaired device spotless with this safe, anti-static cleaning kit."
               affiliateLink="https://amzn.to/4auoL1A"
+              iconName="sparkles"
+              badge="Top Rated"
             />
             <AffiliateProductCard
               title="High-Quality Screen Protector"
               description="Protect your screen from future drops and scratches with industry-leading tempered glass."
               affiliateLink="https://amzn.to/44IIoiU"
+              iconName="smartphone"
+              badge="#1 Pick"
             />
           </div>
         </div>
