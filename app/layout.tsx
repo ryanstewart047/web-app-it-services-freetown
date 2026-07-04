@@ -2,6 +2,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
+import Script from 'next/script'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import CookiePopup from '@/components/CookiePopup'
@@ -301,6 +302,19 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.className} bg-gray-50 min-h-screen`}>
+        {/* Google Analytics - loaded after page is interactive for performance */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-2SS4WDYJRF"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-2SS4WDYJRF');
+          `}
+        </Script>
         <CartProvider>
           <AnalyticsProvider config={{
             enabled: true,
