@@ -626,6 +626,7 @@ export default function MarketplacePage() {
             <AffiliateProductCard
               title="Professional Repair Tool Kit"
               description="A complete precision screwdriver set trusted by technicians. Perfect for safely opening phones, laptops, and tablets without damage."
+              imageUrl="/assets/images/amazon/toolkit.jpg"
               affiliateLink="https://amzn.to/4p3vuFx"
               buttonText="Shop on Amazon"
               iconName="wrench"
@@ -634,6 +635,7 @@ export default function MarketplacePage() {
             <AffiliateProductCard
               title="Premium Device Cleaning Kit"
               description="Anti-static cleaning solution and microfibre cloths for keeping your screens and keyboards spotless after every repair."
+              imageUrl="/assets/images/amazon/cleaning-kit.jpg"
               affiliateLink="https://amzn.to/4auoL1A"
               buttonText="Shop on Amazon"
               iconName="sparkles"
@@ -642,6 +644,7 @@ export default function MarketplacePage() {
             <AffiliateProductCard
               title="High-Quality Screen Protector"
               description="Military-grade tempered glass screen protector. Protect your freshly repaired screen from future cracks and scratches."
+              imageUrl="/assets/images/amazon/screen-protector.jpg"
               affiliateLink="https://amzn.to/44IIoiU"
               buttonText="Shop on Amazon"
               iconName="smartphone"
