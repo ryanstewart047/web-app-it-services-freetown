@@ -107,7 +107,7 @@ async function handleNewsletterCron(request: NextRequest) {
       
       Tone: Friendly, highly informative, professional, and localized to Sierra Leone context where appropriate.
       Business Name: IT Services Freetown
-      Link Requirement: ANY time you mention the name "IT Services Freetown", you MUST format it as a clickable HTML link pointing exactly to "https://www.itservicesfreetown.com". For example: <a href="https://www.itservicesfreetown.com">IT Services Freetown</a>.
+      Link Requirement: In the HTML "content" body ONLY, ANY time you mention the name "IT Services Freetown", you MUST format it as a clickable HTML link pointing exactly to "https://www.itservicesfreetown.com". For example: <a href="https://www.itservicesfreetown.com">IT Services Freetown</a>. Do NOT use HTML tags in the "subject" line.
       Location: #1 Regent Highway, Jui Junction, Freetown.
       Phone: +232 33 399 391.
     `
