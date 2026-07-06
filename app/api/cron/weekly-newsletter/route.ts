@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/email'
+import { canRunProtectedAutomation } from '@/lib/server/admin-session'
+
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // Extend Vercel timeout to 60s for AI and email processing
@@ -30,12 +32,9 @@ export async function POST(request: NextRequest) {
 
 async function handleNewsletterCron(request: NextRequest) {
   // 1. Authorization check
-  const authHeader = request.headers.get('Authorization')
-  const isCronSecretValid = authHeader === `Bearer ${process.env.CRON_SECRET}`
-  const isDev = process.env.NODE_ENV === 'development'
   const isManual = request.nextUrl.searchParams.get('manual') === 'true'
 
-  if (!isCronSecretValid && !isDev && !isManual) {
+  if (!canRunProtectedAutomation(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -222,10 +221,10 @@ async function handleNewsletterCron(request: NextRequest) {
                       </p>
                     </div>
                     <p><strong><a href="https://www.itservicesfreetown.com" style="color: #333;">IT Services Freetown</a></strong><br>#1 Regent Highway, Jui Junction | Freetown, Sierra Leone</p>
-                    <p>You received this email because you subscribed to our weekly newsletter.</p>
-                    <p>
-                      <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/unsubscribe?email=${encodeURIComponent(sub.email)}">Unsubscribe</a> | 
-                      <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/privacy">Privacy Policy</a>
+                    <p style="font-size: 10px; color: #9ca3af; margin-top: 15px;">You received this email because you subscribed to our weekly newsletter.</p>
+                    <p style="font-size: 10px; color: #9ca3af;">
+                      <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/unsubscribe?email=${encodeURIComponent(sub.email)}" style="color: #9ca3af; font-weight: normal; text-decoration: underline;">Unsubscribe</a> | 
+                      <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/privacy" style="color: #9ca3af; font-weight: normal; text-decoration: underline;">Privacy Policy</a>
                     </p>
                   </div>
                 </div>

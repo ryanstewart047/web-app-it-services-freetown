@@ -78,6 +78,7 @@ export async function POST(request: NextRequest) {
       
       Tone: Friendly, highly informative, professional, and localized to Sierra Leone context where appropriate.
       Business Name: IT Services Freetown
+      Link Requirement: ANY time you mention the name "IT Services Freetown", you MUST format it as a clickable HTML link pointing exactly to "https://www.itservicesfreetown.com". For example: <a href="https://www.itservicesfreetown.com">IT Services Freetown</a>.
       Location: #1 Regent Highway, Jui Junction, Freetown.
       Phone: +232 33 399 391.
     `
@@ -151,11 +152,21 @@ export async function POST(request: NextRequest) {
               ${finalContent}
             </div>
             <div class="footer">
-              <p><strong>IT Services Freetown</strong><br>#1 Regent Highway, Jui Junction | Freetown, Sierra Leone</p>
-              <p>You received this email because you are an administrator testing the weekly newsletter settings.</p>
-              <p>
-                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/unsubscribe?email=${encodeURIComponent(testEmail)}">Unsubscribe</a> | 
-                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/privacy">Privacy Policy</a>
+              <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e4e4e7;">
+                <p style="font-size: 14px; margin-bottom: 10px; font-weight: bold; color: #0f172a;">Quick Links:</p>
+                <p style="font-size: 13px;">
+                  <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}" style="margin: 0 10px;">Homepage</a> |
+                  <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/marketplace" style="margin: 0 10px;">Shop Products</a> |
+                  <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/book-appointment" style="margin: 0 10px;">Book a Repair</a> |
+                  <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/chat" style="margin: 0 10px;">Live Chat</a> |
+                  <a href="https://wa.me/23233399391" style="margin: 0 10px;">WhatsApp Support</a>
+                </p>
+              </div>
+              <p><strong><a href="https://www.itservicesfreetown.com" style="color: #333;">IT Services Freetown</a></strong><br>#1 Regent Highway, Jui Junction | Freetown, Sierra Leone</p>
+              <p style="font-size: 10px; color: #9ca3af; margin-top: 15px;">You received this email because you are an administrator testing the weekly newsletter settings.</p>
+              <p style="font-size: 10px; color: #9ca3af;">
+                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/unsubscribe?email=${encodeURIComponent(testEmail)}" style="color: #9ca3af; font-weight: normal; text-decoration: underline;">Unsubscribe</a> | 
+                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/privacy" style="color: #9ca3af; font-weight: normal; text-decoration: underline;">Privacy Policy</a>
               </p>
             </div>
           </div>

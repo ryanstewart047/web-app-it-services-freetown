@@ -83,6 +83,7 @@ export default function EmailMarketingPage() {
   const [newsletterLogs, setNewsletterLogs] = useState<NewsletterLog[]>([])
   const [showNewsletterPanel, setShowNewsletterPanel] = useState(false)
   const [newsletterLoading, setNewsletterLoading] = useState(false)
+  const [sendingManualBlast, setSendingManualBlast] = useState(false)
   const [savingSettings, setSavingSettings] = useState(false)
   const [testEmail, setTestEmail] = useState('')
   const [testTopic, setTestTopic] = useState('')
@@ -193,6 +194,27 @@ export default function EmailMarketingPage() {
       alert('❌ Error sending test newsletter.')
     } finally {
       setSendingTest(false)
+    }
+  }
+
+  const sendManualBlast = async () => {
+    if (!confirm('🚨 WARNING: This will immediately blast the weekly newsletter to ALL active subscribers using the next rotating topic. Are you sure you want to proceed?')) return
+    
+    setSendingManualBlast(true)
+    try {
+      const res = await fetch('/api/cron/weekly-newsletter?manual=true')
+      
+      if (res.ok) {
+        alert('✅ Manual Blast successfully completed!')
+        fetchNewsletterLogs()
+      } else {
+        const data = await res.json().catch(() => ({}))
+        alert('❌ Failed to trigger manual blast: ' + (data.error || 'Unknown error'))
+      }
+    } catch (e) {
+      alert('❌ Error sending manual blast.')
+    } finally {
+      setSendingManualBlast(false)
     }
   }
 
@@ -998,7 +1020,26 @@ export default function EmailMarketingPage() {
                     className="flex items-center gap-2 rounded-2xl bg-amber-600 px-8 py-3 text-sm font-black text-white shadow-md shadow-amber-200 hover:bg-amber-700 disabled:opacity-50 transition"
                   >
                     {sendingTest ? <RefreshCw className="h-4 w-4 animate-spin" /> : <FlaskConical className="h-4 w-4" />}
-                    {sendingTest ? 'Generating & Sending...' : 'Send Test Email'}
+                    {sendingTest ? 'Sending...' : 'Send Test'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Manual Blast Section */}
+              <div className="rounded-2xl border-2 border-red-100 bg-red-50/40 p-5 mt-4">
+                <div className="mb-4 flex items-center gap-2">
+                  <Send className="h-5 w-5 text-red-600" />
+                  <h3 className="font-black text-red-900">Send Manual Blast (Live)</h3>
+                </div>
+                <p className="mb-4 text-sm text-red-700">This will immediately generate and send the newsletter to <strong>ALL</strong> active subscribers. Use this only if the scheduled automated send failed or you need to send an emergency out-of-schedule blast.</p>
+                <div className="flex justify-end">
+                  <button
+                    onClick={sendManualBlast}
+                    disabled={sendingManualBlast}
+                    className="flex items-center gap-2 rounded-2xl bg-red-600 px-8 py-3 text-sm font-black text-white shadow-md shadow-red-200 hover:bg-red-700 disabled:opacity-50 transition"
+                  >
+                    {sendingManualBlast ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    {sendingManualBlast ? 'Blasting...' : 'Blast Newsletter to All'}
                   </button>
                 </div>
               </div>
