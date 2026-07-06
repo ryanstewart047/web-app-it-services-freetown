@@ -837,10 +837,22 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
     diagnosticNotes: '',
     diagnosticImages: [] as string[],
   });
+  const [repairItems, setRepairItems] = useState<{ description: string; cost: string }[]>([]);
+  const [newRepairItem, setNewRepairItem] = useState({ description: '', cost: '' });
+
+  // Auto-calculate totalCost from repairItems
+  useEffect(() => {
+    if (repairItems.length > 0) {
+      const sum = repairItems.reduce((acc, item) => acc + (parseFloat(item.cost) || 0), 0);
+      setUpdateForm(prev => ({ ...prev, totalCost: sum > 0 ? String(sum) : '' }));
+    }
+  }, [repairItems]);
 
   useEffect(() => {
     if (!selectedRepair) {
       setUpdateForm({ status: '', paymentStatus: '', notes: '', totalCost: '', diagnosticNotes: '', diagnosticImages: [] });
+      setRepairItems([]);
+      setNewRepairItem({ description: '', cost: '' });
       return;
     }
 
@@ -869,7 +881,12 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
           trackingId: selectedRepair.trackingId,
           status: updateForm.status,
           paymentStatus: updateForm.paymentStatus,
-          notes: updateForm.notes,
+          notes: repairItems.length > 0
+            ? (updateForm.notes ? updateForm.notes + '\n\n' : '') +
+              '--- Cost Breakdown ---\n' +
+              repairItems.map(item => `• ${item.description}: Le ${parseFloat(item.cost || '0').toLocaleString()}`).join('\n') +
+              `\nTotal: Le ${repairItems.reduce((s, i) => s + (parseFloat(i.cost) || 0), 0).toLocaleString()}`
+            : updateForm.notes,
           totalCost: updateForm.totalCost ? parseFloat(updateForm.totalCost) : undefined,
           diagnosticNotes: updateForm.diagnosticNotes,
           diagnosticImages: updateForm.diagnosticImages,
@@ -1156,17 +1173,112 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                 />
               </label>
 
-              <label className="space-y-2">
-                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Total cost (Le)</span>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={updateForm.totalCost}
-                  onChange={(event) => setUpdateForm((prev) => ({ ...prev, totalCost: event.target.value }))}
-                  className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
-                />
-              </label>
+              {/* ===== MULTI-REPAIR COST ESTIMATOR ===== */}
+              <div className="space-y-3 rounded-2xl border-2 border-emerald-200 bg-emerald-50/50 p-4 dark:border-emerald-900/50 dark:bg-emerald-950/20">
+                <div className="flex items-center gap-2 text-sm font-semibold text-emerald-900 dark:text-emerald-300">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M12 7h.01M12 14h.01M15 14h.01M9 14h.01M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+                  </svg>
+                  Repair Cost Estimator
+                </div>
+                <p className="text-xs text-emerald-700 dark:text-emerald-400">Add each repair service and its cost. The total will be calculated automatically.</p>
+
+                {/* Existing repair items */}
+                {repairItems.length > 0 && (
+                  <div className="space-y-2">
+                    {repairItems.map((item, index) => (
+                      <div key={index} className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-3 py-2 dark:border-emerald-800 dark:bg-gray-800">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-gray-800 dark:text-gray-100">{item.description}</p>
+                        </div>
+                        <span className="shrink-0 text-sm font-bold text-emerald-700 dark:text-emerald-400">Le {parseFloat(item.cost || '0').toLocaleString()}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = repairItems.filter((_, i) => i !== index);
+                            setRepairItems(updated);
+                            if (updated.length === 0) setUpdateForm(prev => ({ ...prev, totalCost: '' }));
+                          }}
+                          className="shrink-0 rounded-full p-1 text-gray-400 hover:bg-red-100 hover:text-red-500 transition dark:hover:bg-red-900/40"
+                        >
+                          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add new repair item */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="e.g. Screen Replacement"
+                    value={newRepairItem.description}
+                    onChange={e => setNewRepairItem(prev => ({ ...prev, description: e.target.value }))}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && newRepairItem.description.trim() && newRepairItem.cost) {
+                        e.preventDefault();
+                        setRepairItems(prev => [...prev, newRepairItem]);
+                        setNewRepairItem({ description: '', cost: '' });
+                      }
+                    }}
+                    className="min-w-0 flex-1 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-emerald-800 dark:bg-gray-800 dark:text-gray-100"
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Cost (Le)"
+                    value={newRepairItem.cost}
+                    onChange={e => setNewRepairItem(prev => ({ ...prev, cost: e.target.value }))}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && newRepairItem.description.trim() && newRepairItem.cost) {
+                        e.preventDefault();
+                        setRepairItems(prev => [...prev, newRepairItem]);
+                        setNewRepairItem({ description: '', cost: '' });
+                      }
+                    }}
+                    className="w-28 shrink-0 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-emerald-800 dark:bg-gray-800 dark:text-gray-100"
+                  />
+                  <button
+                    type="button"
+                    disabled={!newRepairItem.description.trim() || !newRepairItem.cost}
+                    onClick={() => {
+                      setRepairItems(prev => [...prev, newRepairItem]);
+                      setNewRepairItem({ description: '', cost: '' });
+                    }}
+                    className="shrink-0 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-40 transition"
+                  >
+                    + Add
+                  </button>
+                </div>
+
+                {/* Total display */}
+                <div className="flex items-center justify-between rounded-xl border-2 border-emerald-300 bg-emerald-100 px-4 py-3 dark:border-emerald-700 dark:bg-emerald-900/40">
+                  <span className="text-sm font-bold text-emerald-900 dark:text-emerald-200">Total Estimate</span>
+                  <span className="text-lg font-black text-emerald-700 dark:text-emerald-400">
+                    Le {repairItems.reduce((sum, item) => sum + (parseFloat(item.cost) || 0), 0).toLocaleString()}
+                  </span>
+                </div>
+
+                {/* Fallback manual input if no items added */}
+                {repairItems.length === 0 && (
+                  <div className="space-y-1">
+                    <span className="text-xs text-gray-500">Or enter total directly (no line items):</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={updateForm.totalCost}
+                      onChange={(event) => setUpdateForm((prev) => ({ ...prev, totalCost: event.target.value }))}
+                      placeholder="0"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+                    />
+                  </div>
+                )}
+              </div>
+              {/* ===== END COST ESTIMATOR ===== */}
 
               <label className="space-y-2">
                 <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Payment Status</span>
