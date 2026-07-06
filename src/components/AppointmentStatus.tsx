@@ -35,6 +35,30 @@ const statusSteps = [
   { key: 'cancelled', label: 'Cancelled', icon: 'fas fa-times-circle', color: '#ef4444' }
 ]
 
+// Parse the "--- Cost Breakdown ---" block from notes
+function parseCostBreakdown(notes?: string): { items: { label: string; cost: number }[]; cleanNotes: string } {
+  if (!notes) return { items: [], cleanNotes: '' };
+  const breakdownMarker = '--- Cost Breakdown ---';
+  const idx = notes.indexOf(breakdownMarker);
+  if (idx === -1) return { items: [], cleanNotes: notes.trim() };
+
+  const cleanNotes = notes.slice(0, idx).trim();
+  const breakdownBlock = notes.slice(idx + breakdownMarker.length);
+  const lines = breakdownBlock.split('\n').map(l => l.trim()).filter(Boolean);
+
+  const items: { label: string; cost: number }[] = [];
+  for (const line of lines) {
+    // Match lines like: • Screen Replacement: Le 350,000
+    const match = line.match(/^[•\-]?\s*(.+?):\s*Le\s*([\d,\.]+)$/i);
+    if (match) {
+      const label = match[1].trim();
+      const cost = parseFloat(match[2].replace(/,/g, ''));
+      if (label && !isNaN(cost)) items.push({ label, cost });
+    }
+  }
+  return { items, cleanNotes };
+}
+
 export default function AppointmentStatus({ trackingId }: AppointmentStatusProps) {
   const [appointment, setAppointment] = useState<AppointmentStatus | null>(null)
   const [loading, setLoading] = useState(true)
@@ -264,6 +288,7 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
 
   const currentStepIndex = getCurrentStepIndex()
   const isCancelled = appointment.status === 'cancelled'
+  const { items: breakdownItems, cleanNotes } = parseCostBreakdown(appointment.notes)
 
   return (
     <div className="bg-white rounded-2xl p-8 shadow-lg">
@@ -296,9 +321,9 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
           <p className="text-red-800 ml-9">
             This repair has been cancelled. If you have any questions, please contact us.
           </p>
-          {appointment.notes && (
+          {cleanNotes && (
             <div className="mt-3 ml-9 text-sm text-red-700 bg-red-100 p-3 rounded">
-              <strong>Cancellation reason:</strong> {appointment.notes}
+              <strong>Cancellation reason:</strong> {cleanNotes}
             </div>
           )}
         </div>
@@ -345,8 +370,8 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
                         </span>
                       )}
                     </div>
-                    {isCurrent && appointment.notes && (
-                      <p className="text-sm text-gray-600 mt-1">{appointment.notes}</p>
+                    {isCurrent && cleanNotes && (
+                      <p className="text-sm text-gray-600 mt-1">{cleanNotes}</p>
                     )}
                   </div>
 
@@ -375,12 +400,33 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
 
         {appointment.cost && (
           <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-            <div className="flex items-center text-green-700">
-              <i className="fas fa-dollar-sign mr-2"></i>
-              <span className="font-semibold">Estimated Cost</span>
+            <div className="flex items-center text-green-700 mb-3">
+              <i className="fas fa-receipt mr-2"></i>
+              <span className="font-semibold">Cost Estimate</span>
             </div>
-            <div className="flex items-center justify-between mt-1">
-              <p className="text-green-900 text-xl font-bold">Le {appointment.cost.toLocaleString()}</p>
+
+            {/* Itemized breakdown (if available) */}
+            {breakdownItems.length > 0 ? (
+              <div className="space-y-2 mb-3">
+                {breakdownItems.map((item, i) => (
+                  <div key={i} className="flex items-center justify-between text-sm">
+                    <span className="text-gray-700">
+                      <i className="fas fa-wrench mr-2 text-green-500 text-xs"></i>
+                      {item.label}
+                    </span>
+                    <span className="font-semibold text-gray-800">Le {item.cost.toLocaleString()}</span>
+                  </div>
+                ))}
+                <div className="border-t border-green-300 pt-2 mt-2 flex items-center justify-between">
+                  <span className="font-bold text-green-900">Total</span>
+                  <span className="text-xl font-black text-green-700">Le {appointment.cost.toLocaleString()}</span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-green-900 text-xl font-bold mb-3">Le {appointment.cost.toLocaleString()}</p>
+            )}
+
+            <div className="flex justify-end">
               {appointment.paymentStatus === 'pending' && (
                 <button
                   onClick={() => setShowPaymentPopup(true)}
@@ -391,7 +437,7 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
               )}
               {appointment.paymentStatus === 'paid' && (
                 <span className="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-green-300">
-                  Paid
+                  ✓ Paid
                 </span>
               )}
             </div>
