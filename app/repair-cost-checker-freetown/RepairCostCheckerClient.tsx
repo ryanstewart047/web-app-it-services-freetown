@@ -1010,11 +1010,12 @@ export default function RepairCostCheckerClient() {
           </div>
           <div className="mx-auto max-w-3xl overflow-hidden rounded-xl border border-slate-200 bg-slate-950 shadow-md">
             <div className="aspect-video">
-              <video
-                src="/assets/videos/how-to-check-repair-cost.mov"
-                controls
-                preload="metadata"
-                className="h-full w-full object-contain"
+              <iframe
+                src="https://www.youtube.com/embed/8lsqHi1ESbA?rel=0&modestbranding=1"
+                title="How to Check Repair Cost - IT Services Freetown"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="h-full w-full border-0"
               />
             </div>
           </div>
@@ -1078,11 +1079,12 @@ export default function RepairCostCheckerClient() {
               </button>
             </div>
             <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
-              <video
-                src="/assets/videos/how-to-check-repair-cost.mov"
-                controls
-                autoPlay
-                className="h-full w-full object-contain"
+              <iframe
+                src="https://www.youtube.com/embed/8lsqHi1ESbA?autoplay=1&rel=0&modestbranding=1"
+                title="How to Check Repair Cost - IT Services Freetown"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="h-full w-full border-0"
               />
             </div>
           </div>
