@@ -582,7 +582,7 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
           </div>
           <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Reason for cancellation <span className="font-normal text-gray-400">(optional)</span>
+              Reason for cancellation <span className="text-red-500">*</span>
             </label>
             <textarea
               value={cancelReason}
@@ -601,8 +601,8 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
             </button>
             <button
               onClick={cancelRepair}
-              disabled={cancelling}
-              className="flex-1 py-3 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+              disabled={cancelling || !cancelReason.trim()}
+              className="flex-1 py-3 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {cancelling ? (
                 <><i className="fas fa-spinner fa-spin"></i> Cancelling...</>
