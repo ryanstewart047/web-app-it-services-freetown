@@ -29,7 +29,8 @@ import {
   Smartphone,
   Tablet,
   Wrench,
-  Zap
+  Zap,
+  Play
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { DisplayAd, InArticleAd, MultiplexAd } from '@/components/AdSense'
@@ -517,6 +518,7 @@ export default function RepairCostCheckerClient() {
   const [partQuality, setPartQuality] = useState<PartQualityId>('standard')
   const [urgency, setUrgency] = useState<UrgencyId>('flexible')
   const [copied, setCopied] = useState(false)
+  const [showVideoModal, setShowVideoModal] = useState(false)
 
   const selectedDevice = useMemo(
     () => devices.find((device) => device.id === deviceId) || devices[0],
@@ -615,6 +617,16 @@ export default function RepairCostCheckerClient() {
             <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
               Get a fast price range for phone, laptop, tablet, unlocking, data recovery, and on-site IT support before you visit the shop at Jui Junction.
             </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => setShowVideoModal(true)}
+                className="inline-flex items-center gap-2 rounded-md bg-red-600 px-4 py-2.5 text-sm font-black text-white shadow-sm hover:bg-red-700 transition hover:scale-105"
+              >
+                <Play className="h-4 w-4 fill-current" />
+                Watch Video Guide
+              </button>
+            </div>
             <div className="mt-5 flex flex-wrap gap-3 text-sm text-slate-700">
               <span className="inline-flex items-center gap-2 rounded-md bg-slate-100 px-3 py-2">
                 <MapPin className="h-4 w-4 text-red-600" />
@@ -987,6 +999,28 @@ export default function RepairCostCheckerClient() {
         <InArticleAd />
       </div>
 
+      {/* Embedded Walkthrough Video Section */}
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 border-t border-slate-200">
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm md:p-8">
+          <div className="mb-6 max-w-3xl">
+            <h2 className="text-xl font-black text-slate-950 sm:text-2xl">Video Guide: How to Check Repair Costs</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Watch our quick video walkthrough below to see how to use the interactive cost checker. Learn how to select your device model, choose the repair service, choose part quality, and get an instant estimate.
+            </p>
+          </div>
+          <div className="mx-auto max-w-3xl overflow-hidden rounded-xl border border-slate-200 bg-slate-950 shadow-md">
+            <div className="aspect-video">
+              <video
+                src="/assets/videos/how-to-check-repair-cost.mov"
+                controls
+                preload="metadata"
+                className="h-full w-full object-contain"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="border-t border-slate-200 bg-white">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:px-8">
           <div>
@@ -1026,6 +1060,34 @@ export default function RepairCostCheckerClient() {
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <MultiplexAd />
       </div>
+
+      {/* Video Walkthrough Modal */}
+      {showVideoModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl dark:border-slate-800 dark:bg-slate-950">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-black text-slate-900 dark:text-white">Walkthrough: Checking Your Repair Cost</h3>
+              <button
+                type="button"
+                onClick={() => setShowVideoModal(false)}
+                className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800"
+              >
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
+              <video
+                src="/assets/videos/how-to-check-repair-cost.mov"
+                controls
+                autoPlay
+                className="h-full w-full object-contain"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
