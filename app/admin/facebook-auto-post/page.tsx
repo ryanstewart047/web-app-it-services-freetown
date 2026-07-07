@@ -467,6 +467,31 @@ export default function FacebookAutoPostAdminPage() {
                   </div>
                   <p className="mt-2 line-clamp-2">{log.topic || log.error || 'Run completed'}</p>
                   {log.facebookPostId && <p className="mt-1 font-mono text-[11px]">Post: {log.facebookPostId}</p>}
+
+                  {/* AI-generated image preview + download */}
+                  {log.status === 'success' && log.photoUrl && (
+                    <div className="mt-3">
+                      <img
+                        src={log.photoUrl}
+                        alt={log.topic || 'AI generated post image'}
+                        className="w-full rounded-md object-cover"
+                        style={{ maxHeight: '180px' }}
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                      />
+                      <a
+                        href={log.photoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        download
+                        className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-current px-3 py-1.5 font-semibold transition hover:opacity-80"
+                      >
+                        <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Open &amp; Download Image
+                      </a>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
