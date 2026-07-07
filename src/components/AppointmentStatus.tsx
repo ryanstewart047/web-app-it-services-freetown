@@ -326,6 +326,7 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
   const { items: breakdownItems, cleanNotes } = parseCostBreakdown(appointment.notes)
 
   return (
+    <>
     <div className="bg-white rounded-2xl p-8 shadow-lg">
       {/* Appointment Header */}
       <div className="border-b border-gray-200 pb-6 mb-8">
@@ -613,5 +614,6 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
         </div>
       </div>
     )}
+    </>
   )
 }
