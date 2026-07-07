@@ -383,8 +383,31 @@ export async function runFacebookAutoPost(options: { force?: boolean; triggeredB
   const recentPhotos  = recentLogs.map((l: { photoUrl: string | null }) => l.photoUrl).filter(Boolean) as string[];
 
   const topic    = pickRotating(settings.topics, recentTopics);
-  const photoUrl = pickRotating(settings.photoUrls, recentPhotos);
+  const fallbackPhotoUrl = pickRotating(settings.photoUrls, recentPhotos);
   const message  = buildMessage(settings, topic);
+
+  let photoUrl = fallbackPhotoUrl;
+  try {
+    console.log(`[FacebookAutoPost] Generating AI image for topic: "${topic}"`);
+    const prompt = `Professional visual concept for: "${topic}". Tech repair, smartphone or laptop diagnostics, vibrant modern lighting, highly detailed, realistic illustration, 4k resolution, clean background, no text, no watermark`;
+    const aiPhotoUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1080&height=1080&nologo=true&private=true&feed=false`;
+
+    // Pre-fetch to warm cache (timeout after 12 seconds to not block indefinitely)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+    const response = await fetch(aiPhotoUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      console.log('[FacebookAutoPost] AI image successfully pre-generated and cached.');
+      photoUrl = aiPhotoUrl;
+    } else {
+      console.warn('[FacebookAutoPost] AI image pre-generation returned non-ok. Falling back to default photo.');
+    }
+  } catch (err) {
+    console.warn('[FacebookAutoPost] AI image pre-generation failed or timed out. Falling back to default photo:', err);
+  }
 
   try {
     const result = await publishPhotoToFacebook(message, photoUrl);
