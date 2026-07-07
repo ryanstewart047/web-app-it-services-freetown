@@ -64,10 +64,45 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showPaymentPopup, setShowPaymentPopup] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [cancelReason, setCancelReason] = useState('')
 
   useEffect(() => {
     fetchAppointmentStatus()
   }, [trackingId])
+
+  const cancelRepair = async () => {
+    if (!appointment) return;
+    setCancelling(true);
+    try {
+      const response = await fetch('/api/analytics/repairs/', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trackingId: appointment.id,
+          status: 'cancelled',
+          notes: cancelReason
+            ? `Customer cancellation request: ${cancelReason}`
+            : 'Repair cancelled by customer via tracking page.',
+        }),
+      });
+      if (response.ok) {
+        setAppointment(prev => prev ? { ...prev, status: 'cancelled', notes: cancelReason ? `Customer cancellation request: ${cancelReason}` : 'Repair cancelled by customer via tracking page.' } : prev);
+        setShowCancelConfirm(false);
+        setCancelReason('');
+      } else {
+        const data = await response.json();
+        setError(data.error || 'Failed to cancel repair. Please contact us directly.');
+        setShowCancelConfirm(false);
+      }
+    } catch {
+      setError('Network error. Please try again or contact us directly.');
+      setShowCancelConfirm(false);
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   const fetchAppointmentStatus = async () => {
     try {
@@ -307,6 +342,16 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
             <div className="text-sm text-gray-500">Customer</div>
             <div className="font-semibold text-gray-900">{appointment.customerName}</div>
             <div className="text-sm text-gray-600">{appointment.deviceType} - {appointment.deviceModel}</div>
+            {/* Cancel button — only show if repair can still be cancelled */}
+            {['received', 'submitted', 'diagnosed'].includes(appointment.status) && (
+              <button
+                onClick={() => setShowCancelConfirm(true)}
+                className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-red-300 text-red-600 text-sm font-semibold hover:bg-red-50 transition-colors duration-200"
+              >
+                <i className="fas fa-times-circle"></i>
+                Cancel Repair
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -520,5 +565,53 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
         </div>
       </div>
     </div>
+
+    {/* Cancel Confirm Modal */}
+    {showCancelConfirm && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-red-100 mb-4">
+              <i className="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900">Cancel Repair?</h3>
+            <p className="text-gray-600 mt-2 text-sm">
+              Are you sure you want to cancel your repair for <strong>{appointment.deviceType}</strong>? This will notify our team immediately.
+            </p>
+          </div>
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Reason for cancellation <span className="font-normal text-gray-400">(optional)</span>
+            </label>
+            <textarea
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="e.g. I fixed it myself, found a cheaper option..."
+              rows={3}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
+            />
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => { setShowCancelConfirm(false); setCancelReason(''); }}
+              className="flex-1 py-3 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+            >
+              Keep Repair
+            </button>
+            <button
+              onClick={cancelRepair}
+              disabled={cancelling}
+              className="flex-1 py-3 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              {cancelling ? (
+                <><i className="fas fa-spinner fa-spin"></i> Cancelling...</>
+              ) : (
+                <><i className="fas fa-times-circle"></i> Yes, Cancel</>  
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
   )
 }
