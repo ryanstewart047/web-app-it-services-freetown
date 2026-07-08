@@ -201,44 +201,64 @@ export default function ProductDetailPage() {
   const handleShare = async () => {
     if (!product) return;
 
-    // Truncate description for sharing
-    const truncatedDesc = product.description.length > 100 
-      ? product.description.substring(0, 100) + '...' 
+    const truncatedDesc = product.description.length > 100
+      ? product.description.substring(0, 100) + '...'
       : product.description;
 
-    // Direct link to this product page
     const productUrl = `${window.location.origin}/marketplace/${product.slug}`;
-    
-    // Create share text with product details
     const shareText = `${product.name}\n\nLe ${product.price.toLocaleString()}${product.comparePrice ? ` (was Le ${product.comparePrice.toLocaleString()})` : ''}\n\n${truncatedDesc}\n\n${productUrl}`;
 
-    const shareData: ShareData = {
-      title: product.name,
-      text: shareText,
-      url: productUrl
-    };
+    // Get the image URL of the currently selected image
+    const rawImageUrl = product.images?.[selectedImage]?.url || product.images?.[0]?.url || '';
+    const fullImageUrl = rawImageUrl.startsWith('http')
+      ? rawImageUrl
+      : rawImageUrl ? `${window.location.origin}${rawImageUrl}` : '';
 
     try {
-      // Try native share API
+      // Try to fetch the image and convert to a File for native sharing
+      if (fullImageUrl && navigator.share && navigator.canShare) {
+        try {
+          const imgResponse = await fetch(fullImageUrl);
+          const blob = await imgResponse.blob();
+          const ext = blob.type.includes('png') ? 'png' : blob.type.includes('webp') ? 'webp' : 'jpg';
+          const file = new File([blob], `${product.slug}.${ext}`, { type: blob.type });
+
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              title: product.name,
+              text: shareText,
+              files: [file],
+            });
+            return;
+          }
+        } catch {
+          // Image fetch failed — fall through to URL-only share
+        }
+      }
+
+      // Fallback: share without image (URL preview will show OG image)
       if (navigator.share) {
-        await navigator.share(shareData);
-        console.log('Shared successfully');
+        await navigator.share({
+          title: product.name,
+          text: shareText,
+          url: productUrl,
+        });
       } else {
-        // Fallback: copy to clipboard
+        // Desktop fallback: copy rich text to clipboard
         await navigator.clipboard.writeText(shareText);
         toast.success('Product details copied to clipboard!');
       }
-    } catch (error) {
-      console.error('Error sharing:', error);
-      // If all else fails, try clipboard again
+    } catch (error: any) {
+      if (error?.name === 'AbortError') return; // User cancelled — do nothing
       try {
         await navigator.clipboard.writeText(shareText);
         toast.success('Product link copied to clipboard!');
-      } catch (clipboardError) {
+      } catch {
         toast.error('Unable to share. Please copy the URL from your browser.');
       }
     }
   };
+
 
   if (loading) {
     return (

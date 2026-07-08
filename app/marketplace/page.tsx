@@ -203,30 +203,54 @@ export default function MarketplacePage() {
     const truncatedDesc = product.description.length > 100 
       ? product.description.substring(0, 100) + '...' 
       : product.description;
-    const shareText = `${product.name}\n\nLe ${product.price.toLocaleString()}\n\n${truncatedDesc}`;
+    const shareText = `${product.name}\n\nLe ${product.price.toLocaleString()}\n\n${truncatedDesc}\n\n${shareUrl}`;
 
-    if (navigator.share) {
-      try {
+    const rawImageUrl = product.images?.[0]?.url || '';
+    const fullImageUrl = rawImageUrl.startsWith('http')
+      ? rawImageUrl
+      : rawImageUrl ? `${window.location.origin}${rawImageUrl}` : '';
+
+    try {
+      if (fullImageUrl && navigator.share && navigator.canShare) {
+        try {
+          const imgResponse = await fetch(fullImageUrl);
+          const blob = await imgResponse.blob();
+          const ext = blob.type.includes('png') ? 'png' : blob.type.includes('webp') ? 'webp' : 'jpg';
+          const file = new File([blob], `${product.slug}.${ext}`, { type: blob.type });
+
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              title: product.name,
+              text: shareText,
+              files: [file],
+            });
+            toast.success('Shared successfully!');
+            return;
+          }
+        } catch {
+          // Fall through to text-only share on failure
+        }
+      }
+
+      if (navigator.share) {
         await navigator.share({
           title: product.name,
           text: shareText,
           url: shareUrl,
         });
         toast.success('Shared successfully!');
-        return;
-      } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
-          console.error('Share failed:', error);
-        }
+      } else {
+        await navigator.clipboard.writeText(shareText);
+        toast.success('Product details copied!');
       }
-    }
-
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      toast.success('Product link copied!');
-    } catch (error) {
-      console.error('Failed to copy:', error);
-      toast.error('Failed to copy link');
+    } catch (error: any) {
+      if (error?.name === 'AbortError') return;
+      try {
+        await navigator.clipboard.writeText(shareText);
+        toast.success('Product details copied!');
+      } catch {
+        toast.error('Failed to copy link');
+      }
     }
   };
 
