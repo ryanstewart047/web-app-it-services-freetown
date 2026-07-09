@@ -31,9 +31,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.itservicesfreetown.com';
   const imageUrl = product.images?.[0]?.url || '';
-  const fullImageUrl = imageUrl.startsWith('http') 
+  let fullImageUrl = imageUrl.startsWith('http') 
     ? imageUrl 
     : imageUrl ? `${baseUrl}${imageUrl}` : '';
+  
+  // Convert GitHub blob URLs to raw URLs so og-product can actually fetch the image
+  if (fullImageUrl.includes('github.com') && fullImageUrl.includes('/blob/')) {
+    fullImageUrl = fullImageUrl
+      .replace('https://github.com/', 'https://raw.githubusercontent.com/')
+      .replace('/blob/', '/')
+      .replace(/[?&]raw=true/, '')
+  }
   
   const truncatedDesc = product.description.length > 100 
     ? product.description.substring(0, 100) 

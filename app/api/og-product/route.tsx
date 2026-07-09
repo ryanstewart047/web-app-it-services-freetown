@@ -53,6 +53,16 @@ export async function GET(request: NextRequest) {
       image = `${baseUrl}${image}`
     }
 
+    // Normalise GitHub blob URLs → raw.githubusercontent.com so the actual
+    // image bytes are served (blob URLs return an HTML page, not the image).
+    if (image && image.includes('github.com') && image.includes('/blob/')) {
+      image = image
+        .replace('https://github.com/', 'https://raw.githubusercontent.com/')
+        .replace('/blob/', '/')
+        // Strip ?raw=true suffix – not needed on raw.githubusercontent.com
+        .replace(/[?&]raw=true/, '')
+    }
+
     if (image && !image.startsWith('data:')) {
       const base64Image = await getImageAsBase64(image)
       if (base64Image) {
