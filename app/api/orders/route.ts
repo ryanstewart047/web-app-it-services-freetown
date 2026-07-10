@@ -26,6 +26,23 @@ export async function POST(request: NextRequest) {
     console.log('[Order Creation] Creating order for:', customerName);
     console.log('[Order Creation] Items:', items.length);
 
+    // Validate stock levels for all products in the order first
+    for (const item of items) {
+      const product = await prisma.product.findUnique({
+        where: { id: item.productId }
+      });
+
+      if (!product) {
+        return NextResponse.json({ error: `Product not found.` }, { status: 400 });
+      }
+
+      if (product.stock < parseInt(item.quantity)) {
+        return NextResponse.json({ 
+          error: `"${product.name}" is out of stock or has insufficient inventory. Please update your cart.` 
+        }, { status: 400 });
+      }
+    }
+
     // Generate unique order number
     const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
     

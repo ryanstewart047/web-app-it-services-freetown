@@ -19,10 +19,45 @@ export default function CheckoutPage() {
   const [discountCode, setDiscountCode] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; amount: number; type: string } | null>(null);
   const [validatingDiscount, setValidatingDiscount] = useState(false);
+  const [outOfStockProductIds, setOutOfStockProductIds] = useState<string[]>([]);
+  const [checkingStock, setCheckingStock] = useState(true);
 
   useEffect(() => {
     setIsDesktop(detectDevice().isDesktop);
   }, []);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+
+    const checkStockLevels = async () => {
+      try {
+        if (cart.length > 0) {
+          const res = await fetch('/api/products');
+          if (res.ok) {
+            const allProducts = await res.json();
+            const oosIds: string[] = [];
+            cart.forEach(item => {
+              const product = allProducts.find((p: any) => p.id === item.productId);
+              if (!product || product.stock < item.quantity) {
+                oosIds.push(item.productId);
+              }
+            });
+            setOutOfStockProductIds(oosIds);
+          }
+        } else {
+          setOutOfStockProductIds([]);
+        }
+      } catch (err) {
+        console.error('Error checking stock levels:', err);
+      } finally {
+        setCheckingStock(false);
+      }
+    };
+
+    checkStockLevels();
+  }, [cart, isHydrated]);
+
+  const hasOutOfStock = outOfStockProductIds.length > 0;
   
   const [formData, setFormData] = useState({
     customerName: '',
@@ -69,6 +104,12 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if any items are out of stock first
+    if (hasOutOfStock) {
+      toast.error('Some items in your cart are currently out of stock or have insufficient inventory. Please update your cart.');
+      return;
+    }
     
     // Form Validation
     if (!formData.customerName.trim()) {
@@ -381,30 +422,45 @@ export default function CheckoutPage() {
 
               {/* Cart Items */}
               <div className="space-y-4 mb-6">
-                {cart.map((item) => (
-                  <div key={item.productId} className="flex gap-4">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-16 h-16 object-cover rounded-lg"
-                    />
-                    <div className="flex-1">
-                      <h4 className="text-gray-900 font-bold text-sm">{item.name}</h4>
-                      <p className="text-gray-500 text-sm font-medium">
-                        Le {item.price.toLocaleString()} × {item.quantity}
-                      </p>
+                {cart.map((item) => {
+                  const isOOS = outOfStockProductIds.includes(item.productId);
+                  return (
+                    <div key={item.productId} className={`flex gap-4 p-2 rounded-xl transition-all ${isOOS ? 'bg-red-50/50 border border-red-100' : ''}`}>
+                      <div className="relative flex-shrink-0">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className={`w-16 h-16 object-cover rounded-lg ${isOOS ? 'grayscale' : ''}`}
+                        />
+                        {isOOS && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg">
+                            <span className="text-red-400 font-bold text-[9px] text-center px-0.5">OUT OF STOCK</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-gray-900 font-bold text-sm truncate">{item.name}</h4>
+                        <p className="text-gray-500 text-sm font-medium">
+                          Le {item.price.toLocaleString()} × {item.quantity}
+                        </p>
+                        {isOOS && (
+                          <span className="inline-block text-[10px] text-red-600 font-bold mt-1">
+                            ⚠️ Insufficient Inventory
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-gray-900 font-black">Le {(item.price * item.quantity).toLocaleString()}</p>
+                        <button
+                          onClick={() => removeFromCart(item.productId)}
+                          className="text-red-400 hover:text-red-300 text-xs font-semibold"
+                        >
+                          Remove
+                        </button>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-gray-900 font-black">Le {(item.price * item.quantity).toLocaleString()}</p>
-                      <button
-                        onClick={() => removeFromCart(item.productId)}
-                        className="text-red-400 hover:text-red-300 text-sm"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Discount Code */}
@@ -455,10 +511,18 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
+              {hasOutOfStock && (
+                <div className="mb-4 mt-6 bg-red-500/20 border border-red-500 rounded-xl p-4">
+                  <p className="text-red-600 text-sm font-bold text-center">
+                    ⚠️ Cannot place order: Some items in your cart are currently out of stock or have insufficient inventory.
+                  </p>
+                </div>
+              )}
+
               {/* Place Order Button */}
               <button
                 onClick={handleSubmit}
-                disabled={loading}
+                disabled={loading || hasOutOfStock}
                 className="w-full mt-6 py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:cursor-not-allowed text-white font-black rounded-xl transition-all transform shadow-lg shadow-blue-600/20 hover:shadow-xl hover:-translate-y-1"
               >
                 {loading ? 'Processing...' : 'Place Order'}
