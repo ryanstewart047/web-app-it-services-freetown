@@ -120,6 +120,23 @@ export default function FacebookAutoPostAdminPage() {
   const [clearing, setClearing] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [newTopic, setNewTopic] = useState('');
+
+  const handleAddTopic = () => {
+    if (!newTopic.trim()) return;
+    const current = fromLines(topicsText);
+    if (!current.includes(newTopic.trim())) {
+      const updated = [...current, newTopic.trim()];
+      setTopicsText(toLines(updated));
+    }
+    setNewTopic('');
+  };
+
+  const handleRemoveTopic = (indexToRemove: number) => {
+    const current = fromLines(topicsText);
+    const updated = current.filter((_, idx) => idx !== indexToRemove);
+    setTopicsText(toLines(updated));
+  };
 
   const preview = useMemo(() => {
     const topic = fromLines(topicsText)[0] || DEFAULT_SETTINGS.topics[0];
@@ -404,12 +421,55 @@ export default function FacebookAutoPostAdminPage() {
           </label>
 
           <div className="grid gap-5 lg:grid-cols-3">
-            <TextareaList
-              label="Random Topics"
-              value={topicsText}
-              onChange={setTopicsText}
-              rows={9}
-            />
+            <div className="block rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <span className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
+                Random Topics
+              </span>
+              <div className="mt-3 flex gap-2">
+                <input
+                  type="text"
+                  value={newTopic}
+                  onChange={(e) => setNewTopic(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddTopic();
+                    }
+                  }}
+                  placeholder="Enter a new topic..."
+                  className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddTopic}
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition"
+                >
+                  Add
+                </button>
+              </div>
+              <div className="mt-4 space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                {fromLines(topicsText).length === 0 ? (
+                  <p className="text-xs text-slate-500 italic">No topics added yet.</p>
+                ) : (
+                  fromLines(topicsText).map((topic, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50/50 p-2.5 text-xs text-slate-700 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-300"
+                    >
+                      <span className="font-medium line-clamp-2 leading-relaxed">{topic}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTopic(idx)}
+                        className="text-red-500 hover:text-red-700 p-1 flex-shrink-0"
+                        title="Delete topic"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
             <TextareaList
               label="Photo URLs"
               icon={<ImageIcon className="h-4 w-4 text-slate-400" />}
