@@ -122,12 +122,37 @@ export default function FacebookAutoPostAdminPage() {
   const [error, setError] = useState('');
   const [newTopic, setNewTopic] = useState('');
 
+  const saveUpdatedTopics = async (updatedTopics: string[]) => {
+    try {
+      const payload = {
+        ...settings,
+        topics: updatedTopics,
+        photoUrls: fromLines(photoUrlsText),
+        hashtags: fromLines(hashtagsText),
+      };
+
+      const response = await fetch('/api/admin/facebook-auto-post', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setSettings(data.settings);
+        setTopicsText(toLines(data.settings.topics || []));
+      }
+    } catch (err) {
+      console.error('Failed to auto-save topics:', err);
+    }
+  };
+
   const handleAddTopic = () => {
     if (!newTopic.trim()) return;
     const current = fromLines(topicsText);
     if (!current.includes(newTopic.trim())) {
       const updated = [...current, newTopic.trim()];
       setTopicsText(toLines(updated));
+      void saveUpdatedTopics(updated);
     }
     setNewTopic('');
   };
@@ -136,6 +161,7 @@ export default function FacebookAutoPostAdminPage() {
     const current = fromLines(topicsText);
     const updated = current.filter((_, idx) => idx !== indexToRemove);
     setTopicsText(toLines(updated));
+    void saveUpdatedTopics(updated);
   };
 
   const preview = useMemo(() => {
@@ -212,6 +238,9 @@ export default function FacebookAutoPostAdminPage() {
       setSettings(data.settings);
       setConfig(data.config || config);
       setLogs(data.logs || logs);
+      setTopicsText(toLines(data.settings.topics || []));
+      setPhotoUrlsText(toLines(data.settings.photoUrls || []));
+      setHashtagsText(toLines(data.settings.hashtags || []));
       setMessage('Settings saved.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save settings');
