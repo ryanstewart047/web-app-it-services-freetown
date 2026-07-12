@@ -11,6 +11,48 @@ const DEFAULT_TOPICS = [
   'How to keep your files safer before a device repair',
 ];
 
+const DEFAULT_TOPIC_DESCRIPTIONS: Record<string, string> = {
+  '5 signs your laptop needs a professional service':
+    "Is your laptop acting up? Here are 5 warning signs it needs a professional check:\n\n" +
+    "1️⃣ Overheating & Loud Fan: If it's hot to touch and the fan is constantly screaming.\n" +
+    "2️⃣ Extreme Sluggishness: Random freezes or taking forever to open simple apps.\n" +
+    "3️⃣ Quick Battery Drain: Charging constantly but dying within minutes.\n" +
+    "4️⃣ Strange Noises: Grinding or clicking sounds from the hard drive or fan.\n" +
+    "5️⃣ Blue Screens or Crashes: Frequent unexpected restarts showing system errors.",
+  
+  'How to protect your phone charging port from damage':
+    "Phone charging port loose or not working? Keep it safe with these simple tips:\n\n" +
+    "🔌 Plug & Unplug Straight: Pulling at an angle damages internal pins over time.\n" +
+    "📱 Avoid Charging While Using: Playing games or texting pulls the cord, putting stress on the port.\n" +
+    "🧹 Clean It Safely: Gently blow out pocket lint or use a wooden toothpick. Never insert metal needles.\n" +
+    "⚡ Use Good Quality Cables: Cheap cables don't fit perfectly and can stretch or bend the charging pins.",
+  
+  'Why same-day diagnostics can save repair costs':
+    "When device issues start, waiting always makes it worse. Same-day diagnostics save money because:\n\n" +
+    "💰 Prevent Spreading Damage: A tiny battery bulge can destroy the trackpad/keyboard if left alone.\n" +
+    "🔍 Identify the Right Issue: Avoid wasting money replacing parts that aren't actually broken.\n" +
+    "⚡ Save Time: Fast action gets your laptop or phone back to work before your productivity drops.",
+  
+  'Simple ways to keep your computer running faster':
+    "Slow computer slowing down your workday? Try these quick maintenance tips:\n\n" +
+    "🚀 Limit Startup Apps: Disable heavy programs that launch automatically when you turn on your PC.\n" +
+    "🧹 Storage Cleanup: Keep at least 15% of your drive free by clearing cache and old downloads.\n" +
+    "💻 Uninstall Unused Software: Clean out apps you haven't opened in months.\n" +
+    "❄️ Keep it Dust-Free: Dust buildup makes the processor hot, forcing it to slow down to protect itself.",
+  
+  'When to repair a phone screen before the damage spreads':
+    "Think a small crack on your screen is fine to ignore? Here is why you should repair it early:\n\n" +
+    "💥 LCD Damage: Small glass cracks put pressure on the underlying display, eventually causing black spots or dead touch zones.\n" +
+    "💧 Moisture Risk: Liquid from rain, sweat, or steam gets inside the cracks easily, causing total mainboard failure.\n" +
+    "✋ Cut Fingers: Broken glass particles can peel off and cause minor skin injuries during daily use.",
+  
+  'How to keep your files safer before a device repair':
+    "Taking your laptop or phone to a repair shop? Keep your personal files secure first:\n\n" +
+    "💾 Backup First: Store your important documents, pictures, and databases to Google Drive, iCloud, or an external hard drive.\n" +
+    "🔐 Secure Accounts: Log out of personal banking, email, and social media browsers.\n" +
+    "👤 Set a Strong Password: Lock the operating system, or request a backup first so repair technicians can work on a clean test profile."
+};
+
 const DEFAULT_PHOTO_URLS = [
   'https://www.itservicesfreetown.com/assets/images/iphone-repair.jpg',
   'https://www.itservicesfreetown.com/assets/images/slider001.jpg',
@@ -159,6 +201,67 @@ function getVisualSceneForTopic(topic: string): string {
   return `A realistic, professional photograph representing a real-life scene for: "${topic}". Clean composition, natural lighting, sharp focus.`;
 }
 
+async function generateTopicDescription(topic: string): Promise<string> {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (apiKey) {
+    try {
+      console.log(`[FacebookAutoPost] Calling Groq API to generate rich description for topic: "${topic}"`);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-8b-instant',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a professional IT repair and tech support specialist at IT Services Freetown in Sierra Leone. Write a highly informative, engaging, and detailed Facebook post description about the provided topic. If the topic mentions a count (e.g., 5 signs, 3 ways), you MUST list each item clearly with emojis and short helpful descriptions (e.g., 1️⃣, 2️⃣, 3️⃣). Keep the tone helpful, professional, and friendly. Do not include hashtags, URLs, links, or placeholder brackets in your output. Keep it under 220 words total.'
+            },
+            {
+              role: 'user',
+              content: `Please write a detailed explanation and description for the topic: "${topic}"`
+            }
+          ],
+          temperature: 0.6,
+          max_tokens: 600
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const data = await response.json();
+        const text = data.choices?.[0]?.message?.content?.trim();
+        if (text) {
+          console.log('[FacebookAutoPost] Successfully generated dynamic description via Groq.');
+          return text;
+        }
+      } else {
+        const errorText = await response.text();
+        console.warn(`[FacebookAutoPost] Groq API returned status ${response.status}:`, errorText);
+      }
+    } catch (err) {
+      console.warn('[FacebookAutoPost] Groq description generation failed or timed out, falling back to predefined descriptions:', err);
+    }
+  }
+
+  // Fallback map check
+  const fallback = DEFAULT_TOPIC_DESCRIPTIONS[topic];
+  if (fallback) {
+    return fallback;
+  }
+
+  // Generic fallback if topic is custom and Groq failed
+  return `Want to learn more about "${topic}"? Keeping your tech devices running smoothly is our top priority. For professional diagnostics, screen replacements, battery repairs, or general optimization, visit IT Services Freetown today!`;
+}
+
 function serializeSettings(settings?: any): FacebookAutoPostSettingsDto {
   return {
     enabled: Boolean(settings?.enabled ?? false),
@@ -263,10 +366,10 @@ export async function updateFacebookAutoPostSettings(input: Partial<FacebookAuto
   return serializeSettings(settings);
 }
 
-function buildMessage(settings: FacebookAutoPostSettingsDto, topic: string): string {
+function buildMessage(settings: FacebookAutoPostSettingsDto, topic: string, description: string): string {
   const hashtags = settings.hashtags.map(tag => `#${tag}`).join(' ');
   const message = settings.messageTemplate
-    .split('{topic}').join(topic)
+    .split('{topic}').join(description)
     .split('{link}').join(settings.linkUrl)
     .split('{hashtags}').join(hashtags)
     .trim();
@@ -412,7 +515,12 @@ export async function runFacebookAutoPost(options: { force?: boolean; triggeredB
 
   const topic    = pickRotating(settings.topics, recentTopics);
   const fallbackPhotoUrl = pickRotating(settings.photoUrls, recentPhotos);
-  const message  = buildMessage(settings, topic);
+  
+  // Generate a rich detailed description for the topic (e.g. list the 5 signs, etc.)
+  const description = await generateTopicDescription(topic);
+  const richTopicBody = `📢 ${topic.toUpperCase()}\n\n${description}`;
+  
+  const message  = buildMessage(settings, topic, richTopicBody);
 
   let photoUrl = fallbackPhotoUrl;
   try {
