@@ -131,6 +131,34 @@ function normalizeLinkUrl(value: unknown): string {
   }
 }
 
+function getVisualSceneForTopic(topic: string): string {
+  const lower = topic.toLowerCase();
+  
+  if (lower.includes('screen') || lower.includes('cracked') || lower.includes('display')) {
+    return 'A realistic close-up photograph of a modern smartphone with a cracked glass screen lying flat on a wooden work surface, showing detailed glass fractures and light reflections. Natural workshop environment.';
+  }
+  if (lower.includes('charging') || lower.includes('port') || lower.includes('charger') || lower.includes('cable')) {
+    return 'A realistic close-up photo of a charging cable plugging into a smartphone usb-c charging port. Professional setup, clean focus, natural lighting.';
+  }
+  if (lower.includes('diagnostics') || lower.includes('diagnose') || lower.includes('repair cost') || lower.includes('service')) {
+    return 'A real photograph of a professional technician carefully inspecting a laptop motherboard with micro tools at a clean workbench in a well-lit workshop. Shallow depth of field.';
+  }
+  if (lower.includes('faster') || lower.includes('performance') || lower.includes('clean') || lower.includes('computer running')) {
+    return 'A real photograph of a clean, open laptop sitting on a wooden office desk next to a coffee cup. Soft daylight coming from a side window, realistic cozy office scene.';
+  }
+  if (lower.includes('files') || lower.includes('safe') || lower.includes('backup') || lower.includes('data')) {
+    return 'A real photograph of an external hard drive and a USB key sitting next to a laptop on a white home office desk. Natural soft daylight, clean design.';
+  }
+  if (lower.includes('laptop') || lower.includes('keyboard') || lower.includes('computer')) {
+    return 'A realistic commercial product photograph of a modern laptop open on a table in a bright room. Crisp focus, real textures.';
+  }
+  if (lower.includes('phone') || lower.includes('iphone') || lower.includes('samsung') || lower.includes('mobile')) {
+    return 'A realistic close-up photograph of a smartphone lying on a desk showing a high quality display. Natural lighting, professional composition.';
+  }
+
+  return `A realistic, professional photograph representing a real-life scene for: "${topic}". Clean composition, natural lighting, sharp focus.`;
+}
+
 function serializeSettings(settings?: any): FacebookAutoPostSettingsDto {
   return {
     enabled: Boolean(settings?.enabled ?? false),
@@ -389,7 +417,8 @@ export async function runFacebookAutoPost(options: { force?: boolean; triggeredB
   let photoUrl = fallbackPhotoUrl;
   try {
     console.log(`[FacebookAutoPost] Generating AI image for topic: "${topic}"`);
-    const prompt = `Professional visual concept for: "${topic}". Tech repair, smartphone or laptop diagnostics, vibrant modern lighting, highly detailed, realistic illustration, 4k resolution, clean background, no text, no watermark`;
+    const scene = getVisualSceneForTopic(topic);
+    const prompt = `${scene} Realistic texture, detailed, shot on 35mm lens, f/2.8, professional commercial photography, natural daylight, no text, no watermark, no digital art, no illustration, no unreal engine, no 3d render`;
     const aiPhotoUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1080&height=1080&nologo=true&private=true&feed=false`;
 
     // Pre-fetch to warm cache (timeout after 12 seconds to not block indefinitely)
