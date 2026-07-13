@@ -174,10 +174,7 @@ export default function Chat() {
     const minDelay = new Promise(resolve => setTimeout(resolve, 3000))
     
     try {
-      const conversationHistory = buildConversationHistory([
-      ...previousMessages,
-      createMessage(userMessage, 'user') // include current user message so AI has full context
-    ])
+      const conversationHistory = buildConversationHistory(previousMessages)
       const shouldAllowBareNameLookup = hasPendingCustomerLookup(previousMessages)
       const hasTrackingId = extractTrackingIdClient(userMessage) !== null
       const shouldRunLookupFollowUp =
