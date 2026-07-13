@@ -5,7 +5,8 @@ import { NextRequest, NextResponse } from 'next/server';
 // ============================================================
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
-const GROQ_MODEL = 'llama-3.1-8b-instant'
+// Model can be overridden via GROQ_MODEL env var in Vercel dashboard for zero-code migrations
+const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-specdec'
 
 // ============================================================
 // 🔴 GEMINI (commented out — uncomment to switch back)

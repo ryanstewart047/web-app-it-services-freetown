@@ -1,6 +1,6 @@
 /**
  * Client-side AI API Integration Service (Groq via Backend Proxy)
- * 🟢 ACTIVE: Groq llama-3.1-8b-instant
+ * 🟢 ACTIVE: Groq llama-3.3-70b-specdec
  * SECURITY: API calls go through backend proxy to protect the API key
  */
 
@@ -183,7 +183,7 @@ export async function generateChatResponseClient(context: ChatContext): Promise<
     ]
     
     const requestBody = {
-      model: 'llama-3.1-8b-instant',
+      model: 'llama-3.3-70b-specdec',
       messages: messages,
       temperature: 0.6,
       max_tokens: 180,
@@ -192,7 +192,7 @@ export async function generateChatResponseClient(context: ChatContext): Promise<
     }
     
     console.log('📤 [CLIENT-SIDE] Request preview:', { 
-      model: 'llama-3.1-8b-instant', 
+      model: 'llama-3.3-70b-specdec', 
       messageCount: messages.length,
       userMessage: context.userMessage.substring(0, 50) + '...'
     })
@@ -465,7 +465,7 @@ Provide 3 to 5 steps only. Make every step count.`
     ]
     
     const requestBody = {
-      model: 'llama-3.1-8b-instant',  // Handled by backend proxy
+      model: 'llama-3.3-70b-specdec',  // Handled by backend proxy
       messages: messages,
       temperature: 0.5,
       max_tokens: 1000,
@@ -477,7 +477,7 @@ Provide 3 to 5 steps only. Make every step count.`
     console.log('📤 [CLIENT-SIDE] Request body preview:', {
       deviceType: context.deviceType,
       issue: context.issueDescription,
-      model: 'llama-3.1-8b-instant'
+      model: 'llama-3.3-70b-specdec'
     })
     
     // Call our secure backend proxy instead of Groq directly
