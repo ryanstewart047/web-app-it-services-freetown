@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendEmail, emailTemplates } from '@/lib/email'
+import { validateEmail } from '@/lib/email-validation'
 
 // POST /api/newsletter/subscribe
 export async function POST(request: NextRequest) {
@@ -8,16 +9,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { email, name } = body
 
-    // Basic validation
-    if (!email || typeof email !== 'string') {
-      return NextResponse.json({ error: 'A valid email address is required.' }, { status: 400 })
+    // Validate email strictly (blocks disposable domains and dot stuffing)
+    const validation = validateEmail(email)
+    if (!validation.isValid) {
+      return NextResponse.json({ error: validation.error }, { status: 400 })
     }
 
     const normalizedEmail = email.toLowerCase().trim()
-
-    if (!normalizedEmail.includes('@') || !normalizedEmail.includes('.')) {
-      return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 })
-    }
 
     // Check for existing lead with this email across all sources
     const existing = await prisma.emailLead.findFirst({
