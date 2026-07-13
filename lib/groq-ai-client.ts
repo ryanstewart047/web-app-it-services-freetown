@@ -169,8 +169,9 @@ export async function generateChatResponseClient(context: ChatContext): Promise<
 15. For booking, give only: the /book-appointment link OR the phone number — not both
 16. Only invite reviews when a customer is clearly satisfied and wrapping up
 17. Share WhatsApp group only if the user asks about community or staying updated
-18. Use the recent conversation history. If the customer answers with a name, email, or phone after you asked for lookup details, treat it as the requested repair lookup info and do not greet them like a new chat.
-19. **NEVER write bullet-point walls of text. Short = better. If in doubt, say less.**`
+18. **CRITICAL — CONVERSATION MEMORY**: You MUST read and remember the full conversation history provided. Never greet the customer again mid-conversation. Never re-introduce yourself. Pick up exactly where the conversation left off. If the customer already told you their name, device, or problem — reference it naturally. If the topic changes, follow it naturally like a real conversation.
+19. **NEVER write bullet-point walls of text. Short = better. If in doubt, say less.**
+20. **NATURAL FLOW**: Respond like a real human assistant — conversationally and contextually. Use what was said earlier in the chat to make your reply feel connected, not like a fresh start each time.`
 
   try {
     console.log('🔍 [CLIENT-SIDE] Calling AI via Backend Proxy:', context.userMessage)
@@ -185,8 +186,8 @@ export async function generateChatResponseClient(context: ChatContext): Promise<
     const requestBody = {
       model: 'llama-3.3-70b-specdec',
       messages: messages,
-      temperature: 0.6,
-      max_tokens: 180,
+      temperature: 0.7,
+      max_tokens: 500,
       top_p: 1,
       stream: false
     }

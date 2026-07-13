@@ -56,7 +56,7 @@ const buildConversationHistory = (chatMessages: Message[]) =>
       role: message.sender === 'user' ? 'user' as const : 'assistant' as const,
       content: message.content
     }))
-    .slice(-12)
+    .slice(-20)
 
 const hasPendingCustomerLookup = (chatMessages: Message[]) => {
   const recentText = chatMessages
@@ -174,7 +174,10 @@ export default function Chat() {
     const minDelay = new Promise(resolve => setTimeout(resolve, 3000))
     
     try {
-      const conversationHistory = buildConversationHistory(previousMessages)
+      const conversationHistory = buildConversationHistory([
+      ...previousMessages,
+      createMessage(userMessage, 'user') // include current user message so AI has full context
+    ])
       const shouldAllowBareNameLookup = hasPendingCustomerLookup(previousMessages)
       const hasTrackingId = extractTrackingIdClient(userMessage) !== null
       const shouldRunLookupFollowUp =
