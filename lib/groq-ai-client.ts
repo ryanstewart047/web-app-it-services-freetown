@@ -184,7 +184,7 @@ export async function generateChatResponseClient(context: ChatContext): Promise<
     ]
     
     const requestBody = {
-      model: 'llama-3.3-70b-specdec',
+      model: 'llama-3.1-8b-instant',
       messages: messages,
       temperature: 0.7,
       max_tokens: 500,
@@ -193,7 +193,7 @@ export async function generateChatResponseClient(context: ChatContext): Promise<
     }
     
     console.log('📤 [CLIENT-SIDE] Request preview:', { 
-      model: 'llama-3.3-70b-specdec', 
+      model: 'llama-3.1-8b-instant', 
       messageCount: messages.length,
       userMessage: context.userMessage.substring(0, 50) + '...'
     })
@@ -466,7 +466,7 @@ Provide 3 to 5 steps only. Make every step count.`
     ]
     
     const requestBody = {
-      model: 'llama-3.3-70b-specdec',  // Handled by backend proxy
+      model: 'llama-3.1-8b-instant',  // Handled by backend proxy
       messages: messages,
       temperature: 0.5,
       max_tokens: 1000,
@@ -478,7 +478,7 @@ Provide 3 to 5 steps only. Make every step count.`
     console.log('📤 [CLIENT-SIDE] Request body preview:', {
       deviceType: context.deviceType,
       issue: context.issueDescription,
-      model: 'llama-3.3-70b-specdec'
+      model: 'llama-3.1-8b-instant'
     })
     
     // Call our secure backend proxy instead of Groq directly
