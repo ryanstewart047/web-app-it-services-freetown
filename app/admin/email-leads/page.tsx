@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Download, Mail, Search, Filter, RefreshCw, Trash2, Users, TrendingUp, Calendar } from 'lucide-react'
+import { Download, Mail, Search, Filter, RefreshCw, Trash2, Users, TrendingUp, Calendar, Plus, Upload, FileText, CheckCircle2, AlertTriangle, AlertCircle, X } from 'lucide-react'
+import { validateEmail } from '@/lib/email-validation'
 
 interface EmailLead {
   id: string
@@ -47,6 +48,140 @@ export default function EmailLeadsPage() {
   const [downloading, setDownloading] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [cleaning, setCleaning] = useState(false)
+
+  // Manual Lead Modal state
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [manualEmail, setManualEmail] = useState('')
+  const [manualName, setManualName] = useState('')
+  const [manualPhone, setManualPhone] = useState('')
+  const [manualSource, setManualSource] = useState('manual')
+  const [manualSaving, setManualSaving] = useState(false)
+  const [manualError, setManualError] = useState('')
+
+  // File Upload Modal state
+  const [showUploadModal, setShowUploadModal] = useState(false)
+  const [parsedEmails, setParsedEmails] = useState<{ email: string; name: string | null; isValid: boolean; reason?: string }[]>([])
+  const [fileLoading, setFileLoading] = useState(false)
+  const [uploadSource, setUploadSource] = useState('import')
+  const [uploadSaving, setUploadSaving] = useState(false)
+  const [uploadResult, setUploadResult] = useState<{ success: boolean; added: number; skipped: number } | null>(null)
+
+  const handleManualSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setManualError('')
+    setManualSaving(true)
+
+    // Client-side strict validation
+    const validation = validateEmail(manualEmail)
+    if (!validation.isValid) {
+      setManualError(validation.error || 'Invalid email address.')
+      setManualSaving(false)
+      return
+    }
+
+    try {
+      const res = await fetch('/api/admin/email-leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: manualEmail,
+          name: manualName,
+          phone: manualPhone,
+          source: manualSource,
+        })
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        alert('Email lead successfully added!')
+        setShowAddModal(false)
+        fetchLeads()
+      } else {
+        setManualError(data.error || 'Failed to save email lead.')
+      }
+    } catch (err) {
+      setManualError('An error occurred while saving the email lead.')
+    } finally {
+      setManualSaving(false)
+    }
+  }
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setFileLoading(true)
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const text = event.target?.result as string
+      if (!text) {
+        setFileLoading(false)
+        return
+      }
+
+      // Extract all email patterns
+      const emailRegex = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g
+      const matches = text.match(emailRegex) || []
+      
+      // Keep only unique ones
+      const uniqueEmails = Array.from(new Set(matches.map(email => email.toLowerCase().trim())))
+
+      const validatedList = uniqueEmails.map(email => {
+        const validation = validateEmail(email)
+        return {
+          email,
+          name: null,
+          isValid: validation.isValid,
+          reason: validation.error || undefined
+        }
+      })
+
+      setParsedEmails(validatedList)
+      setFileLoading(false)
+    }
+    reader.onerror = () => {
+      alert('Failed to read file')
+      setFileLoading(false)
+    }
+    reader.readAsText(file)
+  }
+
+  const handleBatchImport = async () => {
+    const validLeads = parsedEmails
+      .filter(p => p.isValid)
+      .map(p => ({
+        email: p.email,
+        name: p.name,
+        source: uploadSource
+      }))
+
+    if (validLeads.length === 0) {
+      alert('No valid emails to import.')
+      return
+    }
+
+    setUploadSaving(true)
+    try {
+      const res = await fetch('/api/admin/email-leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(validLeads)
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        setUploadResult({
+          success: true,
+          added: data.added || 0,
+          skipped: data.skipped || 0
+        })
+      } else {
+        alert('Failed to import: ' + (data.error || 'Unknown error'))
+      }
+    } catch (err) {
+      alert('An error occurred during import')
+    } finally {
+      setUploadSaving(false)
+    }
+  }
 
   const handleCleanBounced = async () => {
     const bouncedCount = leads.filter(l => l.deliveryFailed).length
@@ -195,7 +330,32 @@ export default function EmailLeadsPage() {
               </div>
             </div>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => {
+                setManualEmail('')
+                setManualName('')
+                setManualPhone('')
+                setManualSource('manual')
+                setManualError('')
+                setShowAddModal(true)
+              }}
+              className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-slate-800"
+            >
+              <Plus className="h-4 w-4" />
+              Add Email
+            </button>
+            <button
+              onClick={() => {
+                setParsedEmails([])
+                setUploadResult(null)
+                setShowUploadModal(true)
+              }}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+            >
+              <Upload className="h-4 w-4" />
+              Upload File
+            </button>
             {leads.some(l => l.deliveryFailed) && (
               <button
                 onClick={handleCleanBounced}
@@ -410,6 +570,220 @@ export default function EmailLeadsPage() {
             ← Back to Admin Dashboard
           </a>
         </div>
+
+        {/* Manual Add Lead Modal */}
+        {showAddModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-md overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl transition-all">
+              <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                <h3 className="text-lg font-bold text-slate-900">Add New Email Lead</h3>
+                <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <form onSubmit={handleManualSubmit} className="p-6 space-y-4">
+                {manualError && (
+                  <div className="flex items-center gap-2.5 rounded-xl bg-red-50 p-3.5 text-sm font-medium text-red-700 border border-red-100">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    <span>{manualError}</span>
+                  </div>
+                )}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Email Address *</label>
+                  <input
+                    type="email"
+                    required
+                    value={manualEmail}
+                    onChange={e => setManualEmail(e.target.value)}
+                    placeholder="customer@example.com"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Full Name</label>
+                  <input
+                    type="text"
+                    value={manualName}
+                    onChange={e => setManualName(e.target.value)}
+                    placeholder="John Doe"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Phone Number</label>
+                  <input
+                    type="tel"
+                    value={manualPhone}
+                    onChange={e => setManualPhone(e.target.value)}
+                    placeholder="+232 33 399391"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Lead Source</label>
+                  <select
+                    value={manualSource}
+                    onChange={e => setManualSource(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50"
+                  >
+                    <option value="manual">Manual Entry</option>
+                    <option value="newsletter">Newsletter Subscriber</option>
+                    <option value="receipt">In-store customer</option>
+                    <option value="forum">Forum User</option>
+                  </select>
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={manualSaving}
+                    className="flex-1 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-200 hover:from-blue-700 hover:to-indigo-800 disabled:opacity-50"
+                  >
+                    {manualSaving ? 'Saving...' : 'Add Lead'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* File Upload / Email Extractor Modal */}
+        {showUploadModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl transition-all">
+              <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <Upload className="h-5 w-5 text-blue-600" />
+                  <h3 className="text-lg font-bold text-slate-900">Import Emails from File</h3>
+                </div>
+                <button onClick={() => setShowUploadModal(false)} className="text-slate-400 hover:text-slate-600">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="p-6 space-y-6">
+                {!parsedEmails.length && !uploadResult && (
+                  <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl py-12 px-4 hover:border-blue-400 transition bg-slate-50/50">
+                    <FileText className="h-12 w-12 text-slate-400 mb-3" />
+                    <p className="text-sm font-bold text-slate-700 mb-1">Upload any text, CSV, or log file</p>
+                    <p className="text-xs text-slate-400 mb-4 text-center max-w-sm">We will search the file and automatically pull out all valid email patterns, ignoring duplicate and fake emails.</p>
+                    <label className="cursor-pointer rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white shadow hover:bg-slate-800 transition">
+                      Choose File
+                      <input type="file" accept=".txt,.csv,.log,.json,.html" onChange={handleFileUpload} className="hidden" />
+                    </label>
+                  </div>
+                )}
+
+                {fileLoading && (
+                  <div className="flex flex-col items-center justify-center gap-3 py-12 text-slate-400">
+                    <RefreshCw className="h-8 w-8 animate-spin" />
+                    <p className="text-sm font-medium">Extracting emails from file...</p>
+                  </div>
+                )}
+
+                {uploadResult && (
+                  <div className="space-y-4 text-center py-6">
+                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-50 text-green-600">
+                      <CheckCircle2 className="h-8 w-8" />
+                    </div>
+                    <div>
+                      <h4 className="text-xl font-extrabold text-slate-900">Import Complete!</h4>
+                      <p className="text-sm text-slate-500 mt-1.5">
+                        Successfully imported <span className="font-bold text-green-600">{uploadResult.added}</span> emails to the lead list.
+                        {uploadResult.skipped > 0 && (
+                          <span> Skipped <span className="font-bold text-slate-700">{uploadResult.skipped}</span> invalid or duplicate entries.</span>
+                        )}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowUploadModal(false)
+                        fetchLeads()
+                      }}
+                      className="rounded-xl bg-slate-900 px-6 py-2.5 text-sm font-bold text-white shadow hover:bg-slate-800"
+                    >
+                      Done
+                    </button>
+                  </div>
+                )}
+
+                {parsedEmails.length > 0 && !uploadResult && (
+                  <div className="space-y-4">
+                    {/* Summary stats */}
+                    <div className="grid grid-cols-3 gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                      <div className="text-center">
+                        <span className="block text-xs font-bold uppercase tracking-wider text-slate-400">Total Found</span>
+                        <span className="text-lg font-black text-slate-800">{parsedEmails.length}</span>
+                      </div>
+                      <div className="text-center">
+                        <span className="block text-xs font-bold uppercase tracking-wider text-slate-400">Valid</span>
+                        <span className="text-lg font-black text-green-600">{parsedEmails.filter(p => p.isValid).length}</span>
+                      </div>
+                      <div className="text-center">
+                        <span className="block text-xs font-bold uppercase tracking-wider text-slate-400">Flagged Fake</span>
+                        <span className="text-lg font-black text-red-500">{parsedEmails.filter(p => !p.isValid).length}</span>
+                      </div>
+                    </div>
+
+                    {/* Source Selector */}
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Lead Source for Imported Emails</label>
+                      <select
+                        value={uploadSource}
+                        onChange={e => setUploadSource(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:bg-white"
+                      >
+                        <option value="import">File Import</option>
+                        <option value="newsletter">Newsletter Lead</option>
+                        <option value="receipt">In-store Customer</option>
+                      </select>
+                    </div>
+
+                    {/* Email preview list */}
+                    <div className="max-h-[220px] overflow-y-auto rounded-xl border border-slate-200 divide-y divide-slate-100">
+                      {parsedEmails.map((item, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-3 text-sm">
+                          <span className={`font-mono font-medium ${item.isValid ? 'text-slate-700' : 'text-slate-400 line-through'}`}>{item.email}</span>
+                          {item.isValid ? (
+                            <span className="inline-flex items-center gap-1 rounded bg-green-50 px-2 py-0.5 text-xs font-bold text-green-700">
+                              <CheckCircle2 className="h-3 w-3" /> Valid
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded bg-red-50 px-2 py-0.5 text-xs font-bold text-red-700" title={item.reason}>
+                              <AlertTriangle className="h-3 w-3" /> Fake / Invalid
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-3 pt-2">
+                      <button
+                        onClick={() => setParsedEmails([])}
+                        className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                      >
+                        Upload Another
+                      </button>
+                      <button
+                        disabled={uploadSaving || !parsedEmails.some(p => p.isValid)}
+                        onClick={handleBatchImport}
+                        className="flex-1 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-200 hover:from-blue-700 hover:to-indigo-800 disabled:opacity-50"
+                      >
+                        {uploadSaving ? 'Importing...' : `Import ${parsedEmails.filter(p => p.isValid).length} Valid Emails`}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -1,10 +1,99 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { validateEmail } from '@/lib/email-validation'
 
 function checkAuth(request: NextRequest): boolean {
   // Reuse the same session cookie the main admin page sets
   const sessionToken = request.cookies.get('admin_session')?.value
   return !!sessionToken
+}
+
+// POST /api/admin/email-leads         → Add a single or batch list of email leads
+export async function POST(request: NextRequest) {
+  if (!checkAuth(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  try {
+    const body = await request.json()
+    const leadsToAdd = Array.isArray(body) ? body : [body]
+
+    if (leadsToAdd.length === 0) {
+      return NextResponse.json({ error: 'No email leads provided' }, { status: 400 })
+    }
+
+    let addedCount = 0
+    let skippedCount = 0
+    const errors: string[] = []
+
+    for (const lead of leadsToAdd) {
+      const email = lead.email?.trim()
+      const name = lead.name?.trim() || null
+      const phone = lead.phone?.trim() || null
+      const source = lead.source?.trim() || 'manual'
+
+      if (!email) {
+        skippedCount++
+        continue
+      }
+
+      // Strict validation on the server side
+      const validation = validateEmail(email)
+      if (!validation.isValid) {
+        skippedCount++
+        errors.push(`Skipped "${email}": ${validation.error}`)
+        continue
+      }
+
+      const normalizedEmail = email.toLowerCase()
+
+      // Check if this email + source already exists to prevent duplicate entries
+      const existing = await prisma.emailLead.findFirst({
+        where: {
+          email: normalizedEmail,
+          source: source,
+        }
+      })
+
+      if (existing) {
+        // If it exists, update the name and phone if provided
+        await prisma.emailLead.update({
+          where: { id: existing.id },
+          data: {
+            name: name || existing.name,
+            phone: phone || existing.phone,
+            deliveryFailed: false, // Reset failure status on manually re-adding
+          }
+        })
+        addedCount++
+      } else {
+        // Create new record
+        await prisma.emailLead.create({
+          data: {
+            email: normalizedEmail,
+            name,
+            phone,
+            source,
+            deliveryFailed: false,
+          }
+        })
+        addedCount++
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      added: addedCount,
+      skipped: skippedCount,
+      errors: errors.slice(0, 10),
+    })
+  } catch (error) {
+    console.error('Failed to save email leads:', error)
+    return NextResponse.json(
+      { error: 'Internal server error', message: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    )
+  }
 }
 
 // GET /api/admin/email-leads          → JSON list
