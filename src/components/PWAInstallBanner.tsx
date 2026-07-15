@@ -1,0 +1,243 @@
+'use client'
+
+import { useState, useEffect, useRef } from 'react'
+import { 
+  shouldShowPWAInstall, 
+  isPWASupported, 
+  isPWAInstalled,
+  markPWAInstalled,
+  shouldShowInstallBanner,
+  getInstallInstructions,
+  detectDevice,
+  logDeviceInfo,
+  monitorInstallationState
+} from '@/utils/deviceDetection'
+import { BRAND_LOGO_SRC, BRAND_LOGO_FALLBACK_SRC, BRAND_NAME } from '@/lib/brand'
+
+export default function PWAInstallBanner() {
+  const [showBanner, setShowBanner] = useState(false)
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+  // Also store in a ref so handleInstall always reads the latest value
+  // (avoids stale closure bugs with state in event handlers)
+  const deferredPromptRef = useRef<any>(null)
+  const [deviceInfo, setDeviceInfo] = useState({ isMobile: false, isIOS: false, isAndroid: false })
+  const [installInstructions, setInstallInstructions] = useState('')
+
+  useEffect(() => {
+    // Get device information
+    const device = detectDevice()
+    setDeviceInfo(device)
+    setInstallInstructions(getInstallInstructions())
+    
+    // Log device info for debugging
+    logDeviceInfo()
+    
+    const handleBeforeInstallPrompt = (e: any) => {
+      console.log('PWA Install Banner: beforeinstallprompt event fired')
+      
+      // If this event fires, the browser guarantees the app is NOT installed.
+      // So if our local storage thinks it IS installed, they must have uninstalled it!
+      try {
+        if (localStorage.getItem('pwa-was-installed') === 'true') {
+          console.log('PWA Install Banner: Detected app uninstall, clearing local storage flags.')
+          localStorage.removeItem('pwa-was-installed')
+        }
+      } catch (err) {}
+
+      e.preventDefault()
+      deferredPromptRef.current = e
+      setDeferredPrompt(e)
+      
+      if (shouldShowInstallBanner()) {
+        setShowBanner(true)
+      }
+    }
+
+    // Monitor installation state changes
+    const cleanupMonitor = monitorInstallationState((isInstalled) => {
+      if (isInstalled) {
+        console.log('PWA Install Banner: App was installed, hiding banner')
+        setShowBanner(false)
+      } else {
+        console.log('PWA Install Banner: App was uninstalled, allowing fresh install')
+        // Re-check if we should show banner after uninstall
+        if (shouldShowInstallBanner()) {
+          setShowBanner(true)
+        }
+      }
+    })
+
+    // Listen for the appinstalled event to persistently mark the app as installed
+    const handleAppInstalled = () => {
+      console.log('PWA Install Banner: appinstalled event fired')
+      markPWAInstalled()
+      setShowBanner(false)
+    }
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    window.addEventListener('appinstalled', handleAppInstalled)
+
+    // For iOS devices, show banner after a short delay since beforeinstallprompt doesn't fire
+    if (device.isIOS && shouldShowInstallBanner()) {
+      console.log('PWA Install Banner: Setting timer for iOS device')
+      const timer = setTimeout(() => {
+        if (shouldShowInstallBanner()) {
+          console.log('PWA Install Banner: Showing banner for iOS')
+          setShowBanner(true)
+        }
+      }, 3000)
+      
+      return () => {
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+        window.removeEventListener('appinstalled', handleAppInstalled)
+        clearTimeout(timer)
+        cleanupMonitor()
+      }
+    }
+
+    // For Android devices, also show after delay if beforeinstallprompt doesn't fire
+    if (device.isAndroid && shouldShowInstallBanner()) {
+      console.log('PWA Install Banner: Setting fallback timer for Android device')
+      const fallbackTimer = setTimeout(() => {
+        if (!deferredPrompt && shouldShowInstallBanner()) {
+          console.log('PWA Install Banner: Showing fallback banner for Android')
+          setShowBanner(true)
+        }
+      }, 5000)
+      
+      return () => {
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+        window.removeEventListener('appinstalled', handleAppInstalled)
+        clearTimeout(fallbackTimer)
+        cleanupMonitor()
+      }
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      window.removeEventListener('appinstalled', handleAppInstalled)
+      cleanupMonitor()
+    }
+  }, [])
+
+  const handleInstall = async () => {
+    // Read from ref to avoid stale closure. This is the most reliable approach.
+    const prompt = deferredPromptRef.current
+
+    if (prompt) {
+      // Android or Desktop Chrome — trigger the native browser install dialog
+      try {
+        prompt.prompt()
+        const choiceResult = await prompt.userChoice
+        console.log('PWA Install result:', choiceResult.outcome)
+        if (choiceResult.outcome === 'accepted') {
+          console.log('User accepted the install prompt')
+          markPWAInstalled()
+        }
+      } catch (err) {
+        console.error('PWA prompt error:', err)
+      } finally {
+        deferredPromptRef.current = null
+        setDeferredPrompt(null)
+        setShowBanner(false)
+      }
+    } else if (deviceInfo.isIOS) {
+      // iOS - close banner; instructions are already shown inline
+      setShowBanner(false)
+    } else {
+      // Fallback: close banner
+      setShowBanner(false)
+    }
+  }
+
+  const handleClose = () => {
+    try {
+      sessionStorage.setItem('pwa-banner-closed', 'true')
+    } catch (e) {}
+    setShowBanner(false)
+  }
+
+  // Check session storage on render directly as a backup
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem('pwa-banner-closed') === 'true') {
+        setShowBanner(false)
+      }
+    } catch (e) {}
+  }, [])
+
+  // Don't show banner if conditions are not met
+  if (!showBanner || !shouldShowInstallBanner()) {
+    return null
+  }
+
+  console.log('PWA Install Banner: Rendering banner for device:', deviceInfo)
+
+  return (
+    <div className="pwa-install-banner fixed top-0 left-0 right-0 bg-gradient-to-r from-[#040e40] via-red-800 to-red-600 text-white p-4 z-50 shadow-2xl border-b-4 border-white/20">
+      <div className="pwa-banner-content flex items-center justify-between max-w-6xl mx-auto">
+        <div className="flex items-center space-x-4">
+          {/* Site Logo */}
+          <div className="pwa-banner-icon bg-white/10 p-2 md:p-3 rounded-xl backdrop-blur-sm flex items-center justify-center">
+            <img 
+              src={BRAND_LOGO_SRC}
+              alt={BRAND_NAME}
+              className="w-auto h-10 sm:h-12 max-w-[130px] object-contain drop-shadow-md"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = BRAND_LOGO_FALLBACK_SRC
+              }}
+            />
+          </div>
+          
+          <div className="pwa-banner-text">
+            <div className="pwa-banner-title font-bold text-lg">
+              ITS Freetown
+            </div>
+            <div className="pwa-banner-subtitle text-sm opacity-90 font-medium">
+              {deviceInfo.isIOS 
+                ? 'Add to Home Screen for quick access to our services' 
+                : 'Install our app for faster access and offline capabilities'
+              }
+            </div>
+            {deviceInfo.isIOS && (
+              <div className="text-xs opacity-75 mt-1">
+                Tap <span className="font-semibold">Share</span> → <span className="font-semibold">Add to Home Screen</span>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="pwa-banner-buttons flex items-center space-x-3">
+          {/* Show Install button whenever the browser has provided a deferred prompt
+              (works for Android Chrome AND desktop Chrome/Edge) */}
+          {deferredPrompt && (
+            <button 
+              onClick={handleInstall}
+              className="pwa-install-btn bg-white text-red-600 px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-2"
+            >
+              <i className="fas fa-download text-sm"></i>
+              <span>Install App</span>
+            </button>
+          )}
+          {/* iOS devices can never show the deferred prompt natively,
+              so we show a "Got it" button that acknowledges the manual steps */}
+          {deviceInfo.isIOS && !deferredPrompt && (
+            <button 
+              onClick={handleInstall}
+              className="pwa-install-btn bg-white/20 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-white/30 transition-all duration-300 backdrop-blur-sm border border-white/30 flex items-center space-x-2"
+            >
+              <i className="fas fa-check text-sm"></i>
+              <span>Got it</span>
+            </button>
+          )}
+          <button 
+            onClick={handleClose}
+            className="pwa-close-btn text-white/80 hover:text-white hover:bg-white/10 text-xl p-2 rounded-lg transition-all duration-300"
+          >
+            <i className="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

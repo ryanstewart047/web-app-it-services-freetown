@@ -1,0 +1,277 @@
+'use client'
+
+import { X, Phone, MessageCircle, Copy, CheckCircle, Smartphone } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { detectDevice } from '@/utils/deviceDetection'
+
+interface PaymentInstructionsPopupProps {
+  orderNumber: string
+  totalAmount: number
+  onClose: () => void
+}
+
+export default function PaymentInstructionsPopup({ 
+  orderNumber, 
+  totalAmount,
+  onClose 
+}: PaymentInstructionsPopupProps) {
+  const [copiedField, setCopiedField] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    setIsMobile(detectDevice().isMobile)
+  }, [])
+
+  const paymentDetails = {
+    orangeMoney: '076210320',
+    afriMoney: '088294631',
+    whatsapp: '+23233399391'
+  }
+
+  const ussdCodes = {
+    // URL-encode the '#' symbol to '%23' for cross-platform compatibility
+    orangeMoney: 'tel:*144*2*2*241586%23',
+    afriMoney: 'tel:*161*6*2*088294631%23'
+  }
+
+  const copyToClipboard = (text: string, field: string) => {
+    navigator.clipboard.writeText(text)
+    setCopiedField(field)
+    setTimeout(() => setCopiedField(null), 2000)
+  }
+
+  const handleWhatsAppContact = () => {
+    const message = encodeURIComponent(
+      `Hello, I've made a payment for Order #${orderNumber}\nTotal Amount: Le ${totalAmount.toLocaleString()}\n\nPlease find attached payment screenshot.`
+    )
+    window.open(`https://wa.me/${paymentDetails.whatsapp.replace('+', '')}?text=${message}`, '_blank')
+  }
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 transition-opacity duration-300"
+        onClick={onClose}
+      />
+
+      {/* Popup Card */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 pointer-events-none">
+        <div 
+          className="bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 border border-blue-500/30 rounded-2xl shadow-2xl max-w-lg w-full max-h-[95vh] overflow-hidden pointer-events-auto transform transition-all duration-300 animate-scale-in flex flex-col"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 p-2 rounded-full bg-gray-800/80 hover:bg-gray-700 transition-all hover:scale-110"
+            aria-label="Close popup"
+          >
+            <X className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+          </button>
+
+          {/* Header */}
+          <div className="bg-gradient-to-r from-red-600 to-[#040e40] p-4 sm:p-6 text-center flex-shrink-0">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+              <Phone className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">Complete Your Payment</h2>
+            <p className="text-sm sm:text-base text-red-100">Mobile Money Payment Instructions</p>
+          </div>
+
+          {/* Content - Scrollable */}
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto flex-1">
+            {/* Order Details */}
+            <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-3 sm:p-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-gray-400 text-sm sm:text-base">Order Number:</span>
+                <span className="text-white font-bold text-sm sm:text-base">{orderNumber}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-400 text-sm sm:text-base">Total Amount:</span>
+                <span className="text-green-400 font-bold text-lg sm:text-xl">Le {totalAmount.toLocaleString()}</span>
+              </div>
+            </div>
+
+            {!isMobile && (
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-start gap-3 text-amber-200">
+                <Smartphone className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0 animate-bounce" />
+                <div>
+                  <h4 className="font-bold text-sm text-amber-400">USSD Payment Notice</h4>
+                  <p className="text-xs text-amber-350 mt-1 leading-relaxed">
+                    Since you are currently on a computer, please note that mobile payments can only be completed easily on your mobile device using the USSD system. Please have your mobile phone nearby to dial the code or approve the prompt.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Payment Instructions */}
+            <div>
+              <h3 className="text-white font-semibold mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base">
+                <span className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 bg-red-600 text-white text-xs sm:text-sm rounded-full">1</span>
+                Send Payment To:
+              </h3>
+              
+              {/* Orange Money */}
+              <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3 sm:p-4 mb-2 sm:mb-3 flex flex-col gap-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-orange-400 text-xs sm:text-sm font-medium mb-1">Orange Money</p>
+                    <p className="text-white text-base sm:text-lg font-bold">
+                      {isMobile ? '*144*2*2*241586#' : paymentDetails.orangeMoney}
+                    </p>
+                  </div>
+                  {isMobile ? (
+                    <a
+                      href={ussdCodes.orangeMoney}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-lg transition-colors shadow-md"
+                    >
+                      <Smartphone className="w-4 h-4" />
+                      Pay via USSD
+                    </a>
+                  ) : (
+                    <button
+                      onClick={() => copyToClipboard(paymentDetails.orangeMoney, 'orange')}
+                      className="p-2 hover:bg-orange-500/20 rounded-lg transition-colors flex items-center justify-center gap-2 bg-gray-800"
+                      title="Copy number"
+                    >
+                      <span className="text-orange-400 text-xs mr-1">Copy Number</span>
+                      {copiedField === 'orange' ? (
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                      ) : (
+                        <Copy className="w-4 h-4 text-orange-400" />
+                      )}
+                    </button>
+                  )}
+                </div>
+
+                {!isMobile && (
+                  <div className="border-t border-orange-500/20 pt-3 flex flex-col sm:flex-row items-center gap-4">
+                    <div className="bg-white p-2 rounded-lg flex-shrink-0">
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent('tel:*144*2*2*241586#')}`}
+                        alt="Orange Money USSD QR Code"
+                        className="w-[110px] h-[110px]"
+                      />
+                    </div>
+                    <div className="text-center sm:text-left">
+                      <p className="text-orange-300 text-xs font-bold mb-1">Scan to Pay via Orange Money</p>
+                      <p className="text-gray-400 text-[11px] leading-relaxed">
+                        Scan this QR code with your mobile phone camera or scanner to quickly dial the USSD code: <code className="text-white font-mono bg-orange-500/20 px-1 py-0.5 rounded">*144*2*2*241586#</code>
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* AfriMoney */}
+              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 sm:p-4 flex flex-col gap-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-green-400 text-xs sm:text-sm font-medium mb-1">AfriMoney</p>
+                    <p className="text-white text-base sm:text-lg font-bold">
+                      {isMobile ? '*161*6*2*088294631#' : paymentDetails.afriMoney}
+                    </p>
+                  </div>
+                  {isMobile ? (
+                    <a
+                      href={ussdCodes.afriMoney}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold rounded-lg transition-colors shadow-md"
+                    >
+                      <Smartphone className="w-4 h-4" />
+                      Pay via USSD
+                    </a>
+                  ) : (
+                    <button
+                      onClick={() => copyToClipboard(paymentDetails.afriMoney, 'afri')}
+                      className="p-2 hover:bg-green-500/20 rounded-lg transition-colors flex items-center justify-center gap-2 bg-gray-800"
+                      title="Copy number"
+                    >
+                      <span className="text-green-400 text-xs mr-1">Copy Number</span>
+                      {copiedField === 'afri' ? (
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                      ) : (
+                        <Copy className="w-4 h-4 text-green-400" />
+                      )}
+                    </button>
+                  )}
+                </div>
+
+                {!isMobile && (
+                  <div className="border-t border-green-500/20 pt-3 flex flex-col sm:flex-row items-center gap-4">
+                    <div className="bg-white p-2 rounded-lg flex-shrink-0">
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent('tel:*161*6*2*088294631#')}`}
+                        alt="AfriMoney USSD QR Code"
+                        className="w-[110px] h-[110px]"
+                      />
+                    </div>
+                    <div className="text-center sm:text-left">
+                      <p className="text-green-300 text-xs font-bold mb-1">Scan to Pay via AfriMoney</p>
+                      <p className="text-gray-400 text-[11px] leading-relaxed">
+                        Scan this QR code with your mobile phone camera or scanner to quickly dial the USSD code: <code className="text-white font-mono bg-green-500/20 px-1 py-0.5 rounded">*161*6*2*088294631#</code>
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Screenshot Instruction */}
+            <div>
+              <h3 className="text-white font-semibold mb-2 flex items-center gap-2 text-sm sm:text-base">
+                <span className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 bg-red-600 text-white text-xs sm:text-sm rounded-full">2</span>
+                Take Screenshot
+              </h3>
+              <p className="text-gray-300 text-xs sm:text-sm">
+                After making the payment, take a screenshot of your transaction confirmation.
+              </p>
+            </div>
+
+            {/* WhatsApp Button */}
+            <div>
+              <h3 className="text-white font-semibold mb-2 flex items-center gap-2 text-sm sm:text-base">
+                <span className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 bg-red-600 text-white text-xs sm:text-sm rounded-full">3</span>
+                Send Confirmation
+              </h3>
+              <button
+                onClick={handleWhatsAppContact}
+                className="w-full flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-sm sm:text-base"
+              >
+                <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+                <span>Send Payment Proof via WhatsApp</span>
+              </button>
+              <p className="text-gray-400 text-xs mt-2 text-center">
+                Include your Order Number: {orderNumber}
+              </p>
+            </div>
+
+            {/* Additional Info */}
+            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 sm:p-4">
+              <p className="text-red-300 text-xs sm:text-sm">
+                <strong>Note:</strong> Your order will be confirmed once we verify your payment. 
+                This usually takes a few minutes during business hours.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <style jsx>{`
+        @keyframes scale-in {
+          from {
+            transform: scale(0.9);
+            opacity: 0;
+          }
+          to {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+        .animate-scale-in {
+          animation: scale-in 0.3s ease-out;
+        }
+      `}</style>
+    </>
+  )
+}

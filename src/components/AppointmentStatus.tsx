@@ -1,0 +1,619 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { getBookingByTrackingId, getAllBookings, BookingData } from '@/lib/unified-booking-storage'
+import PaymentInstructionsPopup from '@/components/PaymentInstructionsPopup'
+
+interface AppointmentStatusProps {
+  trackingId: string
+}
+
+interface AppointmentStatus {
+  id: string
+  customerName: string
+  deviceType: string
+  deviceModel: string
+  status: 'received' | 'submitted' | 'diagnosed' | 'in-progress' | 'completed' | 'ready-for-pickup' | 'collected' | 'cancelled'
+  estimatedCompletion?: string
+  notes?: string
+  cost?: number
+  paymentStatus?: string
+  createdAt: string
+  updatedAt: string
+  diagnosticImages?: Array<string | { data: string; uploadedAt: string }>
+  diagnosticNotes?: string
+}
+
+const statusSteps = [
+  { key: 'received', label: 'Received', icon: 'fas fa-inbox', color: '#040e40' },
+  { key: 'submitted', label: 'Submitted', icon: 'fas fa-paper-plane', color: '#3b82f6' },
+  { key: 'diagnosed', label: 'Diagnosed', icon: 'fas fa-search', color: '#ef4444' },
+  { key: 'in-progress', label: 'In Progress', icon: 'fas fa-tools', color: '#ef4444' },
+  { key: 'completed', label: 'Completed', icon: 'fas fa-check', color: '#10b981' },
+  { key: 'ready-for-pickup', label: 'Ready for Pickup', icon: 'fas fa-bell', color: '#040e40' },
+  { key: 'collected', label: 'Collected', icon: 'fas fa-check-circle', color: '#10b981' },
+  { key: 'cancelled', label: 'Cancelled', icon: 'fas fa-times-circle', color: '#ef4444' }
+]
+
+// Parse the "--- Cost Breakdown ---" block from notes
+function parseCostBreakdown(notes?: string): { items: { label: string; cost: number }[]; cleanNotes: string } {
+  if (!notes) return { items: [], cleanNotes: '' };
+  const breakdownMarker = '--- Cost Breakdown ---';
+  const idx = notes.indexOf(breakdownMarker);
+  if (idx === -1) return { items: [], cleanNotes: notes.trim() };
+
+  const cleanNotes = notes.slice(0, idx).trim();
+  const breakdownBlock = notes.slice(idx + breakdownMarker.length);
+  const lines = breakdownBlock.split('\n').map(l => l.trim()).filter(Boolean);
+
+  const items: { label: string; cost: number }[] = [];
+  for (const line of lines) {
+    // Match lines like: • Screen Replacement: Le 350,000
+    const match = line.match(/^[•\-]?\s*(.+?):\s*Le\s*([\d,\.]+)$/i);
+    if (match) {
+      const label = match[1].trim();
+      const cost = parseFloat(match[2].replace(/,/g, ''));
+      if (label && !isNaN(cost)) items.push({ label, cost });
+    }
+  }
+  return { items, cleanNotes };
+}
+
+export default function AppointmentStatus({ trackingId }: AppointmentStatusProps) {
+  const [appointment, setAppointment] = useState<AppointmentStatus | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [showPaymentPopup, setShowPaymentPopup] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [cancelReason, setCancelReason] = useState('')
+
+  useEffect(() => {
+    fetchAppointmentStatus()
+  }, [trackingId])
+
+  const cancelRepair = async () => {
+    if (!appointment) return;
+    setCancelling(true);
+    try {
+      const response = await fetch('/api/analytics/repairs/', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trackingId: appointment.id,
+          status: 'cancelled',
+          notes: cancelReason
+            ? `Customer cancellation request: ${cancelReason}`
+            : 'Repair cancelled by customer via tracking page.',
+        }),
+      });
+      if (response.ok) {
+        setAppointment(prev => prev ? { ...prev, status: 'cancelled', notes: cancelReason ? `Customer cancellation request: ${cancelReason}` : 'Repair cancelled by customer via tracking page.' } : prev);
+        setShowCancelConfirm(false);
+        setCancelReason('');
+      } else {
+        const data = await response.json();
+        setError(data.error || 'Failed to cancel repair. Please contact us directly.');
+        setShowCancelConfirm(false);
+      }
+    } catch {
+      setError('Network error. Please try again or contact us directly.');
+      setShowCancelConfirm(false);
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  const fetchAppointmentStatus = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      // Debug logging for mobile issues
+      console.log('Searching for tracking ID:', trackingId);
+      const apiAppointment = await fetchFromApi(trackingId);
+
+      if (apiAppointment) {
+        setAppointment(apiAppointment);
+        setError('');
+        return;
+      }
+      
+      // First check if we have real booking data
+      const realBooking = getBookingByTrackingId(trackingId);
+      
+      if (realBooking) {
+        console.log('Real booking found:', realBooking);
+        // Convert BookingData to AppointmentStatus format
+        const appointmentStatus: AppointmentStatus = {
+          id: realBooking.trackingId,
+          customerName: realBooking.customerName,
+          deviceType: realBooking.deviceType,
+          deviceModel: realBooking.deviceModel,
+          status: realBooking.status,
+          estimatedCompletion: realBooking.estimatedCompletion,
+          notes: realBooking.notes,
+          cost: realBooking.cost,
+          createdAt: realBooking.createdAt,
+          updatedAt: realBooking.updatedAt,
+          diagnosticImages: realBooking.diagnosticImages,
+          diagnosticNotes: realBooking.diagnosticNotes
+        };
+        
+        setAppointment(appointmentStatus);
+        setError('');
+        return;
+      } else {
+        console.log('No real booking found for:', trackingId);
+        // Debug: Log all available booking IDs
+        const allBookings = getAllBookings();
+        console.log('Available booking IDs:', allBookings.map(b => b.trackingId));
+      }
+
+      // Fallback: Check predefined mock data for demo purposes
+      const mockAppointments: Record<string, AppointmentStatus> = {
+        'ITS-250926-1001': {
+          id: 'ITS-250926-1001',
+          customerName: 'John Smith',
+          deviceType: 'iPhone 14',
+          deviceModel: 'iPhone 14 Pro',
+          status: 'in-progress',
+          estimatedCompletion: 'Tomorrow, 2:00 PM',
+          notes: 'Screen replacement in progress. High-quality OLED display being installed.',
+          cost: 299.99,
+          createdAt: '2025-09-26T10:00:00Z',
+          updatedAt: '2025-09-26T14:30:00Z'
+        },
+        'ITS-250926-1002': {
+          id: 'ITS-250926-1002',
+          customerName: 'Sarah Johnson',
+          deviceType: 'MacBook Pro',
+          deviceModel: 'MacBook Pro 13" 2023',
+          status: 'diagnosed',
+          estimatedCompletion: 'Friday, 4:00 PM',
+          notes: 'Diagnosis complete. Logic board issue identified. Awaiting customer approval.',
+          cost: 450.00,
+          createdAt: '2025-09-26T09:15:00Z',
+          updatedAt: '2025-09-26T13:45:00Z'
+        },
+        'ITS-250926-1003': {
+          id: 'ITS-250926-1003',
+          customerName: 'Michael Brown',
+          deviceType: 'Samsung Galaxy',
+          deviceModel: 'Galaxy S23 Ultra',
+          status: 'completed',
+          estimatedCompletion: 'Ready for pickup',
+          notes: 'Battery replacement completed successfully. Device tested and ready.',
+          cost: 129.99,
+          createdAt: '2025-09-25T14:20:00Z',
+          updatedAt: '2025-09-26T11:00:00Z'
+        },
+        'ITS-250926-1004': {
+          id: 'ITS-250926-1004',
+          customerName: 'Emily Davis',
+          deviceType: 'Dell Laptop',
+          deviceModel: 'Dell XPS 15',
+          status: 'ready-for-pickup',
+          estimatedCompletion: 'Ready now',
+          notes: 'RAM upgrade completed. Performance significantly improved.',
+          cost: 180.00,
+          createdAt: '2025-09-24T16:30:00Z',
+          updatedAt: '2025-09-26T09:15:00Z'
+        },
+        // Legacy TRK format for backward compatibility
+        'TRK-001': {
+          id: 'TRK-001',
+          customerName: 'Demo User',
+          deviceType: 'iPhone 14',
+          deviceModel: 'iPhone 14 Pro',
+          status: 'in-progress',
+          estimatedCompletion: 'Tomorrow, 2:00 PM',
+          notes: 'Screen replacement in progress.',
+          cost: 299.99,
+          createdAt: '2025-09-26T10:00:00Z',
+          updatedAt: '2025-09-26T14:30:00Z'
+        },
+        'TRK-002': {
+          id: 'TRK-002',
+          customerName: 'Demo User 2',
+          deviceType: 'MacBook Pro',
+          deviceModel: 'MacBook Pro 13"',
+          status: 'diagnosed',
+          estimatedCompletion: 'Friday, 4:00 PM',
+          notes: 'Diagnosis in progress.',
+          cost: 450.00,
+          createdAt: '2025-09-26T09:15:00Z',
+          updatedAt: '2025-09-26T13:45:00Z'
+        }
+      };
+
+      // Check predefined mock data
+      const mockData = mockAppointments[trackingId];
+      
+      if (mockData) {
+        setAppointment(mockData);
+        setError('');
+      } else {
+        // No real booking data and no mock data - invalid tracking ID
+        setError('Invalid tracking ID. Please check your tracking ID and try again. Make sure you use a tracking ID from a booking made on this website.');
+      }
+    } catch (err) {
+      setError('Unable to fetch appointment status. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchFromApi = async (id: string): Promise<AppointmentStatus | null> => {
+    try {
+      const response = await fetch(`/api/analytics/repairs?trackingId=${encodeURIComponent(id)}`, {
+        cache: 'no-store'
+      });
+
+      if (response.status === 404) {
+        return null;
+      }
+
+      if (!response.ok) {
+        console.warn('Repair lookup API error:', response.status);
+        return null;
+      }
+
+      const repair = await response.json();
+      return transformRepairToAppointment(repair);
+    } catch (error) {
+      console.warn('Repair lookup API failed:', error);
+      return null;
+    }
+  };
+
+  const transformRepairToAppointment = (repair: any): AppointmentStatus => {
+    return {
+      id: repair.trackingId,
+      customerName: repair.customerName,
+      deviceType: repair.deviceType,
+      deviceModel: repair.deviceModel || '—',
+      status: (repair.status || 'received') as AppointmentStatus['status'],
+      estimatedCompletion: repair.estimatedCompletion,
+      notes: repair.notes,
+      paymentStatus: repair.paymentStatus || 'pending',
+      cost: typeof repair.totalCost === 'number' ? repair.totalCost : undefined,
+      createdAt: repair.submissionDate || new Date().toISOString(),
+      updatedAt: repair.lastUpdated || repair.submissionDate || new Date().toISOString(),
+      diagnosticImages: repair.diagnosticImages,
+      diagnosticNotes: repair.diagnosticNotes
+    };
+  };
+
+  const getCurrentStepIndex = () => {
+    if (!appointment) return 0
+    return statusSteps.findIndex(step => step.key === appointment.status)
+  }
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl p-8 shadow-lg">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading appointment status...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-2xl p-8 shadow-lg border border-red-200">
+        <div className="text-center">
+          <i className="fas fa-exclamation-triangle text-red-500 text-3xl mb-4"></i>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">Not Found</h3>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg font-semibold hover:from-red-600 hover:to-red-700 transition-all duration-300"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!appointment) return null
+
+  const currentStepIndex = getCurrentStepIndex()
+  const isCancelled = appointment.status === 'cancelled'
+  const { items: breakdownItems, cleanNotes } = parseCostBreakdown(appointment.notes)
+
+  return (
+    <>
+    <div className="bg-white rounded-2xl p-8 shadow-lg">
+      {/* Appointment Header */}
+      <div className="border-b border-gray-200 pb-6 mb-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Repair Status
+            </h2>
+            <p className="text-gray-600">
+              Tracking ID: <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">{trackingId}</span>
+            </p>
+          </div>
+          <div className="mt-4 md:mt-0 text-right">
+            <div className="text-sm text-gray-500">Customer</div>
+            <div className="font-semibold text-gray-900">{appointment.customerName}</div>
+            <div className="text-sm text-gray-600">{appointment.deviceType} - {appointment.deviceModel}</div>
+            {/* Cancel button — only show if repair can still be cancelled */}
+            {['received', 'submitted', 'diagnosed'].includes(appointment.status) && (
+              <button
+                onClick={() => setShowCancelConfirm(true)}
+                className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-red-300 text-red-600 text-sm font-semibold hover:bg-red-50 transition-colors duration-200"
+              >
+                <i className="fas fa-times-circle"></i>
+                Cancel Repair
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Cancelled Status Alert */}
+      {isCancelled && (
+        <div className="mb-8 bg-red-50 border-l-4 border-red-500 p-6 rounded-lg">
+          <div className="flex items-center mb-2">
+            <i className="fas fa-times-circle text-red-500 text-2xl mr-3"></i>
+            <h3 className="text-lg font-bold text-red-900">Repair Cancelled</h3>
+          </div>
+          <p className="text-red-800 ml-9">
+            This repair has been cancelled. If you have any questions, please contact us.
+          </p>
+          {cleanNotes && (
+            <div className="mt-3 ml-9 text-sm text-red-700 bg-red-100 p-3 rounded">
+              <strong>Cancellation reason:</strong> {cleanNotes}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Status Timeline - Only show if not cancelled */}
+      {!isCancelled && (
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">Repair Progress</h3>
+          <div className="relative">
+            {statusSteps.filter(step => step.key !== 'cancelled').map((step, index) => {
+              const isCompleted = index <= currentStepIndex
+              const isCurrent = index === currentStepIndex
+              
+              return (
+                <div key={step.key} className="flex items-center mb-6 last:mb-0">
+                  {/* Step Circle */}
+                  <div className={`relative z-10 flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${
+                    isCompleted 
+                      ? 'text-white shadow-lg' 
+                      : 'bg-gray-200 text-gray-400'
+                  }`}
+                  style={isCompleted ? { backgroundColor: step.color } : {}}
+                  >
+                    <i className={`${step.icon} text-lg`}></i>
+                  </div>
+
+                  {/* Connecting Line */}
+                  {index < statusSteps.filter(s => s.key !== 'cancelled').length - 1 && (
+                    <div 
+                      className={`absolute left-6 w-0.5 h-6 mt-12 transition-colors duration-300 ${
+                        index < currentStepIndex ? 'bg-gray-400' : 'bg-gray-200'
+                      }`}
+                    ></div>
+                  )}
+
+                  {/* Step Content */}
+                  <div className="ml-6 flex-1">
+                    <div className={`font-semibold ${isCurrent ? 'text-gray-900' : isCompleted ? 'text-gray-700' : 'text-gray-400'}`}>
+                      {step.label}
+                      {isCurrent && (
+                        <span className="ml-2 text-xs bg-red-500 text-white px-2 py-1 rounded-full">
+                          Current
+                        </span>
+                      )}
+                    </div>
+                    {isCurrent && cleanNotes && (
+                      <p className="text-sm text-gray-600 mt-1">{cleanNotes}</p>
+                    )}
+                  </div>
+
+                  {/* Timestamp */}
+                  <div className="text-xs text-gray-500">
+                    {isCompleted && new Date(appointment.updatedAt).toLocaleDateString()}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Additional Information */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {appointment.estimatedCompletion && (
+          <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+            <div className="flex items-center text-red-700">
+              <i className="fas fa-clock mr-2"></i>
+              <span className="font-semibold">Estimated Completion</span>
+            </div>
+            <p className="text-[#040e40] mt-1">{(() => { const d = new Date(appointment.estimatedCompletion!); return isNaN(d.getTime()) ? appointment.estimatedCompletion : d.toLocaleDateString(); })()}</p>
+          </div>
+        )}
+
+        {appointment.cost && (
+          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+            <div className="flex items-center text-green-700 mb-3">
+              <i className="fas fa-receipt mr-2"></i>
+              <span className="font-semibold">Cost Estimate</span>
+            </div>
+
+            {/* Itemized breakdown (if available) */}
+            {breakdownItems.length > 0 ? (
+              <div className="space-y-2 mb-3">
+                {breakdownItems.map((item, i) => (
+                  <div key={i} className="flex items-center justify-between text-sm">
+                    <span className="text-gray-700">
+                      <i className="fas fa-wrench mr-2 text-green-500 text-xs"></i>
+                      {item.label}
+                    </span>
+                    <span className="font-semibold text-gray-800">Le {item.cost.toLocaleString()}</span>
+                  </div>
+                ))}
+                <div className="border-t border-green-300 pt-2 mt-2 flex items-center justify-between">
+                  <span className="font-bold text-green-900">Total</span>
+                  <span className="text-xl font-black text-green-700">Le {appointment.cost.toLocaleString()}</span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-green-900 text-xl font-bold mb-3">Le {appointment.cost.toLocaleString()}</p>
+            )}
+
+            <div className="flex justify-end">
+              {appointment.paymentStatus === 'pending' && (
+                <button
+                  onClick={() => setShowPaymentPopup(true)}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-md"
+                >
+                  Pay Now
+                </button>
+              )}
+              {appointment.paymentStatus === 'paid' && (
+                <span className="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-green-300">
+                  ✓ Paid
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {showPaymentPopup && appointment.cost && (
+        <PaymentInstructionsPopup
+          orderNumber={appointment.id}
+          totalAmount={appointment.cost}
+          onClose={() => setShowPaymentPopup(false)}
+        />
+      )}
+
+      {/* Diagnostic Information Section */}
+      {(appointment.diagnosticNotes || (appointment.diagnosticImages && appointment.diagnosticImages.length > 0)) && (
+        <div className="mt-8 bg-blue-50 p-6 rounded-lg border border-blue-200">
+          <div className="flex items-center text-blue-700 mb-4">
+            <i className="fas fa-stethoscope mr-2 text-xl"></i>
+            <h4 className="font-semibold text-lg">Device Diagnostic Report</h4>
+          </div>
+          
+          {appointment.diagnosticNotes && (
+            <div className="mb-4">
+              <p className="text-gray-700 whitespace-pre-wrap">{appointment.diagnosticNotes}</p>
+            </div>
+          )}
+
+          {appointment.diagnosticImages && appointment.diagnosticImages.length > 0 && (
+            <div>
+              <h5 className="font-medium text-gray-900 mb-3">Diagnostic Photos</h5>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {appointment.diagnosticImages.map((image, index) => {
+                  const imageData = typeof image === 'string' ? image : image.data;
+                  return (
+                    <div 
+                      key={index} 
+                      className="relative group cursor-pointer"
+                      onClick={() => window.open(imageData, '_blank')}
+                    >
+                      <img 
+                        src={imageData} 
+                        alt={`Diagnostic image ${index + 1}`}
+                        className="w-full h-48 object-cover rounded-lg shadow-md transition-opacity group-hover:opacity-90"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all rounded-lg flex items-center justify-center">
+                        <i className="fas fa-search-plus text-white opacity-0 group-hover:opacity-100 text-2xl transition-opacity"></i>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">Click on images to view full size</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Contact Information */}
+      <div className="mt-8 p-6 bg-gradient-to-r from-gray-50 to-red-50 rounded-lg border">
+        <h4 className="font-semibold text-gray-900 mb-3">Need Help?</h4>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <a 
+            href="tel:+23233399391"
+            className="flex items-center justify-center px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-300 border"
+          >
+            <i className="fas fa-phone mr-2 text-red-600"></i>
+            Call Us
+          </a>
+          <a 
+            href={`https://wa.me/23233399391?text=Hi, I need help with my repair. Tracking ID: ${trackingId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-300"
+          >
+            <i className="fab fa-whatsapp mr-2"></i>
+            WhatsApp
+          </a>
+        </div>
+      </div>
+    </div>
+
+    {/* Cancel Confirm Modal */}
+    {showCancelConfirm && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-red-100 mb-4">
+              <i className="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900">Cancel Repair?</h3>
+            <p className="text-gray-600 mt-2 text-sm">
+              Are you sure you want to cancel your repair for <strong>{appointment.deviceType}</strong>? This will notify our team immediately.
+            </p>
+          </div>
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Reason for cancellation <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="e.g. I fixed it myself, found a cheaper option..."
+              rows={3}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
+            />
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => { setShowCancelConfirm(false); setCancelReason(''); }}
+              className="flex-1 py-3 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+            >
+              Keep Repair
+            </button>
+            <button
+              onClick={cancelRepair}
+              disabled={cancelling || !cancelReason.trim()}
+              className="flex-1 py-3 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {cancelling ? (
+                <><i className="fas fa-spinner fa-spin"></i> Cancelling...</>
+              ) : (
+                <><i className="fas fa-times-circle"></i> Yes, Cancel</>  
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
+  )
+}
