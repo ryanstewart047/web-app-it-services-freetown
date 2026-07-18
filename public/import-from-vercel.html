@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Import from Vercel Preview - IT Services Freetown</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 900px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #ef4444;
+      margin-bottom: 10px;
+    }
+    button {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 10px 10px 0;
+    }
+    button:hover {
+      background: #dc2626;
+    }
+    button.secondary {
+      background: #6b7280;
+    }
+    button.secondary:hover {
+      background: #4b5563;
+    }
+    .info {
+      background: #dbeafe;
+      border: 1px solid #3b82f6;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .success {
+      background: #d1fae5;
+      border: 1px solid #10b981;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .error {
+      background: #fee2e2;
+      border: 1px solid #ef4444;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .warning {
+      background: #fef3c7;
+      border: 1px solid #fbbf24;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    pre {
+      background: #f3f4f6;
+      padding: 15px;
+      border-radius: 8px;
+      overflow-x: auto;
+      max-height: 400px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    #status {
+      margin-top: 20px;
+    }
+    #preview {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📥 Import Data from Vercel Preview</h1>
+    <p>Restore booking data from your Vercel preview deployment.</p>
+
+    <div class="info">
+      <strong>ℹ️ Instructions:</strong>
+      <ol>
+        <li>Enter the Vercel preview URL below</li>
+        <li>Click "Fetch Data" to preview the bookings</li>
+        <li>Click "Import All" to restore the data</li>
+      </ol>
+    </div>
+
+    <label style="font-weight: 600; display: block; margin-top: 20px;">
+      Vercel Preview URL:
+    </label>
+    <input 
+      type="text" 
+      id="vercelUrl" 
+      placeholder="e.g., https://it-services-freetown-lxoxymewy-ryan-stewarts-projects-6b62ac43.vercel.app"
+      value="https://it-services-freetown-lxoxymewy-ryan-stewarts-projects-6b62ac43.vercel.app"
+    >
+
+    <button onclick="fetchData()">📊 Fetch Data</button>
+    <button onclick="importAll()" class="secondary">📥 Import All</button>
+
+    <div id="status"></div>
+    <div id="preview"></div>
+  </div>
+
+  <script>
+    let fetchedData = null;
+
+    async function fetchData() {
+      const status = document.getElementById('status');
+      const preview = document.getElementById('preview');
+      const url = document.getElementById('vercelUrl').value.trim();
+
+      if (!url) {
+        status.innerHTML = '<div class="error">❌ Please enter a URL</div>';
+        return;
+      }
+
+      // Ensure URL has protocol
+      const fullUrl = url.startsWith('http') ? url : 'https://' + url;
+
+      try {
+        status.innerHTML = '<div class="info">⏳ Fetching data from Vercel preview...</div>';
+        
+        // Fetch repairs data from the preview deployment
+        const apiUrl = `${fullUrl}/api/analytics/repairs/`;
+        const response = await fetch(apiUrl);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        fetchedData = data;
+
+        const repairs = data.allRepairs || [];
+        
+        if (repairs.length === 0) {
+          status.innerHTML = '<div class="warning">⚠️ No repair bookings found in the preview deployment</div>';
+          preview.innerHTML = '';
+          return;
+        }
+
+        status.innerHTML = `
+          <div class="success">
+            ✅ Successfully fetched data!<br>
+            Found <strong>${repairs.length}</strong> bookings
+          </div>
+        `;
+
+        preview.innerHTML = `
+          <h3>📋 Preview of Bookings to Import:</h3>
+          <div style="max-height: 400px; overflow-y: auto; background: #f9fafb; padding: 15px; border-radius: 8px; margin: 10px 0;">
+            ${repairs.map((repair, index) => `
+              <div style="background: white; padding: 12px; margin-bottom: 10px; border-radius: 6px; border-left: 4px solid #ef4444;">
+                <strong>${index + 1}. ${repair.trackingId}</strong><br>
+                <small style="color: #6b7280;">
+                  Customer: ${repair.customerName || 'N/A'} | 
+                  Device: ${repair.deviceType || 'N/A'} | 
+                  Status: ${repair.status || 'N/A'}
+                  ${repair.totalCost ? ` | Cost: Le ${repair.totalCost}` : ''}
+                </small>
+              </div>
+            `).join('')}
+          </div>
+          <p><strong>Ready to import?</strong> Click "Import All" to restore these bookings.</p>
+        `;
+      } catch (error) {
+        status.innerHTML = `
+          <div class="error">
+            ❌ Failed to fetch data: ${error.message}<br><br>
+            <strong>Possible issues:</strong>
+            <ul>
+              <li>URL might be incorrect</li>
+              <li>Preview deployment might be expired</li>
+              <li>CORS restrictions (try accessing from the same domain)</li>
+            </ul>
+            <br>
+            <strong>Alternative:</strong> You can manually export the data from the preview deployment:
+            <ol>
+              <li>Open the preview URL in your browser</li>
+              <li>Go to <code>${fullUrl}/recover-bookings.html</code></li>
+              <li>Click "Export JSON"</li>
+              <li>Then go to <code>/restore-bookings.html</code> and import the JSON</li>
+            </ol>
+          </div>
+        `;
+        preview.innerHTML = '';
+      }
+    }
+
+    async function importAll() {
+      const status = document.getElementById('status');
+      
+      if (!fetchedData || !fetchedData.allRepairs || fetchedData.allRepairs.length === 0) {
+        status.innerHTML = '<div class="error">❌ No data to import. Please fetch data first.</div>';
+        return;
+      }
+
+      const repairs = fetchedData.allRepairs;
+
+      try {
+        status.innerHTML = '<div class="info">⏳ Importing bookings...</div>';
+
+        // Get existing bookings to avoid duplicates
+        const existingResponse = await fetch('/api/analytics/repairs/');
+        const existingData = existingResponse.ok ? await existingResponse.json() : { allRepairs: [] };
+        const existingIds = new Set((existingData.allRepairs || []).map(r => r.trackingId));
+
+        let importedCount = 0;
+        let skippedCount = 0;
+        let failedCount = 0;
+
+        for (const repair of repairs) {
+          if (existingIds.has(repair.trackingId)) {
+            skippedCount++;
+            continue;
+          }
+
+          try {
+            // Parse the date strings back to proper format
+            const submissionDate = repair.submissionDate ? new Date(repair.submissionDate).toISOString() : new Date().toISOString();
+
+            const response = await fetch('/api/analytics/repairs/', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'create',
+                trackingId: repair.trackingId,
+                customerName: repair.customerName,
+                email: repair.email || 'imported@example.com',
+                phone: repair.phone || 'N/A',
+                deviceType: repair.deviceType,
+                deviceModel: repair.deviceModel || '',
+                issueDescription: repair.issueDescription || repair.issueSummary || 'Imported from preview',
+                serviceType: repair.serviceType || 'Other',
+                address: repair.address || '',
+                status: repair.status || 'received',
+                notes: repair.notes || '',
+                totalCost: repair.totalCost,
+                estimatedCompletion: repair.estimatedCompletion,
+              }),
+            });
+
+            if (response.ok) {
+              importedCount++;
+            } else {
+              const error = await response.json();
+              console.error(`Failed to import ${repair.trackingId}:`, error);
+              failedCount++;
+            }
+          } catch (err) {
+            console.error(`Error importing ${repair.trackingId}:`, err);
+            failedCount++;
+          }
+        }
+
+        status.innerHTML = `
+          <div class="success">
+            ✅ Import complete!<br>
+            <strong>Summary:</strong><br>
+            • Successfully imported: ${importedCount}<br>
+            • Already existed (skipped): ${skippedCount}<br>
+            ${failedCount > 0 ? `• Failed: ${failedCount}<br>` : ''}
+            <br>
+            <a href="/admin" style="color: #ef4444; font-weight: 600;">Go to Admin Panel →</a>
+          </div>
+        `;
+
+        if (importedCount > 0) {
+          document.getElementById('preview').innerHTML = `
+            <div class="success" style="margin-top: 20px;">
+              🎉 <strong>${importedCount}</strong> bookings have been successfully restored!<br>
+              You can now view them in the <a href="/admin">Admin Panel</a>.
+            </div>
+          `;
+        }
+      } catch (error) {
+        status.innerHTML = `<div class="error">❌ Import failed: ${error.message}</div>`;
+      }
+    }
+
+    // Auto-fetch on page load if URL is provided
+    window.addEventListener('load', () => {
+      const urlInput = document.getElementById('vercelUrl');
+      if (urlInput.value.trim()) {
+        // Give user a moment to see the page before auto-fetching
+        setTimeout(() => {
+          document.getElementById('status').innerHTML = '<div class="info">💡 Click "Fetch Data" to preview bookings from the Vercel deployment</div>';
+        }, 500);
+      }
+    });
+  </script>
+</body>
+</html>

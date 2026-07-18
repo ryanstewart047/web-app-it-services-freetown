@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restore Bookings - IT Services Freetown</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 900px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #ef4444;
+      margin-bottom: 10px;
+    }
+    button {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 10px 10px 0;
+    }
+    button:hover {
+      background: #dc2626;
+    }
+    button.secondary {
+      background: #6b7280;
+    }
+    button.secondary:hover {
+      background: #4b5563;
+    }
+    .info {
+      background: #dbeafe;
+      border: 1px solid #3b82f6;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .success {
+      background: #d1fae5;
+      border: 1px solid #10b981;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .error {
+      background: #fee2e2;
+      border: 1px solid #ef4444;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .warning {
+      background: #fef3c7;
+      border: 1px solid #fbbf24;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    textarea {
+      width: 100%;
+      min-height: 200px;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    .form-section {
+      margin: 30px 0;
+      padding: 20px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: #f9fafb;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0 15px 0;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+    }
+    label {
+      font-weight: 600;
+      display: block;
+      margin-top: 10px;
+    }
+    #status {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔄 Restore Booking Data</h1>
+    <p>This tool helps you restore lost booking data by importing JSON or manually creating bookings.</p>
+
+    <div class="warning">
+      <strong>⚠️ Important:</strong> Your booking data was stored in localStorage (browser storage). If you:
+      <ul>
+        <li>Cleared browser cache/data</li>
+        <li>Used incognito/private mode</li>
+        <li>Switched browsers</li>
+      </ul>
+      The data may be permanently lost. However, you can recreate bookings manually below.
+    </div>
+
+    <div id="status"></div>
+
+    <!-- Import from JSON -->
+    <div class="form-section">
+      <h2>📥 Option 1: Import from JSON Backup</h2>
+      <p>If you have a backup JSON file, paste it here:</p>
+      <textarea id="jsonInput" placeholder='{"bookings": [{"trackingId": "ITS-...", "customerName": "...", ...}]}'></textarea>
+      <button onclick="importJSON()">Import & Restore</button>
+    </div>
+
+    <!-- Manual Entry -->
+    <div class="form-section">
+      <h2>✍️ Option 2: Manually Add Booking</h2>
+      <p>Enter booking details to recreate it:</p>
+      
+      <label>Tracking ID *</label>
+      <input type="text" id="trackingId" placeholder="e.g., ITS-030226-1001" required>
+      
+      <label>Customer Name *</label>
+      <input type="text" id="customerName" placeholder="e.g., John Doe" required>
+      
+      <label>Email *</label>
+      <input type="email" id="email" placeholder="e.g., john@example.com" required>
+      
+      <label>Phone *</label>
+      <input type="tel" id="phone" placeholder="e.g., +232 XX XXX XXXX" required>
+      
+      <label>Device Type *</label>
+      <input type="text" id="deviceType" placeholder="e.g., iPhone 14" required>
+      
+      <label>Device Model</label>
+      <input type="text" id="deviceModel" placeholder="e.g., iPhone 14 Pro">
+      
+      <label>Issue Description *</label>
+      <textarea id="issueDescription" style="min-height: 80px;" placeholder="Describe the issue..." required></textarea>
+      
+      <label>Service Type</label>
+      <select id="serviceType">
+        <option value="Screen Repair">Screen Repair</option>
+        <option value="Battery Replacement">Battery Replacement</option>
+        <option value="Water Damage">Water Damage</option>
+        <option value="Software Issues">Software Issues</option>
+        <option value="Hardware Repair">Hardware Repair</option>
+        <option value="Data Recovery">Data Recovery</option>
+        <option value="Other">Other</option>
+      </select>
+      
+      <label>Status</label>
+      <select id="status">
+        <option value="received">Received</option>
+        <option value="submitted">Submitted</option>
+        <option value="diagnosed">Diagnosed</option>
+        <option value="in-progress">In Progress</option>
+        <option value="completed">Completed</option>
+        <option value="ready-for-pickup">Ready for Pickup</option>
+        <option value="collected">Collected</option>
+      </select>
+      
+      <label>Address</label>
+      <input type="text" id="address" placeholder="Customer address">
+      
+      <label>Total Cost (Le)</label>
+      <input type="number" id="totalCost" placeholder="e.g., 500000">
+      
+      <label>Notes</label>
+      <textarea id="notes" style="min-height: 60px;" placeholder="Additional notes..."></textarea>
+      
+      <button onclick="addBooking()">Add Booking</button>
+      <button onclick="clearForm()" class="secondary">Clear Form</button>
+    </div>
+
+    <!-- Quick Restore Sample Data -->
+    <div class="form-section">
+      <h2>🚀 Option 3: Load Sample Data (Testing)</h2>
+      <p>This will create 3 sample bookings for testing:</p>
+      <button onclick="loadSampleData()" class="secondary">Load Sample Bookings</button>
+    </div>
+  </div>
+
+  <script>
+    async function importJSON() {
+      const status = document.getElementById('status');
+      const jsonInput = document.getElementById('jsonInput').value;
+      
+      if (!jsonInput.trim()) {
+        status.innerHTML = '<div class="error">❌ Please paste JSON data</div>';
+        return;
+      }
+
+      try {
+        const data = JSON.parse(jsonInput);
+        const bookings = data.bookings || data;
+        
+        if (!Array.isArray(bookings)) {
+          throw new Error('Invalid format: expected an array of bookings');
+        }
+
+        status.innerHTML = '<div class="info">⏳ Importing bookings...</div>';
+
+        let successCount = 0;
+        let failCount = 0;
+
+        for (const booking of bookings) {
+          try {
+            const response = await fetch('/api/analytics/repairs/', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'create',
+                trackingId: booking.trackingId,
+                customerName: booking.customerName,
+                email: booking.email,
+                phone: booking.phone,
+                deviceType: booking.deviceType,
+                deviceModel: booking.deviceModel || '',
+                issueDescription: booking.issueDescription,
+                serviceType: booking.serviceType || 'Other',
+                address: booking.address || '',
+                status: booking.status || 'received',
+                notes: booking.notes || '',
+                totalCost: booking.cost || booking.totalCost,
+                estimatedCompletion: booking.estimatedCompletion,
+              }),
+            });
+
+            if (response.ok) {
+              successCount++;
+            } else {
+              const error = await response.json();
+              console.error('Failed:', error);
+              failCount++;
+            }
+          } catch (err) {
+            console.error('Error importing:', err);
+            failCount++;
+          }
+        }
+
+        status.innerHTML = `
+          <div class="success">
+            ✅ Import complete!<br>
+            • Successfully imported: ${successCount}<br>
+            ${failCount > 0 ? `• Failed: ${failCount}<br>` : ''}
+            <br>
+            <a href="/admin">Go to Admin Panel</a>
+          </div>
+        `;
+      } catch (error) {
+        status.innerHTML = `<div class="error">❌ Import failed: ${error.message}</div>`;
+      }
+    }
+
+    async function addBooking() {
+      const status = document.getElementById('status');
+      
+      const booking = {
+        trackingId: document.getElementById('trackingId').value.trim(),
+        customerName: document.getElementById('customerName').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        deviceType: document.getElementById('deviceType').value.trim(),
+        deviceModel: document.getElementById('deviceModel').value.trim(),
+        issueDescription: document.getElementById('issueDescription').value.trim(),
+        serviceType: document.getElementById('serviceType').value,
+        status: document.getElementById('status').value,
+        address: document.getElementById('address').value.trim(),
+        totalCost: parseFloat(document.getElementById('totalCost').value) || undefined,
+        notes: document.getElementById('notes').value.trim(),
+      };
+
+      // Validation
+      if (!booking.trackingId || !booking.customerName || !booking.email || 
+          !booking.phone || !booking.deviceType || !booking.issueDescription) {
+        status.innerHTML = '<div class="error">❌ Please fill in all required fields (*)</div>';
+        return;
+      }
+
+      try {
+        status.innerHTML = '<div class="info">⏳ Creating booking...</div>';
+
+        const response = await fetch('/api/analytics/repairs/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'create',
+            ...booking
+          }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          status.innerHTML = `
+            <div class="success">
+              ✅ Booking created successfully!<br>
+              Tracking ID: <strong>${result.trackingId}</strong><br>
+              <br>
+              <a href="/admin">View in Admin Panel</a> | 
+              <a href="/track-repair?id=${result.trackingId}">Track Repair</a>
+            </div>
+          `;
+          clearForm();
+        } else {
+          const error = await response.json();
+          status.innerHTML = `<div class="error">❌ Failed to create booking: ${error.error || error.message}</div>`;
+        }
+      } catch (error) {
+        status.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+      }
+    }
+
+    function clearForm() {
+      document.getElementById('trackingId').value = '';
+      document.getElementById('customerName').value = '';
+      document.getElementById('email').value = '';
+      document.getElementById('phone').value = '';
+      document.getElementById('deviceType').value = '';
+      document.getElementById('deviceModel').value = '';
+      document.getElementById('issueDescription').value = '';
+      document.getElementById('address').value = '';
+      document.getElementById('totalCost').value = '';
+      document.getElementById('notes').value = '';
+    }
+
+    async function loadSampleData() {
+      const status = document.getElementById('status');
+      const today = new Date();
+      const dateStr = today.toISOString().split('T')[0].replace(/-/g, '').slice(2); // DDMMYY format
+
+      const sampleBookings = [
+        {
+          trackingId: `ITS-${dateStr}-1001`,
+          customerName: 'Sample Customer 1',
+          email: 'customer1@example.com',
+          phone: '+232 76 123 456',
+          deviceType: 'iPhone 14',
+          deviceModel: 'iPhone 14 Pro',
+          issueDescription: 'Screen cracked, needs replacement',
+          serviceType: 'Screen Repair',
+          status: 'in-progress',
+          totalCost: 500000,
+          notes: 'High-quality OLED display ordered'
+        },
+        {
+          trackingId: `ITS-${dateStr}-1002`,
+          customerName: 'Sample Customer 2',
+          email: 'customer2@example.com',
+          phone: '+232 77 234 567',
+          deviceType: 'Samsung Galaxy S23',
+          deviceModel: 'Galaxy S23 Ultra',
+          issueDescription: 'Battery draining quickly',
+          serviceType: 'Battery Replacement',
+          status: 'diagnosed',
+          totalCost: 300000,
+          notes: 'Battery replacement recommended'
+        },
+        {
+          trackingId: `ITS-${dateStr}-1003`,
+          customerName: 'Sample Customer 3',
+          email: 'customer3@example.com',
+          phone: '+232 78 345 678',
+          deviceType: 'MacBook Pro',
+          deviceModel: 'MacBook Pro 13" 2023',
+          issueDescription: 'Water damage, not turning on',
+          serviceType: 'Water Damage',
+          status: 'received',
+          totalCost: 1200000,
+          notes: 'Needs thorough inspection'
+        }
+      ];
+
+      status.innerHTML = '<div class="info">⏳ Loading sample data...</div>';
+
+      let successCount = 0;
+      for (const booking of sampleBookings) {
+        try {
+          const response = await fetch('/api/analytics/repairs/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'create',
+              ...booking
+            }),
+          });
+
+          if (response.ok) successCount++;
+        } catch (err) {
+          console.error('Error creating sample booking:', err);
+        }
+      }
+
+      status.innerHTML = `
+        <div class="success">
+          ✅ Created ${successCount} sample bookings!<br>
+          <a href="/admin">View in Admin Panel</a>
+        </div>
+      `;
+    }
+
+    // Auto-generate tracking ID
+    document.getElementById('trackingId').addEventListener('focus', function() {
+      if (!this.value) {
+        const today = new Date();
+        const dateStr = today.toISOString().split('T')[0].replace(/-/g, '').slice(2);
+        const randomNum = Math.floor(1000 + Math.random() * 9000);
+        this.value = `ITS-${dateStr}-${randomNum}`;
+      }
+    });
+  </script>
+</body>
+</html>

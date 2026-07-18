@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Install Test - IT Services Freetown</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .info-box {
+            background: #f0f9ff;
+            border: 1px solid #0284c7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .debug-info {
+            background: #f9fafb;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 PWA Install Test Page</h1>
+    
+    <div class="info-box">
+        <h3>📱 Mobile Device Testing</h3>
+        <p>This page helps test PWA installation features on mobile devices.</p>
+        <p><strong>Instructions:</strong></p>
+        <ul>
+            <li><strong>Android:</strong> Look for install banner or "Add to Home Screen" in Chrome menu</li>
+            <li><strong>iOS:</strong> Tap share button → "Add to Home Screen"</li>
+        </ul>
+    </div>
+
+    <h3>🔍 Device Information</h3>
+    <div id="device-info" class="debug-info">Loading...</div>
+
+    <h3>⚙️ PWA Status</h3>
+    <div id="pwa-status" class="debug-info">Checking...</div>
+
+    <h3>🎯 Actions</h3>
+    <button onclick="checkInstallStatus()">Refresh Status</button>
+    <button onclick="showConsoleLog()">View Console Log</button>
+    <button onclick="clearPWAData()">Clear PWA Data</button>
+    <a href="/" style="text-decoration: none;">
+        <button>← Back to Main Site</button>
+    </a>
+
+    <script>
+        function detectDevice() {
+            const userAgent = navigator.userAgent || navigator.vendor || '';
+            const isAndroid = /android/i.test(userAgent) && !/windows phone/i.test(userAgent);
+            const isIOS = /iPad|iPhone|iPod/i.test(userAgent) && !window.MSStream;
+            const isMobile = isAndroid || isIOS;
+            
+            return {
+                isMobile,
+                isAndroid, 
+                isIOS,
+                isDesktop: !isMobile,
+                userAgent,
+                viewport: `${window.innerWidth}x${window.innerHeight}`,
+                screen: `${screen.width}x${screen.height}`
+            };
+        }
+
+        function checkPWAStatus() {
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+            const isIOSStandalone = navigator.standalone === true;
+            const hasSW = 'serviceWorker' in navigator;
+            
+            // Check localStorage state tracking
+            const wasInstalled = localStorage.getItem('pwa-was-installed') === 'true';
+            const installTime = localStorage.getItem('pwa-install-time');
+            const bannerDismissed = sessionStorage.getItem('pwa-banner-dismissed') === 'true';
+            
+            return {
+                isInstalled: isStandalone || isIOSStandalone,
+                isStandalone,
+                isIOSStandalone,
+                hasServiceWorker: hasSW,
+                canInstall: hasSW && !isStandalone && !isIOSStandalone,
+                wasInstalled: wasInstalled,
+                installTime: installTime ? new Date(parseInt(installTime)).toLocaleString() : null,
+                bannerDismissed: bannerDismissed
+            };
+        }
+
+        function updateInfo() {
+            const device = detectDevice();
+            const pwa = checkPWAStatus();
+            
+            document.getElementById('device-info').textContent = JSON.stringify(device, null, 2);
+            document.getElementById('pwa-status').textContent = JSON.stringify(pwa, null, 2);
+        }
+
+        function checkInstallStatus() {
+            updateInfo();
+        }
+
+        function showConsoleLog() {
+            alert('Check browser console (F12) for PWA logs');
+            console.log('=== PWA Install Test Debug ===');
+            console.log('Device:', detectDevice());
+            console.log('PWA Status:', checkPWAStatus());
+        }
+
+        function clearPWAData() {
+            if (confirm('Clear all PWA data (localStorage and sessionStorage)? This will reset install state.')) {
+                localStorage.removeItem('pwa-was-installed');
+                localStorage.removeItem('pwa-install-time');
+                sessionStorage.removeItem('pwa-banner-dismissed');
+                updateInfo();
+                alert('PWA data cleared! Refresh the main site to test fresh install behavior.');
+            }
+        }
+
+        // Initialize
+        updateInfo();
+
+        // Listen for beforeinstallprompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('beforeinstallprompt event fired!');
+            e.preventDefault();
+            updateInfo();
+        });
+
+        // Check every 5 seconds for changes
+        setInterval(updateInfo, 5000);
+    </script>
+</body>
+</html>

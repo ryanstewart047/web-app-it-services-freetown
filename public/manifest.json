@@ -1,0 +1,131 @@
+{
+  "name": "IT Services Freetown - Professional Computer & Mobile Repair",
+  "short_name": "ITS Freetown",
+  "id": "/its-freetown-pwa",
+  "description": "Professional computer and mobile repair services in Freetown, Sierra Leone. Same day service, 1-month warranty, and expert technicians.",
+  "start_url": "/?source=pwa",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "utilities"],
+  "iarc_rating_id": "00000000-0000-0000-0000-000000000000",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "screenshots": [
+    {
+      "src": "/assets/images/slide01.jpg",
+      "sizes": "1350x1050",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "Professional Repair Services"
+    },
+    {
+      "src": "/assets/pwa-mobile-screenshot.jpg",
+      "sizes": "1024x1024",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "ITS Freetown Mobile App"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/assets/pwa-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/pwa-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/pwa-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Book Appointment",
+      "short_name": "Book Now",
+      "description": "Schedule a repair appointment",
+      "url": "/book-appointment",
+      "icons": [
+        {
+          "src": "/assets/pwa-icon.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Track Repair",
+      "short_name": "Track",
+      "description": "Track your repair status",
+      "url": "/track-repair",
+      "icons": [
+        {
+          "src": "/assets/pwa-icon.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Tech Forum",
+      "short_name": "Forum",
+      "description": "Join the technician community",
+      "url": "/forum", 
+      "icons": [
+        {
+          "src": "/assets/pwa-icon.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "AI Troubleshoot",
+      "short_name": "Troubleshoot",
+      "description": "AI-powered troubleshooting",
+      "url": "/troubleshoot", 
+      "icons": [
+        {
+          "src": "/assets/pwa-icon.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "scope_extensions": [
+    {
+      "type": "origin",
+      "origin": "https://itservicesfreetown.com"
+    }
+  ],
+  "handle_links": "preferred"
+}

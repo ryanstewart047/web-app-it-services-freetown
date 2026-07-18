@@ -1,0 +1,20 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#dc2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#b91c1c;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background with rounded corners -->
+  <rect width="180" height="180" rx="32" fill="url(#bgGradient)"/>
+  
+  <!-- IT Letters in white -->
+  <text x="65" y="95" font-family="Arial, sans-serif" font-size="68" font-weight="bold" text-anchor="middle" fill="#ffffff" letter-spacing="4px">IT</text>
+  
+  <!-- S Letter in dark blue -->
+  <text x="125" y="95" font-family="Arial, sans-serif" font-size="68" font-weight="bold" text-anchor="middle" fill="#040e40" letter-spacing="4px">S</text>
+  
+  <!-- Freetown Text -->
+  <text x="90" y="125" font-family="Arial, sans-serif" font-size="24" font-weight="600" text-anchor="middle" fill="#ffffff" opacity="0.9">Freetown</text>
+</svg>
