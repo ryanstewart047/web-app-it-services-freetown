@@ -28,7 +28,7 @@ export function validateEmail(email: string): { isValid: boolean; error?: string
   if (dotCount > 2) {
     return { 
       isValid: false, 
-      error: 'Invalid email address. Multiple dots in the username are not permitted.' 
+      error: 'Invalid email address.' 
     };
   }
 
