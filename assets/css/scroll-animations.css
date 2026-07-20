@@ -1,0 +1,183 @@
+/* 
+ * Modern Scroll Animations CSS
+ * Clean, smooth animations for scroll-triggered content
+ */
+
+/* Base animation setup - content visible by default */
+.scroll-fade-in,
+.scroll-slide-up,
+.scroll-slide-left,
+.scroll-slide-right,
+.scroll-scale-in {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Only hide content when animations are ready */
+.scroll-animations-ready .scroll-fade-in,
+.scroll-animations-ready .scroll-slide-up,
+.scroll-animations-ready .scroll-slide-left,
+.scroll-animations-ready .scroll-slide-right,
+.scroll-animations-ready .scroll-scale-in {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+/* Specific initial transforms when ready */
+.scroll-animations-ready .scroll-slide-left {
+  transform: translateX(-50px) translateY(10px);
+}
+
+.scroll-animations-ready .scroll-slide-right {
+  transform: translateX(50px) translateY(10px);
+}
+
+.scroll-animations-ready .scroll-scale-in {
+  transform: scale(0.9) translateY(20px);
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@keyframes slideRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Animation classes - these are applied by JavaScript */
+.animate-fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.animate-slide-left {
+  animation: slideLeft 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.animate-slide-right {
+  animation: slideRight 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Preserve existing hover effects */
+.service-card:hover {
+  transform: translateY(-8px) scale(1.02) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+}
+
+.service-card.animate-slide-up:hover,
+.service-card.animate-fade-in:hover {
+  transform: translateY(-8px) scale(1.02) !important;
+}
+
+.card:hover:not(.no-hover) {
+  transform: translateY(-4px) scale(1.01) !important;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Special handling for animated cards that are already animated */
+.card.animate-slide-up:hover:not(.no-hover),
+.card.animate-fade-in:hover:not(.no-hover) {
+  transform: translateY(-4px) scale(1.01) !important;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-fade-in,
+  .scroll-slide-up,
+  .scroll-slide-left,
+  .scroll-slide-right,
+  .scroll-scale-in,
+  .service-card,
+  .section-title,
+  h2:not(.no-animate),
+  h3:not(.no-animate),
+  .card:not(.no-animate),
+  .hero-stat {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-slide-left,
+  .animate-slide-right,
+  .animate-scale-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Performance optimizations */
+.animate-fade-in,
+.animate-slide-up,
+.animate-slide-left,
+.animate-slide-right,
+.animate-scale-in {
+  will-change: transform, opacity;
+}
+
+.animate-fade-in:after,
+.animate-slide-up:after,
+.animate-slide-left:after,
+.animate-slide-right:after,
+.animate-scale-in:after {
+  will-change: auto;
+}

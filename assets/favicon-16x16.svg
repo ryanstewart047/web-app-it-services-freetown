@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+  <defs>
+    <linearGradient id="primaryGradient16" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#040e40;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1c1891;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#040e40;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGradient16" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff0000;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Modern circular background -->
+  <circle cx="8" cy="8" r="7.5" fill="url(#primaryGradient16)"/>
+  
+  <!-- Central tech icon -->
+  <g transform="translate(8,8)">
+    <!-- Simplified gear shape -->
+    <path d="M-3,-1 L-3,-3 L-1,-3 L-1,-4 L1,-4 L1,-3 L3,-3 L3,-1 L4,-1 L4,1 L3,1 L3,3 L1,3 L1,4 L-1,4 L-1,3 L-3,3 L-3,1 L-4,1 L-4,-1 Z" 
+          fill="rgba(255,255,255,0.9)"/>
+    
+    <!-- Central circle -->
+    <circle cx="0" cy="0" r="1.5" fill="url(#accentGradient16)"/>
+    
+    <!-- Central dot -->
+    <circle cx="0" cy="0" r="0.5" fill="rgba(255,255,255,0.9)"/>
+  </g>
+</svg>
