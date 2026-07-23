@@ -11,20 +11,20 @@ interface ImageSlide {
 
 const slides: ImageSlide[] = [
   {
-    src: "https://placehold.co/800x600/040e40/FFFFFF?text=Computer+Repair",
-    alt: "Professional IT technician repairing a laptop"
+    src: "/assets/images/slider/laptop-repair.jpg",
+    alt: "Professional technician repairing a laptop computer in Freetown"
   },
   {
-    src: "https://placehold.co/800x600/ff0000/FFFFFF?text=Smartphone+Repair",
-    alt: "Smartphone screen replacement service"
+    src: "/assets/images/slider/phone-repair.jpg",
+    alt: "Smartphone screen replacement and mobile repair service"
   },
   {
-    src: "https://placehold.co/800x600/333333/FFFFFF?text=Motherboard+Repair",
-    alt: "Detailed motherboard repair and diagnostics"
+    src: "/assets/images/slider/motherboard-repair.jpg",
+    alt: "Detailed motherboard micro-soldering and hardware diagnostics"
   },
   {
-    src: "https://placehold.co/800x600/040e40/ff0000?text=Software+Services",
-    alt: "Software installation and troubleshooting"
+    src: "/assets/images/slider/software-service.jpg",
+    alt: "Software installation and IT system maintenance in Sierra Leone"
   }
 ]
 

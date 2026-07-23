@@ -9,27 +9,23 @@ export default function Hero() {
   const [counters, setCounters] = useState({ customers: 0, hours: 0, success: 0 })
   const [isRefreshing, setIsRefreshing] = useState(false)
 
-  // Your custom uploaded images for IT Services Freetown
+  // Custom authentic repair workshop images for IT Services Freetown
   const slides = [
     {
-      src: "/assets/images/slide01.jpg",
-      alt: "IT Services Freetown - Professional Computer and Mobile Repair Services"
+      src: "/assets/images/slider/laptop-repair.jpg",
+      alt: "IT Services Freetown - Professional Computer Repair in Sierra Leone"
     },
     {
-      src: "/assets/images/slider001.jpg",
-      alt: "Professional IT Support and Computer Maintenance"
+      src: "/assets/images/slider/phone-repair.jpg",
+      alt: "Smartphone and Screen Repair Specialist in Freetown"
     },
     {
-      src: "/assets/images/iphone-repair.jpg",
-      alt: "iPhone and Smartphone Repair Specialists"
+      src: "/assets/images/slider/motherboard-repair.jpg",
+      alt: "Detailed Motherboard Micro-Soldering and Hardware Repair"
     },
     {
-      src: "/assets/images/mobile-unlock1.jpg",
-      alt: "Mobile Phone Unlocking and Network Services"
-    },
-    {
-      src: "/assets/images/gallery-head.png",
-      alt: "IT Services Gallery - Professional Repair and Technology Services"
+      src: "/assets/images/slider/software-service.jpg",
+      alt: "Professional Software Services and System Diagnostics in Freetown"
     }
   ]
 
