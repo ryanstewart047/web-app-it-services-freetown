@@ -12,6 +12,14 @@ export default function Hero() {
   // Custom authentic repair workshop images for IT Services Freetown
   const slides = [
     {
+      src: "/assets/images/slider/phone-screen-transformation.jpg",
+      alt: "Before & After: Cracked Screen to Flawlessly Repaired Phone Display"
+    },
+    {
+      src: "/assets/images/slider/computer-repair-transformation.jpg",
+      alt: "Before & After: Damaged Computer Restored to Full Peak Performance"
+    },
+    {
       src: "/assets/images/slider/laptop-repair.jpg",
       alt: "IT Services Freetown - Professional Computer Repair in Sierra Leone"
     },

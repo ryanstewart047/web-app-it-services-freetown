@@ -11,6 +11,14 @@ interface ImageSlide {
 
 const slides: ImageSlide[] = [
   {
+    src: "/assets/images/slider/phone-screen-transformation.jpg",
+    alt: "Before & After: Cracked phone screen restored to brand new display"
+  },
+  {
+    src: "/assets/images/slider/computer-repair-transformation.jpg",
+    alt: "Before & After: Damaged computer fully repaired and operating at peak performance"
+  },
+  {
     src: "/assets/images/slider/laptop-repair.jpg",
     alt: "Professional technician repairing a laptop computer in Freetown"
   },
