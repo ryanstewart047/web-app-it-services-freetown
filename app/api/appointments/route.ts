@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { captureEmailLead } from '@/lib/email-leads';
+import { requireAdmin, sanitizeText } from '@/lib/admin-guard';
 
-// GET all appointments
-export async function GET() {
+
+// GET all appointments – ADMIN ONLY (contains customer PII)
+export async function GET(request: NextRequest) {
+  const authError = requireAdmin(request);
+  if (authError) return authError;
+
   try {
+
     // Check if database is configured
     const dbUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;
     if (!dbUrl || dbUrl.includes('YOUR_PASSWORD_HERE') || dbUrl.includes('YOUR_HOST_HERE')) {
@@ -68,18 +74,28 @@ export async function POST(request: NextRequest) {
       preferredTime
     } = body;
 
+    // Sanitize all customer text inputs before DB write
+    const safeName    = sanitizeText(customerName);
+    const safeEmail   = sanitizeText(customerEmail);
+    const safePhone   = sanitizeText(customerPhone);
+    const safeAddress = sanitizeText(customerAddress);
+    const safeDevice  = sanitizeText(deviceType);
+    const safeModel   = sanitizeText(deviceModel);
+    const safeIssue   = sanitizeText(issueDescription);
+    const safeService = sanitizeText(serviceType);
+
     // Create or find customer
     let customer = await prisma.customer.findUnique({
-      where: { email: customerEmail }
+      where: { email: safeEmail }
     });
 
     if (!customer) {
       customer = await prisma.customer.create({
         data: {
-          name: customerName,
-          email: customerEmail,
-          phone: customerPhone,
-          address: customerAddress
+          name:    safeName,
+          email:   safeEmail,
+          phone:   safePhone,
+          address: safeAddress,
         }
       });
     }
@@ -87,14 +103,14 @@ export async function POST(request: NextRequest) {
     // Create appointment
     const appointment = await prisma.appointment.create({
       data: {
-        customerId: customer.id,
-        deviceType,
-        deviceModel,
-        issueDescription,
-        serviceType,
+        customerId:       customer.id,
+        deviceType:       safeDevice,
+        deviceModel:      safeModel,
+        issueDescription: safeIssue,
+        serviceType:      safeService,
         preferredDate,
         preferredTime,
-        status: 'pending'
+        status: 'pending',
       },
       include: {
         customer: {
@@ -108,7 +124,8 @@ export async function POST(request: NextRequest) {
     });
 
     // Capture email lead silently in background
-    captureEmailLead({ email: customerEmail, name: customerName, phone: customerPhone, source: 'appointment' })
+    captureEmailLead({ email: safeEmail, name: safeName, phone: safePhone, source: 'appointment' });
+
 
     return NextResponse.json(appointment, { status: 201 });
   } catch (error) {

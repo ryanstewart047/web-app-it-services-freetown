@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAdmin } from '@/lib/admin-guard';
+
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -49,15 +51,19 @@ export async function GET(
   }
 }
 
-// PUT update product (using PUT instead of PATCH)
+// PUT update product (using PUT instead of PATCH) – ADMIN ONLY
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const authError = requireAdmin(request);
+  if (authError) return authError;
+
   try {
     const body = await request.json();
     
     console.log('PUT request received for product:', params.id, 'with data:', JSON.stringify(body, null, 2));
+
     
     // Extract images from body
     const { images, ...productData } = body;
@@ -112,12 +118,16 @@ export async function PUT(
   }
 }
 
-// PATCH update product (keeping for backward compatibility)
+// PATCH update product (keeping for backward compatibility) – ADMIN ONLY
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const authError = requireAdmin(request);
+  if (authError) return authError;
+
   try {
+
     const body = await request.json();
     
     console.log('PATCH request received for product:', params.id, 'with data:', JSON.stringify(body, null, 2));
@@ -149,12 +159,16 @@ export async function PATCH(
   }
 }
 
-// DELETE product
+// DELETE product – ADMIN ONLY
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const authError = requireAdmin(request);
+  if (authError) return authError;
+
   try {
+
     await prisma.product.delete({
       where: { id: params.id }
     });

@@ -2,8 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sendEmail, emailTemplates } from '@/lib/email';
 import { captureEmailLead } from '@/lib/email-leads';
+import { requireAdmin, sanitizeText } from '@/lib/admin-guard';
 
-// POST create new order
+// ─────────────────────────────────────────────────────────────────────────────
+// POST  /api/orders  – Create a new order (public, customer-facing)
+// SECURITY: Prices and totals are computed server-side from the database.
+//           Any price value submitted by the browser is IGNORED.
+// ─────────────────────────────────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -13,147 +18,172 @@ export async function POST(request: NextRequest) {
       customerPhone,
       customerAddress,
       items,
-      subtotal,
-      tax,
-      total,
       discountCode,
-      discountAmount,
       paymentMethod,
       mobileMoneyNumber,
-      notes
+      notes,
     } = body;
 
-    console.log('[Order Creation] Creating order for:', customerName);
+    // ── Basic input validation ───────────────────────────────────────────────
+    if (!Array.isArray(items) || items.length === 0) {
+      return NextResponse.json({ error: 'Order must contain at least one item.' }, { status: 400 });
+    }
+    if (!customerName || !customerEmail || !paymentMethod) {
+      return NextResponse.json({ error: 'Name, email, and payment method are required.' }, { status: 400 });
+    }
+
+    // ── Sanitize all free-text customer inputs ───────────────────────────────
+    const safeName    = sanitizeText(customerName);
+    const safeEmail   = sanitizeText(customerEmail);
+    const safePhone   = sanitizeText(customerPhone);
+    const safeAddress = sanitizeText(customerAddress);
+    const safeNotes   = sanitizeText(notes);
+
+    console.log('[Order Creation] Creating order for:', safeName);
     console.log('[Order Creation] Items:', items.length);
 
-    // Validate stock levels for all products in the order first
-    for (const item of items) {
-      const product = await prisma.product.findUnique({
-        where: { id: item.productId }
-      });
+    // ── SERVER-SIDE PRICE VALIDATION ─────────────────────────────────────────
+    // Fetch authoritative prices from the database. The price the client
+    // submits is COMPLETELY IGNORED – it cannot be manipulated by DevTools.
+    const TAX_RATE = 0.0; // Adjust if tax applies (e.g. 0.05 = 5 %)
+    let serverSubtotal = 0;
+    const resolvedItems: { productId: string; quantity: number; price: number; subtotal: number }[] = [];
 
-      if (!product) {
-        return NextResponse.json({ error: `Product not found.` }, { status: 400 });
+    for (const item of items) {
+      const qty = parseInt(item.quantity, 10);
+      if (!item.productId || isNaN(qty) || qty < 1) {
+        return NextResponse.json({ error: 'Invalid item data.' }, { status: 400 });
       }
 
-      if (product.stock < parseInt(item.quantity)) {
-        return NextResponse.json({ 
-          error: `"${product.name}" is out of stock or has insufficient inventory. Please update your cart.` 
+      const product = await prisma.product.findUnique({ where: { id: item.productId } });
+
+      if (!product) {
+        return NextResponse.json({ error: 'A product in your cart was not found.' }, { status: 400 });
+      }
+      if (product.stock < qty) {
+        return NextResponse.json({
+          error: `"${product.name}" is out of stock or has insufficient inventory. Please update your cart.`,
         }, { status: 400 });
+      }
+
+      // Use the database price – never the client-supplied price
+      const unitPrice   = Number(product.price);
+      const itemSubtotal = unitPrice * qty;
+      serverSubtotal   += itemSubtotal;
+
+      resolvedItems.push({
+        productId: product.id,
+        quantity:  qty,
+        price:     unitPrice,
+        subtotal:  itemSubtotal,
+      });
+    }
+
+    // ── Validate and resolve discount code (server-side) ─────────────────────
+    let serverDiscountAmount = 0;
+    let safeDiscountCode: string | null = null;
+
+    if (discountCode) {
+      safeDiscountCode = sanitizeText(discountCode).toUpperCase();
+      const discount = await prisma.discountCode.findUnique({ where: { code: safeDiscountCode } });
+
+      if (discount && discount.isActive) {
+        // Percentage discount
+        serverDiscountAmount = discount.discountPercentage
+          ? serverSubtotal * (discount.discountPercentage / 100)
+          : 0;
       }
     }
 
-    // Generate unique order number
+    const serverTax   = serverSubtotal * TAX_RATE;
+    const serverTotal = serverSubtotal - serverDiscountAmount + serverTax;
+
+    // ── Generate unique order number ──────────────────────────────────────────
     const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-    
     console.log('[Order Creation] Generated order number:', orderNumber);
 
-    // Create order with items
+    // ── Persist order with server-computed totals ─────────────────────────────
     const order = await prisma.order.create({
       data: {
         orderNumber,
-        customerName,
-        customerEmail,
-        customerPhone,
-        customerAddress,
-        subtotal: parseFloat(subtotal),
-        tax: parseFloat(tax) || 0,
-        total: parseFloat(total),
-        discountCode,
-        discountAmount: parseFloat(discountAmount) || 0,
-        paymentMethod,
-        mobileMoneyNumber,
-        notes,
+        customerName:    safeName,
+        customerEmail:   safeEmail,
+        customerPhone:   safePhone,
+        customerAddress: safeAddress,
+        subtotal:        serverSubtotal,
+        tax:             serverTax,
+        total:           serverTotal,
+        discountCode:    safeDiscountCode,
+        discountAmount:  serverDiscountAmount,
+        paymentMethod:   sanitizeText(paymentMethod),
+        mobileMoneyNumber: sanitizeText(mobileMoneyNumber),
+        notes:           safeNotes,
         items: {
-          create: items.map((item: any) => ({
-            productId: item.productId,
-            quantity: parseInt(item.quantity),
-            price: parseFloat(item.price),
-            subtotal: parseFloat(item.price) * parseInt(item.quantity)
-          }))
-        }
+          create: resolvedItems,
+        },
       },
       include: {
-        items: {
-          include: {
-            product: true
-          }
-        }
-      }
+        items: { include: { product: true } },
+      },
     });
 
-    // Update product stock
-    for (const item of items) {
+    // ── Decrement stock ───────────────────────────────────────────────────────
+    for (const item of resolvedItems) {
       await prisma.product.update({
         where: { id: item.productId },
-        data: {
-          stock: {
-            decrement: parseInt(item.quantity)
-          }
-        }
+        data: { stock: { decrement: item.quantity } },
       });
     }
 
-    // Increment discount code usage if one was applied
-    if (discountCode) {
+    // ── Increment discount usage ──────────────────────────────────────────────
+    if (safeDiscountCode) {
       await prisma.discountCode.update({
-        where: { code: discountCode },
-        data: {
-          timesUsed: {
-            increment: 1
-          }
-        }
-      });
+        where: { code: safeDiscountCode },
+        data: { timesUsed: { increment: 1 } },
+      }).catch(() => { /* Non-fatal if discount code row doesn't exist */ });
     }
 
     console.log('[Order Creation] Order created successfully:', orderNumber);
 
-    // Send Confirmation Emails
+    // ── Send confirmation emails ──────────────────────────────────────────────
     try {
-      // 1. Send to Customer
-      const customerEmailData = emailTemplates.orderConfirmation({
-        orderNumber: order.orderNumber,
-        customerName: order.customerName,
-        total: order.total,
-        items: order.items.map(item => ({
-          name: (item as any).product?.name || 'Product',
-          quantity: item.quantity,
-          price: item.price
-        })),
-        paymentMethod: order.paymentMethod
-      });
-
       await sendEmail({
         to: order.customerEmail,
-        ...customerEmailData
-      });
-
-      // 2. Send to Admin
-      const adminEmailData = emailTemplates.adminOrderNotification({
-        orderNumber: order.orderNumber,
-        customerName: order.customerName,
-        customerPhone: order.customerPhone,
-        total: order.total,
-        items: order.items.map(item => ({
-          name: (item as any).product?.name || 'Product',
-          quantity: item.quantity
-        })),
-        paymentMethod: order.paymentMethod
+        ...emailTemplates.orderConfirmation({
+          orderNumber:   order.orderNumber,
+          customerName:  order.customerName,
+          total:         order.total,
+          items:         order.items.map(i => ({
+            name:     (i as any).product?.name || 'Product',
+            quantity: i.quantity,
+            price:    i.price,
+          })),
+          paymentMethod: order.paymentMethod,
+        }),
       });
 
       await sendEmail({
         to: process.env.ADMIN_EMAIL || 'info@itservicesfreetown.com',
-        ...adminEmailData
+        ...emailTemplates.adminOrderNotification({
+          orderNumber:   order.orderNumber,
+          customerName:  order.customerName,
+          customerPhone: order.customerPhone,
+          total:         order.total,
+          items:         order.items.map(i => ({
+            name:     (i as any).product?.name || 'Product',
+            quantity: i.quantity,
+          })),
+          paymentMethod: order.paymentMethod,
+        }),
       });
 
       console.log('[Order Creation] Notification emails sent');
     } catch (emailError) {
       console.error('[Order Creation] Failed to send notification emails:', emailError);
-      // We don't fail the order if emails fail
+      // Non-fatal – order is already persisted
     }
 
-    // Capture email lead silently in background
-    captureEmailLead({ email: customerEmail, name: customerName, phone: customerPhone, source: 'order' })
+    captureEmailLead({ email: safeEmail, name: safeName, phone: safePhone, source: 'order' });
 
     return NextResponse.json(order, { status: 201 });
   } catch (error) {
@@ -162,29 +192,28 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET all orders (for admin)
+// ─────────────────────────────────────────────────────────────────────────────
+// GET  /api/orders  – List orders (admin only)
+// ─────────────────────────────────────────────────────────────────────────────
 export async function GET(request: NextRequest) {
+  const authError = requireAdmin(request);
+  if (authError) return authError;
+
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
-    const email = searchParams.get('email');
+    const email  = searchParams.get('email');
 
     const where: any = {};
     if (status) where.orderStatus = status;
-    if (email) where.customerEmail = email;
+    if (email)  where.customerEmail = email;
 
     const orders = await prisma.order.findMany({
       where,
       include: {
-        items: {
-          include: {
-            product: true
-          }
-        }
+        items: { include: { product: true } },
       },
-      orderBy: {
-        createdAt: 'desc'
-      }
+      orderBy: { createdAt: 'desc' },
     });
 
     return NextResponse.json(orders);
