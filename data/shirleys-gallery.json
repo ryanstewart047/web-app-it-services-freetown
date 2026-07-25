@@ -16,7 +16,24 @@
       "fileName": "1784979432980-image_94458869.png",
       "createdAt": "2026-07-25T11:37:14.295Z",
       "updatedAt": "2026-07-25T11:55:20.998Z"
+    },
+    {
+      "id": "bc0b46ee-914d-4f0f-ae00-0a8f92d79170",
+      "title": "Mixed Full Recipe Pack",
+      "caption": "One full pack for a full get together merry. One for all party.",
+      "type": "image",
+      "url": "https://raw.githubusercontent.com/ryanstewart047/web-app-it-services-freetown/main/public/shirleys-gallery/1785011356595-59401.jpg",
+      "source": "upload",
+      "active": true,
+      "order": 2,
+      "isAvailableProduct": true,
+      "price": "4000",
+      "orderButtonText": "Order This Pack",
+      "orderUrl": "",
+      "fileName": "1785011356595-59401.jpg",
+      "createdAt": "2026-07-25T20:29:17.531Z",
+      "updatedAt": "2026-07-25T20:29:17.531Z"
     }
   ],
-  "updatedAt": "2026-07-25T13:16:47.696Z"
+  "updatedAt": "2026-07-25T20:29:17.531Z"
 }
