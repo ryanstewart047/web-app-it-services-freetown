@@ -508,8 +508,8 @@ export default function AdminPage() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
-        {/* Subtle grid background */}
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" stroke=\"rgba(255,50,50,0.04)\" stroke-width=\"1\"\u003e%3Cpath d=\"M0 0h60v60H0z\"/%3E%3C/svg%3E')] pointer-events-none" />
+        {/* Subtle background grid */}
+        <div className="absolute inset-0 bg-slate-950/80 pointer-events-none" />
 
         <div className="relative w-full max-w-md bg-slate-900/90 border border-slate-700/60 rounded-3xl p-8 shadow-2xl backdrop-blur">
           {/* Brand header */}
