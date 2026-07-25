@@ -168,6 +168,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.6,
     },
+    {
+      url: `${baseUrl}/shirleys`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.65,
+    },
   ];
 
   // Product pages - already filtered by status and stock in query

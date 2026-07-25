@@ -40,6 +40,7 @@ function ConditionalLayoutInner({ children }: ConditionalLayoutProps) {
   const isPortfolioPage = pathname === '/ryanjstewart';
   const isForumPage = pathname === '/forum' || pathname?.startsWith('/forum/');
   const isDonationPage = pathname === '/madinaface3bridgeproject' || pathname?.startsWith('/madinaface3bridgeproject/');
+  const isShirleyPage = pathname === '/shirleys' || pathname?.startsWith('/shirleys/');
 
   // In iframe mode, always render bare children with no chrome
   if (isIframeMode) {
@@ -52,10 +53,20 @@ function ConditionalLayoutInner({ children }: ConditionalLayoutProps) {
     );
   }
 
-  const isShirleyPage = pathname === '/shirleys' || pathname?.startsWith('/shirleys/');
+  if (isShirleyPage) {
+    return (
+      <>
+        <main className="w-full">
+          {children}
+        </main>
+        <ServiceWorkerRegistration />
+        <NetworkMonitor />
+      </>
+    );
+  }
 
-  if (isAdminPage || isPortfolioPage || isDonationPage || isForumPage || isShirleyPage) {
-    // Custom standalone pages (Shirley's Stitches & Sugar, Admin, Portfolio, Donation, Forum) - clean layout without IT Services header/footer
+  if (isAdminPage || isPortfolioPage || isDonationPage || isForumPage) {
+    // Custom standalone pages (Admin, Portfolio, Donation, Forum) - clean layout without IT Services header/footer
     return (
       <>
         <SplashScreen />

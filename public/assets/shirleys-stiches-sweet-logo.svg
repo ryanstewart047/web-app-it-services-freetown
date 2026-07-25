@@ -1,0 +1,23 @@
+<svg width="640" height="220" viewBox="0 0 640 220" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Shirley's Stiches and Sweet logo</title>
+  <desc id="desc">A berry, gold, and mint logo combining a cupcake, needle, thread, and sweet sparkle for Shirley's Stiches and Sweet.</desc>
+  <rect width="640" height="220" rx="36" fill="#fffdf8"/>
+  <circle cx="110" cy="110" r="72" fill="#8a2746"/>
+  <circle cx="110" cy="110" r="56" fill="#f7c948"/>
+  <path d="M70 122C75 95 90 80 110 80C130 80 145 95 150 122H70Z" fill="#fff7e6"/>
+  <path d="M80 120H140L132 158H88L80 120Z" fill="#8a2746"/>
+  <path d="M88 128H132M91 140H129M95 152H125" stroke="#fff7e6" stroke-width="5" stroke-linecap="round"/>
+  <path d="M91 79C96 67 105 63 112 72C117 60 132 60 137 74" stroke="#8a2746" stroke-width="9" stroke-linecap="round"/>
+  <path d="M162 55L191 84" stroke="#2f6f6a" stroke-width="8" stroke-linecap="round"/>
+  <path d="M187 80L203 96" stroke="#2f6f6a" stroke-width="4" stroke-linecap="round"/>
+  <path d="M164 55C172 48 180 47 186 54" stroke="#2f6f6a" stroke-width="5" stroke-linecap="round"/>
+  <path d="M54 61C40 74 37 91 48 105C62 123 37 142 54 160" stroke="#2f6f6a" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 14"/>
+  <path d="M194 142C210 137 224 145 230 158" stroke="#f7c948" stroke-width="6" stroke-linecap="round"/>
+  <path d="M204 130L207 120L210 130L220 133L210 136L207 146L204 136L194 133L204 130Z" fill="#f7c948"/>
+  <path d="M248 76H269V97H248V76Z" fill="#8a2746"/>
+  <path d="M270 97H291V118H270V97Z" fill="#2f6f6a"/>
+  <path d="M248 118H269V139H248V118Z" fill="#f7c948"/>
+  <text x="248" y="90" fill="#8a2746" font-family="Georgia, 'Times New Roman', serif" font-size="48" font-weight="700">Shirley's</text>
+  <text x="248" y="142" fill="#2f1f2a" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="800" letter-spacing="1">STICHES &amp; SWEET</text>
+  <text x="250" y="176" fill="#6b5b61" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600">Bakery • Pastries • Fashion</text>
+</svg>
