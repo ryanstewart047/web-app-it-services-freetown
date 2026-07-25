@@ -3,6 +3,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 
+// Helper: add ?iframe=1 to a URL (handles existing query strings)
+function iframeUrl(url: string): string {
+  if (!url || url.startsWith('/api/')) return url;
+  return url.includes('?') ? `${url}&iframe=1` : `${url}?iframe=1`;
+}
+
 interface AnalyticsSnapshot {
   totalVisitors?: number;
   uniqueVisitors?: number;
@@ -45,6 +51,11 @@ interface RepairSnapshot {
   allRepairs?: RepairRecord[];
 }
 
+interface OrdersSnapshot {
+  totalRevenue?: number;
+  totalOrders?: number;
+}
+
 interface AdminPanelItem {
   id: string;
   name: string;
@@ -63,7 +74,7 @@ const ADMIN_PANELS: AdminPanelItem[] = [
     category: 'overview',
     description: 'Overview, Repairs & Analytics',
     icon: 'fas fa-tachometer-alt',
-    color: 'text-cyan-400',
+    color: 'text-red-400',
     url: '/admin',
   },
   {
@@ -72,7 +83,7 @@ const ADMIN_PANELS: AdminPanelItem[] = [
     category: 'overview',
     description: 'Site announcements',
     icon: 'fas fa-bullhorn',
-    color: 'text-red-400',
+    color: 'text-orange-400',
     url: '/banner-admin',
   },
   // E-Commerce & Inventory
@@ -91,7 +102,7 @@ const ADMIN_PANELS: AdminPanelItem[] = [
     category: 'ecommerce',
     description: 'Quick add new product',
     icon: 'fas fa-plus-circle',
-    color: 'text-emerald-400',
+    color: 'text-green-400',
     url: '/admin/add-product',
   },
   {
@@ -100,7 +111,7 @@ const ADMIN_PANELS: AdminPanelItem[] = [
     category: 'ecommerce',
     description: 'Upload multiple products',
     icon: 'fas fa-file-upload',
-    color: 'text-teal-400',
+    color: 'text-cyan-400',
     url: '/admin/products/bulk-upload',
   },
   {
@@ -136,7 +147,7 @@ const ADMIN_PANELS: AdminPanelItem[] = [
     category: 'ecommerce',
     description: 'Create receipts',
     icon: 'fas fa-receipt',
-    color: 'text-green-400',
+    color: 'text-lime-400',
     url: '/receipt',
   },
   {
@@ -154,7 +165,7 @@ const ADMIN_PANELS: AdminPanelItem[] = [
     category: 'ecommerce',
     description: 'Custom ad banners',
     icon: 'fas fa-ad',
-    color: 'text-yellow-400',
+    color: 'text-yellow-500',
     url: '/ads-admin',
   },
   // Services & Community
@@ -164,7 +175,7 @@ const ADMIN_PANELS: AdminPanelItem[] = [
     category: 'services',
     description: 'Service appointments',
     icon: 'fas fa-calendar-check',
-    color: 'text-red-400',
+    color: 'text-red-300',
     url: '/admin/bookings',
   },
   {
@@ -174,7 +185,8 @@ const ADMIN_PANELS: AdminPanelItem[] = [
     description: 'Manage technicians',
     icon: 'fas fa-users-gear',
     color: 'text-indigo-400',
-    url: '/api/forum/admin/bridge',
+    // Bridge redirects to /forum/admin and sets forum_admin_session cookie
+    url: '/forum/admin',
   },
   {
     id: 'bridge-gallery',
@@ -241,6 +253,7 @@ export default function AdminPage() {
   const [analytics, setAnalytics] = useState<AnalyticsSnapshot>({});
   const [forms, setForms] = useState<FormSnapshot>({});
   const [repairs, setRepairs] = useState<RepairSnapshot>({});
+  const [ordersData, setOrdersData] = useState<OrdersSnapshot>({});
   const [deleting, setDeleting] = useState(false);
   const [lastActivity, setLastActivity] = useState(Date.now());
   const [showIdleWarning, setShowIdleWarning] = useState(false);
@@ -251,6 +264,7 @@ export default function AdminPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [iframeLoading, setIframeLoading] = useState<boolean>(false);
   const [iframeKey, setIframeKey] = useState<number>(0);
+  const [showQuickAccess, setShowQuickAccess] = useState<boolean>(true);
 
   // Sync tab with URL search parameter
   useEffect(() => {
@@ -417,15 +431,28 @@ export default function AdminPage() {
         }
       }
 
-      const [analyticsRes, formsRes, repairsRes] = await Promise.all([
+      const [analyticsRes, formsRes, repairsRes, ordersRes] = await Promise.all([
         fetch('/api/analytics/visitor/'),
         fetch('/api/analytics/forms/'),
         fetch('/api/analytics/repairs/'),
+        fetch('/api/orders'),
       ]);
 
       if (analyticsRes.ok) setAnalytics(await analyticsRes.json());
       if (formsRes.ok) setForms(await formsRes.json());
       if (repairsRes.ok) setRepairs(await repairsRes.json());
+
+      // Compute total orders revenue
+      if (ordersRes.ok) {
+        try {
+          const ordersJson = await ordersRes.json();
+          const orders: any[] = Array.isArray(ordersJson) ? ordersJson : (ordersJson.orders || []);
+          const totalOrderRevenue = orders
+            .filter((o: any) => o.status !== 'cancelled')
+            .reduce((sum: number, o: any) => sum + (parseFloat(o.totalAmount ?? o.total ?? 0)), 0);
+          setOrdersData({ totalOrders: orders.length, totalRevenue: Math.round(totalOrderRevenue * 100) / 100 });
+        } catch (_) {}
+      }
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -470,17 +497,29 @@ export default function AdminPage() {
     }
   };
 
+  // Combined revenue: repairs (paid) + marketplace orders
+  const combinedRevenue = useMemo(() => {
+    const repairRev = repairs.totalRevenue ?? 0;
+    const orderRev = ordersData.totalRevenue ?? 0;
+    return Math.round((repairRev + orderRev) * 100) / 100;
+  }, [repairs.totalRevenue, ordersData.totalRevenue]);
+
   // If not authenticated, render Login Screen
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
+        {/* Subtle grid background */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" stroke=\"rgba(255,50,50,0.04)\" stroke-width=\"1\"\u003e%3Cpath d=\"M0 0h60v60H0z\"/%3E%3C/svg%3E')] pointer-events-none" />
+
+        <div className="relative w-full max-w-md bg-slate-900/90 border border-slate-700/60 rounded-3xl p-8 shadow-2xl backdrop-blur">
+          {/* Brand header */}
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <i className="fas fa-lock text-emerald-400 text-3xl"></i>
+            <div className="w-20 h-20 bg-gradient-to-br from-red-600 to-red-800 border border-red-500/40 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-red-900/30">
+              <i className="fas fa-shield-halved text-white text-3xl"></i>
             </div>
             <h1 className="text-2xl font-bold text-white tracking-wide">IT Services Freetown</h1>
-            <p className="text-emerald-400 font-medium text-sm mt-1">Master Admin Operations Portal</p>
+            <p className="text-red-400 font-medium text-sm mt-1">Master Admin Operations Portal</p>
+            <p className="text-slate-500 text-xs mt-1">Freetown · Sierra Leone</p>
           </div>
 
           <form onSubmit={handleAuth} className="space-y-5" data-no-analytics="true">
@@ -493,7 +532,7 @@ export default function AdminPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter admin password..."
-                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
+                className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
                 autoFocus
               />
               {error && (
@@ -507,7 +546,7 @@ export default function AdminPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold rounded-xl shadow-lg shadow-emerald-900/30 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+              className="w-full py-3.5 px-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg shadow-red-900/30 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
             >
               {loading ? (
                 <span className="flex items-center justify-center">
@@ -521,7 +560,7 @@ export default function AdminPage() {
             </button>
           </form>
           <div className="mt-8 text-center text-xs text-slate-500">
-            Secure SSL Encrypted &bull; EARPI & IT Services Freetown
+            Secure SSL Encrypted &bull; EARPI &amp; IT Services Freetown
           </div>
         </div>
       </div>
@@ -532,7 +571,7 @@ export default function AdminPage() {
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row overflow-hidden font-sans">
       {/* Idle Warning Bar */}
       {showIdleWarning && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-amber-500 text-slate-950 font-bold px-4 py-2 text-center text-sm flex items-center justify-center gap-2 shadow-lg">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-red-600 text-white font-bold px-4 py-2 text-center text-sm flex items-center justify-center gap-2 shadow-lg">
           <i className="fas fa-clock animate-bounce"></i>
           <span>Session will expire in 30 seconds due to inactivity! Move your mouse or click to stay logged in.</span>
         </div>
@@ -542,18 +581,18 @@ export default function AdminPage() {
       <aside
         className={`${
           isSidebarOpen ? 'w-full md:w-72' : 'w-full md:w-20'
-        } bg-slate-900 border-r border-slate-800 flex flex-col shrink-0 transition-all duration-300 z-30`}
+        } bg-[#0f1117] border-r border-red-900/30 flex flex-col shrink-0 transition-all duration-300 z-30`}
       >
         {/* Sidebar Brand Header */}
-        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div className="p-4 border-b border-red-900/30 flex items-center justify-between">
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-10 h-10 bg-emerald-500/20 border border-emerald-500/40 rounded-xl flex items-center justify-center shrink-0">
-              <i className="fas fa-shield-alt text-emerald-400 text-lg"></i>
+            <div className="w-10 h-10 bg-red-600/20 border border-red-600/40 rounded-xl flex items-center justify-center shrink-0">
+              <i className="fas fa-shield-alt text-red-400 text-lg"></i>
             </div>
             {isSidebarOpen && (
               <div className="truncate">
                 <h2 className="font-bold text-white text-sm leading-tight truncate">Master Admin Hub</h2>
-                <p className="text-xs text-emerald-400 truncate">IT Services Freetown</p>
+                <p className="text-xs text-red-400 truncate">IT Services Freetown</p>
               </div>
             )}
           </div>
@@ -568,7 +607,7 @@ export default function AdminPage() {
 
         {/* Search Bar */}
         {isSidebarOpen && (
-          <div className="p-3 border-b border-slate-800">
+          <div className="p-3 border-b border-red-900/20">
             <div className="relative">
               <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
               <input
@@ -576,7 +615,7 @@ export default function AdminPage() {
                 placeholder="Search 20 admin panels..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-200 placeholder-slate-500 rounded-lg pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:border-emerald-500"
+                className="w-full bg-slate-950 border border-slate-800 text-slate-200 placeholder-slate-500 rounded-lg pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:border-red-500"
               />
             </div>
           </div>
@@ -587,7 +626,7 @@ export default function AdminPage() {
           {/* Overview Section */}
           <div>
             {isSidebarOpen && (
-              <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-3 mb-2">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-red-500/60 px-3 mb-2">
                 Overview & Control
               </h3>
             )}
@@ -602,7 +641,7 @@ export default function AdminPage() {
                       isSidebarOpen ? 'justify-start px-3' : 'justify-center px-0'
                     } py-2.5 rounded-xl transition-all ${
                       activeTab === panel.id
-                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold'
+                        ? 'bg-red-600/20 text-red-400 border border-red-600/40 font-semibold'
                         : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
                     }`}
                   >
@@ -616,7 +655,7 @@ export default function AdminPage() {
           {/* E-Commerce Section */}
           <div>
             {isSidebarOpen && (
-              <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-3 mb-2">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-red-500/60 px-3 mb-2">
                 Commerce & Inventory
               </h3>
             )}
@@ -631,7 +670,7 @@ export default function AdminPage() {
                       isSidebarOpen ? 'justify-start px-3' : 'justify-center px-0'
                     } py-2.5 rounded-xl transition-all ${
                       activeTab === panel.id
-                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold'
+                        ? 'bg-red-600/20 text-red-400 border border-red-600/40 font-semibold'
                         : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
                     }`}
                   >
@@ -645,7 +684,7 @@ export default function AdminPage() {
           {/* Services Section */}
           <div>
             {isSidebarOpen && (
-              <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-3 mb-2">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-red-500/60 px-3 mb-2">
                 Services & Community
               </h3>
             )}
@@ -660,7 +699,7 @@ export default function AdminPage() {
                       isSidebarOpen ? 'justify-start px-3' : 'justify-center px-0'
                     } py-2.5 rounded-xl transition-all ${
                       activeTab === panel.id
-                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold'
+                        ? 'bg-red-600/20 text-red-400 border border-red-600/40 font-semibold'
                         : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
                     }`}
                   >
@@ -674,7 +713,7 @@ export default function AdminPage() {
           {/* Marketing Section */}
           <div>
             {isSidebarOpen && (
-              <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-3 mb-2">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-red-500/60 px-3 mb-2">
                 Marketing & Growth
               </h3>
             )}
@@ -689,7 +728,7 @@ export default function AdminPage() {
                       isSidebarOpen ? 'justify-start px-3' : 'justify-center px-0'
                     } py-2.5 rounded-xl transition-all ${
                       activeTab === panel.id
-                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold'
+                        ? 'bg-red-600/20 text-red-400 border border-red-600/40 font-semibold'
                         : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
                     }`}
                   >
@@ -702,13 +741,13 @@ export default function AdminPage() {
         </div>
 
         {/* Sidebar Footer Controls */}
-        <div className="p-3 border-t border-slate-800 space-y-2">
+        <div className="p-3 border-t border-red-900/30 space-y-2">
           <Link
             href="/"
             target="_blank"
             className={`w-full flex items-center ${
               isSidebarOpen ? 'justify-start px-3' : 'justify-center px-0'
-            } py-2 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-slate-800/50 text-xs transition-colors`}
+            } py-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800/50 text-xs transition-colors`}
           >
             <i className={`fas fa-external-link-alt ${isSidebarOpen ? 'mr-2' : ''}`}></i>
             {isSidebarOpen && <span>View Public Site</span>}
@@ -728,7 +767,7 @@ export default function AdminPage() {
       {/* Main Workspace Pane */}
       <main className="flex-1 flex flex-col min-w-0 bg-slate-950 overflow-hidden">
         {/* Workspace Top Bar */}
-        <header className="h-16 border-b border-slate-800 bg-slate-900/80 backdrop-blur-md px-4 flex items-center justify-between shrink-0">
+        <header className="h-16 border-b border-red-900/30 bg-[#0f1117]/90 backdrop-blur-md px-4 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3 truncate">
             <i className={`${activePanelObj.icon} ${activePanelObj.color} text-xl`}></i>
             <div>
@@ -755,7 +794,7 @@ export default function AdminPage() {
               href={activePanelObj.url}
               target="_blank"
               rel="noreferrer"
-              className="p-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg text-xs flex items-center gap-1.5 transition-colors shadow-sm"
+              className="p-2 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg text-xs flex items-center gap-1.5 transition-colors shadow-sm"
               title="Open full page in new tab"
             >
               <i className="fas fa-arrow-up-right-from-square"></i>
@@ -778,22 +817,27 @@ export default function AdminPage() {
             <div className="p-6 space-y-6 max-w-7xl mx-auto">
               {/* Analytics Snapshot Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
+                {/* Total Revenue Card */}
+                <div className="bg-gradient-to-br from-red-900/30 to-slate-900 border border-red-800/40 p-5 rounded-2xl shadow-sm">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-medium text-slate-400">Total Visitors</span>
-                    <i className="fas fa-users text-cyan-400 text-lg"></i>
+                    <span className="text-xs font-medium text-slate-400">Total Revenue</span>
+                    <i className="fas fa-dollar-sign text-red-400 text-lg"></i>
                   </div>
-                  <div className="text-2xl font-bold text-white">{analytics.totalVisitors || 0}</div>
-                  <p className="text-xs text-slate-500 mt-1">Unique: {analytics.uniqueVisitors || 0}</p>
+                  <div className="text-2xl font-bold text-white">
+                    Le {combinedRevenue.toLocaleString()}
+                  </div>
+                  <p className="text-xs text-red-400 mt-1">
+                    Repairs: Le {(repairs.totalRevenue ?? 0).toLocaleString()} &bull; Orders: Le {(ordersData.totalRevenue ?? 0).toLocaleString()}
+                  </p>
                 </div>
 
                 <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-xs font-medium text-slate-400">Total Repairs & Bookings</span>
-                    <i className="fas fa-tools text-emerald-400 text-lg"></i>
+                    <i className="fas fa-tools text-orange-400 text-lg"></i>
                   </div>
                   <div className="text-2xl font-bold text-white">{repairs.totalRepairs || 0}</div>
-                  <p className="text-xs text-emerald-400 mt-1">Revenue: ${repairs.totalRevenue || 0}</p>
+                  <p className="text-xs text-slate-400 mt-1">Orders: {ordersData.totalOrders || 0} marketplace</p>
                 </div>
 
                 <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
@@ -807,20 +851,20 @@ export default function AdminPage() {
 
                 <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-medium text-slate-400">Bounce Rate</span>
-                    <i className="fas fa-chart-line text-purple-400 text-lg"></i>
+                    <span className="text-xs font-medium text-slate-400">Site Visitors</span>
+                    <i className="fas fa-users text-cyan-400 text-lg"></i>
                   </div>
-                  <div className="text-2xl font-bold text-white">{analytics.bounceRate || 0}%</div>
-                  <p className="text-xs text-slate-500 mt-1">Avg Session: {analytics.avgSessionDuration || 0}s</p>
+                  <div className="text-2xl font-bold text-white">{analytics.totalVisitors || 0}</div>
+                  <p className="text-xs text-slate-500 mt-1">Unique: {analytics.uniqueVisitors || 0} &bull; Bounce: {analytics.bounceRate || 0}%</p>
                 </div>
               </div>
 
               {/* Full Repair Operations Console */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+              <div className="bg-slate-900 border border-red-900/30 rounded-2xl p-6 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-red-900/20 pb-4">
                   <div>
                     <h2 className="text-base font-bold text-white flex items-center gap-2">
-                      <i className="fas fa-wrench text-emerald-400"></i> Repair Operations & Tracking
+                      <i className="fas fa-wrench text-red-400"></i> Repair Operations & Tracking
                     </h2>
                     <p className="text-xs text-slate-400 mt-0.5">
                       Track active repair jobs, update job status, record costs, and diagnostic images.
@@ -828,7 +872,7 @@ export default function AdminPage() {
                   </div>
                   <button
                     onClick={loadData}
-                    className="px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors self-start sm:self-auto"
+                    className="px-3 py-1.5 bg-red-600/10 border border-red-600/30 text-red-400 hover:bg-red-600/20 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors self-start sm:self-auto"
                   >
                     <i className="fas fa-sync-alt"></i> Refresh Repairs
                   </button>
@@ -838,24 +882,35 @@ export default function AdminPage() {
               </div>
 
               {/* Quick Navigation Panels Grid */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <i className="fas fa-th text-emerald-400"></i> Quick Access Admin Modules
-                </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {ADMIN_PANELS.filter(p => p.id !== 'dashboard').map(panel => (
+              {showQuickAccess && (
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                      <i className="fas fa-th text-red-400"></i> Quick Access Admin Modules
+                    </h3>
                     <button
-                      key={panel.id}
-                      onClick={() => handleTabChange(panel.id)}
-                      className="p-4 bg-slate-950 hover:bg-slate-800/80 border border-slate-800 hover:border-slate-700 rounded-xl text-left transition-all hover:scale-[1.02] group"
+                      onClick={() => setShowQuickAccess(false)}
+                      className="text-slate-500 hover:text-rose-400 transition-colors p-1 rounded-lg hover:bg-rose-500/10"
+                      title="Hide Quick Access Panel"
                     >
-                      <i className={`${panel.icon} ${panel.color} text-xl mb-2 block group-hover:scale-110 transition-transform`}></i>
-                      <h4 className="font-semibold text-white text-xs truncate">{panel.name}</h4>
-                      <p className="text-slate-400 text-[11px] mt-0.5 truncate">{panel.description}</p>
+                      <i className="fas fa-times text-sm"></i>
                     </button>
-                  ))}
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {ADMIN_PANELS.filter(p => p.id !== 'dashboard').map(panel => (
+                      <button
+                        key={panel.id}
+                        onClick={() => handleTabChange(panel.id)}
+                        className="p-4 bg-slate-950 hover:bg-slate-800/80 border border-slate-800 hover:border-red-700/40 rounded-xl text-left transition-all hover:scale-[1.02] group"
+                      >
+                        <i className={`${panel.icon} ${panel.color} text-xl mb-2 block group-hover:scale-110 transition-transform`}></i>
+                        <h4 className="font-semibold text-white text-xs truncate">{panel.name}</h4>
+                        <p className="text-slate-400 text-[11px] mt-0.5 truncate">{panel.description}</p>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Recent Form Submissions Table */}
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
@@ -919,14 +974,14 @@ export default function AdminPage() {
             <div className="w-full h-full relative min-h-[calc(100vh-64px)] bg-slate-950">
               {iframeLoading && (
                 <div className="absolute inset-0 z-20 bg-slate-950/90 flex flex-col items-center justify-center p-6 text-center">
-                  <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-400 rounded-full animate-spin mb-4"></div>
+                  <div className="w-12 h-12 border-4 border-red-600/20 border-t-red-500 rounded-full animate-spin mb-4"></div>
                   <p className="text-sm font-semibold text-white">Loading {activePanelObj.name} Workspace...</p>
                   <p className="text-xs text-slate-400 mt-1 mb-4">Connecting to {activePanelObj.url}</p>
                   <a
                     href={activePanelObj.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition-colors shadow"
+                    className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-lg transition-colors shadow"
                   >
                     Open Panel Directly in New Window
                   </a>
@@ -934,7 +989,7 @@ export default function AdminPage() {
               )}
               <iframe
                 key={`${activeTab}-${iframeKey}`}
-                src={activePanelObj.url}
+                src={iframeUrl(activePanelObj.url)}
                 onLoad={() => setIframeLoading(false)}
                 className="w-full h-full min-h-[calc(100vh-64px)] border-0"
                 title={activePanelObj.name}
@@ -1151,7 +1206,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
             onClick={() => setFilterStatus('all')}
             className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
               filterStatus === 'all'
-                ? 'bg-emerald-500 text-slate-950 font-bold'
+                ? 'bg-red-600 text-white font-bold'
                 : 'bg-slate-900 text-slate-400 hover:text-white'
             }`}
           >
@@ -1163,7 +1218,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
               onClick={() => setFilterStatus(s.label.replace(/ /g, '-'))}
               className={`px-3 py-1.5 rounded-lg font-medium capitalize transition-all shrink-0 ${
                 filterStatus === s.label.replace(/ /g, '-')
-                  ? 'bg-emerald-500 text-slate-950 font-bold'
+                  ? 'bg-red-600 text-white font-bold'
                   : 'bg-slate-900 text-slate-400 hover:text-white'
               }`}
             >
@@ -1179,7 +1234,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
             placeholder="Search repairs by ID, customer, device..."
             value={searchFilter}
             onChange={e => setSearchFilter(e.target.value)}
-            className="w-full sm:w-64 bg-slate-900 border border-slate-800 text-slate-200 placeholder-slate-500 rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:border-emerald-500"
+            className="w-full sm:w-64 bg-slate-900 border border-slate-800 text-slate-200 placeholder-slate-500 rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:border-red-500"
           />
         </div>
       </div>
@@ -1195,7 +1250,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                 onClick={() => setSelectedRepair(repair)}
                 className={`p-4 rounded-xl border transition-all cursor-pointer ${
                   selectedRepair?.trackingId === repair.trackingId
-                    ? 'bg-emerald-500/10 border-emerald-500/50 shadow-md'
+                    ? 'bg-red-600/10 border-red-600/40 shadow-md'
                     : 'bg-slate-950 border-slate-800 hover:border-slate-700'
                 }`}
               >
@@ -1223,7 +1278,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                   </div>
                   <div>
                     <span className="block text-[10px] text-slate-500 uppercase">Estimated Cost</span>
-                    <span className="font-medium text-emerald-400">
+                    <span className="font-medium text-red-400">
                       {repair.totalCost ? `Le ${repair.totalCost.toLocaleString()}` : 'Not set'}
                     </span>
                   </div>
@@ -1287,7 +1342,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                 <select
                   value={updateForm.status}
                   onChange={e => setUpdateForm(p => ({ ...p, status: e.target.value }))}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-red-500"
                 >
                   <option value="pending">Pending</option>
                   <option value="received">Received</option>
@@ -1304,7 +1359,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                 <select
                   value={updateForm.paymentStatus}
                   onChange={e => setUpdateForm(p => ({ ...p, paymentStatus: e.target.value }))}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-red-500"
                 >
                   <option value="pending">Pending</option>
                   <option value="paid">Paid</option>
@@ -1318,7 +1373,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                   value={updateForm.totalCost}
                   onChange={e => setUpdateForm(p => ({ ...p, totalCost: e.target.value }))}
                   placeholder="e.g. 500000"
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-red-500"
                 />
               </div>
 
@@ -1329,7 +1384,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                   value={updateForm.diagnosticNotes}
                   onChange={e => setUpdateForm(p => ({ ...p, diagnosticNotes: e.target.value }))}
                   placeholder="e.g. Screen replaced. Internal board tested OK."
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-red-500"
                 />
               </div>
 
@@ -1340,7 +1395,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                   accept="image/*"
                   multiple
                   onChange={handleImageUpload}
-                  className="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-emerald-500/20 file:text-emerald-400 file:font-semibold"
+                  className="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-red-600/20 file:text-red-400 file:font-semibold"
                 />
                 {updateForm.diagnosticImages.length > 0 && (
                   <div className="flex gap-2 mt-2 overflow-x-auto">
@@ -1353,7 +1408,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
 
               <button
                 onClick={updateRepair}
-                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg transition-colors shadow"
+                className="w-full py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-lg transition-colors shadow"
               >
                 Save & Publish Update to Customer
               </button>

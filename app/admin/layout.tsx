@@ -1,14 +1,36 @@
 'use client';
 
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import ThemeToggle from './components/ThemeToggle';
 import { BRAND_LOGO_SRC, BRAND_NAME } from '@/lib/brand';
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function AdminLayoutInner({ children }: { children: React.ReactNode }) {
+  const searchParams = useSearchParams();
+  const isIframeMode = searchParams?.get('iframe') === '1';
+
+  // When rendered inside the Master Admin Hub iframe, skip all chrome
+  if (isIframeMode) {
+    return (
+      <>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const theme = localStorage.getItem('admin-theme') || 'light';
+                if (theme === 'dark') {
+                  document.documentElement.classList.add('dark');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+        <div id="admin-root">{children}</div>
+      </>
+    );
+  }
+
   return (
     <>
       <script
@@ -62,5 +84,13 @@ export default function AdminLayout({
         </main>
       </div>
     </>
+  );
+}
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<div id="admin-root">{children}</div>}>
+      <AdminLayoutInner>{children}</AdminLayoutInner>
+    </Suspense>
   );
 }

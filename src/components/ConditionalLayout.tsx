@@ -1,6 +1,7 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import CookiePopup from '@/components/CookiePopup';
@@ -19,12 +20,37 @@ interface ConditionalLayoutProps {
   children: React.ReactNode;
 }
 
-export default function ConditionalLayout({ children }: ConditionalLayoutProps) {
+function ConditionalLayoutInner({ children }: ConditionalLayoutProps) {
   const pathname = usePathname();
-  const isAdminPage = pathname?.startsWith('/admin');
+  const searchParams = useSearchParams();
+  const isIframeMode = searchParams?.get('iframe') === '1';
+
+  // Paths that are "admin-adjacent" but not under /admin — suppress chrome when in iframe
+  const isAdminAdjacentPage =
+    pathname?.startsWith('/banner-admin') ||
+    pathname?.startsWith('/offer-admin') ||
+    pathname?.startsWith('/ads-admin') ||
+    pathname?.startsWith('/receipt') ||
+    pathname?.startsWith('/blog/admin') ||
+    pathname?.startsWith('/blog/admin') ||
+    pathname?.startsWith('/forum/admin') ||
+    pathname?.startsWith('/madinaface3bridgeproject/admin');
+
+  const isAdminPage = pathname?.startsWith('/admin') || isAdminAdjacentPage;
   const isPortfolioPage = pathname === '/ryanjstewart';
   const isForumPage = pathname === '/forum' || pathname?.startsWith('/forum/');
   const isDonationPage = pathname === '/madinaface3bridgeproject' || pathname?.startsWith('/madinaface3bridgeproject/');
+
+  // In iframe mode, always render bare children with no chrome
+  if (isIframeMode) {
+    return (
+      <>
+        <main className="w-full">{children}</main>
+        <ServiceWorkerRegistration />
+        <NetworkMonitor />
+      </>
+    );
+  }
 
   if (isAdminPage || isPortfolioPage || isDonationPage || isForumPage) {
     // Admin pages, Portfolio, Donation, and Forum page - clean layout with minimal components
@@ -68,5 +94,13 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
       <ServiceWorkerRegistration />
       <MobileBottomNav />
     </>
+  );
+}
+
+export default function ConditionalLayout({ children }: ConditionalLayoutProps) {
+  return (
+    <Suspense fallback={<main className="w-full">{children}</main>}>
+      <ConditionalLayoutInner>{children}</ConditionalLayoutInner>
+    </Suspense>
   );
 }
