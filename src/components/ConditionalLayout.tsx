@@ -52,20 +52,18 @@ function ConditionalLayoutInner({ children }: ConditionalLayoutProps) {
     );
   }
 
-  if (isAdminPage || isPortfolioPage || isDonationPage || isForumPage) {
-    // Admin pages, Portfolio, Donation, and Forum page - clean layout with minimal components
+  const isShirleyPage = pathname === '/shirleys' || pathname?.startsWith('/shirleys/');
+
+  if (isAdminPage || isPortfolioPage || isDonationPage || isForumPage || isShirleyPage) {
+    // Custom standalone pages (Shirley's Stitches & Sugar, Admin, Portfolio, Donation, Forum) - clean layout without IT Services header/footer
     return (
       <>
         <SplashScreen />
-        <div className="sticky top-0 z-50">
-          <GlobalBanner />
-        </div>
         <main className="w-full pb-16 md:pb-0">
           {children}
         </main>
         <ServiceWorkerRegistration />
         <NetworkMonitor />
-        <MobileBottomNav />
       </>
     );
   }

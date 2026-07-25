@@ -1,7 +1,5 @@
  'use client';
 
-export const dynamic = 'force-dynamic';
-
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Upload, Search, Filter, DollarSign, Package, Image as ImageIcon } from 'lucide-react';
 import { useAdminSession } from '../../../src/hooks/useAdminSession';
@@ -41,6 +39,8 @@ export default function AdminProductsPage() {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');

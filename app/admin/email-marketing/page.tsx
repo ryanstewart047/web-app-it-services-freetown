@@ -1,6 +1,4 @@
-'use client'
-
-export const dynamic = 'force-dynamic';
+'use client';
 
 import { useState, useEffect, useRef } from 'react'
 import dynamicImport from 'next/dynamic'
@@ -78,6 +76,7 @@ export default function EmailMarketingPage() {
   const [btnUrl, setBtnUrl] = useState('https://')
   const [imageUrl, setImageUrl] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
+  const [isConfigured, setIsConfigured] = useState<boolean | null>(null)
   const [recipientPage, setRecipientPage] = useState(1)
   const RECIPIENTS_PER_PAGE = 20
 
