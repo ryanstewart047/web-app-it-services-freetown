@@ -142,11 +142,26 @@ export default function Footer() {
               ) : (
                 // Admin Panels Grid
                 <>
-                  <p className="text-gray-300 text-sm mb-6">Access the admin panel to manage your business operations</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  <div className="mb-6 bg-gradient-to-r from-emerald-600 to-teal-600 p-4 rounded-xl text-white flex items-center justify-between shadow-lg">
+                    <div>
+                      <h3 className="font-bold text-base flex items-center gap-2">
+                        <i className="fas fa-shield-alt"></i> Unified Master Admin Console
+                      </h3>
+                      <p className="text-emerald-100 text-xs mt-0.5">Manage all 20 administration modules from a single unified workspace</p>
+                    </div>
+                    <Link
+                      href="/admin"
+                      className="px-4 py-2 bg-white text-slate-900 font-bold text-xs rounded-lg hover:bg-emerald-50 transition-all shadow shrink-0"
+                      onClick={handleClose}
+                    >
+                      Launch Master Hub
+                    </Link>
+                  </div>
+                  <p className="text-gray-300 text-sm mb-4 font-medium">Or jump directly to a panel:</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             <Link 
-              href="/admin" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              href="/admin?tab=dashboard" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
               onClick={handleClose}
             >
               <i className="fas fa-tachometer-alt text-cyan-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
@@ -154,8 +169,8 @@ export default function Footer() {
               <p className="text-gray-400 text-xs mt-1">Overview & analytics</p>
             </Link>
             <Link 
-              href="/blog/admin" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              href="/admin?tab=blog-admin" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
               onClick={handleClose}
             >
               <i className="fas fa-blog text-orange-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
@@ -163,8 +178,8 @@ export default function Footer() {
               <p className="text-gray-400 text-xs mt-1">Manage blog posts</p>
             </Link>
             <Link 
-              href="/receipt" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              href="/admin?tab=receipt" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
               onClick={handleClose}
             >
               <i className="fas fa-receipt text-green-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
@@ -172,8 +187,8 @@ export default function Footer() {
               <p className="text-gray-400 text-xs mt-1">Create receipts</p>
             </Link>
             <Link 
-              href="/offer-admin" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              href="/admin?tab=offer-admin" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
               onClick={handleClose}
             >
               <i className="fas fa-gift text-pink-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
@@ -181,8 +196,8 @@ export default function Footer() {
               <p className="text-gray-400 text-xs mt-1">Manage special offers</p>
             </Link>
             <Link 
-              href="/admin/products" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              href="/admin?tab=products" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
               onClick={handleClose}
             >
               <i className="fas fa-box text-blue-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
@@ -190,8 +205,8 @@ export default function Footer() {
               <p className="text-gray-400 text-xs mt-1">Marketplace products</p>
             </Link>
             <Link 
-              href="/admin/add-product" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              href="/admin?tab=add-product" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
               onClick={handleClose}
             >
               <i className="fas fa-plus-circle text-green-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
@@ -199,8 +214,8 @@ export default function Footer() {
               <p className="text-gray-400 text-xs mt-1">Quick add new product</p>
             </Link>
             <Link 
-              href="/admin/orders" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              href="/admin?tab=orders" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
               onClick={handleClose}
             >
               <i className="fas fa-shopping-cart text-yellow-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
@@ -208,8 +223,8 @@ export default function Footer() {
               <p className="text-gray-400 text-xs mt-1">Track customer orders</p>
             </Link>
             <Link 
-              href="/admin/categories" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              href="/admin?tab=categories" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
               onClick={handleClose}
             >
               <i className="fas fa-tags text-purple-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
@@ -217,26 +232,26 @@ export default function Footer() {
               <p className="text-gray-400 text-xs mt-1">Organize products</p>
             </Link>
             <Link 
-              href="/admin/bookings" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              href="/admin?tab=bookings" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
               onClick={handleClose}
             >
               <i className="fas fa-calendar-alt text-red-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
               <h4 className="text-white font-semibold text-sm">Bookings</h4>
               <p className="text-gray-400 text-xs mt-1">Service appointments</p>
             </Link>
-            <a 
-              href="/api/forum/admin/bridge" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+            <Link 
+              href="/admin?tab=forum-admin" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
               onClick={handleClose}
             >
               <i className="fas fa-users-gear text-indigo-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
               <h4 className="text-white font-semibold text-sm">Forum Admin</h4>
               <p className="text-gray-400 text-xs mt-1">Manage technicians</p>
-            </a>
+            </Link>
             <Link 
-              href="/banner-admin" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              href="/admin?tab=banner-admin" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
               onClick={handleClose}
             >
               <i className="fas fa-bell text-red-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
@@ -244,8 +259,8 @@ export default function Footer() {
               <p className="text-gray-400 text-xs mt-1">Site announcements</p>
             </Link>
             <Link 
-              href="/admin/email-leads" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              href="/admin?tab=email-leads" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
               onClick={handleClose}
             >
               <i className="fas fa-envelope-open-text text-blue-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
@@ -253,8 +268,8 @@ export default function Footer() {
               <p className="text-gray-400 text-xs mt-1">Customer lead collection</p>
             </Link>
             <Link 
-              href="/admin/email-marketing" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              href="/admin?tab=email-marketing" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
               onClick={handleClose}
             >
               <i className="fas fa-paper-plane text-red-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
@@ -262,8 +277,8 @@ export default function Footer() {
               <p className="text-gray-400 text-xs mt-1">Send HTML campaigns</p>
             </Link>
             <Link 
-              href="/admin/newsletter" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              href="/admin?tab=newsletter-popup" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
               onClick={handleClose}
             >
               <i className="fas fa-envelope text-indigo-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
@@ -271,8 +286,8 @@ export default function Footer() {
               <p className="text-gray-400 text-xs mt-1">Popup settings & stats</p>
             </Link>
             <Link 
-              href="/ads-admin" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              href="/admin?tab=ads-admin" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
               onClick={handleClose}
             >
               <i className="fas fa-ad text-yellow-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
@@ -280,8 +295,8 @@ export default function Footer() {
               <p className="text-gray-400 text-xs mt-1">Custom ad banners</p>
             </Link>
             <Link 
-              href="/admin/discount-codes" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              href="/admin?tab=discount-codes" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
               onClick={handleClose}
             >
               <i className="fas fa-ticket-alt text-teal-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
@@ -289,8 +304,8 @@ export default function Footer() {
               <p className="text-gray-400 text-xs mt-1">Manage promo codes</p>
             </Link>
             <Link 
-              href="/admin/products/bulk-upload" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              href="/admin?tab=bulk-upload" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
               onClick={handleClose}
             >
               <i className="fas fa-file-upload text-green-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
@@ -298,13 +313,22 @@ export default function Footer() {
               <p className="text-gray-400 text-xs mt-1">Upload multiple products</p>
             </Link>
             <Link 
-              href="/madinaface3bridgeproject/admin" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all hover:scale-105 group"
+              href="/admin?tab=bridge-gallery" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
               onClick={handleClose}
             >
               <i className="fas fa-bridge-water text-blue-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
               <h4 className="text-white font-semibold text-sm">Bridge Gallery Admin</h4>
               <p className="text-gray-400 text-xs mt-1">Manage project photos</p>
+            </Link>
+            <Link 
+              href="/admin?tab=facebook-auto" 
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
+              onClick={handleClose}
+            >
+              <i className="fab fa-facebook text-blue-500 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+              <h4 className="text-white font-semibold text-sm">Facebook Auto</h4>
+              <p className="text-gray-400 text-xs mt-1">Auto-post & integrations</p>
             </Link>
           </div>
                 </>

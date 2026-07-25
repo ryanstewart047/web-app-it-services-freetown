@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 
 interface AnalyticsSnapshot {
   totalVisitors?: number;
@@ -42,6 +43,195 @@ interface RepairSnapshot {
   allRepairs?: RepairRecord[];
 }
 
+interface AdminPanelItem {
+  id: string;
+  name: string;
+  category: 'overview' | 'ecommerce' | 'services' | 'marketing';
+  description: string;
+  icon: string;
+  color: string;
+  url: string;
+  badge?: string;
+}
+
+const ADMIN_PANELS: AdminPanelItem[] = [
+  // Overview
+  {
+    id: 'dashboard',
+    name: 'Dashboard',
+    category: 'overview',
+    description: 'Overview & analytics',
+    icon: 'fas fa-tachometer-alt',
+    color: 'text-cyan-400',
+    url: '/admin',
+  },
+  {
+    id: 'banner-admin',
+    name: 'Global Banner',
+    category: 'overview',
+    description: 'Site announcements',
+    icon: 'fas fa-bullhorn',
+    color: 'text-red-400',
+    url: '/banner-admin',
+  },
+  // E-Commerce & Inventory
+  {
+    id: 'products',
+    name: 'Manage Products',
+    category: 'ecommerce',
+    description: 'Marketplace products',
+    icon: 'fas fa-box-open',
+    color: 'text-blue-400',
+    url: '/admin/products',
+  },
+  {
+    id: 'add-product',
+    name: 'Add Product',
+    category: 'ecommerce',
+    description: 'Quick add new product',
+    icon: 'fas fa-plus-circle',
+    color: 'text-emerald-400',
+    url: '/admin/add-product',
+  },
+  {
+    id: 'bulk-upload',
+    name: 'Bulk Upload',
+    category: 'ecommerce',
+    description: 'Upload multiple products',
+    icon: 'fas fa-file-upload',
+    color: 'text-teal-400',
+    url: '/admin/products/bulk-upload',
+  },
+  {
+    id: 'orders',
+    name: 'View Orders',
+    category: 'ecommerce',
+    description: 'Track customer orders',
+    icon: 'fas fa-shopping-cart',
+    color: 'text-yellow-400',
+    url: '/admin/orders',
+  },
+  {
+    id: 'categories',
+    name: 'Categories',
+    category: 'ecommerce',
+    description: 'Organize products',
+    icon: 'fas fa-tags',
+    color: 'text-purple-400',
+    url: '/admin/categories',
+  },
+  {
+    id: 'discount-codes',
+    name: 'Discount Codes',
+    category: 'ecommerce',
+    description: 'Manage promo codes',
+    icon: 'fas fa-ticket-alt',
+    color: 'text-amber-400',
+    url: '/admin/discount-codes',
+  },
+  {
+    id: 'receipt',
+    name: 'Receipt Generator',
+    category: 'ecommerce',
+    description: 'Create receipts',
+    icon: 'fas fa-receipt',
+    color: 'text-green-400',
+    url: '/receipt',
+  },
+  {
+    id: 'offer-admin',
+    name: 'Offer Admin',
+    category: 'ecommerce',
+    description: 'Manage special offers',
+    icon: 'fas fa-gift',
+    color: 'text-pink-400',
+    url: '/offer-admin',
+  },
+  {
+    id: 'ads-admin',
+    name: 'Manage Ads',
+    category: 'ecommerce',
+    description: 'Custom ad banners',
+    icon: 'fas fa-ad',
+    color: 'text-yellow-400',
+    url: '/ads-admin',
+  },
+  // Services & Community
+  {
+    id: 'bookings',
+    name: 'Bookings',
+    category: 'services',
+    description: 'Service appointments',
+    icon: 'fas fa-calendar-check',
+    color: 'text-red-400',
+    url: '/admin/bookings',
+  },
+  {
+    id: 'forum-admin',
+    name: 'Forum Admin',
+    category: 'services',
+    description: 'Manage technicians',
+    icon: 'fas fa-users-gear',
+    color: 'text-indigo-400',
+    url: '/api/forum/admin/bridge',
+  },
+  {
+    id: 'bridge-gallery',
+    name: 'Bridge Gallery Admin',
+    category: 'services',
+    description: 'Manage project photos',
+    icon: 'fas fa-images',
+    color: 'text-blue-400',
+    url: '/madinaface3bridgeproject/admin',
+  },
+  // Marketing & Growth
+  {
+    id: 'blog-admin',
+    name: 'Blog Admin',
+    category: 'marketing',
+    description: 'Manage blog posts',
+    icon: 'fas fa-blog',
+    color: 'text-orange-400',
+    url: '/blog/admin',
+  },
+  {
+    id: 'email-leads',
+    name: 'Email Leads',
+    category: 'marketing',
+    description: 'Customer lead collection',
+    icon: 'fas fa-envelope-open-text',
+    color: 'text-sky-400',
+    url: '/admin/email-leads',
+  },
+  {
+    id: 'email-marketing',
+    name: 'Email Marketing',
+    category: 'marketing',
+    description: 'Send HTML campaigns',
+    icon: 'fas fa-paper-plane',
+    color: 'text-rose-400',
+    url: '/admin/email-marketing',
+  },
+  {
+    id: 'newsletter-popup',
+    name: 'Newsletter Popup',
+    category: 'marketing',
+    description: 'Popup settings & stats',
+    icon: 'fas fa-envelope',
+    color: 'text-violet-400',
+    url: '/admin/newsletter',
+  },
+  {
+    id: 'facebook-auto',
+    name: 'Facebook Auto',
+    category: 'marketing',
+    description: 'Auto-post & integrations',
+    icon: 'fab fa-facebook',
+    color: 'text-blue-500',
+    url: '/admin/facebook-auto-post',
+  },
+];
+
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
@@ -51,11 +241,37 @@ export default function AdminPage() {
   const [forms, setForms] = useState<FormSnapshot>({});
   const [repairs, setRepairs] = useState<RepairSnapshot>({});
   const [deleting, setDeleting] = useState(false);
-  const [selectedSubmissions, setSelectedSubmissions] = useState<Set<string>>(new Set());
-  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [lastActivity, setLastActivity] = useState(Date.now());
   const [showIdleWarning, setShowIdleWarning] = useState(false);
-  const [quickControlsOpen, setQuickControlsOpen] = useState(false);
+
+  // Master Hub State
+  const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
+  const [iframeLoading, setIframeLoading] = useState<boolean>(false);
+  const [iframeKey, setIframeKey] = useState<number>(0);
+
+  // Sync tab with URL search parameter
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      if (tabParam && ADMIN_PANELS.some(p => p.id === tabParam)) {
+        setActiveTab(tabParam);
+      }
+    }
+  }, []);
+
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+    setIframeLoading(true);
+    setIframeKey(prev => prev + 1);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', tabId);
+      window.history.pushState({}, '', url.toString());
+    }
+  };
 
   // Check for saved session on mount
   useEffect(() => {
@@ -66,37 +282,31 @@ export default function AdminPage() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    const IDLE_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
-    const WARNING_TIME = 30 * 1000; // Show warning 30 seconds before logout
+    const IDLE_TIMEOUT = 5 * 60 * 1000;
+    const WARNING_TIME = 30 * 1000;
 
-    // Update last activity on user interaction
     const updateActivity = () => {
       setLastActivity(Date.now());
       setShowIdleWarning(false);
     };
 
-    // Track user activity
     const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
     events.forEach(event => {
       document.addEventListener(event, updateActivity, { passive: true });
     });
 
-    // Check for inactivity every 10 seconds
     const idleCheckInterval = setInterval(() => {
       const timeSinceLastActivity = Date.now() - lastActivity;
-      
+
       if (timeSinceLastActivity >= IDLE_TIMEOUT) {
-        // Auto-logout
         console.log('[Admin] Auto-logout due to inactivity');
         handleLogout();
         alert('Session expired due to inactivity. Please log in again.');
       } else if (timeSinceLastActivity >= IDLE_TIMEOUT - WARNING_TIME && !showIdleWarning) {
-        // Show warning
         setShowIdleWarning(true);
       }
-    }, 10000); // Check every 10 seconds
+    }, 10000);
 
-    // Cleanup
     return () => {
       events.forEach(event => {
         document.removeEventListener(event, updateActivity);
@@ -119,7 +329,7 @@ export default function AdminPage() {
 
   const handleAuth = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    event.stopPropagation(); // Prevent analytics tracking
+    event.stopPropagation();
     setError('');
     setLoading(true);
 
@@ -148,52 +358,34 @@ export default function AdminPage() {
 
   const handleLogout = async () => {
     try {
-      // Clear session cookie on server
-      const response = await fetch('/api/admin/auth', { method: 'DELETE' });
-      
-      if (!response.ok) {
-        console.error('Logout failed on server');
-      }
+      await fetch('/api/admin/auth', { method: 'DELETE' });
     } catch (error) {
       console.error('Logout error:', error);
     }
-    
-    // Clear local state
+
     setIsAuthenticated(false);
     setPassword('');
     setAnalytics({});
     setForms({});
     setRepairs({});
-    
-    // Force page reload to clear any cached state
     window.location.reload();
   };
 
   const loadData = async () => {
     setLoading(true);
     try {
-      // Clean up old diagnostic images (5+ days old) before loading data
       if (typeof window !== 'undefined') {
         const { cleanupOldImages, getAllBookings } = await import('@/lib/unified-booking-storage');
-        const deletedCount = cleanupOldImages();
-        if (deletedCount > 0) {
-          console.log(`🗑️ Cleaned up ${deletedCount} diagnostic images older than 5 days`);
-        }
+        cleanupOldImages();
 
-        // Sync localStorage bookings to API storage
         const localBookings = getAllBookings();
         if (localBookings.length > 0) {
-          console.log(`📦 Found ${localBookings.length} bookings in localStorage`);
-          
-          // Get existing API bookings to avoid duplicates
           const apiResponse = await fetch('/api/analytics/repairs/');
           const apiData = apiResponse.ok ? await apiResponse.json() : { allRepairs: [] };
           const existingTrackingIds = new Set(
             (apiData.allRepairs || []).map((r: any) => r.trackingId)
           );
 
-          // Sync each localStorage booking to API if it doesn't exist
-          let syncedCount = 0;
           for (const booking of localBookings) {
             if (!existingTrackingIds.has(booking.trackingId)) {
               try {
@@ -217,15 +409,10 @@ export default function AdminPage() {
                     estimatedCompletion: booking.estimatedCompletion,
                   }),
                 });
-                syncedCount++;
               } catch (err) {
                 console.error(`Failed to sync booking ${booking.trackingId}:`, err);
               }
             }
-          }
-          
-          if (syncedCount > 0) {
-            console.log(`✅ Synced ${syncedCount} localStorage bookings to API`);
           }
         }
       }
@@ -236,1225 +423,488 @@ export default function AdminPage() {
         fetch('/api/analytics/repairs/'),
       ]);
 
-      if (analyticsRes.ok) {
-        const data = await analyticsRes.json();
-        setAnalytics(data);
-      }
-
-      if (formsRes.ok) {
-        const data = await formsRes.json();
-        setForms(data);
-      }
-
-      if (repairsRes.ok) {
-        const data = await repairsRes.json();
-        setRepairs(data);
-      }
-    } catch (err) {
-      console.error('Error loading data:', err);
+      if (analyticsRes.ok) setAnalytics(await analyticsRes.json());
+      if (formsRes.ok) setForms(await formsRes.json());
+      if (repairsRes.ok) setRepairs(await repairsRes.json());
+    } catch (error) {
+      console.error('Failed to load data:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const deleteSensitiveData = async () => {
-    if (!confirm('Are you sure you want to delete all form submissions containing passwords or sensitive data? This cannot be undone.')) {
-      return;
-    }
+  const filteredPanels = useMemo(() => {
+    if (!searchQuery.trim()) return ADMIN_PANELS;
+    const q = searchQuery.toLowerCase();
+    return ADMIN_PANELS.filter(
+      p => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q)
+    );
+  }, [searchQuery]);
 
+  const activePanelObj = useMemo(() => {
+    return ADMIN_PANELS.find(p => p.id === activeTab) || ADMIN_PANELS[0];
+  }, [activeTab]);
+
+  const handleDeleteSubmission = async (formType: string, timestamp: string) => {
+    if (!confirm('Are you sure you want to delete this submission?')) return;
     setDeleting(true);
     try {
-      const response = await fetch('/api/analytics/forms', {
-        method: 'DELETE'
+      const res = await fetch('/api/analytics/forms/', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ formType, timestamp })
       });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        alert(`✅ Successfully removed ${result.removedCount} sensitive submissions. ${result.remainingCount} submissions remain.`);
-        await loadData(); // Refresh the data
-      } else {
-        alert(`❌ Failed to clean data: ${result.error}`);
-      }
-    } catch (error) {
-      console.error('Error deleting sensitive data:', error);
-      alert('❌ Error deleting sensitive data. Please try again.');
+      if (res.ok) void loadData();
+    } catch (err) {
+      console.error(err);
     } finally {
       setDeleting(false);
     }
   };
 
-  const deleteFormSubmission = async (originalTimestamp: string, displayTimestamp: string, formType: string) => {
-    if (!confirm(`Delete this ${formType} submission from ${displayTimestamp}?`)) {
-      return;
-    }
-
-    console.log('[Admin] Deleting submission:', { originalTimestamp, displayTimestamp, formType });
-
-    try {
-      const response = await fetch('/api/analytics/forms/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ timestamp: originalTimestamp, formType })
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        alert('✅ Submission deleted successfully');
-        await loadData(); // Refresh the data
-      } else {
-        console.error('[Admin] Delete failed:', result);
-        alert(`❌ Failed to delete: ${result.error || 'Unknown error'}\n\nTimestamp sent: ${originalTimestamp}`);
-      }
-    } catch (error) {
-      console.error('Error deleting submission:', error);
-      alert('❌ Error deleting submission. Please check console for details.');
-    }
-  };
-
-  const toggleSubmissionSelection = (timestamp: string) => {
-    setSelectedSubmissions(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(timestamp)) {
-        newSet.delete(timestamp);
-      } else {
-        newSet.add(timestamp);
-      }
-      return newSet;
-    });
-  };
-
-  const toggleSelectAll = () => {
-    if (!forms.recentSubmissions) return;
-    
-    const visibleSubmissions = forms.recentSubmissions.slice(0, 6);
-    const allSelected = visibleSubmissions.every(sub => 
-      selectedSubmissions.has(sub.originalTimestamp || sub.timestamp || '')
-    );
-
-    if (allSelected) {
-      setSelectedSubmissions(new Set());
-    } else {
-      const newSet = new Set<string>();
-      visibleSubmissions.forEach(sub => {
-        const timestamp = sub.originalTimestamp || sub.timestamp || '';
-        if (timestamp) newSet.add(timestamp);
-      });
-      setSelectedSubmissions(newSet);
-    }
-  };
-
-  const bulkDeleteSubmissions = async () => {
-    if (selectedSubmissions.size === 0) return;
-
-    // Capture submission details NOW before any state changes
-    const submissionsToDelete = (forms.recentSubmissions?.filter(sub => 
-      selectedSubmissions.has(sub.originalTimestamp || sub.timestamp || '')
-    ) || []).map(sub => ({
-      timestamp: sub.originalTimestamp || sub.timestamp || '',
-      displayTimestamp: sub.timestamp || '',
-      formType: sub.formType || 'unknown'
-    }));
-
-    const count = submissionsToDelete.length;
-    if (count === 0) return;
-
-    if (!confirm(`Delete ${count} selected submission${count > 1 ? 's' : ''}?`)) {
-      return;
-    }
-
-    setBulkDeleting(true);
-    let successCount = 0;
-    let failCount = 0;
-
-    try {
-      // Delete each submission using the captured data
-      for (const submission of submissionsToDelete) {
-        try {
-          const response = await fetch('/api/analytics/forms/delete', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              timestamp: submission.timestamp, 
-              formType: submission.formType
-            })
-          });
-
-          if (response.ok) {
-            successCount++;
-          } else {
-            const result = await response.json();
-            console.error(`Failed to delete ${submission.formType} from ${submission.displayTimestamp}:`, result.error);
-            failCount++;
-          }
-        } catch (error) {
-          console.error('Error deleting submission:', error);
-          failCount++;
-        }
-      }
-
-      // Show result
-      if (successCount > 0 && failCount === 0) {
-        alert(`✅ Successfully deleted ${successCount} submission${successCount > 1 ? 's' : ''}`);
-      } else if (successCount > 0 && failCount > 0) {
-        alert(`⚠️ Deleted ${successCount} submission${successCount > 1 ? 's' : ''}, ${failCount} failed`);
-      } else {
-        alert(`❌ Failed to delete submissions`);
-      }
-
-      // Clear selection and refresh
-      setSelectedSubmissions(new Set());
-      await loadData();
-    } catch (error) {
-      console.error('Error during bulk delete:', error);
-      alert('❌ Error deleting submissions. Please try again.');
-    } finally {
-      setBulkDeleting(false);
-    }
-  };
-
-  const statusSummary = useMemo(() => {
-    const counts = repairs.statusCounts ?? {};
-    return Object.entries(counts).map(([label, count]) => ({ label, count }));
-  }, [repairs.statusCounts]);
-
+  // If not authenticated, render Login Screen
   if (!isAuthenticated) {
     return (
-      <div className="flex min-h-[70vh] items-center justify-center px-4">
-        <div className="w-full max-w-lg overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-xl dark:border-gray-800 dark:bg-gray-900">
-          <div className="bg-gradient-to-br from-red-500 via-red-600 to-red-700 p-8 text-white">
-            <p className="text-sm uppercase tracking-[0.4em] text-red-100/80">Secure Area</p>
-            <h2 className="mt-4 text-3xl font-semibold">Admin Control Access</h2>
-            <p className="mt-2 text-sm text-red-100">
-              Enter the admin key to reach live analytics, customer requests, and repair pipelines.
-            </p>
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <i className="fas fa-lock text-emerald-400 text-3xl"></i>
+            </div>
+            <h1 className="text-2xl font-bold text-white tracking-wide">IT Services Freetown</h1>
+            <p className="text-emerald-400 font-medium text-sm mt-1">Master Admin Operations Portal</p>
           </div>
 
-          <form onSubmit={handleAuth} className="space-y-6 bg-white px-8 py-10 dark:bg-gray-900" data-no-analytics="true">
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Admin Access Key
+          <form onSubmit={handleAuth} className="space-y-5" data-no-analytics="true">
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                Administrator Access Key
               </label>
-              <div className="relative flex items-center">
-                <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c1.657 0 3-.895 3-2s-1.343-2-3-2-3 .895-3 2 1.343 2 3 2zm0 0v1a3 3 0 003 3h3a3 3 0 003-3v-1m-6 0v-1a3 3 0 00-3-3H9a3 3 0 00-3 3v1" />
-                  </svg>
-                </span>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  required
-                  className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3 pl-12 pr-4 text-sm text-gray-900 shadow-sm transition focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-red-400 dark:focus:ring-red-900/60"
-                  placeholder="Enter admin key"
-                />
-              </div>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter admin password..."
+                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
+                autoFocus
+              />
+              {error && (
+                <p className="text-red-400 text-sm mt-2 flex items-center">
+                  <i className="fas fa-exclamation-circle mr-2"></i>
+                  {error}
+                </p>
+              )}
             </div>
-
-            {error ? (
-              <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/30 dark:text-red-200">
-                <svg className="mt-0.5 h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>{error}</span>
-              </div>
-            ) : null}
 
             <button
               type="submit"
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-900 py-3 text-sm font-semibold text-white transition hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-600 dark:hover:bg-red-500"
+              disabled={loading}
+              className="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold rounded-xl shadow-lg shadow-emerald-900/30 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
             >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-              </svg>
-              Unlock Dashboard
+              {loading ? (
+                <span className="flex items-center justify-center">
+                  <i className="fas fa-circle-notch fa-spin mr-2"></i> Authenticating...
+                </span>
+              ) : (
+                <span className="flex items-center justify-center">
+                  <i className="fas fa-shield-halved mr-2"></i> Unlock Master Console
+                </span>
+              )}
             </button>
           </form>
-
-          <p className="px-8 pb-8 text-center text-xs text-gray-500 dark:text-gray-500">
-            Protected & monitored — contact system administrator for support.
-          </p>
+          <div className="mt-8 text-center text-xs text-slate-500">
+            Secure SSL Encrypted &bull; EARPI & IT Services Freetown
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 sm:space-y-10 lg:space-y-12">
-      {/* Idle Warning Banner */}
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row overflow-hidden font-sans">
+      {/* Idle Warning Bar */}
       {showIdleWarning && (
-        <div className="fixed top-4 right-4 z-50 max-w-md animate-pulse">
-          <div className="flex items-start gap-3 rounded-xl border-2 border-yellow-500 bg-yellow-50 p-4 shadow-lg dark:border-yellow-600 dark:bg-yellow-900/30">
-            <svg className="h-6 w-6 flex-shrink-0 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-              <h4 className="font-semibold text-yellow-900 dark:text-yellow-100">Session Expiring Soon</h4>
-              <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                You will be logged out in 30 seconds due to inactivity. Move your mouse or click to stay logged in.
-              </p>
-            </div>
-          </div>
+        <div className="fixed top-0 left-0 right-0 z-50 bg-amber-500 text-slate-950 font-bold px-4 py-2 text-center text-sm flex items-center justify-center gap-2 shadow-lg">
+          <i className="fas fa-clock animate-bounce"></i>
+          <span>Session will expire in 30 seconds due to inactivity! Move your mouse or click to stay logged in.</span>
         </div>
       )}
 
-      <section id="overview" className="grid gap-6 lg:grid-cols-[1.15fr,0.85fr]">
-        <div className="relative overflow-hidden rounded-3xl border border-gray-200/70 bg-white p-6 shadow-sm sm:p-8 dark:border-gray-800/70 dark:bg-gray-900">
-          <div className="absolute right-0 top-0 h-48 w-48 translate-x-16 -translate-y-10 rounded-full bg-red-500/10 blur-3xl" aria-hidden="true" />
-          <div className="relative flex flex-col justify-between gap-6 lg:flex-row lg:gap-8">
-            <div className="space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-gray-500 dark:text-gray-500 sm:text-sm">Snapshot</p>
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-50 sm:text-3xl">
-                Welcome back! Here's the latest pulse on IT Services Freetown.
-              </h2>
-              <p className="max-w-2xl text-sm text-gray-600 dark:text-gray-400">
-                Monitor visitor growth, form activity, and repair progress across every service touchpoint.
-              </p>
+      {/* Sidebar Navigation */}
+      <aside
+        className={`${
+          isSidebarOpen ? 'w-full md:w-72' : 'w-full md:w-20'
+        } bg-slate-900 border-r border-slate-800 flex flex-col shrink-0 transition-all duration-300 z-30`}
+      >
+        {/* Sidebar Brand Header */}
+        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="w-10 h-10 bg-emerald-500/20 border border-emerald-500/40 rounded-xl flex items-center justify-center shrink-0">
+              <i className="fas fa-shield-alt text-emerald-400 text-lg"></i>
             </div>
-            <div className="w-full self-start rounded-2xl border border-gray-200 bg-white/90 p-4 text-sm shadow-sm sm:max-w-md sm:p-5 dark:border-gray-800 dark:bg-gray-950/60">
-              {/* Collapsible header */}
-              <button
-                onClick={() => setQuickControlsOpen(o => !o)}
-                className="flex w-full items-center justify-between gap-2 focus:outline-none"
-                aria-expanded={quickControlsOpen}
-              >
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-500">Quick controls</p>
-                <svg
-                  className={`h-4 w-4 text-gray-400 transition-transform duration-300 ${quickControlsOpen ? 'rotate-180' : ''}`}
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {/* Collapsible body */}
-              <div
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                  quickControlsOpen ? 'max-h-[600px] opacity-100 mt-3' : 'max-h-0 opacity-0'
-                }`}
-              >
-                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
-                  <button
-                    onClick={loadData}
-                    className="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-600 dark:hover:bg-red-500"
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Refresh data
-                  </button>
-                  <a
-                    href="/blog/admin"
-                    className="inline-flex items-center gap-2 rounded-xl border border-purple-300 bg-purple-50 px-4 py-2 text-sm font-medium text-purple-700 transition hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:border-purple-700 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50"
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                    Blog Admin
-                  </a>
-                  <a
-                    href="/admin/newsletter"
-                    className="inline-flex items-center gap-2 rounded-xl border border-indigo-300 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/50"
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    Newsletter Popup
-                  </a>
-                  <a
-                    href="/admin/email-leads"
-                    className="inline-flex items-center gap-2 rounded-xl border border-teal-300 bg-teal-50 px-4 py-2 text-sm font-medium text-teal-700 transition hover:bg-teal-100 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:border-teal-700 dark:bg-teal-900/30 dark:text-teal-300 dark:hover:bg-teal-900/50"
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                    Email Leads
-                  </a>
-                  <a
-                    href="/admin/email-marketing"
-                    className="inline-flex items-center gap-2 rounded-xl border border-rose-300 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 dark:border-rose-700 dark:bg-rose-900/30 dark:text-rose-300 dark:hover:bg-rose-900/50"
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206" />
-                    </svg>
-                    Email Marketing
-                  </a>
-                  <a
-                    href="/admin/facebook-auto-post"
-                    className="inline-flex items-center gap-2 rounded-xl border border-blue-300 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-blue-700 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50"
-                  >
-                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M22 12.06C22 6.48 17.52 2 11.94 2S2 6.48 2 12.06c0 5.04 3.69 9.22 8.51 9.94v-7.03H7.98v-2.91h2.53V9.84c0-2.5 1.49-3.88 3.77-3.88 1.09 0 2.23.2 2.23.2v2.45h-1.25c-1.24 0-1.62.77-1.62 1.55v1.9h2.76l-.44 2.91h-2.32V22C18.31 21.28 22 17.1 22 12.06z" />
-                    </svg>
-                    Facebook Auto
-                  </a>
-                  <a
-                    href="/receipt"
-                    className="inline-flex items-center gap-2 rounded-xl border border-green-300 bg-green-50 px-4 py-2 text-sm font-medium text-green-700 transition hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50"
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Receipt Generator
-                  </a>
-                  <a
-                    href="/offer-admin"
-                    className="inline-flex items-center gap-2 rounded-xl border border-orange-300 bg-orange-50 px-4 py-2 text-sm font-medium text-orange-700 transition hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:border-orange-700 dark:bg-orange-900/30 dark:text-orange-300 dark:hover:bg-orange-900/50"
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                    </svg>
-                    Manage Offers
-                  </a>
-                  <a
-                    href="/banner-admin"
-                    className="inline-flex items-center gap-2 rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-700 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50"
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                    Global Banner
-                  </a>
-                  <a
-                    href="/ads-admin"
-                    className="inline-flex items-center gap-2 rounded-xl border border-blue-300 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-blue-700 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50"
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                    </svg>
-                    Manage Ads
-                  </a>
-                  <button
-                    onClick={handleLogout}
-                    className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-800 dark:bg-gray-800 dark:text-red-400 dark:hover:bg-gray-700"
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    Logout
-                  </button>
-                  <span className="rounded-xl border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 dark:border-gray-700 dark:text-gray-400">
-                    {loading ? 'Syncing latest metrics…' : 'Data synced with live services'}
-                  </span>
-                </div>
+            {isSidebarOpen && (
+              <div className="truncate">
+                <h2 className="font-bold text-white text-sm leading-tight truncate">Master Admin Console</h2>
+                <p className="text-xs text-emerald-400 truncate">Freetown IT Services</p>
               </div>
-            </div>
-          </div>
-          <dl className="mt-8 grid gap-4 min-[480px]:grid-cols-2">
-            <OverviewStat label="Total visitors" value={analytics.totalVisitors ?? 0} accent="text-blue-500" />
-            <OverviewStat label="Total repairs" value={repairs.totalRepairs ?? 0} accent="text-purple-500" />
-            <OverviewStat label="Form submissions" value={forms.totalSubmissions ?? 0} accent="text-emerald-500" />
-            <OverviewStat label="Revenue" value={`Le ${(repairs.totalRevenue ?? 0).toLocaleString()}`} accent="text-orange-500" />
-          </dl>
-        </div>
-
-        <div className="grid gap-4 min-[480px]:grid-cols-2">
-          <SummaryCard
-            title="Unique visitors"
-            value={analytics.uniqueVisitors ?? 0}
-            helper="Compared to last 7 days"
-            iconBg="bg-blue-100 dark:bg-blue-900/40"
-          />
-          <SummaryCard
-            title="Average session"
-            value={`${analytics.avgSessionDuration ?? 0} min`}
-            helper="Engagement quality"
-            iconBg="bg-indigo-100 dark:bg-indigo-900/40"
-          />
-          <SummaryCard
-            title="Forms viewed"
-            value={forms.totalViews ?? 0}
-            helper="Across all funnels"
-            iconBg="bg-emerald-100 dark:bg-emerald-900/40"
-          />
-          <SummaryCard
-            title="Conversion"
-            value={`${forms.overallConversionRate ?? 0}%`}
-            helper="Submission rate"
-            iconBg="bg-amber-100 dark:bg-amber-900/40"
-          />
-        </div>
-      </section>
-
-      <section id="analytics" className="space-y-6">
-        <SectionHeader title="Analytics" description="Traffic and engagement signals across your digital touchpoints." />
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricCard label="Total visitors" value={analytics.totalVisitors ?? 0} trendLabel="All traffic" />
-          <MetricCard label="Unique visitors" value={analytics.uniqueVisitors ?? 0} trendLabel="New users" />
-          <MetricCard label="Bounce rate" value={`${analytics.bounceRate ?? 0}%`} trendLabel="Lower is better" />
-          <MetricCard label="Avg session" value={`${analytics.avgSessionDuration ?? 0} min`} trendLabel="Time on site" />
-        </div>
-      </section>
-
-      <section id="forms" className="space-y-6">
-        <div className="flex items-center justify-between">
-          <SectionHeader title="Forms" description="Capture insights, track submissions, and monitor engagement across funnels." />
-          <button
-            onClick={deleteSensitiveData}
-            disabled={deleting}
-            className="inline-flex items-center gap-2 rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50"
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            {deleting ? 'Deleting...' : 'Delete Sensitive Data'}
-          </button>
-        </div>
-        <div className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6 dark:border-gray-800 dark:bg-gray-900">
-          <div className="grid gap-4 min-[480px]:grid-cols-2 md:grid-cols-3">
-            <StatPill label="Submissions" value={forms.totalSubmissions ?? 0} />
-            <StatPill label="Views" value={forms.totalViews ?? 0} />
-            <StatPill label="Conversion rate" value={`${forms.overallConversionRate ?? 0}%`} />
-          </div>
-
-          {forms.recentSubmissions && forms.recentSubmissions.length > 0 ? (
-            <>
-              {selectedSubmissions.size > 0 && (
-                <div className="mt-4 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3 dark:border-red-800 dark:bg-red-900/30">
-                  <span className="text-sm font-medium text-red-800 dark:text-red-200">
-                    {selectedSubmissions.size} submission{selectedSubmissions.size > 1 ? 's' : ''} selected
-                  </span>
-                  <button
-                    onClick={bulkDeleteSubmissions}
-                    disabled={bulkDeleting}
-                    className="inline-flex items-center gap-2 rounded-lg border border-red-300 bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-700 dark:bg-red-700 dark:hover:bg-red-800"
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    {bulkDeleting ? 'Deleting...' : 'Delete Selected'}
-                  </button>
-                </div>
-              )}
-              <div className="mt-6 overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
-                  <thead className="bg-gray-50 text-left uppercase tracking-wide dark:bg-gray-800/60">
-                    <tr>
-                      <th className="px-4 py-3">
-                        <input
-                          type="checkbox"
-                          checked={forms.recentSubmissions.slice(0, 6).every(sub => 
-                            selectedSubmissions.has(sub.originalTimestamp || sub.timestamp || '')
-                          )}
-                          onChange={toggleSelectAll}
-                          className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-800"
-                        />
-                      </th>
-                      <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400">Form</th>
-                      <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400">Submitted</th>
-                      <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400">Key details</th>
-                      <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                    {forms.recentSubmissions.slice(0, 6).map((submission, index) => {
-                      const timestamp = submission.originalTimestamp || submission.timestamp || '';
-                      const isSelected = selectedSubmissions.has(timestamp);
-                      
-                      return (
-                        <tr 
-                          key={`${submission.timestamp ?? index}-${index}`} 
-                          className={`hover:bg-gray-50/70 dark:hover:bg-gray-800/60 ${isSelected ? 'bg-red-50/50 dark:bg-red-900/20' : ''}`}
-                        >
-                          <td className="px-4 py-3">
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => toggleSubmissionSelection(timestamp)}
-                              className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-800"
-                            />
-                          </td>
-                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">{submission.formType ?? 'Unknown form'}</td>
-                          <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{submission.timestamp ?? '—'}</td>
-                          <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
-                            {submission.fields
-                              ? Object.entries(submission.fields)
-                                  .slice(0, 2)
-                                  .map(([key, value]) => (
-                                    <div key={key} className="truncate text-xs">
-                                      <span className="font-medium text-gray-600 dark:text-gray-300">{key}: </span>
-                                      <span>{value}</span>
-                                    </div>
-                                  ))
-                              : 'No details captured'}
-                          </td>
-                          <td className="px-4 py-3">
-                            <button
-                              onClick={() => deleteFormSubmission(
-                                submission.originalTimestamp || submission.timestamp || '', 
-                                submission.timestamp || '',
-                                submission.formType || 'unknown'
-                              )}
-                              className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50"
-                            >
-                              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          ) : (
-            <p className="mt-6 rounded-2xl border border-dashed border-gray-300 px-4 py-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-500">
-              No recent submissions to show. Once forms are submitted, they will appear here automatically.
-            </p>
-          )}
-        </div>
-      </section>
-
-      <section id="repairs" className="space-y-6">
-        <SectionHeader title="Repair operations" description="Track active jobs, update statuses, and keep customers informed." />
-        <RepairManagement repairs={repairs} onUpdate={loadData} statusSummary={statusSummary} />
-      </section>
-
-    </div>
-  );
-}
-
-interface RepairManagementProps {
-  repairs: RepairSnapshot;
-  onUpdate: () => void;
-  statusSummary: Array<{ label: string; count: number }>;
-}
-
-function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagementProps) {
-  const [selectedRepair, setSelectedRepair] = useState<RepairRecord | null>(null);
-  const [updateForm, setUpdateForm] = useState({
-    status: '',
-    paymentStatus: '',
-    notes: '',
-    totalCost: '',
-    diagnosticNotes: '',
-    diagnosticImages: [] as string[],
-  });
-  const [repairItems, setRepairItems] = useState<{ description: string; cost: string }[]>([]);
-  const [newRepairItem, setNewRepairItem] = useState({ description: '', cost: '' });
-
-  // Auto-calculate totalCost from repairItems
-  useEffect(() => {
-    if (repairItems.length > 0) {
-      const sum = repairItems.reduce((acc, item) => acc + (parseFloat(item.cost) || 0), 0);
-      setUpdateForm(prev => ({ ...prev, totalCost: sum > 0 ? String(sum) : '' }));
-    }
-  }, [repairItems]);
-
-  useEffect(() => {
-    if (!selectedRepair) {
-      setUpdateForm({ status: '', paymentStatus: '', notes: '', totalCost: '', diagnosticNotes: '', diagnosticImages: [] });
-      setRepairItems([]);
-      setNewRepairItem({ description: '', cost: '' });
-      return;
-    }
-
-    // Extract image data from timestamped format (backward compatible with string[])
-    const images = (selectedRepair as any).diagnosticImages ?? [];
-    const imageData = images.map((img: any) => typeof img === 'string' ? img : img.data);
-
-    setUpdateForm({
-      status: selectedRepair.status ?? '',
-      paymentStatus: selectedRepair.paymentStatus ?? 'pending',
-      notes: selectedRepair.issueSummary ?? '',
-      totalCost: selectedRepair.totalCost ? String(selectedRepair.totalCost) : '',
-      diagnosticNotes: (selectedRepair as any).diagnosticNotes ?? '',
-      diagnosticImages: imageData,
-    });
-  }, [selectedRepair]);
-
-  const updateRepair = async () => {
-    if (!selectedRepair) return;
-
-    try {
-      const response = await fetch('/api/analytics/repairs/', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          trackingId: selectedRepair.trackingId,
-          status: updateForm.status,
-          paymentStatus: updateForm.paymentStatus,
-          notes: repairItems.length > 0
-            ? (updateForm.notes ? updateForm.notes + '\n\n' : '') +
-              '--- Cost Breakdown ---\n' +
-              repairItems.map(item => `• ${item.description}: Le ${parseFloat(item.cost || '0').toLocaleString()}`).join('\n') +
-              `\nTotal: Le ${repairItems.reduce((s, i) => s + (parseFloat(i.cost) || 0), 0).toLocaleString()}`
-            : updateForm.notes,
-          totalCost: updateForm.totalCost ? parseFloat(updateForm.totalCost) : undefined,
-          diagnosticNotes: updateForm.diagnosticNotes,
-          diagnosticImages: updateForm.diagnosticImages,
-        }),
-      });
-
-      if (response.ok) {
-        alert('Repair updated successfully! Customer can now see diagnostic images and notes.');
-        setSelectedRepair(null);
-        onUpdate();
-      } else {
-        const error = await response.json();
-        console.error('Update failed:', error);
-        alert(`Failed to update repair: ${error.error || 'Unknown error'}`);
-      }
-    } catch (err) {
-      console.error('Error updating repair:', err);
-      alert('Error updating repair');
-    }
-  };
-
-  const handleDeleteRepair = async (trackingId: string, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    if (!confirm(`Are you sure you want to permanently delete repair ${trackingId}? This action cannot be undone.`)) return;
-
-    try {
-      const response = await fetch('/api/analytics/repairs/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', trackingId }),
-      });
-
-      if (response.ok) {
-        // Also remove from localStorage so loadData doesn't re-sync it
-        try {
-          const { deleteBooking } = await import('@/lib/unified-booking-storage');
-          deleteBooking(trackingId);
-        } catch (_) { /* localStorage may not be available */ }
-
-        alert('Repair deleted successfully.');
-        if (selectedRepair?.trackingId === trackingId) setSelectedRepair(null);
-        onUpdate();
-      } else {
-        const error = await response.json();
-        alert(`Failed to delete repair: ${error.error || 'Unknown error'}`);
-      }
-    } catch (err) {
-      console.error('Error deleting repair:', err);
-      alert('Error deleting repair');
-    }
-  };
-
-  const handleCancelRepair = async (trackingId: string, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    const reason = prompt(`Cancel repair ${trackingId}?\n\nEnter a cancellation reason (shown to customer):`);
-    if (reason === null) return; // user pressed Cancel in the prompt
-
-    try {
-      const response = await fetch('/api/analytics/repairs/', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          trackingId,
-          status: 'cancelled',
-          notes: reason || 'Repair cancelled by admin.',
-        }),
-      });
-
-      if (response.ok) {
-        alert('Repair cancelled. Customer will see the cancellation notice when they track their repair.');
-        if (selectedRepair?.trackingId === trackingId) setSelectedRepair(null);
-        onUpdate();
-      } else {
-        const error = await response.json();
-        alert(`Failed to cancel repair: ${error.error || 'Unknown error'}`);
-      }
-    } catch (err) {
-      console.error('Error cancelling repair:', err);
-      alert('Error cancelling repair');
-    }
-  };
-
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files) return;
-
-    const maxImages = 5;
-    const maxTotalImages = maxImages - updateForm.diagnosticImages.length;
-
-    if (files.length + updateForm.diagnosticImages.length > maxImages) {
-      alert(`Maximum ${maxImages} images allowed. You can add ${maxTotalImages} more.`);
-      return;
-    }
-
-    const newImages: string[] = [];
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-
-      if (file.size > 5 * 1024 * 1024) {
-        alert(`Image ${file.name} is too large. Maximum size is 5MB`);
-        continue;
-      }
-
-      const reader = new FileReader();
-      await new Promise((resolve) => {
-        reader.onload = (e) => {
-          if (e.target?.result) {
-            newImages.push(e.target.result as string);
-          }
-          resolve(null);
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-
-    setUpdateForm((prev) => ({
-      ...prev,
-      diagnosticImages: [...prev.diagnosticImages, ...newImages],
-    }));
-  };
-
-  const removeImage = (index: number) => {
-    setUpdateForm((prev) => ({
-      ...prev,
-      diagnosticImages: prev.diagnosticImages.filter((_, i) => i !== index),
-    }));
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="grid gap-4 min-[480px]:grid-cols-2 xl:grid-cols-4">
-        <StatPill label="Total repairs" value={repairs.totalRepairs ?? 0} />
-        <StatPill label="Average completion" value={`${repairs.averageCompletionDays ?? 0} days`} />
-        <StatPill label="Live revenue" value={`Le ${(repairs.totalRevenue ?? 0).toLocaleString()}`} />
-        <StatPill label="Statuses tracked" value={statusSummary.length} />
-      </div>
-
-      {statusSummary.length ? (
-        <div className="flex w-full flex-wrap gap-2 rounded-2xl border border-gray-200 bg-white p-4 text-xs uppercase tracking-wide text-gray-600 shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">
-          {statusSummary.map((status) => (
-            <span
-              key={status.label}
-              className="rounded-full border border-current px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-gray-700 dark:border-gray-700 dark:text-gray-300"
-            >
-              {status.label}: {status.count}
-            </span>
-          ))}
-        </div>
-      ) : null}
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-[3fr,2fr]">
-        <div className="space-y-4 overflow-hidden rounded-3xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5 dark:border-gray-800 dark:bg-gray-900">
-          <h3 className="px-2 text-sm font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-500">Active queue</h3>
-          <div className="max-h-[26rem] space-y-3 overflow-y-auto pr-2">
-            {repairs.allRepairs && repairs.allRepairs.length ? (
-              repairs.allRepairs.map((repair) => (
-                <div
-                  key={repair.trackingId}
-                  className={`relative rounded-2xl border text-sm transition hover:border-red-400 hover:shadow-md dark:hover:border-red-500/60 ${
-                    selectedRepair?.trackingId === repair.trackingId
-                      ? 'border-red-500 bg-red-500/10 text-red-600 dark:border-red-400 dark:bg-red-500/10 dark:text-red-200'
-                      : 'border-gray-200 bg-white text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200'
-                  }`}
-                >
-                  <button
-                    onClick={() => setSelectedRepair(repair)}
-                    className="w-full px-4 py-3 text-left"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2 pr-16">
-                      <div className="font-semibold">{repair.trackingId}</div>
-                      <span className={`rounded-full border px-2 py-0.5 text-[11px] uppercase tracking-wide ${
-                        repair.status === 'cancelled'
-                          ? 'border-red-400 bg-red-100 text-red-600 dark:border-red-600 dark:bg-red-900/40 dark:text-red-300'
-                          : 'border-current'
-                      }`}>
-                        {repair.status ?? 'pending'}
-                      </span>
-                    </div>
-                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                      <span>{repair.deviceType ?? 'Unknown device'}</span>
-                      <span>•</span>
-                      <span>{repair.customerName ?? 'No customer name'}</span>
-                      {repair.totalCost ? (
-                        <>
-                          <span>•</span>
-                          <span>Le {repair.totalCost}</span>
-                        </>
-                      ) : null}
-                      {repair.paymentStatus ? (
-                        <>
-                          <span>•</span>
-                          <span className={`${repair.paymentStatus === 'paid' ? 'text-green-600 dark:text-green-400 font-medium' : 'text-orange-500 font-medium'}`}>
-                            {repair.paymentStatus.charAt(0).toUpperCase() + repair.paymentStatus.slice(1)}
-                          </span>
-                        </>
-                      ) : null}
-                      {repair.lastUpdated ? (
-                        <>
-                          <span>•</span>
-                          <span>Updated {repair.lastUpdated}</span>
-                        </>
-                      ) : null}
-                    </div>
-                  </button>
-                  {/* Action buttons */}
-                  <div className="absolute right-2 top-2 flex items-center gap-1">
-                    {repair.status !== 'cancelled' && (
-                      <button
-                        onClick={(e) => handleCancelRepair(repair.trackingId, e)}
-                        title="Cancel repair"
-                        className="flex h-7 w-7 items-center justify-center rounded-lg text-orange-500 transition hover:bg-orange-100 hover:text-orange-700 dark:hover:bg-orange-900/30"
-                      >
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                        </svg>
-                      </button>
-                    )}
-                    <button
-                      onClick={(e) => handleDeleteRepair(repair.trackingId, e)}
-                      title="Delete repair"
-                      className="flex h-7 w-7 items-center justify-center rounded-lg text-red-400 transition hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30"
-                    >
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="rounded-2xl border border-dashed border-gray-300 px-4 py-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-500">
-                No repair jobs are currently being tracked. Pending jobs will show up here automatically.
-              </p>
             )}
           </div>
+          <button
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="hidden md:flex text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition-colors"
+            title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+          >
+            <i className={`fas ${isSidebarOpen ? 'fa-chevron-left' : 'fa-bars'}`}></i>
+          </button>
         </div>
 
-        <div className="space-y-4 rounded-3xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6 dark:border-gray-800 dark:bg-gray-900">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 sm:text-lg">Update repair</h3>
-            {selectedRepair ? (
-              <button
-                onClick={() => setSelectedRepair(null)}
-                className="text-xs font-semibold uppercase tracking-[0.3em] text-red-500 transition hover:text-red-400"
-              >
-                Clear
-              </button>
-            ) : null}
+        {/* Search Bar */}
+        {isSidebarOpen && (
+          <div className="p-3 border-b border-slate-800">
+            <div className="relative">
+              <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+              <input
+                type="text"
+                placeholder="Search panels..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 text-slate-200 placeholder-slate-500 rounded-lg pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:border-emerald-500"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Sidebar Navigation Items */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-6 custom-scrollbar">
+          {/* Overview Section */}
+          <div>
+            {isSidebarOpen && (
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-3 mb-2">
+                Overview & Control
+              </h3>
+            )}
+            <div className="space-y-1">
+              {filteredPanels
+                .filter(p => p.category === 'overview')
+                .map(panel => (
+                  <button
+                    key={panel.id}
+                    onClick={() => handleTabChange(panel.id)}
+                    className={`w-full flex items-center ${
+                      isSidebarOpen ? 'justify-start px-3' : 'justify-center px-0'
+                    } py-2.5 rounded-xl transition-all ${
+                      activeTab === panel.id
+                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold'
+                        : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                    }`}
+                  >
+                    <i className={`${panel.icon} ${panel.color} ${isSidebarOpen ? 'mr-3' : ''} text-base`}></i>
+                    {isSidebarOpen && <span className="text-xs truncate">{panel.name}</span>}
+                  </button>
+                ))}
+            </div>
           </div>
 
-          {selectedRepair ? (
-            <div className="space-y-4 text-sm">
-              <div className="rounded-2xl bg-gray-50 px-4 py-3 text-xs text-gray-600 shadow-inner dark:bg-gray-800/70 dark:text-gray-400">
-                <p className="font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-500">Editing</p>
-                <p className="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:text-base">{selectedRepair.trackingId}</p>
-                <p className="mt-1 text-sm sm:text-xs">{selectedRepair.issueSummary ?? 'No additional notes recorded.'}</p>
-              </div>
-
-              <label className="space-y-2">
-                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Status</span>
-                <select
-                  value={updateForm.status}
-                  onChange={(event) => setUpdateForm((prev) => ({ ...prev, status: event.target.value }))}
-                  className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
-                >
-                  <option value="">Select status</option>
-                  {['received', 'submitted', 'diagnosed', 'in-progress', 'completed', 'ready-for-pickup', 'collected', 'cancelled'].map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="space-y-2">
-                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Internal notes</span>
-                <textarea
-                  rows={3}
-                  value={updateForm.notes}
-                  onChange={(event) => setUpdateForm((prev) => ({ ...prev, notes: event.target.value }))}
-                  className="w-full resize-y rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
-                  placeholder="Share technician notes or next steps"
-                />
-              </label>
-
-              {/* ===== MULTI-REPAIR COST ESTIMATOR ===== */}
-              <div className="space-y-3 rounded-2xl border-2 border-emerald-200 bg-emerald-50/50 p-4 dark:border-emerald-900/50 dark:bg-emerald-950/20">
-                <div className="flex items-center gap-2 text-sm font-semibold text-emerald-900 dark:text-emerald-300">
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M12 7h.01M12 14h.01M15 14h.01M9 14h.01M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
-                  </svg>
-                  Repair Cost Estimator
-                </div>
-                <p className="text-xs text-emerald-700 dark:text-emerald-400">Add each repair service and its cost. The total will be calculated automatically.</p>
-
-                {/* Existing repair items */}
-                {repairItems.length > 0 && (
-                  <div className="space-y-2">
-                    {repairItems.map((item, index) => (
-                      <div key={index} className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-3 py-2 dark:border-emerald-800 dark:bg-gray-800">
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-gray-800 dark:text-gray-100">{item.description}</p>
-                        </div>
-                        <span className="shrink-0 text-sm font-bold text-emerald-700 dark:text-emerald-400">Le {parseFloat(item.cost || '0').toLocaleString()}</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const updated = repairItems.filter((_, i) => i !== index);
-                            setRepairItems(updated);
-                            if (updated.length === 0) setUpdateForm(prev => ({ ...prev, totalCost: '' }));
-                          }}
-                          className="shrink-0 rounded-full p-1 text-gray-400 hover:bg-red-100 hover:text-red-500 transition dark:hover:bg-red-900/40"
-                        >
-                          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Add new repair item */}
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="e.g. Screen Replacement"
-                    value={newRepairItem.description}
-                    onChange={e => setNewRepairItem(prev => ({ ...prev, description: e.target.value }))}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && newRepairItem.description.trim() && newRepairItem.cost) {
-                        e.preventDefault();
-                        setRepairItems(prev => [...prev, newRepairItem]);
-                        setNewRepairItem({ description: '', cost: '' });
-                      }
-                    }}
-                    className="min-w-0 flex-1 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-emerald-800 dark:bg-gray-800 dark:text-gray-100"
-                  />
-                  <input
-                    type="number"
-                    min="0"
-                    placeholder="Cost (Le)"
-                    value={newRepairItem.cost}
-                    onChange={e => setNewRepairItem(prev => ({ ...prev, cost: e.target.value }))}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && newRepairItem.description.trim() && newRepairItem.cost) {
-                        e.preventDefault();
-                        setRepairItems(prev => [...prev, newRepairItem]);
-                        setNewRepairItem({ description: '', cost: '' });
-                      }
-                    }}
-                    className="w-28 shrink-0 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-emerald-800 dark:bg-gray-800 dark:text-gray-100"
-                  />
+          {/* E-Commerce Section */}
+          <div>
+            {isSidebarOpen && (
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-3 mb-2">
+                Commerce & Inventory
+              </h3>
+            )}
+            <div className="space-y-1">
+              {filteredPanels
+                .filter(p => p.category === 'ecommerce')
+                .map(panel => (
                   <button
-                    type="button"
-                    disabled={!newRepairItem.description.trim() || !newRepairItem.cost}
-                    onClick={() => {
-                      setRepairItems(prev => [...prev, newRepairItem]);
-                      setNewRepairItem({ description: '', cost: '' });
-                    }}
-                    className="shrink-0 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-40 transition"
+                    key={panel.id}
+                    onClick={() => handleTabChange(panel.id)}
+                    className={`w-full flex items-center ${
+                      isSidebarOpen ? 'justify-start px-3' : 'justify-center px-0'
+                    } py-2.5 rounded-xl transition-all ${
+                      activeTab === panel.id
+                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold'
+                        : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                    }`}
                   >
-                    + Add
+                    <i className={`${panel.icon} ${panel.color} ${isSidebarOpen ? 'mr-3' : ''} text-base`}></i>
+                    {isSidebarOpen && <span className="text-xs truncate">{panel.name}</span>}
                   </button>
-                </div>
+                ))}
+            </div>
+          </div>
 
-                {/* Total display */}
-                <div className="flex items-center justify-between rounded-xl border-2 border-emerald-300 bg-emerald-100 px-4 py-3 dark:border-emerald-700 dark:bg-emerald-900/40">
-                  <span className="text-sm font-bold text-emerald-900 dark:text-emerald-200">Total Estimate</span>
-                  <span className="text-lg font-black text-emerald-700 dark:text-emerald-400">
-                    Le {repairItems.reduce((sum, item) => sum + (parseFloat(item.cost) || 0), 0).toLocaleString()}
-                  </span>
-                </div>
+          {/* Services Section */}
+          <div>
+            {isSidebarOpen && (
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-3 mb-2">
+                Services & Community
+              </h3>
+            )}
+            <div className="space-y-1">
+              {filteredPanels
+                .filter(p => p.category === 'services')
+                .map(panel => (
+                  <button
+                    key={panel.id}
+                    onClick={() => handleTabChange(panel.id)}
+                    className={`w-full flex items-center ${
+                      isSidebarOpen ? 'justify-start px-3' : 'justify-center px-0'
+                    } py-2.5 rounded-xl transition-all ${
+                      activeTab === panel.id
+                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold'
+                        : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                    }`}
+                  >
+                    <i className={`${panel.icon} ${panel.color} ${isSidebarOpen ? 'mr-3' : ''} text-base`}></i>
+                    {isSidebarOpen && <span className="text-xs truncate">{panel.name}</span>}
+                  </button>
+                ))}
+            </div>
+          </div>
 
-                {/* Fallback manual input if no items added */}
-                {repairItems.length === 0 && (
-                  <div className="space-y-1">
-                    <span className="text-xs text-gray-500">Or enter total directly (no line items):</span>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={updateForm.totalCost}
-                      onChange={(event) => setUpdateForm((prev) => ({ ...prev, totalCost: event.target.value }))}
-                      placeholder="0"
-                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
-                    />
+          {/* Marketing Section */}
+          <div>
+            {isSidebarOpen && (
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-3 mb-2">
+                Marketing & Growth
+              </h3>
+            )}
+            <div className="space-y-1">
+              {filteredPanels
+                .filter(p => p.category === 'marketing')
+                .map(panel => (
+                  <button
+                    key={panel.id}
+                    onClick={() => handleTabChange(panel.id)}
+                    className={`w-full flex items-center ${
+                      isSidebarOpen ? 'justify-start px-3' : 'justify-center px-0'
+                    } py-2.5 rounded-xl transition-all ${
+                      activeTab === panel.id
+                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold'
+                        : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                    }`}
+                  >
+                    <i className={`${panel.icon} ${panel.color} ${isSidebarOpen ? 'mr-3' : ''} text-base`}></i>
+                    {isSidebarOpen && <span className="text-xs truncate">{panel.name}</span>}
+                  </button>
+                ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Sidebar Footer Controls */}
+        <div className="p-3 border-t border-slate-800 space-y-2">
+          <Link
+            href="/"
+            target="_blank"
+            className={`w-full flex items-center ${
+              isSidebarOpen ? 'justify-start px-3' : 'justify-center px-0'
+            } py-2 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-slate-800/50 text-xs transition-colors`}
+          >
+            <i className={`fas fa-external-link-alt ${isSidebarOpen ? 'mr-2' : ''}`}></i>
+            {isSidebarOpen && <span>View Public Site</span>}
+          </Link>
+          <button
+            onClick={handleLogout}
+            className={`w-full flex items-center ${
+              isSidebarOpen ? 'justify-start px-3' : 'justify-center px-0'
+            } py-2 rounded-lg text-rose-400 hover:bg-rose-500/10 text-xs font-medium transition-colors`}
+          >
+            <i className={`fas fa-right-from-bracket ${isSidebarOpen ? 'mr-2' : ''}`}></i>
+            {isSidebarOpen && <span>Logout Session</span>}
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Workspace Pane */}
+      <main className="flex-1 flex flex-col min-w-0 bg-slate-950 overflow-hidden">
+        {/* Workspace Top Bar */}
+        <header className="h-16 border-b border-slate-800 bg-slate-900/80 backdrop-blur-md px-4 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3 truncate">
+            <i className={`${activePanelObj.icon} ${activePanelObj.color} text-xl`}></i>
+            <div>
+              <h1 className="font-bold text-white text-base leading-tight truncate">
+                {activePanelObj.name}
+              </h1>
+              <p className="text-xs text-slate-400 truncate">{activePanelObj.description}</p>
+            </div>
+          </div>
+
+          {/* Header Action Buttons */}
+          <div className="flex items-center gap-2">
+            {activeTab !== 'dashboard' && (
+              <button
+                onClick={() => setIframeKey(prev => prev + 1)}
+                className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs flex items-center gap-1.5 transition-colors"
+                title="Reload Panel Workspace"
+              >
+                <i className="fas fa-arrows-rotate"></i>
+                <span className="hidden sm:inline">Refresh</span>
+              </button>
+            )}
+            <a
+              href={activePanelObj.url}
+              target="_blank"
+              rel="noreferrer"
+              className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs flex items-center gap-1.5 transition-colors"
+              title="Pop out into full tab"
+            >
+              <i className="fas fa-arrow-up-right-from-square"></i>
+              <span className="hidden sm:inline">Pop Out</span>
+            </a>
+            <button
+              onClick={handleLogout}
+              className="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg text-xs flex items-center gap-1.5 transition-colors"
+            >
+              <i className="fas fa-lock"></i>
+              <span className="hidden sm:inline">Logout</span>
+            </button>
+          </div>
+        </header>
+
+        {/* Workspace Content Area */}
+        <div className="flex-1 relative bg-slate-950 overflow-y-auto">
+          {activeTab === 'dashboard' ? (
+            /* Native Overview & Analytics Panel */
+            <div className="p-6 space-y-6 max-w-7xl mx-auto">
+              {/* Analytics Snapshot Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400">Total Visitors</span>
+                    <i className="fas fa-users text-cyan-400 text-lg"></i>
                   </div>
-                )}
-              </div>
-              {/* ===== END COST ESTIMATOR ===== */}
-
-              <label className="space-y-2">
-                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Payment Status</span>
-                <select
-                  value={updateForm.paymentStatus}
-                  onChange={(event) => setUpdateForm((prev) => ({ ...prev, paymentStatus: event.target.value }))}
-                  className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
-                >
-                  <option value="pending">Pending</option>
-                  <option value="paid">Paid</option>
-                </select>
-              </label>
-
-              {/* Diagnostic Information Section */}
-              <div className="space-y-4 rounded-2xl border-2 border-blue-200 bg-blue-50/50 p-4 dark:border-blue-900/50 dark:bg-blue-950/20">
-                <div className="flex items-center gap-2 text-sm font-semibold text-blue-900 dark:text-blue-300">
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  Diagnostic Report (Customer View)
+                  <div className="text-2xl font-bold text-white">{analytics.totalVisitors || 0}</div>
+                  <p className="text-xs text-slate-500 mt-1">Unique: {analytics.uniqueVisitors || 0}</p>
                 </div>
 
-                <label className="space-y-2">
-                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Diagnostic notes for customer</span>
-                  <textarea
-                    rows={4}
-                    value={updateForm.diagnosticNotes}
-                    onChange={(event) => setUpdateForm((prev) => ({ ...prev, diagnosticNotes: event.target.value }))}
-                    className="w-full resize-y rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
-                    placeholder="e.g., Device inspected. Found cracked screen and damaged battery. Screen replacement in progress..."
-                  />
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    This will be visible to the customer when they track their repair
-                  </p>
-                </label>
+                <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400">Total Repairs & Bookings</span>
+                    <i className="fas fa-tools text-emerald-400 text-lg"></i>
+                  </div>
+                  <div className="text-2xl font-bold text-white">{repairs.totalRepairs || 0}</div>
+                  <p className="text-xs text-emerald-400 mt-1">Revenue: ${repairs.totalRevenue || 0}</p>
+                </div>
 
-                <div className="space-y-2">
-                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Diagnostic images</span>
-                  
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleImageUpload}
-                    className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm file:mr-3 file:rounded-lg file:border-0 file:bg-blue-100 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-blue-700 hover:file:bg-blue-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:file:bg-blue-900 dark:file:text-blue-300"
-                  />
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Add photos showing diagnosis, damage, or repair progress (max 5 images, 5MB each)
-                  </p>
+                <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400">Form Submissions</span>
+                    <i className="fas fa-paper-plane text-yellow-400 text-lg"></i>
+                  </div>
+                  <div className="text-2xl font-bold text-white">{forms.totalSubmissions || 0}</div>
+                  <p className="text-xs text-slate-500 mt-1">Conversion: {forms.overallConversionRate || 0}%</p>
+                </div>
 
-                  {updateForm.diagnosticImages.length > 0 && (
-                    <div className="grid grid-cols-3 gap-2">
-                      {updateForm.diagnosticImages.map((image, index) => (
-                        <div key={index} className="group relative">
-                          <img
-                            src={image}
-                            alt={`Diagnostic ${index + 1}`}
-                            className="h-24 w-full rounded-lg object-cover"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-white opacity-0 transition hover:bg-red-700 group-hover:opacity-100"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400">Bounce Rate</span>
+                    <i className="fas fa-chart-line text-purple-400 text-lg"></i>
+                  </div>
+                  <div className="text-2xl font-bold text-white">{analytics.bounceRate || 0}%</div>
+                  <p className="text-xs text-slate-500 mt-1">Avg Session: {analytics.avgSessionDuration || 0}s</p>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={updateRepair}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-600 dark:hover:bg-red-500"
-                >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Apply update
-                </button>
-
-                <div className="flex gap-2">
-                  {selectedRepair.status !== 'cancelled' && (
+              {/* Quick Navigation Panels Grid */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <i className="fas fa-grid-2 text-emerald-400"></i> All Operational Panels
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {ADMIN_PANELS.filter(p => p.id !== 'dashboard').map(panel => (
                     <button
-                      onClick={() => handleCancelRepair(selectedRepair.trackingId)}
-                      className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-orange-300 bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-700 transition hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 dark:border-orange-700 dark:bg-orange-900/20 dark:text-orange-300 dark:hover:bg-orange-900/40"
+                      key={panel.id}
+                      onClick={() => handleTabChange(panel.id)}
+                      className="p-4 bg-slate-950 hover:bg-slate-800/80 border border-slate-800 hover:border-slate-700 rounded-xl text-left transition-all hover:scale-[1.02] group"
                     >
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                      </svg>
-                      Cancel repair
+                      <i className={`${panel.icon} ${panel.color} text-xl mb-2 block group-hover:scale-110 transition-transform`}></i>
+                      <h4 className="font-semibold text-white text-xs truncate">{panel.name}</h4>
+                      <p className="text-slate-400 text-[11px] mt-0.5 truncate">{panel.description}</p>
                     </button>
-                  )}
+                  ))}
+                </div>
+              </div>
+
+              {/* Recent Form Submissions Table */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                    Recent Customer Enquiries
+                  </h3>
                   <button
-                    onClick={() => handleDeleteRepair(selectedRepair.trackingId)}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 dark:border-red-700 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/40"
+                    onClick={loadData}
+                    className="text-xs text-emerald-400 hover:underline flex items-center gap-1"
                   >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    Delete repair
+                    <i className="fas fa-sync-alt"></i> Refresh Data
                   </button>
                 </div>
+
+                {forms.recentSubmissions && forms.recentSubmissions.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs text-slate-300">
+                      <thead className="bg-slate-950 text-slate-400 font-semibold uppercase text-[10px]">
+                        <tr>
+                          <th className="p-3">Type</th>
+                          <th className="p-3">Details</th>
+                          <th className="p-3">Submitted</th>
+                          <th className="p-3 text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800">
+                        {forms.recentSubmissions.map((sub, idx) => (
+                          <tr key={idx} className="hover:bg-slate-800/50">
+                            <td className="p-3 font-semibold text-emerald-400 capitalize">{sub.formType}</td>
+                            <td className="p-3 max-w-md truncate">
+                              {sub.fields ? JSON.stringify(sub.fields) : '—'}
+                            </td>
+                            <td className="p-3 text-slate-400">
+                              {sub.timestamp ? new Date(sub.timestamp).toLocaleString() : '—'}
+                            </td>
+                            <td className="p-3 text-right">
+                              <button
+                                onClick={() =>
+                                  sub.formType && sub.timestamp && handleDeleteSubmission(sub.formType, sub.timestamp)
+                                }
+                                disabled={deleting}
+                                className="text-rose-400 hover:text-rose-300 p-1"
+                                title="Delete Submission"
+                              >
+                                <i className="fas fa-trash"></i>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-500 py-4 text-center">No recent form submissions found.</p>
+                )}
               </div>
             </div>
           ) : (
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Select a repair from the queue to review its details and apply updates. Customers are notified automatically when changes are saved.
-            </p>
+            /* Embedded High-Performance Workspace Frame for Other Panels */
+            <div className="w-full h-full relative min-h-[calc(100vh-64px)] bg-slate-950">
+              {iframeLoading && (
+                <div className="absolute inset-0 z-20 bg-slate-950/90 flex flex-col items-center justify-center p-6 text-center">
+                  <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-400 rounded-full animate-spin mb-4"></div>
+                  <p className="text-sm font-semibold text-white">Loading {activePanelObj.name} Workspace...</p>
+                  <p className="text-xs text-slate-400 mt-1">Connecting to {activePanelObj.url}</p>
+                </div>
+              )}
+              <iframe
+                key={`${activeTab}-${iframeKey}`}
+                src={activePanelObj.url}
+                onLoad={() => setIframeLoading(false)}
+                className="w-full h-full min-h-[calc(100vh-64px)] border-0"
+                title={activePanelObj.name}
+              />
+            </div>
           )}
         </div>
-      </div>
-    </div>
-  );
-}
-
-function OverviewStat({ label, value, accent }: { label: string; value: string | number; accent: string }) {
-  return (
-    <div className="rounded-2xl border border-gray-200 bg-white/80 px-4 py-3 shadow-sm backdrop-blur dark:border-gray-800 dark:bg-gray-900/80">
-      <dt className="text-[11px] font-medium uppercase tracking-[0.4em] text-gray-500 dark:text-gray-500 sm:text-xs">{label}</dt>
-      <dd className={`mt-2 text-xl font-semibold sm:text-2xl ${accent}`}>{value}</dd>
-    </div>
-  );
-}
-
-function SummaryCard({
-  title,
-  value,
-  helper,
-  iconBg,
-}: {
-  title: string;
-  value: string | number;
-  helper: string;
-  iconBg: string;
-}) {
-  return (
-    <div className="rounded-3xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md sm:p-5 dark:border-gray-800 dark:bg-gray-900">
-      <div className={`mb-4 inline-flex h-9 w-9 items-center justify-center rounded-2xl sm:h-10 sm:w-10 ${iconBg}`}>
-        <span className="text-lg">★</span>
-      </div>
-      <p className="text-[11px] uppercase tracking-[0.3em] text-gray-500 dark:text-gray-500 sm:text-xs">{helper}</p>
-      <h3 className="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100 sm:text-lg">{title}</h3>
-      <p className="mt-2 text-xl font-semibold text-gray-900 dark:text-white sm:text-2xl">{value}</p>
-    </div>
-  );
-}
-
-function SectionHeader({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="space-y-2">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-red-500/80 dark:text-red-400/80 sm:text-xs">Section</p>
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-50 sm:text-2xl">{title}</h2>
-      <p className="text-sm text-gray-600 dark:text-gray-400">{description}</p>
-    </div>
-  );
-}
-
-function MetricCard({ label, value, trendLabel }: { label: string; value: string | number; trendLabel: string }) {
-  return (
-    <div className="rounded-3xl border border-gray-200 bg-white p-4 shadow-sm transition hover:border-red-200 hover:shadow-md sm:p-5 dark:border-gray-800 dark:bg-gray-900">
-      <p className="text-[11px] uppercase tracking-[0.3em] text-gray-500 dark:text-gray-500 sm:text-xs">{trendLabel}</p>
-      <h3 className="mt-2 text-sm font-semibold text-gray-600 dark:text-gray-300">{label}</h3>
-      <p className="mt-4 text-2xl font-semibold text-gray-900 dark:text-white sm:text-3xl">{value}</p>
-    </div>
-  );
-}
-
-function StatPill({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 shadow-sm dark:border-gray-800 dark:bg-gray-800/60 dark:text-gray-300">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-500 sm:text-xs">{label}</p>
-      <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100 sm:text-xl">{value}</p>
+      </main>
     </div>
   );
 }
