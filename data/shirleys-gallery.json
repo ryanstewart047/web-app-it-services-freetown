@@ -1,22 +1,39 @@
 {
   "items": [
     {
+      "id": "c121e272-5568-4c4b-8cb6-05dbbd4925fa",
+      "title": "Recipies that can be made our bakery",
+      "caption": "All combined recipes",
+      "type": "image",
+      "url": "https://raw.githubusercontent.com/ryanstewart047/web-app-it-services-freetown/main/public/shirleys-gallery/1784976432864-image_94458869.png",
+      "source": "upload",
+      "active": true,
+      "order": 0,
+      "fileName": "1784976432864-image_94458869.png",
+      "createdAt": "2026-07-25T10:47:15.184Z",
+      "updatedAt": "2026-07-25T10:47:15.184Z",
+      "isAvailableProduct": false,
+      "price": "",
+      "orderButtonText": "",
+      "orderUrl": ""
+    },
+    {
       "id": "6e3589c9-0149-4678-967f-114bb4426ba4",
       "title": "Recipies that can be made our bakery",
       "caption": "All combined recipes",
       "type": "image",
       "url": "https://raw.githubusercontent.com/ryanstewart047/web-app-it-services-freetown/main/public/shirleys-gallery/1784979432980-image_94458869.png",
-      "source": "upload",
+      "source": "url",
       "active": true,
       "order": 1,
       "isAvailableProduct": true,
-      "price": "Le 50",
+      "price": "Le 100",
       "orderButtonText": "Order This Item",
       "orderUrl": "",
       "fileName": "1784979432980-image_94458869.png",
       "createdAt": "2026-07-25T11:37:14.295Z",
-      "updatedAt": "2026-07-25T11:37:14.295Z"
+      "updatedAt": "2026-07-25T11:55:20.998Z"
     }
   ],
-  "updatedAt": "2026-07-25T11:53:42.022Z"
+  "updatedAt": "2026-07-25T11:55:20.998Z"
 }
