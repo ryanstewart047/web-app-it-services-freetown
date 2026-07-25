@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react'
 import {
   ChevronLeft,
   ChevronRight,
+  Check,
   MessageCircle,
+  Share2,
   ShoppingBag,
   Sparkles,
   X,
@@ -72,6 +74,62 @@ function GalleryMedia({ item, autoPlay = false }: { item: ShirleyGalleryItem; au
   )
 }
 
+function ShareButton({
+  item,
+  className = '',
+  iconSize = 'h-4 w-4',
+  label = 'Share',
+}: {
+  item: ShirleyGalleryItem
+  className?: string
+  iconSize?: string
+  label?: string
+}) {
+  const [copied, setCopied] = useState(false)
+
+  async function handleShare(e: React.MouseEvent) {
+    e.stopPropagation()
+
+    const shareUrl = typeof window !== 'undefined'
+      ? `${window.location.origin}/shirleys${item.id ? `#item-${item.id}` : '#gallery'}`
+      : 'https://example.com/shirleys'
+
+    const shareData = {
+      title: item.title,
+      text: item.caption
+        ? `${item.title} — ${item.caption}${item.price ? ` · ${item.price}` : ''}`
+        : `${item.title}${item.price ? ` · ${item.price}` : ''} — Shirley's Stitches & Sugar`,
+      url: shareUrl,
+    }
+
+    try {
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData)
+      } else {
+        await navigator.clipboard.writeText(
+          `${shareData.title}\n${shareData.text}\n${shareData.url}`
+        )
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      }
+    } catch {
+      // User cancelled or browser blocked — silently ignore
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleShare}
+      title="Share this item"
+      className={className}
+    >
+      {copied ? <Check className={iconSize} /> : <Share2 className={iconSize} />}
+      {label && <span>{copied ? 'Copied!' : label}</span>}
+    </button>
+  )
+}
+
 export function ShirleyGallerySection({ items }: { items: ShirleyGalleryItem[] }) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
 
@@ -108,7 +166,7 @@ export function ShirleyGallerySection({ items }: { items: ShirleyGalleryItem[] }
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-3xl">
             <p className="text-sm font-black uppercase tracking-[0.18em] text-[#8a2746]">
-              Shirley's gallery & available creations
+              Shirley's gallery &amp; available creations
             </p>
             <h2 className="mt-3 text-3xl font-black text-[#2f1f2a] sm:text-4xl">
               A closer look at the treats, stitches, and finished details.
@@ -187,14 +245,14 @@ export function ShirleyGallerySection({ items }: { items: ShirleyGalleryItem[] }
                     </div>
                   </div>
 
-                  {/* Order Button / Footer */}
-                  <div className="p-5 pt-0">
+                  {/* Footer: Order + Share */}
+                  <div className="p-5 pt-0 flex items-center gap-2">
                     {isProduct ? (
                       <a
                         href={orderUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#8a2746] px-4 py-2.5 text-xs font-black text-white transition hover:bg-[#6f1f38] shadow-sm"
+                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-[#8a2746] px-4 py-2.5 text-xs font-black text-white transition hover:bg-[#6f1f38] shadow-sm"
                       >
                         <MessageCircle className="h-4 w-4" />
                         {item.orderButtonText || 'Order This Item'}
@@ -203,12 +261,20 @@ export function ShirleyGallerySection({ items }: { items: ShirleyGalleryItem[] }
                       <button
                         type="button"
                         onClick={() => setSelectedIndex(index)}
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#8a2746]/20 bg-[#fffdf8] px-4 py-2 text-xs font-black text-[#8a2746] transition hover:bg-[#8a2746] hover:text-white"
+                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-[#8a2746]/20 bg-[#fffdf8] px-4 py-2 text-xs font-black text-[#8a2746] transition hover:bg-[#8a2746] hover:text-white"
                       >
                         <ZoomIn className="h-3.5 w-3.5" />
                         View Fullscreen
                       </button>
                     )}
+
+                    {/* Share button — always visible on product cards */}
+                    <ShareButton
+                      item={item}
+                      label=""
+                      iconSize="h-4 w-4"
+                      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#8a2746]/20 bg-[#fffdf8] text-[#8a2746] transition hover:bg-[#8a2746] hover:text-white"
+                    />
                   </div>
                 </article>
               )
@@ -281,6 +347,14 @@ export function ShirleyGallerySection({ items }: { items: ShirleyGalleryItem[] }
               </div>
 
               <div className="flex shrink-0 items-center gap-3">
+                {/* Share button in lightbox */}
+                <ShareButton
+                  item={activeItem}
+                  label="Share"
+                  iconSize="h-4 w-4"
+                  className="inline-flex items-center gap-2 rounded-full border border-[#8a2746]/30 px-5 py-3 text-sm font-black text-[#8a2746] transition hover:bg-[#8a2746] hover:text-white"
+                />
+
                 <a
                   href={getWhatsAppOrderUrl(activeItem)}
                   target="_blank"
