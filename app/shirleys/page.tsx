@@ -5,7 +5,9 @@ import {
   CakeSlice,
   ChefHat,
   Cookie,
+  Facebook,
   Heart,
+  Instagram,
   MapPin,
   MessageCircle,
   Phone,
@@ -13,12 +15,14 @@ import {
   Shirt,
   Sparkles,
   Star,
+  Twitter,
   Utensils,
+  Youtube,
 } from 'lucide-react'
 
 const brandName = "Shirley's Stiches & Sweet"
 const canonicalUrl = 'https://www.itservicesfreetown.com/shirleys'
-const whatsappNumber = '23233399391'
+const whatsappNumber = '23299781649'
 const whatsappMessage = encodeURIComponent(
   `Hi Shirley, I found ${brandName} on itservicesfreetown.com and I want to ask about an order.`
 )
@@ -38,7 +42,7 @@ export const metadata: Metadata = {
     'fashion designer Freetown',
     'tailoring in Freetown',
     'African fashion Sierra Leone',
-    'birthday cakes Freetown',
+    'special day cakes Freetown',
     'small chops Freetown',
     'custom outfits Freetown'
   ],
@@ -85,13 +89,13 @@ export const metadata: Metadata = {
 const services = [
   {
     title: 'Bakery & pastries',
-    text: 'Cupcakes, cookies, doughnuts, meat pies, small chops, and soft pastries for home treats, offices, birthdays, and weekend orders.',
+    text: 'Cupcakes, cookies, doughnuts, meat pies, small chops, and soft pastries for home treats, offices, special days, and weekend orders.',
     icon: ChefHat,
     color: 'bg-[#8a2746] text-white'
   },
   {
     title: 'Custom celebration treats',
-    text: 'Birthday boxes, party trays, dessert tables, simple cakes, and custom sweet packages made to match your event mood.',
+    text: 'Special treat boxes, party trays, dessert tables, simple cakes, and custom sweet packages made to match your event mood.',
     icon: CakeSlice,
     color: 'bg-[#f7c948] text-[#2f1f2a]'
   },
@@ -104,7 +108,7 @@ const services = [
 ]
 
 const bundles = [
-  'Birthday treat box with a matching outfit',
+  'Special treat box with a matching outfit',
   'Bridal shower pastries and simple custom styles',
   'Kids party pastries with coordinated dresses or shirts',
   'Office snack tray plus branded apron or fabric detail',
@@ -116,8 +120,15 @@ const keywords = [
   'Pastries and small chops',
   'Fashion designer in Freetown',
   'Dress alterations',
-  'Birthday treat boxes',
+  'Special treat boxes',
   'African wear and matching outfits'
+]
+
+const socialLinks = [
+  { label: 'Facebook', href: '#', icon: Facebook },
+  { label: 'Instagram', href: '#', icon: Instagram },
+  { label: 'X', href: '#', icon: Twitter },
+  { label: 'YouTube', href: '#', icon: Youtube }
 ]
 
 const structuredData = {
@@ -133,7 +144,7 @@ const structuredData = {
   image: 'https://www.itservicesfreetown.com/shirleys/opengraph-image',
   description:
     "Freetown bakery, pastries, custom treats, fashion, tailoring, and event bundle brand.",
-  telephone: '+23233399391',
+  telephone: '+23299781649',
   address: {
     '@type': 'PostalAddress',
     addressLocality: 'Freetown',
@@ -164,6 +175,32 @@ const structuredData = {
   }
 }
 
+function SocialLinks({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
+  const classes =
+    tone === 'dark'
+      ? 'border-white/15 bg-white/10 text-white hover:bg-white hover:text-[#8a2746]'
+      : 'border-[#8a2746]/15 bg-white text-[#8a2746] hover:bg-[#8a2746] hover:text-white'
+
+  return (
+    <div className="flex items-center gap-2" aria-label={`${brandName} social media links`}>
+      {socialLinks.map((social) => {
+        const Icon = social.icon
+        return (
+          <a
+            key={social.label}
+            href={social.href}
+            aria-label={`${social.label} placeholder link`}
+            title={`${social.label} link coming soon`}
+            className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition ${classes}`}
+          >
+            <Icon className="h-4 w-4" />
+          </a>
+        )
+      })}
+    </div>
+  )
+}
+
 function ShirleyHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-[#8a2746]/15 bg-[#fffdf8]/95 backdrop-blur">
@@ -184,15 +221,20 @@ function ShirleyHeader() {
           <a href="#bundles" className="transition hover:text-[#8a2746]">Bundles</a>
           <a href="#order" className="transition hover:text-[#8a2746]">Order</a>
         </nav>
-        <a
-          href={`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`}
-          className="inline-flex items-center gap-2 rounded-full bg-[#8a2746] px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-[#6f1f38]"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <MessageCircle className="h-4 w-4" />
-          Order
-        </a>
+        <div className="flex items-center gap-2">
+          <div className="hidden sm:block">
+            <SocialLinks />
+          </div>
+          <a
+            href={`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`}
+            className="inline-flex items-center gap-2 rounded-full bg-[#8a2746] px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-[#6f1f38]"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <MessageCircle className="h-4 w-4" />
+            Order
+          </a>
+        </div>
       </div>
     </header>
   )
@@ -260,7 +302,7 @@ export default function ShirleysPage() {
                   Sweet treats and stitch-made style for joyful moments.
                 </h1>
                 <p className="mt-6 max-w-2xl text-lg leading-8 text-[#6d4c57]">
-                  {brandName} creates soft pastries, custom celebration treats, and made-to-measure fashion pieces for birthdays, family events, church outings, office snacks, and everyday confidence.
+                  {brandName} creates soft pastries, custom celebration treats, and made-to-measure fashion pieces for special days, family events, church outings, office snacks, and everyday confidence.
                 </p>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                   <a
@@ -334,7 +376,7 @@ export default function ShirleysPage() {
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                {['Cupcakes and cookies', 'Doughnuts and pastries', 'Meat pies and small chops', 'Birthday treat boxes'].map((item) => (
+                {['Cupcakes and cookies', 'Doughnuts and pastries', 'Meat pies and small chops', 'Special treat boxes'].map((item) => (
                   <div key={item} className="rounded-2xl border border-[#f7c948]/40 bg-white p-5">
                     <Utensils className="mb-3 h-5 w-5 text-[#8a2746]" />
                     <p className="font-black text-[#2f1f2a]">{item}</p>
@@ -447,9 +489,12 @@ export default function ShirleysPage() {
                 <p className="text-sm text-white/65">Bakery, pastries and fashion in Freetown.</p>
               </div>
             </div>
-            <p className="text-sm text-white/65">
-              Hosted on itservicesfreetown.com as a family brand page.
-            </p>
+            <div className="flex flex-col gap-3 sm:items-end">
+              <SocialLinks tone="dark" />
+              <p className="text-sm text-white/65">
+                Hosted on itservicesfreetown.com as a family brand page.
+              </p>
+            </div>
           </div>
         </footer>
       </div>

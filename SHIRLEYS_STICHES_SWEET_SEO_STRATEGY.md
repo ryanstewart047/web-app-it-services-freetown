@@ -14,7 +14,7 @@ Primary local keywords:
 - pastries in Freetown
 - custom cakes Freetown
 - small chops Freetown
-- birthday treat boxes Freetown
+- special treat boxes Freetown
 - fashion designer Freetown
 - tailoring in Freetown
 - dress alterations Freetown
@@ -53,13 +53,13 @@ Brand keywords:
    - website URL: `https://www.itservicesfreetown.com/shirleys`
 
 3. Post weekly short updates:
-   - "Birthday treat box delivered in Freetown"
+   - "Special treat box delivered in Freetown"
    - "Custom dress and pastry bundle for a family event"
    - "Fresh small chops available this weekend"
    - "Dress alteration slots open this week"
 
 4. Ask happy customers for reviews using the brand name:
-   - "Shirley's Stiches & Sweet made my birthday pastries..."
+   - "Shirley's Stiches & Sweet made my special day pastries..."
    - "Shirley adjusted my dress..."
 
 5. Share the page link on social channels:
@@ -75,11 +75,11 @@ Add these future pages only when there are real photos and examples:
 - `/shirleys/custom-cakes-freetown`
 - `/shirleys/pastries-small-chops-freetown`
 - `/shirleys/fashion-tailoring-freetown`
-- `/shirleys/birthday-treat-boxes-freetown`
+- `/shirleys/special-treat-boxes-freetown`
 - `/shirleys/dress-alterations-freetown`
 
 Each page should show real work, order details, location terms, and customer questions. Avoid creating empty keyword pages.
 
 ## Contact Note
 
-The current page uses the existing site WhatsApp number: `+232 33 399 391`. Replace it with Shirley's direct business number when available.
+The current page uses Shirley's direct WhatsApp and call number: `+232 99 781 649`.
