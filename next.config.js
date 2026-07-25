@@ -131,7 +131,7 @@ const nextConfig = {
           // Security headers
           {
             key: 'X-Frame-Options',
-            value: 'DENY',
+            value: 'SAMEORIGIN',
           },
           {
             key: 'X-Content-Type-Options',
@@ -169,7 +169,7 @@ const nextConfig = {
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self' https://formspree.io",
-              "frame-ancestors 'none'",
+              "frame-ancestors 'self'",
               "upgrade-insecure-requests"
             ].join('; '),
           },

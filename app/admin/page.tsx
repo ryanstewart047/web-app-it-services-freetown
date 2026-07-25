@@ -33,6 +33,8 @@ interface RepairRecord {
   lastUpdated?: string;
   issueSummary?: string;
   totalCost?: number;
+  diagnosticNotes?: string;
+  diagnosticImages?: any[];
 }
 
 interface RepairSnapshot {
@@ -51,7 +53,6 @@ interface AdminPanelItem {
   icon: string;
   color: string;
   url: string;
-  badge?: string;
 }
 
 const ADMIN_PANELS: AdminPanelItem[] = [
@@ -60,7 +61,7 @@ const ADMIN_PANELS: AdminPanelItem[] = [
     id: 'dashboard',
     name: 'Dashboard',
     category: 'overview',
-    description: 'Overview & analytics',
+    description: 'Overview, Repairs & Analytics',
     icon: 'fas fa-tachometer-alt',
     color: 'text-cyan-400',
     url: '/admin',
@@ -299,7 +300,6 @@ export default function AdminPage() {
       const timeSinceLastActivity = Date.now() - lastActivity;
 
       if (timeSinceLastActivity >= IDLE_TIMEOUT) {
-        console.log('[Admin] Auto-logout due to inactivity');
         handleLogout();
         alert('Session expired due to inactivity. Please log in again.');
       } else if (timeSinceLastActivity >= IDLE_TIMEOUT - WARNING_TIME && !showIdleWarning) {
@@ -433,6 +433,14 @@ export default function AdminPage() {
     }
   };
 
+  const statusSummary = useMemo(() => {
+    if (!repairs.statusCounts) return [];
+    return Object.entries(repairs.statusCounts).map(([label, count]) => ({
+      label: label.replace(/-/g, ' '),
+      count: count as number,
+    }));
+  }, [repairs.statusCounts]);
+
   const filteredPanels = useMemo(() => {
     if (!searchQuery.trim()) return ADMIN_PANELS;
     const q = searchQuery.toLowerCase();
@@ -544,8 +552,8 @@ export default function AdminPage() {
             </div>
             {isSidebarOpen && (
               <div className="truncate">
-                <h2 className="font-bold text-white text-sm leading-tight truncate">Master Admin Console</h2>
-                <p className="text-xs text-emerald-400 truncate">Freetown IT Services</p>
+                <h2 className="font-bold text-white text-sm leading-tight truncate">Master Admin Hub</h2>
+                <p className="text-xs text-emerald-400 truncate">IT Services Freetown</p>
               </div>
             )}
           </div>
@@ -565,7 +573,7 @@ export default function AdminPage() {
               <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
               <input
                 type="text"
-                placeholder="Search panels..."
+                placeholder="Search 20 admin panels..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 text-slate-200 placeholder-slate-500 rounded-lg pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:border-emerald-500"
@@ -747,11 +755,11 @@ export default function AdminPage() {
               href={activePanelObj.url}
               target="_blank"
               rel="noreferrer"
-              className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs flex items-center gap-1.5 transition-colors"
-              title="Pop out into full tab"
+              className="p-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg text-xs flex items-center gap-1.5 transition-colors shadow-sm"
+              title="Open full page in new tab"
             >
               <i className="fas fa-arrow-up-right-from-square"></i>
-              <span className="hidden sm:inline">Pop Out</span>
+              <span>Open Direct</span>
             </a>
             <button
               onClick={handleLogout}
@@ -766,7 +774,7 @@ export default function AdminPage() {
         {/* Workspace Content Area */}
         <div className="flex-1 relative bg-slate-950 overflow-y-auto">
           {activeTab === 'dashboard' ? (
-            /* Native Overview & Analytics Panel */
+            /* Native Overview, Repairs & Analytics Panel */
             <div className="p-6 space-y-6 max-w-7xl mx-auto">
               {/* Analytics Snapshot Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -807,10 +815,32 @@ export default function AdminPage() {
                 </div>
               </div>
 
+              {/* Full Repair Operations Console */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                  <div>
+                    <h2 className="text-base font-bold text-white flex items-center gap-2">
+                      <i className="fas fa-wrench text-emerald-400"></i> Repair Operations & Tracking
+                    </h2>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Track active repair jobs, update job status, record costs, and diagnostic images.
+                    </p>
+                  </div>
+                  <button
+                    onClick={loadData}
+                    className="px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors self-start sm:self-auto"
+                  >
+                    <i className="fas fa-sync-alt"></i> Refresh Repairs
+                  </button>
+                </div>
+
+                <RepairManagement repairs={repairs} onUpdate={loadData} statusSummary={statusSummary} />
+              </div>
+
               {/* Quick Navigation Panels Grid */}
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <i className="fas fa-grid-2 text-emerald-400"></i> All Operational Panels
+                  <i className="fas fa-th text-emerald-400"></i> Quick Access Admin Modules
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                   {ADMIN_PANELS.filter(p => p.id !== 'dashboard').map(panel => (
@@ -885,13 +915,21 @@ export default function AdminPage() {
               </div>
             </div>
           ) : (
-            /* Embedded High-Performance Workspace Frame for Other Panels */
+            /* Embedded Workspace Frame for Selected Panel */
             <div className="w-full h-full relative min-h-[calc(100vh-64px)] bg-slate-950">
               {iframeLoading && (
                 <div className="absolute inset-0 z-20 bg-slate-950/90 flex flex-col items-center justify-center p-6 text-center">
                   <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-400 rounded-full animate-spin mb-4"></div>
                   <p className="text-sm font-semibold text-white">Loading {activePanelObj.name} Workspace...</p>
-                  <p className="text-xs text-slate-400 mt-1">Connecting to {activePanelObj.url}</p>
+                  <p className="text-xs text-slate-400 mt-1 mb-4">Connecting to {activePanelObj.url}</p>
+                  <a
+                    href={activePanelObj.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition-colors shadow"
+                  >
+                    Open Panel Directly in New Window
+                  </a>
                 </div>
               )}
               <iframe
@@ -905,6 +943,428 @@ export default function AdminPage() {
           )}
         </div>
       </main>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// REPAIR MANAGEMENT COMPONENT
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface RepairManagementProps {
+  repairs: RepairSnapshot;
+  onUpdate: () => void;
+  statusSummary: Array<{ label: string; count: number }>;
+}
+
+function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagementProps) {
+  const [selectedRepair, setSelectedRepair] = useState<RepairRecord | null>(null);
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [searchFilter, setSearchFilter] = useState<string>('');
+  const [updateForm, setUpdateForm] = useState({
+    status: '',
+    paymentStatus: '',
+    notes: '',
+    totalCost: '',
+    diagnosticNotes: '',
+    diagnosticImages: [] as string[],
+  });
+  const [repairItems, setRepairItems] = useState<{ description: string; cost: string }[]>([]);
+  const [newRepairItem, setNewRepairItem] = useState({ description: '', cost: '' });
+
+  // Auto-calculate totalCost from repairItems
+  useEffect(() => {
+    if (repairItems.length > 0) {
+      const sum = repairItems.reduce((acc, item) => acc + (parseFloat(item.cost) || 0), 0);
+      setUpdateForm(prev => ({ ...prev, totalCost: sum > 0 ? String(sum) : '' }));
+    }
+  }, [repairItems]);
+
+  useEffect(() => {
+    if (!selectedRepair) {
+      setUpdateForm({ status: '', paymentStatus: '', notes: '', totalCost: '', diagnosticNotes: '', diagnosticImages: [] });
+      setRepairItems([]);
+      setNewRepairItem({ description: '', cost: '' });
+      return;
+    }
+
+    const images = (selectedRepair as any).diagnosticImages ?? [];
+    const imageData = images.map((img: any) => typeof img === 'string' ? img : img.data);
+
+    setUpdateForm({
+      status: selectedRepair.status ?? '',
+      paymentStatus: selectedRepair.paymentStatus ?? 'pending',
+      notes: selectedRepair.issueSummary ?? '',
+      totalCost: selectedRepair.totalCost ? String(selectedRepair.totalCost) : '',
+      diagnosticNotes: (selectedRepair as any).diagnosticNotes ?? '',
+      diagnosticImages: imageData,
+    });
+  }, [selectedRepair]);
+
+  const updateRepair = async () => {
+    if (!selectedRepair) return;
+
+    try {
+      const response = await fetch('/api/analytics/repairs/', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trackingId: selectedRepair.trackingId,
+          status: updateForm.status,
+          paymentStatus: updateForm.paymentStatus,
+          notes: repairItems.length > 0
+            ? (updateForm.notes ? updateForm.notes + '\n\n' : '') +
+              '--- Cost Breakdown ---\n' +
+              repairItems.map(item => `• ${item.description}: Le ${parseFloat(item.cost || '0').toLocaleString()}`).join('\n') +
+              `\nTotal: Le ${repairItems.reduce((s, i) => s + (parseFloat(i.cost) || 0), 0).toLocaleString()}`
+            : updateForm.notes,
+          totalCost: updateForm.totalCost ? parseFloat(updateForm.totalCost) : undefined,
+          diagnosticNotes: updateForm.diagnosticNotes,
+          diagnosticImages: updateForm.diagnosticImages,
+        }),
+      });
+
+      if (response.ok) {
+        alert('Repair updated successfully! Customer can now view updated status and notes.');
+        setSelectedRepair(null);
+        onUpdate();
+      } else {
+        const error = await response.json();
+        alert(`Failed to update repair: ${error.error || 'Unknown error'}`);
+      }
+    } catch (err) {
+      console.error('Error updating repair:', err);
+      alert('Error updating repair');
+    }
+  };
+
+  const handleDeleteRepair = async (trackingId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!confirm(`Permanently delete repair ${trackingId}? This cannot be undone.`)) return;
+
+    try {
+      const response = await fetch('/api/analytics/repairs/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', trackingId }),
+      });
+
+      if (response.ok) {
+        try {
+          const { deleteBooking } = await import('@/lib/unified-booking-storage');
+          deleteBooking(trackingId);
+        } catch (_) {}
+
+        alert('Repair deleted.');
+        if (selectedRepair?.trackingId === trackingId) setSelectedRepair(null);
+        onUpdate();
+      } else {
+        const error = await response.json();
+        alert(`Failed to delete repair: ${error.error || 'Unknown error'}`);
+      }
+    } catch (err) {
+      console.error('Error deleting repair:', err);
+      alert('Error deleting repair');
+    }
+  };
+
+  const handleCancelRepair = async (trackingId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const reason = prompt(`Cancel repair ${trackingId}?\n\nEnter cancellation reason:`);
+    if (reason === null) return;
+
+    try {
+      const response = await fetch('/api/analytics/repairs/', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trackingId,
+          status: 'cancelled',
+          notes: reason || 'Repair cancelled by admin.',
+        }),
+      });
+
+      if (response.ok) {
+        alert('Repair cancelled.');
+        if (selectedRepair?.trackingId === trackingId) setSelectedRepair(null);
+        onUpdate();
+      }
+    } catch (err) {
+      console.error('Error cancelling repair:', err);
+    }
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    const maxImages = 5;
+    if (files.length + updateForm.diagnosticImages.length > maxImages) {
+      alert(`Maximum ${maxImages} images allowed.`);
+      return;
+    }
+
+    const newImages: string[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`Image ${file.name} exceeds 5MB limit`);
+        continue;
+      }
+
+      const reader = new FileReader();
+      await new Promise((resolve) => {
+        reader.onload = (e) => {
+          if (e.target?.result) newImages.push(e.target.result as string);
+          resolve(null);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    setUpdateForm(prev => ({
+      ...prev,
+      diagnosticImages: [...prev.diagnosticImages, ...newImages],
+    }));
+  };
+
+  const filteredRepairs = useMemo(() => {
+    if (!repairs.allRepairs) return [];
+    return repairs.allRepairs.filter(r => {
+      const matchesStatus = filterStatus === 'all' || r.status === filterStatus;
+      const q = searchFilter.toLowerCase();
+      const matchesSearch =
+        !q ||
+        r.trackingId.toLowerCase().includes(q) ||
+        (r.customerName && r.customerName.toLowerCase().includes(q)) ||
+        (r.deviceType && r.deviceType.toLowerCase().includes(q));
+      return matchesStatus && matchesSearch;
+    });
+  }, [repairs.allRepairs, filterStatus, searchFilter]);
+
+  return (
+    <div className="space-y-6 text-xs">
+      {/* Filter and Search Toolbar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-slate-950 p-3 rounded-xl border border-slate-800">
+        <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
+          <button
+            onClick={() => setFilterStatus('all')}
+            className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
+              filterStatus === 'all'
+                ? 'bg-emerald-500 text-slate-950 font-bold'
+                : 'bg-slate-900 text-slate-400 hover:text-white'
+            }`}
+          >
+            All ({repairs.totalRepairs || 0})
+          </button>
+          {statusSummary.map(s => (
+            <button
+              key={s.label}
+              onClick={() => setFilterStatus(s.label.replace(/ /g, '-'))}
+              className={`px-3 py-1.5 rounded-lg font-medium capitalize transition-all shrink-0 ${
+                filterStatus === s.label.replace(/ /g, '-')
+                  ? 'bg-emerald-500 text-slate-950 font-bold'
+                  : 'bg-slate-900 text-slate-400 hover:text-white'
+              }`}
+            >
+              {s.label} ({s.count})
+            </button>
+          ))}
+        </div>
+
+        <div className="relative shrink-0">
+          <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
+          <input
+            type="text"
+            placeholder="Search repairs by ID, customer, device..."
+            value={searchFilter}
+            onChange={e => setSearchFilter(e.target.value)}
+            className="w-full sm:w-64 bg-slate-900 border border-slate-800 text-slate-200 placeholder-slate-500 rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:border-emerald-500"
+          />
+        </div>
+      </div>
+
+      {/* Repairs Table & Edit Drawer Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Repairs List */}
+        <div className="lg:col-span-2 space-y-2">
+          {filteredRepairs.length > 0 ? (
+            filteredRepairs.map((repair) => (
+              <div
+                key={repair.trackingId}
+                onClick={() => setSelectedRepair(repair)}
+                className={`p-4 rounded-xl border transition-all cursor-pointer ${
+                  selectedRepair?.trackingId === repair.trackingId
+                    ? 'bg-emerald-500/10 border-emerald-500/50 shadow-md'
+                    : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-bold text-white text-sm">{repair.trackingId}</span>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                    repair.status === 'completed'
+                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                      : repair.status === 'cancelled'
+                      ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                      : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                  }`}>
+                    {repair.status || 'Pending'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-slate-400 text-xs">
+                  <div>
+                    <span className="block text-[10px] text-slate-500 uppercase">Customer</span>
+                    <span className="font-medium text-slate-200">{repair.customerName || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] text-slate-500 uppercase">Device</span>
+                    <span className="font-medium text-slate-200">{repair.deviceType || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] text-slate-500 uppercase">Estimated Cost</span>
+                    <span className="font-medium text-emerald-400">
+                      {repair.totalCost ? `Le ${repair.totalCost.toLocaleString()}` : 'Not set'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] text-slate-500 uppercase">Payment</span>
+                    <span className={`font-semibold capitalize ${
+                      repair.paymentStatus === 'paid' ? 'text-emerald-400' : 'text-amber-400'
+                    }`}>
+                      {repair.paymentStatus || 'Pending'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between pt-2 border-t border-slate-900 text-[11px] text-slate-500">
+                  <span className="truncate max-w-md">{repair.issueSummary || 'No notes'}</span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={(e) => handleCancelRepair(repair.trackingId, e)}
+                      className="text-amber-400 hover:underline"
+                    >
+                      Cancel
+                    </button>
+                    <span>&bull;</span>
+                    <button
+                      onClick={(e) => handleDeleteRepair(repair.trackingId, e)}
+                      className="text-rose-400 hover:underline"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="p-8 bg-slate-950 border border-slate-800 rounded-xl text-center text-slate-500">
+              No repairs match your search or filter.
+            </div>
+          )}
+        </div>
+
+        {/* Selected Repair Inspector & Edit Form */}
+        <div className="bg-slate-950 border border-slate-800 rounded-xl p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 className="font-bold text-white text-sm">
+              {selectedRepair ? `Edit Repair ${selectedRepair.trackingId}` : 'Select a Repair to Edit'}
+            </h3>
+            {selectedRepair && (
+              <button
+                onClick={() => setSelectedRepair(null)}
+                className="text-xs text-rose-400 hover:underline"
+              >
+                Clear Selection
+              </button>
+            )}
+          </div>
+
+          {selectedRepair ? (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-slate-400 mb-1 text-[11px]">Repair Status</label>
+                <select
+                  value={updateForm.status}
+                  onChange={e => setUpdateForm(p => ({ ...p, status: e.target.value }))}
+                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-emerald-500"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="received">Received</option>
+                  <option value="diagnosed">Diagnosed</option>
+                  <option value="in-progress">In Progress</option>
+                  <option value="ready-for-pickup">Ready for Pickup</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 text-[11px]">Payment Status</label>
+                <select
+                  value={updateForm.paymentStatus}
+                  onChange={e => setUpdateForm(p => ({ ...p, paymentStatus: e.target.value }))}
+                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-emerald-500"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="paid">Paid</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 text-[11px]">Total Estimated Cost (Le)</label>
+                <input
+                  type="number"
+                  value={updateForm.totalCost}
+                  onChange={e => setUpdateForm(p => ({ ...p, totalCost: e.target.value }))}
+                  placeholder="e.g. 500000"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 text-[11px]">Diagnostic Notes for Customer</label>
+                <textarea
+                  rows={3}
+                  value={updateForm.diagnosticNotes}
+                  onChange={e => setUpdateForm(p => ({ ...p, diagnosticNotes: e.target.value }))}
+                  placeholder="e.g. Screen replaced. Internal board tested OK."
+                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 text-[11px]">Upload Diagnostic Images</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageUpload}
+                  className="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-emerald-500/20 file:text-emerald-400 file:font-semibold"
+                />
+                {updateForm.diagnosticImages.length > 0 && (
+                  <div className="flex gap-2 mt-2 overflow-x-auto">
+                    {updateForm.diagnosticImages.map((img, i) => (
+                      <img key={i} src={img} className="w-12 h-12 object-cover rounded-lg border border-slate-800" />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <button
+                onClick={updateRepair}
+                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg transition-colors shadow"
+              >
+                Save & Publish Update to Customer
+              </button>
+            </div>
+          ) : (
+            <p className="text-slate-500 text-center py-12 text-xs">
+              Click any repair on the left to edit status, set repair costs, or upload photos.
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
