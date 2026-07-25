@@ -1,13 +1,15 @@
 'use client'
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect, useRef } from 'react'
-import dynamic from 'next/dynamic'
+import dynamicImport from 'next/dynamic'
 import { Send, Users, Image as ImageIcon, Link as LinkIcon, CheckSquare, Square, Trash2, RefreshCw, Mail, ArrowLeft, Sparkles, Wand2, Calendar, ToggleLeft, ToggleRight, Plus, X, FlaskConical, History, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import 'react-quill/dist/quill.snow.css'
 
 // Dynamic import for React Quill to avoid SSR issues
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false })
+const ReactQuill = dynamicImport(() => import('react-quill'), { ssr: false })
 
 interface EmailLead {
   id: string
