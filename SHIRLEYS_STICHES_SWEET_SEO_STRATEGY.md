@@ -37,7 +37,14 @@ Brand keywords:
 - Dynamic branded share image at `/shirleys/opengraph-image`
 - Local business structured data using `Bakery` and `ClothingStore`
 - Sitemap entry for Google discovery
+- Public gallery section for real photos and videos of Shirley's work
 - Content sections for bakery, pastries, fashion, tailoring, bundles, and local Freetown service keywords
+
+## Gallery Admin
+
+Admin URL: `https://www.itservicesfreetown.com/shirleys/admin`
+
+Use `SHIRLEY_ADMIN_PASSWORD_HASH` in Vercel to give Shirley her own gallery password. If that env var is not set, the panel falls back to the main `ADMIN_PASSWORD_HASH`. Published gallery items appear on `/shirleys` just before the "What Shirley makes" section.
 
 ## Google Visibility Launch Steps
 
