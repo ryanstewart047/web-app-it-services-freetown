@@ -50,6 +50,8 @@ export default function AdminBookingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
   
   // Detail modal state
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
@@ -57,6 +59,11 @@ export default function AdminBookingsPage() {
   // Sync state
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
+
+  // Reset pagination on filter/search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus]);
 
   useEffect(() => {
     fetchAppointments().then(() => {
@@ -169,6 +176,12 @@ export default function AdminBookingsPage() {
     
     return matchesSearch && matchesStatus;
   });
+
+  const totalPages = Math.ceil(filteredAppointments.length / ITEMS_PER_PAGE) || 1;
+  const paginatedAppointments = filteredAppointments.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   const stats = {
     total: appointments.length,
@@ -340,7 +353,7 @@ export default function AdminBookingsPage() {
 
       {/* Appointments List */}
       <div className="space-y-4">
-        {filteredAppointments.map((appointment) => {
+        {paginatedAppointments.map((appointment) => {
           const StatusIcon = statusIcons[appointment.status as keyof typeof statusIcons] || AlertCircle;
           return (
             <div
@@ -449,6 +462,36 @@ export default function AdminBookingsPage() {
           );
         })}
       </div>
+
+      {/* Pagination Controls */}
+      {filteredAppointments.length > ITEMS_PER_PAGE && (
+        <div className="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-200 dark:border-gray-700/80 shadow-sm mt-6">
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+            Showing <span className="text-purple-600 dark:text-purple-400 font-bold">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to{' '}
+            <span className="text-purple-600 dark:text-purple-400 font-bold">{Math.min(currentPage * ITEMS_PER_PAGE, filteredAppointments.length)}</span> of{' '}
+            <span className="text-gray-900 dark:text-white font-bold">{filteredAppointments.length}</span> appointments
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 text-xs font-bold text-gray-700 dark:text-gray-200 rounded-xl transition-all"
+            >
+              Previous
+            </button>
+            <span className="px-3 py-1 bg-purple-50 dark:bg-purple-900/40 text-purple-600 dark:text-purple-300 font-bold text-xs rounded-lg">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 text-xs font-bold text-gray-700 dark:text-gray-200 rounded-xl transition-all"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Empty State */}
       {filteredAppointments.length === 0 && !error && (

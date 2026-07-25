@@ -75,8 +75,13 @@ export default function EmailMarketingPage() {
   const [btnText, setBtnText] = useState('Click Here')
   const [btnUrl, setBtnUrl] = useState('https://')
   const [imageUrl, setImageUrl] = useState('')
-  const [isConfigured, setIsConfigured] = useState<boolean | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [recipientPage, setRecipientPage] = useState(1)
+  const RECIPIENTS_PER_PAGE = 20
+
+  useEffect(() => {
+    setRecipientPage(1)
+  }, [searchTerm])
 
   // --- Weekly Newsletter State ---
   const [newsletterSettings, setNewsletterSettings] = useState<NewsletterSettings | null>(null)
@@ -803,7 +808,9 @@ export default function EmailMarketingPage() {
                   </div>
                 ) : (
                   <div className="space-y-1">
-                    {filteredLeads.map(lead => (
+                    {filteredLeads
+                      .slice((recipientPage - 1) * RECIPIENTS_PER_PAGE, recipientPage * RECIPIENTS_PER_PAGE)
+                      .map(lead => (
                       <button
                         key={lead.id}
                         onClick={() => toggleEmail(lead.email)}
@@ -857,6 +864,31 @@ export default function EmailMarketingPage() {
                   </div>
                 )}
               </div>
+
+              {/* Recipient Pagination Footer */}
+              {filteredLeads.length > RECIPIENTS_PER_PAGE && (
+                <div className="flex items-center justify-between border-t border-slate-100 p-3 bg-slate-50/50">
+                  <span className="text-[11px] font-semibold text-slate-500">
+                    Page {recipientPage} of {Math.ceil(filteredLeads.length / RECIPIENTS_PER_PAGE)}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setRecipientPage(p => Math.max(1, p - 1))}
+                      disabled={recipientPage === 1}
+                      className="px-2.5 py-1 text-xs font-bold bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 disabled:opacity-40"
+                    >
+                      Prev
+                    </button>
+                    <button
+                      onClick={() => setRecipientPage(p => Math.min(Math.ceil(filteredLeads.length / RECIPIENTS_PER_PAGE), p + 1))}
+                      disabled={recipientPage === Math.ceil(filteredLeads.length / RECIPIENTS_PER_PAGE)}
+                      className="px-2.5 py-1 text-xs font-bold bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 disabled:opacity-40"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div className="border-t border-slate-100 bg-slate-50/50 p-6">
                 <div className="flex items-center justify-between text-xs">

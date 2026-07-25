@@ -39,11 +39,15 @@ export default function AdminProductsPage() {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const PRODUCTS_PER_PAGE = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterCategory, filterStatus]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [imageUrls, setImageUrls] = useState<string[]>(['']);
@@ -447,7 +451,9 @@ export default function AdminProductsPage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredProducts.map((product) => (
+                  filteredProducts
+                    .slice((currentPage - 1) * PRODUCTS_PER_PAGE, currentPage * PRODUCTS_PER_PAGE)
+                    .map((product) => (
                     <tr key={product.id} className="hover:bg-gray-700/50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
@@ -575,6 +581,34 @@ export default function AdminProductsPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Controls */}
+          {filteredProducts.length > PRODUCTS_PER_PAGE && (
+            <div className="flex items-center justify-between bg-gray-800 p-4 border-t border-gray-700">
+              <span className="text-xs text-gray-300">
+                Showing {(currentPage - 1) * PRODUCTS_PER_PAGE + 1} to {Math.min(currentPage * PRODUCTS_PER_PAGE, filteredProducts.length)} of {filteredProducts.length} products
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-40 text-xs font-bold text-white rounded-lg transition-colors"
+                >
+                  Previous
+                </button>
+                <span className="px-3 py-1 bg-blue-600/20 text-blue-300 text-xs font-bold rounded-lg border border-blue-500/40">
+                  Page {currentPage} of {Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE)}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE), p + 1))}
+                  disabled={currentPage === Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE)}
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-40 text-xs font-bold text-white rounded-lg transition-colors"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

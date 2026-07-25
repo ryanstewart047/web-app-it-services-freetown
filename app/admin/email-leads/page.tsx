@@ -49,6 +49,10 @@ export default function EmailLeadsPage() {
   const [syncing, setSyncing] = useState(false)
   const [cleaning, setCleaning] = useState(false)
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 15
+
   // Manual Lead Modal state
   const [showAddModal, setShowAddModal] = useState(false)
   const [manualEmail, setManualEmail] = useState('')
@@ -269,11 +273,13 @@ export default function EmailLeadsPage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
+    setCurrentPage(1)
     fetchLeads(activeSource, search)
   }
 
   const handleSourceFilter = (src: string) => {
     setActiveSource(src)
+    setCurrentPage(1)
     fetchLeads(src, search)
   }
 
@@ -500,7 +506,9 @@ export default function EmailLeadsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {leads.map(lead => (
+                  {leads
+                    .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+                    .map(lead => (
                     <tr key={lead.id} className={`transition hover:bg-slate-50/60 ${lead.deliveryFailed ? 'opacity-60 bg-red-50/10' : ''}`}>
                       <td className={`px-5 py-3.5 font-semibold ${lead.deliveryFailed ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
                         {lead.name || <span className="text-slate-300">—</span>}
@@ -560,6 +568,36 @@ export default function EmailLeadsPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {leads.length > ITEMS_PER_PAGE && (
+            <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 p-4">
+              <p className="text-xs font-semibold text-slate-500">
+                Showing <span className="font-bold text-slate-900">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to{' '}
+                <span className="font-bold text-slate-900">{Math.min(currentPage * ITEMS_PER_PAGE, leads.length)}</span> of{' '}
+                <span className="font-bold text-slate-900">{leads.length}</span> leads
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-40"
+                >
+                  Previous
+                </button>
+                <span className="rounded-lg bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
+                  Page {currentPage} of {Math.ceil(leads.length / ITEMS_PER_PAGE)}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(Math.ceil(leads.length / ITEMS_PER_PAGE), p + 1))}
+                  disabled={currentPage === Math.ceil(leads.length / ITEMS_PER_PAGE)}
+                  className="rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-40"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           )}
         </div>

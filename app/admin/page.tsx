@@ -1016,6 +1016,13 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
   const [selectedRepair, setSelectedRepair] = useState<RepairRecord | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchFilter, setSearchFilter] = useState<string>('');
+  const [repairPage, setRepairPage] = useState<number>(1);
+  const REPAIRS_PER_PAGE = 6;
+
+  // Reset pagination when filter/search changes
+  useEffect(() => {
+    setRepairPage(1);
+  }, [filterStatus, searchFilter]);
   const [updateForm, setUpdateForm] = useState({
     status: '',
     paymentStatus: '',
@@ -1244,7 +1251,9 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
         {/* Repairs List */}
         <div className="lg:col-span-2 space-y-2">
           {filteredRepairs.length > 0 ? (
-            filteredRepairs.map((repair) => (
+            filteredRepairs
+              .slice((repairPage - 1) * REPAIRS_PER_PAGE, repairPage * REPAIRS_PER_PAGE)
+              .map((repair) => (
               <div
                 key={repair.trackingId}
                 onClick={() => setSelectedRepair(repair)}
@@ -1315,6 +1324,31 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
           ) : (
             <div className="p-8 bg-slate-950 border border-slate-800 rounded-xl text-center text-slate-500">
               No repairs match your search or filter.
+            </div>
+          )}
+
+          {/* Repair Pagination Controls */}
+          {filteredRepairs.length > REPAIRS_PER_PAGE && (
+            <div className="flex items-center justify-between bg-slate-950 p-3 rounded-xl border border-slate-800 mt-2">
+              <span className="text-[11px] text-slate-400">
+                Page {repairPage} of {Math.ceil(filteredRepairs.length / REPAIRS_PER_PAGE)} ({filteredRepairs.length} total)
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setRepairPage(p => Math.max(1, p - 1))}
+                  disabled={repairPage === 1}
+                  className="px-3 py-1 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-slate-300 font-bold text-[11px] rounded-lg transition-colors"
+                >
+                  Prev
+                </button>
+                <button
+                  onClick={() => setRepairPage(p => Math.min(Math.ceil(filteredRepairs.length / REPAIRS_PER_PAGE), p + 1))}
+                  disabled={repairPage === Math.ceil(filteredRepairs.length / REPAIRS_PER_PAGE)}
+                  className="px-3 py-1 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-slate-300 font-bold text-[11px] rounded-lg transition-colors"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           )}
         </div>
