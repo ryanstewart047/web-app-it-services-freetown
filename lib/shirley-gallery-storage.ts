@@ -28,6 +28,10 @@ export interface ShirleyGalleryItem {
   source: 'upload' | 'url'
   active: boolean
   order: number
+  isAvailableProduct?: boolean
+  price?: string
+  orderButtonText?: string
+  orderUrl?: string
   fileName?: string
   createdAt: string
   updatedAt: string
@@ -78,6 +82,10 @@ function normalizeGalleryPayload(payload: unknown): ShirleyGalleryItem[] {
         source: item.source === 'upload' ? 'upload' : 'url',
         active: item.active !== false,
         order: Number.isFinite(item.order) ? item.order : index,
+        isAvailableProduct: Boolean(item.isAvailableProduct),
+        price: item.price || '',
+        orderButtonText: item.orderButtonText || '',
+        orderUrl: item.orderUrl || '',
       }))
   )
 }

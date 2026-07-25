@@ -5,6 +5,7 @@ import {
   getPublicShirleyGalleryItems,
   type ShirleyGalleryItem,
 } from '@/lib/shirley-gallery-storage'
+import { ShirleyGallerySection } from '@/components/shirleys/ShirleyGallerySection'
 import {
   CakeSlice,
   ChefHat,
@@ -285,105 +286,7 @@ function ProductScene() {
   )
 }
 
-function getGalleryVideoEmbedUrl(url: string) {
-  try {
-    const parsed = new URL(url)
-    const host = parsed.hostname.replace('www.', '')
 
-    if (host === 'youtu.be') {
-      const id = parsed.pathname.split('/').filter(Boolean)[0]
-      return id ? `https://www.youtube.com/embed/${id}` : ''
-    }
-
-    if (host.includes('youtube.com')) {
-      const id = parsed.searchParams.get('v') || parsed.pathname.split('/').filter(Boolean).pop()
-      return id ? `https://www.youtube.com/embed/${id}` : ''
-    }
-
-    if (host.includes('vimeo.com')) {
-      const id = parsed.pathname.split('/').filter(Boolean)[0]
-      return id ? `https://player.vimeo.com/video/${id}` : ''
-    }
-  } catch {
-    return ''
-  }
-
-  return ''
-}
-
-function GalleryMedia({ item }: { item: ShirleyGalleryItem }) {
-  const embedUrl = item.type === 'video' ? getGalleryVideoEmbedUrl(item.url) : ''
-
-  if (item.type === 'video') {
-    return embedUrl ? (
-      <iframe
-        src={embedUrl}
-        title={item.title}
-        className="h-full w-full"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-      />
-    ) : (
-      <video src={item.url} controls className="h-full w-full object-cover" preload="metadata" />
-    )
-  }
-
-  return <img src={item.url} alt={item.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-}
-
-function ShirleyGallerySection({ items }: { items: ShirleyGalleryItem[] }) {
-  return (
-    <section id="gallery" className="bg-[#fff7ea] py-16">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="max-w-3xl">
-            <p className="text-sm font-black uppercase tracking-[0.18em] text-[#8a2746]">Shirley's gallery</p>
-            <h2 className="mt-3 text-3xl font-black text-[#2f1f2a] sm:text-4xl">
-              A closer look at the treats, stitches, and finished details.
-            </h2>
-          </div>
-          <a
-            href={`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#8a2746] px-5 py-3 text-sm font-black text-white transition hover:bg-[#6f1f38]"
-          >
-            <MessageCircle className="h-4 w-4" />
-            Ask about an order
-          </a>
-        </div>
-
-        {items.length > 0 ? (
-          <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {items.map((item) => (
-              <article key={item.id} className="group overflow-hidden rounded-[1.5rem] border border-[#8a2746]/10 bg-white shadow-sm">
-                <div className="aspect-[4/3] overflow-hidden bg-[#f8edf2]">
-                  <GalleryMedia item={item} />
-                </div>
-                <div className="p-5">
-                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-[#8a2746]">
-                    <Sparkles className="h-4 w-4 text-[#f7c948]" />
-                    {item.type === 'video' ? 'Video' : 'Photo'}
-                  </div>
-                  <h3 className="mt-2 text-lg font-black text-[#2f1f2a]">{item.title}</h3>
-                  {item.caption && <p className="mt-2 leading-7 text-[#6d4c57]">{item.caption}</p>}
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-8 rounded-[1.5rem] border border-dashed border-[#8a2746]/25 bg-white p-8 text-center">
-            <Sparkles className="mx-auto h-9 w-9 text-[#f7c948]" />
-            <p className="mt-4 text-lg font-black text-[#2f1f2a]">Gallery coming soon.</p>
-            <p className="mt-2 text-sm leading-6 text-[#6d4c57]">
-              Shirley's latest handmade treats and stitched looks will appear here.
-            </p>
-          </div>
-        )}
-      </div>
-    </section>
-  )
-}
 
 export default async function ShirleysPage() {
   const galleryItems = await getPublicShirleyGalleryItems()

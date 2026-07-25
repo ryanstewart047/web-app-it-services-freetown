@@ -71,6 +71,10 @@ export async function POST(request: NextRequest) {
     const caption = sanitizeText(formData.get('caption')).slice(0, 500)
     const selectedType: ShirleyGalleryMediaType = formData.get('type') === 'video' ? 'video' : 'image'
     const active = formData.get('active') !== 'false'
+    const isAvailableProduct = formData.get('isAvailableProduct') === 'true'
+    const price = sanitizeText(formData.get('price')).slice(0, 50)
+    const orderButtonText = sanitizeText(formData.get('orderButtonText')).slice(0, 50)
+    const orderUrl = sanitizeUrl(formData.get('orderUrl'))
     const fileEntry = formData.get('file')
     const mediaUrl = sanitizeUrl(formData.get('mediaUrl'))
 
@@ -134,6 +138,10 @@ export async function POST(request: NextRequest) {
       source,
       active,
       order: nextOrder,
+      isAvailableProduct,
+      price,
+      orderButtonText,
+      orderUrl,
       fileName,
       createdAt: now,
       updatedAt: now,
@@ -158,7 +166,33 @@ export async function PATCH(request: NextRequest) {
   if (authError) return authError
 
   try {
-    const body = await request.json()
+    let body: any = {}
+    let fileEntry: File | null = null
+
+    const contentType = request.headers.get('content-type') || ''
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await request.formData()
+      body = {
+        id: formData.get('id'),
+        title: formData.get('title'),
+        caption: formData.get('caption'),
+        type: formData.get('type'),
+        active: formData.get('active') !== null ? formData.get('active') === 'true' : undefined,
+        isAvailableProduct: formData.get('isAvailableProduct') !== null ? formData.get('isAvailableProduct') === 'true' : undefined,
+        price: formData.get('price'),
+        orderButtonText: formData.get('orderButtonText'),
+        orderUrl: formData.get('orderUrl'),
+        order: formData.get('order') !== null ? Number(formData.get('order')) : undefined,
+        mediaUrl: formData.get('mediaUrl'),
+      }
+      const rawFile = formData.get('file')
+      if (rawFile instanceof File && rawFile.size > 0) {
+        fileEntry = rawFile
+      }
+    } else {
+      body = await request.json()
+    }
+
     const id = sanitizeText(body.id)
 
     if (!id) {
@@ -166,25 +200,61 @@ export async function PATCH(request: NextRequest) {
     }
 
     const items = await getShirleyGalleryItems({ includeInactive: true })
-    let found = false
+    let existingItem = items.find((item) => item.id === id)
+
+    if (!existingItem) {
+      return NextResponse.json({ success: false, error: 'Gallery item not found.' }, { status: 404 })
+    }
+
+    let url = existingItem.url
+    let type = existingItem.type
+    let source = existingItem.source
+    let fileName = existingItem.fileName
+
+    if (fileEntry) {
+      const inferredType = inferTypeFromFile(fileEntry)
+      if (!inferredType) {
+        return NextResponse.json({ success: false, error: 'Invalid file type.' }, { status: 400 })
+      }
+      if (fileEntry.size > maxBytesForType(inferredType)) {
+        return NextResponse.json({ success: false, error: 'File size exceeds maximum limit.' }, { status: 413 })
+      }
+      type = inferredType
+      source = 'upload'
+      const buffer = Buffer.from(await fileEntry.arrayBuffer())
+      const base64Content = `data:${fileEntry.type};base64,${buffer.toString('base64')}`
+      const upload = await uploadShirleyGalleryMedia(base64Content, fileEntry.name)
+      url = upload.url
+      fileName = upload.fileName
+    } else if (body.mediaUrl) {
+      const sanitizedMediaUrl = sanitizeUrl(body.mediaUrl)
+      if (sanitizedMediaUrl) {
+        url = sanitizedMediaUrl
+        source = 'url'
+      }
+    }
+
     const now = new Date().toISOString()
     const updatedItems = items.map((item) => {
       if (item.id !== id) return item
-      found = true
 
       return {
         ...item,
-        title: body.title !== undefined ? sanitizeText(body.title).slice(0, 120) || item.title : item.title,
+        title: body.title !== undefined ? sanitizeText(body.title).slice(0, 120) : item.title,
         caption: body.caption !== undefined ? sanitizeText(body.caption).slice(0, 500) : item.caption,
+        type: body.type === 'video' || body.type === 'image' ? body.type : type,
+        url,
+        source,
+        fileName,
         active: typeof body.active === 'boolean' ? body.active : item.active,
+        isAvailableProduct: typeof body.isAvailableProduct === 'boolean' ? body.isAvailableProduct : item.isAvailableProduct,
+        price: body.price !== undefined ? sanitizeText(body.price).slice(0, 50) : item.price,
+        orderButtonText: body.orderButtonText !== undefined ? sanitizeText(body.orderButtonText).slice(0, 50) : item.orderButtonText,
+        orderUrl: body.orderUrl !== undefined ? sanitizeUrl(body.orderUrl) : item.orderUrl,
         order: Number.isFinite(body.order) ? Number(body.order) : item.order,
         updatedAt: now,
       }
     })
-
-    if (!found) {
-      return NextResponse.json({ success: false, error: 'Gallery item not found.' }, { status: 404 })
-    }
 
     await saveShirleyGalleryItems(updatedItems)
     return NextResponse.json({ success: true, items: updatedItems })
