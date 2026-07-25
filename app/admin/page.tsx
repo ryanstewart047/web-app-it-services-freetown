@@ -197,6 +197,15 @@ const ADMIN_PANELS: AdminPanelItem[] = [
     color: 'text-blue-400',
     url: '/madinaface3bridgeproject/admin',
   },
+  {
+    id: 'shirleys-admin',
+    name: 'Shirley\'s Gallery Admin',
+    category: 'marketing',
+    description: 'Manage bakery & fashion gallery',
+    icon: 'fas fa-heart',
+    color: 'text-pink-400',
+    url: '/shirleys/admin',
+  },
   // Marketing & Growth
   {
     id: 'blog-admin',
