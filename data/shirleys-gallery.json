@@ -7,16 +7,16 @@
       "type": "image",
       "url": "https://raw.githubusercontent.com/ryanstewart047/web-app-it-services-freetown/main/public/shirleys-gallery/1784979432980-image_94458869.png",
       "source": "url",
-      "active": false,
+      "active": true,
       "order": 1,
       "isAvailableProduct": true,
-      "price": "Le 100",
+      "price": "Le 120",
       "orderButtonText": "Order This Item",
       "orderUrl": "",
       "fileName": "1784979432980-image_94458869.png",
       "createdAt": "2026-07-25T11:37:14.295Z",
-      "updatedAt": "2026-07-28T23:07:25.224Z"
+      "updatedAt": "2026-07-28T23:08:04.689Z"
     }
   ],
-  "updatedAt": "2026-07-28T23:07:25.224Z"
+  "updatedAt": "2026-07-28T23:08:04.689Z"
 }
