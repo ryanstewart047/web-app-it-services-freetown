@@ -11,6 +11,7 @@ import {
   ChefHat,
   Cookie,
   Facebook,
+  GlassWater,
   Heart,
   Instagram,
   MapPin,
@@ -107,6 +108,12 @@ const services = [
     color: 'bg-[#f7c948] text-[#2f1f2a]'
   },
   {
+    title: 'Beverages',
+    text: 'Fresh fruit juices, bottled soft drinks, and other refreshing drinks served cold — perfect as add-ons to any pastry or event order.',
+    icon: GlassWater,
+    color: 'bg-[#1a6f5a] text-white'
+  },
+  {
     title: 'Fashion & tailoring',
     text: 'Women and kids outfits, alterations, matching sets, modest pieces, and made-to-measure designs for everyday wear and events.',
     icon: Scissors,
@@ -125,6 +132,8 @@ const bundles = [
 const keywords = [
   'Custom cakes in Freetown',
   'Pastries and small chops',
+  'Fresh juice in Freetown',
+  'Soft drinks and beverages',
   'Fashion designer in Freetown',
   'Dress alterations',
   'Special treat boxes',
@@ -225,6 +234,7 @@ function ShirleyHeader() {
         <nav className="hidden items-center gap-6 text-sm font-bold text-[#4d3039] md:flex">
           <a href="#gallery" className="transition hover:text-[#8a2746]">Gallery</a>
           <a href="#treats" className="transition hover:text-[#8a2746]">Treats</a>
+          <a href="#beverages" className="transition hover:text-[#8a2746]">Drinks</a>
           <a href="#fashion" className="transition hover:text-[#8a2746]">Fashion</a>
           <a href="#bundles" className="transition hover:text-[#8a2746]">Bundles</a>
           <a href="#order" className="transition hover:text-[#8a2746]">Order</a>
@@ -363,7 +373,7 @@ export default async function ShirleysPage() {
                   One brand for the outfit, the treats, and the little details.
                 </h2>
               </div>
-              <div className="mt-8 grid gap-5 md:grid-cols-3">
+              <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
                 {services.map((service) => {
                   const Icon = service.icon
                   return (
@@ -393,6 +403,26 @@ export default async function ShirleysPage() {
                 {['Cupcakes and cookies', 'Doughnuts and pastries', 'Meat pies and small chops', 'Special treat boxes'].map((item) => (
                   <div key={item} className="rounded-2xl border border-[#f7c948]/40 bg-white p-5">
                     <Utensils className="mb-3 h-5 w-5 text-[#8a2746]" />
+                    <p className="font-black text-[#2f1f2a]">{item}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section id="beverages" className="border-t border-[#8a2746]/10 bg-[#f8edf2]/50 py-16">
+            <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
+              <div>
+                <p className="text-sm font-black uppercase tracking-[0.18em] text-[#1a6f5a]">Fresh Juices & Drinks</p>
+                <h2 className="mt-3 text-3xl font-black text-[#2f1f2a]">Cold beverages to complement your treats & events.</h2>
+                <p className="mt-4 leading-8 text-[#6d4c57]">
+                  From natural homemade fruit juices to chilled soft drinks, Shirley provides refreshing drinks for parties, office orders, and personal enjoyments.
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {['Fresh fruit juices', 'Bottled soft drinks', 'Chilled event drink buckets', 'Custom juice & snack packages'].map((item) => (
+                  <div key={item} className="rounded-2xl border border-[#1a6f5a]/20 bg-white p-5">
+                    <GlassWater className="mb-3 h-5 w-5 text-[#1a6f5a]" />
                     <p className="font-black text-[#2f1f2a]">{item}</p>
                   </div>
                 ))}

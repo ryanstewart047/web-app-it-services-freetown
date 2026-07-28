@@ -101,27 +101,58 @@ function getLocalPublicFilePath(): string {
 export async function getShirleyGalleryItems(options: { includeInactive?: boolean } = {}) {
   let items: ShirleyGalleryItem[] = []
 
-  // 1. Try local disk first
-  try {
-    const dataPath = getLocalDataFilePath()
-    const publicPath = getLocalPublicFilePath()
-    let raw = ''
+  // On Vercel / serverless, the local FS is read-only (build-time snapshot).
+  // If a GITHUB_TOKEN is configured, always treat GitHub as the source of truth
+  // so that saves (delete, hide, edit) are immediately reflected on the next read.
+  const isServerless = Boolean(GITHUB_TOKEN)
 
-    if (fs.existsSync(dataPath)) {
-      raw = fs.readFileSync(dataPath, 'utf8')
-    } else if (fs.existsSync(publicPath)) {
-      raw = fs.readFileSync(publicPath, 'utf8')
-    }
+  // 1. GitHub Contents API — primary source when token is available (Vercel production)
+  if (isServerless) {
+    try {
+      const repoFilePath = 'data/shirleys-gallery.json'
+      const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${repoFilePath}?ref=${GITHUB_BRANCH}`
+      const response = await fetch(apiUrl, {
+        headers: githubHeaders(),
+        cache: 'no-store',
+      })
 
-    if (raw.trim()) {
-      items = normalizeGalleryPayload(JSON.parse(raw))
+      if (response.ok) {
+        const fileData = await response.json()
+        if (fileData.content) {
+          const decoded = Buffer.from(fileData.content, 'base64').toString('utf8')
+          if (decoded.trim()) {
+            items = normalizeGalleryPayload(JSON.parse(decoded))
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('[Shirley Gallery] GitHub Contents API read warning:', error)
     }
-  } catch (error) {
-    console.warn('[Shirley Gallery] Local FS read warning:', error)
   }
 
-  // 2. Fallback to GitHub repository raw content if local file was empty
-  if (items.length === 0 && GITHUB_TOKEN) {
+  // 2. Local disk — used when running locally (no token / GITHUB_TOKEN not set)
+  if (items.length === 0 && !isServerless) {
+    try {
+      const dataPath = getLocalDataFilePath()
+      const publicPath = getLocalPublicFilePath()
+      let raw = ''
+
+      if (fs.existsSync(dataPath)) {
+        raw = fs.readFileSync(dataPath, 'utf8')
+      } else if (fs.existsSync(publicPath)) {
+        raw = fs.readFileSync(publicPath, 'utf8')
+      }
+
+      if (raw.trim()) {
+        items = normalizeGalleryPayload(JSON.parse(raw))
+      }
+    } catch (error) {
+      console.warn('[Shirley Gallery] Local FS read warning:', error)
+    }
+  }
+
+  // 3. Fallback: GitHub raw CDN (no auth, cheaper — only if GitHub API also failed)
+  if (items.length === 0) {
     try {
       const rawUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/data/shirleys-gallery.json`
       const response = await fetch(rawUrl, {
@@ -140,7 +171,7 @@ export async function getShirleyGalleryItems(options: { includeInactive?: boolea
     }
   }
 
-  // 3. Fallback to Gist if valid GIST ID configured
+  // 4. Fallback to Gist if valid GIST ID configured
   if (
     items.length === 0 &&
     GITHUB_GIST_ID &&
