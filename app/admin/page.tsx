@@ -1022,209 +1022,239 @@ interface RepairManagementProps {
 }
 
 function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagementProps) {
+  // ── Constants ──────────────────────────────────────────────────────────────
+  const CONSULTATION_FEE_COMPUTER = 50000;
+  const CONSULTATION_FEE_MOBILE = 30000;
+  const REPAIRS_PER_PAGE = 6;
+
+  // ── State ──────────────────────────────────────────────────────────────────
   const [selectedRepair, setSelectedRepair] = useState<RepairRecord | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchFilter, setSearchFilter] = useState<string>('');
   const [repairPage, setRepairPage] = useState<number>(1);
-  const REPAIRS_PER_PAGE = 6;
 
-  // Reset pagination when filter/search changes
-  useEffect(() => {
-    setRepairPage(1);
-  }, [filterStatus, searchFilter]);
   const [updateForm, setUpdateForm] = useState({
     status: '',
-    paymentStatus: '',
-    notes: '',
-    totalCost: '',
+    paymentStatus: 'pending',
     diagnosticNotes: '',
     diagnosticImages: [] as string[],
   });
+
+  // Repair line items: each row has a label + individual cost
   const [repairItems, setRepairItems] = useState<{ description: string; cost: string }[]>([]);
-  const [newRepairItem, setNewRepairItem] = useState({ description: '', cost: '' });
+  const [newItem, setNewItem] = useState({ description: '', cost: '' });
 
-  // Auto-calculate totalCost from repairItems
-  useEffect(() => {
-    if (repairItems.length > 0) {
-      const sum = repairItems.reduce((acc, item) => acc + (parseFloat(item.cost) || 0), 0);
-      setUpdateForm(prev => ({ ...prev, totalCost: sum > 0 ? String(sum) : '' }));
+  // Reset pagination when filters change
+  useEffect(() => { setRepairPage(1); }, [filterStatus, searchFilter]);
+
+  // Determine consultation fee by device type
+  const consultationFee = useMemo(() => {
+    if (!selectedRepair) return 0;
+    const d = (selectedRepair.deviceType || '').toLowerCase();
+    if (d.includes('laptop') || d.includes('desktop') || d.includes('computer') || d.includes('pc')) {
+      return CONSULTATION_FEE_COMPUTER;
     }
-  }, [repairItems]);
+    return CONSULTATION_FEE_MOBILE;
+  }, [selectedRepair]);
 
+  const isComputer = useMemo(() => {
+    if (!selectedRepair) return false;
+    const d = (selectedRepair.deviceType || '').toLowerCase();
+    return d.includes('laptop') || d.includes('desktop') || d.includes('computer') || d.includes('pc');
+  }, [selectedRepair]);
+
+  const itemsSubtotal = useMemo(
+    () => repairItems.reduce((sum, item) => sum + (parseFloat(item.cost) || 0), 0),
+    [repairItems]
+  );
+  const grandTotal = consultationFee + itemsSubtotal;
+
+  // When a repair is selected, populate the form
   useEffect(() => {
     if (!selectedRepair) {
-      setUpdateForm({ status: '', paymentStatus: '', notes: '', totalCost: '', diagnosticNotes: '', diagnosticImages: [] });
+      setUpdateForm({ status: '', paymentStatus: 'pending', diagnosticNotes: '', diagnosticImages: [] });
       setRepairItems([]);
-      setNewRepairItem({ description: '', cost: '' });
+      setNewItem({ description: '', cost: '' });
       return;
     }
-
-    const images = (selectedRepair as any).diagnosticImages ?? [];
-    const imageData = images.map((img: any) => typeof img === 'string' ? img : img.data);
-
+    const images = ((selectedRepair as any).diagnosticImages ?? []).map(
+      (img: any) => (typeof img === 'string' ? img : img.data)
+    );
     setUpdateForm({
       status: selectedRepair.status ?? '',
       paymentStatus: selectedRepair.paymentStatus ?? 'pending',
-      notes: selectedRepair.issueSummary ?? '',
-      totalCost: selectedRepair.totalCost ? String(selectedRepair.totalCost) : '',
       diagnosticNotes: (selectedRepair as any).diagnosticNotes ?? '',
-      diagnosticImages: imageData,
+      diagnosticImages: images,
     });
+    setRepairItems([]);
+    setNewItem({ description: '', cost: '' });
   }, [selectedRepair]);
 
-  const updateRepair = async () => {
+  // ── Handlers ───────────────────────────────────────────────────────────────
+  const addRepairItem = () => {
+    const desc = newItem.description.trim();
+    const cost = newItem.cost.trim();
+    if (!desc || !cost || isNaN(parseFloat(cost))) {
+      alert('Enter a repair description and a valid cost.');
+      return;
+    }
+    setRepairItems(prev => [...prev, { description: desc, cost }]);
+    setNewItem({ description: '', cost: '' });
+  };
+
+  const removeRepairItem = (index: number) => {
+    setRepairItems(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    if (files.length + updateForm.diagnosticImages.length > 5) {
+      alert('Maximum 5 images allowed.');
+      return;
+    }
+    const newImages: string[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.size > 5 * 1024 * 1024) { alert(`${file.name} exceeds 5MB`); continue; }
+      await new Promise<void>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => { if (ev.target?.result) newImages.push(ev.target.result as string); resolve(); };
+        reader.readAsDataURL(file);
+      });
+    }
+    setUpdateForm(prev => ({ ...prev, diagnosticImages: [...prev.diagnosticImages, ...newImages] }));
+  };
+
+  const saveRepair = async () => {
     if (!selectedRepair) return;
+    const feeLabel = isComputer ? 'Consultation Fee (Computer)' : 'Consultation Fee (Mobile)';
+    let costBreakdown = `--- Cost Breakdown ---\n• ${feeLabel}: Le ${consultationFee.toLocaleString()}`;
+    repairItems.forEach(item => {
+      costBreakdown += `\n• ${item.description}: Le ${parseFloat(item.cost || '0').toLocaleString()}`;
+    });
+    costBreakdown += `\n\nTotal: Le ${grandTotal.toLocaleString()}`;
 
     try {
-      const response = await fetch('/api/analytics/repairs/', {
+      const res = await fetch('/api/analytics/repairs/', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           trackingId: selectedRepair.trackingId,
           status: updateForm.status,
           paymentStatus: updateForm.paymentStatus,
-          notes: repairItems.length > 0
-            ? (updateForm.notes ? updateForm.notes + '\n\n' : '') +
-              '--- Cost Breakdown ---\n' +
-              repairItems.map(item => `• ${item.description}: Le ${parseFloat(item.cost || '0').toLocaleString()}`).join('\n') +
-              `\nTotal: Le ${repairItems.reduce((s, i) => s + (parseFloat(i.cost) || 0), 0).toLocaleString()}`
-            : updateForm.notes,
-          totalCost: updateForm.totalCost ? parseFloat(updateForm.totalCost) : undefined,
+          notes: costBreakdown,
+          totalCost: grandTotal,
           diagnosticNotes: updateForm.diagnosticNotes,
           diagnosticImages: updateForm.diagnosticImages,
         }),
       });
-
-      if (response.ok) {
-        alert('Repair updated successfully! Customer can now view updated status and notes.');
+      if (res.ok) {
+        alert('Repair updated! Customer can now view the updated status and cost breakdown.');
         setSelectedRepair(null);
         onUpdate();
       } else {
-        const error = await response.json();
-        alert(`Failed to update repair: ${error.error || 'Unknown error'}`);
+        const err = await res.json();
+        alert(`Failed: ${err.error || 'Unknown error'}`);
       }
     } catch (err) {
-      console.error('Error updating repair:', err);
-      alert('Error updating repair');
+      console.error(err);
+      alert('Error saving repair');
     }
   };
 
   const handleDeleteRepair = async (trackingId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    if (!confirm(`Permanently delete repair ${trackingId}? This cannot be undone.`)) return;
-
+    if (!confirm(`Delete repair ${trackingId}? This cannot be undone.`)) return;
     try {
-      const response = await fetch('/api/analytics/repairs/', {
+      const res = await fetch('/api/analytics/repairs/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete', trackingId }),
       });
-
-      if (response.ok) {
-        try {
-          const { deleteBooking } = await import('@/lib/unified-booking-storage');
-          deleteBooking(trackingId);
-        } catch (_) {}
-
+      if (res.ok) {
+        try { const { deleteBooking } = await import('@/lib/unified-booking-storage'); deleteBooking(trackingId); } catch (_) {}
         alert('Repair deleted.');
         if (selectedRepair?.trackingId === trackingId) setSelectedRepair(null);
         onUpdate();
-      } else {
-        const error = await response.json();
-        alert(`Failed to delete repair: ${error.error || 'Unknown error'}`);
-      }
-    } catch (err) {
-      console.error('Error deleting repair:', err);
-      alert('Error deleting repair');
-    }
+      } else { alert('Failed to delete repair'); }
+    } catch (err) { console.error(err); alert('Error deleting repair'); }
   };
 
   const handleCancelRepair = async (trackingId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    const reason = prompt(`Cancel repair ${trackingId}?\n\nEnter cancellation reason:`);
+    const reason = prompt(`Cancel repair ${trackingId}?\n\nEnter reason (optional):`);
     if (reason === null) return;
-
     try {
-      const response = await fetch('/api/analytics/repairs/', {
+      const res = await fetch('/api/analytics/repairs/', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          trackingId,
-          status: 'cancelled',
-          notes: reason || 'Repair cancelled by admin.',
-        }),
+        body: JSON.stringify({ trackingId, status: 'cancelled', notes: reason || 'Cancelled by admin.' }),
       });
-
-      if (response.ok) {
+      if (res.ok) {
         alert('Repair cancelled.');
         if (selectedRepair?.trackingId === trackingId) setSelectedRepair(null);
         onUpdate();
       }
-    } catch (err) {
-      console.error('Error cancelling repair:', err);
-    }
-  };
-
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files) return;
-
-    const maxImages = 5;
-    if (files.length + updateForm.diagnosticImages.length > maxImages) {
-      alert(`Maximum ${maxImages} images allowed.`);
-      return;
-    }
-
-    const newImages: string[] = [];
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (file.size > 5 * 1024 * 1024) {
-        alert(`Image ${file.name} exceeds 5MB limit`);
-        continue;
-      }
-
-      const reader = new FileReader();
-      await new Promise((resolve) => {
-        reader.onload = (e) => {
-          if (e.target?.result) newImages.push(e.target.result as string);
-          resolve(null);
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-
-    setUpdateForm(prev => ({
-      ...prev,
-      diagnosticImages: [...prev.diagnosticImages, ...newImages],
-    }));
+    } catch (err) { console.error(err); }
   };
 
   const filteredRepairs = useMemo(() => {
     if (!repairs.allRepairs) return [];
     return repairs.allRepairs.filter(r => {
-      const matchesStatus = filterStatus === 'all' || r.status === filterStatus;
+      const matchStatus = filterStatus === 'all' || r.status === filterStatus;
       const q = searchFilter.toLowerCase();
-      const matchesSearch =
-        !q ||
-        r.trackingId.toLowerCase().includes(q) ||
-        (r.customerName && r.customerName.toLowerCase().includes(q)) ||
-        (r.deviceType && r.deviceType.toLowerCase().includes(q));
-      return matchesStatus && matchesSearch;
+      const matchSearch = !q
+        || r.trackingId.toLowerCase().includes(q)
+        || (r.customerName || '').toLowerCase().includes(q)
+        || (r.deviceType || '').toLowerCase().includes(q);
+      return matchStatus && matchSearch;
     });
   }, [repairs.allRepairs, filterStatus, searchFilter]);
 
+  const paginatedRepairs = filteredRepairs.slice(
+    (repairPage - 1) * REPAIRS_PER_PAGE,
+    repairPage * REPAIRS_PER_PAGE
+  );
+  const totalPages = Math.ceil(filteredRepairs.length / REPAIRS_PER_PAGE);
+
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-6 text-xs">
-      {/* Filter and Search Toolbar */}
+    <div className="space-y-5 text-xs">
+
+      {/* Consultation Fee Constants Banner */}
+      <div className="flex flex-col sm:flex-row gap-3 bg-amber-950/30 border border-amber-700/40 rounded-xl p-4">
+        <div className="flex items-center gap-2 text-amber-300 font-black text-[11px] uppercase tracking-wider shrink-0">
+          <i className="fas fa-coins text-amber-400" />
+          Fixed Consultation Fees
+        </div>
+        <div className="flex flex-wrap gap-3 flex-1">
+          <div className="flex items-center gap-2 bg-amber-900/40 border border-amber-700/50 rounded-lg px-4 py-2">
+            <i className="fas fa-laptop text-amber-400 text-sm" />
+            <div>
+              <p className="text-[10px] text-amber-300/70 uppercase tracking-wide">Computers &amp; Laptops</p>
+              <p className="font-black text-amber-300 text-sm">Le 50,000</p>
+            </div>
+            <span className="ml-1 text-[9px] bg-amber-800/50 text-amber-200 rounded px-1.5 py-0.5 font-bold uppercase">Fixed</span>
+          </div>
+          <div className="flex items-center gap-2 bg-amber-900/40 border border-amber-700/50 rounded-lg px-4 py-2">
+            <i className="fas fa-mobile-alt text-amber-400 text-sm" />
+            <div>
+              <p className="text-[10px] text-amber-300/70 uppercase tracking-wide">Mobile Phones</p>
+              <p className="font-black text-amber-300 text-sm">Le 30,000</p>
+            </div>
+            <span className="ml-1 text-[9px] bg-amber-800/50 text-amber-200 rounded px-1.5 py-0.5 font-bold uppercase">Fixed</span>
+          </div>
+          <p className="self-center text-[10px] text-amber-300/50 italic">Auto-added to total when you select a repair.</p>
+        </div>
+      </div>
+
+      {/* Filter & Search Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-slate-950 p-3 rounded-xl border border-slate-800">
-        <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
+        <div className="flex items-center gap-2 overflow-x-auto">
           <button
             onClick={() => setFilterStatus('all')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
-              filterStatus === 'all'
-                ? 'bg-red-600 text-white font-bold'
-                : 'bg-slate-900 text-slate-400 hover:text-white'
-            }`}
+            className={`px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition-all ${filterStatus === 'all' ? 'bg-red-600 text-white font-bold' : 'bg-slate-900 text-slate-400 hover:text-white'}`}
           >
             All ({repairs.totalRepairs || 0})
           </button>
@@ -1232,156 +1262,99 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
             <button
               key={s.label}
               onClick={() => setFilterStatus(s.label.replace(/ /g, '-'))}
-              className={`px-3 py-1.5 rounded-lg font-medium capitalize transition-all shrink-0 ${
-                filterStatus === s.label.replace(/ /g, '-')
-                  ? 'bg-red-600 text-white font-bold'
-                  : 'bg-slate-900 text-slate-400 hover:text-white'
-              }`}
+              className={`px-3 py-1.5 rounded-lg font-medium capitalize whitespace-nowrap transition-all shrink-0 ${filterStatus === s.label.replace(/ /g, '-') ? 'bg-red-600 text-white font-bold' : 'bg-slate-900 text-slate-400 hover:text-white'}`}
             >
               {s.label} ({s.count})
             </button>
           ))}
         </div>
-
         <div className="relative shrink-0">
-          <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
+          <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
           <input
             type="text"
-            placeholder="Search repairs by ID, customer, device..."
+            placeholder="Search by ID, name, device..."
             value={searchFilter}
             onChange={e => setSearchFilter(e.target.value)}
-            className="w-full sm:w-64 bg-slate-900 border border-slate-800 text-slate-200 placeholder-slate-500 rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:border-red-500"
+            className="w-full sm:w-60 bg-slate-900 border border-slate-800 text-slate-200 placeholder-slate-500 rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:border-red-500"
           />
         </div>
       </div>
 
-      {/* Repairs Table & Edit Drawer Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Two-Column Layout: List + Editor */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
         {/* Repairs List */}
         <div className="lg:col-span-2 space-y-2">
-          {filteredRepairs.length > 0 ? (
-            filteredRepairs
-              .slice((repairPage - 1) * REPAIRS_PER_PAGE, repairPage * REPAIRS_PER_PAGE)
-              .map((repair) => (
-              <div
-                key={repair.trackingId}
-                onClick={() => setSelectedRepair(repair)}
-                className={`p-4 rounded-xl border transition-all cursor-pointer ${
-                  selectedRepair?.trackingId === repair.trackingId
-                    ? 'bg-red-600/10 border-red-600/40 shadow-md'
-                    : 'bg-slate-950 border-slate-800 hover:border-slate-700'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold text-white text-sm">{repair.trackingId}</span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                    repair.status === 'completed'
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                      : repair.status === 'cancelled'
-                      ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                      : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                  }`}>
-                    {repair.status || 'Pending'}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-slate-400 text-xs">
-                  <div>
-                    <span className="block text-[10px] text-slate-500 uppercase">Customer</span>
-                    <span className="font-medium text-slate-200">{repair.customerName || 'N/A'}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] text-slate-500 uppercase">Device</span>
-                    <span className="font-medium text-slate-200">{repair.deviceType || 'N/A'}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] text-slate-500 uppercase">Estimated Cost</span>
-                    <span className="font-medium text-red-400">
-                      {repair.totalCost ? `Le ${repair.totalCost.toLocaleString()}` : 'Not set'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] text-slate-500 uppercase">Payment</span>
-                    <span className={`font-semibold capitalize ${
-                      repair.paymentStatus === 'paid' ? 'text-emerald-400' : 'text-amber-400'
-                    }`}>
-                      {repair.paymentStatus || 'Pending'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mt-3 flex items-center justify-between pt-2 border-t border-slate-900 text-[11px] text-slate-500">
-                  <span className="truncate max-w-md">{repair.issueSummary || 'No notes'}</span>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={(e) => handleCancelRepair(repair.trackingId, e)}
-                      className="text-amber-400 hover:underline"
-                    >
-                      Cancel
-                    </button>
-                    <span>&bull;</span>
-                    <button
-                      onClick={(e) => handleDeleteRepair(repair.trackingId, e)}
-                      className="text-rose-400 hover:underline"
-                    >
-                      Delete
-                    </button>
-                  </div>
+          {paginatedRepairs.length > 0 ? paginatedRepairs.map(repair => (
+            <div
+              key={repair.trackingId}
+              onClick={() => setSelectedRepair(repair)}
+              className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                selectedRepair?.trackingId === repair.trackingId
+                  ? 'bg-red-600/10 border-red-600/40 shadow-md'
+                  : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-bold text-white text-sm">{repair.trackingId}</span>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                  repair.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                  : repair.status === 'cancelled' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                }`}>
+                  {repair.status || 'Pending'}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-slate-400">
+                <div><span className="block text-[10px] text-slate-500 uppercase">Customer</span><span className="font-medium text-slate-200">{repair.customerName || 'N/A'}</span></div>
+                <div><span className="block text-[10px] text-slate-500 uppercase">Device</span><span className="font-medium text-slate-200">{repair.deviceType || 'N/A'}</span></div>
+                <div><span className="block text-[10px] text-slate-500 uppercase">Total Cost</span><span className="font-medium text-red-400">{repair.totalCost ? `Le ${repair.totalCost.toLocaleString()}` : 'Not set'}</span></div>
+                <div><span className="block text-[10px] text-slate-500 uppercase">Payment</span><span className={`font-semibold capitalize ${repair.paymentStatus === 'paid' ? 'text-emerald-400' : 'text-amber-400'}`}>{repair.paymentStatus || 'Pending'}</span></div>
+              </div>
+              <div className="mt-3 flex items-center justify-between pt-2 border-t border-slate-900 text-[11px] text-slate-500">
+                <span className="truncate max-w-xs">{repair.issueSummary || 'No description'}</span>
+                <div className="flex items-center gap-2 shrink-0 ml-2">
+                  <button onClick={e => handleCancelRepair(repair.trackingId, e)} className="text-amber-400 hover:underline">Cancel</button>
+                  <span>&bull;</span>
+                  <button onClick={e => handleDeleteRepair(repair.trackingId, e)} className="text-rose-400 hover:underline">Delete</button>
                 </div>
               </div>
-            ))
-          ) : (
+            </div>
+          )) : (
             <div className="p-8 bg-slate-950 border border-slate-800 rounded-xl text-center text-slate-500">
-              No repairs match your search or filter.
+              No repairs match your filter.
             </div>
           )}
 
-          {/* Repair Pagination Controls */}
+          {/* Pagination */}
           {filteredRepairs.length > REPAIRS_PER_PAGE && (
-            <div className="flex items-center justify-between bg-slate-950 p-3 rounded-xl border border-slate-800 mt-2">
-              <span className="text-[11px] text-slate-400">
-                Page {repairPage} of {Math.ceil(filteredRepairs.length / REPAIRS_PER_PAGE)} ({filteredRepairs.length} total)
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setRepairPage(p => Math.max(1, p - 1))}
-                  disabled={repairPage === 1}
-                  className="px-3 py-1 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-slate-300 font-bold text-[11px] rounded-lg transition-colors"
-                >
-                  Prev
-                </button>
-                <button
-                  onClick={() => setRepairPage(p => Math.min(Math.ceil(filteredRepairs.length / REPAIRS_PER_PAGE), p + 1))}
-                  disabled={repairPage === Math.ceil(filteredRepairs.length / REPAIRS_PER_PAGE)}
-                  className="px-3 py-1 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-slate-300 font-bold text-[11px] rounded-lg transition-colors"
-                >
-                  Next
-                </button>
+            <div className="flex items-center justify-between bg-slate-950 p-3 rounded-xl border border-slate-800">
+              <span className="text-[11px] text-slate-400">Page {repairPage} of {totalPages} ({filteredRepairs.length} total)</span>
+              <div className="flex gap-2">
+                <button onClick={() => setRepairPage(p => Math.max(1, p - 1))} disabled={repairPage === 1} className="px-3 py-1 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-slate-300 font-bold text-[11px] rounded-lg">Prev</button>
+                <button onClick={() => setRepairPage(p => Math.min(totalPages, p + 1))} disabled={repairPage === totalPages} className="px-3 py-1 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-slate-300 font-bold text-[11px] rounded-lg">Next</button>
               </div>
             </div>
           )}
         </div>
 
-        {/* Selected Repair Inspector & Edit Form */}
-        <div className="bg-slate-950 border border-slate-800 rounded-xl p-5 space-y-4">
+        {/* ── Edit Inspector Panel ── */}
+        <div className="bg-slate-950 border border-slate-800 rounded-xl p-5 space-y-4 overflow-y-auto max-h-[88vh]">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <h3 className="font-bold text-white text-sm">
-              {selectedRepair ? `Edit Repair ${selectedRepair.trackingId}` : 'Select a Repair to Edit'}
+              {selectedRepair ? `Edit · ${selectedRepair.trackingId}` : 'Select a Repair'}
             </h3>
             {selectedRepair && (
-              <button
-                onClick={() => setSelectedRepair(null)}
-                className="text-xs text-rose-400 hover:underline"
-              >
-                Clear Selection
-              </button>
+              <button onClick={() => setSelectedRepair(null)} className="text-xs text-rose-400 hover:underline">Clear</button>
             )}
           </div>
 
           {selectedRepair ? (
             <div className="space-y-4">
+
+              {/* Repair Status */}
               <div>
-                <label className="block text-slate-400 mb-1 text-[11px]">Repair Status</label>
+                <label className="block text-slate-400 mb-1 text-[11px] uppercase tracking-wide">Repair Status</label>
                 <select
                   value={updateForm.status}
                   onChange={e => setUpdateForm(p => ({ ...p, status: e.target.value }))}
@@ -1397,8 +1370,9 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                 </select>
               </div>
 
+              {/* Payment Status */}
               <div>
-                <label className="block text-slate-400 mb-1 text-[11px]">Payment Status</label>
+                <label className="block text-slate-400 mb-1 text-[11px] uppercase tracking-wide">Payment Status</label>
                 <select
                   value={updateForm.paymentStatus}
                   onChange={e => setUpdateForm(p => ({ ...p, paymentStatus: e.target.value }))}
@@ -1409,60 +1383,137 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                 </select>
               </div>
 
-              <div>
-                <label className="block text-slate-400 mb-1 text-[11px]">Total Estimated Cost (Le)</label>
-                <input
-                  type="number"
-                  value={updateForm.totalCost}
-                  onChange={e => setUpdateForm(p => ({ ...p, totalCost: e.target.value }))}
-                  placeholder="e.g. 500000"
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-red-500"
-                />
+              {/* ── Repair Cost Builder ── */}
+              <div className="rounded-xl border border-slate-700 overflow-hidden">
+                <div className="bg-slate-900 px-4 py-2.5 border-b border-slate-700 flex items-center gap-2">
+                  <i className="fas fa-calculator text-red-400" />
+                  <span className="font-bold text-white text-[11px] uppercase tracking-wide">Repair Cost Builder</span>
+                </div>
+                <div className="p-4 space-y-2.5">
+
+                  {/* Fixed Consultation Fee Row (read-only) */}
+                  <div className="flex items-center justify-between bg-amber-950/40 border border-amber-700/40 rounded-lg px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <i className={`fas ${isComputer ? 'fa-laptop' : 'fa-mobile-alt'} text-amber-400 text-xs`} />
+                      <span className="text-amber-200 font-semibold text-[11px]">
+                        Consultation Fee ({isComputer ? 'Computer' : 'Mobile'})
+                      </span>
+                      <span className="text-[9px] bg-amber-800/50 text-amber-200 rounded px-1.5 py-0.5 font-bold uppercase">Fixed</span>
+                    </div>
+                    <span className="font-black text-amber-300 text-xs whitespace-nowrap">Le {consultationFee.toLocaleString()}</span>
+                  </div>
+
+                  {/* Repair Line Items */}
+                  {repairItems.map((item, index) => (
+                    <div key={index} className="flex items-center justify-between bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <i className="fas fa-wrench text-red-400 text-[10px] shrink-0" />
+                        <span className="text-slate-200 text-[11px] truncate">{item.description}</span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="font-bold text-red-400 text-xs whitespace-nowrap">Le {parseFloat(item.cost || '0').toLocaleString()}</span>
+                        <button
+                          onClick={() => removeRepairItem(index)}
+                          className="text-rose-500 hover:text-rose-300 transition-colors"
+                          title="Remove"
+                        >
+                          <i className="fas fa-times text-[10px]" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Add New Repair Line */}
+                  <div className="pt-1 space-y-1.5">
+                    <p className="text-[10px] text-slate-500 uppercase tracking-wide font-bold">+ Add Repair Type</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="e.g. Screen replacement"
+                        value={newItem.description}
+                        onChange={e => setNewItem(prev => ({ ...prev, description: e.target.value }))}
+                        onKeyDown={e => e.key === 'Enter' && addRepairItem()}
+                        className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-white text-[11px] focus:outline-none focus:border-red-500 min-w-0"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Le cost"
+                        value={newItem.cost}
+                        onChange={e => setNewItem(prev => ({ ...prev, cost: e.target.value }))}
+                        onKeyDown={e => e.key === 'Enter' && addRepairItem()}
+                        className="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-white text-[11px] focus:outline-none focus:border-red-500"
+                      />
+                      <button
+                        onClick={addRepairItem}
+                        className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white font-bold text-[11px] rounded-lg transition-colors shrink-0"
+                      >
+                        <i className="fas fa-plus" />
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-slate-600 italic">Press Enter or + to add. You can add as many repair types as needed.</p>
+                  </div>
+
+                  {/* Grand Total */}
+                  <div className="flex items-center justify-between border-t border-slate-700 pt-3 mt-1">
+                    <div>
+                      <p className="text-[10px] text-slate-400 uppercase tracking-wide font-bold">Grand Total</p>
+                      <p className="text-[10px] text-slate-600">Consultation + {repairItems.length} repair line{repairItems.length !== 1 ? 's' : ''}</p>
+                    </div>
+                    <span className="font-black text-emerald-400 text-lg">Le {grandTotal.toLocaleString()}</span>
+                  </div>
+
+                </div>
               </div>
 
+              {/* Diagnostic Notes */}
               <div>
-                <label className="block text-slate-400 mb-1 text-[11px]">Diagnostic Notes for Customer</label>
+                <label className="block text-slate-400 mb-1 text-[11px] uppercase tracking-wide">Diagnostic Notes for Customer</label>
                 <textarea
                   rows={3}
                   value={updateForm.diagnosticNotes}
                   onChange={e => setUpdateForm(p => ({ ...p, diagnosticNotes: e.target.value }))}
-                  placeholder="e.g. Screen replaced. Internal board tested OK."
+                  placeholder="e.g. Screen replaced. Board tested OK."
                   className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-red-500"
                 />
               </div>
 
+              {/* Diagnostic Images */}
               <div>
-                <label className="block text-slate-400 mb-1 text-[11px]">Upload Diagnostic Images</label>
+                <label className="block text-slate-400 mb-1 text-[11px] uppercase tracking-wide">Diagnostic Images (max 5)</label>
                 <input
                   type="file"
                   accept="image/*"
                   multiple
                   onChange={handleImageUpload}
-                  className="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-red-600/20 file:text-red-400 file:font-semibold"
+                  className="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-red-600/20 file:text-red-400 file:font-semibold cursor-pointer"
                 />
                 {updateForm.diagnosticImages.length > 0 && (
                   <div className="flex gap-2 mt-2 overflow-x-auto">
                     {updateForm.diagnosticImages.map((img, i) => (
-                      <img key={i} src={img} className="w-12 h-12 object-cover rounded-lg border border-slate-800" />
+                      <img key={i} src={img} className="w-12 h-12 object-cover rounded-lg border border-slate-800 shrink-0" alt={`Diagnostic ${i + 1}`} />
                     ))}
                   </div>
                 )}
               </div>
 
+              {/* Save Button */}
               <button
-                onClick={updateRepair}
-                className="w-full py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-lg transition-colors shadow"
+                onClick={saveRepair}
+                className="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-black text-xs rounded-xl transition-colors shadow-lg shadow-red-900/30"
               >
-                Save & Publish Update to Customer
+                <i className="fas fa-paper-plane mr-2" />
+                Save &amp; Publish Update to Customer
               </button>
             </div>
           ) : (
-            <p className="text-slate-500 text-center py-12 text-xs">
-              Click any repair on the left to edit status, set repair costs, or upload photos.
-            </p>
+            <div className="py-16 text-center">
+              <i className="fas fa-mouse-pointer text-slate-700 text-2xl mb-3 block" />
+              <p className="text-slate-500 text-xs">Click any repair on the left to set status, build costs, or upload diagnostic photos.</p>
+            </div>
           )}
         </div>
       </div>
     </div>
   );
 }
+
