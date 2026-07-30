@@ -4,6 +4,17 @@ import { useState, useEffect } from 'react'
 import { getBookingByTrackingId, getAllBookings, addCustomerComment, BookingData, CustomerComment } from '@/lib/unified-booking-storage'
 import PaymentInstructionsPopup from '@/components/PaymentInstructionsPopup'
 
+// Print-only styles: hide everything except the slip section
+const printStyles = `
+@media print {
+  body > * { display: none !important; }
+  #repair-slip-printable { display: block !important; }
+  #repair-slip-printable * { display: revert !important; }
+  .no-print { display: none !important; }
+  @page { margin: 1cm; }
+}
+`
+
 interface AppointmentStatusProps {
   trackingId: string
 }
@@ -342,6 +353,9 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
   const { items: costItems, cleanNotes } = parseCostBreakdown(appointment.notes)
 
   return (
+    <>
+    {/* Inject print styles into <head> via a style tag */}
+    <style dangerouslySetInnerHTML={{ __html: printStyles }} />
     <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-lg border border-gray-100">
       
       {/* Header */}
@@ -358,7 +372,7 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
           </p>
         </div>
         
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 no-print">
           {appointment.status !== 'cancelled' && appointment.status !== 'collected' && (
             <button
               onClick={() => setShowCancelConfirm(true)}
@@ -369,13 +383,22 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
             </button>
           )}
           
-          <button
-            onClick={() => window.print()}
-            className="px-3 py-1.5 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium text-xs rounded-lg transition-colors flex items-center gap-1.5"
-          >
-            <i className="fas fa-print"></i>
-            Print Slip
-          </button>
+          {/* Print Slip — only visible when payment is confirmed (paid) */}
+          {appointment.paymentStatus === 'paid' && (
+            <button
+              onClick={() => {
+                // Temporarily show the slip section and trigger print
+                const slip = document.getElementById('repair-slip-printable');
+                if (slip) slip.style.display = 'block';
+                window.print();
+                if (slip) slip.style.display = 'none';
+              }}
+              className="px-3 py-1.5 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium text-xs rounded-lg transition-colors flex items-center gap-1.5"
+            >
+              <i className="fas fa-print"></i>
+              Print Slip
+            </button>
+          )}
         </div>
       </div>
 
@@ -507,14 +530,22 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
             </span>
           </div>
 
-          {appointment.cost && (
+          {/* View Payment Instructions — only show while payment is still pending */}
+          {appointment.cost && appointment.paymentStatus !== 'paid' && (
             <button
               onClick={() => setShowPaymentPopup(true)}
-              className="w-full py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white text-xs font-bold rounded-lg transition-all shadow text-center"
+              className="w-full py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white text-xs font-bold rounded-lg transition-all shadow text-center no-print"
             >
               <i className="fas fa-credit-card mr-2"></i>
               View Payment Instructions
             </button>
+          )}
+          {/* Paid badge when payment is complete */}
+          {appointment.paymentStatus === 'paid' && (
+            <div className="w-full py-2 bg-emerald-600/10 border border-emerald-500 text-emerald-700 text-xs font-bold rounded-lg text-center flex items-center justify-center gap-2">
+              <i className="fas fa-check-circle"></i>
+              Payment Confirmed — Thank You!
+            </div>
           )}
         </div>
       </div>
@@ -704,81 +735,139 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
         </div>
       </div>
 
-      {/* ── Full-Page Lightbox Modal Viewer for Diagnostic Photos ── */}
-      {lightboxIndex !== null && appointment.diagnosticImages && (
-        <div 
-          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col justify-between p-4 sm:p-6 animate-fadeIn"
-          onClick={() => setLightboxIndex(null)}
-        >
-          {/* Modal Header */}
-          <div className="flex items-center justify-between text-white z-10" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center gap-3">
-              <span className="bg-white/10 px-3 py-1 rounded-full text-xs font-mono font-bold">
-                Image {lightboxIndex + 1} of {appointment.diagnosticImages.length}
-              </span>
-              <span className="text-xs text-gray-300 hidden sm:inline">
-                Repair ID: {appointment.id}
-              </span>
+      {/* ── Printable Slip (hidden on screen, shown only when printing) ── */}
+      <div id="repair-slip-printable" style={{ display: 'none' }}>
+        <div style={{ fontFamily: 'sans-serif', padding: '24px', border: '2px solid #040e40', borderRadius: '8px', maxWidth: '600px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '16px', borderBottom: '2px solid #040e40', paddingBottom: '12px' }}>
+            <h1 style={{ fontSize: '20px', fontWeight: 900, color: '#040e40', margin: 0 }}>IT Services Freetown</h1>
+            <p style={{ fontSize: '12px', color: '#555', margin: '4px 0 0' }}>Repair Receipt / Payment Slip</p>
+          </div>
+          <table style={{ width: '100%', fontSize: '13px', borderCollapse: 'collapse' }}>
+            <tbody>
+              <tr><td style={{ padding: '5px 0', color: '#555', width: '45%' }}>Tracking ID:</td><td style={{ fontWeight: 700 }}>{appointment.id}</td></tr>
+              <tr><td style={{ padding: '5px 0', color: '#555' }}>Customer:</td><td style={{ fontWeight: 700 }}>{appointment.customerName}</td></tr>
+              <tr><td style={{ padding: '5px 0', color: '#555' }}>Device:</td><td style={{ fontWeight: 700 }}>{appointment.deviceType} {appointment.deviceModel !== '—' ? `(${appointment.deviceModel})` : ''}</td></tr>
+              <tr><td style={{ padding: '5px 0', color: '#555' }}>Status:</td><td style={{ fontWeight: 700, textTransform: 'capitalize' }}>{appointment.status.replace('-', ' ')}</td></tr>
+              <tr><td style={{ padding: '5px 0', color: '#555' }}>Payment Status:</td><td style={{ fontWeight: 700, color: '#059669' }}>PAID ✓</td></tr>
+              <tr><td style={{ padding: '5px 0', color: '#555' }}>Date:</td><td style={{ fontWeight: 700 }}>{new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</td></tr>
+            </tbody>
+          </table>
+          {costItems.length > 0 && (
+            <div style={{ marginTop: '16px', borderTop: '1px solid #ccc', paddingTop: '12px' }}>
+              <p style={{ fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: '#040e40' }}>Cost Breakdown:</p>
+              {costItems.map((item, idx) => (
+                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '3px 0' }}>
+                  <span>{item.label}</span><span style={{ fontWeight: 700 }}>Le {item.cost.toLocaleString()}</span>
+                </div>
+              ))}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: 900, borderTop: '2px solid #040e40', marginTop: '8px', paddingTop: '8px', color: '#040e40' }}>
+                <span>TOTAL PAID</span><span>Le {appointment.cost?.toLocaleString()}</span>
+              </div>
             </div>
-
-            <div className="flex items-center gap-3">
-              <a
-                href={typeof appointment.diagnosticImages[lightboxIndex] === 'string' ? appointment.diagnosticImages[lightboxIndex] as string : (appointment.diagnosticImages[lightboxIndex] as any).data}
-                download={`diagnostic-${appointment.id}-${lightboxIndex + 1}.jpg`}
-                target="_blank"
-                rel="noreferrer"
-                className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5"
-                title="Download full image"
-              >
-                <i className="fas fa-download"></i>
-                <span className="hidden sm:inline">Download</span>
-              </a>
-              <button
-                onClick={() => setLightboxIndex(null)}
-                className="w-9 h-9 bg-white/10 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-lg font-bold transition-colors"
-                title="Close (Esc)"
-              >
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-          </div>
-
-          {/* Modal Main Image Container */}
-          <div 
-            className="flex-1 flex items-center justify-center relative my-4"
-            onClick={e => e.stopPropagation()}
-          >
-            {/* Next Button */}
-            {appointment.diagnosticImages.length > 1 && (
-              <button
-                onClick={() => setLightboxIndex((lightboxIndex + 1) % appointment.diagnosticImages!.length)}
-                className="absolute right-2 sm:right-4 z-20 w-12 h-12 bg-black/50 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xl transition-all shadow-lg"
-                title="Next Image (Right Arrow)"
-              >
-                <i className="fas fa-chevron-right"></i>
-              </button>
-            )}
-          </div>
-
-          {/* Modal Footer / Thumbnails */}
-          <div className="flex items-center justify-center gap-2 overflow-x-auto py-2 z-10" onClick={e => e.stopPropagation()}>
-            {appointment.diagnosticImages.map((img, idx) => {
-              const src = typeof img === 'string' ? img : img.data;
-              return (
-                <button
-                  key={idx}
-                  onClick={() => setLightboxIndex(idx)}
-                  className={`w-14 h-14 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${
-                    idx === lightboxIndex ? 'border-red-500 scale-105 shadow-lg' : 'border-white/20 opacity-60 hover:opacity-100'
-                  }`}
-                >
-                  <img src={src} className="w-full h-full object-cover" alt={`Thumb ${idx + 1}`} />
-                </button>
-              );
-            })}
-          </div>
+          )}
+          <p style={{ fontSize: '10px', color: '#888', textAlign: 'center', marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '10px' }}>Thank you for choosing IT Services Freetown • Tel: +232 33 399391</p>
         </div>
-      )}
+      </div>
+
+      {/* ── Full-Page Lightbox Modal Viewer for Diagnostic Photos ── */}
+      {lightboxIndex !== null && appointment.diagnosticImages && (() => {
+        const currentImg = appointment.diagnosticImages[lightboxIndex];
+        const currentSrc = typeof currentImg === 'string' ? currentImg : (currentImg as any).data;
+        return (
+          <div 
+            className="fixed inset-0 z-[9999] bg-black flex flex-col no-print"
+            onClick={() => setLightboxIndex(null)}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between text-white z-10 p-4 bg-black/60 backdrop-blur-sm" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center gap-3">
+                <span className="bg-white/10 px-3 py-1 rounded-full text-xs font-mono font-bold">
+                  Photo {lightboxIndex + 1} / {appointment.diagnosticImages.length}
+                </span>
+                <span className="text-xs text-gray-300 hidden sm:inline">
+                  Repair ID: {appointment.id}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <a
+                  href={currentSrc}
+                  download={`diagnostic-${appointment.id}-${lightboxIndex + 1}.jpg`}
+                  onClick={e => e.stopPropagation()}
+                  className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5"
+                  title="Download full image"
+                >
+                  <i className="fas fa-download"></i>
+                  <span className="hidden sm:inline">Download</span>
+                </a>
+                <button
+                  onClick={() => setLightboxIndex(null)}
+                  className="w-9 h-9 bg-white/10 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-lg font-bold transition-colors"
+                  title="Close (Esc)"
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+
+            {/* Main Image Area with Prev/Next */}
+            <div
+              className="flex-1 flex items-center justify-center relative overflow-hidden"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Prev Button */}
+              {appointment.diagnosticImages.length > 1 && (
+                <button
+                  onClick={e => { e.stopPropagation(); setLightboxIndex((lightboxIndex - 1 + appointment.diagnosticImages!.length) % appointment.diagnosticImages!.length); }}
+                  className="absolute left-2 sm:left-4 z-20 w-12 h-12 bg-black/50 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xl transition-all shadow-lg"
+                  title="Previous (Left Arrow)"
+                >
+                  <i className="fas fa-chevron-left"></i>
+                </button>
+              )}
+
+              {/* THE ACTUAL IMAGE */}
+              <img
+                key={lightboxIndex}
+                src={currentSrc}
+                alt={`Diagnostic photo ${lightboxIndex + 1}`}
+                className="max-h-full max-w-full object-contain select-none"
+                style={{ maxHeight: 'calc(100vh - 160px)' }}
+                draggable={false}
+              />
+
+              {/* Next Button */}
+              {appointment.diagnosticImages.length > 1 && (
+                <button
+                  onClick={e => { e.stopPropagation(); setLightboxIndex((lightboxIndex + 1) % appointment.diagnosticImages!.length); }}
+                  className="absolute right-2 sm:right-4 z-20 w-12 h-12 bg-black/50 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xl transition-all shadow-lg"
+                  title="Next Image (Right Arrow)"
+                >
+                  <i className="fas fa-chevron-right"></i>
+                </button>
+              )}
+            </div>
+
+            {/* Footer Thumbnails */}
+            <div className="flex items-center justify-center gap-2 overflow-x-auto py-3 px-4 bg-black/60 backdrop-blur-sm" onClick={e => e.stopPropagation()}>
+              {appointment.diagnosticImages.map((img, idx) => {
+                const src = typeof img === 'string' ? img : (img as any).data;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => setLightboxIndex(idx)}
+                    className={`w-14 h-14 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${
+                      idx === lightboxIndex ? 'border-red-500 scale-110 shadow-lg shadow-red-500/30' : 'border-white/20 opacity-50 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={src} className="w-full h-full object-cover" alt={`Thumb ${idx + 1}`} />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Cancel Confirm Modal */}
       {showCancelConfirm && (
@@ -824,5 +913,6 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
         </div>
       )}
     </div>
+    </>
   )
 }
