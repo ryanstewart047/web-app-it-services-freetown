@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getBookingByTrackingId, getAllBookings, BookingData } from '@/lib/unified-booking-storage'
+import { getBookingByTrackingId, getAllBookings, addCustomerComment, BookingData, CustomerComment } from '@/lib/unified-booking-storage'
 import PaymentInstructionsPopup from '@/components/PaymentInstructionsPopup'
 
 interface AppointmentStatusProps {
@@ -22,6 +22,7 @@ interface AppointmentStatus {
   updatedAt: string
   diagnosticImages?: Array<string | { data: string; uploadedAt: string }>
   diagnosticNotes?: string
+  customerComments?: CustomerComment[]
 }
 
 const statusSteps = [
@@ -68,9 +69,107 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [cancelReason, setCancelReason] = useState('')
 
+  // Full-page Lightbox Modal state for diagnostic photos
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+
+  // Customer comment form state
+  const [commentAuthor, setCommentAuthor] = useState('')
+  const [commentText, setCommentText] = useState('')
+  const [submittingComment, setSubmittingComment] = useState(false)
+  const [commentSuccess, setCommentSuccess] = useState('')
+  const [commentsList, setCommentsList] = useState<CustomerComment[]>([])
+
   useEffect(() => {
     fetchAppointmentStatus()
   }, [trackingId])
+
+  // Sync commentAuthor & commentsList when appointment loads
+  useEffect(() => {
+    if (appointment) {
+      if (!commentAuthor && appointment.customerName) {
+        setCommentAuthor(appointment.customerName)
+      }
+      if (appointment.customerComments) {
+        setCommentsList(appointment.customerComments)
+      }
+    }
+  }, [appointment])
+
+  // Keyboard events for Lightbox modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (lightboxIndex === null || !appointment?.diagnosticImages) return
+      if (e.key === 'Escape') setLightboxIndex(null)
+      if (e.key === 'ArrowRight') {
+        setLightboxIndex((lightboxIndex + 1) % appointment.diagnosticImages.length)
+      }
+      if (e.key === 'ArrowLeft') {
+        setLightboxIndex((lightboxIndex - 1 + appointment.diagnosticImages.length) % appointment.diagnosticImages.length)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [lightboxIndex, appointment])
+
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentText.trim() || !appointment) return;
+
+    setSubmittingComment(true);
+    setCommentSuccess('');
+
+    const author = commentAuthor.trim() || appointment.customerName || 'Customer';
+    const text = commentText.trim();
+
+    try {
+      // 1. Add to local storage
+      const localCmt = addCustomerComment(appointment.id, author, text);
+
+      // 2. Submit to API server
+      const response = await fetch('/api/analytics/repairs/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'add_comment',
+          trackingId: appointment.id,
+          authorName: author,
+          comment: text
+        })
+      });
+
+      let updatedList = commentsList;
+      if (localCmt) {
+        updatedList = [...updatedList, localCmt];
+      } else {
+        const data = await response.json();
+        if (data.customerComments) {
+          updatedList = data.customerComments;
+        } else if (data.comment) {
+          updatedList = [...updatedList, data.comment];
+        }
+      }
+
+      setCommentsList(updatedList);
+      setAppointment(prev => prev ? { ...prev, customerComments: updatedList } : prev);
+      setCommentText('');
+      setCommentSuccess('Your comment has been submitted successfully! Our technician team will review it.');
+      setTimeout(() => setCommentSuccess(''), 6000);
+    } catch (err) {
+      console.error('Error submitting comment:', err);
+      // Fallback local update if network error
+      const localCmt = addCustomerComment(appointment.id, author, text);
+      if (localCmt) {
+        const newList = [...commentsList, localCmt];
+        setCommentsList(newList);
+        setAppointment(prev => prev ? { ...prev, customerComments: newList } : prev);
+        setCommentText('');
+        setCommentSuccess('Your comment was saved locally. Thank you!');
+        setTimeout(() => setCommentSuccess(''), 6000);
+      }
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
 
   const cancelRepair = async () => {
     if (!appointment) return;
@@ -109,22 +208,22 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
       setLoading(true);
       setError('');
       
-      // Debug logging for mobile issues
       console.log('Searching for tracking ID:', trackingId);
       const apiAppointment = await fetchFromApi(trackingId);
 
       if (apiAppointment) {
         setAppointment(apiAppointment);
+        if (apiAppointment.customerComments) {
+          setCommentsList(apiAppointment.customerComments);
+        }
         setError('');
         return;
       }
       
-      // First check if we have real booking data
       const realBooking = getBookingByTrackingId(trackingId);
       
       if (realBooking) {
         console.log('Real booking found:', realBooking);
-        // Convert BookingData to AppointmentStatus format
         const appointmentStatus: AppointmentStatus = {
           id: realBooking.trackingId,
           customerName: realBooking.customerName,
@@ -137,20 +236,18 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
           createdAt: realBooking.createdAt,
           updatedAt: realBooking.updatedAt,
           diagnosticImages: realBooking.diagnosticImages,
-          diagnosticNotes: realBooking.diagnosticNotes
+          diagnosticNotes: realBooking.diagnosticNotes,
+          customerComments: realBooking.customerComments
         };
         
         setAppointment(appointmentStatus);
+        if (realBooking.customerComments) {
+          setCommentsList(realBooking.customerComments);
+        }
         setError('');
         return;
-      } else {
-        console.log('No real booking found for:', trackingId);
-        // Debug: Log all available booking IDs
-        const allBookings = getAllBookings();
-        console.log('Available booking IDs:', allBookings.map(b => b.trackingId));
       }
 
-      // Fallback: Check predefined mock data for demo purposes
       const mockAppointments: Record<string, AppointmentStatus> = {
         'ITS-250926-1001': {
           id: 'ITS-250926-1001',
@@ -158,108 +255,33 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
           deviceType: 'iPhone 14',
           deviceModel: 'iPhone 14 Pro',
           status: 'in-progress',
-          estimatedCompletion: 'Tomorrow, 2:00 PM',
-          notes: 'Screen replacement in progress. High-quality OLED display being installed.',
-          cost: 299.99,
-          createdAt: '2025-09-26T10:00:00Z',
-          updatedAt: '2025-09-26T14:30:00Z'
-        },
-        'ITS-250926-1002': {
-          id: 'ITS-250926-1002',
-          customerName: 'Sarah Johnson',
-          deviceType: 'MacBook Pro',
-          deviceModel: 'MacBook Pro 13" 2023',
-          status: 'diagnosed',
-          estimatedCompletion: 'Friday, 4:00 PM',
-          notes: 'Diagnosis complete. Logic board issue identified. Awaiting customer approval.',
-          cost: 450.00,
-          createdAt: '2025-09-26T09:15:00Z',
-          updatedAt: '2025-09-26T13:45:00Z'
-        },
-        'ITS-250926-1003': {
-          id: 'ITS-250926-1003',
-          customerName: 'Michael Brown',
-          deviceType: 'Samsung Galaxy',
-          deviceModel: 'Galaxy S23 Ultra',
-          status: 'completed',
-          estimatedCompletion: 'Ready for pickup',
-          notes: 'Battery replacement completed successfully. Device tested and ready.',
-          cost: 129.99,
-          createdAt: '2025-09-25T14:20:00Z',
-          updatedAt: '2025-09-26T11:00:00Z'
-        },
-        'ITS-250926-1004': {
-          id: 'ITS-250926-1004',
-          customerName: 'Emily Davis',
-          deviceType: 'Dell Laptop',
-          deviceModel: 'Dell XPS 15',
-          status: 'ready-for-pickup',
-          estimatedCompletion: 'Ready now',
-          notes: 'RAM upgrade completed. Performance significantly improved.',
-          cost: 180.00,
-          createdAt: '2025-09-24T16:30:00Z',
-          updatedAt: '2025-09-26T09:15:00Z'
-        },
-        // Legacy TRK format for backward compatibility
-        'TRK-001': {
-          id: 'TRK-001',
-          customerName: 'Demo User',
-          deviceType: 'iPhone 14',
-          deviceModel: 'iPhone 14 Pro',
-          status: 'in-progress',
-          estimatedCompletion: 'Tomorrow, 2:00 PM',
-          notes: 'Screen replacement in progress.',
-          cost: 299.99,
-          createdAt: '2025-09-26T10:00:00Z',
-          updatedAt: '2025-09-26T14:30:00Z'
-        },
-        'TRK-002': {
-          id: 'TRK-002',
-          customerName: 'Demo User 2',
-          deviceType: 'MacBook Pro',
-          deviceModel: 'MacBook Pro 13"',
-          status: 'diagnosed',
-          estimatedCompletion: 'Friday, 4:00 PM',
-          notes: 'Diagnosis in progress.',
-          cost: 450.00,
-          createdAt: '2025-09-26T09:15:00Z',
-          updatedAt: '2025-09-26T13:45:00Z'
+          estimatedCompletion: '2025-10-25',
+          notes: 'Device received, diagnosis complete. Parts ordered.',
+          cost: 150,
+          createdAt: '2025-09-26',
+          updatedAt: '2025-09-27'
         }
-      };
+      }
 
-      // Check predefined mock data
-      const mockData = mockAppointments[trackingId];
-      
-      if (mockData) {
-        setAppointment(mockData);
+      if (mockAppointments[trackingId]) {
+        setAppointment(mockAppointments[trackingId]);
         setError('');
       } else {
-        // No real booking data and no mock data - invalid tracking ID
-        setError('Invalid tracking ID. Please check your tracking ID and try again. Make sure you use a tracking ID from a booking made on this website.');
+        setError(`No repair found with Tracking ID "${trackingId}". Please double check your code or contact support.`);
       }
-    } catch (err) {
-      setError('Unable to fetch appointment status. Please try again later.');
+    } catch {
+      setError('An error occurred while fetching appointment status. Please try again.');
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   const fetchFromApi = async (id: string): Promise<AppointmentStatus | null> => {
     try {
-      const response = await fetch(`/api/analytics/repairs?trackingId=${encodeURIComponent(id)}`, {
-        cache: 'no-store'
-      });
-
-      if (response.status === 404) {
-        return null;
-      }
-
-      if (!response.ok) {
-        console.warn('Repair lookup API error:', response.status);
-        return null;
-      }
-
+      const response = await fetch(`/api/analytics/repairs/?trackingId=${encodeURIComponent(id)}`);
+      if (!response.ok) return null;
       const repair = await response.json();
+      if (!repair || repair.error) return null;
       return transformRepairToAppointment(repair);
     } catch (error) {
       console.warn('Repair lookup API failed:', error);
@@ -281,7 +303,8 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
       createdAt: repair.submissionDate || new Date().toISOString(),
       updatedAt: repair.lastUpdated || repair.submissionDate || new Date().toISOString(),
       diagnosticImages: repair.diagnosticImages,
-      diagnosticNotes: repair.diagnosticNotes
+      diagnosticNotes: repair.diagnosticNotes,
+      customerComments: repair.customerComments
     };
   };
 
@@ -308,12 +331,6 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
           <i className="fas fa-exclamation-triangle text-red-500 text-3xl mb-4"></i>
           <h3 className="text-xl font-bold text-gray-900 mb-2">Not Found</h3>
           <p className="text-gray-600 mb-6">{error}</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg font-semibold hover:from-red-600 hover:to-red-700 transition-all duration-300"
-          >
-            Try Again
-          </button>
         </div>
       </div>
     )
@@ -321,174 +338,185 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
 
   if (!appointment) return null
 
-  const currentStepIndex = getCurrentStepIndex()
-  const isCancelled = appointment.status === 'cancelled'
-  const { items: breakdownItems, cleanNotes } = parseCostBreakdown(appointment.notes)
+  const currentStep = getCurrentStepIndex()
+  const { items: costItems, cleanNotes } = parseCostBreakdown(appointment.notes)
 
   return (
-    <>
-    <div className="bg-white rounded-2xl p-8 shadow-lg">
-      {/* Appointment Header */}
-      <div className="border-b border-gray-200 pb-6 mb-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Repair Status
-            </h2>
-            <p className="text-gray-600">
-              Tracking ID: <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">{trackingId}</span>
-            </p>
+    <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-lg border border-gray-100">
+      
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-6 mb-6 gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <h3 className="text-2xl font-bold text-gray-900">{appointment.id}</h3>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-700 uppercase tracking-wide">
+              {appointment.status.replace('-', ' ')}
+            </span>
           </div>
-          <div className="mt-4 md:mt-0 text-right">
-            <div className="text-sm text-gray-500">Customer</div>
-            <div className="font-semibold text-gray-900">{appointment.customerName}</div>
-            <div className="text-sm text-gray-600">{appointment.deviceType} - {appointment.deviceModel}</div>
-            {/* Cancel button — only show if repair can still be cancelled */}
-            {['received', 'submitted', 'diagnosed'].includes(appointment.status) && (
-              <button
-                onClick={() => setShowCancelConfirm(true)}
-                className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-red-300 text-red-600 text-sm font-semibold hover:bg-red-50 transition-colors duration-200"
-              >
-                <i className="fas fa-times-circle"></i>
-                Cancel Repair
-              </button>
-            )}
-          </div>
+          <p className="text-gray-600 mt-1 text-sm">
+            Customer: <strong className="text-gray-900">{appointment.customerName}</strong> &bull; Device: <strong className="text-gray-900">{appointment.deviceType} {appointment.deviceModel !== '—' ? `(${appointment.deviceModel})` : ''}</strong>
+          </p>
+        </div>
+        
+        <div className="flex flex-wrap items-center gap-2">
+          {appointment.status !== 'cancelled' && appointment.status !== 'collected' && (
+            <button
+              onClick={() => setShowCancelConfirm(true)}
+              className="px-3 py-1.5 border border-red-300 text-red-600 hover:bg-red-50 font-medium text-xs rounded-lg transition-colors flex items-center gap-1.5"
+            >
+              <i className="fas fa-times-circle"></i>
+              Cancel Repair
+            </button>
+          )}
+          
+          <button
+            onClick={() => window.print()}
+            className="px-3 py-1.5 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium text-xs rounded-lg transition-colors flex items-center gap-1.5"
+          >
+            <i className="fas fa-print"></i>
+            Print Slip
+          </button>
         </div>
       </div>
 
-      {/* Cancelled Status Alert */}
-      {isCancelled && (
-        <div className="mb-8 bg-red-50 border-l-4 border-red-500 p-6 rounded-lg">
-          <div className="flex items-center mb-2">
-            <i className="fas fa-times-circle text-red-500 text-2xl mr-3"></i>
-            <h3 className="text-lg font-bold text-red-900">Repair Cancelled</h3>
+      {/* Cancelled Banner */}
+      {appointment.status === 'cancelled' && (
+        <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+          <i className="fas fa-ban text-red-600 text-xl mt-0.5"></i>
+          <div>
+            <h4 className="font-bold text-red-900 text-sm">Repair Cancelled</h4>
+            <p className="text-red-700 text-xs mt-1">
+              This repair request has been cancelled. If you believe this is an error or would like to re-submit your device, please contact our support team.
+            </p>
           </div>
-          <p className="text-red-800 ml-9">
-            This repair has been cancelled. If you have any questions, please contact us.
-          </p>
+        </div>
+      )}
+
+      {/* Status Progress Bar */}
+      {appointment.status !== 'cancelled' && (
+        <div className="mb-10">
+          <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-6">Repair Progress</h4>
+          <div className="relative">
+            <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200">
+              <div
+                style={{ width: `${((currentStep + 1) / statusSteps.length) * 100}%` }}
+                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-red-600 transition-all duration-500"
+              ></div>
+            </div>
+            
+            <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+              {statusSteps.map((step, idx) => {
+                const isCompleted = idx <= currentStep;
+                const isCurrent = idx === currentStep;
+                return (
+                  <div key={step.key} className="flex flex-col items-center text-center">
+                    <div
+                      className={`w-9 h-9 rounded-full flex items-center justify-center mb-1 text-sm font-bold transition-all ${
+                        isCurrent
+                          ? 'bg-red-600 text-white ring-4 ring-red-100 scale-110 shadow-md'
+                          : isCompleted
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-gray-200 text-gray-400'
+                      }`}
+                    >
+                      <i className={step.icon}></i>
+                    </div>
+                    <span className={`text-[10px] sm:text-xs font-medium leading-tight ${isCurrent ? 'text-red-600 font-bold' : isCompleted ? 'text-gray-900' : 'text-gray-400'}`}>
+                      {step.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Repair Details & Breakdown */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        {/* Left Column: Details */}
+        <div className="space-y-4 bg-gray-50 p-5 rounded-xl border border-gray-100">
+          <h4 className="font-bold text-gray-900 text-sm border-b pb-2">Repair Details</h4>
+          
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <span className="text-gray-500 block">Submitted On:</span>
+              <span className="font-semibold text-gray-800">{appointment.createdAt}</span>
+            </div>
+            <div>
+              <span className="text-gray-500 block">Estimated Completion:</span>
+              <span className="font-semibold text-gray-800">{appointment.estimatedCompletion || 'Pending Inspection'}</span>
+            </div>
+            <div>
+              <span className="text-gray-500 block">Payment Status:</span>
+              <span className={`font-bold capitalize ${appointment.paymentStatus === 'paid' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                {appointment.paymentStatus || 'Pending'}
+              </span>
+            </div>
+            <div>
+              <span className="text-gray-500 block">Total Cost:</span>
+              <span className="font-bold text-red-600 text-sm">
+                {appointment.cost ? `Le ${appointment.cost.toLocaleString()}` : 'Quote Pending'}
+              </span>
+            </div>
+          </div>
+
           {cleanNotes && (
-            <div className="mt-3 ml-9 text-sm text-red-700 bg-red-100 p-3 rounded">
-              <strong>Cancellation reason:</strong> {cleanNotes}
+            <div className="pt-2 border-t text-xs">
+              <span className="text-gray-500 font-semibold block mb-1">Technician Notes:</span>
+              <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{cleanNotes}</p>
             </div>
           )}
         </div>
-      )}
 
-      {/* Status Timeline - Only show if not cancelled */}
-      {!isCancelled && (
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Repair Progress</h3>
-          <div className="relative">
-            {statusSteps.filter(step => step.key !== 'cancelled').map((step, index) => {
-              const isCompleted = index <= currentStepIndex
-              const isCurrent = index === currentStepIndex
-              
-              return (
-                <div key={step.key} className="flex items-center mb-6 last:mb-0">
-                  {/* Step Circle */}
-                  <div className={`relative z-10 flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${
-                    isCompleted 
-                      ? 'text-white shadow-lg' 
-                      : 'bg-gray-200 text-gray-400'
-                  }`}
-                  style={isCompleted ? { backgroundColor: step.color } : {}}
-                  >
-                    <i className={`${step.icon} text-lg`}></i>
-                  </div>
-
-                  {/* Connecting Line */}
-                  {index < statusSteps.filter(s => s.key !== 'cancelled').length - 1 && (
-                    <div 
-                      className={`absolute left-6 w-0.5 h-6 mt-12 transition-colors duration-300 ${
-                        index < currentStepIndex ? 'bg-gray-400' : 'bg-gray-200'
-                      }`}
-                    ></div>
-                  )}
-
-                  {/* Step Content */}
-                  <div className="ml-6 flex-1">
-                    <div className={`font-semibold ${isCurrent ? 'text-gray-900' : isCompleted ? 'text-gray-700' : 'text-gray-400'}`}>
-                      {step.label}
-                      {isCurrent && (
-                        <span className="ml-2 text-xs bg-red-500 text-white px-2 py-1 rounded-full">
-                          Current
-                        </span>
-                      )}
-                    </div>
-                    {isCurrent && cleanNotes && (
-                      <p className="text-sm text-gray-600 mt-1">{cleanNotes}</p>
-                    )}
-                  </div>
-
-                  {/* Timestamp */}
-                  <div className="text-xs text-gray-500">
-                    {isCompleted && new Date(appointment.updatedAt).toLocaleDateString()}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Additional Information */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {appointment.estimatedCompletion && (
-          <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-            <div className="flex items-center text-red-700">
-              <i className="fas fa-clock mr-2"></i>
-              <span className="font-semibold">Estimated Completion</span>
-            </div>
-            <p className="text-[#040e40] mt-1">{(() => { const d = new Date(appointment.estimatedCompletion!); return isNaN(d.getTime()) ? appointment.estimatedCompletion : d.toLocaleDateString(); })()}</p>
-          </div>
-        )}
-
-        {appointment.cost && (
-          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-            <div className="flex items-center text-green-700 mb-3">
-              <i className="fas fa-receipt mr-2"></i>
-              <span className="font-semibold">Cost Estimate</span>
+        {/* Right Column: Itemized Cost Breakdown */}
+        <div className="bg-slate-900 text-white p-5 rounded-xl space-y-3 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between border-b border-slate-700 pb-2 mb-3">
+              <h4 className="font-bold text-sm text-red-400 flex items-center gap-2">
+                <i className="fas fa-receipt"></i>
+                Cost Breakdown
+              </h4>
+              <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-mono">NLE (New Leone)</span>
             </div>
 
-            {/* Itemized breakdown (if available) */}
-            {breakdownItems.length > 0 ? (
-              <div className="space-y-2 mb-3">
-                {breakdownItems.map((item, i) => (
-                  <div key={i} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-700">
-                      <i className="fas fa-wrench mr-2 text-green-500 text-xs"></i>
+            {costItems.length > 0 ? (
+              <div className="space-y-2 text-xs">
+                {costItems.map((item, idx) => (
+                  <div key={idx} className="flex justify-between items-center py-1 border-b border-slate-800/60">
+                    <span className="text-slate-300 flex items-center gap-1.5">
+                      <i className="fas fa-check-circle text-[10px] text-emerald-400"></i>
                       {item.label}
                     </span>
-                    <span className="font-semibold text-gray-800">Le {item.cost.toLocaleString()}</span>
+                    <span className="font-mono font-semibold text-slate-200">Le {item.cost.toLocaleString()}</span>
                   </div>
                 ))}
-                <div className="border-t border-green-300 pt-2 mt-2 flex items-center justify-between">
-                  <span className="font-bold text-green-900">Total</span>
-                  <span className="text-xl font-black text-green-700">Le {appointment.cost.toLocaleString()}</span>
-                </div>
               </div>
             ) : (
-              <p className="text-green-900 text-xl font-bold mb-3">Le {appointment.cost.toLocaleString()}</p>
+              <p className="text-xs text-slate-400 italic py-4">
+                Individual repair line items will appear here once diagnostics are finalized.
+              </p>
             )}
-
-            <div className="flex justify-end">
-              {appointment.paymentStatus === 'pending' && (
-                <button
-                  onClick={() => setShowPaymentPopup(true)}
-                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-md"
-                >
-                  Pay Now
-                </button>
-              )}
-              {appointment.paymentStatus === 'paid' && (
-                <span className="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-green-300">
-                  ✓ Paid
-                </span>
-              )}
-            </div>
           </div>
-        )}
+
+          <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Grand Total</span>
+            <span className="text-xl font-black text-emerald-400 font-mono">
+              {appointment.cost ? `Le ${appointment.cost.toLocaleString()}` : 'Quote Pending'}
+            </span>
+          </div>
+
+          {appointment.cost && (
+            <button
+              onClick={() => setShowPaymentPopup(true)}
+              className="w-full py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white text-xs font-bold rounded-lg transition-all shadow text-center"
+            >
+              <i className="fas fa-credit-card mr-2"></i>
+              View Payment Instructions
+            </button>
+          )}
+        </div>
       </div>
 
       {showPaymentPopup && appointment.cost && (
@@ -499,121 +527,302 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
         />
       )}
 
-      {/* Diagnostic Information Section */}
+      {/* ── Diagnostic Information Section ── */}
       {(appointment.diagnosticNotes || (appointment.diagnosticImages && appointment.diagnosticImages.length > 0)) && (
-        <div className="mt-8 bg-blue-50 p-6 rounded-lg border border-blue-200">
-          <div className="flex items-center text-blue-700 mb-4">
-            <i className="fas fa-stethoscope mr-2 text-xl"></i>
-            <h4 className="font-semibold text-lg">Device Diagnostic Report</h4>
+        <div className="mt-8 bg-blue-50/70 p-6 rounded-xl border border-blue-200 shadow-sm">
+          <div className="flex items-center text-blue-800 mb-4">
+            <i className="fas fa-stethoscope mr-2.5 text-2xl text-blue-600"></i>
+            <div>
+              <h4 className="font-bold text-lg text-blue-950">Device Diagnostic Report</h4>
+              <p className="text-xs text-blue-700">Official technical inspection report from IT Services Freetown</p>
+            </div>
           </div>
           
           {appointment.diagnosticNotes && (
-            <div className="mb-4">
-              <p className="text-gray-700 whitespace-pre-wrap">{appointment.diagnosticNotes}</p>
+            <div className="mb-5 bg-white p-4 rounded-lg border border-blue-100 shadow-sm">
+              <p className="text-gray-800 text-sm whitespace-pre-wrap leading-relaxed">{appointment.diagnosticNotes}</p>
             </div>
           )}
 
+          {/* Diagnostic Photos Thumbnails */}
           {appointment.diagnosticImages && appointment.diagnosticImages.length > 0 && (
             <div>
-              <h5 className="font-medium text-gray-900 mb-3">Diagnostic Photos</h5>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="flex items-center justify-between mb-3">
+                <h5 className="font-bold text-gray-900 text-sm flex items-center gap-2">
+                  <i className="fas fa-camera text-blue-600"></i>
+                  Diagnostic Photos ({appointment.diagnosticImages.length})
+                </h5>
+                <span className="text-xs text-blue-700 font-medium">Click photo to enlarge full page</span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {appointment.diagnosticImages.map((image, index) => {
                   const imageData = typeof image === 'string' ? image : image.data;
                   return (
                     <div 
                       key={index} 
-                      className="relative group cursor-pointer"
-                      onClick={() => window.open(imageData, '_blank')}
+                      className="relative group cursor-pointer overflow-hidden rounded-xl shadow-sm border border-blue-200 hover:border-blue-500 transition-all hover:shadow-md"
+                      onClick={() => setLightboxIndex(index)}
                     >
                       <img 
                         src={imageData} 
                         alt={`Diagnostic image ${index + 1}`}
-                        className="w-full h-48 object-cover rounded-lg shadow-md transition-opacity group-hover:opacity-90"
+                        className="w-full h-36 object-cover transition-transform duration-300 group-hover:scale-105"
                       />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all rounded-lg flex items-center justify-center">
-                        <i className="fas fa-search-plus text-white opacity-0 group-hover:opacity-100 text-2xl transition-opacity"></i>
+                      <div className="absolute inset-0 bg-blue-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white">
+                        <i className="fas fa-search-plus text-2xl mb-1"></i>
+                        <span className="text-[10px] font-bold uppercase tracking-wider">View Full Size</span>
                       </div>
                     </div>
                   );
                 })}
               </div>
-              <p className="text-xs text-gray-500 mt-2">Click on images to view full size</p>
             </div>
           )}
         </div>
       )}
 
+      {/* ── Customer Comments & Feedback Section ── */}
+      <div className="mt-8 bg-slate-50 p-6 rounded-xl border border-slate-200">
+        <div className="flex items-center justify-between border-b pb-4 mb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-full bg-red-100 text-red-600 flex items-center justify-center">
+              <i className="fas fa-comments text-lg"></i>
+            </div>
+            <div>
+              <h4 className="font-bold text-gray-900 text-base">Customer Comments &amp; Questions</h4>
+              <p className="text-xs text-gray-500">Leave a note or question for our technician team regarding your repair</p>
+            </div>
+          </div>
+          <span className="text-xs bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-bold">
+            {commentsList.length} comment{commentsList.length !== 1 ? 's' : ''}
+          </span>
+        </div>
+
+        {/* Existing Comments List */}
+        {commentsList.length > 0 ? (
+          <div className="space-y-3 mb-6">
+            {commentsList.map((cmt) => (
+              <div key={cmt.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 font-bold text-slate-800">
+                    <span className="w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center text-[10px]">
+                      {cmt.authorName.charAt(0).toUpperCase()}
+                    </span>
+                    {cmt.authorName}
+                  </div>
+                  <span className="text-[10px] text-slate-400">
+                    {new Date(cmt.createdAt).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}
+                  </span>
+                </div>
+                <p className="text-gray-700 text-xs pl-8 whitespace-pre-wrap">{cmt.comment}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-slate-500 italic mb-4">
+            No comments yet. Have a question or request for the technician? Leave a message below!
+          </p>
+        )}
+
+        {/* Submit Comment Form */}
+        <form onSubmit={handleAddComment} className="space-y-3 pt-2">
+          {commentSuccess && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800 flex items-center gap-2">
+              <i className="fas fa-check-circle text-emerald-600 text-sm"></i>
+              <span>{commentSuccess}</span>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Your Name</label>
+              <input
+                type="text"
+                value={commentAuthor}
+                onChange={e => setCommentAuthor(e.target.value)}
+                placeholder="Your Name"
+                className="w-full text-xs px-3 py-2 border rounded-lg focus:outline-none focus:border-red-500 bg-white"
+                required
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">Comment / Question for Technician</label>
+              <textarea
+                rows={2}
+                value={commentText}
+                onChange={e => setCommentText(e.target.value)}
+                placeholder="e.g. Please proceed with screen replacement. What time will it be ready?"
+                className="w-full text-xs px-3 py-2 border rounded-lg focus:outline-none focus:border-red-500 bg-white"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={submittingComment || !commentText.trim()}
+              className="px-4 py-2 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-bold text-xs rounded-lg transition-colors flex items-center gap-2 shadow"
+            >
+              {submittingComment ? (
+                <>
+                  <i className="fas fa-spinner fa-spin"></i>
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-paper-plane"></i>
+                  Post Comment
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+
       {/* Contact Information */}
       <div className="mt-8 p-6 bg-gradient-to-r from-gray-50 to-red-50 rounded-lg border">
-        <h4 className="font-semibold text-gray-900 mb-3">Need Help?</h4>
+        <h4 className="font-semibold text-gray-900 mb-3">Need Immediate Assistance?</h4>
         <div className="flex flex-col sm:flex-row gap-3">
           <a 
             href="tel:+23233399391"
             className="flex items-center justify-center px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-300 border"
           >
             <i className="fas fa-phone mr-2 text-red-600"></i>
-            Call Us
+            Call Support (+232 33 399391)
           </a>
           <a 
-            href={`https://wa.me/23233399391?text=Hi, I need help with my repair. Tracking ID: ${trackingId}`}
+            href={`https://wa.me/23233399391?text=Hi, I have a question about my repair. Tracking ID: ${trackingId}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-300"
+            className="flex items-center justify-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-300 font-medium text-xs"
           >
-            <i className="fab fa-whatsapp mr-2"></i>
-            WhatsApp
+            <i className="fab fa-whatsapp mr-2 text-sm"></i>
+            Chat on WhatsApp
           </a>
         </div>
       </div>
-    </div>
 
-    {/* Cancel Confirm Modal */}
-    {showCancelConfirm && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-red-100 mb-4">
-              <i className="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+      {/* ── Full-Page Lightbox Modal Viewer for Diagnostic Photos ── */}
+      {lightboxIndex !== null && appointment.diagnosticImages && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col justify-between p-4 sm:p-6 animate-fadeIn"
+          onClick={() => setLightboxIndex(null)}
+        >
+          {/* Modal Header */}
+          <div className="flex items-center justify-between text-white z-10" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3">
+              <span className="bg-white/10 px-3 py-1 rounded-full text-xs font-mono font-bold">
+                Image {lightboxIndex + 1} of {appointment.diagnosticImages.length}
+              </span>
+              <span className="text-xs text-gray-300 hidden sm:inline">
+                Repair ID: {appointment.id}
+              </span>
             </div>
-            <h3 className="text-xl font-bold text-gray-900">Cancel Repair?</h3>
-            <p className="text-gray-600 mt-2 text-sm">
-              Are you sure you want to cancel your repair for <strong>{appointment.deviceType}</strong>? This will notify our team immediately.
-            </p>
+
+            <div className="flex items-center gap-3">
+              <a
+                href={typeof appointment.diagnosticImages[lightboxIndex] === 'string' ? appointment.diagnosticImages[lightboxIndex] as string : (appointment.diagnosticImages[lightboxIndex] as any).data}
+                download={`diagnostic-${appointment.id}-${lightboxIndex + 1}.jpg`}
+                target="_blank"
+                rel="noreferrer"
+                className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5"
+                title="Download full image"
+              >
+                <i className="fas fa-download"></i>
+                <span className="hidden sm:inline">Download</span>
+              </a>
+              <button
+                onClick={() => setLightboxIndex(null)}
+                className="w-9 h-9 bg-white/10 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-lg font-bold transition-colors"
+                title="Close (Esc)"
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
           </div>
-          <div className="mb-6">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Reason for cancellation <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              value={cancelReason}
-              onChange={(e) => setCancelReason(e.target.value)}
-              placeholder="e.g. I fixed it myself, found a cheaper option..."
-              rows={3}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
-            />
+
+          {/* Modal Main Image Container */}
+          <div 
+            className="flex-1 flex items-center justify-center relative my-4"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Next Button */}
+            {appointment.diagnosticImages.length > 1 && (
+              <button
+                onClick={() => setLightboxIndex((lightboxIndex + 1) % appointment.diagnosticImages!.length)}
+                className="absolute right-2 sm:right-4 z-20 w-12 h-12 bg-black/50 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xl transition-all shadow-lg"
+                title="Next Image (Right Arrow)"
+              >
+                <i className="fas fa-chevron-right"></i>
+              </button>
+            )}
           </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => { setShowCancelConfirm(false); setCancelReason(''); }}
-              className="flex-1 py-3 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
-            >
-              Keep Repair
-            </button>
-            <button
-              onClick={cancelRepair}
-              disabled={cancelling || !cancelReason.trim()}
-              className="flex-1 py-3 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {cancelling ? (
-                <><i className="fas fa-spinner fa-spin"></i> Cancelling...</>
-              ) : (
-                <><i className="fas fa-times-circle"></i> Yes, Cancel</>  
-              )}
-            </button>
+
+          {/* Modal Footer / Thumbnails */}
+          <div className="flex items-center justify-center gap-2 overflow-x-auto py-2 z-10" onClick={e => e.stopPropagation()}>
+            {appointment.diagnosticImages.map((img, idx) => {
+              const src = typeof img === 'string' ? img : img.data;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => setLightboxIndex(idx)}
+                  className={`w-14 h-14 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${
+                    idx === lightboxIndex ? 'border-red-500 scale-105 shadow-lg' : 'border-white/20 opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <img src={src} className="w-full h-full object-cover" alt={`Thumb ${idx + 1}`} />
+                </button>
+              );
+            })}
           </div>
         </div>
-      </div>
-    )}
-    </>
+      )}
+
+      {/* Cancel Confirm Modal */}
+      {showCancelConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-red-100 mb-4">
+                <i className="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Cancel Repair?</h3>
+              <p className="text-gray-600 mt-2 text-sm">
+                Are you sure you want to cancel your repair for <strong>{appointment.deviceType}</strong>? This will notify our team immediately.
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-xs font-semibold text-gray-700 mb-2">Reason for Cancellation (Optional)</label>
+              <textarea
+                rows={3}
+                value={cancelReason}
+                onChange={e => setCancelReason(e.target.value)}
+                placeholder="e.g. Changed my mind, found another solution..."
+                className="w-full text-xs p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-red-500"
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowCancelConfirm(false)}
+                className="flex-1 py-2.5 border border-gray-300 text-gray-700 font-bold text-xs rounded-xl hover:bg-gray-50 transition-colors"
+              >
+                Keep Repair
+              </button>
+              <button
+                onClick={cancelRepair}
+                disabled={cancelling}
+                className="flex-1 py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-xl transition-colors disabled:opacity-50"
+              >
+                {cancelling ? 'Cancelling...' : 'Yes, Cancel Repair'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }

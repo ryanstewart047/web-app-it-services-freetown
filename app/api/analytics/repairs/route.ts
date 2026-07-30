@@ -211,6 +211,38 @@ export async function POST(request: NextRequest) {
         deletedRepair: deleted,
         message: 'Repair deleted successfully'
       });
+    } else if (data.action === 'add_comment') {
+      const trackingId = data.trackingId;
+      const commentText = (data.comment || '').trim();
+      const authorName = (data.authorName || 'Customer').trim();
+
+      if (!trackingId || !commentText) {
+        return NextResponse.json({ error: 'Tracking ID and comment text are required' }, { status: 400 });
+      }
+
+      const existingRepair = await getRepairByTrackingId(trackingId);
+      const newComment = {
+        id: `cmt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        authorName,
+        comment: commentText,
+        createdAt: new Date().toISOString()
+      };
+
+      const existingComments = existingRepair?.customerComments || [];
+      const updatedComments = [...existingComments, newComment];
+
+      const updated = await updateRepair({
+        trackingId,
+        customerComments: updatedComments
+      });
+
+      return NextResponse.json({
+        success: true,
+        comment: newComment,
+        customerComments: updatedComments,
+        repair: updated || existingRepair,
+        message: 'Comment added successfully'
+      });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
@@ -231,7 +263,8 @@ export async function PUT(request: NextRequest) {
       estimatedCompletion: data.estimatedCompletion,
       totalCost: typeof data.totalCost === 'number' ? data.totalCost : undefined,
       diagnosticImages: data.diagnosticImages,
-      diagnosticNotes: data.diagnosticNotes
+      diagnosticNotes: data.diagnosticNotes,
+      customerComments: data.customerComments
     });
 
     if (!updated) {

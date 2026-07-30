@@ -1,6 +1,13 @@
 // Unified booking storage system that works across devices
 // Uses localStorage as primary storage with export/import capabilities
 
+export interface CustomerComment {
+  id: string;
+  authorName: string;
+  comment: string;
+  createdAt: string;
+}
+
 export interface BookingData {
   trackingId: string;
   customerName: string;
@@ -21,6 +28,7 @@ export interface BookingData {
   notes?: string;
   diagnosticImages?: Array<{ data: string; uploadedAt: string }>; // Array of timestamped base64 images
   diagnosticNotes?: string; // Detailed diagnostic notes for the customer
+  customerComments?: CustomerComment[]; // Comments left by customer on diagnostic report
 }
 
 const STORAGE_KEY = 'its_bookings';
@@ -282,4 +290,33 @@ export function getExportData(): { lastUpdated: string; bookings: BookingData[] 
   } catch (error) {
     return null;
   }
+}
+
+// Add a customer comment to a booking record
+export function addCustomerComment(
+  trackingId: string, 
+  authorName: string, 
+  commentText: string
+): CustomerComment | null {
+  const bookings = getAllBookings();
+  const bookingIndex = bookings.findIndex(b => b.trackingId === trackingId);
+  
+  if (bookingIndex === -1) return null;
+  
+  const newComment: CustomerComment = {
+    id: `cmt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    authorName: authorName.trim() || 'Customer',
+    comment: commentText.trim(),
+    createdAt: new Date().toISOString()
+  };
+
+  const existingComments = bookings[bookingIndex].customerComments || [];
+  bookings[bookingIndex] = {
+    ...bookings[bookingIndex],
+    customerComments: [...existingComments, newComment],
+    updatedAt: new Date().toISOString()
+  };
+
+  saveBookings(bookings);
+  return newComment;
 }

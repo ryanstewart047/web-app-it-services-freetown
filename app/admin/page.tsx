@@ -1477,6 +1477,29 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                 />
               </div>
 
+              {/* Customer Comments Display */}
+              {((selectedRepair as any)?.customerComments || []).length > 0 && (
+                <div className="bg-slate-900 border border-slate-700 rounded-xl p-3 space-y-2">
+                  <div className="flex items-center justify-between text-xs text-amber-400 font-bold">
+                    <span className="flex items-center gap-1.5">
+                      <i className="fas fa-comments text-amber-400" />
+                      Customer Comments ({((selectedRepair as any)?.customerComments || []).length})
+                    </span>
+                  </div>
+                  <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                    {((selectedRepair as any)?.customerComments || []).map((cmt: any) => (
+                      <div key={cmt.id} className="bg-slate-950 border border-slate-800 rounded-lg p-2 text-[11px]">
+                        <div className="flex justify-between text-slate-400 text-[10px] mb-1 font-semibold">
+                          <span className="text-amber-300">{cmt.authorName}</span>
+                          <span>{new Date(cmt.createdAt).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}</span>
+                        </div>
+                        <p className="text-slate-200 text-xs whitespace-pre-wrap">{cmt.comment}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Diagnostic Images */}
               <div>
                 <label className="block text-slate-400 mb-1 text-[11px] uppercase tracking-wide">Diagnostic Images (max 5)</label>

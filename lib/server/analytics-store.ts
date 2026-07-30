@@ -14,6 +14,13 @@ export type RepairStatus =
 	| 'ready-for-pickup'
 	| 'collected';
 
+export interface CustomerComment {
+	id: string;
+	authorName: string;
+	comment: string;
+	createdAt: string;
+}
+
 export interface RepairBooking {
 	trackingId: string;
 	customerName: string;
@@ -33,6 +40,7 @@ export interface RepairBooking {
 	serviceType?: string;
 	diagnosticImages?: Array<{ data: string; uploadedAt: string }>;
 	diagnosticNotes?: string;
+	customerComments?: CustomerComment[];
 }
 
 export interface FormSubmission {
@@ -82,6 +90,7 @@ function mapRepairRow(row: any): RepairBooking {
 		address: row.customer?.address ?? undefined,
 		diagnosticImages: row.diagnosticImages ?? undefined,
 		diagnosticNotes: row.diagnosticNotes ?? undefined,
+		customerComments: (row as any).customerComments ? (typeof (row as any).customerComments === 'string' ? JSON.parse((row as any).customerComments) : (row as any).customerComments) : undefined,
 	};
 }
 
@@ -342,6 +351,7 @@ export interface UpdateRepairInput {
 	paymentStatus?: string;
 	diagnosticImages?: string[];
 	diagnosticNotes?: string;
+	customerComments?: CustomerComment[];
 }
 
 export async function updateRepair(input: UpdateRepairInput): Promise<RepairBooking | null> {
@@ -363,6 +373,7 @@ export async function updateRepair(input: UpdateRepairInput): Promise<RepairBook
 		}
 		if (input.diagnosticImages !== undefined) updateData.diagnosticImages = input.diagnosticImages;
 		if (input.diagnosticNotes !== undefined) updateData.diagnosticNotes = input.diagnosticNotes;
+		if (input.customerComments !== undefined) updateData.customerComments = input.customerComments;
 
 		const updated = await prisma.repair.update({
 			where: { trackingId: input.trackingId },
