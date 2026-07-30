@@ -24,7 +24,7 @@ export const seoServices: SEOService[] = [
     deviceType: 'Phone',
     brand: 'Apple',
     problem: 'Screen Replacement',
-    estimatedPriceRange: 'Le 400,000 - Le 1,800,000',
+    estimatedPriceRange: 'Le 400 - Le 1,800',
     estimatedTime: '1 - 3 Hours',
     realAdvice: [
       'Stop using the phone if the glass is actively shattering to prevent glass splinters.',
@@ -55,7 +55,7 @@ export const seoServices: SEOService[] = [
     deviceType: 'Phone',
     brand: 'Tecno',
     problem: 'Charging Port',
-    estimatedPriceRange: 'Le 75,000 - Le 150,000',
+    estimatedPriceRange: 'Le 75 - Le 150',
     estimatedTime: '1 - 2 Hours',
     realAdvice: [
       'Do not use needles or pins to clean out the charging port yourself, as this can permanently damage the pins inside.',
@@ -81,7 +81,7 @@ export const seoServices: SEOService[] = [
     heroSubtitle: 'Don\'t panic. Whether it was a power surge or a sudden shutdown, our experts can diagnose and repair your dead laptop.',
     deviceType: 'Laptop',
     problem: 'Power/Motherboard',
-    estimatedPriceRange: 'Le 200,000 - Le 1,500,000 (Diagnostics starting at Le 100,000)',
+    estimatedPriceRange: 'Le 200 - Le 1,500 (Diagnostics starting at Le 100)',
     estimatedTime: '1 - 3 Days',
     realAdvice: [
       'Power surges from the EDSA grid or unstable generators are the most common cause of dead laptops in Sierra Leone. We strongly recommend using a surge protector.',
@@ -108,7 +108,7 @@ export const seoServices: SEOService[] = [
     deviceType: 'Phone',
     brand: 'Samsung',
     problem: 'Battery Replacement',
-    estimatedPriceRange: 'Le 150,000 - Le 400,000',
+    estimatedPriceRange: 'Le 150 - Le 400',
     estimatedTime: '1 - 2 Hours',
     realAdvice: [
       'If the back glass of your Samsung is lifting or bulging, your battery is swollen. This is a severe fire hazard and must be replaced immediately.',
@@ -134,7 +134,7 @@ export const seoServices: SEOService[] = [
     heroSubtitle: 'Accidentally deleted files, formatted a drive, or have a completely dead device? We can help get your memories and documents back.',
     deviceType: 'Laptop',
     problem: 'Data Recovery',
-    estimatedPriceRange: 'Le 300,000 - Le 1,500,000 (Based on complexity)',
+    estimatedPriceRange: 'Le 300 - Le 1,500 (Based on complexity)',
     estimatedTime: '1 - 5 Days',
     realAdvice: [
       'If you accidentally deleted files or formatted a drive, STOP USING IT IMMEDIATELY. Continuing to use the device overwrites the hidden files, making recovery impossible.',

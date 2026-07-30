@@ -543,7 +543,7 @@ export default function ShirleyGalleryAdminPage() {
                       value={form.price}
                       onChange={(event) => setForm({ ...form, price: event.target.value })}
                       className="mt-1 w-full rounded-xl border border-[#8a2746]/15 bg-white px-3 py-2 text-sm text-[#2f1f2a] outline-none"
-                      placeholder="e.g. Le 150,000"
+                      placeholder="e.g. Le 150"
                     />
                   </label>
                   <label className="block text-xs font-bold text-[#4d3039]">
@@ -730,7 +730,7 @@ export default function ShirleyGalleryAdminPage() {
                         value={editForm.price}
                         onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
                         className="mt-1 w-full rounded-xl border border-[#8a2746]/15 bg-white px-3 py-2 text-sm text-[#2f1f2a] outline-none"
-                        placeholder="e.g. Le 150,000"
+                        placeholder="e.g. Le 150"
                       />
                     </label>
                     <label className="block text-xs font-bold text-[#4d3039]">

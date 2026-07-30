@@ -1023,8 +1023,8 @@ interface RepairManagementProps {
 
 function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagementProps) {
   // ── Constants ──────────────────────────────────────────────────────────────
-  const CONSULTATION_FEE_COMPUTER = 50000;
-  const CONSULTATION_FEE_MOBILE = 30000;
+  const CONSULTATION_FEE_COMPUTER = 50;
+  const CONSULTATION_FEE_MOBILE = 30;
   const REPAIRS_PER_PAGE = 6;
 
   // ── State ──────────────────────────────────────────────────────────────────
@@ -1233,7 +1233,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
             <i className="fas fa-laptop text-amber-400 text-sm" />
             <div>
               <p className="text-[10px] text-amber-300/70 uppercase tracking-wide">Computers &amp; Laptops</p>
-              <p className="font-black text-amber-300 text-sm">Le 50,000</p>
+              <p className="font-black text-amber-300 text-sm">Le 50</p>
             </div>
             <span className="ml-1 text-[9px] bg-amber-800/50 text-amber-200 rounded px-1.5 py-0.5 font-bold uppercase">Fixed</span>
           </div>
@@ -1241,7 +1241,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
             <i className="fas fa-mobile-alt text-amber-400 text-sm" />
             <div>
               <p className="text-[10px] text-amber-300/70 uppercase tracking-wide">Mobile Phones</p>
-              <p className="font-black text-amber-300 text-sm">Le 30,000</p>
+              <p className="font-black text-amber-300 text-sm">Le 30</p>
             </div>
             <span className="ml-1 text-[9px] bg-amber-800/50 text-amber-200 rounded px-1.5 py-0.5 font-bold uppercase">Fixed</span>
           </div>

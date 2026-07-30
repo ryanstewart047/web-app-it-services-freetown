@@ -542,7 +542,7 @@ export default function ProductDetailClient({ initialProduct }: { initialProduct
                   <Truck className="w-6 h-6 text-blue-400" />
                 </div>
                 <h4 className="text-white font-bold mb-1 text-sm">Free Shipping</h4>
-                <p className="text-gray-400 text-xs">On orders over Le 500k within Freetown</p>
+                <p className="text-gray-400 text-xs">On orders over Le 500 within Freetown</p>
               </div>
               <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 flex flex-col items-center text-center transition-transform duration-300 hover:-translate-y-1">
                 <div className="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center mb-3">

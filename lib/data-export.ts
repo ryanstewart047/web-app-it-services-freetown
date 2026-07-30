@@ -143,7 +143,7 @@ function exportToExcelCSV(bookings: BookingData[], options: ExportOptions): stri
     status: 'Status',
     createdAt: 'Date Created',
     updatedAt: 'Last Updated',
-    cost: 'Cost (SLL)',
+    cost: 'Cost (NLE)',
     estimatedCompletion: 'Estimated Completion',
     notes: 'Notes'
   };

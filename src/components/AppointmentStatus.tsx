@@ -48,7 +48,7 @@ function parseCostBreakdown(notes?: string): { items: { label: string; cost: num
 
   const items: { label: string; cost: number }[] = [];
   for (const line of lines) {
-    // Match lines like: • Screen Replacement: Le 350,000
+    // Match lines like: • Screen Replacement: Le 350
     const match = line.match(/^[•\-]?\s*(.+?):\s*Le\s*([\d,\.]+)$/i);
     if (match) {
       const label = match[1].trim();

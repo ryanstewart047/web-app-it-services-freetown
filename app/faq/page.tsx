@@ -46,7 +46,7 @@ export default function FAQPage() {
         },
         {
           q: 'Do you charge for diagnostics?',
-          a: 'Our diagnostic service is 100% FREE if you proceed with the recommended repair. If you decide not to repair your device after diagnostics, there\'s a minimal diagnostic fee of Le 50,000 to cover our technician\'s time and equipment usage. This honest pricing model ensures you\'re never surprised by unexpected charges.'
+          a: 'Our diagnostic service is 100% FREE if you proceed with the recommended repair. If you decide not to repair your device after diagnostics, there\'s a minimal diagnostic fee of Le 50 to cover our technician\'s time and equipment usage. This honest pricing model ensures you\'re never surprised by unexpected charges.'
         },
         {
           q: 'What payment methods do you accept?',
@@ -58,7 +58,7 @@ export default function FAQPage() {
         },
         {
           q: 'Do you offer payment plans for expensive repairs?',
-          a: 'For repairs exceeding Le 500,000, we offer flexible payment arrangements on a case-by-case basis. Contact our office to discuss payment plan options. We understand that unexpected repair costs can be challenging, and we work with customers to find affordable solutions.'
+          a: 'For repairs exceeding Le 500, we offer flexible payment arrangements on a case-by-case basis. Contact our office to discuss payment plan options. We understand that unexpected repair costs can be challenging, and we work with customers to find affordable solutions.'
         }
       ]
     },
@@ -125,7 +125,7 @@ export default function FAQPage() {
         },
         {
           q: 'Do you offer pick-up and delivery services?',
-          a: 'Yes! For customers unable to visit our shop, we offer pick-up and delivery services within Freetown at a nominal fee (Le 50,000-100,000 depending on distance). This service is particularly popular with corporate clients and busy professionals. Schedule pick-up by calling us or booking online.'
+          a: 'Yes! For customers unable to visit our shop, we offer pick-up and delivery services within Freetown at a nominal fee (Le 50-100 depending on distance). This service is particularly popular with corporate clients and busy professionals. Schedule pick-up by calling us or booking online.'
         },
         {
           q: 'Do you provide on-site repair services for businesses?',
@@ -138,7 +138,7 @@ export default function FAQPage() {
       questions: [
         {
           q: 'How do you protect devices from Freetown\'s power surges?',
-          a: 'Power stability is a major challenge in Freetown. We strongly recommend using surge protectors or UPS (Uninterruptible Power Supply) systems. We sell quality surge protectors (from Le 50,000) and UPS units (from Le 350,000). For repaired devices, we test all power circuits and can install surge protection components. We also educate customers on safe power management.'
+          a: 'Power stability is a major challenge in Freetown. We strongly recommend using surge protectors or UPS (Uninterruptible Power Supply) systems. We sell quality surge protectors (from Le 50) and UPS units (from Le 350). For repaired devices, we test all power circuits and can install surge protection components. We also educate customers on safe power management.'
         },
         {
           q: 'Do you clean devices affected by dust and humidity?',
