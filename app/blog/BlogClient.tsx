@@ -160,7 +160,7 @@ Write down any passwords or settings you might need later.
 **Step 5: Disable Security Features**
 Turn off Find My Device, screen locks, and encryption (you can re-enable after repair).
 
-At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Road or call +23233399391.`,
+At IT Services Freetown, we take your privacy seriously. Visit us at #1 Regent Highway, Jui Junction or call +23233399391.`,
             author: 'IT Services Freetown',
             date: '2025-10-10',
             likes: 8,

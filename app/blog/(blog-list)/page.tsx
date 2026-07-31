@@ -69,7 +69,7 @@ const FILTER_OPTIONS: { key: BlogFilter; label: string }[] = [
 
 const TICKER_HEADLINES = [
   'New screen replacement service now available for all Samsung Galaxy models',
-  'Free device diagnostics every Saturday – walk-ins welcome at 37 Kissy Road',
+  'Free device diagnostics every Saturday – walk-ins welcome at #1 Regent Highway, Jui Junction',
   'Battery replacement under 1 hour – book online or call +23233399391',
   'Data recovery service: we recover files from water-damaged and broken devices',
   'Now accepting trade-ins: bring your old device and get credit toward repairs',
@@ -89,7 +89,7 @@ const FALLBACK_POSTS: BlogPost[] = [
   {
     id: '2',
     title: 'How to Protect Your Data Before Repair',
-    content: `Before bringing your device for repair, follow these essential steps to protect your data:\n\n**Step 1: Backup Everything**\nUse cloud services or external drives to backup your important files, photos, and documents.\n\n**Step 2: Sign Out of Accounts**\nLog out of all accounts including email, social media, and banking apps.\n\n**Step 3: Remove SIM & Memory Cards**\nTake out your SIM card and any external storage cards.\n\n**Step 4: Note Down Important Information**\nWrite down any passwords or settings you might need later.\n\n**Step 5: Disable Security Features**\nTurn off Find My Device, screen locks, and encryption (you can re-enable after repair).\n\nAt IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Road or call +23233399391.`,
+    content: `Before bringing your device for repair, follow these essential steps to protect your data:\n\n**Step 1: Backup Everything**\nUse cloud services or external drives to backup your important files, photos, and documents.\n\n**Step 2: Sign Out of Accounts**\nLog out of all accounts including email, social media, and banking apps.\n\n**Step 3: Remove SIM & Memory Cards**\nTake out your SIM card and any external storage cards.\n\n**Step 4: Note Down Important Information**\nWrite down any passwords or settings you might need later.\n\n**Step 5: Disable Security Features**\nTurn off Find My Device, screen locks, and encryption (you can re-enable after repair).\n\nAt IT Services Freetown, we take your privacy seriously. Visit us at #1 Regent Highway, Jui Junction or call +23233399391.`,
     author: 'IT Services Freetown',
     date: '2025-10-10',
     likes: 8,
@@ -670,7 +670,7 @@ function BlogPageContent() {
                   <div className={newsStyles.sidebarCta}>
                     <p className={newsStyles.sidebarCtaLabel}>Need a repair?</p>
                     <p className={newsStyles.sidebarCtaText}>
-                      37 Kissy Road, Freetown · +23233399391
+                      #1 Regent Highway, Jui Junction, Freetown · +23233399391
                     </p>
                     <div className={newsStyles.sidebarCtaButtons}>
                       <Link href="/book-appointment" className={newsStyles.ctaBtnPrimary}>
