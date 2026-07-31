@@ -116,6 +116,38 @@ export function getPrimaryImage(post: Partial<BlogPost>) {
   return undefined
 }
 
+export function getPrimaryVideo(post: Partial<BlogPost>): string | undefined {
+  const mediaVideo = post.media?.find((item) => item.type === 'video')?.url
+  if (mediaVideo) {
+    if (mediaVideo.startsWith('/')) {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.itservicesfreetown.com'
+      return `${baseUrl}${mediaVideo}`
+    }
+    return mediaVideo
+  }
+
+  if (post.content) {
+    const videoMatch = post.content.match(/<video[^>]+src=["']([^"']+)["']/i) || 
+                       post.content.match(/<source[^>]+src=["']([^"']+)["']/i) ||
+                       post.content.match(/(https?:\/\/[^\s"'<>]+\.(?:mp4|webm|mov))/i)
+    
+    if (videoMatch && videoMatch[1]) {
+      let videoUrl = videoMatch[1]
+      if (videoUrl.startsWith('/')) {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.itservicesfreetown.com'
+        return `${baseUrl}${videoUrl}`
+      }
+      return videoUrl
+    }
+  }
+
+  return undefined
+}
+
+export function hasVideo(post: Partial<BlogPost>): boolean {
+  return !!getPrimaryVideo(post)
+}
+
 export function getPostCategory(post: Pick<BlogPost, 'title' | 'content'>) {
   const haystack = `${post.title} ${stripHtml(post.content)}`.toLowerCase()
 
