@@ -43,7 +43,6 @@ import {
   fetchBlogPosts,
   fetchPostComments,
 } from '@/lib/github-blog-storage'
-import styles from '../blog.module.css'
 import newsStyles from '../news.module.css'
 import {
   BlogFilter,
@@ -111,14 +110,6 @@ function rehydratePosts(rawPosts: any[]): BlogPost[] {
     }))
 }
 
-function getTagClass(category: string) {
-  if (category === 'Expert Guide') return styles.tagRepair
-  if (category === 'Data Care') return styles.tagData
-  if (category === 'Buying Advice') return styles.tagBuyer
-  if (category === 'Device Tips') return styles.tagDevice
-  return styles.tagInsight
-}
-
 // ── News Ticker Component ──────────────────────────────────────────────────────
 function NewsTicker() {
   const [tickerIndex, setTickerIndex] = useState(0)
@@ -155,18 +146,6 @@ function NewsTicker() {
 }
 
 // ── Video Preview Card ─────────────────────────────────────────────────────────
-interface VideoCardProps {
-  post: BlogPost
-  aspectRatio?: 'hero' | 'card'
-  onLike: () => void
-  onDislike: () => void
-  onShare: () => void
-  onToggleComments: () => void
-  userVote: 'like' | 'dislike' | null
-  copiedId: string | null
-  showComments: boolean
-}
-
 function VideoMediaCard({
   post,
   aspectRatio = 'card',
@@ -489,7 +468,7 @@ function BlogPageContent() {
                 <span className={newsStyles.livePulse} />
                 ON AIR
               </span>
-              <span className={newsStyles.networkTime} id="news-clock" />
+              <span className={newsStyles.networkTime} id="news-clock" suppressHydrationWarning />
             </div>
           </div>
         </div>
