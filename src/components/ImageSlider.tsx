@@ -11,16 +11,16 @@ interface ImageSlide {
 
 const slides: ImageSlide[] = [
   {
-    src: "/assets/images/slider/phone-screen-transformation.jpg",
-    alt: "Before & After: Cracked phone screen restored to brand new display"
+    src: "/assets/images/slider/shop-technician-1.jpg",
+    alt: "IT Services Freetown technician performing expert motherboard repair at our Jui Junction workshop"
   },
   {
-    src: "/assets/images/slider/computer-repair-transformation.jpg",
-    alt: "Before & After: Damaged computer fully repaired and operating at peak performance"
+    src: "/assets/images/slider/shop-technician-2.jpg",
+    alt: "Certified IT Services Freetown repair specialist ready to fix your device"
   },
   {
-    src: "/assets/images/slider/laptop-repair.jpg",
-    alt: "Professional technician repairing a laptop computer in Freetown"
+    src: "/assets/images/slider/shop-technician-3.jpg",
+    alt: "Professional phone and laptop repair at IT Services Freetown, #1 Regent Highway, Jui Junction"
   },
   {
     src: "/assets/images/slider/phone-repair.jpg",

@@ -9,19 +9,19 @@ export default function Hero() {
   const [counters, setCounters] = useState({ customers: 0, hours: 0, success: 0 })
   const [isRefreshing, setIsRefreshing] = useState(false)
 
-  // Custom authentic repair workshop images for IT Services Freetown
+  // Real IT Services Freetown workshop photos
   const slides = [
     {
-      src: "/assets/images/slider/phone-screen-transformation.jpg",
-      alt: "Before & After: Cracked Screen to Flawlessly Repaired Phone Display"
+      src: "/assets/images/slider/shop-technician-1.jpg",
+      alt: "IT Services Freetown technician performing expert motherboard repair at our Jui Junction workshop"
     },
     {
-      src: "/assets/images/slider/computer-repair-transformation.jpg",
-      alt: "Before & After: Damaged Computer Restored to Full Peak Performance"
+      src: "/assets/images/slider/shop-technician-2.jpg",
+      alt: "Certified IT Services Freetown repair specialist ready to fix your device"
     },
     {
-      src: "/assets/images/slider/laptop-repair.jpg",
-      alt: "IT Services Freetown - Professional Computer Repair in Sierra Leone"
+      src: "/assets/images/slider/shop-technician-3.jpg",
+      alt: "Professional phone and laptop repair at IT Services Freetown, #1 Regent Highway, Jui Junction"
     },
     {
       src: "/assets/images/slider/phone-repair.jpg",
