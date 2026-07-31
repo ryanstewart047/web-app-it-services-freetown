@@ -10,6 +10,7 @@ import toast from 'react-hot-toast'
 import { createBlogPost, fetchBlogPosts, deleteBlogPost, updateBlogPost } from '@/lib/github-blog-storage'
 import dynamic from 'next/dynamic'
 import { useAdminSession } from '../../../src/hooks/useAdminSession'
+import { getVideoEmbed } from '../blog-utils'
 
 // Dynamically import ReactQuill to avoid SSR issues and build issues
 const ReactQuill = dynamic(
@@ -1463,13 +1464,23 @@ Tips:
                             alt="Preview" 
                             className="w-full h-48 object-cover"
                           />
-                        ) : (
-                          <video 
-                            src={item.url} 
-                            controls 
-                            className="w-full h-48 object-cover"
-                          />
-                        )}
+                        ) : (() => {
+                          const embed = getVideoEmbed(item.url)
+                          return embed.type === 'iframe' ? (
+                            <iframe
+                              src={embed.src}
+                              className="w-full h-48 rounded"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          ) : (
+                            <video 
+                              src={item.url} 
+                              controls 
+                              className="w-full h-48 object-cover"
+                            />
+                          )
+                        })()}
                         
                         {/* Remove Button */}
                         <button
@@ -1581,13 +1592,23 @@ Tips:
                             alt={item.caption || 'Post image'} 
                             className="w-full h-auto object-cover rounded-lg"
                           />
-                        ) : (
-                          <video 
-                            src={item.url} 
-                            controls 
-                            className="w-full h-auto rounded-lg"
-                          />
-                        )}
+                        ) : (() => {
+                          const embed = getVideoEmbed(item.url)
+                          return embed.type === 'iframe' ? (
+                            <iframe
+                              src={embed.src}
+                              className="w-full aspect-video rounded-lg"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          ) : (
+                            <video 
+                              src={item.url} 
+                              controls 
+                              className="w-full h-auto rounded-lg"
+                            />
+                          )
+                        })()}
                         {item.caption && (
                           <p className="text-sm text-gray-600 mt-2 italic">{item.caption}</p>
                         )}

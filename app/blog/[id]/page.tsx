@@ -18,6 +18,8 @@ import {
   getExcerpt,
   getPostCategory,
   getPrimaryImage,
+  getPrimaryVideo,
+  getVideoEmbed,
   getReadingTime,
 } from '../blog-utils'
 
@@ -353,24 +355,50 @@ export default async function BlogPostPage({ params }: Props) {
                 </div>
 
                 <div className="grid gap-5 md:grid-cols-2">
-                  {mediaAttachments.map((item, index) => (
-                    <div key={`${item.url}-${index}`} className={styles.attachmentCard}>
-                      {item.type === 'image' ? (
-                        <img
-                          src={item.url}
-                          alt={item.caption || 'Article media'}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <video src={item.url} controls className="h-full w-full" />
-                      )}
-                      {item.caption && (
-                        <p className="border-t border-slate-100 px-4 py-3 text-sm text-slate-500">
-                          {item.caption}
-                        </p>
-                      )}
-                    </div>
-                  ))}
+                  {mediaAttachments.map((item, index) => {
+                    if (item.type === 'image') {
+                      return (
+                        <div key={`${item.url}-${index}`} className={styles.attachmentCard}>
+                          <img
+                            src={item.url}
+                            alt={item.caption || 'Article media'}
+                            className="h-full w-full object-cover"
+                          />
+                          {item.caption && (
+                            <p className="border-t border-slate-100 px-4 py-3 text-sm text-slate-500">
+                              {item.caption}
+                            </p>
+                          )}
+                        </div>
+                      )
+                    }
+                    const embed = getVideoEmbed(item.url)
+                    return (
+                      <div key={`${item.url}-${index}`} className={styles.attachmentCard}>
+                        {embed.type === 'iframe' ? (
+                          <iframe
+                            src={embed.src}
+                            className="aspect-video w-full"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            loading="lazy"
+                          />
+                        ) : (
+                          <video
+                            src={embed.src}
+                            controls
+                            preload="metadata"
+                            className="h-full w-full"
+                          />
+                        )}
+                        {item.caption && (
+                          <p className="border-t border-slate-100 px-4 py-3 text-sm text-slate-500">
+                            {item.caption}
+                          </p>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               </section>
             )}

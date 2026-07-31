@@ -116,6 +116,31 @@ export function getPrimaryImage(post: Partial<BlogPost>) {
   return undefined
 }
 
+export function getVideoEmbed(url: string): { type: 'iframe' | 'video'; src: string } {
+  if (!url) return { type: 'video', src: '' }
+  // YouTube: watch?v=, youtu.be/, shorts/, embed/
+  const ytMatch = url.match(
+    /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+  )
+  if (ytMatch) {
+    return { type: 'iframe', src: `https://www.youtube.com/embed/${ytMatch[1]}?rel=0` }
+  }
+  // Vimeo
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/)
+  if (vimeoMatch) {
+    return { type: 'iframe', src: `https://player.vimeo.com/video/${vimeoMatch[1]}` }
+  }
+  // Facebook
+  if (url.includes('facebook.com') || url.includes('fb.watch')) {
+    return {
+      type: 'iframe',
+      src: `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=0&autoplay=0`,
+    }
+  }
+  // Direct file (mp4, webm, mov, etc.)
+  return { type: 'video', src: url }
+}
+
 export function getPrimaryVideo(post: Partial<BlogPost>): string | undefined {
   const mediaVideo = post.media?.find((item) => item.type === 'video')?.url
   if (mediaVideo) {
@@ -129,7 +154,9 @@ export function getPrimaryVideo(post: Partial<BlogPost>): string | undefined {
   if (post.content) {
     const videoMatch = post.content.match(/<video[^>]+src=["']([^"']+)["']/i) || 
                        post.content.match(/<source[^>]+src=["']([^"']+)["']/i) ||
-                       post.content.match(/(https?:\/\/[^\s"'<>]+\.(?:mp4|webm|mov))/i)
+                       post.content.match(/<iframe[^>]+src=["']([^"']+)["']/i) ||
+                       post.content.match(/(https?:\/\/[^\s"'<>]+\.(?:mp4|webm|mov))/i) ||
+                       post.content.match(/(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^\s"'<>]+)/i)
     
     if (videoMatch && videoMatch[1]) {
       let videoUrl = videoMatch[1]

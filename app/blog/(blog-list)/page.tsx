@@ -54,6 +54,7 @@ import {
   getPostCategory,
   getPrimaryImage,
   getPrimaryVideo,
+  getVideoEmbed,
   getReadingTime,
   hasVideo,
   sortPosts,
@@ -160,11 +161,14 @@ function VideoMediaCard({
 
   const imageUrl = getPrimaryImage(post)
   const videoUrl = getPrimaryVideo(post)
+  const embed = videoUrl ? getVideoEmbed(videoUrl) : null
   const hasVid = !!videoUrl && !videoError
 
   const handleMouseEnter = () => {
     setIsHovered(true)
-    if (hasVid && videoRef.current) {
+    if (hasVid && embed?.type === 'iframe') {
+      setIsPlaying(true)
+    } else if (hasVid && videoRef.current) {
       videoRef.current.currentTime = 0
       videoRef.current
         .play()
@@ -175,7 +179,9 @@ function VideoMediaCard({
 
   const handleMouseLeave = () => {
     setIsHovered(false)
-    if (videoRef.current) {
+    if (embed?.type === 'iframe') {
+      setIsPlaying(false)
+    } else if (videoRef.current) {
       videoRef.current.pause()
       setIsPlaying(false)
     }
@@ -209,8 +215,15 @@ function VideoMediaCard({
         </div>
       )}
 
-      {/* Hover Video Overlay */}
-      {hasVid && (
+      {/* Hover Video Overlay (Iframe for YouTube/Vimeo/FB or Video tag for MP4) */}
+      {hasVid && embed?.type === 'iframe' && isHovered && (
+        <iframe
+          src={`${embed.src}${embed.src.includes('?') ? '&' : '?'}autoplay=1&mute=1`}
+          allow="autoplay; encrypted-media"
+          className={`${newsStyles.mediaVideo} ${newsStyles.mediaVideoVisible}`}
+        />
+      )}
+      {hasVid && embed?.type === 'video' && (
         <video
           ref={videoRef}
           src={videoUrl}
