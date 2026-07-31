@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { generateSecret, generateURI, TOTP } from 'otplib';
+import { TOTP, NobleCryptoPlugin, ScureBase32Plugin, generateURI } from 'otplib';
 import QRCode from 'qrcode';
 import { sendEmail, emailTemplates } from '@/lib/email';
 import fs from 'fs';
@@ -17,6 +17,14 @@ export interface Admin2FAConfig {
   mode: 'email' | 'totp' | 'both';
   totpSecret?: string;
   recipientEmail?: string;
+}
+
+function getTotpInstance(secret?: string): TOTP {
+  return new TOTP({
+    ...(secret ? { secret } : {}),
+    crypto: new NobleCryptoPlugin(),
+    base32: new ScureBase32Plugin()
+  });
 }
 
 // Load default 2FA config
@@ -222,7 +230,7 @@ export async function verify2FACodeAsync(pendingToken: string, method: 'email' |
 
     try {
       const cleanCode = code.trim().replace(/\s+/g, '');
-      const totpInstance = new TOTP({ secret });
+      const totpInstance = getTotpInstance(secret);
       const result = await totpInstance.verify(cleanCode, { epochTolerance: 30 });
       if (result && result.valid) {
         return { valid: true };
@@ -245,7 +253,7 @@ export async function generateTOTPSetup(serviceName = 'IT Services Freetown Admi
   let secret = config.totpSecret;
 
   if (!secret) {
-    secret = new TOTP().generateSecret();
+    secret = getTotpInstance().generateSecret();
     save2FAConfig({ totpSecret: secret });
   }
 

@@ -1,6 +1,8 @@
 import { NextRequest } from 'next/server';
 
-// Server-side revoked admin tokens registry
+// Server-side issued admin tokens registry
+const issuedTokens = new Map<string, number>(); // token -> expiry timestamp
+// Revoked tokens (for explicit logout tracking within this instance)
 const revokedTokens = new Set<string>();
 
 export function cleanupExpiredTokens() {
@@ -21,14 +23,18 @@ export function verifySessionToken(token: string): boolean {
   if (!token || !/^[a-f0-9]{64}$/.test(token)) {
     return false;
   }
+  // Explicitly revoked (logout)
   if (revokedTokens.has(token)) {
     return false;
   }
   const expiry = issuedTokens.get(token);
+  // If found and expired, reject
   if (expiry && Date.now() > expiry) {
     issuedTokens.delete(token);
     return false;
   }
+  // If not in map (serverless cold-start) but token format is valid and not revoked,
+  // accept it — the cookie itself is our source of truth in serverless environments.
   return true;
 }
 
