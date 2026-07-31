@@ -6,6 +6,7 @@ import {
   startTransition,
   useDeferredValue,
   useEffect,
+  useRef,
   useState,
 } from 'react'
 import Link from 'next/link'
@@ -14,16 +15,22 @@ import {
   ArrowRight,
   BookOpenText,
   Calendar,
+  ChevronRight,
   Clock3,
   MessageCircle,
+  Play,
+  Radio,
   Search,
   Send,
   Share2,
-  Sparkles,
   ThumbsDown,
   ThumbsUp,
   TrendingUp,
+  Tv2,
   User,
+  Video,
+  Volume2,
+  Zap,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
@@ -37,6 +44,7 @@ import {
   fetchPostComments,
 } from '@/lib/github-blog-storage'
 import styles from '../blog.module.css'
+import newsStyles from '../news.module.css'
 import {
   BlogFilter,
   BlogPost,
@@ -46,35 +54,33 @@ import {
   getExcerpt,
   getPostCategory,
   getPrimaryImage,
+  getPrimaryVideo,
   getReadingTime,
+  hasVideo,
   sortPosts,
   stripHtml,
 } from '../blog-utils'
 
 const FILTER_OPTIONS: { key: BlogFilter; label: string }[] = [
-  { key: 'all', label: 'Editor picks' },
+  { key: 'all', label: 'Top Stories' },
   { key: 'latest', label: 'Latest' },
-  { key: 'popular', label: 'Popular' },
-  { key: 'discussed', label: 'Discussed' },
+  { key: 'popular', label: 'Trending' },
+  { key: 'discussed', label: 'Most Discussed' },
+]
+
+const TICKER_HEADLINES = [
+  'New screen replacement service now available for all Samsung Galaxy models',
+  'Free device diagnostics every Saturday – walk-ins welcome at 37 Kissy Road',
+  'Battery replacement under 1 hour – book online or call +23233399391',
+  'Data recovery service: we recover files from water-damaged and broken devices',
+  'Now accepting trade-ins: bring your old device and get credit toward repairs',
 ]
 
 const FALLBACK_POSTS: BlogPost[] = [
   {
     id: '1',
     title: '5 Signs Your Device Needs Professional Repair',
-    content: `Is your device acting up? Here are the top 5 signs that indicate it's time to bring your device in for professional repair:
-
-1. **Slow Performance** - If your device is significantly slower than usual, it might be a hardware issue.
-
-2. **Battery Draining Fast** - A battery that drains within hours could need replacement.
-
-3. **Screen Issues** - Cracks, dead pixels, or unresponsive touch screens need immediate attention.
-
-4. **Overheating** - Excessive heat can damage internal components.
-
-5. **Strange Noises** - Unusual sounds often indicate hardware problems.
-
-Don't wait until it's too late! Contact us at +23233399391 for a free diagnosis.`,
+    content: `Is your device acting up? Here are the top 5 signs that indicate it's time to bring your device in for professional repair:\n\n1. **Slow Performance** - If your device is significantly slower than usual, it might be a hardware issue.\n\n2. **Battery Draining Fast** - A battery that drains within hours could need replacement.\n\n3. **Screen Issues** - Cracks, dead pixels, or unresponsive touch screens need immediate attention.\n\n4. **Overheating** - Excessive heat can damage internal components.\n\n5. **Strange Noises** - Unusual sounds often indicate hardware problems.\n\nDon't wait until it's too late! Contact us at +23233399391 for a free diagnosis.`,
     author: 'IT Services Freetown',
     date: '2025-10-15',
     likes: 12,
@@ -84,24 +90,7 @@ Don't wait until it's too late! Contact us at +23233399391 for a free diagnosis.
   {
     id: '2',
     title: 'How to Protect Your Data Before Repair',
-    content: `Before bringing your device for repair, follow these essential steps to protect your data:
-
-**Step 1: Backup Everything**
-Use cloud services or external drives to backup your important files, photos, and documents.
-
-**Step 2: Sign Out of Accounts**
-Log out of all accounts including email, social media, and banking apps.
-
-**Step 3: Remove SIM & Memory Cards**
-Take out your SIM card and any external storage cards.
-
-**Step 4: Note Down Important Information**
-Write down any passwords or settings you might need later.
-
-**Step 5: Disable Security Features**
-Turn off Find My Device, screen locks, and encryption (you can re-enable after repair).
-
-At IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Road or call +23233399391.`,
+    content: `Before bringing your device for repair, follow these essential steps to protect your data:\n\n**Step 1: Backup Everything**\nUse cloud services or external drives to backup your important files, photos, and documents.\n\n**Step 2: Sign Out of Accounts**\nLog out of all accounts including email, social media, and banking apps.\n\n**Step 3: Remove SIM & Memory Cards**\nTake out your SIM card and any external storage cards.\n\n**Step 4: Note Down Important Information**\nWrite down any passwords or settings you might need later.\n\n**Step 5: Disable Security Features**\nTurn off Find My Device, screen locks, and encryption (you can re-enable after repair).\n\nAt IT Services Freetown, we take your privacy seriously. Visit us at 37 Kissy Road or call +23233399391.`,
     author: 'IT Services Freetown',
     date: '2025-10-10',
     likes: 8,
@@ -130,6 +119,177 @@ function getTagClass(category: string) {
   return styles.tagInsight
 }
 
+// ── News Ticker Component ──────────────────────────────────────────────────────
+function NewsTicker() {
+  const [tickerIndex, setTickerIndex] = useState(0)
+  const [fade, setFade] = useState(true)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFade(false)
+      setTimeout(() => {
+        setTickerIndex((prev) => (prev + 1) % TICKER_HEADLINES.length)
+        setFade(true)
+      }, 400)
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <div className={newsStyles.ticker}>
+      <div className={newsStyles.tickerLabel}>
+        <Radio className="h-3.5 w-3.5" />
+        <span>LIVE</span>
+      </div>
+      <div className={newsStyles.tickerDivider} />
+      <div className={newsStyles.tickerContent}>
+        <p
+          className={newsStyles.tickerText}
+          style={{ opacity: fade ? 1 : 0, transition: 'opacity 0.4s ease' }}
+        >
+          {TICKER_HEADLINES[tickerIndex]}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// ── Video Preview Card ─────────────────────────────────────────────────────────
+interface VideoCardProps {
+  post: BlogPost
+  aspectRatio?: 'hero' | 'card'
+  onLike: () => void
+  onDislike: () => void
+  onShare: () => void
+  onToggleComments: () => void
+  userVote: 'like' | 'dislike' | null
+  copiedId: string | null
+  showComments: boolean
+}
+
+function VideoMediaCard({
+  post,
+  aspectRatio = 'card',
+}: {
+  post: BlogPost
+  aspectRatio?: 'hero' | 'card'
+}) {
+  const [isHovered, setIsHovered] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [videoError, setVideoError] = useState(false)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+
+  const imageUrl = getPrimaryImage(post)
+  const videoUrl = getPrimaryVideo(post)
+  const hasVid = !!videoUrl && !videoError
+
+  const handleMouseEnter = () => {
+    setIsHovered(true)
+    if (hasVid && videoRef.current) {
+      videoRef.current.currentTime = 0
+      videoRef.current
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch(() => setVideoError(true))
+    }
+  }
+
+  const handleMouseLeave = () => {
+    setIsHovered(false)
+    if (videoRef.current) {
+      videoRef.current.pause()
+      setIsPlaying(false)
+    }
+  }
+
+  const heightClass = aspectRatio === 'hero' ? newsStyles.heroMediaHeight : newsStyles.cardMediaHeight
+
+  return (
+    <div
+      className={`${newsStyles.mediaWrapper} ${heightClass}`}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* Poster Image */}
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt={post.title}
+          className={`${newsStyles.mediaPoster} ${isHovered ? newsStyles.mediaPosterZoomed : ''}`}
+          onError={(e) => {
+            ;(e.target as HTMLImageElement).src =
+              'https://images.unsplash.com/photo-1597733336794-12d05021d510?auto=format&fit=crop&w=1000&q=80'
+          }}
+        />
+      ) : (
+        <div className={newsStyles.mediaPlaceholder}>
+          <BookOpenText className="h-12 w-12 text-white/40" />
+          <p className="mt-2 text-xs font-bold uppercase tracking-widest text-white/40">
+            {getPostCategory(post)}
+          </p>
+        </div>
+      )}
+
+      {/* Hover Video Overlay */}
+      {hasVid && (
+        <video
+          ref={videoRef}
+          src={videoUrl}
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          onError={() => setVideoError(true)}
+          className={`${newsStyles.mediaVideo} ${isHovered && isPlaying ? newsStyles.mediaVideoVisible : ''}`}
+        />
+      )}
+
+      {/* Video Badge */}
+      {hasVid && (
+        <div className={newsStyles.videoBadge}>
+          <span className={`${newsStyles.liveDot} ${isHovered ? newsStyles.liveDotPing : ''}`} />
+          <Video className="h-3 w-3" />
+          <span>{isHovered && isPlaying ? 'PLAYING' : 'VIDEO'}</span>
+        </div>
+      )}
+
+      {/* Play Button */}
+      {hasVid && !isPlaying && (
+        <div className={newsStyles.playOverlay}>
+          <div className={newsStyles.playButton}>
+            <Play className="h-5 w-5 fill-white ml-0.5" />
+          </div>
+        </div>
+      )}
+
+      {/* Playing Indicator */}
+      {isHovered && isPlaying && (
+        <div className={newsStyles.playingBadge}>
+          <Volume2 className="h-3.5 w-3.5 text-red-400" />
+          <span>Hover Preview</span>
+        </div>
+      )}
+
+      {/* Gradient overlay */}
+      <div className={newsStyles.mediaGradient} />
+    </div>
+  )
+}
+
+// ── Category Badge ─────────────────────────────────────────────────────────────
+function CategoryBadge({ category }: { category: string }) {
+  const colorMap: Record<string, string> = {
+    'Expert Guide': newsStyles.badgeRed,
+    'Data Care': newsStyles.badgeBlue,
+    'Buying Advice': newsStyles.badgeAmber,
+    'Device Tips': newsStyles.badgeGreen,
+    'Tech Insight': newsStyles.badgeIndigo,
+  }
+  const colorClass = colorMap[category] ?? newsStyles.badgeIndigo
+  return <span className={`${newsStyles.categoryBadge} ${colorClass}`}>{category}</span>
+}
+
+// ── Main Blog Content ──────────────────────────────────────────────────────────
 function BlogPageContent() {
   const { isLoading } = usePageLoader()
   const searchParams = useSearchParams()
@@ -137,880 +297,672 @@ function BlogPageContent() {
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({})
   const [commentAuthors, setCommentAuthors] = useState<Record<string, string>>({})
   const [showComments, setShowComments] = useState<Record<string, boolean>>({})
-  const [userVotes, setUserVotes] = useState<
-    Record<string, 'like' | 'dislike' | null>
-  >({})
+  const [userVotes, setUserVotes] = useState<Record<string, 'like' | 'dislike' | null>>({})
   const [copiedPostId, setCopiedPostId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [activeFilter, setActiveFilter] = useState<BlogFilter>('all')
 
   const deferredQuery = useDeferredValue(searchQuery)
-
   useScrollAnimations()
 
+  // Live clock for the network bar
   useEffect(() => {
-    const query = searchParams ? searchParams.get('search') || searchParams.get('tag') || searchParams.get('q') : ''
-    if (query) {
-      setSearchQuery(query)
+    const tick = () => {
+      const el = document.getElementById('news-clock')
+      if (el) {
+        el.textContent = new Date().toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        })
+      }
     }
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    const query = searchParams
+      ? searchParams.get('search') || searchParams.get('tag') || searchParams.get('q')
+      : ''
+    if (query) setSearchQuery(query)
   }, [searchParams])
 
   useEffect(() => {
     const loadPosts = async () => {
       try {
         const githubPosts = await fetchBlogPosts()
-
         if (githubPosts.length > 0) {
-          const publishedPosts = githubPosts.filter(
-            (post) => !post.title.startsWith('[DRAFT]')
-          )
-
+          const publishedPosts = githubPosts.filter((p) => !p.title.startsWith('[DRAFT]'))
           const postsWithComments = await Promise.all(
             publishedPosts.map(async (post) => {
               const comments = await fetchPostComments(parseInt(post.id, 10))
               return {
                 ...post,
-                comments: comments.map((comment) => ({
-                  id: comment.id.toString(),
-                  author: comment.author,
-                  content: comment.content,
-                  timestamp: comment.timestamp,
+                comments: comments.map((c) => ({
+                  id: c.id.toString(),
+                  author: c.author,
+                  content: c.content,
+                  timestamp: c.timestamp,
                 })),
               }
             })
           )
-
           setPosts(postsWithComments)
           localStorage.setItem('blog_posts', JSON.stringify(postsWithComments))
           return
         }
-      } catch (error) {
-        console.error('Failed to load posts from GitHub:', error)
+      } catch (err) {
+        console.error('GitHub load failed:', err)
       }
-
-      const savedPosts = localStorage.getItem('blog_posts')
-
-      if (savedPosts) {
-        setPosts(rehydratePosts(JSON.parse(savedPosts)))
-        return
-      }
-
+      const saved = localStorage.getItem('blog_posts')
+      if (saved) { setPosts(rehydratePosts(JSON.parse(saved))); return }
       setPosts(FALLBACK_POSTS)
       localStorage.setItem('blog_posts', JSON.stringify(FALLBACK_POSTS))
     }
-
     loadPosts()
-
     const savedVotes = localStorage.getItem('blog_votes')
-    if (savedVotes) {
-      setUserVotes(JSON.parse(savedVotes))
-    }
+    if (savedVotes) setUserVotes(JSON.parse(savedVotes))
   }, [])
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.location.hash || posts.length === 0) {
-      return
-    }
-
+    if (typeof window === 'undefined' || !window.location.hash || posts.length === 0) return
     const postId = window.location.hash.replace('#post-', '')
-
     setTimeout(() => {
-      const element = document.getElementById(`post-${postId}`)
-      element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      document.getElementById(`post-${postId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }, 120)
   }, [posts])
 
   const handleLike = async (postId: string) => {
-    const currentVote = userVotes[postId]
-
-    if (currentVote === 'like') {
-      toast('You already liked this post')
-      return
-    }
-
+    if (userVotes[postId] === 'like') { toast('You already liked this post'); return }
     try {
       const result = await addReaction(parseInt(postId, 10), '+1')
-
-      if (!result.success) {
-        toast.error('Failed to add like')
-        return
-      }
-
-      const updatedPosts = posts.map((post) => {
-        if (post.id !== postId) return post
-
-        return {
-          ...post,
-          likes: post.likes + 1,
-          dislikes: currentVote === 'dislike' ? post.dislikes - 1 : post.dislikes,
+      if (!result.success) { toast.error('Failed to add like'); return }
+      const updated = posts.map((p) =>
+        p.id !== postId ? p : {
+          ...p,
+          likes: p.likes + 1,
+          dislikes: userVotes[postId] === 'dislike' ? p.dislikes - 1 : p.dislikes,
         }
-      })
-
-      const updatedVotes = { ...userVotes, [postId]: 'like' as const }
-
-      setUserVotes(updatedVotes)
-      localStorage.setItem('blog_votes', JSON.stringify(updatedVotes))
-      setPosts(updatedPosts)
+      )
+      const votes = { ...userVotes, [postId]: 'like' as const }
+      setUserVotes(votes)
+      localStorage.setItem('blog_votes', JSON.stringify(votes))
+      setPosts(updated)
       toast.success('Thanks for liking this post!')
-    } catch (error) {
-      console.error('Error adding like:', error)
-      toast.error('Failed to add like')
-    }
+    } catch { toast.error('Failed to add like') }
   }
 
   const handleDislike = async (postId: string) => {
-    const currentVote = userVotes[postId]
-
-    if (currentVote === 'dislike') {
-      toast('You already disliked this post')
-      return
-    }
-
+    if (userVotes[postId] === 'dislike') { toast('You already disliked this post'); return }
     try {
       const result = await addReaction(parseInt(postId, 10), '-1')
-
-      if (!result.success) {
-        toast.error('Failed to add dislike')
-        return
-      }
-
-      const updatedPosts = posts.map((post) => {
-        if (post.id !== postId) return post
-
-        return {
-          ...post,
-          dislikes: post.dislikes + 1,
-          likes: currentVote === 'like' ? post.likes - 1 : post.likes,
+      if (!result.success) { toast.error('Failed to add dislike'); return }
+      const updated = posts.map((p) =>
+        p.id !== postId ? p : {
+          ...p,
+          dislikes: p.dislikes + 1,
+          likes: userVotes[postId] === 'like' ? p.likes - 1 : p.likes,
         }
-      })
-
-      const updatedVotes = { ...userVotes, [postId]: 'dislike' as const }
-
-      setUserVotes(updatedVotes)
-      localStorage.setItem('blog_votes', JSON.stringify(updatedVotes))
-      setPosts(updatedPosts)
+      )
+      const votes = { ...userVotes, [postId]: 'dislike' as const }
+      setUserVotes(votes)
+      localStorage.setItem('blog_votes', JSON.stringify(votes))
+      setPosts(updated)
       toast.success('Feedback recorded')
-    } catch (error) {
-      console.error('Error adding dislike:', error)
-      toast.error('Failed to add dislike')
-    }
+    } catch { toast.error('Failed to add dislike') }
   }
 
   const handleAddComment = async (postId: string) => {
     const content = commentInputs[postId]?.trim()
     const author = commentAuthors[postId]?.trim()
-
-    if (!content || !author) {
-      toast.error('Please enter your name and comment')
-      return
-    }
-
+    if (!content || !author) { toast.error('Please enter your name and comment'); return }
     try {
       const result = await addComment(parseInt(postId, 10), content, author)
-
-      if (!result.success) {
-        toast.error('Failed to add comment')
-        return
-      }
-
+      if (!result.success) { toast.error('Failed to add comment'); return }
       const comments = await fetchPostComments(parseInt(postId, 10))
-      const updatedPosts = posts.map((post) =>
-        post.id === postId ? { ...post, comments } : post
-      )
-
-      setPosts(updatedPosts)
+      setPosts(posts.map((p) => p.id === postId ? { ...p, comments } : p))
       setCommentInputs((prev) => ({ ...prev, [postId]: '' }))
       setCommentAuthors((prev) => ({ ...prev, [postId]: '' }))
       toast.success('Comment added!')
-    } catch (error) {
-      console.error('Error adding comment:', error)
-      toast.error('Failed to add comment')
-    }
+    } catch { toast.error('Failed to add comment') }
   }
 
   const handleShare = async (post: BlogPost) => {
-    const shareUrl = `${window.location.origin}/blog/${post.id}`
-    const contentPreview = getExcerpt(post.content, 150)
-    const shareText = `${post.title}\n\n${contentPreview}`
-
+    const url = `${window.location.origin}/blog/${post.id}`
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: post.title,
-          text: shareText,
-          url: shareUrl,
-        })
+        await navigator.share({ title: post.title, text: getExcerpt(post.content, 150), url })
         toast.success('Shared successfully!')
         return
-      } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
-          console.error('Share failed:', error)
-        }
+      } catch (e) {
+        if ((e as Error).name !== 'AbortError') console.error(e)
       }
     }
-
     try {
-      await navigator.clipboard.writeText(shareUrl)
+      await navigator.clipboard.writeText(url)
       setCopiedPostId(post.id)
       toast.success('Article link copied!')
-
-      setTimeout(() => {
-        setCopiedPostId(null)
-      }, 1800)
-    } catch (error) {
-      console.error('Failed to copy:', error)
-      toast.error('Failed to copy link')
-    }
+      setTimeout(() => setCopiedPostId(null), 1800)
+    } catch { toast.error('Failed to copy link') }
   }
 
-  const toggleComments = (postId: string) => {
+  const toggleComments = (postId: string) =>
     setShowComments((prev) => ({ ...prev, [postId]: !prev[postId] }))
-  }
 
   const normalizedQuery = deferredQuery.trim().toLowerCase()
   const filteredPosts = sortPosts(posts, activeFilter).filter((post) => {
     if (!normalizedQuery) return true
-
-    const searchableText = [
-      post.title,
-      stripHtml(post.content),
-      post.author,
-      getPostCategory(post),
-    ]
+    return [post.title, stripHtml(post.content), post.author, getPostCategory(post)]
       .join(' ')
       .toLowerCase()
-
-    return searchableText.includes(normalizedQuery)
+      .includes(normalizedQuery)
   })
 
-  const featuredPost = filteredPosts[0]
-  const libraryPosts = filteredPosts.slice(1)
-  const popularPosts = sortPosts(posts, 'popular').slice(0, 3)
-  const totalComments = posts.reduce((sum, post) => sum + post.comments.length, 0)
-  const totalReactions = posts.reduce(
-    (sum, post) => sum + post.likes + post.dislikes,
-    0
-  )
-  const totalReadingMinutes = posts.reduce(
-    (sum, post) => sum + getReadingTime(post.content),
-    0
-  )
-  const latestPost = sortPosts(posts, 'latest')[0]
+  const heroPost = filteredPosts[0]
+  const secondPost = filteredPosts[1]
+  const thirdPost = filteredPosts[2]
+  const gridPosts = filteredPosts.slice(3)
+  const sidebarPosts = sortPosts(posts, 'popular').slice(0, 5)
+  const trendingPosts = sortPosts(posts, 'popular').slice(0, 3)
+  const totalComments = posts.reduce((s, p) => s + p.comments.length, 0)
+  const totalReactions = posts.reduce((s, p) => s + p.likes + p.dislikes, 0)
 
   return (
     <>
       <LoadingOverlay show={isLoading} />
 
-      <div className={styles.pageShell}>
-        <div className={styles.meshOrbOne} />
-        <div className={styles.meshOrbTwo} />
+      {/* ── News Channel Shell ── */}
+      <div className={newsStyles.channelShell}>
 
-        <main className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
-          <section className={`${styles.heroPanel} scroll-animate`}>
-            <div className="relative z-10 grid gap-10 px-6 py-8 sm:px-10 sm:py-10 lg:grid-cols-[1.45fr_0.95fr] lg:px-12 lg:py-14">
-              <div className="space-y-6">
-                <span className={styles.eyebrow}>
-                  <Sparkles className="h-4 w-4" />
-                  IT Services Freetown Journal
-                </span>
-
-                <div className="space-y-4">
-                  <h1 className={`${styles.heroTitle} font-black text-white`}>
-                    A sharper blog for repair know-how, device care, and local tech insight.
-                  </h1>
-                  <p className={`${styles.heroLead} text-base sm:text-lg`}>
-                    Browse practical articles built for customers in Freetown:
-                    repair guidance, data protection tips, smarter buying advice,
-                    and real-world answers for the devices people rely on every day.
-                  </p>
-                </div>
-
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <div className={`${styles.statCard} p-4`}>
-                    <p className="text-sm uppercase tracking-[0.2em] text-slate-200">
-                      Articles
-                    </p>
-                    <p className="mt-3 text-3xl font-bold text-white">
-                      {posts.length}
-                    </p>
-                  </div>
-                  <div className={`${styles.statCard} p-4`}>
-                    <p className="text-sm uppercase tracking-[0.2em] text-slate-200">
-                      Community replies
-                    </p>
-                    <p className="mt-3 text-3xl font-bold text-white">
-                      {totalComments}
-                    </p>
-                  </div>
-                  <div className={`${styles.statCard} p-4`}>
-                    <p className="text-sm uppercase tracking-[0.2em] text-slate-200">
-                      Reading library
-                    </p>
-                    <p className="mt-3 text-3xl font-bold text-white">
-                      {totalReadingMinutes} min
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className={`${styles.statCard} p-6`}>
-                  <p className="text-sm uppercase tracking-[0.18em] text-red-100">
-                    What you will find here
-                  </p>
-                  <div className="mt-5 space-y-4 text-sm text-blue-50/90 sm:text-base">
-                    <div className="flex items-start gap-3">
-                      <TrendingUp className="mt-0.5 h-5 w-5 text-red-200" />
-                      <p>Short, useful repair guidance that answers real customer questions fast.</p>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <BookOpenText className="mt-0.5 h-5 w-5 text-red-200" />
-                      <p>Plain-language explanations instead of generic copy or jargon-heavy tutorials.</p>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <Clock3 className="mt-0.5 h-5 w-5 text-red-200" />
-                      <p>
-                        Updated {latestPost ? formatLongDate(latestPost.date) : 'as new stories are published'}.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={`${styles.statCard} p-6`}>
-                  <p className="text-sm uppercase tracking-[0.18em] text-red-100">
-                    Need direct help?
-                  </p>
-                  <p className="mt-3 text-sm text-blue-50/90 sm:text-base">
-                    If an article sounds like your issue, jump straight to support or book a repair with the team.
-                  </p>
-                  <div className="mt-5 flex flex-wrap gap-3">
-                    <Link
-                      href="/book-appointment"
-                      className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-primary-950 transition hover:bg-red-50"
-                    >
-                      Book a repair
-                    </Link>
-                    <Link
-                      href="/contact"
-                      className="rounded-full border border-white/25 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
-                    >
-                      Contact us
-                    </Link>
-                  </div>
-                </div>
-              </div>
+        {/* ── Network Header Bar ── */}
+        <div className={newsStyles.networkBar}>
+          <div className={newsStyles.networkBarInner}>
+            <div className={newsStyles.networkBrand}>
+              <Tv2 className="h-5 w-5" />
+              <span className={newsStyles.networkName}>IT<span className={newsStyles.networkAccent}>SL</span> NEWS</span>
+              <span className={newsStyles.networkTagline}>Sierra Leone's Tech Channel</span>
             </div>
-          </section>
+            <div className={newsStyles.networkRight}>
+              <span className={newsStyles.liveIndicator}>
+                <span className={newsStyles.livePulse} />
+                ON AIR
+              </span>
+              <span className={newsStyles.networkTime} id="news-clock" />
+            </div>
+          </div>
+        </div>
 
-          <section className={`${styles.toolbarShell} mt-8 p-4 sm:p-5 scroll-animate`}>
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="relative w-full max-w-xl">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+        {/* ── News Ticker ── */}
+        <NewsTicker />
+
+        {/* ── Main Content Area ── */}
+        <main className={newsStyles.mainContent}>
+
+          {/* ── Search + Filter Toolbar ── */}
+          <div className={newsStyles.toolbar}>
+            <div className={newsStyles.toolbarInner}>
+              <div className={newsStyles.searchWrap}>
+                <Search className={newsStyles.searchIcon} />
                 <input
                   type="search"
                   value={searchQuery}
-                  onChange={(event) => {
-                    const nextValue = event.target.value
-                    startTransition(() => {
-                      setSearchQuery(nextValue)
-                    })
-                  }}
-                  placeholder="Search repair guides, data tips, and device advice"
-                  className="w-full rounded-full border border-slate-200 bg-white px-12 py-3 text-sm text-slate-700 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100"
+                  onChange={(e) => startTransition(() => setSearchQuery(e.target.value))}
+                  placeholder="Search tech news, repair guides, device tips…"
+                  className={newsStyles.searchInput}
                 />
               </div>
-
-              <div className="flex flex-wrap gap-2">
-                {FILTER_OPTIONS.map((filter) => {
-                  const isActive = activeFilter === filter.key
-
-                  return (
-                    <button
-                      key={filter.key}
-                      type="button"
-                      onClick={() => {
-                        startTransition(() => {
-                          setActiveFilter(filter.key)
-                        })
-                      }}
-                      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                        isActive
-                          ? 'bg-primary-950 text-white shadow-lg shadow-blue-950/10'
-                          : 'bg-white text-slate-600 hover:bg-slate-100'
-                      }`}
-                    >
-                      {filter.label}
-                    </button>
-                  )
-                })}
+              <div className={newsStyles.filterRow}>
+                {FILTER_OPTIONS.map((f) => (
+                  <button
+                    key={f.key}
+                    type="button"
+                    onClick={() => startTransition(() => setActiveFilter(f.key))}
+                    className={`${newsStyles.filterBtn} ${activeFilter === f.key ? newsStyles.filterBtnActive : ''}`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
               </div>
             </div>
-
-            <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-500">
-              <span>
-                Showing <strong className="text-slate-900">{filteredPosts.length}</strong> article
-                {filteredPosts.length === 1 ? '' : 's'}
-              </span>
-              <span className="hidden h-1 w-1 rounded-full bg-slate-300 sm:inline-block" />
-              <span>
-                <strong className="text-slate-900">{totalReactions}</strong> total reactions from readers
-              </span>
+            <div className={newsStyles.toolbarMeta}>
+              <span><strong>{filteredPosts.length}</strong> stories</span>
+              <span className={newsStyles.metaDot} />
+              <span><strong>{totalReactions}</strong> reader reactions</span>
+              <span className={newsStyles.metaDot} />
+              <span><strong>{totalComments}</strong> comments</span>
             </div>
-          </section>
-
-          <div className="mt-8 scroll-animate">
-            <DisplayAd className="mx-auto max-w-4xl" />
           </div>
 
-          {featuredPost ? (
-            <section className="mt-10 grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_22rem]">
-              <div
-                className={`${styles.featureCard} scroll-animate block group`}
+          {/* ── Ad Banner ── */}
+          <div className="mt-4">
+            <DisplayAd className="mx-auto max-w-5xl" />
+          </div>
+
+          {filteredPosts.length === 0 ? (
+            <div className={newsStyles.emptyState}>
+              <MessageCircle className="h-14 w-14 text-slate-300 mx-auto" />
+              <h2 className="mt-5 text-2xl font-black text-slate-900">No stories match your search</h2>
+              <p className="mt-3 text-slate-500">Try a broader keyword or switch back to Top Stories.</p>
+              <button
+                type="button"
+                onClick={() => startTransition(() => { setSearchQuery(''); setActiveFilter('all') })}
+                className={newsStyles.resetBtn}
               >
-                <Link
-                  href={`/blog/${featuredPost.id}`}
-                  className="absolute inset-0 z-[2]"
-                  aria-label={`Read featured article: ${featuredPost.title}`}
-                />
-                
-                <div className={styles.featureMedia}>
-                  {getPrimaryImage(featuredPost) ? (
-                    <img
-                      src={getPrimaryImage(featuredPost)}
-                      alt={featuredPost.title}
-                      className={styles.featureImage}
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center px-10 text-center">
-                      <div>
-                        <BookOpenText className="mx-auto h-14 w-14 text-primary-950/70" />
-                        <p className="mt-4 text-sm font-semibold uppercase tracking-[0.2em] text-primary-950/70">
-                          Featured story
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className={`${styles.featureContent} z-[3] pointer-events-none w-full`}>
-                  <span className={styles.featureBadge}>
-                    <Sparkles className="h-4 w-4" />
-                    Featured article
-                  </span>
-                  <h2 className="mt-4 max-w-3xl text-2xl font-black leading-tight text-white sm:text-4xl">
-                    {featuredPost.title}
-                  </h2>
-                  <p className="mt-3 max-w-2xl text-sm text-blue-50/90 sm:text-base">
-                    {getExcerpt(featuredPost.content, 220)}
-                  </p>
-
-                  <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between pointer-events-auto">
-                    <div className="flex flex-wrap items-center gap-3 text-sm text-blue-50/85">
-                      <span className="inline-flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        {formatLongDate(featuredPost.date)}
-                      </span>
-                      <span className="inline-flex items-center gap-2">
-                        <Clock3 className="h-4 w-4" />
-                        {getReadingTime(featuredPost.content)} min read
-                      </span>
-                    </div>
-
-                    <div className={styles.storyActionRail}>
-                      <button
-                        type="button"
-                        title="Like article"
-                        aria-label={`Like ${featuredPost.title}`}
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleLike(featuredPost.id); }}
-                        className={`${styles.storyActionButton} ${
-                          userVotes[featuredPost.id] === 'like'
-                            ? styles.storyActionActiveBlue
-                            : ''
-                        }`}
-                      >
-                        <ThumbsUp className="h-4 w-4" />
-                        <span className="text-xs font-semibold">{featuredPost.likes}</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        title="Dislike article"
-                        aria-label={`Dislike ${featuredPost.title}`}
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDislike(featuredPost.id); }}
-                        className={`${styles.storyActionButton} ${
-                          userVotes[featuredPost.id] === 'dislike'
-                            ? styles.storyActionActiveRed
-                            : ''
-                        }`}
-                      >
-                        <ThumbsDown className="h-4 w-4" />
-                        <span className="text-xs font-semibold">{featuredPost.dislikes}</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        title="Share article"
-                        aria-label={`Share ${featuredPost.title}`}
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleShare(featuredPost); }}
-                        className={styles.storyActionButton}
-                      >
-                        <Share2 className="h-4 w-4" />
-                        <span className="text-xs font-semibold">Share</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                Reset filters
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* ── Section Label ── */}
+              <div className={newsStyles.sectionLabel}>
+                <Zap className="h-4 w-4" />
+                <span>Top Stories</span>
               </div>
 
-              <aside className="space-y-4">
-                <div className={`${styles.insightCard} scroll-animate rounded-[1.75rem] p-5`}>
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
-                    Popular right now
-                  </p>
-                  <div className="mt-4 space-y-4">
-                    {popularPosts.map((post) => (
+              {/* ── Hero + Sidebar Layout ── */}
+              <div className={newsStyles.heroGrid}>
+
+                {/* Left: Hero Story */}
+                {heroPost && (
+                  <article className={newsStyles.heroStory} id={`post-${heroPost.id}`}>
+                    <div className={newsStyles.heroMediaWrap}>
                       <Link
-                        key={post.id}
-                        href={`/blog/${post.id}`}
-                        className="block rounded-2xl border border-slate-100 bg-white p-4 transition hover:border-slate-200 hover:shadow-sm"
-                      >
-                        <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-                          <span>{getPostCategory(post)}</span>
-                          <span>{getReadingTime(post.content)} min</span>
+                        href={`/blog/${heroPost.id}`}
+                        aria-label={`Read: ${heroPost.title}`}
+                        className={newsStyles.heroMediaLink}
+                      />
+                      <VideoMediaCard post={heroPost} aspectRatio="hero" />
+                      <div className={newsStyles.heroMeta}>
+                        <CategoryBadge category={getPostCategory(heroPost)} />
+                        {hasVideo(heroPost) && (
+                          <span className={newsStyles.videoTag}>
+                            <Video className="h-3 w-3" /> VIDEO
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className={newsStyles.heroBody}>
+                      <Link href={`/blog/${heroPost.id}`} className={newsStyles.heroTitleLink}>
+                        <h2 className={newsStyles.heroTitle}>{heroPost.title}</h2>
+                      </Link>
+                      <p className={newsStyles.heroExcerpt}>{getExcerpt(heroPost.content, 220)}</p>
+                      <div className={newsStyles.heroFooter}>
+                        <div className={newsStyles.heroByline}>
+                          <div className={newsStyles.authorAvatar}>
+                            {heroPost.author.charAt(0)}
+                          </div>
+                          <div>
+                            <p className={newsStyles.authorName}>{heroPost.author}</p>
+                            <p className={newsStyles.authorMeta}>
+                              <Calendar className="h-3 w-3" /> {formatLongDate(heroPost.date)}
+                              <span className={newsStyles.metaDot} />
+                              <Clock3 className="h-3 w-3" /> {getReadingTime(heroPost.content)} min read
+                            </p>
+                          </div>
                         </div>
-                        <h3 className="mt-2 text-base font-bold leading-snug text-slate-900">
-                          {post.title}
-                        </h3>
-                        <p className="mt-2 text-sm text-slate-500">
-                          {getExcerpt(post.content, 92)}
-                        </p>
+                        <div className={newsStyles.actionRow}>
+                          <button
+                            type="button"
+                            onClick={() => handleLike(heroPost.id)}
+                            className={`${newsStyles.actionBtn} ${userVotes[heroPost.id] === 'like' ? newsStyles.actionBtnActive : ''}`}
+                            title="Like"
+                          >
+                            <ThumbsUp className="h-4 w-4" />
+                            <span>{heroPost.likes}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDislike(heroPost.id)}
+                            className={`${newsStyles.actionBtn} ${userVotes[heroPost.id] === 'dislike' ? newsStyles.actionBtnDislike : ''}`}
+                            title="Dislike"
+                          >
+                            <ThumbsDown className="h-4 w-4" />
+                            <span>{heroPost.dislikes}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleComments(heroPost.id)}
+                            className={newsStyles.actionBtn}
+                            title="Comments"
+                          >
+                            <MessageCircle className="h-4 w-4" />
+                            <span>{heroPost.comments.length}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleShare(heroPost)}
+                            className={newsStyles.actionBtn}
+                            title="Share"
+                          >
+                            <Share2 className="h-4 w-4" />
+                            <span>{copiedPostId === heroPost.id ? 'Copied!' : 'Share'}</span>
+                          </button>
+                          <Link href={`/blog/${heroPost.id}`} className={newsStyles.readMoreBtn}>
+                            Read Full Story <ChevronRight className="h-4 w-4" />
+                          </Link>
+                        </div>
+                      </div>
+
+                      {/* Hero Comments */}
+                      {showComments[heroPost.id] && (
+                        <CommentSection
+                          post={heroPost}
+                          commentInputs={commentInputs}
+                          commentAuthors={commentAuthors}
+                          setCommentInputs={setCommentInputs}
+                          setCommentAuthors={setCommentAuthors}
+                          onSubmit={handleAddComment}
+                        />
+                      )}
+                    </div>
+                  </article>
+                )}
+
+                {/* Right: Sidebar */}
+                <aside className={newsStyles.sidebar}>
+                  {/* Breaking / Trending */}
+                  <div className={newsStyles.sidebarBlock}>
+                    <div className={newsStyles.sidebarHeader}>
+                      <TrendingUp className="h-4 w-4" />
+                      <span>Trending Now</span>
+                    </div>
+                    {trendingPosts.map((post, i) => (
+                      <Link key={post.id} href={`/blog/${post.id}`} className={newsStyles.sidebarItem}>
+                        <span className={newsStyles.sidebarRank}>{i + 1}</span>
+                        <div className={newsStyles.sidebarItemBody}>
+                          <CategoryBadge category={getPostCategory(post)} />
+                          <p className={newsStyles.sidebarItemTitle}>{post.title}</p>
+                          <p className={newsStyles.sidebarItemMeta}>
+                            <Clock3 className="h-3 w-3" /> {getReadingTime(post.content)} min read
+                            {hasVideo(post) && (
+                              <span className={newsStyles.sidebarVideoTag}>
+                                <Video className="h-3 w-3" /> VIDEO
+                              </span>
+                            )}
+                          </p>
+                        </div>
                       </Link>
                     ))}
                   </div>
-                </div>
 
-                <div className={`${styles.insightCard} scroll-animate rounded-[1.75rem] p-5`}>
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
-                    Reading room note
-                  </p>
-                  <p className="mt-3 text-sm leading-7 text-slate-600">
-                    This new layout is tuned for fast scanning first, deep reading second, so customers can
-                    find the right answer before committing to a repair.
-                  </p>
-                </div>
-              </aside>
-            </section>
-          ) : (
-            <div className={`${styles.emptyState} mt-10 scroll-animate px-6 py-16 text-center`}>
-              <div className="mx-auto max-w-xl">
-                <MessageCircle className="mx-auto h-14 w-14 text-primary-950/70" />
-                <h2 className="mt-5 text-3xl font-black text-slate-900">
-                  No articles match your search yet
-                </h2>
-                <p className="mt-3 text-slate-600">
-                  Try a broader keyword or switch back to editor picks to browse the full library.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    startTransition(() => {
-                      setSearchQuery('')
-                      setActiveFilter('all')
-                    })
-                  }}
-                  className="mt-6 rounded-full bg-primary-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-900"
-                >
-                  Reset filters
-                </button>
-              </div>
-            </div>
-          )}
+                  {/* CTA Panel */}
+                  <div className={newsStyles.sidebarCta}>
+                    <p className={newsStyles.sidebarCtaLabel}>Need a repair?</p>
+                    <p className={newsStyles.sidebarCtaText}>
+                      37 Kissy Road, Freetown · +23233399391
+                    </p>
+                    <div className={newsStyles.sidebarCtaButtons}>
+                      <Link href="/book-appointment" className={newsStyles.ctaBtnPrimary}>
+                        Book Appointment
+                      </Link>
+                      <Link href="/contact" className={newsStyles.ctaBtnSecondary}>
+                        Contact Us
+                      </Link>
+                    </div>
+                  </div>
 
-          {libraryPosts.length > 0 && (
-            <section className="mt-10">
-              <div className="mb-5 flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
-                    Article library
-                  </p>
-                  <h2 className="mt-2 text-3xl font-black text-slate-900">
-                    More stories worth reading
-                  </h2>
-                </div>
+                  {/* Second & Third Stories Compact */}
+                  {(secondPost || thirdPost) && (
+                    <div className={newsStyles.sidebarBlock}>
+                      <div className={newsStyles.sidebarHeader}>
+                        <ArrowRight className="h-4 w-4" />
+                        <span>More Stories</span>
+                      </div>
+                      {[secondPost, thirdPost].filter(Boolean).map((post) => (
+                        post && (
+                          <Link key={post.id} href={`/blog/${post.id}`} className={newsStyles.compactCard}>
+                            {getPrimaryImage(post) && (
+                              <img
+                                src={getPrimaryImage(post)}
+                                alt={post.title}
+                                className={newsStyles.compactThumb}
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                              />
+                            )}
+                            <div className={newsStyles.compactBody}>
+                              <CategoryBadge category={getPostCategory(post)} />
+                              <p className={newsStyles.compactTitle}>{post.title}</p>
+                              <p className={newsStyles.compactMeta}>
+                                <Clock3 className="h-3 w-3" /> {getReadingTime(post.content)} min
+                              </p>
+                            </div>
+                          </Link>
+                        )
+                      ))}
+                    </div>
+                  )}
+                </aside>
               </div>
 
-              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                {libraryPosts.map((post, index) => {
-                  const category = getPostCategory(post)
-                  const image = getPrimaryImage(post)
+              {/* ── Article Grid ── */}
+              {gridPosts.length > 0 && (
+                <section className="mt-10">
+                  <div className={newsStyles.sectionLabel}>
+                    <BookOpenText className="h-4 w-4" />
+                    <span>More Tech Stories</span>
+                  </div>
 
-                  return (
-                    <Fragment key={post.id}>
-                      <article
-                        id={`post-${post.id}`}
-                        className={`${styles.storyCard} group scroll-animate overflow-hidden`}
-                      >
-                        <div className={styles.storyVisual}>
-                          <Link
-                            href={`/blog/${post.id}`}
-                            aria-label={`Read article: ${post.title}`}
-                            className="absolute inset-0 z-[2]"
-                          />
+                  <div className={newsStyles.articleGrid}>
+                    {gridPosts.map((post, index) => {
+                      const category = getPostCategory(post)
+                      const image = getPrimaryImage(post)
+                      const isWide = index % 5 === 0 // every 5th card is wide
 
-                          {image ? (
-                            <img
-                              src={image}
-                              alt={post.title}
-                              className={styles.storyImage}
-                            />
-                          ) : (
-                            <div className={styles.storyPlaceholder}>
-                              <div>
-                                <BookOpenText className="mx-auto h-14 w-14" />
-                                <p className="mt-4 text-sm font-semibold uppercase tracking-[0.18em] text-primary-950/70">
-                                  Featured insight
-                                </p>
-                              </div>
-                            </div>
-                          )}
-
-                          <div className={`${styles.storyTopMeta} pointer-events-none`}>
-                            <span className={`${styles.tagBase} ${getTagClass(category)}`}>
-                              {category}
-                            </span>
-                            <span className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/15 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white backdrop-blur-md">
-                              <Clock3 className="h-3.5 w-3.5" />
-                              {getReadingTime(post.content)} min
-                            </span>
-                          </div>
-
-                          <div className={styles.storyOverlay}>
-                            <div className={styles.storySubMeta}>
-                              <span className="inline-flex items-center gap-1.5">
-                                <Calendar className="h-3.5 w-3.5" />
-                                {formatShortDate(post.date)}
-                              </span>
-                              <span className="inline-flex items-center gap-1.5">
-                                <User className="h-3.5 w-3.5" />
-                                {post.author}
-                              </span>
-                            </div>
-
-                            <h3 className={`${styles.storyTitle} mt-3`}>
-                              {post.title}
-                            </h3>
-
-                            <p className={styles.storyExcerpt}>
-                              {getExcerpt(post.content, 110)}
-                            </p>
-
-                            <div className={styles.storyFooterRow}>
-                              <span className={styles.storyReadHint}>
-                                Read article
-                                <ArrowRight className={`${styles.storyReadHintIcon} h-4 w-4`} />
-                              </span>
-
-                              <div className={styles.storyActionRail}>
-                                <button
-                                  type="button"
-                                  title="Like article"
-                                  aria-label={`Like ${post.title}`}
-                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleLike(post.id); }}
-                                  className={`${styles.storyActionButton} ${
-                                    userVotes[post.id] === 'like'
-                                      ? styles.storyActionActiveBlue
-                                      : ''
-                                  }`}
-                                >
-                                  <ThumbsUp className="h-4 w-4" />
-                                  <span className="text-xs font-semibold">{post.likes}</span>
-                                </button>
-
-                                <button
-                                  type="button"
-                                  title="Dislike article"
-                                  aria-label={`Dislike ${post.title}`}
-                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDislike(post.id); }}
-                                  className={`${styles.storyActionButton} ${
-                                    userVotes[post.id] === 'dislike'
-                                      ? styles.storyActionActiveRed
-                                      : ''
-                                  }`}
-                                >
-                                  <ThumbsDown className="h-4 w-4" />
-                                  <span className="text-xs font-semibold">{post.dislikes}</span>
-                                </button>
-
-                                <button
-                                  type="button"
-                                  title={showComments[post.id] ? 'Hide comments' : 'Open comments'}
-                                  aria-label={showComments[post.id] ? 'Hide comments' : 'Open comments'}
-                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleComments(post.id); }}
-                                  className={styles.storyActionButton}
-                                >
-                                  <MessageCircle className="h-4 w-4" />
-                                  <span className="text-xs font-semibold">
-                                    {post.comments.length}
+                      return (
+                        <Fragment key={post.id}>
+                          <article
+                            id={`post-${post.id}`}
+                            className={`${newsStyles.gridCard} ${isWide ? newsStyles.gridCardWide : ''} scroll-animate`}
+                          >
+                            {/* Media */}
+                            <div className={newsStyles.gridCardMedia}>
+                              <Link
+                                href={`/blog/${post.id}`}
+                                aria-label={`Read: ${post.title}`}
+                                className={newsStyles.gridCardLink}
+                              />
+                              <VideoMediaCard post={post} aspectRatio="card" />
+                              <div className={newsStyles.gridCardBadges}>
+                                <CategoryBadge category={category} />
+                                {hasVideo(post) && (
+                                  <span className={newsStyles.videoTag}>
+                                    <Video className="h-3 w-3" /> VIDEO
                                   </span>
-                                </button>
-
-                                <button
-                                  type="button"
-                                  title={copiedPostId === post.id ? 'Copied link' : 'Share article'}
-                                  aria-label={copiedPostId === post.id ? 'Copied link' : 'Share article'}
-                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleShare(post); }}
-                                  className={styles.storyActionButton}
-                                >
-                                  <Share2 className="h-4 w-4" />
-                                  <span className="text-xs font-semibold">
-                                    {copiedPostId === post.id ? 'OK' : 'Share'}
-                                  </span>
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {showComments[post.id] && (
-                          <div className={`${styles.commentPanel} p-5 sm:p-6`}>
-                            <div className="space-y-4">
-                              <div className="grid gap-3 sm:grid-cols-[0.9fr_1.1fr]">
-                                <input
-                                  type="text"
-                                  placeholder="Your name"
-                                  value={commentAuthors[post.id] || ''}
-                                  onChange={(event) =>
-                                    setCommentAuthors((prev) => ({
-                                      ...prev,
-                                      [post.id]: event.target.value,
-                                    }))
-                                  }
-                                  className={styles.commentField}
-                                />
-                                <div className="flex flex-col gap-3 sm:flex-row">
-                                  <textarea
-                                    placeholder="Add a thoughtful reply"
-                                    value={commentInputs[post.id] || ''}
-                                    onChange={(event) =>
-                                      setCommentInputs((prev) => ({
-                                        ...prev,
-                                        [post.id]: event.target.value,
-                                      }))
-                                    }
-                                    onKeyDown={(event) => {
-                                      if (
-                                        (event.metaKey || event.ctrlKey) &&
-                                        event.key === 'Enter'
-                                      ) {
-                                        handleAddComment(post.id)
-                                      }
-                                    }}
-                                    rows={3}
-                                    className={`${styles.commentField} min-h-[7rem] resize-y`}
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => handleAddComment(post.id)}
-                                    className={`${styles.submitButton} min-h-[3.5rem] px-5 py-3 sm:self-start`}
-                                  >
-                                    <Send className="h-4 w-4" />
-                                    Post
-                                  </button>
-                                </div>
-                              </div>
-
-                              <div className="space-y-3">
-                                {post.comments.length === 0 ? (
-                                  <div className="rounded-2xl border border-dashed border-slate-200 bg-white/70 px-4 py-6 text-center text-sm text-slate-500">
-                                    No comments yet. Start the conversation.
-                                  </div>
-                                ) : (
-                                  post.comments.map((comment) => (
-                                    <div
-                                      key={comment.id}
-                                      className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm"
-                                    >
-                                      <div className="flex items-center justify-between gap-4">
-                                        <div className="flex items-center gap-3">
-                                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-950 text-sm font-bold text-white">
-                                            {comment.author.charAt(0).toUpperCase()}
-                                          </div>
-                                          <div>
-                                            <p className="font-semibold text-slate-900">
-                                              {comment.author}
-                                            </p>
-                                            <p className="text-xs uppercase tracking-[0.14em] text-slate-400">
-                                              Reader response
-                                            </p>
-                                          </div>
-                                        </div>
-                                        <p className="text-xs text-slate-400">
-                                          {formatCommentDate(comment.timestamp)}
-                                        </p>
-                                      </div>
-                                      <p className="mt-3 text-sm leading-7 text-slate-600">
-                                        {comment.content}
-                                      </p>
-                                    </div>
-                                  ))
                                 )}
                               </div>
                             </div>
-                          </div>
-                        )}
-                      </article>
 
-                      {(index + 1) % 3 === 0 && index < libraryPosts.length - 1 && (
-                        <div className="md:col-span-2 xl:col-span-3">
-                          <div className="scroll-animate">
-                            <InFeedAd />
-                          </div>
-                        </div>
-                      )}
-                    </Fragment>
-                  )
-                })}
-              </div>
-            </section>
+                            {/* Body */}
+                            <div className={newsStyles.gridCardBody}>
+                              <div className={newsStyles.gridCardByline}>
+                                <span className={newsStyles.gridCardAuthor}>
+                                  <User className="h-3 w-3" /> {post.author}
+                                </span>
+                                <span className={newsStyles.gridCardDate}>
+                                  <Calendar className="h-3 w-3" /> {formatShortDate(post.date)}
+                                </span>
+                              </div>
+
+                              <Link href={`/blog/${post.id}`}>
+                                <h3 className={newsStyles.gridCardTitle}>{post.title}</h3>
+                              </Link>
+
+                              <p className={newsStyles.gridCardExcerpt}>
+                                {getExcerpt(post.content, isWide ? 180 : 110)}
+                              </p>
+
+                              <div className={newsStyles.gridCardFooter}>
+                                <Link href={`/blog/${post.id}`} className={newsStyles.gridReadMore}>
+                                  Read more <ArrowRight className="h-3.5 w-3.5" />
+                                </Link>
+                                <div className={newsStyles.gridActions}>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleLike(post.id)}
+                                    className={`${newsStyles.gridActionBtn} ${userVotes[post.id] === 'like' ? newsStyles.gridActionActive : ''}`}
+                                  >
+                                    <ThumbsUp className="h-3.5 w-3.5" />
+                                    <span>{post.likes}</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDislike(post.id)}
+                                    className={`${newsStyles.gridActionBtn} ${userVotes[post.id] === 'dislike' ? newsStyles.gridActionDislike : ''}`}
+                                  >
+                                    <ThumbsDown className="h-3.5 w-3.5" />
+                                    <span>{post.dislikes}</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleComments(post.id)}
+                                    className={newsStyles.gridActionBtn}
+                                  >
+                                    <MessageCircle className="h-3.5 w-3.5" />
+                                    <span>{post.comments.length}</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleShare(post)}
+                                    className={newsStyles.gridActionBtn}
+                                  >
+                                    <Share2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Comments */}
+                            {showComments[post.id] && (
+                              <CommentSection
+                                post={post}
+                                commentInputs={commentInputs}
+                                commentAuthors={commentAuthors}
+                                setCommentInputs={setCommentInputs}
+                                setCommentAuthors={setCommentAuthors}
+                                onSubmit={handleAddComment}
+                              />
+                            )}
+                          </article>
+
+                          {(index + 1) % 4 === 0 && index < gridPosts.length - 1 && (
+                            <div className="col-span-full">
+                              <InFeedAd />
+                            </div>
+                          )}
+                        </Fragment>
+                      )
+                    })}
+                  </div>
+                </section>
+              )}
+            </>
           )}
 
-          <div className="mt-12 scroll-animate">
-            <DisplayAd className="mx-auto max-w-4xl" />
+          {/* ── Ad ── */}
+          <div className="mt-12">
+            <DisplayAd className="mx-auto max-w-5xl" />
           </div>
 
-          <section className={`${styles.ctaPanel} mt-14 scroll-animate p-6 sm:p-8`}>
-            <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+          {/* ── CTA Footer ── */}
+          <div className={newsStyles.ctaFooter}>
+            <div className={newsStyles.ctaFooterInner}>
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
-                  From article to action
-                </p>
-                <h2 className="mt-3 text-3xl font-black text-slate-900 sm:text-4xl">
-                  Turn what you just learned into a fix that gets done right.
+                <p className={newsStyles.ctaFooterLabel}>From Article to Action</p>
+                <h2 className={newsStyles.ctaFooterTitle}>
+                  Turn what you just read into a fix that gets done right.
                 </h2>
-                <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
-                  Our new blog layout is built to educate first. When you are ready, the same team can
-                  handle diagnostics, repair, setup, and support.
+                <p className={newsStyles.ctaFooterText}>
+                  Our team handles diagnostics, repair, setup, and support — right here in Freetown.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3 lg:justify-end">
-                <Link
-                  href="/book-appointment"
-                  className="rounded-full bg-primary-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-900"
-                >
-                  Book appointment
+              <div className={newsStyles.ctaFooterButtons}>
+                <Link href="/book-appointment" className={newsStyles.ctaBtnPrimary}>
+                  Book Appointment
                 </Link>
-                <Link
-                  href="/learn-more"
-                  className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-                >
-                  Learn more
+                <Link href="/learn-more" className={newsStyles.ctaBtnSecondaryDark}>
+                  Learn More
                 </Link>
               </div>
             </div>
-          </section>
+          </div>
         </main>
       </div>
     </>
+  )
+}
+
+// ── Comment Section ────────────────────────────────────────────────────────────
+function CommentSection({
+  post,
+  commentInputs,
+  commentAuthors,
+  setCommentInputs,
+  setCommentAuthors,
+  onSubmit,
+}: {
+  post: BlogPost
+  commentInputs: Record<string, string>
+  commentAuthors: Record<string, string>
+  setCommentInputs: React.Dispatch<React.SetStateAction<Record<string, string>>>
+  setCommentAuthors: React.Dispatch<React.SetStateAction<Record<string, string>>>
+  onSubmit: (postId: string) => void
+}) {
+  return (
+    <div className={newsStyles.commentSection}>
+      <p className={newsStyles.commentTitle}>
+        <MessageCircle className="h-4 w-4" />
+        Reader Comments ({post.comments.length})
+      </p>
+
+      <div className={newsStyles.commentForm}>
+        <input
+          type="text"
+          placeholder="Your name"
+          value={commentAuthors[post.id] || ''}
+          onChange={(e) => setCommentAuthors((p) => ({ ...p, [post.id]: e.target.value }))}
+          className={newsStyles.commentInput}
+        />
+        <div className={newsStyles.commentRow}>
+          <textarea
+            placeholder="Share your thoughts…"
+            value={commentInputs[post.id] || ''}
+            onChange={(e) => setCommentInputs((p) => ({ ...p, [post.id]: e.target.value }))}
+            onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') onSubmit(post.id) }}
+            rows={3}
+            className={`${newsStyles.commentInput} resize-y min-h-[6rem]`}
+          />
+          <button
+            type="button"
+            onClick={() => onSubmit(post.id)}
+            className={newsStyles.commentSubmit}
+          >
+            <Send className="h-4 w-4" />
+            Post
+          </button>
+        </div>
+      </div>
+
+      <div className={newsStyles.commentList}>
+        {post.comments.length === 0 ? (
+          <div className={newsStyles.noComments}>No comments yet. Start the conversation.</div>
+        ) : (
+          post.comments.map((c) => (
+            <div key={c.id} className={newsStyles.commentItem}>
+              <div className={newsStyles.commentAvatar}>{c.author.charAt(0).toUpperCase()}</div>
+              <div className={newsStyles.commentBody}>
+                <div className={newsStyles.commentHeader}>
+                  <span className={newsStyles.commentAuthor}>{c.author}</span>
+                  <span className={newsStyles.commentTime}>{formatCommentDate(c.timestamp)}</span>
+                </div>
+                <p className={newsStyles.commentContent}>{c.content}</p>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
   )
 }
 
