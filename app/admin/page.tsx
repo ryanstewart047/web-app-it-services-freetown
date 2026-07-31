@@ -1499,6 +1499,7 @@ export default function AdminPage() {
                     </div>
                   </div>
                 </div>
+              </div>
             ) : (
               <div className="py-8 text-center text-slate-400 space-y-3">
                 <i className="fas fa-triangle-exclamation text-amber-400 text-3xl"></i>
