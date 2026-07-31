@@ -259,6 +259,8 @@ export default function AdminPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshSuccess, setRefreshSuccess] = useState('');
   const [analytics, setAnalytics] = useState<AnalyticsSnapshot>({});
   const [forms, setForms] = useState<FormSnapshot>({});
   const [repairs, setRepairs] = useState<RepairSnapshot>({});
@@ -395,7 +397,7 @@ export default function AdminPage() {
   };
 
   const loadData = async () => {
-    setLoading(true);
+    setIsRefreshing(true);
     try {
       if (typeof window !== 'undefined') {
         const { cleanupOldImages, getAllBookings } = await import('@/lib/unified-booking-storage');
@@ -403,7 +405,7 @@ export default function AdminPage() {
 
         const localBookings = getAllBookings();
         if (localBookings.length > 0) {
-          const apiResponse = await fetch('/api/analytics/repairs/');
+          const apiResponse = await fetch(`/api/analytics/repairs/?t=${Date.now()}`, { cache: 'no-store' });
           const apiData = apiResponse.ok ? await apiResponse.json() : { allRepairs: [] };
           const existingTrackingIds = new Set(
             (apiData.allRepairs || []).map((r: any) => r.trackingId)
@@ -440,11 +442,12 @@ export default function AdminPage() {
         }
       }
 
+      const ts = Date.now();
       const [analyticsRes, formsRes, repairsRes, ordersRes] = await Promise.all([
-        fetch('/api/analytics/visitor/'),
-        fetch('/api/analytics/forms/'),
-        fetch('/api/analytics/repairs/'),
-        fetch('/api/orders'),
+        fetch(`/api/analytics/visitor/?t=${ts}`, { cache: 'no-store' }),
+        fetch(`/api/analytics/forms/?t=${ts}`, { cache: 'no-store' }),
+        fetch(`/api/analytics/repairs/?t=${ts}`, { cache: 'no-store' }),
+        fetch(`/api/orders?t=${ts}`, { cache: 'no-store' }),
       ]);
 
       if (analyticsRes.ok) setAnalytics(await analyticsRes.json());
@@ -462,9 +465,13 @@ export default function AdminPage() {
           setOrdersData({ totalOrders: orders.length, totalRevenue: Math.round(totalOrderRevenue * 100) / 100 });
         } catch (_) {}
       }
+
+      setRefreshSuccess('Data refreshed successfully!');
+      setTimeout(() => setRefreshSuccess(''), 3500);
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
+      setIsRefreshing(false);
       setLoading(false);
     }
   };
@@ -789,16 +796,21 @@ export default function AdminPage() {
 
           {/* Header Action Buttons */}
           <div className="flex items-center gap-2">
-            {activeTab !== 'dashboard' && (
-              <button
-                onClick={() => setIframeKey(prev => prev + 1)}
-                className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs flex items-center gap-1.5 transition-colors"
-                title="Reload Panel Workspace"
-              >
-                <i className="fas fa-arrows-rotate"></i>
-                <span className="hidden sm:inline">Refresh</span>
-              </button>
-            )}
+            <button
+              onClick={() => {
+                if (activeTab === 'dashboard') {
+                  void loadData();
+                } else {
+                  setIframeKey(prev => prev + 1);
+                }
+              }}
+              disabled={isRefreshing}
+              className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs flex items-center gap-1.5 transition-colors disabled:opacity-50"
+              title={activeTab === 'dashboard' ? 'Refresh Dashboard & Repair Data' : 'Reload Panel Workspace'}
+            >
+              <i className={`fas fa-arrows-rotate ${isRefreshing && activeTab === 'dashboard' ? 'fa-spin text-red-400' : ''}`}></i>
+              <span className="hidden sm:inline">{isRefreshing && activeTab === 'dashboard' ? 'Refreshing...' : 'Refresh'}</span>
+            </button>
             <a
               href={activePanelObj.url}
               target="_blank"
@@ -821,6 +833,12 @@ export default function AdminPage() {
 
         {/* Workspace Content Area */}
         <div className="flex-1 relative bg-slate-950 overflow-y-auto">
+          {refreshSuccess && (
+            <div className="fixed top-20 right-6 z-50 bg-emerald-600/90 backdrop-blur-md text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-xs font-bold border border-emerald-400/40 animate-bounce">
+              <i className="fas fa-check-circle text-sm text-emerald-200"></i>
+              <span>{refreshSuccess}</span>
+            </div>
+          )}
           {activeTab === 'dashboard' ? (
             /* Native Overview, Repairs & Analytics Panel */
             <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -880,10 +898,12 @@ export default function AdminPage() {
                     </p>
                   </div>
                   <button
-                    onClick={loadData}
-                    className="px-3 py-1.5 bg-red-600/10 border border-red-600/30 text-red-400 hover:bg-red-600/20 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors self-start sm:self-auto"
+                    onClick={() => void loadData()}
+                    disabled={isRefreshing}
+                    className="px-3 py-1.5 bg-red-600/10 border border-red-600/30 text-red-400 hover:bg-red-600/20 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors self-start sm:self-auto disabled:opacity-50"
                   >
-                    <i className="fas fa-sync-alt"></i> Refresh Repairs
+                    <i className={`fas fa-sync-alt ${isRefreshing ? 'fa-spin' : ''}`}></i>
+                    <span>{isRefreshing ? 'Refreshing...' : 'Refresh Repairs'}</span>
                   </button>
                 </div>
 
@@ -928,10 +948,12 @@ export default function AdminPage() {
                     Recent Customer Enquiries
                   </h3>
                   <button
-                    onClick={loadData}
-                    className="text-xs text-emerald-400 hover:underline flex items-center gap-1"
+                    onClick={() => void loadData()}
+                    disabled={isRefreshing}
+                    className="text-xs text-emerald-400 hover:underline flex items-center gap-1 disabled:opacity-50"
                   >
-                    <i className="fas fa-sync-alt"></i> Refresh Data
+                    <i className={`fas fa-sync-alt ${isRefreshing ? 'fa-spin' : ''}`}></i>
+                    <span>{isRefreshing ? 'Refreshing...' : 'Refresh Data'}</span>
                   </button>
                 </div>
 
@@ -1046,6 +1068,16 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
 
   // Reset pagination when filters change
   useEffect(() => { setRepairPage(1); }, [filterStatus, searchFilter]);
+
+  // Keep selectedRepair in sync with fresh data when repairs update
+  useEffect(() => {
+    if (selectedRepair && repairs.allRepairs) {
+      const updated = repairs.allRepairs.find(r => r.trackingId === selectedRepair.trackingId);
+      if (updated) {
+        setSelectedRepair(updated);
+      }
+    }
+  }, [repairs.allRepairs]);
 
   // Determine consultation fee by device type
   const consultationFee = useMemo(() => {
