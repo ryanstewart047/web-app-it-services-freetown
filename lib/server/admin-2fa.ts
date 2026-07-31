@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { generateSecret, generateURI, verify } from 'otplib';
+import { generateSecret, generateURI, TOTP } from 'otplib';
 import QRCode from 'qrcode';
 import { sendEmail, emailTemplates } from '@/lib/email';
 import fs from 'fs';
@@ -205,13 +205,16 @@ export async function verify2FACodeAsync(pendingToken: string, method: 'email' |
 
     try {
       const cleanCode = code.trim().replace(/\s+/g, '');
-      const result = await verify({ token: cleanCode, secret });
-      if (result && result.valid) {
+      // epochTolerance: 30s allows ±1 time-step for minor clock drift
+      const totpInstance = new TOTP({ secret });
+      const result = await totpInstance.verify(cleanCode, { epochTolerance: 30 });
+      if (result.valid) {
         pendingSessions.delete(pendingToken);
         return { valid: true };
       }
       return { valid: false, error: 'Invalid Authenticator App code. Check your app clock & try again.' };
     } catch (err) {
+      console.error('[2FA TOTP] Verification error:', err);
       return { valid: false, error: 'Error verifying Authenticator App code.' };
     }
   }
@@ -227,7 +230,7 @@ export async function generateTOTPSetup(serviceName = 'IT Services Freetown Admi
   let secret = config.totpSecret;
 
   if (!secret) {
-    secret = generateSecret();
+    secret = new TOTP().generateSecret();
     save2FAConfig({ totpSecret: secret });
   }
 
