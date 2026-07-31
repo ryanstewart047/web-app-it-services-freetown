@@ -196,12 +196,21 @@ export default function BlogAdminPage() {
 
   useScrollAnimations()
 
-  // Check if user is already authenticated and load auto-save
+  // Check if user is already authenticated via secure HTTP-only cookie session
   useEffect(() => {
-    const adminAuth = localStorage.getItem('blog_admin_auth')
-    if (adminAuth === 'authenticated') {
-      setIsAuthenticated(true)
+    // SECURITY: Do NOT use localStorage to check auth — it can be trivially bypassed via DevTools.
+    // Always verify against the server-side HTTP-only cookie session.
+    const verifySession = async () => {
+      try {
+        const response = await fetch('/api/admin/auth')
+        if (response.ok) {
+          setIsAuthenticated(true)
+        }
+      } catch (error) {
+        console.error('Session verification failed:', error)
+      }
     }
+    verifySession()
 
     // Load auto-save on mount
     const autoSaved = localStorage.getItem('blog_auto_save')
@@ -271,7 +280,8 @@ export default function BlogAdminPage() {
 
       if (response.ok && data.success) {
         setIsAuthenticated(true)
-        localStorage.setItem('blog_admin_auth', 'authenticated')
+        // SECURITY: Auth state is managed by the server-side HTTP-only cookie.
+        // Do NOT store auth state in localStorage — it is easily tampered with.
         toast.success('Welcome, Admin!')
         setShowPasswordError(false)
       } else {
@@ -289,8 +299,13 @@ export default function BlogAdminPage() {
     }
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('blog_admin_auth')
+  const handleLogout = async () => {
+    try {
+      // SECURITY: Clear the server-side HTTP-only session cookie on logout.
+      await fetch('/api/admin/auth', { method: 'DELETE' })
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
     setIsAuthenticated(false)
     router.push('/blog')
     toast.success('Logged out successfully')

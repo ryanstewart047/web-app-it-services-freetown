@@ -11,6 +11,21 @@ const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || '8c6976e5b5410415
 // Rate limiting store (in production, use Redis or database)
 const loginAttempts = new Map<string, { count: number; resetTime: number }>();
 
+// SECURITY: Server-side token store. Tokens are only valid if they exist here.
+// This prevents forged cookies from bypassing authentication.
+// In production, use Redis or a database for persistence across server restarts.
+const issuedTokens = new Map<string, number>(); // token -> expiry timestamp
+
+/** Remove expired tokens from the server-side store */
+function cleanupExpiredTokens() {
+  const now = Date.now();
+  Array.from(issuedTokens.entries()).forEach(([token, expiry]) => {
+    if (now > expiry) {
+      issuedTokens.delete(token);
+    }
+  });
+}
+
 function hashPassword(password: string): string {
   return crypto.createHash('sha256').update(password).digest('hex');
 }
@@ -102,6 +117,10 @@ export async function POST(request: NextRequest) {
     const sessionToken = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
     
+    // SECURITY: Register the token server-side so it can be verified and revoked.
+    cleanupExpiredTokens();
+    issuedTokens.set(sessionToken, expiresAt.getTime());
+    
     console.log('[Admin Auth] Successful login from IP:', clientIp);
     
     // Clear failed attempts on success
@@ -145,9 +164,15 @@ export async function GET(request: NextRequest) {
       console.error('[Admin Auth] Invalid token format detected');
       return NextResponse.json({ authenticated: false }, { status: 401 });
     }
+
+    // SECURITY: Verify the token was actually issued by this server (not forged).
+    const expiry = issuedTokens.get(sessionToken);
+    if (!expiry || Date.now() > expiry) {
+      // Token not found or expired \u2014 revoke it
+      issuedTokens.delete(sessionToken);
+      return NextResponse.json({ authenticated: false }, { status: 401 });
+    }
     
-    // Token is valid format - in production, verify against database
-    // This prevents token forgery and ensures token exists in our system
     return NextResponse.json({ authenticated: true });
   } catch (error) {
     console.error('[Admin Auth] Verification error:', error);
@@ -158,6 +183,13 @@ export async function GET(request: NextRequest) {
 // Logout endpoint
 export async function DELETE(request: NextRequest) {
   try {
+    // SECURITY: Revoke the token from the server-side store so it can no longer be used.
+    const tokenToRevoke = request.cookies.get('admin_session')?.value;
+    if (tokenToRevoke) {
+      issuedTokens.delete(tokenToRevoke);
+      console.log('[Admin Auth] Token revoked on logout');
+    }
+
     const response = NextResponse.json({
       success: true,
       message: 'Logged out successfully'

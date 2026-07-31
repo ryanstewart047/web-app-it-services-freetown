@@ -1,8 +1,40 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+// SECURITY: These admin sub-routes require an active session cookie to access.
+// They should never be reachable by typing the URL directly without being logged in.
+// Note: The root /admin and /blog/admin pages are the login pages themselves,
+// so they are intentionally NOT in this list.
+const PROTECTED_ADMIN_PREFIXES = [
+  '/admin/bookings',
+  '/admin/products',
+  '/admin/orders',
+  '/admin/categories',
+  '/admin/email-leads',
+  '/admin/email-marketing',
+  '/admin/newsletter',
+  '/admin/facebook-auto-post',
+  '/admin/discount-codes',
+  '/admin/add-product',
+];
+
 export function middleware(request: NextRequest) {
   const { pathname, protocol } = request.nextUrl;
+
+  // SECURITY: Protect admin sub-routes at the server level.
+  // If the session cookie is missing or malformed, redirect to the main admin login.
+  const isProtectedAdminPath = PROTECTED_ADMIN_PREFIXES.some(prefix =>
+    pathname === prefix || pathname.startsWith(prefix + '/')
+  );
+
+  if (isProtectedAdminPath) {
+    const sessionToken = request.cookies.get('admin_session')?.value;
+    const isValidFormat = sessionToken && /^[a-f0-9]{64}$/.test(sessionToken);
+    if (!isValidFormat) {
+      const loginUrl = new URL('/admin', request.url);
+      return NextResponse.redirect(loginUrl, 302);
+    }
+  }
 
   // Enforce HTTPS in production only (skip for development, Docker, and localhost)
   if (
