@@ -4,14 +4,41 @@ import { useState, useEffect } from 'react'
 import { getBookingByTrackingId, getAllBookings, addCustomerComment, BookingData, CustomerComment } from '@/lib/unified-booking-storage'
 import PaymentInstructionsPopup from '@/components/PaymentInstructionsPopup'
 
-// Print-only styles: hide everything except the slip section
+// Print-only styles: hide everything on screen, show ONLY slip section when printing
 const printStyles = `
+@media screen {
+  #repair-slip-printable {
+    display: none !important;
+  }
+}
 @media print {
-  body > * { display: none !important; }
-  #repair-slip-printable { display: block !important; }
-  #repair-slip-printable * { display: revert !important; }
-  .no-print { display: none !important; }
-  @page { margin: 1cm; }
+  /* Hide all other elements on page */
+  body * {
+    visibility: hidden !important;
+  }
+  /* Show only the printable slip and its contents */
+  #repair-slip-printable,
+  #repair-slip-printable * {
+    visibility: visible !important;
+  }
+  #repair-slip-printable {
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  @page {
+    margin: 1cm;
+    size: portrait;
+  }
 }
 `
 
@@ -386,13 +413,7 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
           {/* Print Slip — only visible when payment is confirmed (paid) */}
           {appointment.paymentStatus === 'paid' && (
             <button
-              onClick={() => {
-                // Temporarily show the slip section and trigger print
-                const slip = document.getElementById('repair-slip-printable');
-                if (slip) slip.style.display = 'block';
-                window.print();
-                if (slip) slip.style.display = 'none';
-              }}
+              onClick={() => window.print()}
               className="px-3 py-1.5 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium text-xs rounded-lg transition-colors flex items-center gap-1.5"
             >
               <i className="fas fa-print"></i>
@@ -736,7 +757,7 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
       </div>
 
       {/* ── Printable Slip (hidden on screen, shown only when printing) ── */}
-      <div id="repair-slip-printable" style={{ display: 'none' }}>
+      <div id="repair-slip-printable">
         <div style={{ fontFamily: 'sans-serif', padding: '24px', border: '2px solid #040e40', borderRadius: '8px', maxWidth: '600px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '16px', borderBottom: '2px solid #040e40', paddingBottom: '12px' }}>
             <h1 style={{ fontSize: '20px', fontWeight: 900, color: '#040e40', margin: 0 }}>IT Services Freetown</h1>
