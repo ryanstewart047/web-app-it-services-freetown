@@ -538,5 +538,34 @@ IT Services Freetown
       </div>
     `,
     text: `NEW ORDER - ${data.orderNumber}\n\nCustomer: ${data.customerName}\nPhone: ${data.customerPhone}\nPayment: ${data.paymentMethod}\n\nItems:\n${data.items.map(item => `- ${item.name} x ${item.quantity}`).join('\n')}\n\nTotal: Le ${data.total.toLocaleString()}`
+  }),
+
+  twoFactorVerificationCode: (data: { code: string; expiresMinutes: number }) => ({
+    subject: `🔐 Your IT Services Freetown Admin 2FA Security Code: ${data.code}`,
+    html: `
+      <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 550px; margin: 0 auto; background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; overflow: hidden; color: #f8fafc;">
+        <div style="background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%); padding: 30px 20px; text-align: center;">
+          <h2 style="margin: 0; font-size: 24px; color: #ffffff; letter-spacing: 0.5px;">🛡️ Master Admin Verification</h2>
+          <p style="margin: 6px 0 0; color: #fecaca; font-size: 14px;">IT Services Freetown Centralized Security</p>
+        </div>
+        <div style="padding: 32px 24px; text-align: center;">
+          <p style="font-size: 15px; color: #94a3b8; margin-top: 0;">Use the 6-digit security code below to complete your login to the Master Admin Panel:</p>
+          
+          <div style="margin: 28px 0; background: #1e293b; border: 1px dashed #ef4444; border-radius: 12px; padding: 20px; display: inline-block;">
+            <span style="font-family: 'Courier New', Courier, monospace; font-size: 38px; font-weight: 800; letter-spacing: 10px; color: #f8fafc; text-shadow: 0 0 10px rgba(239, 68, 68, 0.4);">${data.code}</span>
+          </div>
+
+          <p style="font-size: 13px; color: #ef4444; margin-bottom: 24px; font-weight: 600;">⏱️ This code expires in ${data.expiresMinutes} minutes.</p>
+
+          <p style="font-size: 12px; color: #64748b; margin: 0; line-height: 1.5; border-top: 1px solid #334155; padding-top: 20px;">
+            If you did not attempt to log in to the IT Services Freetown Master Admin Panel, please ignore this email or change your admin credentials immediately.
+          </p>
+        </div>
+        <div style="background: #090d16; padding: 16px; text-align: center; font-size: 12px; color: #475569;">
+          IT Services Freetown Security Operations • #1 Regent Highway, Jui Junction
+        </div>
+      </div>
+    `,
+    text: `Your IT Services Freetown Admin 2FA Code is: ${data.code}\n\nThis code will expire in ${data.expiresMinutes} minutes.\nIf you did not request this code, please secure your admin credentials.`
   })
 }

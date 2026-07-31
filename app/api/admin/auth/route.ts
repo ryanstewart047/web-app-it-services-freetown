@@ -1,30 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { registerSessionToken, verifySessionToken, revokeSessionToken } from '@/lib/server/admin-session';
+import { get2FAConfig, createPending2FASession } from '@/lib/server/admin-2fa';
 
 export const dynamic = 'force-dynamic';
 
 // Admin password hash - MUST be set in environment variables
-// To generate: node -e "console.log(crypto.createHash('sha256').update('YOUR_PASSWORD').digest('hex'))"
-// Use the setup-admin-password.sh script to generate credentials easily
 const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
 
 // Rate limiting store (in production, use Redis or database)
 const loginAttempts = new Map<string, { count: number; resetTime: number }>();
-
-// SECURITY: Server-side token store. Tokens are only valid if they exist here.
-// This prevents forged cookies from bypassing authentication.
-// In production, use Redis or a database for persistence across server restarts.
-const issuedTokens = new Map<string, number>(); // token -> expiry timestamp
-
-/** Remove expired tokens from the server-side store */
-function cleanupExpiredTokens() {
-  const now = Date.now();
-  Array.from(issuedTokens.entries()).forEach(([token, expiry]) => {
-    if (now > expiry) {
-      issuedTokens.delete(token);
-    }
-  });
-}
 
 function hashPassword(password: string): string {
   return crypto.createHash('sha256').update(password).digest('hex');
@@ -94,7 +79,7 @@ export async function POST(request: NextRequest) {
     // Hash the provided password
     const hashedPassword = hashPassword(password);
     
-    // Compare hashes (constant-time comparison to prevent timing attacks)
+    // Compare hashes (constant-time comparison)
     const isValid = crypto.timingSafeEqual(
       Buffer.from(hashedPassword),
       Buffer.from(ADMIN_PASSWORD_HASH)
@@ -113,30 +98,52 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Generate session token
+    // Clear failed attempts on success
+    loginAttempts.delete(clientIp);
+
+    // Check 2FA Configuration
+    const twoFAConfig = get2FAConfig();
+
+    if (twoFAConfig.enabled) {
+      // 2FA is active: Create pending session & generate/send Email OTP
+      const { pendingToken, emailSent, emailNote } = await createPending2FASession(clientIp);
+      
+      // Obfuscate recipient email for privacy (e.g. ad***@itservicesfreetown.com)
+      const recipient = twoFAConfig.recipientEmail || 'admin@itservicesfreetown.com';
+      const parts = recipient.split('@');
+      const obfuscatedEmail = parts[0].length > 2 
+        ? `${parts[0].slice(0, 2)}***@${parts[1]}` 
+        : `${parts[0]}***@${parts[1]}`;
+
+      return NextResponse.json({
+        success: true,
+        requires2FA: true,
+        pendingToken,
+        mode: twoFAConfig.mode, // 'email' | 'totp' | 'both'
+        hasTotp: !!twoFAConfig.totpSecret,
+        emailSent,
+        emailNote,
+        recipientEmail: obfuscatedEmail
+      });
+    }
+    
+    // If 2FA disabled, directly issue admin session
     const sessionToken = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
     
-    // SECURITY: Register the token server-side so it can be verified and revoked.
-    cleanupExpiredTokens();
-    issuedTokens.set(sessionToken, expiresAt.getTime());
-    
-    console.log('[Admin Auth] Successful login from IP:', clientIp);
-    
-    // Clear failed attempts on success
-    loginAttempts.delete(clientIp);
+    registerSessionToken(sessionToken, expiresAt.getTime());
     
     const response = NextResponse.json({
       success: true,
+      requires2FA: false,
       expiresAt: expiresAt.toISOString()
     });
     
-    // Set secure HTTP-only cookie
     response.cookies.set('admin_session', sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 24 * 60 * 60, // 24 hours
+      maxAge: 24 * 60 * 60,
       path: '/'
     });
     
@@ -155,21 +162,7 @@ export async function GET(request: NextRequest) {
   try {
     const sessionToken = request.cookies.get('admin_session')?.value;
     
-    if (!sessionToken) {
-      return NextResponse.json({ authenticated: false }, { status: 401 });
-    }
-    
-    // Validate token format (must be 64 character hex string from crypto.randomBytes(32))
-    if (!/^[a-f0-9]{64}$/.test(sessionToken)) {
-      console.error('[Admin Auth] Invalid token format detected');
-      return NextResponse.json({ authenticated: false }, { status: 401 });
-    }
-
-    // SECURITY: Verify the token was actually issued by this server (not forged).
-    const expiry = issuedTokens.get(sessionToken);
-    if (!expiry || Date.now() > expiry) {
-      // Token not found or expired \u2014 revoke it
-      issuedTokens.delete(sessionToken);
+    if (!sessionToken || !verifySessionToken(sessionToken)) {
       return NextResponse.json({ authenticated: false }, { status: 401 });
     }
     
@@ -183,11 +176,9 @@ export async function GET(request: NextRequest) {
 // Logout endpoint
 export async function DELETE(request: NextRequest) {
   try {
-    // SECURITY: Revoke the token from the server-side store so it can no longer be used.
     const tokenToRevoke = request.cookies.get('admin_session')?.value;
     if (tokenToRevoke) {
-      issuedTokens.delete(tokenToRevoke);
-      console.log('[Admin Auth] Token revoked on logout');
+      revokeSessionToken(tokenToRevoke);
     }
 
     const response = NextResponse.json({
@@ -195,16 +186,13 @@ export async function DELETE(request: NextRequest) {
       message: 'Logged out successfully'
     });
     
-    // Clear the session cookie by setting it to expire immediately
     response.cookies.set('admin_session', '', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 0, // Expire immediately
+      maxAge: 0,
       path: '/'
     });
-    
-    console.log('[Admin Auth] User logged out');
     
     return response;
   } catch (error) {

@@ -1,39 +1,59 @@
-import crypto from 'crypto';
 import { NextRequest } from 'next/server';
 
+// Server-side issued admin tokens registry
+const issuedTokens = new Map<string, number>(); // token -> expiry timestamp
+
+export function cleanupExpiredTokens() {
+  const now = Date.now();
+  Array.from(issuedTokens.entries()).forEach(([token, expiry]) => {
+    if (now > expiry) {
+      issuedTokens.delete(token);
+    }
+  });
+}
+
+export function registerSessionToken(token: string, expiresAt: number) {
+  cleanupExpiredTokens();
+  issuedTokens.set(token, expiresAt);
+}
+
+export function verifySessionToken(token: string): boolean {
+  if (!token || !/^[a-f0-9]{64}$/.test(token)) {
+    return false;
+  }
+  const expiry = issuedTokens.get(token);
+  if (!expiry || Date.now() > expiry) {
+    issuedTokens.delete(token);
+    return false;
+  }
+  return true;
+}
+
+export function revokeSessionToken(token: string) {
+  if (token) {
+    issuedTokens.delete(token);
+  }
+}
+
+/**
+ * Checks if the request has a valid admin_session cookie
+ */
 export function hasAdminSession(request: NextRequest): boolean {
   const sessionToken = request.cookies.get('admin_session')?.value;
-  return !!sessionToken && /^[a-f0-9]{64}$/.test(sessionToken);
+  return !!sessionToken && verifySessionToken(sessionToken);
 }
 
-function safeCompare(value: string, expected: string): boolean {
-  const valueBuffer = Buffer.from(value);
-  const expectedBuffer = Buffer.from(expected);
-
-  if (valueBuffer.length !== expectedBuffer.length) {
-    return false;
-  }
-
-  return crypto.timingSafeEqual(valueBuffer, expectedBuffer);
-}
-
-export function hasCronSecret(request: NextRequest): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) {
-    return false;
-  }
-
-  const authHeader = request.headers.get('authorization') || '';
-  const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
-  const queryToken = request.nextUrl.searchParams.get('secret') || '';
-
-  return safeCompare(bearerToken, secret) || safeCompare(queryToken, secret);
-}
-
-export function hasVercelCronUserAgent(request: NextRequest): boolean {
-  return request.headers.get('user-agent') === 'vercel-cron/1.0';
-}
-
+/**
+ * Checks if the request is authorized for protected automation/cron tasks (via CRON_SECRET header or valid admin session)
+ */
 export function canRunProtectedAutomation(request: NextRequest): boolean {
-  return hasAdminSession(request) || hasCronSecret(request) || hasVercelCronUserAgent(request);
+  const cronSecret = process.env.CRON_SECRET;
+  const authHeader = request.headers.get('authorization');
+  
+  if (cronSecret && authHeader === `Bearer ${cronSecret}`) {
+    return true;
+  }
+
+  // Fallback to active admin session
+  return hasAdminSession(request);
 }

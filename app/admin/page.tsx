@@ -277,6 +277,24 @@ export default function AdminPage() {
   const [iframeKey, setIframeKey] = useState<number>(0);
   const [showQuickAccess, setShowQuickAccess] = useState<boolean>(true);
 
+  // 2FA Verification State
+  const [requires2FA, setRequires2FA] = useState<boolean>(false);
+  const [pendingToken, setPendingToken] = useState<string>('');
+  const [twoFactorMode, setTwoFactorMode] = useState<'email' | 'totp' | 'both'>('both');
+  const [selected2FAMethod, setSelected2FAMethod] = useState<'email' | 'totp'>('email');
+  const [twoFactorCode, setTwoFactorCode] = useState<string>('');
+  const [recipientEmail, setRecipientEmail] = useState<string>('');
+  const [verifying2FA, setVerifying2FA] = useState<boolean>(false);
+  const [resendingEmail, setResendingEmail] = useState<boolean>(false);
+  const [resendSuccessMessage, setResendSuccessMessage] = useState<string>('');
+
+  // 2FA Settings Modal State
+  const [show2FAModal, setShow2FAModal] = useState<boolean>(false);
+  const [twoFASetupLoading, setTwoFASetupLoading] = useState<boolean>(false);
+  const [twoFASetupData, setTwoFASetupData] = useState<any>(null);
+  const [saving2FASettings, setSaving2FASettings] = useState<boolean>(false);
+  const [setupFeedback, setSetupFeedback] = useState<string>('');
+
   // Sync tab with URL search parameter
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -367,10 +385,21 @@ export default function AdminPage() {
 
       const data = await response.json();
 
-      if (response.ok) {
-        setIsAuthenticated(true);
-        setPassword('');
-        void loadData();
+      if (response.ok && data.success) {
+        if (data.requires2FA) {
+          // Password correct -> move to Step 2 (2FA verification)
+          setRequires2FA(true);
+          setPendingToken(data.pendingToken);
+          setTwoFactorMode(data.mode || 'both');
+          setRecipientEmail(data.recipientEmail || '');
+          setSelected2FAMethod(data.mode === 'totp' ? 'totp' : 'email');
+          setPassword('');
+        } else {
+          // 2FA disabled -> directly logged in
+          setIsAuthenticated(true);
+          setPassword('');
+          void loadData();
+        }
       } else {
         setError(data.error || 'Invalid credentials. Please try again.');
       }
@@ -378,6 +407,86 @@ export default function AdminPage() {
       setError('Authentication failed. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handle2FAVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!twoFactorCode.trim()) {
+      setError('Please enter your 6-digit verification code.');
+      return;
+    }
+
+    setError('');
+    setVerifying2FA(true);
+
+    try {
+      const response = await fetch('/api/admin/auth/verify-2fa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pendingToken,
+          method: selected2FAMethod,
+          code: twoFactorCode
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setIsAuthenticated(true);
+        setRequires2FA(false);
+        setTwoFactorCode('');
+        setPendingToken('');
+        void loadData();
+      } else {
+        setError(data.error || 'Invalid code. Please try again.');
+      }
+    } catch (err) {
+      setError('Verification failed due to a connection error.');
+    } finally {
+      setVerifying2FA(false);
+    }
+  };
+
+  const handleResendEmailCode = async () => {
+    if (!pendingToken) return;
+    setResendingEmail(true);
+    setResendSuccessMessage('');
+    setError('');
+
+    try {
+      const res = await fetch('/api/admin/auth/resend-2fa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pendingToken })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setResendSuccessMessage('New 6-digit code sent to your email!');
+        setTimeout(() => setResendSuccessMessage(''), 5000);
+      } else {
+        setError(data.error || 'Failed to resend email code.');
+      }
+    } catch (err) {
+      setError('Resend failed.');
+    } finally {
+      setResendingEmail(false);
+    }
+  };
+
+  const load2FASettings = async () => {
+    setTwoFASetupLoading(true);
+    try {
+      const res = await fetch('/api/admin/2fa/setup');
+      if (res.ok) {
+        const data = await res.json();
+        setTwoFASetupData(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch 2FA setup data', err);
+    } finally {
+      setTwoFASetupLoading(false);
     }
   };
 
@@ -520,7 +629,7 @@ export default function AdminPage() {
     return Math.round((repairRev + orderRev) * 100) / 100;
   }, [repairs.totalRevenue, ordersData.totalRevenue]);
 
-  // If not authenticated, render Login Screen
+  // If not authenticated, render Login / 2FA Screen
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
@@ -531,52 +640,162 @@ export default function AdminPage() {
           {/* Brand header */}
           <div className="text-center mb-8">
             <div className="w-20 h-20 bg-gradient-to-br from-red-600 to-red-800 border border-red-500/40 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-red-900/30">
-              <i className="fas fa-shield-halved text-white text-3xl"></i>
+              <i className={`fas ${requires2FA ? 'fa-lock-keyhole' : 'fa-shield-halved'} text-white text-3xl`}></i>
             </div>
             <h1 className="text-2xl font-bold text-white tracking-wide">IT Services Freetown</h1>
             <p className="text-red-400 font-medium text-sm mt-1">Master Admin Operations Portal</p>
-            <p className="text-slate-500 text-xs mt-1">Freetown · Sierra Leone</p>
+            <p className="text-slate-500 text-xs mt-1">
+              {requires2FA ? 'Step 2: Two-Factor Authentication (2FA)' : 'Freetown · Sierra Leone'}
+            </p>
           </div>
 
-          <form onSubmit={handleAuth} className="space-y-5" data-no-analytics="true">
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                Administrator Access Key
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter admin password..."
-                className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
-                autoFocus
-              />
-              {error && (
-                <p className="text-red-400 text-sm mt-2 flex items-center">
-                  <i className="fas fa-exclamation-circle mr-2"></i>
-                  {error}
-                </p>
-              )}
-            </div>
+          {!requires2FA ? (
+            /* STEP 1: Admin Password Entry */
+            <form onSubmit={handleAuth} className="space-y-5" data-no-analytics="true">
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                  Administrator Access Key
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter admin password..."
+                  className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                  autoFocus
+                />
+                {error && (
+                  <p className="text-red-400 text-sm mt-2 flex items-center">
+                    <i className="fas fa-exclamation-circle mr-2"></i>
+                    {error}
+                  </p>
+                )}
+              </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3.5 px-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg shadow-red-900/30 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center">
-                  <i className="fas fa-circle-notch fa-spin mr-2"></i> Authenticating...
-                </span>
-              ) : (
-                <span className="flex items-center justify-center">
-                  <i className="fas fa-shield-halved mr-2"></i> Unlock Master Console
-                </span>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 px-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg shadow-red-900/30 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center">
+                    <i className="fas fa-circle-notch fa-spin mr-2"></i> Verifying Credentials...
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center">
+                    <i className="fas fa-shield-halved mr-2"></i> Continue to 2FA Verification
+                  </span>
+                )}
+              </button>
+            </form>
+          ) : (
+            /* STEP 2: Two-Factor Code Verification */
+            <form onSubmit={handle2FAVerify} className="space-y-5" data-no-analytics="true">
+              {/* Method Selector if both or available */}
+              {twoFactorMode === 'both' && (
+                <div className="grid grid-cols-2 gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => { setSelected2FAMethod('email'); setError(''); }}
+                    className={`py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-all ${
+                      selected2FAMethod === 'email'
+                        ? 'bg-red-600 text-white shadow-md'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <i className="fas fa-envelope"></i> Email Code
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setSelected2FAMethod('totp'); setError(''); }}
+                    className={`py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-all ${
+                      selected2FAMethod === 'totp'
+                        ? 'bg-red-600 text-white shadow-md'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <i className="fas fa-[#4285F4] fa-mobile-screen"></i> Authenticator App
+                  </button>
+                </div>
               )}
-            </button>
-          </form>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                  {selected2FAMethod === 'email'
+                    ? `Enter 6-Digit Code sent to ${recipientEmail || 'your email'}`
+                    : 'Enter 6-Digit Code from Google Authenticator / Authy'}
+                </label>
+                <input
+                  type="text"
+                  maxLength={6}
+                  value={twoFactorCode}
+                  onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
+                  placeholder="123456"
+                  className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-center text-2xl font-mono tracking-[0.5em] text-white placeholder-slate-600 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                  autoFocus
+                />
+
+                {resendSuccessMessage && (
+                  <p className="text-emerald-400 text-xs mt-2 flex items-center">
+                    <i className="fas fa-check-circle mr-1.5"></i> {resendSuccessMessage}
+                  </p>
+                )}
+
+                {error && (
+                  <p className="text-red-400 text-sm mt-2 flex items-center">
+                    <i className="fas fa-exclamation-circle mr-2"></i> {error}
+                  </p>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={verifying2FA || twoFactorCode.length < 6}
+                className="w-full py-3.5 px-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg shadow-red-900/30 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+              >
+                {verifying2FA ? (
+                  <span className="flex items-center justify-center">
+                    <i className="fas fa-circle-notch fa-spin mr-2"></i> Verifying 2FA Code...
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center">
+                    <i className="fas fa-unlock mr-2"></i> Complete Login
+                  </span>
+                )}
+              </button>
+
+              <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-800">
+                {selected2FAMethod === 'email' ? (
+                  <button
+                    type="button"
+                    onClick={handleResendEmailCode}
+                    disabled={resendingEmail}
+                    className="text-red-400 hover:text-red-300 font-medium transition-colors flex items-center gap-1"
+                  >
+                    <i className={`fas fa-rotate-right ${resendingEmail ? 'animate-spin' : ''}`}></i>
+                    {resendingEmail ? 'Sending...' : 'Resend Email Code'}
+                  </button>
+                ) : (
+                  <span className="text-slate-500">Google Auth / Authy / Microsoft Auth</span>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRequires2FA(false);
+                    setError('');
+                    setTwoFactorCode('');
+                  }}
+                  className="text-slate-400 hover:text-slate-200 transition-colors"
+                >
+                  &larr; Back to Password
+                </button>
+              </div>
+            </form>
+          )}
+
           <div className="mt-8 text-center text-xs text-slate-500">
-            Secure SSL Encrypted &bull; EARPI &amp; IT Services Freetown
+            2FA Protected &bull; EARPI &amp; IT Services Freetown
           </div>
         </div>
       </div>
@@ -758,6 +977,18 @@ export default function AdminPage() {
 
         {/* Sidebar Footer Controls */}
         <div className="p-3 border-t border-red-900/30 space-y-2">
+          <button
+            onClick={() => {
+              setShow2FAModal(true);
+              void load2FASettings();
+            }}
+            className={`w-full flex items-center ${
+              isSidebarOpen ? 'justify-start px-3' : 'justify-center px-0'
+            } py-2 rounded-lg text-amber-400 hover:bg-amber-500/10 text-xs font-medium transition-colors`}
+          >
+            <i className={`fas fa-key ${isSidebarOpen ? 'mr-2' : ''}`}></i>
+            {isSidebarOpen && <span>2FA Security Setup</span>}
+          </button>
           <Link
             href="/"
             target="_blank"
@@ -796,6 +1027,17 @@ export default function AdminPage() {
 
           {/* Header Action Buttons */}
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setShow2FAModal(true);
+                void load2FASettings();
+              }}
+              className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 font-semibold rounded-lg text-xs transition-all flex items-center gap-1.5"
+              title="Configure Two-Factor Authentication & Google Authenticator"
+            >
+              <i className="fas fa-shield-cat"></i>
+              <span className="hidden sm:inline">2FA Settings</span>
+            </button>
             <button
               onClick={() => {
                 if (activeTab === 'dashboard') {
@@ -1029,6 +1271,249 @@ export default function AdminPage() {
           )}
         </div>
       </main>
+
+      {/* 2FA Security Setup Modal */}
+      {show2FAModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-6 text-slate-100 my-8">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-amber-500/20 border border-amber-500/40 rounded-xl flex items-center justify-center text-amber-400 font-bold">
+                  <i className="fas fa-shield-cat text-lg"></i>
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-lg leading-tight">Master Admin 2FA Security</h3>
+                  <p className="text-xs text-slate-400">Authenticator App &amp; Email OTP Configuration</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShow2FAModal(false)}
+                className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition-colors"
+              >
+                <i className="fas fa-xmark text-lg"></i>
+              </button>
+            </div>
+
+            {twoFASetupLoading ? (
+              <div className="py-12 text-center text-slate-400">
+                <i className="fas fa-circle-notch fa-spin text-2xl mb-2 text-amber-400"></i>
+                <p className="text-xs font-semibold">Loading 2FA Security Config...</p>
+              </div>
+            ) : twoFASetupData ? (
+              <div className="space-y-6 text-xs">
+                {/* Status Alert */}
+                <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <i className="fas fa-shield-halved text-emerald-400 text-base"></i>
+                    <div>
+                      <p className="font-semibold text-slate-200">2FA Status</p>
+                      <p className="text-[11px] text-slate-400">
+                        {twoFASetupData.config?.enabled ? 'Active — Protected against unauthorized access' : 'Disabled'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const newStatus = !twoFASetupData.config.enabled;
+                      setSaving2FASettings(true);
+                      try {
+                        const res = await fetch('/api/admin/2fa/setup', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ enabled: newStatus })
+                        });
+                        if (res.ok) {
+                          setTwoFASetupData((prev: any) => ({
+                            ...prev,
+                            config: { ...prev.config, enabled: newStatus }
+                          }));
+                          setSetupFeedback(`2FA successfully ${newStatus ? 'ENABLED' : 'DISABLED'}.`);
+                          setTimeout(() => setSetupFeedback(''), 4000);
+                        }
+                      } catch (e) {
+                        console.error(e);
+                      } finally {
+                        setSaving2FASettings(false);
+                      }
+                    }}
+                    disabled={saving2FASettings}
+                    className={`px-3 py-1.5 font-bold rounded-lg transition-all ${
+                      twoFASetupData.config?.enabled
+                        ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
+                        : 'bg-red-500/20 border border-red-500/40 text-red-300 hover:bg-red-500/30'
+                    }`}
+                  >
+                    {twoFASetupData.config?.enabled ? 'ENABLED' : 'DISABLED'}
+                  </button>
+                </div>
+
+                {setupFeedback && (
+                  <p className="p-2.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 rounded-lg text-xs flex items-center gap-2">
+                    <i className="fas fa-check-circle"></i> {setupFeedback}
+                  </p>
+                )}
+
+                {/* Section 1: Google Authenticator QR Code Setup */}
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3">
+                  <h4 className="font-bold text-amber-400 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                    <i className="fas fa-qrcode"></i> Step 1: Bind Authenticator App (Google Auth / Authy)
+                  </h4>
+                  <div className="flex flex-col sm:flex-row items-center gap-4">
+                    {twoFASetupData.totp?.qrCodeUrl && (
+                      <div className="p-2 bg-white rounded-xl shadow-lg shrink-0">
+                        <img
+                          src={twoFASetupData.totp.qrCodeUrl}
+                          alt="Google Authenticator 2FA QR Code"
+                          className="w-32 h-32"
+                        />
+                      </div>
+                    )}
+                    <div className="space-y-2 text-slate-300">
+                      <p>
+                        Scan this QR code with <strong>Google Authenticator</strong>, <strong>Authy</strong>, or <strong>Microsoft Authenticator</strong> on your phone.
+                      </p>
+                      <div>
+                        <span className="text-slate-500 text-[10px] uppercase font-bold block">Secret Key (Manual Entry):</span>
+                        <code className="px-2.5 py-1 bg-slate-900 border border-slate-700 rounded-lg font-mono text-amber-300 text-xs tracking-wider select-all inline-block mt-0.5">
+                          {twoFASetupData.totp?.secret}
+                        </code>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 2: 2FA Mode & Email Config */}
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-4">
+                  <h4 className="font-bold text-slate-300 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                    <i className="fas fa-sliders"></i> Step 2: Preferred Verification Method
+                  </h4>
+
+                  <div className="space-y-2">
+                    {[
+                      {
+                        key: 'both',
+                        label: 'Both Email Code & Authenticator App (Recommended)',
+                        desc: 'Allows admins to enter either the 6-digit email code OR their Authenticator App code at login.'
+                      },
+                      {
+                        key: 'email',
+                        label: 'Email Verification Code Only',
+                        desc: 'Sends a fresh 6-digit OTP code to the configured admin email on every login attempt.'
+                      },
+                      {
+                        key: 'totp',
+                        label: 'Authenticator App Only (TOTP)',
+                        desc: 'Requires code from Google Authenticator / Authy app on phone.'
+                      }
+                    ].map(opt => (
+                      <label
+                        key={opt.key}
+                        className={`flex items-start gap-3 p-2.5 rounded-xl border cursor-pointer transition-all ${
+                          twoFASetupData.config?.mode === opt.key
+                            ? 'bg-amber-500/10 border-amber-500/40 text-amber-200'
+                            : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="2fa-mode"
+                          checked={twoFASetupData.config?.mode === opt.key}
+                          onChange={async () => {
+                            setSaving2FASettings(true);
+                            try {
+                              const res = await fetch('/api/admin/2fa/setup', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ mode: opt.key })
+                              });
+                              if (res.ok) {
+                                setTwoFASetupData((prev: any) => ({
+                                  ...prev,
+                                  config: { ...prev.config, mode: opt.key }
+                                }));
+                                setSetupFeedback('2FA Mode updated successfully.');
+                                setTimeout(() => setSetupFeedback(''), 4000);
+                              }
+                            } catch (e) {
+                              console.error(e);
+                            } finally {
+                              setSaving2FASettings(false);
+                            }
+                          }}
+                          className="mt-0.5 accent-amber-500"
+                        />
+                        <div>
+                          <p className="font-semibold text-white">{opt.label}</p>
+                          <p className="text-[11px] text-slate-400 mt-0.5">{opt.desc}</p>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+
+                  {/* Recipient Email Input */}
+                  <div className="pt-2 border-t border-slate-800">
+                    <label className="block text-slate-400 font-semibold mb-1">
+                      Notification Email for 2FA Codes:
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        defaultValue={twoFASetupData.config?.recipientEmail || ''}
+                        id="2fa-recipient-email-input"
+                        placeholder="admin@itservicesfreetown.com"
+                        className="flex-1 px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 text-xs"
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const inputEl = document.getElementById('2fa-recipient-email-input') as HTMLInputElement;
+                          const newEmail = inputEl?.value.trim();
+                          if (!newEmail) return;
+                          setSaving2FASettings(true);
+                          try {
+                            const res = await fetch('/api/admin/2fa/setup', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ recipientEmail: newEmail })
+                            });
+                            if (res.ok) {
+                              setTwoFASetupData((prev: any) => ({
+                                ...prev,
+                                config: { ...prev.config, recipientEmail: newEmail }
+                              }));
+                              setSetupFeedback('2FA Recipient Email updated.');
+                              setTimeout(() => setSetupFeedback(''), 4000);
+                            }
+                          } catch (e) {
+                            console.error(e);
+                          } finally {
+                            setSaving2FASettings(false);
+                          }
+                        }}
+                        disabled={saving2FASettings}
+                        className="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold rounded-lg transition-colors text-xs"
+                      >
+                        Save Email
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            <div className="pt-4 border-t border-slate-800 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShow2FAModal(false)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl text-xs transition-colors"
+              >
+                Close Settings
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
