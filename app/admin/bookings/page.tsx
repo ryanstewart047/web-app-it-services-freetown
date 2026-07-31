@@ -669,7 +669,16 @@ export default function AdminBookingsPage() {
                     Mark as Completed
                   </button>
                 )}
-                {(selectedAppointment.status === 'completed' || selectedAppointment.status === 'cancelled') && (
+                {(selectedAppointment.status === 'completed' || selectedAppointment.status === 'ready-for-pickup') && (
+                  <button
+                    onClick={() => updateStatus(selectedAppointment.id, 'collected')}
+                    className="px-6 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-sm shadow-md transition-all flex items-center gap-2"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    Mark as Collected
+                  </button>
+                )}
+                {(selectedAppointment.status === 'collected' || selectedAppointment.status === 'completed' || selectedAppointment.status === 'cancelled') && (
                   <button
                     onClick={() => setSelectedAppointment(null)}
                     className="px-6 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 text-white font-semibold text-sm shadow transition-all"
