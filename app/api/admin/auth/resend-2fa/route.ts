@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      pendingToken: result.newPendingToken,
       message: 'New 6-digit verification code sent to your email.'
     });
   } catch (error) {

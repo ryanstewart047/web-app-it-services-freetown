@@ -463,6 +463,7 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        if (data.pendingToken) setPendingToken(data.pendingToken);
         setResendSuccessMessage('New 6-digit code sent to your email!');
         setTimeout(() => setResendSuccessMessage(''), 5000);
       } else {

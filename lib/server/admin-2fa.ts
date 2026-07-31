@@ -5,28 +5,12 @@ import { sendEmail, emailTemplates } from '@/lib/email';
 import fs from 'fs';
 import path from 'path';
 
-// Pending login verification sessions store (pendingToken -> verification details)
-interface PendingSession {
-  emailCode: string;
-  expiresAt: number;
-  ip: string;
-  attempts: number;
-}
+const HMAC_SECRET = process.env.ADMIN_PASSWORD_HASH || '2fa-hmac-secret-key-itservicesfreetown';
 
-const pendingSessions = new Map<string, PendingSession>();
-
-// Cleanup expired pending sessions every 5 minutes
-function cleanupPendingSessions() {
-  const now = Date.now();
-  Array.from(pendingSessions.entries()).forEach(([token, session]) => {
-    if (now > session.expiresAt) {
-      pendingSessions.delete(token);
-    }
-  });
-}
-
-// Persistent 2FA Config file path
-const CONFIG_FILE_PATH = path.join(process.cwd(), '.admin-2fa-config.json');
+// Persistent 2FA Config file path (uses /tmp on Vercel/production for write permissions)
+const CONFIG_FILE_PATH = process.env.VERCEL || process.env.NODE_ENV === 'production'
+  ? path.join('/tmp', '.admin-2fa-config.json')
+  : path.join(process.cwd(), '.admin-2fa-config.json');
 
 export interface Admin2FAConfig {
   enabled: boolean;
@@ -82,20 +66,56 @@ function generate6DigitCode(): string {
 }
 
 /**
+ * Creates a signed stateless pending token (works across serverless instances)
+ */
+function createSignedPendingToken(payload: { emailCode: string; expiresAt: number; ip: string }): string {
+  const dataStr = `${payload.emailCode}:${payload.expiresAt}:${payload.ip}`;
+  const hmac = crypto.createHmac('sha256', HMAC_SECRET).update(dataStr).digest('hex');
+  const payloadB64 = Buffer.from(dataStr).toString('base64url');
+  return `${payloadB64}.${hmac}`;
+}
+
+/**
+ * Decodes and verifies a signed stateless pending token
+ */
+function verifyAndDecodePendingToken(token: string): { emailCode: string; expiresAt: number; ip: string } | null {
+  try {
+    if (!token || typeof token !== 'string') return null;
+    const parts = token.split('.');
+    if (parts.length !== 2) return null;
+
+    const [payloadB64, hmac] = parts;
+    const dataStr = Buffer.from(payloadB64, 'base64url').toString('utf-8');
+    const expectedHmac = crypto.createHmac('sha256', HMAC_SECRET).update(dataStr).digest('hex');
+
+    const bufferHmac = Buffer.from(hmac, 'hex');
+    const bufferExpected = Buffer.from(expectedHmac, 'hex');
+
+    if (bufferHmac.length !== bufferExpected.length || !crypto.timingSafeEqual(bufferHmac, bufferExpected)) {
+      return null;
+    }
+
+    const [emailCode, expiresAtStr, ip] = dataStr.split(':');
+    const expiresAt = parseInt(expiresAtStr, 10);
+    if (isNaN(expiresAt)) return null;
+
+    return { emailCode, expiresAt, ip: ip || 'unknown' };
+  } catch (err) {
+    return null;
+  }
+}
+
+/**
  * Creates a pending 2FA session for password-verified logins.
  */
 export async function createPending2FASession(ip: string): Promise<{ pendingToken: string; emailSent: boolean; emailNote?: string }> {
-  cleanupPendingSessions();
-
-  const pendingToken = crypto.randomBytes(32).toString('hex');
   const emailCode = generate6DigitCode();
   const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes expiry
 
-  pendingSessions.set(pendingToken, {
+  const pendingToken = createSignedPendingToken({
     emailCode,
     expiresAt,
-    ip,
-    attempts: 0
+    ip
   });
 
   const config = get2FAConfig();
@@ -131,23 +151,26 @@ export async function createPending2FASession(ip: string): Promise<{ pendingToke
 /**
  * Resends the 6-digit email code.
  */
-export async function resendEmailOTP(pendingToken: string): Promise<{ success: boolean; error?: string }> {
-  cleanupPendingSessions();
-  const session = pendingSessions.get(pendingToken);
+export async function resendEmailOTP(pendingToken: string): Promise<{ success: boolean; newPendingToken?: string; error?: string }> {
+  const decoded = verifyAndDecodePendingToken(pendingToken);
 
-  if (!session || Date.now() > session.expiresAt) {
+  if (!decoded || Date.now() > decoded.expiresAt) {
     return { success: false, error: 'Verification session expired. Please log in again.' };
   }
 
-  session.emailCode = generate6DigitCode();
-  session.expiresAt = Date.now() + 10 * 60 * 1000;
-  session.attempts = 0;
+  const newEmailCode = generate6DigitCode();
+  const newExpiresAt = Date.now() + 10 * 60 * 1000;
+  const newPendingToken = createSignedPendingToken({
+    emailCode: newEmailCode,
+    expiresAt: newExpiresAt,
+    ip: decoded.ip
+  });
 
   const config = get2FAConfig();
   const recipientEmail = config.recipientEmail || process.env.ADMIN_EMAIL || process.env.SMTP_USER || 'admin@itservicesfreetown.com';
 
   const template = emailTemplates.twoFactorVerificationCode({
-    code: session.emailCode,
+    code: newEmailCode,
     expiresMinutes: 10
   });
 
@@ -158,39 +181,33 @@ export async function resendEmailOTP(pendingToken: string): Promise<{ success: b
     text: template.text
   });
 
-  return { success: emailResult.success, error: emailResult.error };
+  return {
+    success: emailResult.success,
+    newPendingToken,
+    error: emailResult.error
+  };
 }
 
 /**
  * Verifies a 2FA code (either Email OTP or Authenticator App TOTP).
  */
 export async function verify2FACodeAsync(pendingToken: string, method: 'email' | 'totp', code: string): Promise<{ valid: boolean; error?: string }> {
-  cleanupPendingSessions();
-  const session = pendingSessions.get(pendingToken);
+  const decoded = verifyAndDecodePendingToken(pendingToken);
 
-  if (!session) {
+  if (!decoded) {
     return { valid: false, error: 'Verification session expired or invalid. Please log in again.' };
   }
 
-  if (Date.now() > session.expiresAt) {
-    pendingSessions.delete(pendingToken);
+  if (Date.now() > decoded.expiresAt) {
     return { valid: false, error: 'Verification code has expired. Please request a new one.' };
   }
-
-  if (session.attempts >= 5) {
-    pendingSessions.delete(pendingToken);
-    return { valid: false, error: 'Too many incorrect attempts. Session terminated for security.' };
-  }
-
-  session.attempts++;
 
   const config = get2FAConfig();
 
   // 1. EMAIL OTP Verification
   if (method === 'email') {
     const cleanCode = code.trim().replace(/\s+/g, '');
-    if (cleanCode === session.emailCode) {
-      pendingSessions.delete(pendingToken);
+    if (cleanCode === decoded.emailCode) {
       return { valid: true };
     }
     return { valid: false, error: 'Invalid 6-digit email code. Please check your inbox or resend.' };
@@ -205,11 +222,9 @@ export async function verify2FACodeAsync(pendingToken: string, method: 'email' |
 
     try {
       const cleanCode = code.trim().replace(/\s+/g, '');
-      // epochTolerance: 30s allows ±1 time-step for minor clock drift
       const totpInstance = new TOTP({ secret });
       const result = await totpInstance.verify(cleanCode, { epochTolerance: 30 });
-      if (result.valid) {
-        pendingSessions.delete(pendingToken);
+      if (result && result.valid) {
         return { valid: true };
       }
       return { valid: false, error: 'Invalid Authenticator App code. Check your app clock & try again.' };
