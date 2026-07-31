@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 
-// Server-side issued admin tokens registry
-const issuedTokens = new Map<string, number>(); // token -> expiry timestamp
+// Server-side revoked admin tokens registry
+const revokedTokens = new Set<string>();
 
 export function cleanupExpiredTokens() {
   const now = Date.now();
@@ -21,8 +21,11 @@ export function verifySessionToken(token: string): boolean {
   if (!token || !/^[a-f0-9]{64}$/.test(token)) {
     return false;
   }
+  if (revokedTokens.has(token)) {
+    return false;
+  }
   const expiry = issuedTokens.get(token);
-  if (!expiry || Date.now() > expiry) {
+  if (expiry && Date.now() > expiry) {
     issuedTokens.delete(token);
     return false;
   }
@@ -32,6 +35,7 @@ export function verifySessionToken(token: string): boolean {
 export function revokeSessionToken(token: string) {
   if (token) {
     issuedTokens.delete(token);
+    revokedTokens.add(token);
   }
 }
 

@@ -1499,8 +1499,19 @@ export default function AdminPage() {
                     </div>
                   </div>
                 </div>
+            ) : (
+              <div className="py-8 text-center text-slate-400 space-y-3">
+                <i className="fas fa-triangle-exclamation text-amber-400 text-3xl"></i>
+                <p className="text-xs text-slate-300">Unable to load 2FA configuration details.</p>
+                <button
+                  type="button"
+                  onClick={() => void load2FASettings()}
+                  className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold rounded-lg text-xs transition-colors"
+                >
+                  <i className="fas fa-rotate-right mr-1.5"></i> Retry Loading 2FA Settings
+                </button>
               </div>
-            ) : null}
+            )}
 
             <div className="pt-4 border-t border-slate-800 flex justify-end">
               <button
