@@ -32,7 +32,8 @@ function getDeterministicTOTPSecret(): string {
   let result = '';
   let bits = 0;
   let bitsCount = 0;
-  for (const byte of raw) {
+  for (let i = 0; i < raw.length; i++) {
+    const byte = raw[i];
     bits = (bits << 8) | byte;
     bitsCount += 8;
     while (bitsCount >= 5) {
