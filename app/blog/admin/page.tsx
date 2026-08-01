@@ -88,73 +88,169 @@ const quillFormats = [
   'video'
 ]
 
-const AdminLoginForm = ({ isLoading, handleLogin, password, setPassword, showPasswordError, setShowPasswordError, router }: any) => {
+const AdminLoginForm = ({ 
+  isLoading, 
+  handleLogin, 
+  password, 
+  setPassword, 
+  showPasswordError, 
+  setShowPasswordError, 
+  router,
+  authStep,
+  setAuthStep,
+  handle2FASubmit,
+  twoFACode,
+  setTwoFACode,
+  twoFAMode,
+  twoFAMethod,
+  setTwoFAMethod,
+  twoFARecipient,
+  twoFAError,
+  twoFASubmitting
+}: any) => {
   return (
     <>
       <LoadingOverlay show={isLoading} />
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-20 flex items-center justify-center">
         <div className="max-w-md w-full mx-auto px-4">
           <div className="bg-white rounded-2xl shadow-2xl p-8 scroll-animate">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4" style={{ background: 'linear-gradient(135deg, #ef4444 0%, #040e40 100%)' }}>
-                <Lock className="w-8 h-8 text-white" />
-              </div>
-              <h1 className="text-3xl font-bold mb-2" style={{ color: '#040e40' }}>
-                Admin Access Required
-              </h1>
-              <p className="text-gray-600">
-                Enter the admin password to create blog posts
-              </p>
-            </div>
-
-            <form onSubmit={handleLogin} className="space-y-6" data-no-analytics="true">
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  id="password"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value)
-                    setShowPasswordError(false)
-                  }}
-                  className={`w-full px-4 py-3 rounded-xl border ${showPasswordError ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#ef4444] focus:ring-[#ef4444]'} focus:outline-none focus:ring-2 transition-colors`}
-                  placeholder="Enter password..."
-                  data-lpignore="true"
-                  data-form-type="other"
-                />
-                {showPasswordError && (
-                  <p className="mt-2 text-sm text-red-600 animate-pulse">
-                    Incorrect password. Please try again.
+            {authStep === '2fa' ? (
+              <>
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 bg-amber-100 text-amber-600">
+                    <Lock className="w-8 h-8" />
+                  </div>
+                  <h1 className="text-2xl font-bold mb-2 text-gray-900">
+                    Two-Factor Authentication
+                  </h1>
+                  <p className="text-sm text-gray-600">
+                    {twoFAMethod === 'email'
+                      ? <>Code sent to <span className="font-semibold text-gray-800">{twoFARecipient}</span></>
+                      : <>Enter the 6-digit code from your <span className="font-semibold text-gray-800">Authenticator App</span></>
+                    }
                   </p>
+                </div>
+
+                {twoFAMode === 'both' && (
+                  <div className="flex rounded-lg overflow-hidden border border-gray-200 mb-6 text-sm">
+                    <button
+                      type="button"
+                      onClick={() => setTwoFAMethod('email')}
+                      className={`flex-1 py-2 font-medium transition-colors ${twoFAMethod === 'email' ? 'bg-amber-500 text-white' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}
+                    >
+                      Email Code
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTwoFAMethod('totp')}
+                      className={`flex-1 py-2 font-medium transition-colors ${twoFAMethod === 'totp' ? 'bg-amber-500 text-white' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}
+                    >
+                      Auth App
+                    </button>
+                  </div>
                 )}
-              </div>
 
-              <button
-                type="submit"
-                className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl hover:from-red-600 hover:to-red-700 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={!password}
-              >
-                Access Admin Dashboard
-              </button>
-            </form>
+                <form onSubmit={handle2FASubmit} className="space-y-6" data-no-analytics="true">
+                  <div>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={twoFACode}
+                      onChange={(e) => setTwoFACode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="000000"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-center text-2xl tracking-[0.5em] font-mono focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      maxLength={6}
+                      autoFocus
+                      disabled={twoFASubmitting}
+                    />
+                    {twoFAError && (
+                      <p className="mt-2 text-sm text-red-600">
+                        {twoFAError}
+                      </p>
+                    )}
+                  </div>
 
-            <div className="mt-8 pt-6 border-t border-gray-100 text-center">
-              <button
-                onClick={() => router.push('/blog')}
-                className="text-gray-600 hover:text-gray-900 text-sm flex items-center justify-center mx-auto"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Blog
-              </button>
-            </div>
+                  <button
+                    type="submit"
+                    disabled={twoFASubmitting || twoFACode.length < 6}
+                    className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {twoFASubmitting ? 'Verifying...' : 'Verify 2FA Code'}
+                  </button>
 
-            <div className="mt-8 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
-              <p className="font-semibold mb-1">💡 Admin Password:</p>
-              <p className="text-xs">Contact the site administrator for access</p>
-            </div>
+                  <button
+                    type="button"
+                    onClick={() => setAuthStep('password')}
+                    className="w-full text-xs text-gray-500 hover:text-gray-700 text-center block"
+                  >
+                    ← Back to Password
+                  </button>
+                </form>
+              </>
+            ) : (
+              <>
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4" style={{ background: 'linear-gradient(135deg, #ef4444 0%, #040e40 100%)' }}>
+                    <Lock className="w-8 h-8 text-white" />
+                  </div>
+                  <h1 className="text-3xl font-bold mb-2" style={{ color: '#040e40' }}>
+                    Admin Access Required
+                  </h1>
+                  <p className="text-gray-600">
+                    Enter the admin password to create blog posts
+                  </p>
+                </div>
+
+                <form onSubmit={handleLogin} className="space-y-6" data-no-analytics="true">
+                  <div>
+                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                      Password
+                    </label>
+                    <input
+                      type="password"
+                      id="password"
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value)
+                        setShowPasswordError(false)
+                      }}
+                      className={`w-full px-4 py-3 rounded-xl border ${showPasswordError ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#ef4444] focus:ring-[#ef4444]'} focus:outline-none focus:ring-2 transition-colors`}
+                      placeholder="Enter password..."
+                      data-lpignore="true"
+                      data-form-type="other"
+                    />
+                    {showPasswordError && (
+                      <p className="mt-2 text-sm text-red-600 animate-pulse">
+                        Incorrect password. Please try again.
+                      </p>
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl hover:from-red-600 hover:to-red-700 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!password}
+                  >
+                    Access Admin Dashboard
+                  </button>
+                </form>
+
+                <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+                  <button
+                    onClick={() => router.push('/blog')}
+                    className="text-gray-600 hover:text-gray-900 text-sm flex items-center justify-center mx-auto"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Blog
+                  </button>
+                </div>
+
+                <div className="mt-8 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
+                  <p className="font-semibold mb-1">💡 Admin Password:</p>
+                  <p className="text-xs">Contact the site administrator for access</p>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -174,6 +270,15 @@ export default function BlogAdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [password, setPassword] = useState('')
   const [showPasswordError, setShowPasswordError] = useState(false)
+  // 2FA state for blog/admin
+  const [authStep, setAuthStep] = useState<'password' | '2fa'>('password')
+  const [pendingToken, setPendingToken] = useState('')
+  const [twoFACode, setTwoFACode] = useState('')
+  const [twoFAMode, setTwoFAMode] = useState<'email' | 'totp' | 'both'>('email')
+  const [twoFAMethod, setTwoFAMethod] = useState<'email' | 'totp'>('email')
+  const [twoFARecipient, setTwoFARecipient] = useState('')
+  const [twoFAError, setTwoFAError] = useState('')
+  const [twoFASubmitting, setTwoFASubmitting] = useState(false)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [author, setAuthor] = useState('IT Services Freetown')
@@ -270,20 +375,29 @@ export default function BlogAdminPage() {
     try {
       const response = await fetch('/api/admin/auth', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password }),
       })
 
       const data = await response.json()
 
       if (response.ok && data.success) {
-        setIsAuthenticated(true)
-        // SECURITY: Auth state is managed by the server-side HTTP-only cookie.
-        // Do NOT store auth state in localStorage — it is easily tampered with.
-        toast.success('Welcome, Admin!')
         setShowPasswordError(false)
+        if (data.requires2FA) {
+          // 2FA required — do NOT grant access yet
+          setPendingToken(data.pendingToken || '')
+          setTwoFAMode(data.mode || 'email')
+          setTwoFAMethod(data.mode === 'totp' ? 'totp' : 'email')
+          setTwoFARecipient(data.recipientEmail || '')
+          setTwoFAError('')
+          setTwoFACode('')
+          setAuthStep('2fa')
+        } else {
+          // 2FA disabled — grant access
+          setIsAuthenticated(true)
+          toast.success('Welcome, Admin!')
+        }
+        setPassword('')
       } else {
         setShowPasswordError(true)
         if (response.status === 429) {
@@ -296,6 +410,32 @@ export default function BlogAdminPage() {
       console.error('Login error:', error)
       toast.error('Login failed. Please try again.')
       setShowPasswordError(true)
+    }
+  }
+
+  const handle2FASubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setTwoFASubmitting(true)
+    setTwoFAError('')
+    try {
+      const response = await fetch('/api/admin/auth/verify-2fa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pendingToken, method: twoFAMethod, code: twoFACode.trim() }),
+      })
+      const data = await response.json()
+      if (response.ok && data.success) {
+        setIsAuthenticated(true)
+        setAuthStep('password')
+        toast.success('Welcome, Admin!')
+      } else {
+        setTwoFAError(data.error || 'Invalid code. Please try again.')
+        setTwoFACode('')
+      }
+    } catch {
+      setTwoFAError('Verification failed. Please try again.')
+    } finally {
+      setTwoFASubmitting(false)
     }
   }
 
@@ -858,6 +998,17 @@ ${htmlContent || content || 'Empty draft'}`
       showPasswordError={showPasswordError}
       setShowPasswordError={setShowPasswordError}
       router={router}
+      authStep={authStep}
+      setAuthStep={setAuthStep}
+      handle2FASubmit={handle2FASubmit}
+      twoFACode={twoFACode}
+      setTwoFACode={setTwoFACode}
+      twoFAMode={twoFAMode}
+      twoFAMethod={twoFAMethod}
+      setTwoFAMethod={setTwoFAMethod}
+      twoFARecipient={twoFARecipient}
+      twoFAError={twoFAError}
+      twoFASubmitting={twoFASubmitting}
     />
   }
 

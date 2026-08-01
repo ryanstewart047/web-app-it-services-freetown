@@ -72,10 +72,19 @@ export default function ReceiptGenerator() {
   const [allReceipts, setAllReceipts] = useState<SavedReceipt[]>([])
   const [showHistory, setShowHistory] = useState(false)
 
-  // Load all receipts on mount
+  // Check session and load receipts on mount
   useEffect(() => {
-    loadAllReceipts()
-    migrateLocalStorageReceipts() // Migrate old receipts to database
+    fetch('/api/admin/auth')
+      .then(res => {
+        if (res.ok) {
+          setIsAuthenticated(true)
+          loadAllReceipts()
+          migrateLocalStorageReceipts()
+        } else {
+          router.push('/admin?tab=receipt')
+        }
+      })
+      .catch(() => router.push('/admin?tab=receipt'))
   }, [])
 
   const migrateLocalStorageReceipts = async () => {
@@ -334,8 +343,12 @@ export default function ReceiptGenerator() {
       const data = await response.json()
 
       if (response.ok && data.success) {
-        setIsAuthenticated(true)
-        setShowPasswordError(false)
+        if (data.requires2FA) {
+          router.push('/admin?tab=receipt')
+        } else {
+          setIsAuthenticated(true)
+          setShowPasswordError(false)
+        }
       } else {
         setShowPasswordError(true)
         if (response.status === 429) {
