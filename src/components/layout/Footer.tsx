@@ -5,11 +5,24 @@ import Image from 'next/image'
 import { useState } from 'react'
 import { BRAND_LOGO_SRC, BRAND_NAME } from '@/lib/brand'
 
+// Auth step for the footer admin modal
+type AuthStep = 'password' | '2fa' | 'panels'
+
 export default function Footer() {
   const [showAdminPanel, setShowAdminPanel] = useState(false)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [authStep, setAuthStep] = useState<AuthStep>('password')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // 2FA state
+  const [pendingToken, setPendingToken] = useState('')
+  const [twoFAMode, setTwoFAMode] = useState<'email' | 'totp' | 'both'>('email')
+  const [twoFACode, setTwoFACode] = useState('')
+  const [twoFAMethod, setTwoFAMethod] = useState<'email' | 'totp'>('email')
+  const [recipientEmail, setRecipientEmail] = useState('')
+  const [resending, setResending] = useState(false)
+  const [resendMsg, setResendMsg] = useState('')
 
   // Newsletter form state
   const [nlEmail, setNlEmail] = useState('')
@@ -47,22 +60,29 @@ export default function Footer() {
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+    setIsSubmitting(true)
+    setError('')
     try {
       const response = await fetch('/api/admin/auth', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password }),
       })
-
       const data = await response.json()
 
       if (response.ok && data.success) {
-        setIsAuthenticated(true)
-        setError('')
         setPassword('')
+        if (data.requires2FA) {
+          // Must complete 2FA before seeing panels
+          setPendingToken(data.pendingToken || '')
+          setTwoFAMode(data.mode || 'email')
+          setTwoFAMethod(data.mode === 'totp' ? 'totp' : 'email')
+          setRecipientEmail(data.recipientEmail || '')
+          setAuthStep('2fa')
+        } else {
+          // 2FA disabled — grant access directly
+          setAuthStep('panels')
+        }
       } else {
         if (response.status === 429) {
           setError('Too many login attempts. Please try again later.')
@@ -71,17 +91,71 @@ export default function Footer() {
         }
         setPassword('')
       }
-    } catch (error) {
+    } catch {
       setError('Login failed. Please try again.')
       setPassword('')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handle2FASubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    setError('')
+    try {
+      const response = await fetch('/api/admin/auth/verify-2fa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pendingToken, method: twoFAMethod, code: twoFACode.trim() }),
+      })
+      const data = await response.json()
+      if (response.ok && data.success) {
+        setTwoFACode('')
+        setAuthStep('panels')
+      } else {
+        setError(data.error || 'Invalid code. Please try again.')
+        setTwoFACode('')
+      }
+    } catch {
+      setError('Verification failed. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleResendCode = async () => {
+    setResending(true)
+    setResendMsg('')
+    setError('')
+    try {
+      const res = await fetch('/api/admin/auth/resend-2fa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pendingToken }),
+      })
+      const data = await res.json()
+      if (res.ok && data.newPendingToken) {
+        setPendingToken(data.newPendingToken)
+        setResendMsg('New code sent to your email!')
+      } else {
+        setResendMsg('Failed to resend. Try again.')
+      }
+    } catch {
+      setResendMsg('Network error. Try again.')
+    } finally {
+      setResending(false)
     }
   }
 
   const handleClose = () => {
     setShowAdminPanel(false)
-    setIsAuthenticated(false)
+    setAuthStep('password')
     setPassword('')
+    setTwoFACode('')
+    setPendingToken('')
     setError('')
+    setResendMsg('')
   }
 
   return (
@@ -104,14 +178,15 @@ export default function Footer() {
                 </button>
               </div>
 
-              {!isAuthenticated ? (
-                // Password Input Form
+              {/* ── STEP 1: Password ── */}
+              {authStep === 'password' && (
                 <div className="max-w-md mx-auto">
                   <div className="text-center mb-6">
                     <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                       <i className="fas fa-lock text-red-400 text-3xl"></i>
                     </div>
-                    <p className="text-gray-300 text-sm">Enter admin password to access admin panels</p>
+                    <p className="text-white font-semibold mb-1">Admin Access</p>
+                    <p className="text-gray-300 text-sm">Enter your admin password to continue</p>
                   </div>
                   <form onSubmit={handlePasswordSubmit} className="space-y-4" data-no-analytics="true">
                     <div>
@@ -122,6 +197,7 @@ export default function Footer() {
                         placeholder="Enter admin password"
                         className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                         autoFocus
+                        disabled={isSubmitting}
                       />
                       {error && (
                         <p className="text-red-400 text-sm mt-2 flex items-center">
@@ -132,15 +208,119 @@ export default function Footer() {
                     </div>
                     <button
                       type="submit"
-                      className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-3 rounded-lg font-semibold transition-all hover:scale-105"
+                      disabled={isSubmitting || !password}
+                      className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 disabled:opacity-60 text-white py-3 rounded-lg font-semibold transition-all hover:scale-105 disabled:scale-100"
                     >
-                      <i className="fas fa-sign-in-alt mr-2"></i>
-                      Access Admin Panels
+                      {isSubmitting
+                        ? <><i className="fas fa-spinner fa-spin mr-2"></i>Verifying…</>
+                        : <><i className="fas fa-arrow-right mr-2"></i>Continue</>
+                      }
                     </button>
                   </form>
                 </div>
-              ) : (
-                // Admin Panels Grid
+              )}
+
+              {/* ── STEP 2: 2FA Verification ── */}
+              {authStep === '2fa' && (
+                <div className="max-w-md mx-auto">
+                  <div className="text-center mb-6">
+                    <div className="w-20 h-20 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <i className="fas fa-shield-halved text-amber-400 text-3xl"></i>
+                    </div>
+                    <p className="text-white font-semibold mb-1">Two-Factor Verification</p>
+                    <p className="text-gray-300 text-sm">
+                      {twoFAMethod === 'email'
+                        ? <>A 6-digit code was sent to <span className="text-amber-300 font-medium">{recipientEmail}</span></>
+                        : <>Enter the code from your <span className="text-amber-300 font-medium">Authenticator App</span></>
+                      }
+                    </p>
+                  </div>
+
+                  {/* Method toggle when mode is 'both' */}
+                  {twoFAMode === 'both' && (
+                    <div className="flex rounded-lg overflow-hidden border border-white/20 mb-4">
+                      <button
+                        type="button"
+                        onClick={() => { setTwoFAMethod('email'); setError('') }}
+                        className={`flex-1 py-2 text-sm font-semibold transition-all ${
+                          twoFAMethod === 'email' ? 'bg-amber-500/30 text-amber-300' : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                        }`}
+                      >
+                        <i className="fas fa-envelope mr-1"></i> Email Code
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setTwoFAMethod('totp'); setError('') }}
+                        className={`flex-1 py-2 text-sm font-semibold transition-all ${
+                          twoFAMethod === 'totp' ? 'bg-amber-500/30 text-amber-300' : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                        }`}
+                      >
+                        <i className="fas fa-mobile-screen mr-1"></i> Auth App
+                      </button>
+                    </div>
+                  )}
+
+                  <form onSubmit={handle2FASubmit} className="space-y-4" data-no-analytics="true">
+                    <div>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={twoFACode}
+                        onChange={(e) => setTwoFACode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        placeholder="Enter 6-digit code"
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-center text-2xl tracking-[0.5em] font-mono"
+                        maxLength={6}
+                        autoFocus
+                        disabled={isSubmitting}
+                      />
+                      {error && (
+                        <p className="text-red-400 text-sm mt-2 flex items-center">
+                          <i className="fas fa-exclamation-circle mr-2"></i>
+                          {error}
+                        </p>
+                      )}
+                      {resendMsg && (
+                        <p className="text-emerald-400 text-sm mt-2 flex items-center">
+                          <i className="fas fa-check-circle mr-2"></i>
+                          {resendMsg}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting || twoFACode.length < 6}
+                      className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:opacity-60 text-white py-3 rounded-lg font-semibold transition-all hover:scale-105 disabled:scale-100"
+                    >
+                      {isSubmitting
+                        ? <><i className="fas fa-spinner fa-spin mr-2"></i>Verifying…</>
+                        : <><i className="fas fa-unlock-alt mr-2"></i>Verify & Access Panels</>
+                      }
+                    </button>
+                    <div className="flex items-center justify-between pt-1">
+                      <button
+                        type="button"
+                        onClick={() => { setAuthStep('password'); setError(''); setTwoFACode('') }}
+                        className="text-gray-400 hover:text-white text-xs transition-colors"
+                      >
+                        <i className="fas fa-arrow-left mr-1"></i> Back
+                      </button>
+                      {twoFAMethod === 'email' && (
+                        <button
+                          type="button"
+                          onClick={handleResendCode}
+                          disabled={resending}
+                          className="text-amber-400 hover:text-amber-300 text-xs transition-colors disabled:opacity-60"
+                        >
+                          {resending ? 'Sending…' : <><i className="fas fa-redo mr-1"></i>Resend Code</>}
+                        </button>
+                      )}
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {/* ── STEP 3: Panels Grid ── */}
+              {authStep === 'panels' && (
                 <>
                   <div className="mb-6 bg-gradient-to-r from-emerald-600 to-teal-600 p-4 rounded-xl text-white flex items-center justify-between shadow-lg">
                     <div>
@@ -158,179 +338,103 @@ export default function Footer() {
                     </Link>
                   </div>
                   <p className="text-gray-300 text-sm mb-4 font-medium">Or jump directly to a panel:</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            <Link 
-              href="/admin?tab=dashboard" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
-              onClick={handleClose}
-            >
-              <i className="fas fa-tachometer-alt text-cyan-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">Dashboard</h4>
-              <p className="text-gray-400 text-xs mt-1">Overview & analytics</p>
-            </Link>
-            <Link 
-              href="/admin?tab=blog-admin" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
-              onClick={handleClose}
-            >
-              <i className="fas fa-blog text-orange-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">Blog Admin</h4>
-              <p className="text-gray-400 text-xs mt-1">Manage blog posts</p>
-            </Link>
-            <Link 
-              href="/admin?tab=receipt" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
-              onClick={handleClose}
-            >
-              <i className="fas fa-receipt text-green-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">Receipt Generator</h4>
-              <p className="text-gray-400 text-xs mt-1">Create receipts</p>
-            </Link>
-            <Link 
-              href="/admin?tab=offer-admin" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
-              onClick={handleClose}
-            >
-              <i className="fas fa-gift text-pink-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">Offer Admin</h4>
-              <p className="text-gray-400 text-xs mt-1">Manage special offers</p>
-            </Link>
-            <Link 
-              href="/admin?tab=products" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
-              onClick={handleClose}
-            >
-              <i className="fas fa-box text-blue-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">Manage Products</h4>
-              <p className="text-gray-400 text-xs mt-1">Marketplace products</p>
-            </Link>
-            <Link 
-              href="/admin?tab=add-product" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
-              onClick={handleClose}
-            >
-              <i className="fas fa-plus-circle text-green-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">Add Product</h4>
-              <p className="text-gray-400 text-xs mt-1">Quick add new product</p>
-            </Link>
-            <Link 
-              href="/admin?tab=orders" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
-              onClick={handleClose}
-            >
-              <i className="fas fa-shopping-cart text-yellow-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">View Orders</h4>
-              <p className="text-gray-400 text-xs mt-1">Track customer orders</p>
-            </Link>
-            <Link 
-              href="/admin?tab=categories" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
-              onClick={handleClose}
-            >
-              <i className="fas fa-tags text-purple-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">Categories</h4>
-              <p className="text-gray-400 text-xs mt-1">Organize products</p>
-            </Link>
-            <Link 
-              href="/admin?tab=bookings" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
-              onClick={handleClose}
-            >
-              <i className="fas fa-calendar-alt text-red-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">Bookings</h4>
-              <p className="text-gray-400 text-xs mt-1">Service appointments</p>
-            </Link>
-            <Link 
-              href="/admin?tab=forum-admin" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
-              onClick={handleClose}
-            >
-              <i className="fas fa-users-gear text-indigo-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">Forum Admin</h4>
-              <p className="text-gray-400 text-xs mt-1">Manage technicians</p>
-            </Link>
-            <Link 
-              href="/admin?tab=banner-admin" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
-              onClick={handleClose}
-            >
-              <i className="fas fa-bell text-red-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">Global Banner</h4>
-              <p className="text-gray-400 text-xs mt-1">Site announcements</p>
-            </Link>
-            <Link 
-              href="/admin?tab=email-leads" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
-              onClick={handleClose}
-            >
-              <i className="fas fa-envelope-open-text text-blue-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">Email Leads</h4>
-              <p className="text-gray-400 text-xs mt-1">Customer lead collection</p>
-            </Link>
-            <Link 
-              href="/admin?tab=email-marketing" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
-              onClick={handleClose}
-            >
-              <i className="fas fa-paper-plane text-red-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">Email Marketing</h4>
-              <p className="text-gray-400 text-xs mt-1">Send HTML campaigns</p>
-            </Link>
-            <Link 
-              href="/admin?tab=newsletter-popup" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
-              onClick={handleClose}
-            >
-              <i className="fas fa-envelope text-indigo-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">Newsletter Popup</h4>
-              <p className="text-gray-400 text-xs mt-1">Popup settings & stats</p>
-            </Link>
-            <Link 
-              href="/admin?tab=ads-admin" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
-              onClick={handleClose}
-            >
-              <i className="fas fa-ad text-yellow-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">Manage Ads</h4>
-              <p className="text-gray-400 text-xs mt-1">Custom ad banners</p>
-            </Link>
-            <Link 
-              href="/admin?tab=discount-codes" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
-              onClick={handleClose}
-            >
-              <i className="fas fa-ticket-alt text-teal-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">Discount Codes</h4>
-              <p className="text-gray-400 text-xs mt-1">Manage promo codes</p>
-            </Link>
-            <Link 
-              href="/admin?tab=bulk-upload" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
-              onClick={handleClose}
-            >
-              <i className="fas fa-file-upload text-green-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">Bulk Upload</h4>
-              <p className="text-gray-400 text-xs mt-1">Upload multiple products</p>
-            </Link>
-            <Link 
-              href="/admin?tab=bridge-gallery" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
-              onClick={handleClose}
-            >
-              <i className="fas fa-bridge-water text-blue-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">Bridge Gallery Admin</h4>
-              <p className="text-gray-400 text-xs mt-1">Manage project photos</p>
-            </Link>
-            <Link 
-              href="/admin?tab=facebook-auto" 
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group"
-              onClick={handleClose}
-            >
-              <i className="fab fa-facebook text-blue-500 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
-              <h4 className="text-white font-semibold text-sm">Facebook Auto</h4>
-              <p className="text-gray-400 text-xs mt-1">Auto-post & integrations</p>
-            </Link>
-          </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    <Link href="/admin?tab=dashboard" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fas fa-tachometer-alt text-cyan-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">Dashboard</h4>
+                      <p className="text-gray-400 text-xs mt-1">Overview & analytics</p>
+                    </Link>
+                    <Link href="/admin?tab=blog-admin" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fas fa-blog text-orange-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">Blog Admin</h4>
+                      <p className="text-gray-400 text-xs mt-1">Manage blog posts</p>
+                    </Link>
+                    <Link href="/admin?tab=receipt" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fas fa-receipt text-green-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">Receipt Generator</h4>
+                      <p className="text-gray-400 text-xs mt-1">Create receipts</p>
+                    </Link>
+                    <Link href="/admin?tab=offer-admin" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fas fa-gift text-pink-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">Offer Admin</h4>
+                      <p className="text-gray-400 text-xs mt-1">Manage special offers</p>
+                    </Link>
+                    <Link href="/admin?tab=products" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fas fa-box text-blue-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">Manage Products</h4>
+                      <p className="text-gray-400 text-xs mt-1">Marketplace products</p>
+                    </Link>
+                    <Link href="/admin?tab=add-product" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fas fa-plus-circle text-green-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">Add Product</h4>
+                      <p className="text-gray-400 text-xs mt-1">Quick add new product</p>
+                    </Link>
+                    <Link href="/admin?tab=orders" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fas fa-shopping-cart text-yellow-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">View Orders</h4>
+                      <p className="text-gray-400 text-xs mt-1">Track customer orders</p>
+                    </Link>
+                    <Link href="/admin?tab=categories" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fas fa-tags text-purple-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">Categories</h4>
+                      <p className="text-gray-400 text-xs mt-1">Organize products</p>
+                    </Link>
+                    <Link href="/admin?tab=bookings" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fas fa-calendar-alt text-red-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">Bookings</h4>
+                      <p className="text-gray-400 text-xs mt-1">Service appointments</p>
+                    </Link>
+                    <Link href="/admin?tab=forum-admin" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fas fa-users-gear text-indigo-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">Forum Admin</h4>
+                      <p className="text-gray-400 text-xs mt-1">Manage technicians</p>
+                    </Link>
+                    <Link href="/admin?tab=banner-admin" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fas fa-bell text-red-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">Global Banner</h4>
+                      <p className="text-gray-400 text-xs mt-1">Site announcements</p>
+                    </Link>
+                    <Link href="/admin?tab=email-leads" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fas fa-envelope-open-text text-blue-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">Email Leads</h4>
+                      <p className="text-gray-400 text-xs mt-1">Customer lead collection</p>
+                    </Link>
+                    <Link href="/admin?tab=email-marketing" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fas fa-paper-plane text-red-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">Email Marketing</h4>
+                      <p className="text-gray-400 text-xs mt-1">Send HTML campaigns</p>
+                    </Link>
+                    <Link href="/admin?tab=newsletter-popup" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fas fa-envelope text-indigo-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">Newsletter Popup</h4>
+                      <p className="text-gray-400 text-xs mt-1">Popup settings & stats</p>
+                    </Link>
+                    <Link href="/admin?tab=ads-admin" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fas fa-ad text-yellow-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">Manage Ads</h4>
+                      <p className="text-gray-400 text-xs mt-1">Custom ad banners</p>
+                    </Link>
+                    <Link href="/admin?tab=discount-codes" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fas fa-ticket-alt text-teal-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">Discount Codes</h4>
+                      <p className="text-gray-400 text-xs mt-1">Manage promo codes</p>
+                    </Link>
+                    <Link href="/admin?tab=bulk-upload" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fas fa-file-upload text-green-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">Bulk Upload</h4>
+                      <p className="text-gray-400 text-xs mt-1">Upload multiple products</p>
+                    </Link>
+                    <Link href="/admin?tab=bridge-gallery" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fas fa-bridge-water text-blue-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">Bridge Gallery Admin</h4>
+                      <p className="text-gray-400 text-xs mt-1">Manage project photos</p>
+                    </Link>
+                    <Link href="/admin?tab=facebook-auto" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fab fa-facebook text-blue-500 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">Facebook Auto</h4>
+                      <p className="text-gray-400 text-xs mt-1">Auto-post & integrations</p>
+                    </Link>
+                  </div>
                 </>
               )}
             </div>
