@@ -30,7 +30,8 @@ export async function GET(request: NextRequest) {
       totp: {
         secret: totpSetup.secret,
         qrCodeUrl: totpSetup.qrCodeUrl,
-        otpauthUrl: totpSetup.otpauthUrl
+        otpauthUrl: totpSetup.otpauthUrl,
+        secretFromEnv: totpSetup.secretFromEnv
       }
     });
   } catch (error) {

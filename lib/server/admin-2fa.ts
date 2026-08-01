@@ -12,6 +12,43 @@ const CONFIG_FILE_PATH = process.env.VERCEL || process.env.NODE_ENV === 'product
   ? path.join('/tmp', '.admin-2fa-config.json')
   : path.join(process.cwd(), '.admin-2fa-config.json');
 
+/**
+ * Derives a stable, deterministic TOTP secret from the ADMIN_PASSWORD_HASH env var.
+ * This ensures the secret is ALWAYS the same across all Vercel serverless containers
+ * without needing persistent storage. If ADMIN_TOTP_SECRET is set in env, that takes priority.
+ */
+function getDeterministicTOTPSecret(): string {
+  // Priority 1: Explicitly set ADMIN_TOTP_SECRET env var (most stable, user-configured)
+  if (process.env.ADMIN_TOTP_SECRET) {
+    return process.env.ADMIN_TOTP_SECRET;
+  }
+  // Priority 2: Derive a stable Base32 secret from ADMIN_PASSWORD_HASH
+  // This is deterministic — same input always produces the same output
+  const raw = crypto.createHmac('sha256', HMAC_SECRET)
+    .update('totp-secret-v1')
+    .digest();
+  // Convert to Base32 (A-Z2-7 alphabet used by TOTP apps)
+  const base32Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let result = '';
+  let bits = 0;
+  let bitsCount = 0;
+  for (const byte of raw) {
+    bits = (bits << 8) | byte;
+    bitsCount += 8;
+    while (bitsCount >= 5) {
+      result += base32Chars[(bits >> (bitsCount - 5)) & 31];
+      bitsCount -= 5;
+    }
+  }
+  if (bitsCount > 0) result += base32Chars[(bits << (5 - bitsCount)) & 31];
+  return result;
+}
+
+/** Whether the TOTP secret is confirmed persistent via env var (true) or derived (false) */
+export function isTOTPSecretFromEnv(): boolean {
+  return !!process.env.ADMIN_TOTP_SECRET;
+}
+
 export interface Admin2FAConfig {
   enabled: boolean;
   mode: 'email' | 'totp' | 'both';
@@ -223,7 +260,8 @@ export async function verify2FACodeAsync(pendingToken: string, method: 'email' |
 
   // 2. TOTP Verification
   if (method === 'totp') {
-    const secret = config.totpSecret;
+    // Always use deterministic secret — works regardless of which serverless container handles this request
+    const secret = getDeterministicTOTPSecret();
     if (!secret) {
       return { valid: false, error: 'Authenticator App 2FA is not configured. Please use Email code.' };
     }
@@ -247,13 +285,16 @@ export async function verify2FACodeAsync(pendingToken: string, method: 'email' |
 
 /**
  * Setup TOTP Secret & QR Code for Authenticator App
+ * Always returns the same stable secret (from env var or deterministic derivation)
  */
-export async function generateTOTPSetup(serviceName = 'IT Services Freetown Admin'): Promise<{ secret: string; qrCodeUrl: string; otpauthUrl: string }> {
-  let config = get2FAConfig();
-  let secret = config.totpSecret;
+export async function generateTOTPSetup(serviceName = 'IT Services Freetown Admin'): Promise<{ secret: string; qrCodeUrl: string; otpauthUrl: string; secretFromEnv: boolean }> {
+  const config = get2FAConfig();
+  // Always use the deterministic/env secret — never generate a random one
+  const secret = getDeterministicTOTPSecret();
+  const secretFromEnv = isTOTPSecretFromEnv();
 
-  if (!secret) {
-    secret = getTotpInstance().generateSecret();
+  // Persist to config so verify2FACodeAsync can read it on the same container
+  if (!config.totpSecret || config.totpSecret !== secret) {
     save2FAConfig({ totpSecret: secret });
   }
 
@@ -261,5 +302,5 @@ export async function generateTOTPSetup(serviceName = 'IT Services Freetown Admi
   const otpauthUrl = generateURI({ issuer: serviceName, label: accountName, secret });
   const qrCodeUrl = await QRCode.toDataURL(otpauthUrl);
 
-  return { secret, qrCodeUrl, otpauthUrl };
+  return { secret, qrCodeUrl, otpauthUrl, secretFromEnv };
 }
