@@ -1556,6 +1556,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
   const [updateForm, setUpdateForm] = useState({
     status: '',
     paymentStatus: 'pending',
+    amountPaid: '',
     diagnosticNotes: '',
     diagnosticImages: [] as string[],
   });
@@ -1606,7 +1607,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
   // When a repair is selected, populate the form
   useEffect(() => {
     if (!selectedRepair) {
-      setUpdateForm({ status: '', paymentStatus: 'pending', diagnosticNotes: '', diagnosticImages: [] });
+      setUpdateForm({ status: '', paymentStatus: 'pending', amountPaid: '', diagnosticNotes: '', diagnosticImages: [] });
       setRepairItems([]);
       setNewItem({ description: '', cost: '' });
       setWaiveConsultationFee(false);
@@ -1615,15 +1616,25 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
     const images = ((selectedRepair as any).diagnosticImages ?? []).map(
       (img: any) => (typeof img === 'string' ? img : img.data)
     );
+
+    const notes = (selectedRepair as any).notes || '';
+    let existingAmountPaid = (selectedRepair as any).amountPaid ? String((selectedRepair as any).amountPaid) : '';
+    if (!existingAmountPaid) {
+      const match = notes.match(/•\s*Part Payment Received:\s*Le\s*([\d,\.]+)/i) || notes.match(/Part Payment:\s*Le\s*([\d,\.]+)/i);
+      if (match) {
+        existingAmountPaid = match[1].replace(/,/g, '');
+      }
+    }
+
     setUpdateForm({
       status: selectedRepair.status ?? '',
       paymentStatus: selectedRepair.paymentStatus ?? 'pending',
+      amountPaid: existingAmountPaid,
       diagnosticNotes: (selectedRepair as any).diagnosticNotes ?? '',
       diagnosticImages: images,
     });
 
     // Check if existing notes indicate fee was waived
-    const notes = (selectedRepair as any).notes || '';
     if (notes.toLowerCase().includes('waived') || notes.toLowerCase().includes('le 0')) {
       setWaiveConsultationFee(true);
     } else {
@@ -1679,6 +1690,15 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
     repairItems.forEach(item => {
       costBreakdown += `\n• ${item.description}: Le ${parseFloat(item.cost || '0').toLocaleString()}`;
     });
+
+    const paidVal = parseFloat(updateForm.amountPaid) || 0;
+    const balanceDue = Math.max(0, grandTotal - paidVal);
+
+    if (updateForm.paymentStatus === 'part_payment') {
+      costBreakdown += `\n• Part Payment Received: Le ${paidVal.toLocaleString()}`;
+      costBreakdown += `\n• Balance Due: Le ${balanceDue.toLocaleString()}`;
+    }
+
     costBreakdown += `\n\nTotal: Le ${grandTotal.toLocaleString()}`;
 
     try {
@@ -1921,16 +1941,49 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
 
               {/* Payment Status */}
               <div>
-                <label className="block text-slate-400 mb-1 text-[11px] uppercase tracking-wide">Payment Status</label>
+                <label className="block text-slate-400 mb-1 text-[11px] uppercase tracking-wide font-bold">Payment Status</label>
                 <select
                   value={updateForm.paymentStatus}
                   onChange={e => setUpdateForm(p => ({ ...p, paymentStatus: e.target.value }))}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-red-500"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-red-500 font-semibold"
                 >
-                  <option value="pending">Pending</option>
-                  <option value="paid">Paid</option>
+                  <option value="pending">Pending (Unpaid)</option>
+                  <option value="part_payment">Part Payment (Deposit)</option>
+                  <option value="paid">Paid (Fully Paid)</option>
                 </select>
               </div>
+
+              {/* Part Payment Input & Live Calculation */}
+              {updateForm.paymentStatus === 'part_payment' && (
+                <div className="bg-amber-950/30 border border-amber-500/40 rounded-xl p-3 space-y-2.5 transition-all">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-amber-300 text-[11px] font-bold uppercase tracking-wide flex items-center gap-1.5">
+                      <i className="fas fa-coins text-amber-400 text-xs" />
+                      Part Payment Amount Received (Le)
+                    </label>
+                    <span className="text-[10px] text-amber-300/70 font-mono font-bold">
+                      Total: Le {grandTotal.toLocaleString()}
+                    </span>
+                  </div>
+                  <input
+                    type="number"
+                    placeholder="e.g. 200"
+                    value={updateForm.amountPaid}
+                    onChange={e => setUpdateForm(p => ({ ...p, amountPaid: e.target.value }))}
+                    className="w-full bg-slate-900 border border-amber-500/50 rounded-lg px-3 py-2 text-white text-xs font-mono font-bold focus:outline-none focus:border-amber-400"
+                  />
+                  {grandTotal > 0 && (
+                    <div className="flex items-center justify-between text-[11px] bg-slate-900/90 rounded-lg px-3 py-2 border border-slate-800">
+                      <span className="text-emerald-400 font-semibold">
+                        Paid: Le {(parseFloat(updateForm.amountPaid) || 0).toLocaleString()}
+                      </span>
+                      <span className="text-amber-400 font-black font-mono">
+                        Balance Due: Le {Math.max(0, grandTotal - (parseFloat(updateForm.amountPaid) || 0)).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* ── Repair Cost Builder ── */}
               <div className="rounded-xl border border-slate-700 overflow-hidden">

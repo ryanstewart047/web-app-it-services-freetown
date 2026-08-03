@@ -75,7 +75,7 @@ const statusSteps = [
 ]
 
 // Parse the "--- Cost Breakdown ---" block from notes
-function parseCostBreakdown(notes?: string): { items: { label: string; cost: number }[]; cleanNotes: string } {
+function parseCostBreakdown(notes?: string): { items: { label: string; cost: number }[]; cleanNotes: string; amountPaid?: number; balanceDue?: number } {
   if (!notes) return { items: [], cleanNotes: '' };
   const breakdownMarker = '--- Cost Breakdown ---';
   const idx = notes.indexOf(breakdownMarker);
@@ -86,7 +86,20 @@ function parseCostBreakdown(notes?: string): { items: { label: string; cost: num
   const lines = breakdownBlock.split('\n').map(l => l.trim()).filter(Boolean);
 
   const items: { label: string; cost: number }[] = [];
+  let amountPaid: number | undefined;
+  let balanceDue: number | undefined;
+
   for (const line of lines) {
+    const partMatch = line.match(/^[•\-]?\s*Part Payment Received:\s*Le\s*([\d,\.]+)/i);
+    if (partMatch) {
+      amountPaid = parseFloat(partMatch[1].replace(/,/g, ''));
+      continue;
+    }
+    const balMatch = line.match(/^[•\-]?\s*Balance Due:\s*Le\s*([\d,\.]+)/i);
+    if (balMatch) {
+      balanceDue = parseFloat(balMatch[1].replace(/,/g, ''));
+      continue;
+    }
     // Match lines like: • Screen Replacement: Le 350
     const match = line.match(/^[•\-]?\s*(.+?):\s*Le\s*([\d,\.]+)$/i);
     if (match) {
@@ -95,7 +108,7 @@ function parseCostBreakdown(notes?: string): { items: { label: string; cost: num
       if (label && !isNaN(cost)) items.push({ label, cost });
     }
   }
-  return { items, cleanNotes };
+  return { items, cleanNotes, amountPaid, balanceDue };
 }
 
 export default function AppointmentStatus({ trackingId }: AppointmentStatusProps) {
@@ -377,7 +390,8 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
   if (!appointment) return null
 
   const currentStep = getCurrentStepIndex()
-  const { items: costItems, cleanNotes } = parseCostBreakdown(appointment.notes)
+  const { items: costItems, cleanNotes, amountPaid: parsedAmountPaid, balanceDue: parsedBalanceDue } = parseCostBreakdown(appointment.notes)
+  const isPartPayment = appointment.paymentStatus === 'part_payment' || appointment.paymentStatus === 'part-payment' || appointment.paymentStatus === 'half_payment'
 
   return (
     <>
@@ -410,8 +424,8 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
             </button>
           )}
           
-          {/* Print Slip — only visible when payment is confirmed (paid) */}
-          {appointment.paymentStatus === 'paid' && (
+          {/* Print Slip — visible when paid or part-paid */}
+          {(appointment.paymentStatus === 'paid' || isPartPayment) && (
             <button
               onClick={() => window.print()}
               className="px-3 py-1.5 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium text-xs rounded-lg transition-colors flex items-center gap-1.5"
@@ -438,52 +452,79 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
 
       {/* Status Progress Bar */}
       {appointment.status !== 'cancelled' && (
-        <div className="mb-10">
-          <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-6">Repair Progress</h4>
+        <div className="mb-8">
           <div className="relative">
-            <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200">
-              <div
-                style={{ width: `${((currentStep + 1) / statusSteps.length) * 100}%` }}
-                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-red-600 transition-all duration-500"
-              ></div>
-            </div>
-            
-            <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
-              {statusSteps.map((step, idx) => {
-                const isCompleted = idx <= currentStep;
-                const isCurrent = idx === currentStep;
+            {/* Desktop progress bar */}
+            <div className="hidden md:flex justify-between items-center relative z-10">
+              {statusSteps.map((step, index) => {
+                const isCompleted = index <= currentStep
+                const isCurrent = index === currentStep
+
                 return (
-                  <div key={step.key} className="flex flex-col items-center text-center">
+                  <div key={step.key} className="flex flex-col items-center flex-1">
                     <div
-                      className={`w-9 h-9 rounded-full flex items-center justify-center mb-1 text-sm font-bold transition-all ${
-                        isCurrent
-                          ? 'bg-red-600 text-white ring-4 ring-red-100 scale-110 shadow-md'
-                          : isCompleted
-                          ? 'bg-emerald-600 text-white'
-                          : 'bg-gray-200 text-gray-400'
+                      className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 ${
+                        isCompleted
+                          ? 'bg-red-600 text-white shadow-lg shadow-red-200'
+                          : 'bg-gray-100 text-gray-400'
+                      } ${isCurrent ? 'ring-4 ring-red-100 scale-110' : ''}`}
+                    >
+                      {isCompleted ? (
+                        <i className="fas fa-check text-xs"></i>
+                      ) : (
+                        index + 1
+                      )}
+                    </div>
+                    <span
+                      className={`mt-2 text-xs font-semibold text-center ${
+                        isCurrent ? 'text-red-600 font-bold' : isCompleted ? 'text-gray-900' : 'text-gray-400'
                       }`}
                     >
-                      <i className={step.icon}></i>
-                    </div>
-                    <span className={`text-[10px] sm:text-xs font-medium leading-tight ${isCurrent ? 'text-red-600 font-bold' : isCompleted ? 'text-gray-900' : 'text-gray-400'}`}>
                       {step.label}
                     </span>
                   </div>
-                );
+                )
               })}
+            </div>
+
+            {/* Connecting line */}
+            <div className="hidden md:block absolute top-5 left-0 right-0 h-0.5 bg-gray-200 -z-0">
+              <div
+                className="h-full bg-red-600 transition-all duration-500"
+                style={{
+                  width: `${(currentStep / (statusSteps.length - 1)) * 100}%`,
+                }}
+              ></div>
+            </div>
+
+            {/* Mobile progress */}
+            <div className="md:hidden bg-gray-50 p-4 rounded-xl border border-gray-100">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Step {currentStep + 1} of {statusSteps.length}
+                </span>
+                <span className="text-xs font-bold text-red-600">
+                  {statusSteps[currentStep]?.label}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                <div
+                  className="bg-red-600 h-full transition-all duration-500"
+                  style={{
+                    width: `${((currentStep + 1) / statusSteps.length) * 100}%`,
+                  }}
+                ></div>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Repair Details & Breakdown */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
-        {/* Left Column: Details */}
-        <div className="space-y-4 bg-gray-50 p-5 rounded-xl border border-gray-100">
-          <h4 className="font-bold text-gray-900 text-sm border-b pb-2">Repair Details</h4>
-          
-          <div className="grid grid-cols-2 gap-3 text-xs">
+      {/* Main Details Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left 2 Columns: Information */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="grid grid-cols-2 gap-4 text-xs bg-gray-50 p-4 rounded-xl border border-gray-100">
             <div>
               <span className="text-gray-500 block">Submitted On:</span>
               <span className="font-semibold text-gray-800">{appointment.createdAt}</span>
@@ -494,8 +535,14 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
             </div>
             <div>
               <span className="text-gray-500 block">Payment Status:</span>
-              <span className={`font-bold capitalize ${appointment.paymentStatus === 'paid' ? 'text-emerald-600' : 'text-amber-600'}`}>
-                {appointment.paymentStatus || 'Pending'}
+              <span className={`font-bold capitalize ${
+                appointment.paymentStatus === 'paid' 
+                  ? 'text-emerald-600' 
+                  : isPartPayment 
+                  ? 'text-amber-600' 
+                  : 'text-amber-600'
+              }`}>
+                {isPartPayment ? 'Part Payment (Deposit)' : (appointment.paymentStatus || 'Pending')}
               </span>
             </div>
             <div>
@@ -507,7 +554,7 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
           </div>
 
           {cleanNotes && (
-            <div className="pt-2 border-t text-xs">
+            <div className="p-4 bg-white border border-gray-100 rounded-xl text-xs">
               <span className="text-gray-500 font-semibold block mb-1">Technician Notes:</span>
               <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{cleanNotes}</p>
             </div>
@@ -544,21 +591,37 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
             )}
           </div>
 
-          <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Grand Total</span>
-            <span className="text-xl font-black text-emerald-400 font-mono">
-              {appointment.cost ? `Le ${appointment.cost.toLocaleString()}` : 'Quote Pending'}
-            </span>
+          {/* Grand Total & Part Payment Balance Section */}
+          <div className="pt-3 border-t border-slate-800 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Grand Total</span>
+              <span className="text-xl font-black text-emerald-400 font-mono">
+                {appointment.cost ? `Le ${appointment.cost.toLocaleString()}` : 'Quote Pending'}
+              </span>
+            </div>
+
+            {isPartPayment && (
+              <div className="bg-slate-950 p-2.5 rounded-lg border border-amber-500/30 text-xs space-y-1">
+                <div className="flex justify-between text-emerald-400 font-semibold">
+                  <span>Part Payment Paid:</span>
+                  <span className="font-mono">Le {(parsedAmountPaid ?? (appointment.cost ? appointment.cost / 2 : 0)).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-amber-400 font-bold">
+                  <span>Balance Due:</span>
+                  <span className="font-mono">Le {(parsedBalanceDue ?? (appointment.cost ? appointment.cost / 2 : 0)).toLocaleString()}</span>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* View Payment Instructions — only show while payment is still pending */}
+          {/* View Payment Instructions / Pay Balance */}
           {appointment.cost && appointment.paymentStatus !== 'paid' && (
             <button
               onClick={() => setShowPaymentPopup(true)}
               className="w-full py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white text-xs font-bold rounded-lg transition-all shadow text-center no-print"
             >
               <i className="fas fa-credit-card mr-2"></i>
-              View Payment Instructions
+              {isPartPayment ? 'Pay Remaining Balance' : 'View Payment Instructions'}
             </button>
           )}
           {/* Paid badge when payment is complete */}
