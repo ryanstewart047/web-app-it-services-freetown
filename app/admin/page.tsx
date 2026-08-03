@@ -1613,18 +1613,18 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
       setWaiveConsultationFee(false);
       return;
     }
+
     const images = ((selectedRepair as any).diagnosticImages ?? []).map(
       (img: any) => (typeof img === 'string' ? img : img.data)
     );
 
     const notes = (selectedRepair as any).notes || '';
-    let existingAmountPaid = (selectedRepair as any).amountPaid ? String((selectedRepair as any).amountPaid) : '';
-    if (!existingAmountPaid) {
-      const match = notes.match(/•\s*Part Payment Received:\s*Le\s*([\d,\.]+)/i) || notes.match(/Part Payment:\s*Le\s*([\d,\.]+)/i);
-      if (match) {
-        existingAmountPaid = match[1].replace(/,/g, '');
-      }
-    }
+
+    // ── Restore part-payment amount ────────────────────────────────────────
+    let existingAmountPaid = '';
+    const partMatch = notes.match(/[•\-]?\s*Part Payment Received:\s*Le\s*([\d,\.]+)/i)
+      || notes.match(/Part Payment:\s*Le\s*([\d,\.]+)/i);
+    if (partMatch) existingAmountPaid = partMatch[1].replace(/,/g, '');
 
     setUpdateForm({
       status: selectedRepair.status ?? '',
@@ -1634,14 +1634,35 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
       diagnosticImages: images,
     });
 
-    // Check if existing notes indicate fee was waived
-    if (notes.toLowerCase().includes('waived') || notes.toLowerCase().includes('le 0')) {
-      setWaiveConsultationFee(true);
-    } else {
-      setWaiveConsultationFee(false);
+    // ── Restore waive state from consultation fee line ─────────────────────
+    const feeLineWaived = /Consultation Fee[^:]*\[Waived\]/i.test(notes);
+    setWaiveConsultationFee(feeLineWaived);
+
+    // ── Restore repair line items from cost breakdown ──────────────────────
+    const restoredItems: { description: string; cost: string }[] = [];
+    const breakdownMarker = '--- Cost Breakdown ---';
+    const idx = notes.indexOf(breakdownMarker);
+    if (idx !== -1) {
+      const block = notes.slice(idx + breakdownMarker.length);
+      const lines = block.split('\n').map((l: string) => l.trim()).filter(Boolean);
+      for (const line of lines) {
+        // Skip consultation fee, part payment, balance due, and total lines
+        if (/Consultation Fee/i.test(line)) continue;
+        if (/Part Payment Received/i.test(line)) continue;
+        if (/Balance Due/i.test(line)) continue;
+        if (/^Total:/i.test(line)) continue;
+
+        // Match: • Screen Replacement: Le 350
+        const m = line.match(/^[•\-]?\s*(.+?):\s*Le\s*([\d,\.]+)$/i);
+        if (m) {
+          const desc = m[1].trim();
+          const cost = String(parseFloat(m[2].replace(/,/g, '')));
+          if (desc && cost) restoredItems.push({ description: desc, cost });
+        }
+      }
     }
 
-    setRepairItems([]);
+    setRepairItems(restoredItems);
     setNewItem({ description: '', cost: '' });
   }, [selectedRepair]);
 
