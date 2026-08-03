@@ -1563,6 +1563,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
   // Repair line items: each row has a label + individual cost
   const [repairItems, setRepairItems] = useState<{ description: string; cost: string }[]>([]);
   const [newItem, setNewItem] = useState({ description: '', cost: '' });
+  const [waiveConsultationFee, setWaiveConsultationFee] = useState<boolean>(false);
 
   // Reset pagination when filters change
   useEffect(() => { setRepairPage(1); }, [filterStatus, searchFilter]);
@@ -1577,8 +1578,8 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
     }
   }, [repairs.allRepairs]);
 
-  // Determine consultation fee by device type
-  const consultationFee = useMemo(() => {
+  // Determine base consultation fee by device type
+  const baseConsultationFee = useMemo(() => {
     if (!selectedRepair) return 0;
     const d = (selectedRepair.deviceType || '').toLowerCase();
     if (d.includes('laptop') || d.includes('desktop') || d.includes('computer') || d.includes('pc')) {
@@ -1586,6 +1587,9 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
     }
     return CONSULTATION_FEE_MOBILE;
   }, [selectedRepair]);
+
+  // Active consultation fee (0 if waived)
+  const consultationFee = waiveConsultationFee ? 0 : baseConsultationFee;
 
   const isComputer = useMemo(() => {
     if (!selectedRepair) return false;
@@ -1605,6 +1609,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
       setUpdateForm({ status: '', paymentStatus: 'pending', diagnosticNotes: '', diagnosticImages: [] });
       setRepairItems([]);
       setNewItem({ description: '', cost: '' });
+      setWaiveConsultationFee(false);
       return;
     }
     const images = ((selectedRepair as any).diagnosticImages ?? []).map(
@@ -1616,6 +1621,15 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
       diagnosticNotes: (selectedRepair as any).diagnosticNotes ?? '',
       diagnosticImages: images,
     });
+
+    // Check if existing notes indicate fee was waived
+    const notes = (selectedRepair as any).notes || '';
+    if (notes.toLowerCase().includes('waived') || notes.toLowerCase().includes('le 0')) {
+      setWaiveConsultationFee(true);
+    } else {
+      setWaiveConsultationFee(false);
+    }
+
     setRepairItems([]);
     setNewItem({ description: '', cost: '' });
   }, [selectedRepair]);
@@ -1658,7 +1672,9 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
 
   const saveRepair = async () => {
     if (!selectedRepair) return;
-    const feeLabel = isComputer ? 'Consultation Fee (Computer)' : 'Consultation Fee (Mobile)';
+    const feeLabel = isComputer 
+      ? `Consultation Fee (Computer)${waiveConsultationFee ? ' [Waived]' : ''}` 
+      : `Consultation Fee (Mobile)${waiveConsultationFee ? ' [Waived]' : ''}`;
     let costBreakdown = `--- Cost Breakdown ---\n• ${feeLabel}: Le ${consultationFee.toLocaleString()}`;
     repairItems.forEach(item => {
       costBreakdown += `\n• ${item.description}: Le ${parseFloat(item.cost || '0').toLocaleString()}`;
@@ -1924,16 +1940,46 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                 </div>
                 <div className="p-4 space-y-2.5">
 
-                  {/* Fixed Consultation Fee Row (read-only) */}
-                  <div className="flex items-center justify-between bg-amber-950/40 border border-amber-700/40 rounded-lg px-3 py-2">
-                    <div className="flex items-center gap-2">
-                      <i className={`fas ${isComputer ? 'fa-laptop' : 'fa-mobile-alt'} text-amber-400 text-xs`} />
-                      <span className="text-amber-200 font-semibold text-[11px]">
+                  {/* Consultation Fee Row (With Waive / Maintain Toggle) */}
+                  <div className={`flex flex-col sm:flex-row sm:items-center justify-between border rounded-lg p-2.5 gap-2 transition-all ${
+                    waiveConsultationFee
+                      ? 'bg-emerald-950/40 border-emerald-700/50'
+                      : 'bg-amber-950/40 border-amber-700/40'
+                  }`}>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <i className={`fas ${isComputer ? 'fa-laptop' : 'fa-mobile-alt'} ${waiveConsultationFee ? 'text-emerald-400' : 'text-amber-400'} text-xs`} />
+                      <span className={`${waiveConsultationFee ? 'text-emerald-200' : 'text-amber-200'} font-semibold text-[11px]`}>
                         Consultation Fee ({isComputer ? 'Computer' : 'Mobile'})
                       </span>
-                      <span className="text-[9px] bg-amber-800/50 text-amber-200 rounded px-1.5 py-0.5 font-bold uppercase">Fixed</span>
+                      <span className={`text-[9px] rounded px-1.5 py-0.5 font-bold uppercase ${
+                        waiveConsultationFee 
+                          ? 'bg-emerald-800/60 text-emerald-200 border border-emerald-600/40' 
+                          : 'bg-amber-800/50 text-amber-200'
+                      }`}>
+                        {waiveConsultationFee ? 'Waived' : 'Fixed'}
+                      </span>
                     </div>
-                    <span className="font-black text-amber-300 text-xs whitespace-nowrap">Le {consultationFee.toLocaleString()}</span>
+
+                    <div className="flex items-center gap-3 justify-between sm:justify-end">
+                      <span className={`font-black text-xs whitespace-nowrap ${
+                        waiveConsultationFee ? 'text-emerald-400 line-through opacity-70' : 'text-amber-300'
+                      }`}>
+                        Le {consultationFee.toLocaleString()}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setWaiveConsultationFee(!waiveConsultationFee)}
+                        className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase transition-all shadow-sm flex items-center gap-1.5 shrink-0 ${
+                          waiveConsultationFee
+                            ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-900/50'
+                            : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40'
+                        }`}
+                        title={waiveConsultationFee ? "Click to maintain consultation fee" : "Click to waive consultation fee"}
+                      >
+                        <i className={`fas ${waiveConsultationFee ? 'fa-check-circle' : 'fa-tag'}`} />
+                        {waiveConsultationFee ? 'Waived (Le 0)' : 'Waive Fee'}
+                      </button>
+                    </div>
                   </div>
 
                   {/* Repair Line Items */}
