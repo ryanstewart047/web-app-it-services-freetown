@@ -76,6 +76,82 @@ export default function AdminProductsPage() {
     featured: false
   });
 
+  // Modal Auto-Save State
+  const MODAL_DRAFT_KEY = 'admin_product_modal_draft';
+  const [modalLastSaved, setModalLastSaved] = useState<string | null>(null);
+  const [modalDraftRestored, setModalDraftRestored] = useState<boolean>(false);
+  const [modalIsSaving, setModalIsSaving] = useState<boolean>(false);
+
+  // Restore draft when opening add modal (if creating new product)
+  useEffect(() => {
+    if (showAddModal && !editingProduct) {
+      try {
+        const saved = localStorage.getItem(MODAL_DRAFT_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.formData) {
+            setFormData(parsed.formData);
+            if (parsed.imageUrls) setImageUrls(parsed.imageUrls);
+            if (parsed.savedAt) setModalLastSaved(parsed.savedAt);
+            setModalDraftRestored(true);
+          }
+        }
+      } catch (err) {
+        console.error('[ProductModal] Error restoring draft:', err);
+      }
+    }
+  }, [showAddModal, editingProduct]);
+
+  // Auto-Save modal form draft to localStorage on change
+  useEffect(() => {
+    if (!showAddModal || editingProduct) return;
+
+    const hasData = formData.name || formData.description || formData.price || formData.sku || formData.brand || (imageUrls && imageUrls.some(url => url.trim().length > 0));
+    if (!hasData) return;
+
+    setModalIsSaving(true);
+    const timer = setTimeout(() => {
+      try {
+        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        localStorage.setItem(MODAL_DRAFT_KEY, JSON.stringify({
+          formData,
+          imageUrls,
+          savedAt: timestamp,
+        }));
+        setModalLastSaved(timestamp);
+      } catch (err) {
+        console.error('[ProductModal] Error saving draft:', err);
+      } finally {
+        setModalIsSaving(false);
+      }
+    }, 750);
+
+    return () => clearTimeout(timer);
+  }, [formData, imageUrls, showAddModal, editingProduct]);
+
+  const clearModalDraft = () => {
+    try {
+      localStorage.removeItem(MODAL_DRAFT_KEY);
+    } catch {}
+    setModalLastSaved(null);
+    setModalDraftRestored(false);
+    setFormData({
+      name: '',
+      description: '',
+      price: '',
+      comparePrice: '',
+      stock: '',
+      categoryId: '',
+      sku: '',
+      brand: '',
+      status: 'active',
+      condition: 'new',
+      videoUrl: '',
+      featured: false
+    });
+    setImageUrls(['']);
+  };
+
   useEffect(() => {
     fetchProducts();
     fetchCategories();
@@ -618,7 +694,7 @@ export default function AdminProductsPage() {
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-gray-800 rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-white">
                 {editingProduct ? 'Edit Product' : 'Add New Product'}
               </h2>
@@ -648,6 +724,35 @@ export default function AdminProductsPage() {
                 ✕
               </button>
             </div>
+
+            {/* Auto Save Status Badge for New Products */}
+            {!editingProduct && (
+              <div className="bg-blue-950/40 border border-blue-500/30 rounded-xl p-3 mb-5 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-2 w-2">
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${modalIsSaving ? 'bg-amber-400' : 'bg-blue-400'} opacity-75`}></span>
+                    <span className={`relative inline-flex rounded-full h-2 w-2 ${modalIsSaving ? 'bg-amber-500' : 'bg-blue-500'}`}></span>
+                  </span>
+                  <span className="font-semibold text-blue-300">
+                    {modalIsSaving ? 'Saving draft...' : modalLastSaved ? `Auto-Saved locally at ${modalLastSaved}` : 'Auto-Save Enabled'}
+                  </span>
+                  {modalDraftRestored && (
+                    <span className="bg-blue-500/20 text-blue-300 border border-blue-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase">
+                      Restored
+                    </span>
+                  )}
+                </div>
+                {(modalLastSaved || modalDraftRestored) && (
+                  <button
+                    type="button"
+                    onClick={clearModalDraft}
+                    className="text-gray-400 hover:text-red-400 text-xs transition-colors flex items-center gap-1"
+                  >
+                    <Trash2 className="w-3 h-3" /> Discard Draft
+                  </button>
+                )}
+              </div>
+            )}
 
             <form data-no-analytics="true" onSubmit={async (e) => {
               e.preventDefault();
@@ -785,6 +890,9 @@ export default function AdminProductsPage() {
                     console.log('Response was successful but JSON parsing failed - this is OK, product was saved');
                   }
                   
+                  if (!editingProduct) {
+                    clearModalDraft();
+                  }
                   alert(editingProduct ? 'Product updated successfully!' : 'Product created successfully!');
                   setShowAddModal(false);
                   setEditingProduct(null);
@@ -795,21 +903,6 @@ export default function AdminProductsPage() {
                   setUploadProgress('idle');
                   setUploadMessage('');
                   setVideoInputMode('link');
-                  // Reset form data
-                  setFormData({
-                    name: '',
-                    description: '',
-                    price: '',
-                    comparePrice: '',
-                    stock: '',
-                    categoryId: '',
-                    sku: '',
-                    brand: '',
-                    status: 'active',
-                    condition: 'new',
-                    videoUrl: '',
-                    featured: false
-                  });
                   fetchProducts();
                 } else {
                   let errorMessage = 'Failed to save product';

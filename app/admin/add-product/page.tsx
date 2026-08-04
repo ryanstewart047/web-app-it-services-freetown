@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Plus, X } from 'lucide-react';
+import { ArrowLeft, Plus, X, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { useAdminSession } from '../../../src/hooks/useAdminSession';
 
 interface Category {
   id: string;
@@ -12,6 +13,11 @@ interface Category {
 
 export default function AddProductPage() {
   const router = useRouter();
+  const { showIdleWarning, getRemainingTime } = useAdminSession({
+    idleTimeout: 5 * 60 * 1000,
+    warningTime: 30 * 1000,
+  });
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<{ url: string; alt: string }[]>([{ url: '', alt: '' }]);
@@ -32,6 +38,77 @@ export default function AddProductPage() {
     featured: false,
     status: 'active'
   });
+
+  // Auto-Save Draft State
+  const DRAFT_KEY = 'add_product_draft';
+  const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [draftRestored, setDraftRestored] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+
+  // Restore draft on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.formData) {
+          setFormData(parsed.formData);
+          if (parsed.images) setImages(parsed.images);
+          if (parsed.savedAt) setLastSaved(parsed.savedAt);
+          setDraftRestored(true);
+        }
+      }
+    } catch (err) {
+      console.error('[AddProduct] Error restoring draft:', err);
+    }
+  }, []);
+
+  // Auto-Save draft to localStorage on state changes
+  useEffect(() => {
+    const hasData = formData.name || formData.description || formData.price || formData.sku || formData.brand || (images && images.some(img => img.url));
+    if (!hasData) return;
+
+    setIsSaving(true);
+    const timer = setTimeout(() => {
+      try {
+        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({
+          formData,
+          images,
+          savedAt: timestamp,
+        }));
+        setLastSaved(timestamp);
+      } catch (err) {
+        console.error('[AddProduct] Error saving draft:', err);
+      } finally {
+        setIsSaving(false);
+      }
+    }, 750);
+
+    return () => clearTimeout(timer);
+  }, [formData, images]);
+
+  const clearDraft = () => {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {}
+    setFormData({
+      name: '',
+      description: '',
+      price: '',
+      comparePrice: '',
+      stock: '',
+      categoryId: '',
+      sku: '',
+      brand: '',
+      condition: 'new',
+      featured: false,
+      status: 'active'
+    });
+    setImages([{ url: '', alt: '' }]);
+    setLastSaved(null);
+    setDraftRestored(false);
+  };
 
   useEffect(() => {
     fetchCategories();
@@ -96,6 +173,7 @@ export default function AddProductPage() {
       console.log('[Add Product] Response status:', res.status);
 
       if (res.ok) {
+        clearDraft();
         alert('Product added successfully!');
         router.push('/admin/products');
       } else {
@@ -181,9 +259,16 @@ export default function AddProductPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 py-8">
+      {/* Session Idle Warning */}
+      {showIdleWarning && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-red-600 text-white text-center py-3 px-4 animate-pulse">
+          ⚠️ Session expiring in {getRemainingTime()} seconds due to inactivity. Move your mouse to stay logged in.
+        </div>
+      )}
+
       <div className="container mx-auto px-4 max-w-4xl">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6">
           <Link
             href="/admin/products"
             className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 mb-4"
@@ -192,6 +277,33 @@ export default function AddProductPage() {
             Back to Products
           </Link>
           <h1 className="text-4xl font-bold text-white">Add New Product</h1>
+        </div>
+
+        {/* Auto Save Status Banner */}
+        <div className="bg-blue-950/40 border border-blue-500/30 rounded-xl p-3.5 mb-6 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isSaving ? 'bg-amber-400' : 'bg-blue-400'} opacity-75`}></span>
+              <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${isSaving ? 'bg-amber-500' : 'bg-blue-500'}`}></span>
+            </span>
+            <span className="font-semibold text-blue-300">
+              {isSaving ? 'Saving draft...' : lastSaved ? `Auto-Saved locally at ${lastSaved}` : 'Auto-Save Enabled'}
+            </span>
+            {draftRestored && (
+              <span className="bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded text-[10px] font-bold uppercase">
+                Restored from Draft
+              </span>
+            )}
+          </div>
+          {(lastSaved || draftRestored) && (
+            <button
+              onClick={clearDraft}
+              className="text-gray-400 hover:text-red-400 text-xs transition-colors flex items-center gap-1"
+              title="Clear saved draft and start fresh"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Discard Draft
+            </button>
+          )}
         </div>
 
         {/* Form */}

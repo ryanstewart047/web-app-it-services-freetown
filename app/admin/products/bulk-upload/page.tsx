@@ -64,6 +64,68 @@ export default function BulkUploadPage() {
   const [csvText, setCsvText] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Auto-Save Draft State
+  const DRAFT_KEY = 'bulk_upload_draft';
+  const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [draftRestored, setDraftRestored] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+
+  // Restore draft on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.products && Array.isArray(parsed.products) && parsed.products.length > 0) {
+          setProducts(parsed.products);
+          if (parsed.mode) setMode(parsed.mode);
+          if (parsed.csvText) setCsvText(parsed.csvText);
+          if (parsed.savedAt) setLastSaved(parsed.savedAt);
+          setDraftRestored(true);
+        }
+      }
+    } catch (err) {
+      console.error('[BulkUpload] Error restoring draft:', err);
+    }
+  }, []);
+
+  // Auto-Save draft to localStorage on state changes
+  useEffect(() => {
+    const hasData = products.some(p => p.name || p.description || p.price || p.sku || p.brand || p.categoryId || (p.images && p.images.some(img => img.trim().length > 0))) || csvText.trim().length > 0;
+    
+    if (!hasData) return;
+
+    setIsSaving(true);
+    const timer = setTimeout(() => {
+      try {
+        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({
+          products,
+          mode,
+          csvText,
+          savedAt: timestamp,
+        }));
+        setLastSaved(timestamp);
+      } catch (err) {
+        console.error('[BulkUpload] Error saving draft:', err);
+      } finally {
+        setIsSaving(false);
+      }
+    }, 750);
+
+    return () => clearTimeout(timer);
+  }, [products, mode, csvText]);
+
+  const clearDraft = () => {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {}
+    setProducts([{ ...EMPTY_PRODUCT, images: [''] }]);
+    setCsvText('');
+    setLastSaved(null);
+    setDraftRestored(false);
+  };
+
   useEffect(() => {
     fetchCategories();
   }, []);
@@ -275,7 +337,7 @@ export default function BulkUploadPage() {
       } else {
         setResult(data);
         if (data.successCount > 0) {
-          setProducts([{ ...EMPTY_PRODUCT, images: [''] }]);
+          clearDraft();
         }
       }
     } catch (err) {
@@ -296,7 +358,7 @@ export default function BulkUploadPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-4">
             <Link
               href="/admin/products"
@@ -306,10 +368,39 @@ export default function BulkUploadPage() {
               Back to Products
             </Link>
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-            <FileSpreadsheet className="w-8 h-8 inline mr-2 text-green-400" />
-            Bulk Product Upload
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+              <FileSpreadsheet className="w-8 h-8 inline mr-2 text-green-400" />
+              Bulk Product Upload
+            </h1>
+          </div>
+        </div>
+
+        {/* Auto Save Status Banner */}
+        <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-xl p-3.5 mb-6 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isSaving ? 'bg-amber-400' : 'bg-emerald-400'} opacity-75`}></span>
+              <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${isSaving ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
+            </span>
+            <span className="font-semibold text-emerald-300">
+              {isSaving ? 'Saving draft...' : lastSaved ? `Auto-Saved locally at ${lastSaved}` : 'Auto-Save Enabled'}
+            </span>
+            {draftRestored && (
+              <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded text-[10px] font-bold uppercase">
+                Restored from Draft
+              </span>
+            )}
+          </div>
+          {(lastSaved || draftRestored) && (
+            <button
+              onClick={clearDraft}
+              className="text-gray-400 hover:text-red-400 text-xs transition-colors flex items-center gap-1"
+              title="Clear saved draft and start fresh"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Discard Draft
+            </button>
+          )}
         </div>
 
         {/* Mode Toggle & CSV Tools */}
