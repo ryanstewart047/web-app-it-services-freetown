@@ -124,6 +124,15 @@ const ADMIN_PANELS: AdminPanelItem[] = [
     url: '/admin/orders',
   },
   {
+    id: 'invoice-generator',
+    name: 'Invoice Generator',
+    category: 'ecommerce',
+    description: 'Create & manage invoices',
+    icon: 'fas fa-file-invoice',
+    color: 'text-indigo-400',
+    url: '/admin/invoices',
+  },
+  {
     id: 'categories',
     name: 'Categories',
     category: 'ecommerce',
