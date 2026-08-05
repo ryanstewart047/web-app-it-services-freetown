@@ -133,6 +133,15 @@ const ADMIN_PANELS: AdminPanelItem[] = [
     url: '/admin/invoices',
   },
   {
+    id: 'legal-documents',
+    name: 'Legal & Authorization Letters',
+    category: 'business',
+    description: 'Generate proof of legal authority & sign',
+    icon: 'fas fa-file-signature',
+    color: 'text-red-400',
+    url: '/admin/legal-documents',
+  },
+  {
     id: 'categories',
     name: 'Categories',
     category: 'ecommerce',
