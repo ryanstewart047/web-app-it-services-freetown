@@ -455,8 +455,8 @@ export default function Footer() {
               />
             </div>
             <p className="text-gray-200 mb-6 max-w-md leading-relaxed">
-              Professional computer and mobile repair services in Freetown, Sierra Leone. 
-              We provide expert repairs with real-time tracking, AI-powered support, and genuine parts warranty.
+              Enterprise managed IT solutions, computer & mobile repair, POS installation, networking and device unlocking. 
+              Professional, reliable technical service with real-time tracking and genuine parts warranty.
             </p>
             
             {/* Contact Info */}
@@ -471,7 +471,7 @@ export default function Footer() {
                 <div className="w-8 h-8 rounded-lg bg-primary-600/20 flex items-center justify-center">
                   <i className="fas fa-envelope text-primary-400 text-sm"></i>
                 </div>
-                <span className="text-gray-300 text-sm">support@itservicesfreetown.com</span>
+                <span className="text-gray-300 text-sm">info@bridgetechit.com</span>
               </div>
               <div className="flex items-start space-x-3">
                 <div className="w-8 h-8 rounded-lg bg-primary-600/20 flex items-center justify-center mt-0.5">
@@ -726,8 +726,8 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
               <div className="flex flex-col text-gray-300 text-sm">
-                <span>© {new Date().getFullYear()} IT Services Freetown. All rights reserved.</span>
-                <span className="mt-1">1 Regent High way, Jui Junction, East Freetown</span>
+                <span>© {new Date().getFullYear()} BridgeTech IT Services. All rights reserved.</span>
+                <span className="mt-1">No. 1 Regent Highway, Jui Junction, Freetown</span>
               </div>
               <div className="flex items-center space-x-4 text-xs text-gray-400">
                 <span className="flex items-center">

@@ -83,17 +83,17 @@ function normalizeConversationHistory(history?: Array<string | ConversationHisto
  * Generate AI response for chat support (client-side)
  */
 export async function generateChatResponseClient(context: ChatContext): Promise<string> {
-  const systemMessage = `You are the official AI assistant for **IT Services Freetown** — a professional computer and mobile repair shop in Freetown, Sierra Leone. Your name is **Alison**. You represent the business in every conversation.
+  const systemMessage = `You are the official AI assistant for **BridgeTech IT Services** — an enterprise managed IT solutions, computer/mobile repair, and POS/networking provider in Sierra Leone. Your name is **Alison**. You represent the business in every conversation.
 
 ═══════════════════════════════════════
 📍 BUSINESS DETAILS
 ═══════════════════════════════════════
-• Name: IT Services Freetown
+• Name: BridgeTech IT Services
 • Location: No. 1 Regent Highway, Jui Junction, Freetown (opposite Freetown Teachers College / FTC, Jui)
 • Google Maps: https://maps.app.goo.gl/FHCthxNEvNYxB4tJ7
-• Phone: +232 33 399 391
-• Email: support@itservicesfreetown.com / itservicesfreetown@gmail.com
-• Website: www.itservicesfreetown.com
+• Phone: +232 33 399 391 / +232 76 210 320
+• Email: info@bridgetechit.com / support@bridgetechit.com
+• Website: www.bridgetechit.com (also at www.itservicesfreetown.com)
 • Facebook: www.facebook.com/itservicefreetown
 • Instagram: www.instagram.com/itservicesfreetown
 • Twitter: www.twitter.com/itservicesfreetown
@@ -152,7 +152,7 @@ export async function generateChatResponseClient(context: ChatContext): Promise<
 ═══════════════════════════════════════
 🤖 YOUR BEHAVIOUR RULES
 ═══════════════════════════════════════
-1. Be friendly, warm and professional — you represent IT Services Freetown
+1. Be friendly, warm and professional — you represent BridgeTech IT Services
 2. **KEEP ANSWERS SHORT AND PRECISE** — 2 to 4 sentences max. Never give a long list unless the user specifically asks for one. Get straight to the point.
 3. Do NOT dump all available information at once. Answer only what was asked.
 4. Use 1 emoji max per reply — keep it professional
@@ -244,7 +244,7 @@ function generateFallbackChatResponse(userMessage: string): string {
   
   // Greetings
   if (msg.match(/^(hi|hello|hey|good morning|good afternoon|good evening|yo|sup|whatsup|what's up|howdy|greetings)/)) {
-    return `Hey there! 👋 I'm Alison, AI assistant for IT Services Freetown. What can I help you with?`
+    return `Hey there! 👋 I'm Alison, AI assistant for BridgeTech IT Services. What can I help you with?`
   }
   
   // Location / directions
@@ -259,7 +259,7 @@ function generateFallbackChatResponse(userMessage: string): string {
   
   // Contact info
   if (msg.includes('contact') || msg.includes('phone') || msg.includes('email') || msg.includes('call') || msg.includes('reach')) {
-    return `📞 +232 33 399 391 | 📧 support@itservicesfreetown.com | 📍 No. 1 Regent Highway, Jui Junction, Freetown.`
+    return `📞 +232 33 399 391 / +232 76 210 320 | 📧 info@bridgetechit.com | 📍 No. 1 Regent Highway, Jui Junction, Freetown.`
   }
 
   // Repair services — computer, laptop, mobile, phone
@@ -299,7 +299,7 @@ function generateFallbackChatResponse(userMessage: string): string {
   
   // Web development / design
   if (msg.includes('website') || msg.includes('web dev') || msg.includes('design') || msg.includes('logo') || msg.includes('graphic')) {
-    return `Yes, we build custom websites and do graphics/logo design. Email support@itservicesfreetown.com or call +232 33 399 391 to discuss your project.`
+    return `Yes, we build custom websites and do graphics/logo design. Email info@bridgetechit.com or call +232 33 399 391 to discuss your project.`
   }
   
   // Repair time
@@ -339,12 +339,12 @@ function generateFallbackChatResponse(userMessage: string): string {
   
   // Booking appointments
   if (msg.includes('appointment') || msg.includes('book') || msg.includes('schedule') || msg.includes('come in') || msg.includes('bring my')) {
-    return `Book online at itservicesfreetown.com/book-appointment or walk in Mon–Fri 8AM–6PM at No. 1 Regent Highway, Jui Junction. What device needs repair?`
+    return `Book online at bridgetechit.com/book-appointment or walk in Mon–Fri 8AM–6PM at No. 1 Regent Highway, Jui Junction. What device needs repair?`
   }
   
   // Tracking
   if (msg.includes('track') || msg.includes('status') || msg.includes('where is my repair') || msg.includes('its-')) {
-    return `Share your tracking ID (ITS-XXXXXX-XXXX) and I'll look it up, or check at itservicesfreetown.com/track-repair. No ID? Call +232 33 399 391 with your name.`
+    return `Share your tracking ID (ITS-XXXXXX-XXXX) and I'll look it up, or check at bridgetechit.com/track-repair. No ID? Call +232 33 399 391 with your name.`
   }
   
   // Review
@@ -359,7 +359,7 @@ function generateFallbackChatResponse(userMessage: string): string {
   
   // Social media
   if (msg.includes('social media') || msg.includes('facebook') || msg.includes('instagram') || msg.includes('twitter') || msg.includes('follow')) {
-    return `Follow us on Facebook, Instagram, and Twitter @itservicesfreetown for updates and tech tips.`
+    return `Follow us on Facebook, Instagram, and Twitter @itservicesfreetown for updates and tech tips from BridgeTech IT Services.`
   }
   
   // POS
@@ -384,16 +384,16 @@ function generateFallbackChatResponse(userMessage: string): string {
 
   // Thank you
   if (msg.includes('thank') || msg.includes('thanks') || msg.includes('appreciate') || msg.includes('helpful')) {
-    return `You're welcome! 😊 Anything else I can help with? We're at itservicesfreetown.com or call +232 33 399 391 anytime.`
+    return `You're welcome! 😊 Anything else I can help with? We're at bridgetechit.com or call +232 33 399 391 anytime.`
   }
   
   // Goodbye
   if (msg.match(/^(bye|goodbye|see you|later|take care|good night)/)) {
-    return `Goodbye! 👋 Come back anytime — itservicesfreetown.com or +232 33 399 391.`
+    return `Goodbye! 👋 Come back anytime — bridgetechit.com or +232 33 399 391.`
   }
   
   // Default helpful response
-  return `Hi! I'm Alison from IT Services Freetown. How can I help you today? 📞 +232 33 399 391`
+  return `Hi! I'm Alison from BridgeTech IT Services. How can I help you today? 📞 +232 33 399 391`
 }
 
 /**
@@ -412,7 +412,7 @@ export async function generateTroubleshootingResponseClient(context: Troubleshoo
   estimatedTime: string
   difficulty: 'easy' | 'medium' | 'hard'
 }> {
-  const systemMessage = `You are a senior device repair technician AI for "IT Services Freetown" — a professional repair shop at No. 1 Regent Highway, Jui Junction, Freetown, Sierra Leone (Phone: +232 33 399 391).
+  const systemMessage = `You are a senior device repair technician AI for "BridgeTech IT Services" — a professional repair shop at No. 1 Regent Highway, Jui Junction, Freetown, Sierra Leone (Phone: +232 33 399 391 / +232 76 210 320).
 
 You specialise in accurate, real-world device diagnosis across:
 - Windows PCs & laptops: boot failures, BSOD, thermal throttling, RAM/HDD/SSD failure, driver conflicts, malware, motherboard faults, power issues
@@ -558,7 +558,7 @@ Provide 3 to 5 steps only. Make every step count.`
             {
               id: 'step3',
               title: 'Professional Diagnosis',
-              description: 'If the issue persists, bring your device to IT Services Freetown for professional assessment.',
+              description: 'If the issue persists, bring your device to BridgeTech IT Services for professional assessment.',
               type: 'info' as const
             }
           ],
@@ -633,7 +633,7 @@ function generateFallbackTroubleshootingResponse(context: TroubleshootingContext
           {
             id: 'step5',
             title: 'Professional Diagnosis',
-            description: 'If BSOD persists, bring to IT Services Freetown for hardware testing and professional repair.',
+            description: 'If BSOD persists, bring to BridgeTech IT Services for hardware testing and professional repair.',
             type: 'info'
           }
         ],
@@ -676,7 +676,7 @@ function generateFallbackTroubleshootingResponse(context: TroubleshootingContext
           {
             id: 'step5',
             title: 'Professional Cleanup',
-            description: 'For persistent issues, visit IT Services Freetown for professional system optimization.',
+            description: 'For persistent issues, visit BridgeTech IT Services for professional system optimization.',
             type: 'info'
           }
         ],
@@ -765,7 +765,7 @@ function generateFallbackTroubleshootingResponse(context: TroubleshootingContext
           {
             id: 'step5',
             title: 'Professional Assessment',
-            description: 'If battery still drains quickly, visit IT Services Freetown for battery replacement.',
+            description: 'If battery still drains quickly, visit BridgeTech IT Services for battery replacement.',
             type: 'info'
           }
         ],
@@ -851,7 +851,7 @@ function generateFallbackTroubleshootingResponse(context: TroubleshootingContext
       {
         id: 'step5',
         title: 'Professional Diagnosis',
-        description: 'For complex issues, bring your device to IT Services Freetown for expert diagnosis and repair.',
+        description: 'For complex issues, bring your device to BridgeTech IT Services for expert diagnosis and repair.',
         type: 'info'
       }
     ],
@@ -1137,7 +1137,7 @@ ${r.cost ? `💰 **Cost:** Le ${r.cost.toLocaleString()}` : ''}
 
 ${r.status === 'completed' || r.status === 'ready-for-pickup' ? '✅ Your device is ready for pickup!' : '⏳ We\'re working on it — we\'ll notify you when it\'s ready.'}
 
-You can track anytime at **itservicesfreetown.com/track-repair** using ID: **${r.trackingId}**`,
+You can track anytime at **bridgetechit.com/track-repair** using ID: **${r.trackingId}**`,
       source: 'repair_tracking',
       trackingData: {
         id: r.trackingId,
@@ -1162,7 +1162,7 @@ You can track anytime at **itservicesfreetown.com/track-repair** using ID: **${r
 
 ${repairList}
 
-To see full details, share the tracking ID you're interested in, or visit **itservicesfreetown.com/track-repair**.`,
+To see full details, share the tracking ID you're interested in, or visit **bridgetechit.com/track-repair**.`,
     source: 'customer_lookup'
   };
 }

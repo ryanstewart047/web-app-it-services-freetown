@@ -345,7 +345,7 @@ export default function Navbar() {
                         href="/about" 
                         icon="fas fa-info-circle" 
                         title="Our Story" 
-                        description="Learn about IT Services Freetown"
+                        description="Learn about BridgeTech IT Services"
                         color="text-[#040e40]"
                         bg="bg-gray-50"
                       />

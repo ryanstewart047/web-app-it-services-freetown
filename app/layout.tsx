@@ -35,10 +35,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(BRAND_SITE_URL),
   title: {
-    default: 'IT Services Freetown - #1 Computer & Mobile Repair in Sierra Leone',
-    template: '%s | IT Services Freetown'
+    default: 'BridgeTech IT Services - Enterprise & Managed IT Solutions',
+    template: '%s | BridgeTech IT Services'
   },
-  description: 'Freetown\'s #1 Computer & Mobile Repair in Sierra Leone. iPhone repair, iCloud removal, FRP unlock, mobile unlocking. Professional laptop repair, home repair services. Same-day service, 1-month warranty, 95% success rate. Expert mobile technician in Freetown. Book online now!',
+  description: 'BridgeTech IT Services - Enterprise Managed IT Solutions, Computer & Mobile Repair, POS Installation, Networking, and Device Unlocking. Professional, reliable same-day technical service.',
   keywords: [
     // Primary repair services
     'computer repair Freetown',

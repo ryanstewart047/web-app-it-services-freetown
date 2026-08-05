@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAdminSession } from '../../../src/hooks/useAdminSession';
-import { BRAND_NAME } from '@/lib/brand';
+import { BRAND_NAME, BRAND_LOGO_SRC, BRAND_LOGO_FALLBACK_SRC } from '@/lib/brand';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 interface LegalDoc {
@@ -63,10 +63,10 @@ const blankDoc = (): LegalDoc => ({
   companyName: BRAND_NAME,
   companyAddress: 'No. 1 Regent Highway, Jui Junction, Freetown, Sierra Leone',
   companyPhone: '+232 33 399 391 / +232 76 210 320',
-  companyEmail: 'info@itservicesfreetown.com',
+  companyEmail: 'info@bridgetechit.com',
   signerName: 'Ryan Stewart',
   signerRole: 'Founder & Managing Director',
-  signerEmail: 'ryan@itservicesfreetown.com',
+  signerEmail: 'ryan@bridgetechit.com',
   signerPhone: '+232 33 399 391',
   recipientCompany: 'Hemmersbach GmbH & Co. KG',
   issueDate: new Date().toISOString().split('T')[0],
@@ -672,8 +672,13 @@ export default function LegalDocumentsAdminPage() {
                     {/* Official Letterhead Header */}
                     <div className="flex items-start justify-between border-b-2 border-[#040e40] pb-5">
                       <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-xl bg-slate-900 p-2 flex items-center justify-center shrink-0 shadow-md">
-                          <img src="/assets/logo.png" alt={doc.companyName} className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                        <div className="w-16 h-16 rounded-xl bg-slate-900 p-1.5 flex items-center justify-center shrink-0 shadow-md border border-slate-700">
+                          <img
+                            src={BRAND_LOGO_SRC}
+                            alt={doc.companyName}
+                            className="w-full h-full object-contain"
+                            onError={(e) => { (e.target as HTMLImageElement).src = BRAND_LOGO_FALLBACK_SRC; }}
+                          />
                         </div>
                         <div>
                           <div className="text-2xl font-black tracking-tight text-[#040e40] uppercase">{doc.companyName}</div>

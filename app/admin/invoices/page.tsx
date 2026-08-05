@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAdminSession } from '../../../src/hooks/useAdminSession';
-import { BRAND_NAME } from '@/lib/brand';
+import { BRAND_NAME, BRAND_LOGO_SRC, BRAND_LOGO_FALLBACK_SRC } from '@/lib/brand';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 interface InvoiceItem {
@@ -70,12 +70,12 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
 
 const PAYMENT_TERMS = ['Due on Receipt', 'Net 7', 'Net 14', 'Net 30', 'Net 60'];
 const DEFAULT_PAYMENT_INSTRUCTIONS = `Payment can be made via:
-• Orange Money: +232 78 000 000
-• Africell Money: +232 76 000 000
+• Orange Money: +232 33 399 391
+• Africell Money: +232 76 210 320
 • Bank Transfer: Sierra Leone Commercial Bank
-  Account Name: IT Services Freetown
+  Account Name: BridgeTech IT Services
   Account No: 0123456789
-• Cash: Payable at our office, 15 Siaka Stevens St, Freetown`;
+• Cash / Card: Payable at our office, No. 1 Regent Highway, Jui Junction`;
 
 const emptyItem = (): InvoiceItem => ({
   id: `item_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
@@ -676,13 +676,18 @@ export default function InvoicesAdminPage() {
                   <div className="px-8 py-6 text-white" style={{ background: 'linear-gradient(135deg, #040e40 0%, #0a1b68 55%, #dc2626 100%)' }}>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-xl bg-white/10 p-2 border border-white/20 flex items-center justify-center shrink-0">
-                          <img src="/assets/logo.png" alt={BRAND_NAME} className="w-full h-full object-contain filter drop-shadow" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                        <div className="w-16 h-16 rounded-xl bg-white/10 p-1.5 border border-white/20 flex items-center justify-center shrink-0">
+                          <img
+                            src={BRAND_LOGO_SRC}
+                            alt={BRAND_NAME}
+                            className="w-full h-full object-contain filter drop-shadow"
+                            onError={(e) => { (e.target as HTMLImageElement).src = BRAND_LOGO_FALLBACK_SRC; }}
+                          />
                         </div>
                         <div>
                           <div className="text-2xl font-black tracking-tight text-white">{BRAND_NAME}</div>
-                          <div className="text-red-100 text-xs font-medium mt-0.5">Professional IT Services · Freetown, Sierra Leone</div>
-                          <div className="text-blue-100 text-xs mt-0.5">+232 78 000 000 · +232 76 000 000 · info@itservicesfreetown.com</div>
+                          <div className="text-red-100 text-xs font-medium mt-0.5">Enterprise & Managed IT Solutions · Hardware & Repairs</div>
+                          <div className="text-blue-100 text-xs mt-0.5">+232 33 399 391 · +232 76 210 320 · info@bridgetechit.com</div>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
