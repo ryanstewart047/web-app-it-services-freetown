@@ -728,7 +728,7 @@ export default function InvoicesAdminPage() {
                           <span className="w-2 h-2 rounded-full bg-[#040e40] inline-block"></span> Provider / From
                         </div>
                         <div className="font-extrabold text-slate-900 text-sm">{BRAND_NAME}</div>
-                        <div className="text-xs text-slate-600 mt-1">15 Siaka Stevens Street</div>
+                        <div className="text-xs text-slate-600 mt-1">No 1 Regent Highway, Jui Junction, Freetown</div>
                         <div className="text-xs text-slate-600">Freetown, Sierra Leone</div>
                         <div className="text-xs text-slate-500 mt-1 font-mono">+232 78 000 000 / +232 76 000 000</div>
                       </div>
@@ -809,7 +809,7 @@ export default function InvoicesAdminPage() {
 
                     {/* Footer */}
                     <div className="border-t border-slate-200 pt-4 text-center text-[11px] text-slate-500 font-medium">
-                      Thank you for choosing <span className="font-bold text-[#040e40]">{BRAND_NAME}</span>! · 15 Siaka Stevens St, Freetown, Sierra Leone
+                      Thank you for choosing <span className="font-bold text-[#040e40]">{BRAND_NAME}</span>! · No 1 Regent Highway, Jui Junction, Freetown
                     </div>
                   </div>
                 </div>

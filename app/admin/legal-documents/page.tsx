@@ -110,7 +110,7 @@ export default function LegalDocumentsAdminPage() {
         const parsed = JSON.parse(saved);
         if (parsed.signerName) {
           // Migrate stale old address automatically
-          if (parsed.companyAddress === '15 Siaka Stevens Street, Freetown, Sierra Leone') {
+          if (parsed.companyAddress === 'No 1 Regent Highway, Jui Junction, Freetown') {
             parsed.companyAddress = 'No. 1 Regent Highway, Jui Junction, Freetown, Sierra Leone';
           }
           if (parsed.companyPhone === '+232 78 000 000 / +232 76 000 000') {

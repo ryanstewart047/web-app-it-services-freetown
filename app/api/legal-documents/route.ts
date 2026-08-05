@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       docType: data.docType || 'authorization_letter',
       title: data.title || 'LETTER OF AUTHORIZATION',
       companyName: data.companyName || 'BridgeTech IT Services',
-      companyAddress: data.companyAddress || '15 Siaka Stevens Street, Freetown, Sierra Leone',
+      companyAddress: data.companyAddress || 'No 1 Regent Highway, Jui Junction, Freetown',
       companyPhone: data.companyPhone || '+232 78 000 000 / +232 76 000 000',
       companyEmail: data.companyEmail || 'info@itservicesfreetown.com',
       signerName: data.signerName,
