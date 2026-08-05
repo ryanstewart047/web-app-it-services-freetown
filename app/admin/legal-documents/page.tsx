@@ -61,13 +61,13 @@ const blankDoc = (): LegalDoc => ({
   docType: 'authorization_letter',
   title: 'LETTER OF AUTHORIZATION',
   companyName: BRAND_NAME,
-  companyAddress: '15 Siaka Stevens Street, Freetown, Sierra Leone',
-  companyPhone: '+232 78 000 000 / +232 76 000 000',
+  companyAddress: 'No. 1 Regent Highway, Jui Junction, Freetown, Sierra Leone',
+  companyPhone: '+232 33 399 391 / +232 76 210 320',
   companyEmail: 'info@itservicesfreetown.com',
   signerName: 'Ryan Stewart',
   signerRole: 'Founder & Managing Director',
   signerEmail: 'ryan@itservicesfreetown.com',
-  signerPhone: '+232 78 000 000',
+  signerPhone: '+232 33 399 391',
   recipientCompany: 'Hemmersbach GmbH & Co. KG',
   issueDate: new Date().toISOString().split('T')[0],
   nraRefNumber: '',
@@ -109,6 +109,13 @@ export default function LegalDocumentsAdminPage() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.signerName) {
+          // Migrate stale old address automatically
+          if (parsed.companyAddress === '15 Siaka Stevens Street, Freetown, Sierra Leone') {
+            parsed.companyAddress = 'No. 1 Regent Highway, Jui Junction, Freetown, Sierra Leone';
+          }
+          if (parsed.companyPhone === '+232 78 000 000 / +232 76 000 000') {
+            parsed.companyPhone = '+232 33 399 391 / +232 76 210 320';
+          }
           setDoc(parsed);
           if (parsed.signatureDataUrl) setHasSignature(true);
           if (parsed._savedAt) setLastSaved(parsed._savedAt);
@@ -457,6 +464,39 @@ export default function LegalDocumentsAdminPage() {
                       <div className="text-xs text-slate-400 mt-1">{dt.subtitle}</div>
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* Company / Issuing Entity Details */}
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+                <h2 className="text-xs font-bold text-red-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <Building className="w-4 h-4 text-red-400" /> Your Company Details (Issuing Entity)
+                </h2>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <label className="text-xs text-slate-400 mb-1 block">Company Name</label>
+                    <input value={doc.companyName} onChange={e => setDoc(p => ({ ...p, companyName: e.target.value }))}
+                      placeholder="e.g. IT Services Freetown"
+                      className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-red-500" />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-xs text-slate-400 mb-1 block">Company Address</label>
+                    <input value={doc.companyAddress} onChange={e => setDoc(p => ({ ...p, companyAddress: e.target.value }))}
+                      placeholder="e.g. No. 1 Regent Highway, Jui Junction, Freetown, Sierra Leone"
+                      className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-red-500" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block">Company Phone(s)</label>
+                    <input value={doc.companyPhone} onChange={e => setDoc(p => ({ ...p, companyPhone: e.target.value }))}
+                      placeholder="e.g. +232 33 399 391 / +232 76 210 320"
+                      className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-red-500" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block">Company Email</label>
+                    <input value={doc.companyEmail} onChange={e => setDoc(p => ({ ...p, companyEmail: e.target.value }))}
+                      placeholder="e.g. info@itservicesfreetown.com"
+                      className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-red-500" />
+                  </div>
                 </div>
               </div>
 
