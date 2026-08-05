@@ -60,13 +60,13 @@ export async function POST(request: NextRequest) {
       where: { id: 'active' },
       update: {
         enabled: enabled ?? false,
-        subjectPrefix: subjectPrefix ?? "IT Services Freetown: ",
+        subjectPrefix: subjectPrefix ?? "BridgeTech IT Services: ",
         topics: topics ?? DEFAULT_TOPICS
       },
       create: {
         id: 'active',
         enabled: enabled ?? false,
-        subjectPrefix: subjectPrefix ?? "IT Services Freetown: ",
+        subjectPrefix: subjectPrefix ?? "BridgeTech IT Services: ",
         topics: topics ?? DEFAULT_TOPICS
       }
     })

@@ -69,7 +69,7 @@ const DEFAULT_HASHTAGS = [
 ];
 
 const DEFAULT_TEMPLATE =
-  '{topic}\n\nNeed help with a phone, laptop, or computer in Freetown? Book a diagnostic with IT Services Freetown today.\n\n{link}\n\n{hashtags}';
+  '{topic}\n\nNeed help with a phone, laptop, or computer in Freetown? Book a diagnostic with BridgeTech IT Services today.\n\n{link}\n\n{hashtags}';
 
 const DEFAULT_LINK = 'https://www.itservicesfreetown.com/book-appointment';
 
@@ -221,7 +221,7 @@ async function generateTopicDescription(topic: string): Promise<string> {
           messages: [
             {
               role: 'system',
-              content: 'You are a professional IT repair and tech support specialist at IT Services Freetown in Sierra Leone. Write a highly informative, engaging, and detailed Facebook post description about the provided topic. If the topic mentions a count (e.g., 5 signs, 3 ways), you MUST list each item clearly with emojis and short helpful descriptions (e.g., 1️⃣, 2️⃣, 3️⃣). Keep the tone helpful, professional, and friendly. Do not include hashtags, URLs, links, or placeholder brackets in your output. Keep it under 220 words total.'
+              content: 'You are a professional IT repair and tech support specialist at BridgeTech IT Services in Sierra Leone. Write a highly informative, engaging, and detailed Facebook post description about the provided topic. If the topic mentions a count (e.g., 5 signs, 3 ways), you MUST list each item clearly with emojis and short helpful descriptions (e.g., 1️⃣, 2️⃣, 3️⃣). Keep the tone helpful, professional, and friendly. Do not include hashtags, URLs, links, or placeholder brackets in your output. Keep it under 220 words total.'
             },
             {
               role: 'user',
@@ -259,7 +259,7 @@ async function generateTopicDescription(topic: string): Promise<string> {
   }
 
   // Generic fallback if topic is custom and Groq failed
-  return `Want to learn more about "${topic}"? Keeping your tech devices running smoothly is our top priority. For professional diagnostics, screen replacements, battery repairs, or general optimization, visit IT Services Freetown today!`;
+  return `Want to learn more about "${topic}"? Keeping your tech devices running smoothly is our top priority. For professional diagnostics, screen replacements, battery repairs, or general optimization, visit BridgeTech IT Services today!`;
 }
 
 function serializeSettings(settings?: any): FacebookAutoPostSettingsDto {

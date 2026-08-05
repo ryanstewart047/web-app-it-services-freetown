@@ -7,7 +7,7 @@ const articles = [
   {
     id: 1,
     title: "Complete Guide to Computer Repair Services in Freetown, Sierra Leone",
-    author: "IT Services Freetown",
+    author: "BridgeTech IT Services",
     wordCount: 837,
     tags: ["computer repair", "freetown", "sierra leone", "it services", "maintenance"],
     excerpt: "A comprehensive guide to finding reliable computer repair services in Freetown, including common problems, cost considerations, and tips for choosing the right service provider.",
@@ -16,7 +16,7 @@ const articles = [
   {
     id: 2,
     title: "Top 10 Laptop Problems and Solutions for Sierra Leone Users",
-    author: "IT Services Freetown",
+    author: "BridgeTech IT Services",
     wordCount: 1292,
     tags: ["laptop repair", "troubleshooting", "sierra leone", "computer problems", "tech tips"],
     excerpt: "Comprehensive guide to the 10 most common laptop problems in Sierra Leone, including causes, DIY solutions, repair costs, and prevention tips for Freetown users.",
@@ -41,7 +41,7 @@ export default function ArticlesViewerPage() {
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-12 px-4">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-4xl font-bold mb-3">📝 Blog Articles Ready to Import</h1>
-          <p className="text-xl opacity-90">8 comprehensive articles for IT Services Freetown</p>
+          <p className="text-xl opacity-90">8 comprehensive articles for BridgeTech IT Services</p>
         </div>
       </div>
 
@@ -116,7 +116,7 @@ export default function ArticlesViewerPage() {
               <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">freetown</span>
               <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">sierra leone</span>
             </div>
-            <p className="text-gray-600 text-sm mb-3">~837 words | IT Services Freetown</p>
+            <p className="text-gray-600 text-sm mb-3">~837 words | BridgeTech IT Services</p>
             <p className="text-gray-700 italic mb-4">
               A comprehensive guide to finding reliable computer repair services in Freetown...
             </p>
@@ -145,7 +145,7 @@ export default function ArticlesViewerPage() {
               <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">troubleshooting</span>
               <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">sierra leone</span>
             </div>
-            <p className="text-gray-600 text-sm mb-3">~1,292 words | IT Services Freetown</p>
+            <p className="text-gray-600 text-sm mb-3">~1,292 words | BridgeTech IT Services</p>
             <p className="text-gray-700 italic mb-4">
               Comprehensive guide to the 10 most common laptop problems in Sierra Leone...
             </p>

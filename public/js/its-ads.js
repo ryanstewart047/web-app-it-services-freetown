@@ -1,10 +1,10 @@
 (function() {
-  // IT Services Freetown - Ad Network Client
+  // BridgeTech IT Services - Ad Network Client
   // This script fetches and displays internal promotions.
   const CANONICAL_API_BASE = 'https://www.itservicesfreetown.com';
   const DEFAULT_AD = {
     title: 'Free Mobile & PC Diagnostic From Top Technicians in Freetown',
-    description: 'Visit IT Services Freetown for computer and mobile repair support at Jui Junction.',
+    description: 'Visit BridgeTech IT Services for computer and mobile repair support at Jui Junction.',
     imageUrl: 'https://github.com/ryanstewart047/freetown-website-images/blob/main/images/Get%20It%20Fixed.png?raw=true',
     targetUrl: 'https://www.itservicesfreetown.com/book-appointment',
     size: 'leaderboard'
@@ -395,7 +395,7 @@
       <div class="its-ad-card" data-size="${adSize}">
         <div class="its-ad-info-badge" title="Sponsored Advertisement">
           <span class="its-ad-info-icon">i</span>
-          <span class="its-ad-info-text">Ads by IT Services Freetown</span>
+          <span class="its-ad-info-text">Ads by BridgeTech IT Services</span>
         </div>
         <a href="${escapedClickUrl}" target="_blank" rel="noopener sponsored" class="its-ad-link">
           ${escapedImageUrl ? `<img src="${escapedImageUrl}" alt="${title}" class="its-ad-img">` : ''}
@@ -403,7 +403,7 @@
             <h4 class="its-ad-title">${title}</h4>
             ${description ? `<p class="its-ad-desc">${description}</p>` : ''}
             <div class="its-ad-footer">
-              <span class="its-ad-badge">Sponsored by IT Services Freetown</span>
+              <span class="its-ad-badge">Sponsored by BridgeTech IT Services</span>
               <span class="its-ad-cta">Learn More &rarr;</span>
             </div>
           </div>

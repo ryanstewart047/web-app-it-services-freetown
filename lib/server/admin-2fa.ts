@@ -288,7 +288,7 @@ export async function verify2FACodeAsync(pendingToken: string, method: 'email' |
  * Setup TOTP Secret & QR Code for Authenticator App
  * Always returns the same stable secret (from env var or deterministic derivation)
  */
-export async function generateTOTPSetup(serviceName = 'IT Services Freetown Admin'): Promise<{ secret: string; qrCodeUrl: string; otpauthUrl: string; secretFromEnv: boolean }> {
+export async function generateTOTPSetup(serviceName = 'BridgeTech IT Services Admin'): Promise<{ secret: string; qrCodeUrl: string; otpauthUrl: string; secretFromEnv: boolean }> {
   const config = get2FAConfig();
   // Always use the deterministic/env secret — never generate a random one
   const secret = getDeterministicTOTPSecret();

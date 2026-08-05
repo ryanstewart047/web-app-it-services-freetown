@@ -27,19 +27,19 @@ export async function POST(req: Request) {
 
     // 1. Email to the Customer (Confirmation)
     const customerMailOptions = {
-      from: `"IT Services Freetown Support" <${process.env.SMTP_USER}>`,
+      from: `"BridgeTech IT Services Support" <${process.env.SMTP_USER}>`,
       to: email, // Customer's email
-      subject: 'Support Ticket Received - IT Services Freetown',
+      subject: 'Support Ticket Received - BridgeTech IT Services',
       replyTo: process.env.SMTP_USER,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; line-height: 1.6;">
           <div style="background-color: #040e40; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-             <h1 style="color: white; margin: 0;">IT Services Freetown</h1>
+             <h1 style="color: white; margin: 0;">BridgeTech IT Services</h1>
           </div>
           <div style="padding: 30px; border: 1px solid #eee; border-top: none; border-radius: 0 0 8px 8px;">
             <h2>We have received your support ticket!</h2>
             <p>Hello ${name},</p>
-            <p>Thank you for reaching out to IT Services Freetown. This email is to confirm that we have successfully received your troubleshooting ticket.</p>
+            <p>Thank you for reaching out to BridgeTech IT Services. This email is to confirm that we have successfully received your troubleshooting ticket.</p>
             
             <div style="background-color: #f9fafb; padding: 15px; border-radius: 6px; margin: 20px 0; border: 1px solid #e5e7eb;">
               <h3 style="margin-top: 0; color: #040e40;">Your Ticket Details:</h3>
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
             
             <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
             <p style="font-size: 12px; color: #666; text-align: center; line-height: 1.5;">
-              &copy; ${new Date().getFullYear()} IT Services Freetown. All rights reserved.<br/>
+              &copy; ${new Date().getFullYear()} BridgeTech IT Services. All rights reserved.<br/>
               1 Regent High way, Jui Junction, East Freetown
             </p>
           </div>

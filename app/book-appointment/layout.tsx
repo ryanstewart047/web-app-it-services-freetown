@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Book Appointment - Schedule Your Device Repair',
-  description: 'Book a repair appointment with IT Services Freetown. Schedule same-day computer repair, mobile phone repair, iPhone screen replacement, iCloud removal, and more. Fast, reliable service in Freetown, Sierra Leone.',
+  description: 'Book a repair appointment with BridgeTech IT Services. Schedule same-day computer repair, mobile phone repair, iPhone screen replacement, iCloud removal, and more. Fast, reliable service in Freetown, Sierra Leone.',
   keywords: [
     'book repair appointment Freetown',
     'schedule device repair',
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     'iPhone repair booking Sierra Leone',
   ],
   openGraph: {
-    title: 'Book Appointment - IT Services Freetown',
+    title: 'Book Appointment - BridgeTech IT Services',
     description: 'Schedule your device repair online. Same-day service available for computer and mobile repairs in Freetown.',
     url: 'https://itservicesfreetown.com/book-appointment',
     type: 'website',

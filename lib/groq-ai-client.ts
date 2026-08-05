@@ -719,7 +719,7 @@ function generateFallbackTroubleshootingResponse(context: TroubleshootingContext
           {
             id: 'step5',
             title: 'Professional Diagnosis',
-            description: 'Power issues often require hardware testing. Bring to IT Services Freetown for diagnosis.',
+            description: 'Power issues often require hardware testing. Bring to BridgeTech IT Services for diagnosis.',
             type: 'info'
           }
         ],
@@ -808,7 +808,7 @@ function generateFallbackTroubleshootingResponse(context: TroubleshootingContext
           {
             id: 'step5',
             title: 'Professional Repair',
-            description: 'Visit IT Services Freetown for screen replacement - we use quality parts with warranty.',
+            description: 'Visit BridgeTech IT Services for screen replacement - we use quality parts with warranty.',
             type: 'info'
           }
         ],

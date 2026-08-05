@@ -93,7 +93,7 @@ export async function fetchBlogPosts(): Promise<BlogPost[]> {
         id: issue.number.toString(),
         title: issue.title,
         content: parsedContent,
-        author: metadata.author || 'IT Services Freetown',
+        author: metadata.author || 'BridgeTech IT Services',
         date: new Date(issue.created_at).toISOString().split('T')[0],
         likes: issue.reactions['+1'] || 0,
         dislikes: issue.reactions['-1'] || 0,

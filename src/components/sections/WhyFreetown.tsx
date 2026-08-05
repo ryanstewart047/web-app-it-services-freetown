@@ -13,7 +13,7 @@ export default function WhyFreetown() {
             <Shield className="w-8 h-8" />
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4" data-animate="fade">
-            Why Choose IT Services Freetown?
+            Why Choose BridgeTech IT Services?
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto" data-animate="fade">
             We're not just another repair shop. We're your trusted technology partner in Sierra Leone, 
@@ -93,7 +93,7 @@ export default function WhyFreetown() {
               <h3 className="text-2xl font-bold text-gray-900">Customer-Focused Service</h3>
             </div>
             <p className="text-gray-700 leading-relaxed mb-4">
-              At IT Services Freetown, customer satisfaction is our top priority. We believe in transparent 
+              At BridgeTech IT Services, customer satisfaction is our top priority. We believe in transparent 
               communication, honest pricing, and treating every customer with respect. Before starting any repair, 
               we provide a detailed diagnostic report and cost estimate, so you know exactly what to expect.
             </p>

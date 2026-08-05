@@ -2,10 +2,10 @@ import { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'FAQ - Frequently Asked Questions',
-  description: 'Find answers to common questions about our computer and mobile repair services, pricing, warranty, turnaround times, and more at IT Services Freetown.',
+  description: 'Find answers to common questions about our computer and mobile repair services, pricing, warranty, turnaround times, and more at BridgeTech IT Services.',
   keywords: ['repair FAQ', 'IT services questions', 'repair pricing Freetown', 'warranty policy', 'repair turnaround time'],
   openGraph: {
-    title: 'Frequently Asked Questions | IT Services Freetown',
+    title: 'Frequently Asked Questions | BridgeTech IT Services',
     description: 'Get answers about our repair services, pricing, warranty, and turnaround times.',
     type: 'website',
   },

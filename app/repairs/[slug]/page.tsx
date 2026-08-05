@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       title: service.title,
       description: service.metaDescription,
       url,
-      siteName: 'IT Services Freetown',
+      siteName: 'BridgeTech IT Services',
       locale: 'en_SL',
       type: 'website'
     }
@@ -51,7 +51,7 @@ export default function RepairServicePage({ params }: { params: { slug: string }
     serviceType: service.problem,
     provider: {
       '@type': 'LocalBusiness',
-      name: 'IT Services Freetown',
+      name: 'BridgeTech IT Services',
       address: {
         '@type': 'PostalAddress',
         streetAddress: 'No. 1 Regent Highway, Jui Junction',

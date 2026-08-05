@@ -8,7 +8,7 @@ export interface NotificationConfig {
 }
 
 const DEFAULT_CONFIG: NotificationConfig = {
-  siteName: 'IT Services Freetown',
+  siteName: 'BridgeTech IT Services',
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://your-domain.com',
   adminEmail: process.env.ADMIN_EMAIL || undefined
 };

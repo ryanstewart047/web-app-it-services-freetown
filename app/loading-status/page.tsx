@@ -110,7 +110,7 @@ export default function LoadingStatus() {
                 <div>
                   <h3 className="font-semibold text-gray-900">Removed Brand Name</h3>
                   <p className="text-gray-600 text-sm">
-                    Removed &ldquo;IT Services Freetown&rdquo; from the LoadingOverlay component for a cleaner, more professional appearance.
+                    Removed &ldquo;BridgeTech IT Services&rdquo; from the LoadingOverlay component for a cleaner, more professional appearance.
                   </p>
                 </div>
               </div>

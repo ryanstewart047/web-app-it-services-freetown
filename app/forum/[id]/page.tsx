@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!topic) {
     return {
-      title: 'Post Not Found | IT Services Freetown',
+      title: 'Post Not Found | BridgeTech IT Services',
     };
   }
 
@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: topic.title,
       description: cleanDescription,
       url: `${baseUrl}/forum/${params.id}`,
-      siteName: 'IT Services Freetown Forum',
+      siteName: 'BridgeTech IT Services Forum',
       images: images.map(url => ({
         url,
         width: 1200,

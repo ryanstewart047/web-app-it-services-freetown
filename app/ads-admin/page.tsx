@@ -278,7 +278,7 @@ export default function AdsAdminPage() {
                 <div className="absolute top-2 right-2 z-20 flex items-center bg-white/90 backdrop-blur-md border border-gray-200/80 dark:border-gray-700/80 dark:bg-gray-900/90 rounded-full px-1.5 py-0.5 shadow-sm transition-all duration-300 max-w-[24px] overflow-hidden hover:max-w-[240px] cursor-default group/badge">
                   <span className="text-xs font-bold text-gray-500 dark:text-gray-400 font-mono w-3.5 h-3.5 flex items-center justify-center shrink-0 group-hover/badge:text-[#040e40] dark:group-hover/badge:text-red-500">i</span>
                   <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-200 ml-1.5 opacity-0 whitespace-nowrap transition-opacity duration-200 group-hover/badge:opacity-100">
-                    Ads by IT Services Freetown
+                    Ads by BridgeTech IT Services
                   </span>
                 </div>
 

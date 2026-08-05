@@ -88,9 +88,9 @@ export const metadata: Metadata = {
     'same day repair Freetown',
     'tech support Sierra Leone'
   ],
-  authors: [{ name: 'IT Services Freetown' }],
-  creator: 'IT Services Freetown',
-  publisher: 'IT Services Freetown',
+  authors: [{ name: 'BridgeTech IT Services' }],
+  creator: 'BridgeTech IT Services',
+  publisher: 'BridgeTech IT Services',
   formatDetection: {
     email: false,
     address: false,
@@ -100,21 +100,21 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'IT Services Freetown'
+    title: 'BridgeTech IT Services'
   },
   openGraph: {
     type: 'website',
     locale: 'en_US',
     url: 'https://www.itservicesfreetown.com',
-    siteName: 'IT Services Freetown',
-    title: 'IT Services Freetown - #1 Computer & Mobile Repair',
+    siteName: 'BridgeTech IT Services',
+    title: 'BridgeTech IT Services - #1 Computer & Mobile Repair',
     description: 'Professional computer and mobile repair services in Freetown. Same-day service, 1-month warranty, 95% success rate.',
     images: [
       {
         url: '/assets/images/slide01.jpg',
         width: 1200,
         height: 630,
-        alt: 'IT Services Freetown - Professional Repair Services',
+        alt: 'BridgeTech IT Services - Professional Repair Services',
       },
     ],
   },
@@ -122,7 +122,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     site: '@itservicesft',
     creator: '@itservicesft',
-    title: 'IT Services Freetown - #1 Computer & Mobile Repair',
+    title: 'BridgeTech IT Services - #1 Computer & Mobile Repair',
     description: 'Professional computer and mobile repair services in Freetown. Same-day service, 1-month warranty, 95% success rate.',
     images: ['/assets/images/slide01.jpg'],
   },
@@ -206,7 +206,7 @@ export default function RootLayout({
               '@context': 'https://schema.org',
               '@type': 'LocalBusiness',
               '@id': 'https://www.itservicesfreetown.com',
-              name: 'IT Services Freetown',
+              name: 'BridgeTech IT Services',
               alternateName: 'IT Services SL',
               description: 'Professional computer and mobile repair services in Freetown, Sierra Leone. Same-day service, 1-month warranty, 95% success rate.',
               url: BRAND_SITE_URL,
@@ -288,7 +288,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'Organization',
-              name: 'IT Services Freetown',
+              name: 'BridgeTech IT Services',
               url: BRAND_SITE_URL,
               logo: BRAND_LOGO_URL,
               contactPoint: {

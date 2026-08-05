@@ -111,7 +111,7 @@ export async function POST(req: Request) {
       subject: 'Verify your Technician Account',
       html: `
         <div style="font-family: sans-serif; max-w: 600px; margin: 0 auto; background-color: #0f172a; color: #f8fafc; padding: 40px; border-radius: 12px; border: 1px solid #1e293b;">
-          <h2 style="color: #60a5fa; margin-bottom: 24px;">Welcome to the IT Services Freetown Forum!</h2>
+          <h2 style="color: #60a5fa; margin-bottom: 24px;">Welcome to the BridgeTech IT Services Forum!</h2>
           <p style="font-size: 16px; line-height: 1.5; color: #cbd5e1;">Hello ${name},</p>
           <p style="font-size: 16px; line-height: 1.5; color: #cbd5e1;">To securely activate your Technician Dashboard and join the discussion, please verify your email address by clicking the button below:</p>
           <div style="text-align: center; margin: 35px 0;">

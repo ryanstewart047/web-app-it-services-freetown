@@ -174,7 +174,7 @@ export default function NetworkMonitor() {
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center space-x-1">
                 <i className="fas fa-wifi text-white/70"></i>
-                <span>IT Services Freetown</span>
+                <span>BridgeTech IT Services</span>
               </span>
               <span className="text-white/70">Offline Mode</span>
             </div>

@@ -2,10 +2,10 @@ import { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'AI Troubleshooter - Diagnose Device Problems Instantly',
-  description: 'Use our AI-powered troubleshooter to diagnose computer and mobile phone problems instantly. Get step-by-step repair guidance from IT Services Freetown.',
+  description: 'Use our AI-powered troubleshooter to diagnose computer and mobile phone problems instantly. Get step-by-step repair guidance from BridgeTech IT Services.',
   keywords: ['troubleshoot phone', 'diagnose computer problem', 'AI troubleshooter', 'device repair help', 'tech support Freetown'],
   openGraph: {
-    title: 'AI-Powered Device Troubleshooter | IT Services Freetown',
+    title: 'AI-Powered Device Troubleshooter | BridgeTech IT Services',
     description: 'Diagnose your device problems instantly with our AI troubleshooter. Free step-by-step guidance.',
     type: 'website',
   },

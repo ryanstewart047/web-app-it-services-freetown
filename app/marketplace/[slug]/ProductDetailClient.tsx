@@ -203,7 +203,7 @@ export default function ProductDetailClient({ initialProduct }: { initialProduct
     image: product.images.map(img => img.url),
     brand: {
       '@type': 'Brand',
-      name: product.brand || 'IT Services Freetown'
+      name: product.brand || 'BridgeTech IT Services'
     },
     sku: product.sku || product.id,
     offers: {
@@ -218,7 +218,7 @@ export default function ProductDetailClient({ initialProduct }: { initialProduct
                      'https://schema.org/UsedCondition',
       seller: {
         '@type': 'Organization',
-        name: 'IT Services Freetown',
+        name: 'BridgeTech IT Services',
         url: 'https://itservicesfreetown.com'
       }
     },

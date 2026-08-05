@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import RepairCostCheckerClient from './RepairCostCheckerClient'
 
-const title = 'Repair Cost Checker in Freetown | IT Services Freetown'
+const title = 'Repair Cost Checker in Freetown | BridgeTech IT Services'
 const description =
-  'Estimate phone, laptop, tablet, unlocking, data recovery, and on-site repair costs in Freetown before booking with IT Services Freetown.'
+  'Estimate phone, laptop, tablet, unlocking, data recovery, and on-site repair costs in Freetown before booking with BridgeTech IT Services.'
 
 export const metadata: Metadata = {
   title,
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     'laptop repair cost Sierra Leone',
     'iPhone screen replacement Freetown',
     'Samsung charging port repair Freetown',
-    'IT Services Freetown repair estimate'
+    'BridgeTech IT Services repair estimate'
   ],
   alternates: {
     canonical: 'https://www.itservicesfreetown.com/repair-cost-checker-freetown'
@@ -23,13 +23,13 @@ export const metadata: Metadata = {
     title,
     description,
     url: 'https://www.itservicesfreetown.com/repair-cost-checker-freetown',
-    siteName: 'IT Services Freetown',
+    siteName: 'BridgeTech IT Services',
     images: [
       {
         url: 'https://www.itservicesfreetown.com/assets/images/iphone-repair.jpg',
         width: 1200,
         height: 630,
-        alt: 'Phone repair estimate at IT Services Freetown'
+        alt: 'Phone repair estimate at BridgeTech IT Services'
       }
     ],
     locale: 'en_SL',

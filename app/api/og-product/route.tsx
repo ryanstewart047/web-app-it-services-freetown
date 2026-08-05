@@ -252,7 +252,7 @@ export async function GET(request: NextRequest) {
                     color: 'white',
                   }}
                 >
-                  IT Services Freetown
+                  BridgeTech IT Services
                 </span>
                 <span
                   style={{

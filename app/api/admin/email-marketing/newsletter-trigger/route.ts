@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
 
     // Generate content
     const systemPrompt = `
-      You are an expert email marketing specialist for "IT Services Freetown", a professional computer and mobile repair business in Sierra Leone.
+      You are an expert email marketing specialist for "BridgeTech IT Services", a professional computer and mobile repair business in Sierra Leone.
       Your goal is to write high-converting, professional, and engaging weekly newsletter emails.
       
       Response Format:
@@ -77,8 +77,8 @@ export async function POST(request: NextRequest) {
       3. "imagePrompt": A highly descriptive prompt for an AI image generator to create a vector illustration representing this topic. Avoid text in the image. Example: "A professional illustration of a laptop with clean blue repair tools, flat design, white background."
       
       Tone: Friendly, highly informative, professional, and localized to Sierra Leone context where appropriate.
-      Business Name: IT Services Freetown
-      Link Requirement: In the HTML "content" body ONLY, ANY time you mention the name "IT Services Freetown", you MUST format it as a clickable HTML link pointing exactly to "https://www.itservicesfreetown.com". For example: <a href="https://www.itservicesfreetown.com">IT Services Freetown</a>. Do NOT use HTML tags in the "subject" line.
+      Business Name: BridgeTech IT Services
+      Link Requirement: In the HTML "content" body ONLY, ANY time you mention the name "BridgeTech IT Services", you MUST format it as a clickable HTML link pointing exactly to "https://www.itservicesfreetown.com". For example: <a href="https://www.itservicesfreetown.com">BridgeTech IT Services</a>. Do NOT use HTML tags in the "subject" line.
       Location: #1 Regent Highway, Jui Junction, Freetown.
       Phone: +232 33 399 391.
     `
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
         <img src="${imageUrl}" alt="${selectedTopic}" style="max-width: 100%; height: auto; border-radius: 12px; display: block; margin: 0 auto;" />
       </div>
       <div style="background-color: #fef08a; border-left: 4px solid #eab308; padding: 12px; margin-bottom: 20px; border-radius: 4px; font-size: 13px; color: #854d0e;">
-        <strong>⚠️ TEST EMAIL PREVIEW:</strong> This is a test email sent manually from the IT Services Freetown Admin Dashboard.
+        <strong>⚠️ TEST EMAIL PREVIEW:</strong> This is a test email sent manually from the BridgeTech IT Services Admin Dashboard.
       </div>
       ${content}
     `
@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
                   <a href="https://wa.me/23233399391" style="margin: 0 10px;">WhatsApp Support</a>
                 </p>
               </div>
-              <p><strong><a href="https://www.itservicesfreetown.com" style="color: #333;">IT Services Freetown</a></strong><br>#1 Regent Highway, Jui Junction | Freetown, Sierra Leone</p>
+              <p><strong><a href="https://www.itservicesfreetown.com" style="color: #333;">BridgeTech IT Services</a></strong><br>#1 Regent Highway, Jui Junction | Freetown, Sierra Leone</p>
               <p style="font-size: 10px; color: #9ca3af; margin-top: 15px;">You received this email because you are an administrator testing the weekly newsletter settings.</p>
               <p style="font-size: 10px; color: #9ca3af;">
                 <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/unsubscribe?email=${encodeURIComponent(testEmail)}" style="color: #9ca3af; font-weight: normal; text-decoration: underline;">Unsubscribe</a> | 

@@ -48,7 +48,7 @@ export default function ServicesPopup({ isOpen, onClose }: ServicesPopupProps) {
               <div className="w-48 h-48 lg:w-56 lg:h-56 rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20">
                 <Image 
                   src="https://images.pexels.com/photos/3825582/pexels-photo-3825582.jpeg?auto=compress&cs=tinysrgb&w=800"
-                  alt="IT Services Freetown - Professional Computer and Mobile Repair"
+                  alt="BridgeTech IT Services - Professional Computer and Mobile Repair"
                   width={224}
                   height={224}
                   className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"

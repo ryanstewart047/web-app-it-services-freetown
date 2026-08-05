@@ -12,15 +12,15 @@ interface ImageSlide {
 const slides: ImageSlide[] = [
   {
     src: "/assets/images/slider/shop-technician-1.jpg",
-    alt: "IT Services Freetown technician performing expert motherboard repair at our Jui Junction workshop"
+    alt: "BridgeTech IT Services technician performing expert motherboard repair at our Jui Junction workshop"
   },
   {
     src: "/assets/images/slider/shop-technician-2.jpg",
-    alt: "Certified IT Services Freetown repair specialist ready to fix your device"
+    alt: "Certified BridgeTech IT Services repair specialist ready to fix your device"
   },
   {
     src: "/assets/images/slider/shop-technician-3.jpg",
-    alt: "Professional phone and laptop repair at IT Services Freetown, #1 Regent Highway, Jui Junction"
+    alt: "Professional phone and laptop repair at BridgeTech IT Services, #1 Regent Highway, Jui Junction"
   },
   {
     src: "/assets/images/slider/phone-repair.jpg",

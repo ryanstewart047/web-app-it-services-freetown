@@ -121,7 +121,7 @@ export async function generateTroubleshootingResponse(context: TroubleshootingCo
   estimatedTime: string
   difficulty: 'easy' | 'medium' | 'hard'
 }> {
-  const systemPrompt = `You are an expert IT technician (Alison) for "IT Services Freetown" — Freetown, Sierra Leone's trusted repair shop (No. 1 Regent Highway, Jui Junction). Providing diagnostic analysis and structured troubleshooting steps.
+  const systemPrompt = `You are an expert IT technician (Alison) for "BridgeTech IT Services" — Freetown, Sierra Leone's trusted repair shop (No. 1 Regent Highway, Jui Junction). Providing diagnostic analysis and structured troubleshooting steps.
 
 Specialties: Computer Repair (Win/Mac), Mobile Repair (all brands), Mobile Unlock (FRP/iCloud/network/PIN), Data Recovery, Networking, Virus Removal, POS Installation.
 

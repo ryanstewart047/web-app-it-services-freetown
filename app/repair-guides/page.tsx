@@ -3,7 +3,7 @@ import Link from 'next/link';
 import PageBanner from '@/components/PageBanner';
 
 export const metadata: Metadata = {
-  title: 'Device Repair Guides | IT Services Freetown',
+  title: 'Device Repair Guides | BridgeTech IT Services',
   description:
     'Practical repair and maintenance guides for phones, laptops, and computers in Sierra Leone. Learn symptoms, quick checks, prevention, and when to seek professional repair.',
   keywords: [
@@ -162,7 +162,7 @@ export default function RepairGuidesPage() {
         <div className="mt-10 bg-[#040e40] text-white rounded-2xl p-6 md:p-8">
           <h2 className="text-2xl font-bold mb-3">Need a Fast Answer?</h2>
           <p className="text-blue-100 mb-5 leading-7">
-            For urgent phone or laptop issues, contact IT Services Freetown directly. We provide diagnostics, honest
+            For urgent phone or laptop issues, contact BridgeTech IT Services directly. We provide diagnostics, honest
             repair recommendations, and clear warranty terms.
           </p>
           <div className="flex flex-wrap gap-3">

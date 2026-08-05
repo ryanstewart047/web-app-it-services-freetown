@@ -10,7 +10,7 @@ export interface BannerSettings {
 
 const DEFAULT_BANNER: BannerSettings = {
   enabled: false,
-  message: 'Welcome to IT Services Freetown!',
+  message: 'Welcome to BridgeTech IT Services!',
   color: 'bg-red-600',
   lastUpdated: new Date().toISOString()
 };
@@ -49,7 +49,7 @@ export async function updateBannerSettings(settings: Partial<BannerSettings>): P
       create: {
         id: 'active',
         enabled: settings.enabled ?? false,
-        message: settings.message ?? 'Welcome to IT Services Freetown!',
+        message: settings.message ?? 'Welcome to BridgeTech IT Services!',
         link: settings.link,
         color: settings.color ?? 'bg-red-600',
       }

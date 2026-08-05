@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     }
 
     const config = get2FAConfig();
-    const totpSetup = await generateTOTPSetup('IT Services Freetown Admin');
+    const totpSetup = await generateTOTPSetup('BridgeTech IT Services Admin');
 
     return NextResponse.json({
       success: true,

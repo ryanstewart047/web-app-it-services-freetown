@@ -1,4 +1,4 @@
-// Main JavaScript for IT Services Freetown Website
+// Main JavaScript for BridgeTech IT Services Website
 
 // Wait for the DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {

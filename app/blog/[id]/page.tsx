@@ -76,7 +76,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title: post.title,
         description: contentPreview,
         url: canonicalUrl,
-        siteName: 'IT Services Freetown',
+        siteName: 'BridgeTech IT Services',
         images: [
           {
             url: ogImageUrl.toString(),
@@ -109,7 +109,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     console.error('Error generating blog post metadata:', error)
     return {
       title: 'Blog Post',
-      description: 'Read our latest tech tips and insights from IT Services Freetown.',
+      description: 'Read our latest tech tips and insights from BridgeTech IT Services.',
     }
   }
 }
@@ -184,7 +184,7 @@ export default async function BlogPostPage({ params }: Props) {
               </div>
 
               <p className="mt-5 text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
-                IT Services Freetown Blog
+                BridgeTech IT Services Blog
               </p>
               <h1 className="mt-4 text-4xl font-black leading-tight text-slate-900 sm:text-5xl">
                 {post.title}
@@ -315,7 +315,7 @@ export default async function BlogPostPage({ params }: Props) {
                   },
                   publisher: {
                     '@type': 'Organization',
-                    name: 'IT Services Freetown',
+                    name: 'BridgeTech IT Services',
                     url: 'https://www.itservicesfreetown.com',
                   },
                   datePublished: post.date,
@@ -330,7 +330,7 @@ export default async function BlogPostPage({ params }: Props) {
             />
 
             <div className="rounded-[1.5rem] border border-slate-100 bg-slate-50/80 px-5 py-4 text-sm leading-7 text-slate-600">
-              This article is part of the IT Services Freetown knowledge library, designed to make
+              This article is part of the BridgeTech IT Services knowledge library, designed to make
               repair decisions clearer before you spend time or money.
             </div>
 

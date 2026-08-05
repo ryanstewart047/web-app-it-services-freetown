@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 
 export const metadata: Metadata = {
-  title: 'Repair Showcase | Before & After Fixes - IT Services Freetown',
+  title: 'Repair Showcase | Before & After Fixes - BridgeTech IT Services',
   description: 'See our real repair successes. From smashed screens to dead motherboards, check out our before and after gallery of device repairs in Freetown.',
 }
 

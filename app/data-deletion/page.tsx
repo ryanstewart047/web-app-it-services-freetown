@@ -3,8 +3,8 @@ import { Metadata } from 'next';
 import PageBanner from '@/components/PageBanner';
 
 export const metadata: Metadata = {
-  title: 'Data Deletion Instructions - IT Services Freetown',
-  description: 'Instructions on how to request and manage the deletion of your personal data associated with IT Services Freetown on Facebook.',
+  title: 'Data Deletion Instructions - BridgeTech IT Services',
+  description: 'Instructions on how to request and manage the deletion of your personal data associated with BridgeTech IT Services on Facebook.',
   robots: { index: true, follow: true },
 };
 
@@ -25,7 +25,7 @@ export default function DataDeletionPage() {
               Our Commitment to Your Privacy
             </h2>
             <p className="text-gray-700">
-              IT Services Freetown is committed to protecting your personal data. We only access the minimal Facebook profile data required to administer our Facebook page auto-posting integrations. We do not sell, trade, or store your private Facebook data.
+              BridgeTech IT Services is committed to protecting your personal data. We only access the minimal Facebook profile data required to administer our Facebook page auto-posting integrations. We do not sell, trade, or store your private Facebook data.
             </p>
           </div>
 

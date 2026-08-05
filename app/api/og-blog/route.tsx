@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     
     const id = searchParams.get('id')
     let title = searchParams.get('title') || 'Blog Post'
-    let author = searchParams.get('author') || 'IT Services Freetown'
+    let author = searchParams.get('author') || 'BridgeTech IT Services'
     let date = searchParams.get('date') || new Date().toLocaleDateString()
     let image = searchParams.get('image') || ''
     let excerpt = searchParams.get('excerpt') || ''
@@ -332,7 +332,7 @@ export async function GET(request: NextRequest) {
                   >
                     💻
                   </div>
-                  <span>IT Services Freetown</span>
+                  <span>BridgeTech IT Services</span>
                 </div>
               </div>
             </div>

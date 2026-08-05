@@ -516,7 +516,7 @@ export default function OfferAdminPage() {
                     <textarea
                       value={termsText}
                       onChange={(e) => setTermsText(e.target.value)}
-                      placeholder="e.g., All rights reserved. IT Services Freetown reserves the right to modify offers."
+                      placeholder="e.g., All rights reserved. BridgeTech IT Services reserves the right to modify offers."
                       rows={3}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-sm"
                       maxLength={200}

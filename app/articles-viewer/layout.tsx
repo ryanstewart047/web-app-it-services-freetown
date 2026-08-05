@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Blog Articles Viewer - IT Services Freetown',
+  title: 'Blog Articles Viewer - BridgeTech IT Services',
   description: 'View and copy blog articles for import',
 }
 

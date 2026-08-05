@@ -53,7 +53,7 @@ export async function POST(req: Request) {
       const loginUrl = `${frontendUrl}/forum/auth/login`;
 
       await transporter.sendMail({
-        from: `"IT Services Freetown" <${process.env.SMTP_USER}>`,
+        from: `"BridgeTech IT Services" <${process.env.SMTP_USER}>`,
         to: technician.email,
         subject: 'Your Password Reset Request – SL Tech Stack Forum',
         html: `
@@ -87,7 +87,7 @@ export async function POST(req: Request) {
 
               <hr style="border: none; border-top: 1px solid #eee; margin: 28px 0;" />
               <p style="font-size: 11px; color: #999; text-align: center; line-height: 1.5;">
-                &copy; ${new Date().getFullYear()} IT Services Freetown. All rights reserved.<br/>
+                &copy; ${new Date().getFullYear()} BridgeTech IT Services. All rights reserved.<br/>
                 1 Regent Highway, Jui Junction, East Freetown
               </p>
             </div>

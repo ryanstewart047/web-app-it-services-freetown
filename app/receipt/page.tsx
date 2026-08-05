@@ -412,7 +412,7 @@ export default function ReceiptGenerator() {
     const receiptTypeLabel = receiptType === 'purchase' ? 'PURCHASE' : receiptType === 'repair' ? 'REPAIR' : 'LOAN'
     const message = `*${receiptTypeLabel} RECEIPT*
 
-*IT Services Freetown*
+*BridgeTech IT Services*
 Receipt #: ${receiptNumber}
 Date: ${new Date(receiptDate).toLocaleDateString()}
 Customer: ${customerName}
@@ -441,8 +441,8 @@ www.itservicesfreetown.com
 
   const handleShareEmail = () => {
     const receiptTypeLabel = receiptType === 'purchase' ? 'PURCHASE' : receiptType === 'repair' ? 'REPAIR' : 'LOAN'
-    const subject = `Receipt ${receiptNumber} - IT Services Freetown`
-    const body = `${receiptTypeLabel} RECEIPT\n\nIT Services Freetown\nwww.itservicesfreetown.com\n#1 Regent Highway Jui Junction\nTel: +232 33 399 391\n\nReceipt No: ${receiptNumber}\nDate: ${new Date(receiptDate).toLocaleDateString()}\nCustomer: ${customerName}\nPhone: ${customerPhone}${customerAddress ? `\nAddress: ${customerAddress}` : ''}\n\nItems:\n${items.filter(i => i.description).map(i => `${i.description} - Qty: ${i.quantity} - SLE ${i.total.toFixed(2)}`).join('\n')}\n\nSubtotal: SLE ${calculateSubtotal().toFixed(2)}\nAmount Paid: SLE ${amountPaid.toFixed(2)}${calculateSubtotal() > amountPaid ? `\nBalance to be Paid: SLE ${(calculateSubtotal() - amountPaid).toFixed(2)}` : ''}\nChange: SLE ${calculateChange().toFixed(2)}\n\nThank you for your business!`
+    const subject = `Receipt ${receiptNumber} - BridgeTech IT Services`
+    const body = `${receiptTypeLabel} RECEIPT\n\nBridgeTech IT Services\nwww.itservicesfreetown.com\n#1 Regent Highway Jui Junction\nTel: +232 33 399 391\n\nReceipt No: ${receiptNumber}\nDate: ${new Date(receiptDate).toLocaleDateString()}\nCustomer: ${customerName}\nPhone: ${customerPhone}${customerAddress ? `\nAddress: ${customerAddress}` : ''}\n\nItems:\n${items.filter(i => i.description).map(i => `${i.description} - Qty: ${i.quantity} - SLE ${i.total.toFixed(2)}`).join('\n')}\n\nSubtotal: SLE ${calculateSubtotal().toFixed(2)}\nAmount Paid: SLE ${amountPaid.toFixed(2)}${calculateSubtotal() > amountPaid ? `\nBalance to be Paid: SLE ${(calculateSubtotal() - amountPaid).toFixed(2)}` : ''}\nChange: SLE ${calculateChange().toFixed(2)}\n\nThank you for your business!`
     window.location.href = `mailto:${customerEmail || ''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
   }
 

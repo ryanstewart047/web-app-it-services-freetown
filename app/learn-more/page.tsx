@@ -18,7 +18,7 @@ export default function LearnMore() {
       <LoadingOverlay show={isLoading} progress={progress} variant="modern" />
       {/* Hero Section */}
       <PageBanner
-        title="Learn More About IT Services Freetown"
+        title="Learn More About BridgeTech IT Services"
         subtitle="Discover our expertise, commitment to excellence, and comprehensive IT solutions that have made us Freetown's trusted technology partner."
         icon="fas fa-info-circle"
       />
@@ -32,7 +32,7 @@ export default function LearnMore() {
                 Who We Are
               </h2>
               <p className="text-lg text-gray-600 mb-6">
-                IT Services Freetown has been at the forefront of technology solutions in Sierra Leone since 2022. We&apos;re a dedicated team of certified technicians and IT professionals committed to providing exceptional service and innovative solutions.
+                BridgeTech IT Services has been at the forefront of technology solutions in Sierra Leone since 2022. We&apos;re a dedicated team of certified technicians and IT professionals committed to providing exceptional service and innovative solutions.
               </p>
               <p className="text-lg text-gray-600 mb-6">
                 Our mission is simple: to make technology accessible, reliable, and affordable for everyone in Freetown and beyond. Whether you&apos;re dealing with a broken laptop, need mobile phone repairs, or require comprehensive IT support, we&apos;re here to help.
@@ -51,7 +51,7 @@ export default function LearnMore() {
             <div className="scroll-animate">
               <img 
                 src="https://images.pexels.com/photos/3825582/pexels-photo-3825582.jpeg?auto=compress&cs=tinysrgb&w=800" 
-                alt="IT Services Freetown Team" 
+                alt="BridgeTech IT Services Team" 
                 className="rounded-2xl shadow-2xl w-full h-96 object-cover" 
               />
             </div>
@@ -119,7 +119,7 @@ export default function LearnMore() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 scroll-animate">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-              Why Choose IT Services Freetown?
+              Why Choose BridgeTech IT Services?
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               We&apos;re not just another IT company - we&apos;re your technology partners committed to your success

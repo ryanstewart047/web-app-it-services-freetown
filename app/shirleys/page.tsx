@@ -186,7 +186,7 @@ const structuredData = {
   ],
   parentOrganization: {
     '@type': 'Organization',
-    name: 'IT Services Freetown',
+    name: 'BridgeTech IT Services',
     url: 'https://www.itservicesfreetown.com'
   }
 }

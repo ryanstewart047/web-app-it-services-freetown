@@ -1,4 +1,4 @@
-// Service Worker for IT Services Freetown PWA
+// Service Worker for BridgeTech IT Services PWA
 const CACHE_NAME = 'it-services-freetown-v2.0.0';
 const OFFLINE_URL = '/offline';
 

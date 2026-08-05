@@ -55,8 +55,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   
   if (!originalUrl) {
     return {
-      title: 'Redirecting... | IT Services Freetown',
-      description: 'IT Services Freetown - Professional Computer & Mobile Repair Services',
+      title: 'Redirecting... | BridgeTech IT Services',
+      description: 'BridgeTech IT Services - Professional Computer & Mobile Repair Services',
     };
   }
 
@@ -72,13 +72,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }).format(product.price);
 
     return {
-      title: `${product.name} - ${price} | IT Services Freetown`,
+      title: `${product.name} - ${price} | BridgeTech IT Services`,
       description: product.description?.substring(0, 160) || 'Shop quality IT products in Freetown, Sierra Leone',
       openGraph: {
         title: `${product.name} - ${price}`,
         description: product.description || 'Shop quality IT products in Freetown, Sierra Leone',
         url: `https://www.itservicesfreetown.com/s/${params.code}`,
-        siteName: 'IT Services Freetown',
+        siteName: 'BridgeTech IT Services',
         locale: 'en_SL',
         type: 'website',
         images: [
@@ -101,13 +101,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   // Fallback metadata
   return {
-    title: 'IT Services Freetown - Professional Repair Services',
+    title: 'BridgeTech IT Services - Professional Repair Services',
     description: 'Professional computer and mobile repair services in Freetown, Sierra Leone',
     openGraph: {
-      title: 'IT Services Freetown',
+      title: 'BridgeTech IT Services',
       description: 'Professional computer and mobile repair services in Freetown',
       url: `https://www.itservicesfreetown.com/s/${params.code}`,
-      siteName: 'IT Services Freetown',
+      siteName: 'BridgeTech IT Services',
       locale: 'en_SL',
       type: 'website',
       images: [
@@ -115,13 +115,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           url: 'https://www.itservicesfreetown.com/assets/images/slide01.jpg',
           width: 1200,
           height: 630,
-          alt: 'IT Services Freetown',
+          alt: 'BridgeTech IT Services',
         }
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'IT Services Freetown',
+      title: 'BridgeTech IT Services',
       description: 'Professional computer and mobile repair services in Freetown',
       images: ['https://www.itservicesfreetown.com/assets/images/slide01.jpg'],
     },

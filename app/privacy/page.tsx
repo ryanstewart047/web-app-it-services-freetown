@@ -3,8 +3,8 @@ import { Metadata } from 'next';
 import PageBanner from '@/components/PageBanner';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy - IT Services Freetown',
-  description: 'Read our privacy policy to understand how IT Services Freetown collects, uses, and protects your personal information.',
+  title: 'Privacy Policy - BridgeTech IT Services',
+  description: 'Read our privacy policy to understand how BridgeTech IT Services collects, uses, and protects your personal information.',
   robots: { index: true, follow: true },
 }
 
@@ -26,7 +26,7 @@ export default function PrivacyPolicyPage() {
               1. Information We Collect
             </h2>
             <p className="text-gray-700 mb-4">
-              At IT Services Freetown, we collect information that you provide directly to us, including:
+              At BridgeTech IT Services, we collect information that you provide directly to us, including:
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
               <li>Name and contact information (email, phone number)</li>

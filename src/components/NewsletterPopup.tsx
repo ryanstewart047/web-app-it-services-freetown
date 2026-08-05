@@ -221,7 +221,7 @@ export default function NewsletterPopup({ delay }: NewsletterPopupProps) {
                   </div>
                   <h4 className="text-lg md:text-xl font-bold text-gray-900 mb-2">Thank You!</h4>
                   <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6">
-                    You're now subscribed to IT Services Freetown's weekly newsletter. Check your email for confirmation!
+                    You're now subscribed to BridgeTech IT Services's weekly newsletter. Check your email for confirmation!
                   </p>
                   <p className="text-xs md:text-sm text-gray-500">
                     Expect weekly tips on computer &amp; mobile repair, tech news, and exclusive offers.

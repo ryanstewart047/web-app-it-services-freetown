@@ -76,7 +76,7 @@ export const seoServices: SEOService[] = [
   {
     slug: 'laptop-not-turning-on-freetown',
     title: 'Laptop Not Turning On Repair in Freetown | Sierra Leone',
-    metaDescription: 'Laptop won\'t turn on? From power surges to motherboard issues, IT Services Freetown diagnoses and fixes dead laptops fast.',
+    metaDescription: 'Laptop won\'t turn on? From power surges to motherboard issues, BridgeTech IT Services diagnoses and fixes dead laptops fast.',
     heroTitle: 'Laptop Not Turning On? We Fix Dead Laptops in Freetown',
     heroSubtitle: 'Don\'t panic. Whether it was a power surge or a sudden shutdown, our experts can diagnose and repair your dead laptop.',
     deviceType: 'Laptop',
@@ -129,7 +129,7 @@ export const seoServices: SEOService[] = [
   {
     slug: 'data-recovery-freetown',
     title: 'Data Recovery Services in Freetown | Retrieve Lost Files',
-    metaDescription: 'Lost photos or documents? IT Services Freetown provides expert data recovery for dead phones, external hard drives, and laptops.',
+    metaDescription: 'Lost photos or documents? BridgeTech IT Services provides expert data recovery for dead phones, external hard drives, and laptops.',
     heroTitle: 'Expert Data Recovery Services in Freetown',
     heroSubtitle: 'Accidentally deleted files, formatted a drive, or have a completely dead device? We can help get your memories and documents back.',
     deviceType: 'Laptop',

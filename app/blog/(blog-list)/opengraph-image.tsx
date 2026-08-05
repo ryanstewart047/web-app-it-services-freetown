@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
  
 export const runtime = 'edge'
-export const alt = 'IT Services Freetown Blog'
+export const alt = 'BridgeTech IT Services Blog'
 export const size = {
   width: 1200,
   height: 630,
@@ -25,7 +25,7 @@ export default async function Image() {
         }}
       >
         <div style={{ fontSize: 72, fontWeight: 'bold', marginBottom: 20 }}>
-          IT Services Freetown
+          BridgeTech IT Services
         </div>
         <div style={{ fontSize: 48 }}>
           Tech Blog

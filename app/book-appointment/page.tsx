@@ -1263,7 +1263,7 @@ export default function BookAppointment() {
                         >
                           Terms & Conditions
                         </a>
-                        {' '}of IT Services Freetown. I understand that repair services are subject to device condition and parts availability.
+                        {' '}of BridgeTech IT Services. I understand that repair services are subject to device condition and parts availability.
                       </span>
                     </label>
                   </div>

@@ -58,7 +58,7 @@ export const STATUS_MESSAGES = {
   [REPAIR_STATUSES.TESTING]: 'Repair completed. Running final tests to ensure everything works perfectly.',
   [REPAIR_STATUSES.COMPLETED]: 'Your device has been successfully repaired and tested.',
   [REPAIR_STATUSES.READY_PICKUP]: 'Your device is ready for pickup! Please bring your ID and repair receipt.',
-  [REPAIR_STATUSES.COLLECTED]: 'Your device has been collected. Thank you for choosing IT Services Freetown!',
+  [REPAIR_STATUSES.COLLECTED]: 'Your device has been collected. Thank you for choosing BridgeTech IT Services!',
   [REPAIR_STATUSES.DELIVERED]: 'Your repaired device has been delivered successfully.'
 };
 

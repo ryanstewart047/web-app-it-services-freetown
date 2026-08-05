@@ -50,7 +50,7 @@ export default function CookiePopup() {
               </div>
               <h2 className="text-2xl md:text-3xl font-bold text-white">Privacy & Cookies</h2>
             </div>
-            <p className="text-white/80 text-sm md:text-base">IT Services Freetown</p>
+            <p className="text-white/80 text-sm md:text-base">BridgeTech IT Services</p>
           </div>
 
           {/* Content */}

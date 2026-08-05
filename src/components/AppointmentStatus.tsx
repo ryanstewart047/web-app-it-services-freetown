@@ -649,7 +649,7 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
             <i className="fas fa-stethoscope mr-2.5 text-2xl text-blue-600"></i>
             <div>
               <h4 className="font-bold text-lg text-blue-950">Device Diagnostic Report</h4>
-              <p className="text-xs text-blue-700">Official technical inspection report from IT Services Freetown</p>
+              <p className="text-xs text-blue-700">Official technical inspection report from BridgeTech IT Services</p>
             </div>
           </div>
           
@@ -823,7 +823,7 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
       <div id="repair-slip-printable">
         <div style={{ fontFamily: 'sans-serif', padding: '24px', border: '2px solid #040e40', borderRadius: '8px', maxWidth: '600px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '16px', borderBottom: '2px solid #040e40', paddingBottom: '12px' }}>
-            <h1 style={{ fontSize: '20px', fontWeight: 900, color: '#040e40', margin: 0 }}>IT Services Freetown</h1>
+            <h1 style={{ fontSize: '20px', fontWeight: 900, color: '#040e40', margin: 0 }}>BridgeTech IT Services</h1>
             <p style={{ fontSize: '12px', color: '#555', margin: '4px 0 0' }}>Repair Receipt / Payment Slip</p>
           </div>
           <table style={{ width: '100%', fontSize: '13px', borderCollapse: 'collapse' }}>
@@ -849,7 +849,7 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
               </div>
             </div>
           )}
-          <p style={{ fontSize: '10px', color: '#888', textAlign: 'center', marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '10px' }}>Thank you for choosing IT Services Freetown • Tel: +232 33 399391</p>
+          <p style={{ fontSize: '10px', color: '#888', textAlign: 'center', marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '10px' }}>Thank you for choosing BridgeTech IT Services • Tel: +232 33 399391</p>
         </div>
       </div>
 

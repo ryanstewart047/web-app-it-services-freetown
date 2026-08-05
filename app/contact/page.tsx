@@ -4,8 +4,8 @@ import Link from 'next/link';
 import PageBanner from '@/components/PageBanner';
 
 export const metadata: Metadata = {
-  title: 'Contact Us - IT Services Freetown',
-  description: 'Get in touch with IT Services Freetown. Visit us, call, email, or chat with our expert technicians for all your device repair needs.',
+  title: 'Contact Us - BridgeTech IT Services',
+  description: 'Get in touch with BridgeTech IT Services. Visit us, call, email, or chat with our expert technicians for all your device repair needs.',
   keywords: 'contact IT services, freetown contact, tech support, repair service contact',
 };
 

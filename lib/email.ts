@@ -27,7 +27,7 @@ export async function sendEmail({ to, subject, html, text }: EmailData) {
     }
 
     const result = await transporter.sendMail({
-      from: `"IT Services Freetown" <${process.env.SMTP_USER || 'noreply@itservicesfreetown.com'}>`,
+      from: `"BridgeTech IT Services" <${process.env.SMTP_USER || 'noreply@itservicesfreetown.com'}>`,
       to,
       subject,
       html,
@@ -78,7 +78,7 @@ export const emailTemplates = {
           </div>
           <div class="content">
             <p>Dear ${data.customerName},</p>
-            <p>Thank you for choosing IT Services Freetown. Your appointment has been confirmed with the following details:</p>
+            <p>Thank you for choosing BridgeTech IT Services. Your appointment has been confirmed with the following details:</p>
             
             <div class="info-box">
               <strong>Appointment ID:</strong> ${data.appointmentId}<br>
@@ -108,11 +108,11 @@ export const emailTemplates = {
               <a href="https://wa.me/23233399391" title="WhatsApp">&#xf232;</a>
               <a href="https://www.tiktok.com/@itservicesfreetown" title="TikTok">&#x266B;</a>
             </div>
-            <p style="margin:10px 0 0;">IT Services Freetown<br>
+            <p style="margin:10px 0 0;">BridgeTech IT Services<br>
             1 Regent Highway, Jui Junction<br>
             Freetown, Sierra Leone<br>
             +232 33 399 391</p>
-            <p style="margin:10px 0 0; font-size:12px; color:#9ca3af;">© 2026 IT Services Freetown. All rights reserved.</p>
+            <p style="margin:10px 0 0; font-size:12px; color:#9ca3af;">© 2026 BridgeTech IT Services. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -133,7 +133,7 @@ Scheduled: ${data.preferredDate} at ${data.preferredTime}
 Please arrive 10 minutes early with your device and ID.
 
 Contact us: +232 33 399 391
-IT Services Freetown`
+BridgeTech IT Services`
   }),
 
   repairUpdate: (data: {
@@ -194,7 +194,7 @@ IT Services Freetown`
             <p>If you have any questions, please contact us at +232 33 399 391.</p>
           </div>
           <div class="footer">
-            <p>IT Services Freetown<br>
+            <p>BridgeTech IT Services<br>
             1 Regent Highway, Jui Junction<br>
             Freetown, Sierra Leone<br>
             +232 33 399 391</p>
@@ -219,7 +219,7 @@ ${data.estimatedCompletion ? `Estimated Completion: ${data.estimatedCompletion.t
 ${data.dateCompleted ? `Completed: ${data.dateCompleted.toLocaleDateString()}` : ''}
 
 Contact us: +232 33 399 391
-IT Services Freetown`
+BridgeTech IT Services`
   }),
 
   adminBookingNotification: (data: {
@@ -294,7 +294,7 @@ IT Services Freetown`
             </div>
           </div>
           <div class="footer">
-            <p>IT Services Freetown - Admin Notification<br>
+            <p>BridgeTech IT Services - Admin Notification<br>
             This email was auto-generated from the booking system.</p>
           </div>
         </div>
@@ -316,7 +316,7 @@ Scheduled: ${data.preferredDate} at ${data.preferredTime}
 Submitted: ${data.submittedAt}
 
 ---
-IT Services Freetown - Auto-generated notification`
+BridgeTech IT Services - Auto-generated notification`
   }),
 
   repairStatusUpdate: (data: {
@@ -370,11 +370,11 @@ IT Services Freetown - Auto-generated notification`
             <p><strong>Pickup Instructions:</strong> ${data.pickupInstructions}</p>
           </div>
           <p>Your device is ready for pickup. Please bring a valid ID and your repair receipt.</p>
-          <p>Thank you for choosing IT Services Freetown!</p>
+          <p>Thank you for choosing BridgeTech IT Services!</p>
         </div>
       </div>
     `,
-    text: `Repair Completed - ${data.repairId}\n\nDear ${data.customerName},\n\nYour ${data.deviceType} repair is complete!\n\nTotal Cost: $${data.totalCost}\nPickup Instructions: ${data.pickupInstructions}\n\nThank you for choosing IT Services Freetown!`
+    text: `Repair Completed - ${data.repairId}\n\nDear ${data.customerName},\n\nYour ${data.deviceType} repair is complete!\n\nTotal Cost: $${data.totalCost}\nPickup Instructions: ${data.pickupInstructions}\n\nThank you for choosing BridgeTech IT Services!`
   }),
   orderConfirmation: (data: {
     orderNumber: string;
@@ -415,7 +415,7 @@ IT Services Freetown - Auto-generated notification`
           <p style="color: #6b7280; font-size: 14px;">If you have any questions, please contact our support team at <a href="tel:+23233399391" style="color: #040e40; text-decoration: none;">+232 33 399 391</a>.</p>
         </div>
         <div style="background-color: #f3f4f6; padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;">
-          <p style="margin: 0;">© 2026 IT Services Freetown. All rights reserved.</p>
+          <p style="margin: 0;">© 2026 BridgeTech IT Services. All rights reserved.</p>
         </div>
       </div>
     `,
@@ -424,7 +424,7 @@ IT Services Freetown - Auto-generated notification`
   newsletterConfirmation: (data: {
     email: string
   }) => ({
-    subject: '🎉 Welcome to IT Services Freetown Newsletter!',
+    subject: '🎉 Welcome to BridgeTech IT Services Newsletter!',
     html: `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #040e40 0%, #dc2626 100%); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
         <div style="background: linear-gradient(135deg, #040e40 0%, #dc2626 100%); padding: 40px 20px; text-align: center; color: white;">
@@ -437,7 +437,7 @@ IT Services Freetown - Auto-generated notification`
         
         <div style="padding: 40px 30px; background: white;">
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
-            Thank you for subscribing to <strong>IT Services Freetown's Newsletter</strong>! 🎊
+            Thank you for subscribing to <strong>BridgeTech IT Services's Newsletter</strong>! 🎊
           </p>
           
           <div style="background: linear-gradient(135deg, #f0f9ff 0%, #fef2f2 100%); border-left: 4px solid #dc2626; padding: 20px; border-radius: 8px; margin: 30px 0;">
@@ -469,7 +469,7 @@ IT Services Freetown - Auto-generated notification`
         
         <div style="background: #f3f4f6; padding: 25px; text-align: center; border-top: 1px solid #e5e7eb;">
           <p style="color: #6b7280; font-size: 13px; margin: 10px 0;">
-            <strong>IT Services Freetown</strong><br>
+            <strong>BridgeTech IT Services</strong><br>
             #1 Regent Highway, Jui Junction, Freetown, Sierra Leone<br>
             <a href="tel:+23233399391" style="color: #dc2626; text-decoration: none;">+232 33 399 391</a> | 
             <a href="https://itservicesfreetown.com" style="color: #dc2626; text-decoration: none;">Visit Our Website</a>
@@ -481,7 +481,7 @@ IT Services Freetown - Auto-generated notification`
         </div>
       </div>
     `,
-    text: `Welcome to IT Services Freetown Newsletter!
+    text: `Welcome to BridgeTech IT Services Newsletter!
 
 Thank you for subscribing! You're now part of our community.
 
@@ -498,7 +498,7 @@ NEED IMMEDIATE HELP?
 Call us: +232 33 399 391
 
 ---
-IT Services Freetown
+BridgeTech IT Services
 #1 Regent Highway, Jui Junction, Freetown, Sierra Leone
 +232 33 399 391`
   }),
@@ -541,12 +541,12 @@ IT Services Freetown
   }),
 
   twoFactorVerificationCode: (data: { code: string; expiresMinutes: number }) => ({
-    subject: `🔐 Your IT Services Freetown Admin 2FA Security Code: ${data.code}`,
+    subject: `🔐 Your BridgeTech IT Services Admin 2FA Security Code: ${data.code}`,
     html: `
       <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 550px; margin: 0 auto; background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; overflow: hidden; color: #f8fafc;">
         <div style="background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%); padding: 30px 20px; text-align: center;">
           <h2 style="margin: 0; font-size: 24px; color: #ffffff; letter-spacing: 0.5px;">🛡️ Master Admin Verification</h2>
-          <p style="margin: 6px 0 0; color: #fecaca; font-size: 14px;">IT Services Freetown Centralized Security</p>
+          <p style="margin: 6px 0 0; color: #fecaca; font-size: 14px;">BridgeTech IT Services Centralized Security</p>
         </div>
         <div style="padding: 32px 24px; text-align: center;">
           <p style="font-size: 15px; color: #94a3b8; margin-top: 0;">Use the 6-digit security code below to complete your login to the Master Admin Panel:</p>
@@ -558,14 +558,14 @@ IT Services Freetown
           <p style="font-size: 13px; color: #ef4444; margin-bottom: 24px; font-weight: 600;">⏱️ This code expires in ${data.expiresMinutes} minutes.</p>
 
           <p style="font-size: 12px; color: #64748b; margin: 0; line-height: 1.5; border-top: 1px solid #334155; padding-top: 20px;">
-            If you did not attempt to log in to the IT Services Freetown Master Admin Panel, please ignore this email or change your admin credentials immediately.
+            If you did not attempt to log in to the BridgeTech IT Services Master Admin Panel, please ignore this email or change your admin credentials immediately.
           </p>
         </div>
         <div style="background: #090d16; padding: 16px; text-align: center; font-size: 12px; color: #475569;">
-          IT Services Freetown Security Operations • #1 Regent Highway, Jui Junction
+          BridgeTech IT Services Security Operations • #1 Regent Highway, Jui Junction
         </div>
       </div>
     `,
-    text: `Your IT Services Freetown Admin 2FA Code is: ${data.code}\n\nThis code will expire in ${data.expiresMinutes} minutes.\nIf you did not request this code, please secure your admin credentials.`
+    text: `Your BridgeTech IT Services Admin 2FA Code is: ${data.code}\n\nThis code will expire in ${data.expiresMinutes} minutes.\nIf you did not request this code, please secure your admin credentials.`
   })
 }

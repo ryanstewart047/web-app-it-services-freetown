@@ -63,7 +63,7 @@ export const metadata: Metadata = {
     title: 'Buy Laptops & IT Products in Freetown Sierra Leone | Best Prices',
     description: 'Shop quality laptops, computers, and IT equipment in Freetown, Sierra Leone. Dell, HP, Lenovo. Free delivery. Genuine products with warranty.',
     url: `${BRAND_SITE_URL}/marketplace`,
-    siteName: 'IT Services Freetown',
+    siteName: 'BridgeTech IT Services',
     locale: 'en_SL',
     type: 'website',
     images: [
@@ -111,7 +111,7 @@ export default function MarketplaceLayout({
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'Store',
-            name: 'IT Services Freetown - Computer & Laptop Store Sierra Leone',
+            name: 'BridgeTech IT Services - Computer & Laptop Store Sierra Leone',
             description: 'Leading computer and laptop store in Freetown, Sierra Leone. Buy Dell, HP, Lenovo laptops, smartphones, and IT equipment. Best prices in Freetown with free delivery across Sierra Leone.',
             url: `${BRAND_SITE_URL}/marketplace`,
             telephone: '+23233399391',
@@ -193,7 +193,7 @@ export default function MarketplaceLayout({
                     url: `${BRAND_SITE_URL}/marketplace`,
                     seller: {
                       '@type': 'Organization',
-                      name: 'IT Services Freetown',
+                      name: 'BridgeTech IT Services',
                     },
                   },
                 },
@@ -237,7 +237,7 @@ export default function MarketplaceLayout({
                     url: `${BRAND_SITE_URL}/marketplace`,
                     seller: {
                       '@type': 'Organization',
-                      name: 'IT Services Freetown',
+                      name: 'BridgeTech IT Services',
                     },
                   },
                 },
@@ -281,7 +281,7 @@ export default function MarketplaceLayout({
                     url: `${BRAND_SITE_URL}/marketplace`,
                     seller: {
                       '@type': 'Organization',
-                      name: 'IT Services Freetown',
+                      name: 'BridgeTech IT Services',
                     },
                   },
                 },
@@ -325,7 +325,7 @@ export default function MarketplaceLayout({
                     url: `${BRAND_SITE_URL}/marketplace`,
                     seller: {
                       '@type': 'Organization',
-                      name: 'IT Services Freetown',
+                      name: 'BridgeTech IT Services',
                     },
                   },
                 },
@@ -369,13 +369,13 @@ export default function MarketplaceLayout({
             '@type': 'WebPage',
             '@id': 'https://www.itservicesfreetown.com/marketplace',
             url: 'https://www.itservicesfreetown.com/marketplace',
-            name: 'Shop IT Products & Accessories | IT Services Freetown Marketplace',
+            name: 'Shop IT Products & Accessories | BridgeTech IT Services Marketplace',
             description: 'Buy quality laptops, computers, mobile phones, accessories, and IT equipment in Freetown, Sierra Leone. Best prices, genuine products, warranty included.',
             isPartOf: {
               '@type': 'WebSite',
               '@id': 'https://www.itservicesfreetown.com',
               url: 'https://www.itservicesfreetown.com',
-              name: 'IT Services Freetown',
+              name: 'BridgeTech IT Services',
             },
             inLanguage: 'en-SL',
             potentialAction: {

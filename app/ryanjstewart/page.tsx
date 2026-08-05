@@ -418,7 +418,7 @@ export default function PortfolioPage() {
   const projects = [
     {
       id: 1,
-      name: 'IT Services Freetown',
+      name: 'BridgeTech IT Services',
       url: 'https://www.itservicesfreetown.com',
       description: 'Comprehensive IT services platform for device repairs, sales, and technical support',
       image: BRAND_LOGO_SRC,
@@ -1031,7 +1031,7 @@ export default function PortfolioPage() {
                         {/* Website Preview Frame */}
                         <div className={`relative h-[calc(100%-40px)] md:h-[calc(100%-48px)] ${darkMode ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' : 'bg-gradient-to-br from-white via-gray-50 to-white'} overflow-hidden`}>
                           {project.id === 1 ? (
-                            // IT Services Freetown Preview
+                            // BridgeTech IT Services Preview
                             <div className="p-3 md:p-6 space-y-3 md:space-y-4">
                               {/* Header Bar */}
                               <div className={`h-10 md:h-12 rounded-lg ${darkMode ? 'bg-blue-900/30 border border-blue-500/20' : 'bg-blue-100 border border-blue-200'} flex items-center px-3 md:px-4`}>

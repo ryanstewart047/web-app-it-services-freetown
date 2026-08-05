@@ -1,4 +1,4 @@
-// Global Analytics Tracker for IT Services Freetown
+// Global Analytics Tracker for BridgeTech IT Services
 // This script should be included on all pages to track user activity
 
 (function() {

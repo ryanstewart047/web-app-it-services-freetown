@@ -4,8 +4,8 @@ import { AlertTriangle, Phone, Mail, MapPin } from 'lucide-react';
 import PageBanner from '@/components/PageBanner';
 
 export const metadata: Metadata = {
-  title: 'Disclaimer | IT Services Freetown',
-  description: 'Important disclaimer and legal information for IT Services Freetown repair and sales services.',
+  title: 'Disclaimer | BridgeTech IT Services',
+  description: 'Important disclaimer and legal information for BridgeTech IT Services repair and sales services.',
 };
 
 export default function DisclaimerPage() {
@@ -26,7 +26,7 @@ export default function DisclaimerPage() {
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Important Information</h2>
             <p className="text-gray-700 leading-relaxed">
-              The information provided by IT Services Freetown ("we," "us," or "our") on our website and through our services 
+              The information provided by BridgeTech IT Services ("we," "us," or "our") on our website and through our services 
               is for general informational purposes only. All information is provided in good faith; however, we make no 
               representation or warranty of any kind, express or implied, regarding the accuracy, adequacy, validity, 
               reliability, availability, or completeness of any information on the website or our services.
@@ -41,7 +41,7 @@ export default function DisclaimerPage() {
             <p className="text-gray-700 mb-4">
               While we make every effort to protect your data during repairs, we cannot guarantee the recovery or preservation 
               of data on any device brought in for service. We strongly recommend that you back up all important data before 
-              bringing your device to us for repair. IT Services Freetown is not responsible for any data loss that may occur 
+              bringing your device to us for repair. BridgeTech IT Services is not responsible for any data loss that may occur 
               during the repair process.
             </p>
 
@@ -128,7 +128,7 @@ export default function DisclaimerPage() {
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Limitation of Liability</h2>
             <p className="text-gray-700 mb-4">
-              To the fullest extent permitted by applicable law, IT Services Freetown shall not be liable for any indirect, 
+              To the fullest extent permitted by applicable law, BridgeTech IT Services shall not be liable for any indirect, 
               incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred 
               directly or indirectly, or any loss of data, use, goodwill, or other intangible losses resulting from:
             </p>

@@ -15,7 +15,7 @@ async function requireAdmin() {
   const adminPayload = await verifySession(adminToken);
   if (adminPayload?.role !== 'superadmin') return null;
 
-  return { id: 'master-admin', name: 'IT Services Freetown', role: 'superadmin', active: true };
+  return { id: 'master-admin', name: 'BridgeTech IT Services', role: 'superadmin', active: true };
 }
 
 export async function POST(req: Request) {
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
       const loginUrl = `${frontendUrl}/forum/auth/login`;
 
       const mailOptions = {
-        from: `"IT Services Freetown" <${process.env.SMTP_USER}>`,
+        from: `"BridgeTech IT Services" <${process.env.SMTP_USER}>`,
         to: userToReset.email,
         subject: 'Your Forum Account Password Has Been Reset',
         html: `
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
             </div>
             <div style="padding: 30px; border: 1px solid #eee; border-top: none; border-radius: 0 0 8px 8px;">
               <h2>Hello ${userToReset.name},</h2>
-              <p>Your password for the IT Services Freetown Technician Forum has been reset by an administrator.</p>
+              <p>Your password for the BridgeTech IT Services Technician Forum has been reset by an administrator.</p>
               
               <div style="background-color: #f9fafb; padding: 15px; border-radius: 6px; margin: 20px 0; border: 1px solid #e5e7eb; text-align: center;">
                 <p style="margin-bottom: 5px; color: #666;">Your One-Time Temporary Password is:</p>
@@ -86,7 +86,7 @@ export async function POST(req: Request) {
               
               <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
               <p style="font-size: 12px; color: #666; text-align: center; line-height: 1.5;">
-                &copy; ${new Date().getFullYear()} IT Services Freetown. All rights reserved.<br/>
+                &copy; ${new Date().getFullYear()} BridgeTech IT Services. All rights reserved.<br/>
                 1 Regent High way, Jui Junction, East Freetown
               </p>
             </div>

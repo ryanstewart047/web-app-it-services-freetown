@@ -13,7 +13,7 @@ async function requireAdmin() {
   const adminPayload = await verifySession(adminToken);
   if (adminPayload?.role !== 'superadmin') return null;
 
-  return { id: 'master-admin', name: 'IT Services Freetown', role: 'superadmin', active: true };
+  return { id: 'master-admin', name: 'BridgeTech IT Services', role: 'superadmin', active: true };
 }
 
 

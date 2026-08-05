@@ -134,7 +134,7 @@ export default function BlogClient({ initialPosts }: { initialPosts: any[] }) {
 5. **Strange Noises** - Unusual sounds often indicate hardware problems.
 
 Don't wait until it's too late! Contact us at +23233399391 for a free diagnosis.`,
-            author: 'IT Services Freetown',
+            author: 'BridgeTech IT Services',
             date: '2025-10-15',
             likes: 12,
             dislikes: 1,
@@ -160,8 +160,8 @@ Write down any passwords or settings you might need later.
 **Step 5: Disable Security Features**
 Turn off Find My Device, screen locks, and encryption (you can re-enable after repair).
 
-At IT Services Freetown, we take your privacy seriously. Visit us at #1 Regent Highway, Jui Junction or call +23233399391.`,
-            author: 'IT Services Freetown',
+At BridgeTech IT Services, we take your privacy seriously. Visit us at #1 Regent Highway, Jui Junction or call +23233399391.`,
+            author: 'BridgeTech IT Services',
             date: '2025-10-10',
             likes: 8,
             dislikes: 0,
@@ -376,7 +376,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at #1 Regent H
     // Create a more detailed share text with image info
     const contentPreview = post.content.replace(/<[^>]*>/g, '').substring(0, 150) + '...'
     const shareText = shareImage 
-      ? `${post.title}\n\n${contentPreview}\n\nRead more at IT Services Freetown`
+      ? `${post.title}\n\n${contentPreview}\n\nRead more at BridgeTech IT Services`
       : `Check out this article: ${post.title}\n\n${contentPreview}`
     
     // Try native Web Share API first (mobile)
@@ -684,7 +684,7 @@ At IT Services Freetown, we take your privacy seriously. Visit us at #1 Regent H
           <div className="text-center space-y-6">
             {/* Copyright */}
             <p className="text-gray-400 text-sm">
-              © 2025 IT Services Freetown. All rights reserved.
+              © 2025 BridgeTech IT Services. All rights reserved.
             </p>
           </div>
         </footer>

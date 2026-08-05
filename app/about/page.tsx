@@ -5,15 +5,15 @@ import PageBanner from '@/components/PageBanner';
 import { DisplayAd, MultiplexAd } from '@/components/AdSense';
 
 export const metadata: Metadata = {
-  title: 'About Us | IT Services Freetown',
-  description: 'Learn about IT Services Freetown - Your trusted computer, laptop, and mobile device repair experts in Freetown, Sierra Leone.',
+  title: 'About Us | BridgeTech IT Services',
+  description: 'Learn about BridgeTech IT Services - Your trusted computer, laptop, and mobile device repair experts in Freetown, Sierra Leone.',
 };
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <PageBanner
-        title="About IT Services Freetown"
+        title="About BridgeTech IT Services"
         subtitle="Your Trusted Technology Partner in Sierra Leone"
         icon="fas fa-building"
       />
@@ -24,7 +24,7 @@ export default function AboutPage() {
           <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Story</h2>
           <div className="prose prose-lg max-w-none text-gray-700">
             <p className="mb-4">
-              IT Services Freetown is Sierra Leone's premier computer, laptop, and mobile device repair service provider. 
+              BridgeTech IT Services is Sierra Leone's premier computer, laptop, and mobile device repair service provider. 
               Established with a vision to make quality IT services accessible to everyone in Freetown, we have grown to 
               become the most trusted name in technology repairs and sales.
             </p>

@@ -59,8 +59,8 @@ export async function POST(request: NextRequest) {
                     ${content}
                   </div>
                   <div class="footer">
-                    <p>IT Services Freetown | #1 Regent Highway, Jui Junction | Freetown, Sierra Leone</p>
-                    <p>You received this email because you are a valued customer of IT Services Freetown.</p>
+                    <p>BridgeTech IT Services | #1 Regent Highway, Jui Junction | Freetown, Sierra Leone</p>
+                    <p>You received this email because you are a valued customer of BridgeTech IT Services.</p>
                     <p>
                       <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://itservicesfreetown.com'}/unsubscribe">Unsubscribe from this list</a> | 
                       <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://itservicesfreetown.com'}/privacy">Privacy Policy</a>

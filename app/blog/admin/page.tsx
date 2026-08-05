@@ -281,7 +281,7 @@ export default function BlogAdminPage() {
   const [twoFASubmitting, setTwoFASubmitting] = useState(false)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [author, setAuthor] = useState('IT Services Freetown')
+  const [author, setAuthor] = useState('BridgeTech IT Services')
   const [preview, setPreview] = useState(false)
   const [media, setMedia] = useState<MediaItem[]>([])
   const [uploadingMedia, setUploadingMedia] = useState(false)
@@ -331,7 +331,7 @@ export default function BlogAdminPage() {
             setTitle(draft.title || '')
             setContent(draft.content || '')
             setHtmlContent(draft.htmlContent || '')
-            setAuthor(draft.author || 'IT Services Freetown')
+            setAuthor(draft.author || 'BridgeTech IT Services')
             setMedia(draft.media || [])
             if (draft.editingPostId) {
               setEditingPostId(draft.editingPostId)
@@ -500,7 +500,7 @@ export default function BlogAdminPage() {
       setEditingPostId(null)
       setTitle('')
       setContent('')
-      setAuthor('IT Services Freetown')
+      setAuthor('BridgeTech IT Services')
       setMedia([])
       toast('Edit cancelled')
     }
@@ -663,7 +663,7 @@ export default function BlogAdminPage() {
           messages: [
             {
               role: 'system',
-              content: `You are an expert, professional tech blog writer for IT Services Freetown, a computer and mobile repair service. Write highly engaging, informative, and modern blog posts that help customers understand tech issues and solutions. You must use well-structured HTML format (e.g., <h2>, <h3>, <p>, <strong>, <em>, <u>, <ul>, <li>, <blockquote>) to ensure the post is ready for a rich text editor. Do NOT use markdown. Ensure there is proper spacing, clear headings, structured paragraphs, and underlined text for emphasis where appropriate. Always mention contacting IT Services Freetown at +23233399391 or visiting #1 Regent Highway Jui Junction when professional help is needed. Keep the tone friendly, modern, and highly professional.`
+              content: `You are an expert, professional tech blog writer for BridgeTech IT Services, a computer and mobile repair service. Write highly engaging, informative, and modern blog posts that help customers understand tech issues and solutions. You must use well-structured HTML format (e.g., <h2>, <h3>, <p>, <strong>, <em>, <u>, <ul>, <li>, <blockquote>) to ensure the post is ready for a rich text editor. Do NOT use markdown. Ensure there is proper spacing, clear headings, structured paragraphs, and underlined text for emphasis where appropriate. Always mention contacting BridgeTech IT Services at +23233399391 or visiting #1 Regent Highway Jui Junction when professional help is needed. Keep the tone friendly, modern, and highly professional.`
             },
             {
               role: 'user',
@@ -675,7 +675,7 @@ Requirements:
 - Use proper HTML tags for structure: <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>, <u>, <blockquote>.
 - Include a logical flow with an introduction, main points with headings, practical tips or steps, and a conclusion.
 - Use underlining (<u>) to highlight key technical terms or important concepts.
-- Add a compelling call-to-action mentioning IT Services Freetown contact: +23233399391 and location: #1 Regent Highway Jui Junction.
+- Add a compelling call-to-action mentioning BridgeTech IT Services contact: +23233399391 and location: #1 Regent Highway Jui Junction.
 - Ensure the formatting is modern, readable, and visually appealing for a blog post.
 
 Write the HTML content now:`
@@ -842,7 +842,7 @@ ${htmlContent || content || 'Empty draft'}`
           setTitle(draftData.title?.replace('[DRAFT] ', '') || '')
           setContent(draftData.content || '')
           setHtmlContent(draftData.htmlContent || '')
-          setAuthor(draftData.author || 'IT Services Freetown')
+          setAuthor(draftData.author || 'BridgeTech IT Services')
           setMedia(draftData.media || [])
           toast.success(`📂 Draft loaded from cloud (${new Date(draftData.timestamp).toLocaleString()})`)
           setLoadingPosts(false)
@@ -870,7 +870,7 @@ ${htmlContent || content || 'Empty draft'}`
       setTitle(draft.title?.replace('[DRAFT] ', '') || '')
       setContent(draft.content || '')
       setHtmlContent(draft.htmlContent || '')
-      setAuthor(draft.author || 'IT Services Freetown')
+      setAuthor(draft.author || 'BridgeTech IT Services')
       setMedia(draft.media || [])
       toast.success(`📂 Draft loaded from this device (${new Date(draft.timestamp).toLocaleString()})`)
     } else {
@@ -1117,7 +1117,7 @@ ${htmlContent || content || 'Empty draft'}`
                                   setTitle(draftData.title?.replace('[DRAFT] ', '') || '')
                                   setContent(draftData.content || '')
                                   setHtmlContent(draftData.htmlContent || '')
-                                  setAuthor(draftData.author || 'IT Services Freetown')
+                                  setAuthor(draftData.author || 'BridgeTech IT Services')
                                   setMedia(draftData.media || [])
                                   toast.success('Draft loaded!')
                                   window.scrollTo({ top: 0, behavior: 'smooth' })

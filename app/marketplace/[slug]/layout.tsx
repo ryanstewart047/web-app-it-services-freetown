@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!product) {
     return {
-      title: 'Product Not Found - IT Services Freetown',
+      title: 'Product Not Found - BridgeTech IT Services',
       description: 'The product you are looking for could not be found.',
     };
   }
@@ -65,7 +65,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : product.description;
 
   return {
-    title: `${product.name} - ${price} | IT Services Freetown`,
+    title: `${product.name} - ${price} | BridgeTech IT Services`,
     description: formattedDescription,
     keywords: [
       product.name,
@@ -82,7 +82,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: `${product.name} - ${price}`,
       description: product.description,
       url: `${baseUrl}/marketplace/${params.slug}`,
-      siteName: 'IT Services Freetown',
+      siteName: 'BridgeTech IT Services',
       locale: 'en_SL',
       type: 'website',
       images: [

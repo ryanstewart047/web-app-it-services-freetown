@@ -565,7 +565,7 @@ export default function RepairCostCheckerClient() {
 
   const estimateSummary = `${selectedDevice.label} estimate for ${brand}${model ? ` ${model}` : ''}: ${selectedIssue.label}. Estimated range ${formatMoney(estimate.min)} - ${formatMoney(estimate.max)}.`
   const whatsappText = encodeURIComponent(
-    `Hi IT Services Freetown, I used the repair cost checker.\n\n${estimateSummary}\n\nCan you confirm parts availability and the final quote?`
+    `Hi BridgeTech IT Services, I used the repair cost checker.\n\n${estimateSummary}\n\nCan you confirm parts availability and the final quote?`
   )
   const whatsappUrl = `https://wa.me/23233399391?text=${whatsappText}`
 
@@ -594,7 +594,7 @@ export default function RepairCostCheckerClient() {
 
   const handleCopyEstimate = async () => {
     try {
-      await navigator.clipboard.writeText(`${estimateSummary} Final price requires technician inspection at IT Services Freetown.`)
+      await navigator.clipboard.writeText(`${estimateSummary} Final price requires technician inspection at BridgeTech IT Services.`)
       setCopied(true)
       window.setTimeout(() => setCopied(false), 1800)
     } catch (error) {
@@ -642,7 +642,7 @@ export default function RepairCostCheckerClient() {
           <div className="relative min-h-[260px] overflow-hidden rounded-lg border border-slate-200 bg-slate-900">
             <Image
               src={selectedDevice.image}
-              alt={`${selectedDevice.label} repair at IT Services Freetown`}
+              alt={`${selectedDevice.label} repair at BridgeTech IT Services`}
               fill
               className="object-cover opacity-80"
               sizes="(min-width: 1024px) 45vw, 100vw"
@@ -1012,7 +1012,7 @@ export default function RepairCostCheckerClient() {
             <div className="aspect-video">
               <iframe
                 src="https://www.youtube.com/embed/8lsqHi1ESbA?rel=0&modestbranding=1"
-                title="How to Check Repair Cost - IT Services Freetown"
+                title="How to Check Repair Cost - BridgeTech IT Services"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 className="h-full w-full border-0"
@@ -1081,7 +1081,7 @@ export default function RepairCostCheckerClient() {
             <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
               <iframe
                 src="https://www.youtube.com/embed/8lsqHi1ESbA?autoplay=1&rel=0&modestbranding=1"
-                title="How to Check Repair Cost - IT Services Freetown"
+                title="How to Check Repair Cost - BridgeTech IT Services"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 className="h-full w-full border-0"

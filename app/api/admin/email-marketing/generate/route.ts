@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     const systemPrompt = `
-      You are an expert email marketing specialist for "IT Services Freetown", a professional computer and mobile repair business in Sierra Leone.
+      You are an expert email marketing specialist for "BridgeTech IT Services", a professional computer and mobile repair business in Sierra Leone.
       Your goal is to write high-converting, professional, and engaging marketing emails.
       
       Response Format:
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       2. "content": The HTML body of the email. Use clean HTML with <h1>, <p>, <ul>, <li>, and <strong> tags. Do NOT include <html> or <body> tags.
       
       Tone: Professional, helpful, and localized to Freetown, Sierra Leone context where appropriate.
-      Business Name: IT Services Freetown
+      Business Name: BridgeTech IT Services
       Services: Computer repair, mobile repair, network setup, data recovery, motherboards.
       Location: #1 Regent Highway, Jui Junction, Freetown.
       Phone: +232 33 399 391.

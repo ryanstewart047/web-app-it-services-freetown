@@ -3,8 +3,8 @@ import { Metadata } from 'next';
 import PageBanner from '@/components/PageBanner';
 
 export const metadata: Metadata = {
-  title: 'Terms of Service - IT Services Freetown',
-  description: 'Review the terms and conditions for using IT Services Freetown repair services, marketplace, and website.',
+  title: 'Terms of Service - BridgeTech IT Services',
+  description: 'Review the terms and conditions for using BridgeTech IT Services repair services, marketplace, and website.',
   robots: { index: true, follow: true },
 }
 
@@ -26,7 +26,7 @@ export default function TermsOfServicePage() {
               1. Acceptance of Terms
             </h2>
             <p className="text-gray-700">
-              By accessing and using IT Services Freetown's services, you accept and agree to be bound by the terms and provisions of this agreement. If you do not agree to these terms, please do not use our services.
+              By accessing and using BridgeTech IT Services's services, you accept and agree to be bound by the terms and provisions of this agreement. If you do not agree to these terms, please do not use our services.
             </p>
           </div>
 
@@ -35,7 +35,7 @@ export default function TermsOfServicePage() {
               2. Services Provided
             </h2>
             <p className="text-gray-700 mb-4">
-              IT Services Freetown provides:
+              BridgeTech IT Services provides:
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
               <li>Computer and laptop repair services</li>
@@ -117,7 +117,7 @@ export default function TermsOfServicePage() {
               7. Limitation of Liability
             </h2>
             <p className="text-gray-700">
-              IT Services Freetown shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, use, or other intangible losses resulting from your use of our services. Our total liability shall not exceed the amount paid for the specific service in question.
+              BridgeTech IT Services shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, use, or other intangible losses resulting from your use of our services. Our total liability shall not exceed the amount paid for the specific service in question.
             </p>
           </div>
 
@@ -126,7 +126,7 @@ export default function TermsOfServicePage() {
               8. Intellectual Property
             </h2>
             <p className="text-gray-700">
-              All content on this website, including text, graphics, logos, and software, is the property of IT Services Freetown and is protected by copyright and intellectual property laws. You may not reproduce, distribute, or create derivative works without our express written permission.
+              All content on this website, including text, graphics, logos, and software, is the property of BridgeTech IT Services and is protected by copyright and intellectual property laws. You may not reproduce, distribute, or create derivative works without our express written permission.
             </p>
           </div>
 

@@ -14,7 +14,7 @@ const SECTIONS = [
 ## User Agreement
 
 **Effective Date:** April 2025  
-**Platform:** SL Tech Stack Forum — IT Services Freetown  
+**Platform:** SL Tech Stack Forum — BridgeTech IT Services  
 **Jurisdiction:** Republic of Sierra Leone
 
 ---
@@ -32,10 +32,10 @@ You are solely responsible for all activity that occurs under your registered ac
 ### 3. Acceptable Use
 You agree to use this platform only for lawful purposes and in ways that do not infringe the rights of others. Prohibited conduct includes:
 - Posting content that is false, misleading, defamatory, or harmful
-- Impersonating another professional, technician, or IT Services Freetown staff
+- Impersonating another professional, technician, or BridgeTech IT Services staff
 - Attempting to gain unauthorized access to system resources, administrator tools, or other users' accounts
 - Distributing malware, spyware, or any form of malicious code
-- Using the forum to solicit clients away from IT Services Freetown in bad faith
+- Using the forum to solicit clients away from BridgeTech IT Services in bad faith
 
 ### 4. Professional Standards
 All forum members must uphold the highest professional standards. You agree to:
@@ -44,13 +44,13 @@ All forum members must uphold the highest professional standards. You agree to:
 - Not engage in harassment, bullying, or discriminatory conduct toward any member
 
 ### 5. Content Ownership
-You retain ownership of the content you post. However, by posting on this forum, you grant IT Services Freetown a non-exclusive, royalty-free, worldwide license to display, distribute, and use your content to operate and improve the platform.
+You retain ownership of the content you post. However, by posting on this forum, you grant BridgeTech IT Services a non-exclusive, royalty-free, worldwide license to display, distribute, and use your content to operate and improve the platform.
 
 ### 6. Suspension & Termination
-IT Services Freetown reserves the right to suspend or permanently ban any account, with or without notice, for violation of this agreement. Decisions made by the platform administrator are final.
+BridgeTech IT Services reserves the right to suspend or permanently ban any account, with or without notice, for violation of this agreement. Decisions made by the platform administrator are final.
 
 ### 7. Amendments
-IT Services Freetown may update this agreement at any time. Continued use of the platform after changes are posted constitutes your acceptance of the revised terms.
+BridgeTech IT Services may update this agreement at any time. Continued use of the platform after changes are posted constitutes your acceptance of the revised terms.
     `
   },
   {
@@ -62,7 +62,7 @@ IT Services Freetown may update this agreement at any time. Continued use of the
 ## Privacy Policy
 
 **Effective Date:** April 2025  
-**Data Controller:** IT Services Freetown, 1 Regent Highway, Jui Junction, East Freetown, Sierra Leone
+**Data Controller:** BridgeTech IT Services, 1 Regent Highway, Jui Junction, East Freetown, Sierra Leone
 
 ---
 
@@ -128,15 +128,15 @@ We will notify registered users by email of any material changes to this Privacy
 ## Terms of Use
 
 **Effective Date:** April 2025  
-**Platform:** SL Tech Stack Forum — IT Services Freetown
+**Platform:** SL Tech Stack Forum — BridgeTech IT Services
 
 ---
 
 ### 1. Nature of the Platform
-The SL Tech Stack Forum is a private, invitation-based professional community operated by IT Services Freetown. It is not a public forum and access may be revoked at any time at the sole discretion of the platform administrators.
+The SL Tech Stack Forum is a private, invitation-based professional community operated by BridgeTech IT Services. It is not a public forum and access may be revoked at any time at the sole discretion of the platform administrators.
 
 ### 2. Technical Advice Disclaimer
-Content posted on this forum is for informational and professional discussion purposes only. IT Services Freetown makes no warranties regarding the accuracy, completeness, or fitness of any technical advice shared by forum members. You assume all risk for decisions made based on forum content.
+Content posted on this forum is for informational and professional discussion purposes only. BridgeTech IT Services makes no warranties regarding the accuracy, completeness, or fitness of any technical advice shared by forum members. You assume all risk for decisions made based on forum content.
 
 ### 3. Prohibited Content
 The following content is strictly prohibited and will result in immediate account termination:
@@ -147,7 +147,7 @@ The following content is strictly prohibited and will result in immediate accoun
 - Any form of spam, chain messages, or unsolicited mass communication
 
 ### 4. Intellectual Property
-All design elements, branding, logos, and original platform content are the property of IT Services Freetown. Unauthorized reproduction or commercial use is strictly prohibited.
+All design elements, branding, logos, and original platform content are the property of BridgeTech IT Services. Unauthorized reproduction or commercial use is strictly prohibited.
 
 ### 5. Forum Etiquette
 Members are expected to:
@@ -164,10 +164,10 @@ Platform administrators have full authority to:
 - Broadcast platform-wide announcements
 
 ### 7. No Guarantee of Availability
-IT Services Freetown does not guarantee uninterrupted access to the platform. We reserve the right to take the forum offline for maintenance, upgrades, or security reasons at any time.
+BridgeTech IT Services does not guarantee uninterrupted access to the platform. We reserve the right to take the forum offline for maintenance, upgrades, or security reasons at any time.
 
 ### 8. Limitation of Liability
-To the maximum extent permitted by Sierra Leone law, IT Services Freetown shall not be liable for any indirect, incidental, or consequential damages arising from your use of the platform or reliance on content posted herein.
+To the maximum extent permitted by Sierra Leone law, BridgeTech IT Services shall not be liable for any indirect, incidental, or consequential damages arising from your use of the platform or reliance on content posted herein.
 
 ### 9. Governing Law
 These Terms of Use are governed by the laws of the Republic of Sierra Leone. Any disputes shall be resolved under the jurisdiction of the courts of Sierra Leone.
@@ -365,7 +365,7 @@ export default function TermsPage() {
 
         {/* Footer note */}
         <p className="text-center text-xs text-slate-600 mt-8">
-          © {new Date().getFullYear()} IT Services Freetown · SL Tech Stack Forum · 1 Regent Highway, Jui Junction, East Freetown
+          © {new Date().getFullYear()} BridgeTech IT Services · SL Tech Stack Forum · 1 Regent Highway, Jui Junction, East Freetown
         </p>
       </div>
     </div>

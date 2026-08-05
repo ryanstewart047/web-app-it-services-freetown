@@ -23,7 +23,7 @@ export default function UnsubscribePage() {
             <Mail className="h-8 w-8 text-white" />
           </div>
           <h1 className="text-2xl font-black">Email Preferences</h1>
-          <p className="text-red-100 text-sm mt-2">Manage your subscription to IT Services Freetown</p>
+          <p className="text-red-100 text-sm mt-2">Manage your subscription to BridgeTech IT Services</p>
         </div>
 
         <div className="p-8">
@@ -71,7 +71,7 @@ export default function UnsubscribePage() {
         
         <div className="bg-slate-50 p-6 text-center border-t border-slate-100">
           <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">
-            IT Services Freetown | Quality Service Guaranteed
+            BridgeTech IT Services | Quality Service Guaranteed
           </p>
         </div>
       </div>

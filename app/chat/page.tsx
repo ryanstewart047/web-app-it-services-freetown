@@ -30,7 +30,7 @@ interface Message {
 const CHAT_SESSION_STORAGE_KEY = 'its-chat-support-session-v1'
 
 const initialAssistantMessage =
-  'Hello! I\'m Alison, your AI assistant at IT Services Freetown. How can I help you today?\n\n🔧 I can help you with:\n• Device troubleshooting and repair advice\n• Booking new appointments\n• **Tracking your existing repairs** (just provide your tracking ID)\n• **Finding your repair** by name, email, or phone number\n• General IT support questions\n• Connecting you with our live agents\n\nWhat would you like assistance with?'
+  'Hello! I\'m Alison, your AI assistant at BridgeTech IT Services. How can I help you today?\n\n🔧 I can help you with:\n• Device troubleshooting and repair advice\n• Booking new appointments\n• **Tracking your existing repairs** (just provide your tracking ID)\n• **Finding your repair** by name, email, or phone number\n• General IT support questions\n• Connecting you with our live agents\n\nWhat would you like assistance with?'
 
 const createMessage = (
   content: string,

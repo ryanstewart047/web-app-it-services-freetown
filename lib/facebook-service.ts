@@ -1,6 +1,6 @@
 /**
  * Facebook SDK Configuration and Utilities
- * Professional Facebook integration service for IT Services Freetown
+ * Professional Facebook integration service for BridgeTech IT Services
  */
 
 interface FacebookSDKConfig {
