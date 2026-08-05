@@ -1237,8 +1237,8 @@ www.itservicesfreetown.com
                 <img 
                   src={BRAND_LOGO_SRC}
                   alt={BRAND_NAME}
-                  className="h-20 w-auto"
-                  style={{ maxHeight: '80px' }}
+                  className="h-28 w-auto object-contain"
+                  style={{ maxHeight: '110px' }}
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = BRAND_LOGO_FALLBACK_SRC
                   }}

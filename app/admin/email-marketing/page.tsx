@@ -725,7 +725,7 @@ export default function EmailMarketingPage() {
                   <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-2 text-xs text-slate-500 font-semibold select-none">
                     <div className="h-6 w-6 rounded-full bg-blue-500 flex items-center justify-center text-[10px] font-black text-white">ITS</div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-slate-800 truncate text-[11px]">IT Services Freetown</p>
+                      <p className="font-bold text-slate-800 truncate text-[11px]">BridgeTech IT Services</p>
                       <p className="text-[9px] text-slate-400 truncate">Subject: {subject || '(No Subject)'}</p>
                     </div>
                   </div>
@@ -959,10 +959,10 @@ export default function EmailMarketingPage() {
                     type="text"
                     value={newsletterSettings.subjectPrefix}
                     onChange={e => setNewsletterSettings(prev => prev ? { ...prev, subjectPrefix: e.target.value } : prev)}
-                    placeholder="e.g. IT Services Freetown: "
+                    placeholder="e.g. BridgeTech IT Services: "
                     className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-5 py-3.5 text-slate-900 font-semibold outline-none focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-50 transition"
                   />
-                  <p className="mt-1 text-xs text-slate-400">This text appears before the AI-generated subject line. Example: <em>IT Services Freetown: 5 Tips to Protect Your Phone Screen</em></p>
+                  <p className="mt-1 text-xs text-slate-400">This text appears before the AI-generated subject line. Example: <em>BridgeTech IT Services: 5 Tips to Protect Your Phone Screen</em></p>
                 </div>
               )}
 

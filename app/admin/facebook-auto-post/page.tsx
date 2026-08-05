@@ -55,7 +55,7 @@ const DEFAULT_SETTINGS: Settings = {
   enabled: false,
   intervalHours: 24,
   messageTemplate:
-    '{topic}\n\nNeed help with a phone, laptop, or computer in Freetown? Book a diagnostic with IT Services Freetown today.\n\n{link}\n\n{hashtags}',
+    '{topic}\n\nNeed help with a phone, laptop, or computer in Freetown? Book a diagnostic with BridgeTech IT Services today.\n\n{link}\n\n{hashtags}',
   linkUrl: 'https://www.itservicesfreetown.com/book-appointment',
   topics: [
     '5 signs your laptop needs a professional service',

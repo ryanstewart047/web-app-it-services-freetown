@@ -661,7 +661,7 @@ export default function AdminPage() {
             <div className="w-20 h-20 bg-gradient-to-br from-red-600 to-red-800 border border-red-500/40 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-red-900/30">
               <i className={`fas ${requires2FA ? 'fa-lock-keyhole' : 'fa-shield-halved'} text-white text-3xl`}></i>
             </div>
-            <h1 className="text-2xl font-bold text-white tracking-wide">IT Services Freetown</h1>
+            <h1 className="text-2xl font-bold text-white tracking-wide">BridgeTech <span className="text-red-400">IT Services</span></h1>
             <p className="text-red-400 font-medium text-sm mt-1">Master Admin Operations Portal</p>
             <p className="text-slate-500 text-xs mt-1">
               {requires2FA ? 'Step 2: Two-Factor Authentication (2FA)' : 'Freetown · Sierra Leone'}
@@ -814,7 +814,7 @@ export default function AdminPage() {
           )}
 
           <div className="mt-8 text-center text-xs text-slate-500">
-            2FA Protected &bull; EARPI &amp; IT Services Freetown
+            2FA Protected &bull; EARPI &amp; BridgeTech IT Services
           </div>
         </div>
       </div>
@@ -846,7 +846,7 @@ export default function AdminPage() {
             {isSidebarOpen && (
               <div className="truncate">
                 <h2 className="font-bold text-white text-sm leading-tight truncate">Master Admin Hub</h2>
-                <p className="text-xs text-red-400 truncate">IT Services Freetown</p>
+                <p className="text-xs text-red-400 truncate">BridgeTech IT Services</p>
               </div>
             )}
           </div>

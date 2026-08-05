@@ -1,6 +1,7 @@
 export const BRAND_NAME = 'BridgeTech IT Services';
 export const BRAND_SITE_URL = 'https://www.bridgetechit.com';
-export const BRAND_LOGO_SRC = '/assets/logo.png';
+export const BRAND_LOGO_SRC = '/assets/logo.svg';
+export const BRAND_LOGO_DARK_SRC = '/assets/logo-dark.svg';
 export const BRAND_LOGO_FALLBACK_SRC = '/assets/logo.png';
 export const BRAND_LOGO_URL = `${BRAND_SITE_URL}${BRAND_LOGO_SRC}`;
 export const BRAND_FAVICON_SVG_SRC = '/favicon.svg';

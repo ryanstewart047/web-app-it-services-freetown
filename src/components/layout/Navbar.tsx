@@ -124,9 +124,9 @@ export default function Navbar() {
               <Image 
                 src={BRAND_LOGO_SRC}
                 alt={`${BRAND_NAME} Logo`}
-                width={56} 
-                height={56} 
-                className="h-12 sm:h-14 hover:opacity-80 transition-opacity cursor-pointer"
+                width={180} 
+                height={64} 
+                className="h-14 sm:h-16 md:h-18 hover:opacity-90 transition-opacity cursor-pointer object-contain"
                 style={{ width: 'auto' }}
               />
             </Link>

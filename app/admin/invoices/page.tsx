@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAdminSession } from '../../../src/hooks/useAdminSession';
-import { BRAND_NAME, BRAND_LOGO_SRC, BRAND_LOGO_FALLBACK_SRC } from '@/lib/brand';
+import { BRAND_NAME, BRAND_LOGO_SRC, BRAND_LOGO_DARK_SRC, BRAND_LOGO_FALLBACK_SRC } from '@/lib/brand';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 interface InvoiceItem {
@@ -676,12 +676,12 @@ export default function InvoicesAdminPage() {
                   <div className="px-8 py-6 text-white" style={{ background: 'linear-gradient(135deg, #040e40 0%, #0a1b68 55%, #dc2626 100%)' }}>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-xl bg-white/10 p-1.5 border border-white/20 flex items-center justify-center shrink-0">
+                        <div className="w-32 h-20 rounded-xl bg-white/10 p-2 border border-white/20 flex items-center justify-center shrink-0 shadow-lg">
                           <img
-                            src={BRAND_LOGO_SRC}
+                            src={BRAND_LOGO_DARK_SRC}
                             alt={BRAND_NAME}
-                            className="w-full h-full object-contain filter drop-shadow"
-                            onError={(e) => { (e.target as HTMLImageElement).src = BRAND_LOGO_FALLBACK_SRC; }}
+                            className="w-full h-full object-contain filter drop-shadow-md"
+                            onError={(e) => { (e.target as HTMLImageElement).src = BRAND_LOGO_SRC; }}
                           />
                         </div>
                         <div>

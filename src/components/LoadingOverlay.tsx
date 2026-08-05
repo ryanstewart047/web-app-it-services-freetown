@@ -92,8 +92,11 @@ export default function LoadingOverlay({
                 </div>
               </div>
 
-              {/* Brand name with typewriter effect */}
-              {/* Removed brand name for cleaner look */}
+              {/* Brand name and logo on splash screen */}
+              <div className="mb-4">
+                <img src="/assets/logo.svg" alt="BridgeTech IT Services" className="h-16 mx-auto object-contain drop-shadow-md mb-3" />
+                <h2 className="text-2xl font-black text-[#040e40] tracking-tight">BridgeTech <span className="text-[#dc2626]">IT Services</span></h2>
+              </div>
               
               {/* Animated subtitle */}
               <p className="text-lg text-gray-600 mb-8 font-medium">
@@ -139,7 +142,7 @@ export default function LoadingOverlay({
               <div className="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
               <div className="absolute inset-0 border-4 border-t-primary-600 rounded-full animate-spin"></div>
             </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">IT Services Freetown</h3>
+            <h3 className="text-xl font-bold text-[#040e40] mb-2">BridgeTech <span className="text-[#dc2626]">IT Services</span></h3>
             <p className="text-gray-600">{message}</p>
           </div>
         )
@@ -156,7 +159,7 @@ export default function LoadingOverlay({
                 ></div>
               ))}
             </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">IT Services Freetown</h3>
+            <h3 className="text-xl font-bold text-[#040e40] mb-2">BridgeTech <span className="text-[#dc2626]">IT Services</span></h3>
             <p className="text-gray-600">{message}</p>
           </div>
         )
@@ -172,7 +175,7 @@ export default function LoadingOverlay({
                 <i className="fas fa-microchip text-white text-xl"></i>
               </div>
             </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">IT Services Freetown</h3>
+            <h3 className="text-xl font-bold text-[#040e40] mb-2">BridgeTech <span className="text-[#dc2626]">IT Services</span></h3>
             <p className="text-gray-600">{message}</p>
           </div>
         )

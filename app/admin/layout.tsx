@@ -58,7 +58,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
               <div className="flex min-w-0 flex-col gap-1">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.3em] text-red-600 dark:text-red-400 sm:text-xs">Admin Console</span>
                 <h1 className="truncate text-lg font-semibold text-gray-900 dark:text-gray-100 sm:text-xl lg:text-2xl">
-                  IT Services Freetown
+                  BridgeTech IT Services
                 </h1>
                 <p className="text-sm text-gray-500 dark:text-gray-400 sm:text-[15px]">
                   Manage operations, performance, and support in one place.

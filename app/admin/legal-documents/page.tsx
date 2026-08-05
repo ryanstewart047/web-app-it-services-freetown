@@ -476,7 +476,7 @@ export default function LegalDocumentsAdminPage() {
                   <div className="col-span-2">
                     <label className="text-xs text-slate-400 mb-1 block">Company Name</label>
                     <input value={doc.companyName} onChange={e => setDoc(p => ({ ...p, companyName: e.target.value }))}
-                      placeholder="e.g. IT Services Freetown"
+                      placeholder="e.g. BridgeTech IT Services"
                       className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-red-500" />
                   </div>
                   <div className="col-span-2">
@@ -672,7 +672,7 @@ export default function LegalDocumentsAdminPage() {
                     {/* Official Letterhead Header */}
                     <div className="flex items-start justify-between border-b-2 border-[#040e40] pb-5">
                       <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-xl bg-slate-900 p-1.5 flex items-center justify-center shrink-0 shadow-md border border-slate-700">
+                        <div className="w-36 h-20 rounded-xl p-1 flex items-center justify-center shrink-0">
                           <img
                             src={BRAND_LOGO_SRC}
                             alt={doc.companyName}
