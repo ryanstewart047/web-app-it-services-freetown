@@ -74,45 +74,42 @@ export default function LoadingOverlay({
         return (
           <div className="modern-loader relative">
             {/* Animated background gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-red-50 animate-pulse"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-[#040e40]/5 via-white to-red-50 animate-pulse"></div>
             
             {/* Main content */}
             <div className="relative z-10 text-center px-8">
-              {/* Logo with breathing animation */}
-              <div className="mb-8 transform hover:scale-105 transition-transform duration-500">
-                <div className="relative w-24 h-24 mx-auto">
-                  {/* Outer ring */}
-                  <div className="absolute inset-0 rounded-full border-4 border-primary-200 animate-spin-slow"></div>
-                  {/* Inner spinning element */}
-                  <div className="absolute inset-2 rounded-full border-4 border-t-primary-600 border-r-red-500 border-b-primary-600 border-l-red-500 animate-spin"></div>
-                  {/* Center icon */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <i className="fas fa-tools text-2xl text-primary-600 animate-pulse"></i>
-                  </div>
+              {/* New BridgeTech BS logo — clean, no double spinner */}
+              <div className="mb-6 flex flex-col items-center">
+                <div className="relative mb-2">
+                  <img
+                    src="/assets/logo.svg"
+                    alt="BridgeTech IT Services"
+                    className="h-24 w-auto object-contain drop-shadow-lg mx-auto"
+                  />
+                  {/* Subtle pulse ring around logo */}
+                  <div className="absolute -inset-3 rounded-full border-2 border-red-500/20 animate-ping" style={{ animationDuration: '2s' }}></div>
                 </div>
+                <h2 className="text-2xl font-black text-[#040e40] tracking-tight mt-3">
+                  BridgeTech <span className="text-[#dc2626]">IT Services</span>
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5 font-medium tracking-widest uppercase">bridgetechit.com</p>
               </div>
 
-              {/* Brand name and logo on splash screen */}
-              <div className="mb-4">
-                <img src="/assets/logo.svg" alt="BridgeTech IT Services" className="h-16 mx-auto object-contain drop-shadow-md mb-3" />
-                <h2 className="text-2xl font-black text-[#040e40] tracking-tight">BridgeTech <span className="text-[#dc2626]">IT Services</span></h2>
-              </div>
-              
               {/* Animated subtitle */}
-              <p className="text-lg text-gray-600 mb-8 font-medium">
+              <p className="text-base text-gray-600 mb-6 font-medium">
                 {loadingTips[currentTip]}
               </p>
 
               {/* Progress bar */}
               <div className="w-full max-w-xs mx-auto mb-6">
-                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-gradient-to-r from-primary-600 to-red-500 rounded-full transition-all duration-300 ease-out"
+                    className="h-full bg-gradient-to-r from-[#040e40] to-[#dc2626] rounded-full transition-all duration-300 ease-out"
                     style={{ width: `${progress}%` }}
                   ></div>
                 </div>
-                <p className="text-sm text-gray-500 mt-2 font-medium">
-                  {Math.round(progress)}% Complete
+                <p className="text-xs text-gray-400 mt-2 font-medium">
+                  {Math.round(progress)}% Loading
                 </p>
               </div>
 

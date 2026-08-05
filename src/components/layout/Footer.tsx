@@ -448,14 +448,14 @@ export default function Footer() {
               <Image 
              src={BRAND_LOGO_SRC}
              alt={`${BRAND_NAME} Logo`}
-             width={56}
-             height={56}
-             className="footer-logo"
+             width={200}
+             height={60}
+             className="footer-logo h-14 w-auto object-contain"
              style={{ width: 'auto' }}
               />
             </div>
             <p className="text-gray-200 mb-6 max-w-md leading-relaxed">
-              Enterprise managed IT solutions, computer & mobile repair, POS installation, networking and device unlocking. 
+              Professional computer & mobile repair, POS installation, networking, device unlocking and data recovery. 
               Professional, reliable technical service with real-time tracking and genuine parts warranty.
             </p>
             

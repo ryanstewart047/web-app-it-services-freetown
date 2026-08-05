@@ -1,8 +1,8 @@
 {
-  "name": "BridgeTech IT Services - Enterprise & Managed IT Solutions",
+  "name": "BridgeTech IT Services",
   "short_name": "BridgeTech IT",
   "id": "/bridgetech-pwa",
-  "description": "BridgeTech IT Services — Enterprise managed IT solutions, computer & mobile repair, POS installation and networking. Same-day service, warranty, expert technicians.",
+  "description": "BridgeTech IT Services — Professional IT services, computer & mobile repair, POS installation and networking. Same-day service, warranty, expert technicians.",
   "start_url": "/?source=pwa",
   "display": "standalone",
   "background_color": "#ffffff",

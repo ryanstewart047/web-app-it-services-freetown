@@ -35,10 +35,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(BRAND_SITE_URL),
   title: {
-    default: 'BridgeTech IT Services - Enterprise & Managed IT Solutions',
+    default: 'BridgeTech IT Services',
     template: '%s | BridgeTech IT Services'
   },
-  description: 'BridgeTech IT Services - Enterprise Managed IT Solutions, Computer & Mobile Repair, POS Installation, Networking, and Device Unlocking. Professional, reliable same-day technical service.',
+  description: 'BridgeTech IT Services, Computer & Mobile Repair, POS Installation, Networking, and Device Unlocking. Professional, reliable same-day technical service.',
   keywords: [
     // Primary repair services
     'computer repair Freetown',
