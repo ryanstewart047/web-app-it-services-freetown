@@ -135,7 +135,7 @@ const ADMIN_PANELS: AdminPanelItem[] = [
   {
     id: 'legal-documents',
     name: 'Legal & Authorization Letters',
-    category: 'business',
+    category: 'ecommerce',
     description: 'Generate proof of legal authority & sign',
     icon: 'fas fa-file-signature',
     color: 'text-red-400',
