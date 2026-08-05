@@ -123,7 +123,7 @@ self.addEventListener('push', (event) => {
       vibrate: [100, 50, 100],
       data: { url: data.data?.url || '/forum' }
     };
-    event.waitUntil(self.registration.showNotification(data.title || 'ITS Freetown', options));
+    event.waitUntil(self.registration.showNotification(data.title || 'BridgeTech IT Services', options));
   } catch (err) {
     console.error('Push error:', err);
   }
