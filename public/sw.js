@@ -1,9 +1,9 @@
 // Service Worker for BridgeTech IT Services PWA
-const CACHE_NAME = 'bridgetech-it-services-v4.0.0';
+const CACHE_NAME = 'bridgetech-it-services-v5.0.0';
 const OFFLINE_URL = '/offline';
 
-const ASSET_CACHE = 'assets-cache-v4';
-const IMAGE_CACHE = 'image-cache-v4';
+const ASSET_CACHE = 'assets-cache-v5';
+const IMAGE_CACHE = 'image-cache-v5';
 
 // Initial files to cache for offline functionality
 const STATIC_ASSETS = [
@@ -13,8 +13,8 @@ const STATIC_ASSETS = [
   '/favicon.svg',
   '/favicon.ico',
   '/apple-touch-icon.png',
-  '/assets/logo.png',
   '/assets/logo.svg',
+  '/assets/logo-dark.svg',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 

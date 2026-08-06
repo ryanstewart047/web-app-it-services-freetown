@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
-import { BRAND_LOGO_SRC, BRAND_NAME } from '@/lib/brand'
+import { BRAND_LOGO_SRC, BRAND_LOGO_DARK_SRC, BRAND_NAME } from '@/lib/brand'
 
 // Auth step for the footer admin modal
 type AuthStep = 'password' | '2fa' | 'panels'
@@ -446,7 +446,7 @@ export default function Footer() {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-3 mb-4">
               <Image 
-             src={BRAND_LOGO_SRC}
+             src={BRAND_LOGO_DARK_SRC}
              alt={`${BRAND_NAME} Logo`}
              width={200}
              height={60}

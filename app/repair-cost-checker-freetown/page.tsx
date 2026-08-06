@@ -54,7 +54,7 @@ const structuredData = {
   provider: {
     '@type': 'LocalBusiness',
     name: 'BridgeTech IT Services',
-    image: 'https://www.bridgetechit.com/assets/logo.png',
+    image: 'https://www.bridgetechit.com/assets/logo.svg',
     telephone: '+23233399391',
     email: 'info@bridgetechit.com',
     url: 'https://www.bridgetechit.com',
