@@ -124,6 +124,14 @@
   "scope_extensions": [
     {
       "type": "origin",
+      "origin": "https://www.bridgetechit.com"
+    },
+    {
+      "type": "origin",
+      "origin": "https://bridgetechit.com"
+    },
+    {
+      "type": "origin",
       "origin": "https://itservicesfreetown.com"
     }
   ],

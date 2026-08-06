@@ -776,7 +776,7 @@ export default function LegalDocumentsAdminPage() {
                       <div className="space-y-1 text-xs">
                         <div className="text-slate-500">Issued by:</div>
                         <div className="font-extrabold text-[#040e40] text-sm">{doc.companyName}</div>
-                        <div className="text-slate-500">Freetown, Sierra Leone</div>
+                        <div className="text-slate-500">No 1 Regent Highway, Jui Junction, Freetown</div>
                       </div>
 
                       <div className="text-right space-y-1">

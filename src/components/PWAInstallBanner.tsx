@@ -141,11 +141,13 @@ export default function PWAInstallBanner() {
         setDeferredPrompt(null)
         setShowBanner(false)
       }
-    } else if (deviceInfo.isIOS) {
-      // iOS - close banner; instructions are already shown inline
-      setShowBanner(false)
     } else {
-      // Fallback: close banner
+      // Fallback if browser hasn't triggered beforeinstallprompt yet or iOS
+      if (deviceInfo.isIOS) {
+        alert("To install BridgeTech IT Services app on iOS:\n1. Tap the Share button below\n2. Scroll down and tap 'Add to Home Screen'\n3. Tap 'Add'")
+      } else {
+        alert("To install BridgeTech IT Services app:\n1. Tap your browser menu (⋮ or ⋯)\n2. Select 'Add to Home screen' or 'Install app'")
+      }
       setShowBanner(false)
     }
   }
@@ -208,28 +210,13 @@ export default function PWAInstallBanner() {
         </div>
         
         <div className="pwa-banner-buttons flex items-center space-x-3">
-          {/* Show Install button whenever the browser has provided a deferred prompt
-              (works for Android Chrome AND desktop Chrome/Edge) */}
-          {deferredPrompt && (
-            <button 
-              onClick={handleInstall}
-              className="pwa-install-btn bg-white text-red-600 px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-2"
-            >
-              <i className="fas fa-download text-sm"></i>
-              <span>Install App</span>
-            </button>
-          )}
-          {/* iOS devices can never show the deferred prompt natively,
-              so we show a "Got it" button that acknowledges the manual steps */}
-          {deviceInfo.isIOS && !deferredPrompt && (
-            <button 
-              onClick={handleInstall}
-              className="pwa-install-btn bg-white/20 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-white/30 transition-all duration-300 backdrop-blur-sm border border-white/30 flex items-center space-x-2"
-            >
-              <i className="fas fa-check text-sm"></i>
-              <span>Got it</span>
-            </button>
-          )}
+          <button 
+            onClick={handleInstall}
+            className="pwa-install-btn bg-white text-red-600 px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-2 whitespace-nowrap"
+          >
+            <i className="fas fa-download text-sm"></i>
+            <span>Install App</span>
+          </button>
           <button 
             onClick={handleClose}
             className="pwa-close-btn text-white/80 hover:text-white hover:bg-white/10 text-xl p-2 rounded-lg transition-all duration-300"

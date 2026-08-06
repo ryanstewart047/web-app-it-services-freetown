@@ -1,9 +1,9 @@
 // Service Worker for BridgeTech IT Services PWA
-const CACHE_NAME = 'bridgetech-it-services-v3.0.0';
+const CACHE_NAME = 'bridgetech-it-services-v4.0.0';
 const OFFLINE_URL = '/offline';
 
-const ASSET_CACHE = 'assets-cache-v3';
-const IMAGE_CACHE = 'image-cache-v3';
+const ASSET_CACHE = 'assets-cache-v4';
+const IMAGE_CACHE = 'image-cache-v4';
 
 // Initial files to cache for offline functionality
 const STATIC_ASSETS = [

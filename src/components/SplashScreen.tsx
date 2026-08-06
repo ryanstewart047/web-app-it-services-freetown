@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { BRAND_LOGO_SRC, BRAND_NAME } from '@/lib/brand'
+import { BRAND_LOGO_SRC, BRAND_LOGO_DARK_SRC, BRAND_NAME } from '@/lib/brand'
 
 export default function SplashScreen() {
   const [isVisible, setIsVisible] = useState(true)
@@ -72,7 +72,7 @@ export default function SplashScreen() {
             {/* Actual Logo */}
             <div className="relative w-24 h-24 md:w-32 md:h-32 animate-breathe">
               <Image 
-                src={BRAND_LOGO_SRC}
+                src={BRAND_LOGO_DARK_SRC}
                 alt={`${BRAND_NAME} Logo`}
                 fill
                 className="object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]"
@@ -86,11 +86,11 @@ export default function SplashScreen() {
         <div className="text-center">
           <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter mb-2 overflow-hidden">
             <span className="block animate-slideUp">
-              IT SERVICES <span className="text-red-600">FREETOWN</span>
+              BRIDGETECH <span className="text-red-600">IT SERVICES</span>
             </span>
           </h1>
           <p className="text-gray-400 text-sm md:text-base tracking-[0.3em] font-light uppercase opacity-0 animate-fadeIn" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
-            Freetown&apos;s #1 Tech Partner
+            Sierra Leone&apos;s #1 Tech Partner
           </p>
         </div>
 

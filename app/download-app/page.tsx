@@ -163,7 +163,7 @@ export default function DownloadAppPage() {
                     Windows Download Available
                   </p>
                   <p className="text-green-200 text-sm mb-2">
-                    Download the latest Windows version of IT Services Device Detector from our official GitHub release.
+                    Download the latest Windows version of BridgeTech IT Device Detector from our official GitHub release.
                   </p>
                   <p className="mb-2 inline-flex rounded-full bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-200">
                     {formatTotalDownloadCount(downloadStats?.totalDownloads, isLoadingStats)}
