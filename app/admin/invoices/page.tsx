@@ -99,7 +99,7 @@ const blankInvoice = (): Invoice => ({
   status: 'pending',
   items: [emptyItem()],
   subtotal: 0,
-  taxRate: 0,
+  taxRate: 15,
   taxAmount: 0,
   discountAmount: 0,
   amountPaid: 0,
@@ -577,17 +577,40 @@ export default function InvoicesAdminPage() {
                     <span>Subtotal</span>
                     <span className="font-mono">{fmt(invoice.subtotal)}</span>
                   </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <label className="text-sm text-slate-400">Tax / GST Rate (%)</label>
-                    <input type="number" min="0" max="100" step="0.5" value={invoice.taxRate} onChange={e => setInvoice(p => ({ ...p, taxRate: parseFloat(e.target.value) || 0 }))}
-                      className="w-24 bg-slate-900 border border-white/15 rounded-lg px-3 py-1.5 text-white text-sm text-right focus:ring-2 focus:ring-red-500" />
-                  </div>
-                  {invoice.taxAmount > 0 && (
-                    <div className="flex justify-between text-sm text-slate-400">
-                      <span>Tax ({invoice.taxRate}%)</span>
-                      <span className="font-mono">+ {fmt(invoice.taxAmount)}</span>
+                  <div className="space-y-2 border-t border-white/10 pt-3">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <label className="text-sm font-semibold text-slate-300">NRA Value Added Tax (VAT %)</label>
+                        <p className="text-[11px] text-slate-400">Standard Sierra Leone NRA VAT rate is 15%</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {[
+                          { label: '15% VAT (NRA)', rate: 15 },
+                          { label: '5% Reduced', rate: 5 },
+                          { label: '0% Exempt', rate: 0 },
+                        ].map(preset => (
+                          <button
+                            key={preset.rate}
+                            type="button"
+                            onClick={() => setInvoice(p => ({ ...p, taxRate: preset.rate }))}
+                            className={`px-2 py-1 text-[10px] font-bold rounded border transition-colors ${
+                              invoice.taxRate === preset.rate 
+                                ? 'bg-red-600 border-red-500 text-white' 
+                                : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            {preset.label}
+                          </button>
+                        ))}
+                        <input type="number" min="0" max="100" step="0.5" value={invoice.taxRate} onChange={e => setInvoice(p => ({ ...p, taxRate: parseFloat(e.target.value) || 0 }))}
+                          className="w-20 bg-slate-900 border border-white/15 rounded-lg px-2 py-1 text-white text-sm text-right focus:ring-2 focus:ring-red-500" />
+                      </div>
                     </div>
-                  )}
+                    <div className="flex justify-between text-sm text-slate-300 bg-slate-900/60 p-2.5 rounded-lg border border-white/5">
+                      <span className="font-medium">Calculated VAT ({invoice.taxRate}% NRA)</span>
+                      <span className="font-mono text-red-400 font-bold">+ {fmt(invoice.taxAmount)}</span>
+                    </div>
+                  </div>
                   <div className="flex items-center justify-between gap-4">
                     <label className="text-sm text-slate-400">Discount (Le)</label>
                     <input type="number" min="0" value={invoice.discountAmount} onChange={e => setInvoice(p => ({ ...p, discountAmount: parseFloat(e.target.value) || 0 }))}
@@ -778,7 +801,10 @@ export default function InvoicesAdminPage() {
                     <div className="flex justify-end">
                       <div className="w-80 bg-slate-50/90 rounded-xl p-4 border border-slate-200 space-y-2 text-xs">
                         <div className="flex justify-between text-slate-600"><span>Subtotal</span><span className="font-mono font-semibold">{fmt(invoice.subtotal)}</span></div>
-                        {invoice.taxAmount > 0 && <div className="flex justify-between text-slate-600"><span>Tax / GST ({invoice.taxRate}%)</span><span className="font-mono font-semibold">+ {fmt(invoice.taxAmount)}</span></div>}
+                        <div className="flex justify-between text-slate-700 font-medium">
+                          <span>Value Added Tax (VAT {invoice.taxRate}%)</span>
+                          <span className="font-mono font-bold text-slate-800">+ {fmt(invoice.taxAmount)}</span>
+                        </div>
                         {invoice.discountAmount > 0 && <div className="flex justify-between text-emerald-600 font-semibold"><span>Discount</span><span className="font-mono">- {fmt(invoice.discountAmount)}</span></div>}
                         <div className="flex justify-between font-extrabold text-sm border-t border-slate-200 pt-2 text-slate-900"><span>Grand Total</span><span className="font-mono text-[#040e40]">{fmt(invoice.totalAmount)}</span></div>
                         {invoice.amountPaid > 0 && <div className="flex justify-between text-emerald-700 font-semibold"><span>Amount Paid / Deposit</span><span className="font-mono">- {fmt(invoice.amountPaid)}</span></div>}
