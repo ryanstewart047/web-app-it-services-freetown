@@ -33,7 +33,24 @@
       "fileName": "1786089850801-img_20260616_133659.jpg",
       "createdAt": "2026-08-07T08:04:13.671Z",
       "updatedAt": "2026-08-07T08:04:13.671Z"
+    },
+    {
+      "id": "9d20457f-81a3-48ee-a95a-f5ff93eb4cd4",
+      "title": "Children's Favorite summer Outfit",
+      "caption": "Made with special material handpicked from Ghana favorites African market.",
+      "type": "image",
+      "url": "https://raw.githubusercontent.com/ryanstewart047/web-app-it-services-freetown/main/public/shirleys-gallery/1786090302901-screenshot_20260805_224813_com.pinterest.jpg",
+      "source": "upload",
+      "active": true,
+      "order": 3,
+      "isAvailableProduct": true,
+      "price": "250",
+      "orderButtonText": "Order Now",
+      "orderUrl": "",
+      "fileName": "1786090302901-screenshot_20260805_224813_com.pinterest.jpg",
+      "createdAt": "2026-08-07T08:11:44.225Z",
+      "updatedAt": "2026-08-07T08:11:44.225Z"
     }
   ],
-  "updatedAt": "2026-08-07T08:04:13.671Z"
+  "updatedAt": "2026-08-07T08:11:44.226Z"
 }
