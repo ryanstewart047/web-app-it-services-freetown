@@ -16,7 +16,24 @@
       "fileName": "1784979432980-image_94458869.png",
       "createdAt": "2026-07-25T11:37:14.295Z",
       "updatedAt": "2026-07-28T23:08:04.689Z"
+    },
+    {
+      "id": "f0e9df09-6425-42aa-922d-3fcdda999605",
+      "title": "3 in 1 Special Event Cake",
+      "caption": "3 in 1 sweet chocolate, vanilla separate layers pink girl social cake.",
+      "type": "image",
+      "url": "https://raw.githubusercontent.com/ryanstewart047/web-app-it-services-freetown/main/public/shirleys-gallery/1786089850801-img_20260616_133659.jpg",
+      "source": "upload",
+      "active": true,
+      "order": 2,
+      "isAvailableProduct": true,
+      "price": "850",
+      "orderButtonText": "Order This Item",
+      "orderUrl": "",
+      "fileName": "1786089850801-img_20260616_133659.jpg",
+      "createdAt": "2026-08-07T08:04:13.671Z",
+      "updatedAt": "2026-08-07T08:04:13.671Z"
     }
   ],
-  "updatedAt": "2026-07-28T23:08:04.689Z"
+  "updatedAt": "2026-08-07T08:04:13.671Z"
 }
