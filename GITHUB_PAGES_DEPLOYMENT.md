@@ -1,6 +1,6 @@
 # GitHub Pages Deployment Guide
 
-## 🚀 Deploy IT Services Freetown to GitHub Pages
+## 🚀 Deploy BridgeTech IT Services to GitHub Pages
 
 Your website will be available at: `https://ryanstewart047.github.io/web-app-it-services-freetown/`
 

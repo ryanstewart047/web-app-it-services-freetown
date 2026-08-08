@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "CloudFormation template for IT Services Freetown application deployment"
+Description: "CloudFormation template for BridgeTech IT Services application deployment"
 
 Parameters:
   VpcId:

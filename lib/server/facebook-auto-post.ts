@@ -61,7 +61,7 @@ const DEFAULT_PHOTO_URLS = [
 ];
 
 const DEFAULT_HASHTAGS = [
-  'ITServicesFreetown',
+  'BridgeTechITServices',
   'FreetownTech',
   'PhoneRepair',
   'ComputerRepair',

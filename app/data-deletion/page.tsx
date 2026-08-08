@@ -34,12 +34,12 @@ export default function DataDeletionPage() {
               How to Remove the App from Facebook
             </h2>
             <p className="text-gray-700 mb-4">
-              If you have interacted with our Meta developer application ("ITS Freetown") and wish to remove its access, you can do so directly from your Facebook settings:
+              If you have interacted with our Meta developer application ("BridgeTech IT Services") and wish to remove its access, you can do so directly from your Facebook settings:
             </p>
             <ol className="list-decimal list-inside text-gray-700 space-y-3 ml-4">
               <li>Go to your Facebook Profile's <strong>Settings & Privacy</strong> &gt; <strong>Settings</strong>.</li>
               <li>Scroll down the left menu and select <strong>Apps and Websites</strong>.</li>
-              <li>Locate <strong>ITS Freetown</strong> (or search for it in the search bar).</li>
+              <li>Locate <strong>BridgeTech IT Services</strong> (or search for it in the search bar).</li>
               <li>Click the <strong>Remove</strong> button next to the application.</li>
               <li>Confirm the removal in the pop-up modal.</li>
             </ol>
@@ -54,7 +54,7 @@ export default function DataDeletionPage() {
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
               <li><strong>Email:</strong> support@itservicesfreetown.com</li>
-              <li><strong>Subject:</strong> Facebook Data Deletion Request (ITS Freetown)</li>
+              <li><strong>Subject:</strong> Facebook Data Deletion Request (BridgeTech IT Services)</li>
               <li><strong>Required details:</strong> Please specify your Facebook name or user identifier so we can locate any relevant logs.</li>
             </ul>
             <p className="text-gray-700 mt-4">

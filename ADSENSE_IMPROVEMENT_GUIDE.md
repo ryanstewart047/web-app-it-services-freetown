@@ -1,4 +1,4 @@
-# Google AdSense Approval Guide - IT Services Freetown
+# Google AdSense Approval Guide - BridgeTech IT Services
 
 ## Current Status
 - **Approval Status**: Needs attention
@@ -26,7 +26,7 @@ Google wants to see substantial, original content. You need to add at least 10-1
 - Images with alt text
 - Internal links to other pages on your site
 
-**Recommended Blog Topics for IT Services Freetown:**
+**Recommended Blog Topics for BridgeTech IT Services:**
 
 1. **"Complete Guide to Computer Maintenance in Sierra Leone"** (1,500 words)
    - Regular cleaning tips

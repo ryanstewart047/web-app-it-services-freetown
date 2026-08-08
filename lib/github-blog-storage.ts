@@ -5,9 +5,15 @@
  */
 
 import { marked } from 'marked'
+import { BRAND_NAME } from '@/lib/brand'
 
 const GITHUB_OWNER = 'ryanstewart047'
 const GITHUB_REPO = 'web-app-it-services-freetown'
+const LEGACY_BLOG_AUTHORS = new Set([
+  ['IT', 'Services', 'Freetown'].join(' '),
+  ['IT', 'SERVICES', 'FREETOWN'].join(' '),
+  ['Bridge', 'Tec IT Services'].join(''),
+])
 
 // GitHub token for API access
 // In development: reads from .env.local
@@ -93,7 +99,7 @@ export async function fetchBlogPosts(): Promise<BlogPost[]> {
         id: issue.number.toString(),
         title: issue.title,
         content: parsedContent,
-        author: metadata.author || 'BridgeTech IT Services',
+        author: normalizeBlogAuthor(metadata.author),
         date: new Date(issue.created_at).toISOString().split('T')[0],
         likes: issue.reactions['+1'] || 0,
         dislikes: issue.reactions['-1'] || 0,
@@ -316,8 +322,6 @@ export async function addReaction(
  * Format post body with metadata
  */
 function formatPostBody(content: string, author: string, media?: any[]): string {
-  console.log('formatPostBody called with media:', media)
-  
   let body = `<!-- METADATA
 Author: ${author}
 Media: ${media && media.length > 0 ? JSON.stringify(media) : '[]'}
@@ -340,7 +344,6 @@ Media: ${media && media.length > 0 ? JSON.stringify(media) : '[]'}
     })
   }
 
-  console.log('Formatted body length:', body.length)
   return body
 }
 
@@ -352,17 +355,13 @@ function extractMetadata(body: string): {
   author?: string
   media?: any[]
 } {
-  console.log('extractMetadata called, body length:', body.length)
-  
   const metadataMatch = body.match(/<!-- METADATA\n([\s\S]*?)\n-->/m)
   
   if (!metadataMatch) {
-    console.log('No metadata found in body')
     return { content: body }
   }
 
   const metadataText = metadataMatch[1]
-  console.log('Metadata text:', metadataText)
   
   const authorMatch = metadataText.match(/Author: (.+)/)
   const mediaMatch = metadataText.match(/Media: ([\s\S]+?)(?:\n|$)/)
@@ -371,15 +370,11 @@ function extractMetadata(body: string): {
   if (mediaMatch) {
     try {
       const mediaJson = mediaMatch[1].trim()
-      console.log('Media JSON to parse:', mediaJson)
       media = JSON.parse(mediaJson)
-      console.log('Parsed media:', media)
     } catch (e) {
       console.error('Error parsing media JSON:', e)
       media = []
     }
-  } else {
-    console.log('No media match found')
   }
 
   // Remove metadata section AND the media display section from content
@@ -388,9 +383,18 @@ function extractMetadata(body: string): {
 
   return {
     content: content.trim(),
-    author: authorMatch?.[1],
+    author: normalizeBlogAuthor(authorMatch?.[1]),
     media: media.length > 0 ? media : undefined
   }
+}
+
+function normalizeBlogAuthor(author?: string): string {
+  const cleanedAuthor = author?.trim()
+  if (!cleanedAuthor || LEGACY_BLOG_AUTHORS.has(cleanedAuthor)) {
+    return BRAND_NAME
+  }
+
+  return cleanedAuthor
 }
 
 /**

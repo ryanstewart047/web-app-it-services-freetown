@@ -1,4 +1,4 @@
-# GitHub Setup Guide - IT Services Freetown
+# GitHub Setup Guide - BridgeTech IT Services
 
 ## 🚀 How to Host Your Project on GitHub
 
@@ -34,7 +34,7 @@
    └── All other files
    ```
 3. **Don't upload**: `node_modules/`, `.next/`, `dev.db` (these are in .gitignore)
-4. Add commit message: "Initial commit - Complete IT Services Freetown application"
+4. Add commit message: "Initial commit - Complete BridgeTech IT Services application"
 5. Click "Commit changes"
 
 ### Option 2: Command Line Setup (If Git works)
@@ -50,7 +50,7 @@ git init
 git add .
 
 # Create initial commit
-git commit -m "Initial commit - Complete IT Services Freetown application"
+git commit -m "Initial commit - Complete BridgeTech IT Services application"
 
 # Add GitHub as remote origin (replace YOUR_USERNAME)
 git remote add origin https://github.com/YOUR_USERNAME/it-services-freetown.git

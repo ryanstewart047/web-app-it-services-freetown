@@ -32,7 +32,7 @@ This is the BEST method because it preserves everything including media.
    <!--
    BLOG_POST_METADATA
    {
-     "author": "IT Services Freetown",
+     "author": "BridgeTech IT Services",
      "date": "2025-11-05",
      "media": []
    }
@@ -67,7 +67,7 @@ Create file: `public/blog-posts.json`
       "id": "1730844000000",
       "title": "Best Laptops in Freetown 2025: Complete Buying Guide",
       "content": "# Best Laptops in Freetown 2025\n\nAre you looking for a quality laptop in Freetown...",
-      "author": "IT Services Freetown",
+      "author": "BridgeTech IT Services",
       "date": "2025-11-05",
       "likes": 0,
       "dislikes": 0,
@@ -98,13 +98,13 @@ I'll create a template for you:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Best Laptops in Freetown 2025 | IT Services Freetown</title>
+    <title>Best Laptops in Freetown 2025 | BridgeTech IT Services</title>
     <meta name="description" content="Complete guide to buying the best laptops in Freetown, Sierra Leone. Compare prices, features, and find the perfect laptop for your needs.">
-    <meta name="keywords" content="laptops Freetown, buy laptop Sierra Leone, laptop prices Freetown, IT Services Freetown">
+    <meta name="keywords" content="laptops Freetown, buy laptop Sierra Leone, laptop prices Freetown, BridgeTech IT Services">
     
     <!-- Open Graph -->
     <meta property="og:title" content="Best Laptops in Freetown 2025: Complete Buying Guide">
-    <meta property="og:description" content="Find quality laptops at IT Services Freetown. Student laptops from Le 1,600,000, Business laptops, Gaming laptops. 3-month warranty.">
+    <meta property="og:description" content="Find quality laptops at BridgeTech IT Services. Student laptops from Le 1,600,000, Business laptops, Gaming laptops. 3-month warranty.">
     <meta property="og:type" content="article">
     
     <style>
@@ -196,7 +196,7 @@ I'll create a template for you:
 <body>
     <header>
         <h1>Best Laptops in Freetown 2025</h1>
-        <p class="meta">Complete Buying Guide | IT Services Freetown | November 5, 2025</p>
+        <p class="meta">Complete Buying Guide | BridgeTech IT Services | November 5, 2025</p>
     </header>
 
     <div class="container">
@@ -215,7 +215,7 @@ I'll create a template for you:
     </div>
 
     <footer>
-        <p>&copy; 2025 IT Services Freetown. All rights reserved.</p>
+        <p>&copy; 2025 BridgeTech IT Services. All rights reserved.</p>
         <p>Freetown, Sierra Leone | +232 33 399 391</p>
     </footer>
 </body>

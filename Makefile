@@ -3,7 +3,7 @@
 # Default target
 help:
 	@echo "╔════════════════════════════════════════════════════════════╗"
-	@echo "║   IT Services Freetown - Docker Development Commands      ║"
+	@echo "║   BridgeTech IT Services - Docker Development Commands      ║"
 	@echo "╚════════════════════════════════════════════════════════════╝"
 	@echo ""
 	@echo "Usage: make [command]"

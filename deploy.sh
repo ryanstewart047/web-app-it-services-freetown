@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Deploying IT Services Freetown to itservicesfreetown.com"
+echo "🚀 Deploying BridgeTech IT Services to itservicesfreetown.com"
 echo "=================================================="
 
 # Build the project

@@ -5,7 +5,7 @@ CREATE TABLE "FacebookAutoPostSettings" (
     "intervalHours" INTEGER NOT NULL DEFAULT 24,
     "messageTemplate" TEXT NOT NULL DEFAULT '{topic}
 
-Need help with a phone, laptop, or computer in Freetown? Book a diagnostic with IT Services Freetown today.
+Need help with a phone, laptop, or computer in Freetown? Book a diagnostic with BridgeTech IT Services today.
 
 {link}
 

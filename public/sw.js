@@ -1,9 +1,9 @@
 // Service Worker for BridgeTech IT Services PWA
-const CACHE_NAME = 'bridgetech-it-services-v5.0.0';
+const CACHE_NAME = 'bridgetech-it-services-v6.0.0';
 const OFFLINE_URL = '/offline';
 
-const ASSET_CACHE = 'assets-cache-v5';
-const IMAGE_CACHE = 'image-cache-v5';
+const ASSET_CACHE = 'assets-cache-v6';
+const IMAGE_CACHE = 'image-cache-v6';
 
 // Initial files to cache for offline functionality
 const STATIC_ASSETS = [
@@ -33,7 +33,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
-          if (![CACHE_NAME, ASSET_CACHE, IMAGE_CACHE].includes(key)) {
+          if (key !== CACHE_NAME && key !== ASSET_CACHE && key !== IMAGE_CACHE) {
             console.log('[ServiceWorker] Removing old cache:', key);
             return caches.delete(key);
           }
@@ -48,11 +48,11 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
-  
+
   // Ignore non-HTTP/HTTPS schemes (like chrome-extension://)
   if (!url.protocol.startsWith('http')) return;
 
-  // 1. Navigation requests (Pages) - Network First, fallback to Offline
+  // 1. Navigation requests (Pages) - Network First
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
@@ -63,42 +63,38 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Static Assets (CSS, JS) - Cache First
-  if (
-    event.request.destination === 'style' || 
-    event.request.destination === 'script' || 
-    event.request.destination === 'font'
-  ) {
+  // 2. Images & Logos - Network First (so mobile always gets fresh logo updates)
+  if (event.request.destination === 'image' || url.pathname.includes('/assets/')) {
     event.respondWith(
-      caches.open(ASSET_CACHE).then((cache) => {
-        return cache.match(event.request).then((response) => {
-          const fetchPromise = fetch(event.request).then((networkResponse) => {
-            if (networkResponse.ok) {
-              cache.put(event.request, networkResponse.clone());
-            }
-            return networkResponse;
-          });
-          return response || fetchPromise;
-        });
-      })
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(IMAGE_CACHE).then((cache) => cache.put(event.request, responseClone));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(event.request))
     );
     return;
   }
 
-  // 3. Images - Cache First
-  if (event.request.destination === 'image') {
+  // 3. Static Assets (CSS, JS) - Network First with Cache Fallback
+  if (
+    event.request.destination === 'style' ||
+    event.request.destination === 'script' ||
+    event.request.destination === 'font'
+  ) {
     event.respondWith(
-      caches.open(IMAGE_CACHE).then((cache) => {
-        return cache.match(event.request).then((response) => {
-          const fetchPromise = fetch(event.request).then((networkResponse) => {
-            if (networkResponse.ok) {
-              cache.put(event.request, networkResponse.clone());
-            }
-            return networkResponse;
-          });
-          return response || fetchPromise;
-        });
-      })
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(ASSET_CACHE).then((cache) => cache.put(event.request, responseClone));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(event.request))
     );
     return;
   }

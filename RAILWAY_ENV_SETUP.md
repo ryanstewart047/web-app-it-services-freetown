@@ -5,7 +5,7 @@
 ### 1. Access Railway Dashboard
 1. Go to [railway.app](https://railway.app)
 2. Sign in to your account
-3. Navigate to your **IT Services Freetown** project
+3. Navigate to your **BridgeTech IT Services** project
 
 ### 2. Add Environment Variables
 Click on your project → Go to **Variables** tab → Click **+ New Variable**
@@ -73,7 +73,7 @@ require('crypto').randomBytes(32).toString('base64')
 2. Go to **Google Account Settings** → **Security**
 3. Under "Signing in to Google", select **App passwords**
 4. Select **Mail** and **Other (Custom name)**
-5. Enter "IT Services Freetown Railway"
+5. Enter "BridgeTech IT Services Railway"
 6. Copy the generated 16-character password
 7. Use this password for `SMTP_PASS` variable
 

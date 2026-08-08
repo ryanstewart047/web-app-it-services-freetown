@@ -1,6 +1,6 @@
 # Migrating from Railway to Vercel
 
-This guide will help you migrate your IT Services Freetown application from Railway to Vercel, as your Railway free trial has ended.
+This guide will help you migrate your BridgeTech IT Services application from Railway to Vercel, as your Railway free trial has ended.
 
 ## Why Vercel?
 
@@ -260,7 +260,7 @@ async function sendConfirmationEmails(appointment: any) {
   
   // Customer email
   await transporter.sendMail({
-    from: `"IT Services Freetown" <${process.env.FROM_EMAIL}>`,
+    from: `"BridgeTech IT Services" <${process.env.FROM_EMAIL}>`,
     to: appointment.email,
     subject: `Your Appointment Confirmation - ${appointment.appointmentId}`,
     html: createCustomerEmail(appointment, dateFormatted),
@@ -268,7 +268,7 @@ async function sendConfirmationEmails(appointment: any) {
   
   // Admin email
   await transporter.sendMail({
-    from: `"IT Services Freetown" <${process.env.FROM_EMAIL}>`,
+    from: `"BridgeTech IT Services" <${process.env.FROM_EMAIL}>`,
     to: process.env.ADMIN_EMAIL || 'info@itservicesfreetown.com',
     subject: `New Appointment Request - ${appointment.appointmentId}`,
     html: createAdminEmail(appointment, dateFormatted),
@@ -299,7 +299,7 @@ function createCustomerEmail(appointment: any, dateFormatted: string) {
           </div>
           <div class="content">
               <p>Dear ${appointment.customerName},</p>
-              <p>Thank you for booking an appointment with IT Services Freetown. We have received your request and will confirm your appointment shortly.</p>
+              <p>Thank you for booking an appointment with BridgeTech IT Services. We have received your request and will confirm your appointment shortly.</p>
               
               <div class="appointment-details">
                   <h3>Appointment Details:</h3>
@@ -314,10 +314,10 @@ function createCustomerEmail(appointment: any, dateFormatted: string) {
               
               <p>If you have any questions or need to make changes to your appointment, please contact us.</p>
               
-              <p>Best regards,<br>The IT Services Freetown Team</p>
+              <p>Best regards,<br>The BridgeTech IT Services Team</p>
           </div>
           <div class="footer">
-              <p>© ${new Date().getFullYear()} IT Services Freetown. All rights reserved.</p>
+              <p>© ${new Date().getFullYear()} BridgeTech IT Services. All rights reserved.</p>
           </div>
       </div>
   </body>
@@ -366,7 +366,7 @@ function createAdminEmail(appointment: any, dateFormatted: string) {
               <p>Please review this appointment and confirm it with the customer.</p>
           </div>
           <div class="footer">
-              <p>© ${new Date().getFullYear()} IT Services Freetown. All rights reserved.</p>
+              <p>© ${new Date().getFullYear()} BridgeTech IT Services. All rights reserved.</p>
           </div>
       </div>
   </body>

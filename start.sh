@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Starting IT Services Freetown application..."
+echo "🚀 Starting BridgeTech IT Services application..."
 
 # Generate Prisma client
 echo "📦 Generating Prisma client..."

@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       companyName: data.companyName || 'BridgeTech IT Services',
       companyAddress: data.companyAddress || 'No 1 Regent Highway, Jui Junction, Freetown',
       companyPhone: data.companyPhone || '+232 78 000 000 / +232 76 000 000',
-      companyEmail: data.companyEmail || 'info@bridgetechit.com',
+      companyEmail: data.companyEmail || 'support@itservicesfreetown.com',
       signerName: data.signerName,
       signerRole: data.signerRole || 'Founder & Managing Director',
       signerEmail: data.signerEmail || '',

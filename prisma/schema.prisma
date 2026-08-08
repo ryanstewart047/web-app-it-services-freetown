@@ -392,7 +392,7 @@ model PushSubscription {
 model BannerSettings {
   id          String   @id @default("active")
   enabled     Boolean  @default(false)
-  message     String   @default("Welcome to IT Services Freetown!")
+  message     String   @default("Welcome to BridgeTech IT Services!")
   link        String?
   color       String   @default("bg-red-600")
   updatedAt   DateTime @updatedAt
@@ -412,7 +412,7 @@ model FacebookAutoPostSettings {
   id              String    @id @default("active")
   enabled         Boolean   @default(false)
   intervalHours   Int       @default(24)
-  messageTemplate String    @default("{topic}\n\nNeed help with a phone, laptop, or computer in Freetown? Book a diagnostic with IT Services Freetown today.\n\n{link}\n\n{hashtags}")
+  messageTemplate String    @default("{topic}\n\nNeed help with a phone, laptop, or computer in Freetown? Book a diagnostic with BridgeTech IT Services today.\n\n{link}\n\n{hashtags}")
   linkUrl         String?
   topics          Json?
   photoUrls       Json?
@@ -489,7 +489,7 @@ model DiscountCode {
 model WeeklyNewsletterSettings {
   id            String    @id @default("active")
   enabled       Boolean   @default(false)
-  subjectPrefix String    @default("IT Services Freetown: ")
+  subjectPrefix String    @default("BridgeTech IT Services: ")
   topics        Json?     // Array of string topics (e.g. ["5 battery tips", "screen safety"])
   lastSentAt    DateTime?
   createdAt     DateTime  @default(now())

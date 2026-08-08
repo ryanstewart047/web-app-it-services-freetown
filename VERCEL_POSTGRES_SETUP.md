@@ -1,6 +1,6 @@
-# Setting Up Vercel Postgres for IT Services Freetown
+# Setting Up Vercel Postgres for BridgeTech IT Services
 
-This guide provides detailed steps for setting up and working with Vercel Postgres for your IT Services Freetown application.
+This guide provides detailed steps for setting up and working with Vercel Postgres for your BridgeTech IT Services application.
 
 ## Why Vercel Postgres?
 
@@ -22,7 +22,7 @@ This guide provides detailed steps for setting up and working with Vercel Postgr
 ## Step 2: Link the Database to Your Project
 
 1. After creating the database, click **Connect to Project**
-2. Select your IT Services Freetown project
+2. Select your BridgeTech IT Services project
 3. Click **Connect**
 4. Vercel will automatically add the `POSTGRES_URL` environment variables to your project
 

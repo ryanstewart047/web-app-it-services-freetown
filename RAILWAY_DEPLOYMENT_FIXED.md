@@ -132,7 +132,7 @@ If you encounter issues:
 
 ## 🎉 Success!
 
-Once deployed successfully, your IT Services Freetown app will be live with:
+Once deployed successfully, your BridgeTech IT Services app will be live with:
 - ✅ Real appointment booking with email confirmations
 - ✅ Repair tracking with unique IDs
 - ✅ AI-powered troubleshooting

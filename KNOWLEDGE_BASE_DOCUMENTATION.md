@@ -2,7 +2,7 @@
 
 ## Overview
 
-Your IT Services Freetown AI support system now has a comprehensive, structured knowledge base that provides accurate, context-aware responses to customer inquiries.
+Your BridgeTech IT Services AI support system now has a comprehensive, structured knowledge base that provides accurate, context-aware responses to customer inquiries.
 
 ## Knowledge Base Structure
 

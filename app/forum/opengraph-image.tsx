@@ -41,7 +41,7 @@ export default async function Image() {
           </div>
 
           <p style={{ fontSize: '48px', color: '#60a5fa', margin: '0 0 60px 0', letterSpacing: '0.05em', fontWeight: 'bold' }}>
-            IT SERVICES FREETOWN
+            BRIDGETECH IT SERVICES
           </p>
 
           <div style={{ 

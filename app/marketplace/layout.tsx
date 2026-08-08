@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { BRAND_LOGO_URL, BRAND_SITE_URL } from '@/lib/brand';
 
 export const metadata: Metadata = {
-  title: 'Buy Laptops & IT Products in Freetown Sierra Leone | IT Services Marketplace',
+  title: 'Buy Laptops & IT Products in Freetown Sierra Leone | BridgeTech IT Services Marketplace',
   description: 'Shop quality laptops, computers, phones & IT equipment in Freetown, Sierra Leone. Best prices on Dell, HP, Lenovo. Free delivery in Freetown. Genuine products with warranty. Serving all of Sierra Leone.',
   keywords: [
     // Primary keywords
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     'Freetown Sierra Leone',
     'Sierra Leone',
     'Freetown',
-    'IT services Freetown',
+    'BridgeTech IT Services',
     'technology shop Sierra Leone',
     'computer accessories Freetown Sierra Leone',
     
@@ -71,7 +71,7 @@ export const metadata: Metadata = {
         url: 'https://www.itservicesfreetown.com/og-marketplace.jpg',
         width: 1200,
         height: 630,
-        alt: 'Buy Laptops and IT Products in Freetown Sierra Leone - IT Services Marketplace',
+        alt: 'Buy Laptops and IT Products in Freetown Sierra Leone - BridgeTech IT Services Marketplace',
       }
     ],
   },

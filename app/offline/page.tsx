@@ -54,7 +54,7 @@ export default function OfflinePage() {
 
           <h1 className="text-3xl font-extrabold mb-4 tracking-tight">Offline Mode</h1>
           <p className="text-blue-100/70 mb-8 leading-relaxed">
-            You are currently disconnected. Don't worry, ITS Freetown is still here for you. You can still reach us directly!
+            You are currently disconnected. Don't worry, BridgeTech IT Services is still here for you. You can still reach us directly!
           </p>
 
           <div className="space-y-4 mb-10">

@@ -1,4 +1,4 @@
-# SEO Optimization Report - IT Services Freetown
+# SEO Optimization Report - BridgeTech IT Services
 
 ## ✅ Completed Optimizations (October 23, 2025)
 
@@ -95,7 +95,7 @@ Added two schema types:
 ### Primary Keywords (High Priority):
 1. "computer repair Freetown"
 2. "mobile repair Sierra Leone"
-3. "IT services Freetown"
+3. "BridgeTech IT Services"
 4. "laptop repair Freetown"
 5. "phone repair Sierra Leone"
 
@@ -118,12 +118,12 @@ Based on current optimizations:
 
 ### Week 1-2:
 - Site will be crawled and indexed
-- Appears for branded searches ("IT Services Freetown")
+- Appears for branded searches ("BridgeTech IT Services")
 
 ### Month 1:
 - Rank #5-10 for: "computer repair Freetown"
 - Rank #3-7 for: "mobile repair Sierra Leone"
-- Rank #1-3 for: "IT services Freetown Sierra Leone"
+- Rank #1-3 for: "BridgeTech IT Services Sierra Leone"
 
 ### Month 3:
 - Rank #1-3 for: "computer repair Freetown"
@@ -255,13 +255,13 @@ Monitor these metrics:
 **3-Month Goal**:
 - 500+ organic visitors/month
 - Top 5 for "computer repair Freetown"
-- Top 3 for "IT services Freetown"
+- Top 3 for "BridgeTech IT Services"
 - 50+ monthly form submissions
 
 **6-Month Goal**:
 - 2,000+ organic visitors/month
 - #1 for "computer repair Freetown"
-- #1 for "IT services Freetown"
+- #1 for "BridgeTech IT Services"
 - 150+ monthly bookings
 
 ---

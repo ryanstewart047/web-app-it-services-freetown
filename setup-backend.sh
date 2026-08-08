@@ -3,7 +3,7 @@
 # Backend Implementation Setup Script
 # Run this script to install all necessary dependencies for the real backend features
 
-echo "🚀 Setting up IT Services Freetown Backend..."
+echo "🚀 Setting up BridgeTech IT Services Backend..."
 
 # Install core dependencies
 echo "📦 Installing core dependencies..."

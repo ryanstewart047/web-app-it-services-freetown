@@ -11,7 +11,7 @@
 ║                                                              ║
 ║  Author Name                                                 ║
 ║  ┌────────────────────────────────────────────────────────┐ ║
-║  │ IT Services Freetown                                   │ ║
+║  │ BridgeTech IT Services                                   │ ║
 ║  └────────────────────────────────────────────────────────┘ ║
 ║                                                              ║
 ║  Post Title                                                  ║
@@ -107,7 +107,7 @@ In blog admin page:
 ```
 1. Login with admin credentials
 2. Paste title in "Post Title" field
-3. Keep author as "IT Services Freetown"
+3. Keep author as "BridgeTech IT Services"
 ```
 
 ### Step 5: Switch to HTML Preview Mode

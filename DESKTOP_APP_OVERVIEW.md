@@ -256,9 +256,9 @@ Everything is documented in:
 
 ## 🎨 Branding
 
-The app uses your IT Services Freetown branding:
+The app uses your BridgeTech IT Services branding:
 - App name: "IT Services Device Detector"
-- Author: "IT Services Freetown"
+- Author: "BridgeTech IT Services"
 - Description: "Professional Android device diagnostics"
 
 ## 🔐 Privacy & Security
@@ -281,7 +281,7 @@ Users can:
 1. Check troubleshooting in README
 2. Visit your website
 3. Submit GitHub issues
-4. Contact IT Services Freetown
+4. Contact BridgeTech IT Services
 
 ## 🎉 Summary
 

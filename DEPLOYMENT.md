@@ -1,10 +1,10 @@
-# 🚀 Deployment Summary - IT Services Freetown
+# 🚀 Deployment Summary - BridgeTech IT Services
 
 ## ✅ Successfully Deployed to GitHub Pages!
 
-**🌐 Live Site:** https://itservicesfreetown.com  
-**📱 GitHub Pages:** https://ryanstewart047.github.io/web-app-it-services-freetown  
-**🔗 Repository:** https://github.com/ryanstewart047/web-app-it-services-freetown  
+**🌐 Live Site:** https://itservicesfreetown.com
+**📱 GitHub Pages:** https://ryanstewart047.github.io/web-app-it-services-freetown
+**🔗 Repository:** https://github.com/ryanstewart047/web-app-it-services-freetown
 
 ---
 
@@ -88,10 +88,10 @@ Then deploy to:
 
 ## 📞 Contact Information
 
-**IT Services Freetown**  
-📍 1 Regent Highway, Jui Junction, Freetown  
-📞 +232 33 399 391  
-📧 support@itservicesfreetown.com  
+**BridgeTech IT Services**
+📍 1 Regent Highway, Jui Junction, Freetown
+📞 +232 33 399 391
+📧 support@itservicesfreetown.com
 
 ---
 

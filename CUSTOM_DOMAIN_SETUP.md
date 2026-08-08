@@ -223,4 +223,4 @@ If you encounter issues:
 
 ---
 
-Your IT Services Freetown website will be live at `itservicesfreetown.com` once DNS propagation completes! 🚀
+Your BridgeTech IT Services website will be live at `itservicesfreetown.com` once DNS propagation completes! 🚀

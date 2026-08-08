@@ -19,7 +19,7 @@
 ```
 □ Visit: https://business.google.com
 □ Create business profile
-□ Business name: IT Services Freetown
+□ Business name: BridgeTech IT Services
 □ Category: Computer Store
 □ Address: [Your Freetown location]
 □ Phone: +232 33 399 391
@@ -282,7 +282,7 @@ Google Reviews: _______
 
 ### This Month:
 ```
-□ "A Day at IT Services Freetown" (vlog)
+□ "A Day at BridgeTech IT Services" (vlog)
 □ "Laptop Buying Mistakes to Avoid"
 □ "Best Laptops for Different Budgets"
 □ "Tech Shopping in Freetown: Complete Guide"

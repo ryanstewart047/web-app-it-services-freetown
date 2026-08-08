@@ -37,7 +37,7 @@ Google AdSense rejected your site for **"Low value content"** - meaning your sit
 **Goal:** Add 800+ words of unique, valuable content
 
 **Changes Made:**
-1. ✅ Added comprehensive "Why Choose IT Services Freetown" section with 6 detailed benefits
+1. ✅ Added comprehensive "Why Choose BridgeTech IT Services" section with 6 detailed benefits
 2. ✅ Created "Our Service Coverage" section highlighting Freetown locations
 3. ✅ Added detailed "Common Device Issues We Fix" section (10+ problems with descriptions)
 4. ✅ Created "How Our Repair Process Works" step-by-step guide

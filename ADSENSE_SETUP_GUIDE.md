@@ -1,6 +1,6 @@
 # Google AdSense Setup Guide
 
-Your IT Services Freetown website is now ready for Google AdSense integration! Follow these steps to start earning revenue from your website.
+Your BridgeTech IT Services website is now ready for Google AdSense integration! Follow these steps to start earning revenue from your website.
 
 ## 📍 Ad Placements
 

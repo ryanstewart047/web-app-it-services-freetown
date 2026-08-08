@@ -1,6 +1,6 @@
 # Deploying to Vercel (Free Alternative to Railway)
 
-This guide explains how to deploy your IT Services Freetown website to Vercel, a free hosting platform that provides serverless functions as an alternative to PHP.
+This guide explains how to deploy your BridgeTech IT Services website to Vercel, a free hosting platform that provides serverless functions as an alternative to PHP.
 
 ## Prerequisites
 
@@ -34,7 +34,7 @@ You'll need an email service to send emails from the serverless function. Here a
 {
   "name": "it-services-freetown",
   "version": "1.0.0",
-  "description": "IT Services Freetown Website",
+  "description": "BridgeTech IT Services Website",
   "main": "index.js",
   "scripts": {
     "dev": "vercel dev"

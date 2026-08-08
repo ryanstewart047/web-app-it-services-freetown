@@ -1,6 +1,6 @@
 # Complete Guide to Computer Maintenance in Sierra Leone
 
-Owning a computer or laptop in Sierra Leone comes with unique challenges. From frequent power outages to dust and humidity, our tropical climate can be tough on electronic devices. At IT Services Freetown, we've repaired over 1,000 computers, and we've learned that proper maintenance can extend your device's lifespan by years and save you significant money on repairs.
+Owning a computer or laptop in Sierra Leone comes with unique challenges. From frequent power outages to dust and humidity, our tropical climate can be tough on electronic devices. At BridgeTech IT Services, we've repaired over 1,000 computers, and we've learned that proper maintenance can extend your device's lifespan by years and save you significant money on repairs.
 
 In this comprehensive guide, we'll share professional maintenance tips specifically tailored for the Sierra Leonean environment.
 
@@ -54,7 +54,7 @@ Internal dust buildup is one of the leading causes of overheating in Freetown's 
 - You're uncomfortable opening your device
 - Your computer is still under warranty (opening it yourself may void warranty)
 
-At IT Services Freetown, we offer professional cleaning services for Le 50 inspection fee plus any necessary parts.
+At BridgeTech IT Services, we offer professional cleaning services for Le 50 inspection fee plus any necessary parts.
 
 ## Software Maintenance: Keeping Your System Healthy
 
@@ -261,7 +261,7 @@ While DIY maintenance helps, professional service is important:
 
 ### Annual Professional Checkup
 
-Visit IT Services Freetown once a year for:
+Visit BridgeTech IT Services once a year for:
 - Deep internal cleaning
 - Thermal paste replacement
 - Fan bearing lubrication
@@ -311,7 +311,7 @@ Computer maintenance in Sierra Leone requires extra attention due to our unique 
 - **Heat management** extends component lifespan
 - **Data backup** protects irreplaceable files
 
-Remember, prevention is always cheaper than repair. If you're unsure about any maintenance task or notice any concerning symptoms, visit us at IT Services Freetown.
+Remember, prevention is always cheaper than repair. If you're unsure about any maintenance task or notice any concerning symptoms, visit us at BridgeTech IT Services.
 
 **Contact Us:**
 - Location: #1 Regent Highway, Jui Junction, Freetown

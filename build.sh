@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🏗️  Building IT Services Freetown for deployment..."
+echo "🏗️  Building BridgeTech IT Services for deployment..."
 
 # Build CSS
 echo "📦 Building production CSS..."

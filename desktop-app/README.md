@@ -223,7 +223,7 @@ Built files will be in the `dist/` directory.
 
 ## 🤝 Contributing
 
-This is part of the IT Services Freetown project. Contributions are welcome!
+This is part of the BridgeTech IT Services project. Contributions are welcome!
 
 ## 📄 License
 
@@ -233,12 +233,12 @@ MIT License - feel free to use and modify!
 
 For issues or questions:
 1. Check the troubleshooting section above
-2. Visit our website: IT Services Freetown
+2. Visit our website: BridgeTech IT Services
 3. Submit an issue on GitHub
 
 ## 🌟 Credits
 
-Developed by **IT Services Freetown**
+Developed by **BridgeTech IT Services**
 Professional IT solutions and device diagnostics
 
 ---

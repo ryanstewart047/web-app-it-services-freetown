@@ -21,7 +21,7 @@ cat > "$OUTPUT_FILE" << 'ISSUE_START'
 <!--
 BLOG_POST_METADATA
 {
-  "author": "IT Services Freetown",
+  "author": "BridgeTech IT Services",
   "date": "2025-11-05",
   "media": []
 }

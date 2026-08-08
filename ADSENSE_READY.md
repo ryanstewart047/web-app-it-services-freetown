@@ -2,7 +2,7 @@
 
 ## What We've Done
 
-Your IT Services Freetown website is now **fully prepared** for Google AdSense monetization! Here's what's been implemented:
+Your BridgeTech IT Services website is now **fully prepared** for Google AdSense monetization! Here's what's been implemented:
 
 ### 🎯 Ad Placements Added
 

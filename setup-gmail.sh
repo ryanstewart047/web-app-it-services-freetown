@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 IT Services Freetown - Gmail Setup for Email Notifications"
+echo "🚀 BridgeTech IT Services - Gmail Setup for Email Notifications"
 echo "============================================================="
 echo ""
 
@@ -15,7 +15,7 @@ echo "4. If not enabled, enable 2-Step Verification first"
 echo "5. Click 'App passwords' at the bottom"
 echo "6. Select 'Mail' as the app"
 echo "7. Select 'Other (Custom name)' as device"
-echo "8. Enter 'IT Services Freetown' as the name"
+echo "8. Enter 'BridgeTech IT Services' as the name"
 echo "9. Click 'Generate'"
 echo "10. Copy the 16-character password (like: abcd efgh ijkl mnop)"
 echo ""

@@ -1,4 +1,4 @@
-# IT Services Freetown - Web Application
+# BridgeTech IT Services - Web Application
 
 A comprehensive IT services web application for computer and mobile repairs in Freetown, Sierra Leone. Built with Next.js 14, TypeScript, and modern web technologies.
 

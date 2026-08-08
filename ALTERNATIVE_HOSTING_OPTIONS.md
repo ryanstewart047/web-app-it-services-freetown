@@ -1,4 +1,4 @@
-# Alternative Hosting Options for IT Services Freetown
+# Alternative Hosting Options for BridgeTech IT Services
 
 Since your Railway free trial has ended, here are some alternative hosting options for your PHP-based website:
 

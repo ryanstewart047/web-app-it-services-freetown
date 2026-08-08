@@ -43,8 +43,8 @@ export async function generateChatResponse(context: ChatContext): Promise<string
 BUSINESS DETAILS:
 - Location: No. 1 Regent Highway, Jui Junction, Freetown
 - Phone: +232 33 399 391 / +232 76 210 320
-- Email: info@bridgetechit.com / support@bridgetechit.com
-- Website: www.bridgetechit.com (also accessible at www.itservicesfreetown.com)
+- Email: support@itservicesfreetown.com
+- Website: www.itservicesfreetown.com
 - Hours: Mon–Fri 8AM–6PM, Sat by appointment, Sun Closed
 - Lead Technician: Ryan Josiah Stewart (IT grad, Amity University India)
 - Payment: Cash, Mobile Money, Bank Transfer

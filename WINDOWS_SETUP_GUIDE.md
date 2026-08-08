@@ -1,4 +1,4 @@
-# IT Services Freetown - Windows Setup Guide
+# BridgeTech IT Services - Windows Setup Guide
 
 ## 📦 Project Package Contents
 

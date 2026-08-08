@@ -161,7 +161,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendAppointmentConfirmation(appointment: Appointment) {
   const { data, error } = await resend.emails.send({
-    from: 'IT Services Freetown <noreply@itservicesfreetown.com>',
+    from: 'BridgeTech IT Services <noreply@itservicesfreetown.com>',
     to: [appointment.email],
     subject: `Appointment Confirmed - ${appointment.id}`,
     react: AppointmentConfirmationEmail({ appointment }),
@@ -177,7 +177,7 @@ export async function sendAppointmentConfirmation(appointment: Appointment) {
 
 export async function sendRepairStatusUpdate(repair: Repair) {
   const { data, error } = await resend.emails.send({
-    from: 'IT Services Freetown <noreply@itservicesfreetown.com>',
+    from: 'BridgeTech IT Services <noreply@itservicesfreetown.com>',
     to: [repair.email],
     subject: `Repair Update - ${repair.trackingId}`,
     react: RepairStatusEmail({ repair }),
@@ -203,8 +203,8 @@ export async function generateAIResponse(message: string, context?: string) {
       messages: [
         {
           role: "system",
-          content: `You are a helpful IT support assistant for IT Services Freetown. 
-          You specialize in computer and mobile device repairs. 
+          content: `You are a helpful IT support assistant for BridgeTech IT Services.
+          You specialize in computer and mobile device repairs.
           Be friendly, professional, and provide practical troubleshooting advice.
           If the issue seems complex, suggest booking an appointment or connecting with a human agent.
           ${context ? `Context: ${context}` : ''}`
@@ -246,7 +246,7 @@ export function initializeSocket(server: any) {
 
     socket.on('join-chat', async (sessionId: string) => {
       socket.join(sessionId);
-      
+
       // Create or get chat session
       const session = await prisma.chatSession.upsert({
         where: { sessionId },
@@ -257,7 +257,7 @@ export function initializeSocket(server: any) {
 
     socket.on('send-message', async (data) => {
       const { sessionId, message, sender } = data;
-      
+
       // Save message to database
       await prisma.chatMessage.create({
         data: {
@@ -278,7 +278,7 @@ export function initializeSocket(server: any) {
       if (sender === 'user') {
         setTimeout(async () => {
           const aiResponse = await generateAIResponse(message);
-          
+
           // Save AI response
           await prisma.chatMessage.create({
             data: {
@@ -333,7 +333,7 @@ import { sendAppointmentConfirmation } from '@/lib/email';
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
-    
+
     // Create appointment
     const appointment = await prisma.appointment.create({
       data: {
@@ -374,7 +374,7 @@ import { prisma } from '@/lib/prisma';
 export async function POST(request: NextRequest) {
   try {
     const { trackingId } = await request.json();
-    
+
     const repair = await prisma.repair.findUnique({
       where: { trackingId },
       include: {

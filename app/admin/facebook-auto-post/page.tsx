@@ -66,7 +66,7 @@ const DEFAULT_SETTINGS: Settings = {
     'https://www.itservicesfreetown.com/assets/images/iphone-repair.jpg',
     'https://www.itservicesfreetown.com/assets/images/slider001.jpg',
   ],
-  hashtags: ['ITServicesFreetown', 'FreetownTech', 'PhoneRepair', 'ComputerRepair'],
+  hashtags: ['BridgeTechITServices', 'FreetownTech', 'PhoneRepair', 'ComputerRepair'],
   lastPostAt: null,
   nextPostAfter: null,
   updatedAt: null,

@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     
     // Location-specific
     'Freetown Sierra Leone',
-    'IT services Freetown',
+    'BridgeTech IT Services',
     'home repair Freetown',
     
     // Device-specific
@@ -183,8 +183,8 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="ITS Freetown" />
-        <meta name="application-name" content="ITS Freetown" />
+        <meta name="apple-mobile-web-app-title" content="BridgeTech IT Services" />
+        <meta name="application-name" content="BridgeTech IT Services" />
         <meta name="msapplication-TileColor" content="#ffffff" />
         <meta name="msapplication-tap-highlight" content="no" />
         
@@ -207,7 +207,7 @@ export default function RootLayout({
               '@type': 'LocalBusiness',
               '@id': 'https://www.itservicesfreetown.com',
               name: 'BridgeTech IT Services',
-              alternateName: 'IT Services SL',
+              alternateName: 'BridgeTech IT',
               description: 'Professional computer and mobile repair services in Freetown, Sierra Leone. Same-day service, 1-month warranty, 95% success rate.',
               url: BRAND_SITE_URL,
               telephone: '+23233399391',

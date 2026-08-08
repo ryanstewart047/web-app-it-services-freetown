@@ -1,4 +1,4 @@
-# Docker Setup Guide for IT Services Freetown
+# Docker Setup Guide for BridgeTech IT Services
 
 Complete guide to containerize and deploy your Next.js application using Docker.
 

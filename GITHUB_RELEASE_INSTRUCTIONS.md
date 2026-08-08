@@ -102,7 +102,7 @@ Windows and macOS installers will be added in the next release.
 ## ⚙️ Requirements
 
 - **ADB (Android Debug Bridge)** must be installed
-- USB cable to connect Android device  
+- USB cable to connect Android device
 - USB Debugging enabled on Android device
 
 ## 📚 Documentation
@@ -156,7 +156,7 @@ npm start
 
 ## 🙏 Credits
 
-Developed by **IT Services Freetown**  
+Developed by **BridgeTech IT Services**
 Professional IT solutions and device diagnostics
 
 ## 📄 License
@@ -215,9 +215,9 @@ When creating the release, you'll see:
 
 ## 🎯 Summary
 
-✅ **Binaries location**: `desktop-app/dist/`  
-✅ **Tag to create**: `v1.0.0`  
-✅ **Files to upload**: 2 Linux installers (AppImage + DEB)  
+✅ **Binaries location**: `desktop-app/dist/`
+✅ **Tag to create**: `v1.0.0`
+✅ **Files to upload**: 2 Linux installers (AppImage + DEB)
 ✅ **After publish**: Download buttons on website will work!
 
 ## ⚠️ Important Notes
@@ -228,4 +228,3 @@ When creating the release, you'll see:
 4. You can always **edit the release** later to add Windows/Mac builds
 
 Good luck! 🚀
-    

@@ -5,7 +5,7 @@
 
 echo "========================================"
 echo "   GitHub Token Fix"
-echo "   IT Services Freetown"
+echo "   BridgeTech IT Services"
 echo "========================================"
 echo ""
 echo "❌ Current Issue:"

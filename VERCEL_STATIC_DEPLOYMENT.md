@@ -108,4 +108,4 @@ To add a custom domain:
 
 ---
 
-Your IT Services Freetown website is now optimized for static deployment on Vercel! 🎉
+Your BridgeTech IT Services website is now optimized for static deployment on Vercel! 🎉

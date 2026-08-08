@@ -79,7 +79,7 @@ export default async function Image() {
             letterSpacing: '0.06em',
             fontWeight: '700',
           }}>
-            IT SERVICES FREETOWN
+            BRIDGETECH IT SERVICES
           </p>
 
           {/* Tagline pill */}

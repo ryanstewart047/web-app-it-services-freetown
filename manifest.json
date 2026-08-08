@@ -1,6 +1,6 @@
 {
-  "name": "IT Services Freetown - Professional Computer & Mobile Repair",
-  "short_name": "ITS Freetown",
+  "name": "BridgeTech IT Services - Professional Computer & Mobile Repair",
+  "short_name": "BridgeTech IT",
   "description": "Professional computer and mobile repair services in Freetown, Sierra Leone. Same day service, 1-month warranty, and expert technicians.",
   "start_url": "/",
   "display": "standalone",
@@ -16,14 +16,14 @@
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "IT Services Freetown - Desktop View"
+      "label": "BridgeTech IT Services - Desktop View"
     },
     {
       "src": "assets/screenshot-mobile.png", 
       "sizes": "750x1334",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "IT Services Freetown - Mobile View"
+      "label": "BridgeTech IT Services - Mobile View"
     }
   ],
   "icons": [

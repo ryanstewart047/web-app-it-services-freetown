@@ -2,7 +2,7 @@
 
 ## Created Articles Summary
 
-I've created **8 comprehensive blog articles** for your IT Services Freetown website. Each article is 800-1,680 words, original, and focused on Sierra Leone's IT market.
+I've created **8 comprehensive blog articles** for your BridgeTech IT Services website. Each article is 800-1,680 words, original, and focused on Sierra Leone's IT market.
 
 ### Article List:
 
@@ -53,7 +53,7 @@ I've created **8 comprehensive blog articles** for your IT Services Freetown web
    - Copy the article `title`
    - Copy the HTML from `content` field
    - Paste into the rich text editor in admin panel
-   - Add the `author`: "IT Services Freetown"
+   - Add the `author`: "BridgeTech IT Services"
    - Add the `tags` listed above
    - Click **"Publish Post"**
 

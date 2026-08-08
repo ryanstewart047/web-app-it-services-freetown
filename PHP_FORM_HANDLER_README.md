@@ -1,6 +1,6 @@
 # PHP Form Handler Setup Guide
 
-This guide explains how to set up the PHP form handler for the IT Services Freetown website.
+This guide explains how to set up the PHP form handler for the BridgeTech IT Services website.
 
 ## Files Overview
 
@@ -34,7 +34,7 @@ This guide explains how to set up the PHP form handler for the IT Services Freet
    
    ```php
    $admin_email = "your-email@example.com"; // Change to your email
-   $website_name = "IT Services Freetown";
+   $website_name = "BridgeTech IT Services";
    $no_reply_email = "no-reply@yourdomain.com";
    ```
 

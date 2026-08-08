@@ -4,7 +4,7 @@ This directory contains icon files for the desktop application.
 
 ## Current Files
 
-- `icon.svg` - Main app icon with IT Services Freetown logo (512x512)
+- `icon.svg` - Main app icon with BridgeTech IT Services logo (512x512)
 - `logo-original.svg` - Original IT Services logo (40x40)
 - `logo-original.png` - Original IT Services logo PNG
 
@@ -23,7 +23,7 @@ To build the desktop app for all platforms, you'll need to create the following 
 
 ## Creating Icons from SVG
 
-The `icon.svg` file is already 512x512 and uses the IT Services Freetown branding with:
+The `icon.svg` file is already 512x512 and uses the BridgeTech IT Services branding with:
 - Company logo (computer monitor + mobile phone + repair tools)
 - Blue gradient background matching brand colors
 - USB detection badge (green)
@@ -113,7 +113,7 @@ rm -rf icon.iconset
 
 ## Branding
 
-The icon features the IT Services Freetown logo:
+The icon features the BridgeTech IT Services logo:
 - 🖥️ Computer monitor (desktop/laptop repairs)
 - 📱 Mobile phone (mobile device services)
 - 🔧 Repair tools (technical services)

@@ -11,7 +11,7 @@ I've significantly enhanced your website content to address Google AdSense's "lo
 ### 1. **Homepage Enhancement** ✅
 **Added 2,500+ words of unique content**
 
-#### New Section: "Why Choose IT Services Freetown?"
+#### New Section: "Why Choose BridgeTech IT Services?"
 - 6 detailed benefit cards with 200+ words each:
   * Certified Expertise - Technician qualifications & experience
   * Fast Turnaround - Same-day repair services
@@ -184,7 +184,7 @@ Location: `/faq`
 1. **Homepage Updates:**
    - Visit: `https://itservicesfreetown.com/`
    - Scroll down to see:
-     * "Why Choose IT Services Freetown?" section
+     * "Why Choose BridgeTech IT Services?" section
      * "Common Device Problems We Fix" section
    - Total page length significantly increased
 

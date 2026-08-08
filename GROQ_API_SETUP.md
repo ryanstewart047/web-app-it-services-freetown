@@ -22,7 +22,7 @@ This project uses **Groq** for AI-powered chat and troubleshooting features. Gro
 3. **Generate API Key**:
    - Once logged in, go to https://console.groq.com/keys
    - Click "Create API Key"
-   - Give it a name (e.g., "IT Services Freetown Chat")
+   - Give it a name (e.g., "BridgeTech IT Services Chat")
    - Copy the API key (starts with `gsk_...`)
    - **Important**: Save it somewhere safe - you can't see it again!
 

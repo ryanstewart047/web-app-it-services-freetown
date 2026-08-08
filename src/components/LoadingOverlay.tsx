@@ -92,7 +92,7 @@ export default function LoadingOverlay({
                 <h2 className="text-2xl font-black text-[#040e40] tracking-tight mt-3">
                   BridgeTech <span className="text-[#dc2626]">IT Services</span>
                 </h2>
-                <p className="text-xs text-gray-400 mt-0.5 font-medium tracking-widest uppercase">bridgetechit.com</p>
+                <p className="text-xs text-gray-400 mt-0.5 font-medium tracking-widest uppercase">itservicesfreetown.com</p>
               </div>
 
               {/* Animated subtitle */}

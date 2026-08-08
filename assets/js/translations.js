@@ -1,4 +1,4 @@
-// Translation system for IT Services Freetown
+// Translation system for BridgeTech IT Services
 class TranslationManager {
     constructor() {
         this.currentLanguage = localStorage.getItem('language') || 'en';
@@ -75,7 +75,7 @@ class TranslationManager {
                 'footer.description': 'Professional computer and mobile repair services in Freetown, Sierra Leone. We provide expert repairs with real-time tracking and AI-powered support.',
                 'footer.quick-links': 'Quick Links',
                 'footer.contact': 'Contact Us',
-                'footer.copyright': '© 2025 IT Services Freetown. All rights reserved.',
+                'footer.copyright': '© 2025 BridgeTech IT Services. All rights reserved.',
 
                 // Book Appointment Page
                 'book.title': 'Book Your Repair Appointment',
@@ -221,7 +221,7 @@ class TranslationManager {
                 'footer.description': 'Services professionnels de réparation d\'ordinateurs et mobiles à Freetown, Sierra Leone. Nous fournissons des réparations expertes avec suivi en temps réel et support IA.',
                 'footer.quick-links': 'Liens Rapides',
                 'footer.contact': 'Nous Contacter',
-                'footer.copyright': '© 2025 IT Services Freetown. Tous droits réservés.',
+                'footer.copyright': '© 2025 BridgeTech IT Services. Tous droits réservés.',
 
                 // Book Appointment Page
                 'book.title': 'Réserver Votre Rendez-vous de Réparation',

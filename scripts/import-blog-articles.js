@@ -131,4 +131,4 @@ try {
 }
 
 console.log('=' .repeat(60));
-console.log('\nFor assistance importing articles, contact IT Services Freetown support.\n');
+console.log('\nFor assistance importing articles, contact BridgeTech IT Services support.\n');

@@ -1,4 +1,4 @@
-# IT Services Freetown - AI Knowledge Base Enhancement Plan
+# BridgeTech IT Services - AI Knowledge Base Enhancement Plan
 
 ## Current State Analysis
 - ✅ Basic AI integration with Gemini API

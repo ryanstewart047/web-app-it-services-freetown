@@ -32,7 +32,7 @@
 
 5. **Paste and customize:**
    - Title: `Best Laptops in Freetown 2025: Complete Buying Guide`
-   - Author: `IT Services Freetown`
+   - Author: `BridgeTech IT Services`
    - Paste the full content into the editor
    - Add any images of your actual products
 
@@ -93,7 +93,7 @@ Or open it in VS Code editor.
 - "business laptops Freetown"
 
 ### Local Keywords:
-- "IT Services Freetown"
+- "BridgeTech IT Services"
 - "computer shop Freetown"
 - "laptop store Sierra Leone"
 
@@ -118,7 +118,7 @@ Or open it in VS Code editor.
 
 - [ ] **Instagram Post**
   - Create carousel with laptop images
-  - Hashtags: #SierraLeoneTech #ITServicesFreetown #FreetownShopping
+  - Hashtags: #SierraLeoneTech #BridgeTechITServices #FreetownShopping
 
 ### Week 1:
 

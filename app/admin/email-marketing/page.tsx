@@ -723,7 +723,7 @@ export default function EmailMarketingPage() {
 
                   {/* Mail Header / App bar */}
                   <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-2 text-xs text-slate-500 font-semibold select-none">
-                    <div className="h-6 w-6 rounded-full bg-blue-500 flex items-center justify-center text-[10px] font-black text-white">ITS</div>
+                    <div className="h-6 w-6 rounded-full bg-blue-500 flex items-center justify-center text-[10px] font-black text-white">BT</div>
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-slate-800 truncate text-[11px]">BridgeTech IT Services</p>
                       <p className="text-[9px] text-slate-400 truncate">Subject: {subject || '(No Subject)'}</p>

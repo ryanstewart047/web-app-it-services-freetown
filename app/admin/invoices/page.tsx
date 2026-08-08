@@ -710,7 +710,7 @@ export default function InvoicesAdminPage() {
                         <div>
                           <div className="text-2xl font-black tracking-tight text-white">{BRAND_NAME}</div>
                           <div className="text-red-100 text-xs font-medium mt-0.5">Professional IT Services & Repairs · Hardware & Repairs</div>
-                          <div className="text-blue-100 text-xs mt-0.5">+232 33 399 391 · +232 76 210 320 · info@bridgetechit.com</div>
+                          <div className="text-blue-100 text-xs mt-0.5">+232 33 399 391 · +232 76 210 320 · support@itservicesfreetown.com</div>
                         </div>
                       </div>
                       <div className="text-right shrink-0">

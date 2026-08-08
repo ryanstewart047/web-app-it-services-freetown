@@ -5,7 +5,7 @@
 
 echo "======================================"
 echo "   Blog Post Publisher"
-echo "   IT Services Freetown"
+echo "   BridgeTech IT Services"
 echo "======================================"
 echo ""
 
@@ -62,7 +62,7 @@ echo "   → Share on Facebook"
 echo "   → Post on WhatsApp Business status"
 echo "   → Share on Instagram with hashtags:"
 echo "     #FreetownBusiness #SierraLeoneTech"
-echo "     #LaptopsFreetown #ITServicesFreetown"
+echo "     #LaptopsFreetown #BridgeTechITServices"
 echo ""
 echo "======================================"
 echo "   Ready to publish? Let's go! 🎉"

@@ -14,11 +14,26 @@ export default function ServiceWorkerRegistration() {
 
     // Register service worker
     if ('serviceWorker' in navigator) {
+      // Clear legacy image/asset caches directly from client side to unstick mobile devices
+      if ('caches' in window) {
+        caches.keys().then((keys) => {
+          keys.forEach((key) => {
+            if (key.includes('it-services-freetown') || key.includes('v1') || key.includes('v2') || key.includes('v3') || key.includes('v4') || key.includes('v5')) {
+              console.log('[ServiceWorkerRegistration] Deleting legacy cache:', key)
+              caches.delete(key)
+            }
+          })
+        })
+      }
+
       navigator.serviceWorker
         .register('/sw.js')
         .then((registration) => {
           console.log('Service Worker registered successfully:', registration)
-          
+
+          // Force update check on every page load
+          registration.update()
+
           // Check for updates
           registration.addEventListener('updatefound', () => {
             const newWorker = registration.installing
@@ -26,20 +41,9 @@ export default function ServiceWorkerRegistration() {
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed') {
                   if (navigator.serviceWorker.controller) {
-                    // New content is available; please refresh
-                    console.log('New content is available; please refresh.')
-                    
-                    // Optionally show a notification to the user
-                    if ('Notification' in window && Notification.permission === 'granted') {
-                      new Notification(BRAND_NAME, {
-                        body: 'New content available! Tap to refresh.',
-                        icon: BRAND_LOGO_SRC,
-                        badge: '/assets/favicon-52x52.png'
-                      })
-                    }
-                  } else {
-                    // Content is cached for offline use
-                    console.log('Content is cached for offline use.')
+                    console.log('New content available, updating service worker...')
+                    // Post skip waiting to new worker
+                    newWorker.postMessage({ type: 'SKIP_WAITING' })
                   }
                 }
               })

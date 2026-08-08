@@ -1,6 +1,6 @@
 # Facebook Integration Setup Guide
 
-This guide will help you set up Facebook integration for IT Services Freetown website.
+This guide will help you set up Facebook integration for BridgeTech IT Services website.
 
 ## 🎯 Overview
 
@@ -19,7 +19,7 @@ We've implemented professional Facebook integration with the following features:
 2. Click "Create App" or use existing app
 3. Choose "Consumer" app type
 4. Fill in your app details:
-   - **App Name**: "IT Services Freetown Website"
+   - **App Name**: "BridgeTech IT Services Website"
    - **App Contact Email**: Your business email
 
 ### Step 2: Configure Environment Variables

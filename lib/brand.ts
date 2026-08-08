@@ -1,5 +1,5 @@
 export const BRAND_NAME = 'BridgeTech IT Services';
-export const BRAND_SITE_URL = 'https://www.bridgetechit.com';
+export const BRAND_SITE_URL = 'https://www.itservicesfreetown.com';
 
 // Light background logo (navbar, invoices, letters, receipts)
 export const BRAND_LOGO_SRC = '/assets/logo.svg';

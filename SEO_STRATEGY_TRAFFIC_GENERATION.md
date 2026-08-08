@@ -1,5 +1,5 @@
 # 🚀 SEO Strategy & Traffic Generation Guide
-## IT Services Freetown Marketplace
+## BridgeTech IT Services Marketplace
 
 ---
 
@@ -39,7 +39,7 @@
 #### 1. **Google My Business**
 ```
 ✅ Create/optimize GMB listing
-- Business name: IT Services Freetown
+- Business name: BridgeTech IT Services
 - Category: Computer Store, Electronics Store, IT Services
 - Add all products with photos
 - Post weekly updates about new products
@@ -99,7 +99,7 @@ Action Steps:
 ```
 📹 Video Ideas:
 - Product unboxing and reviews
-- "A Day at IT Services Freetown"
+- "A Day at BridgeTech IT Services"
 - Customer testimonials
 - Tech tips and tricks
 - "How we repair computers" behind-the-scenes
@@ -446,9 +446,9 @@ Program:
 
 ---
 
-**Last Updated:** November 2025  
-**Author:** IT Services Freetown Development Team  
-**Website:** https://itservicesfreetown.com  
+**Last Updated:** November 2025
+**Author:** BridgeTech IT Services Development Team
+**Website:** https://itservicesfreetown.com
 **Contact:** +232 33 399 391
 
 ---

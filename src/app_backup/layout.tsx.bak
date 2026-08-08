@@ -13,14 +13,14 @@ import Script from 'next/script'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'IT Services Freetown - Computer & Mobile Repair',
+  title: 'BridgeTech IT Services - Computer & Mobile Repair',
   description: 'Professional computer and mobile repair services in Freetown. Book appointments, track repairs, and get AI-powered troubleshooting support.',
   keywords: 'computer repair, mobile repair, IT services, Freetown, Sierra Leone, laptop repair, phone repair',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'IT Services Freetown'
+    title: 'BridgeTech IT Services'
   },
 }
 
@@ -43,7 +43,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="IT Services Freetown" />
+        <meta name="apple-mobile-web-app-title" content="BridgeTech IT Services" />
         
         {/* Apple Touch Icons */}
         <link rel="apple-touch-icon" href="/assets/favicon-52x52.png" />
