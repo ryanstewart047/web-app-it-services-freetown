@@ -352,10 +352,17 @@ export default function AdminPage() {
       setShowIdleWarning(false);
     };
 
-    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+    const events = ['mousedown', 'mousemove', 'keydown', 'keyup', 'input', 'scroll', 'touchstart', 'click', 'focus'];
     events.forEach(event => {
       document.addEventListener(event, updateActivity, { passive: true });
     });
+
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'ADMIN_ACTIVITY') {
+        updateActivity();
+      }
+    };
+    window.addEventListener('message', handleMessage);
 
     const idleCheckInterval = setInterval(() => {
       const timeSinceLastActivity = Date.now() - lastActivity;
@@ -372,6 +379,7 @@ export default function AdminPage() {
       events.forEach(event => {
         document.removeEventListener(event, updateActivity);
       });
+      window.removeEventListener('message', handleMessage);
       clearInterval(idleCheckInterval);
     };
   }, [isAuthenticated, lastActivity, showIdleWarning]);
@@ -840,7 +848,10 @@ export default function AdminPage() {
         {/* Sidebar Brand Header */}
         <div className="p-4 border-b border-red-900/30 flex items-center justify-between">
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-10 h-10 bg-red-600/20 border border-red-600/40 rounded-xl flex items-center justify-center shrink-0">
+            <div
+              className="w-10 h-10 bg-red-600/20 border border-red-600/40 rounded-xl flex items-center justify-center shrink-0"
+              title={!isSidebarOpen ? "Master Admin Hub — BridgeTech IT Services" : undefined}
+            >
               <i className="fas fa-shield-alt text-red-400 text-lg"></i>
             </div>
             {isSidebarOpen && (
@@ -891,6 +902,7 @@ export default function AdminPage() {
                   <button
                     key={panel.id}
                     onClick={() => handleTabChange(panel.id)}
+                    title={!isSidebarOpen ? panel.name : undefined}
                     className={`w-full flex items-center ${
                       isSidebarOpen ? 'justify-start px-3' : 'justify-center px-0'
                     } py-2.5 rounded-xl transition-all ${
@@ -920,6 +932,7 @@ export default function AdminPage() {
                   <button
                     key={panel.id}
                     onClick={() => handleTabChange(panel.id)}
+                    title={!isSidebarOpen ? panel.name : undefined}
                     className={`w-full flex items-center ${
                       isSidebarOpen ? 'justify-start px-3' : 'justify-center px-0'
                     } py-2.5 rounded-xl transition-all ${
@@ -949,6 +962,7 @@ export default function AdminPage() {
                   <button
                     key={panel.id}
                     onClick={() => handleTabChange(panel.id)}
+                    title={!isSidebarOpen ? panel.name : undefined}
                     className={`w-full flex items-center ${
                       isSidebarOpen ? 'justify-start px-3' : 'justify-center px-0'
                     } py-2.5 rounded-xl transition-all ${
@@ -978,6 +992,7 @@ export default function AdminPage() {
                   <button
                     key={panel.id}
                     onClick={() => handleTabChange(panel.id)}
+                    title={!isSidebarOpen ? panel.name : undefined}
                     className={`w-full flex items-center ${
                       isSidebarOpen ? 'justify-start px-3' : 'justify-center px-0'
                     } py-2.5 rounded-xl transition-all ${
@@ -1001,6 +1016,7 @@ export default function AdminPage() {
               setShow2FAModal(true);
               void load2FASettings();
             }}
+            title={!isSidebarOpen ? '2FA Security Setup' : undefined}
             className={`w-full flex items-center ${
               isSidebarOpen ? 'justify-start px-3' : 'justify-center px-0'
             } py-2 rounded-lg text-amber-400 hover:bg-amber-500/10 text-xs font-medium transition-colors`}
@@ -1011,6 +1027,7 @@ export default function AdminPage() {
           <Link
             href="/"
             target="_blank"
+            title={!isSidebarOpen ? 'View Public Site' : undefined}
             className={`w-full flex items-center ${
               isSidebarOpen ? 'justify-start px-3' : 'justify-center px-0'
             } py-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800/50 text-xs transition-colors`}
@@ -1020,6 +1037,7 @@ export default function AdminPage() {
           </Link>
           <button
             onClick={handleLogout}
+            title={!isSidebarOpen ? 'Logout Session' : undefined}
             className={`w-full flex items-center ${
               isSidebarOpen ? 'justify-start px-3' : 'justify-center px-0'
             } py-2 rounded-lg text-rose-400 hover:bg-rose-500/10 text-xs font-medium transition-colors`}

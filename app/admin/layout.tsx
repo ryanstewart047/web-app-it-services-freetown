@@ -22,6 +22,14 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
                 if (theme === 'dark') {
                   document.documentElement.classList.add('dark');
                 }
+                const report = () => {
+                  if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'ADMIN_ACTIVITY' }, '*');
+                  }
+                };
+                ['mousedown', 'mousemove', 'keydown', 'keyup', 'input', 'scroll', 'touchstart', 'click', 'focus'].forEach(e => {
+                  document.addEventListener(e, report, { passive: true });
+                });
               } catch (e) {}
             `,
           }}

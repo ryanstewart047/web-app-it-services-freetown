@@ -31,10 +31,13 @@ export function useAdminSession(options: UseAdminSessionOptions = {}) {
     const updateActivity = () => {
       setLastActivity(Date.now());
       setShowIdleWarning(false);
+      if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'ADMIN_ACTIVITY' }, '*');
+      }
     };
 
     // Track user activity events
-    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click', 'mousemove'];
+    const events = ['mousedown', 'mousemove', 'keydown', 'keyup', 'input', 'scroll', 'touchstart', 'click', 'focus'];
     events.forEach(event => {
       document.addEventListener(event, updateActivity, { passive: true });
     });
