@@ -11,30 +11,86 @@ export async function GET(request: NextRequest) {
     }
 
     const cleanQuery = query.trim();
-
-    // 1. Fetch Full-Length Tracks from Jamendo Music API (Client ID: 56d30ee7)
-    // Jamendo provides 100% full-length 3-5 minute tracks with direct audio & download URLs
-    const jamendoUrl = `https://api.jamendo.com/v3.0/tracks/?client_id=56d30ee7&format=json&limit=${limit}&namesearch=${encodeURIComponent(
-      cleanQuery
-    )}&include=musicinfo`;
-
-    // 2. Fetch iTunes tracks as fallback/supplement
-    const itunesUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(
-      cleanQuery
-    )}&media=music&entity=song&limit=${limit}`;
-
-    const [jamendoRes, itunesRes] = await Promise.allSettled([
-      fetch(jamendoUrl, { headers: { 'User-Agent': 'BridgeTech-DigitalTools/1.0' }, next: { revalidate: 300 } }),
-      fetch(itunesUrl, { headers: { 'User-Agent': 'BridgeTech-DigitalTools/1.0' }, next: { revalidate: 300 } }),
-    ]);
-
     const results: any[] = [];
     const seenIds = new Set<string>();
 
-    // Process Jamendo Full-Length Tracks first
-    if (jamendoRes.status === 'fulfilled' && jamendoRes.value.ok) {
-      try {
-        const jamendoData = await jamendoRes.value.json();
+    // 1. YouTube Search Scraper (100% Full-Length Songs)
+    try {
+      const ytSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanQuery + ' music song')}`;
+      const ytRes = await fetch(ytSearchUrl, {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+          'Accept-Language': 'en-US,en;q=0.9',
+        },
+        next: { revalidate: 180 },
+      });
+
+      if (ytRes.ok) {
+        const html = await ytRes.text();
+        const match = html.match(/var ytInitialData = ({.*?});<\/script>/s);
+
+        if (match && match[1]) {
+          const ytData = JSON.parse(match[1]);
+          const contents =
+            ytData?.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents?.[0]
+              ?.itemSectionRenderer?.contents || [];
+
+          contents.forEach((item: any) => {
+            if (item.videoRenderer && results.length < limit) {
+              const v = item.videoRenderer;
+              const videoId = v.videoId;
+              const title = v.title?.runs?.[0]?.text || 'Untitled Song';
+              const artist = v.ownerText?.runs?.[0]?.text || 'Unknown Artist';
+              const durationFormatted = v.lengthText?.simpleText || '3:45';
+
+              if (videoId && !seenIds.has(videoId)) {
+                seenIds.add(videoId);
+
+                // Convert "3:45" formatted time to Ms
+                const parts = durationFormatted.split(':').map(Number);
+                let durationMs = 180000;
+                if (parts.length === 2) durationMs = (parts[0] * 60 + parts[1]) * 1000;
+                if (parts.length === 3) durationMs = (parts[0] * 3600 + parts[1] * 60 + parts[2]) * 1000;
+
+                results.push({
+                  id: `yt_${videoId}`,
+                  youtubeId: videoId,
+                  title: title.replace(/\[.*?\]|\(.*?\)/g, '').trim() || title,
+                  artist: artist.replace(/ - Topic|VEVO/g, '').trim(),
+                  album: 'YouTube Full Track',
+                  genre: 'Music',
+                  durationMs,
+                  durationFormatted,
+                  previewUrl: `https://www.youtube.com/watch?v=${videoId}`,
+                  downloadUrl: `https://www.youtube.com/watch?v=${videoId}`,
+                  artworkUrlSmall: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+                  artworkUrlHD: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+                  isFullTrack: true,
+                  source: 'YouTube Music (100% Full Song)',
+                  isExplicit: false,
+                });
+              }
+            }
+          });
+        }
+      }
+    } catch (e) {
+      console.error('YouTube Search Scrape Error:', e);
+    }
+
+    // 2. Jamendo Music API (Full-Length Free Tracks)
+    try {
+      const jamendoUrl = `https://api.jamendo.com/v3.0/tracks/?client_id=56d30ee7&format=json&limit=15&namesearch=${encodeURIComponent(
+        cleanQuery
+      )}&include=musicinfo`;
+      const jamendoRes = await fetch(jamendoUrl, {
+        headers: { 'User-Agent': 'BridgeTech-DigitalTools/1.0' },
+        next: { revalidate: 300 },
+      });
+
+      if (jamendoRes.ok) {
+        const jamendoData = await jamendoRes.json();
         if (jamendoData.results && Array.isArray(jamendoData.results)) {
           jamendoData.results.forEach((item: any) => {
             const trackId = `jamendo_${item.id}`;
@@ -61,46 +117,9 @@ export async function GET(request: NextRequest) {
             }
           });
         }
-      } catch (e) {
-        console.error('Error parsing Jamendo response:', e);
       }
-    }
-
-    // Process iTunes search results
-    if (itunesRes.status === 'fulfilled' && itunesRes.value.ok) {
-      try {
-        const itunesData = await itunesRes.value.json();
-        if (itunesData.results && Array.isArray(itunesData.results)) {
-          itunesData.results.forEach((item: any) => {
-            const trackId = `itunes_${item.trackId || item.collectionId}`;
-            if (!seenIds.has(trackId) && item.previewUrl) {
-              seenIds.add(trackId);
-              const ms = item.trackTimeMillis || 0;
-              results.push({
-                id: trackId,
-                title: item.trackName || item.collectionName || 'Untitled Song',
-                artist: item.artistName || 'Unknown Artist',
-                album: item.collectionName || 'Single / Unknown Album',
-                genre: item.primaryGenreName || 'Music',
-                releaseYear: item.releaseDate ? new Date(item.releaseDate).getFullYear() : undefined,
-                durationMs: ms,
-                durationFormatted: formatMs(ms),
-                previewUrl: item.previewUrl,
-                downloadUrl: item.previewUrl,
-                artworkUrlSmall: item.artworkUrl60 || item.artworkUrl100 || '',
-                artworkUrlHD: item.artworkUrl100
-                  ? item.artworkUrl100.replace('100x100bb', '1000x1000bb')
-                  : item.artworkUrl60 || '',
-                isFullTrack: false,
-                source: 'iTunes Music',
-                isExplicit: item.trackExplicitness === 'explicit',
-              });
-            }
-          });
-        }
-      } catch (e) {
-        console.error('Error parsing iTunes response:', e);
-      }
+    } catch (e) {
+      console.error('Jamendo API Error:', e);
     }
 
     return NextResponse.json({
@@ -123,9 +142,4 @@ function formatSeconds(totalSeconds: number): string {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = Math.floor(totalSeconds % 60);
   return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-}
-
-function formatMs(ms: number): string {
-  if (!ms) return '0:00';
-  return formatSeconds(ms / 1000);
 }

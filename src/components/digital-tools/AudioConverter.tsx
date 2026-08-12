@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 type AudioFormat = 'mp3' | 'wav' | 'ogg' | 'flac' | 'm4a';
+type ConverterTab = 'mp4-to-mp3' | 'audio-format';
 
 interface ConversionProgress {
   status: 'idle' | 'decoding' | 'converting' | 'completed' | 'error';
@@ -11,13 +12,14 @@ interface ConversionProgress {
 }
 
 export default function AudioConverter() {
+  const [activeTab, setActiveTab] = useState<ConverterTab>('mp4-to-mp3');
   const [file, setFile] = useState<File | null>(null);
   const [mediaPreviewUrl, setMediaPreviewUrl] = useState<string | null>(null);
   const [isVideo, setIsVideo] = useState<boolean>(false);
   const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
   const [targetFormat, setTargetFormat] = useState<AudioFormat>('mp3');
   const [sampleRate, setSampleRate] = useState<number>(44100);
-  const [bitrate, setBitrate] = useState<number>(192); // kbps
+  const [bitrate, setBitrate] = useState<number>(320); // kbps default 320 for max quality
   const [channels, setChannels] = useState<'stereo' | 'mono'>('stereo');
   
   // Trimming state (in seconds)
@@ -40,7 +42,7 @@ export default function AudioConverter() {
     const isVideoFile = selectedFile.type.startsWith('video/') || selectedFile.name.match(/\.(mp4|mov|webm|mkv|avi|3gp)$/i);
 
     if (!isAudioFile && !isVideoFile) {
-      alert('Please select a valid audio (.mp3, .wav, .ogg, .flac) or video file (.mp4, .mov, .webm).');
+      alert('Please select a valid video (.mp4, .mov, .webm) or audio file (.mp3, .wav, .ogg, .flac).');
       return;
     }
 
@@ -52,7 +54,7 @@ export default function AudioConverter() {
     const previewUrl = URL.createObjectURL(selectedFile);
     setMediaPreviewUrl(previewUrl);
 
-    setProgress({ status: 'decoding', percent: 20, message: 'Decoding audio/video tracks...' });
+    setProgress({ status: 'decoding', percent: 20, message: isVideoFile ? 'Decoding MP4 video audio track...' : 'Decoding audio file...' });
 
     try {
       const arrayBuffer = await selectedFile.arrayBuffer();
@@ -71,8 +73,8 @@ export default function AudioConverter() {
         status: 'idle',
         percent: 100,
         message: isVideoFile
-          ? 'MP4 Video loaded! Ready to extract & convert audio track.'
-          : 'Audio loaded! Ready for preview and conversion.',
+          ? '🎉 MP4 Video audio track extracted! Ready to convert to MP3 audio.'
+          : '🎉 Audio file loaded! Ready to convert format.',
       });
     } catch (err: any) {
       console.error('Media decode error:', err);
@@ -106,7 +108,6 @@ export default function AudioConverter() {
     const blockSize = Math.floor(rawData.length / samples);
     const barWidth = width / samples - 2;
 
-    ctx.fillStyle = '#38bdf8';
     ctx.shadowColor = '#38bdf8';
     ctx.shadowBlur = 6;
 
@@ -295,31 +296,60 @@ export default function AudioConverter() {
 
   return (
     <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 lg:p-8 shadow-2xl backdrop-blur">
+      {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <div className="w-12 h-12 bg-red-600/20 border border-red-500/30 rounded-2xl flex items-center justify-center text-red-400 text-xl font-bold">
-          <i className="fas fa-music"></i>
+          <i className="fas fa-file-video"></i>
         </div>
         <div>
-          <h2 className="text-xl font-bold text-white">Audio & MP4 Video to MP3 Converter</h2>
-          <p className="text-xs text-slate-400">Extract & Convert MP4 Video to MP3, WAV, OGG, FLAC with Media Preview Player</p>
+          <h2 className="text-xl font-bold text-white">MP4 Video to MP3 & Audio Format Converter</h2>
+          <p className="text-xs text-slate-400">Extract audio tracks from MP4 video or convert MP3, WAV, OGG, FLAC, M4A with live preview</p>
         </div>
+      </div>
+
+      {/* Converter Mode Tabs */}
+      <div className="grid grid-cols-2 gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800 mb-6">
+        <button
+          type="button"
+          onClick={() => { setActiveTab('mp4-to-mp3'); setTargetFormat('mp3'); }}
+          className={`py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+            activeTab === 'mp4-to-mp3'
+              ? 'bg-red-600 text-white shadow-lg shadow-red-900/30'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <i className="fas fa-file-video text-amber-400"></i>
+          <span>🎬 MP4 Video to MP3 Converter</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('audio-format')}
+          className={`py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+            activeTab === 'audio-format'
+              ? 'bg-red-600 text-white shadow-lg shadow-red-900/30'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <i className="fas fa-music text-blue-400"></i>
+          <span>🎵 Audio Format Converter (WAV/OGG/FLAC/M4A)</span>
+        </button>
       </div>
 
       {/* File Upload Zone */}
       <div className="relative mb-6">
         <input
           type="file"
-          accept="audio/*,video/*,.mp3,.mp4,.wav,.ogg,.flac,.m4a,.mov,.webm"
+          accept={activeTab === 'mp4-to-mp3' ? 'video/*,.mp4,.mov,.webm,.mkv,.avi' : 'audio/*,video/*,.mp3,.mp4,.wav,.ogg,.flac,.m4a'}
           onChange={(e) => e.target.files?.[0] && handleFileChange(e.target.files[0])}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
         />
         <div className="border-2 border-dashed border-slate-700 hover:border-red-500/60 bg-slate-950/60 rounded-2xl p-8 text-center transition-all">
-          <i className="fas fa-file-video text-4xl text-red-500/80 mb-3 animate-pulse"></i>
+          <i className={`fas ${activeTab === 'mp4-to-mp3' ? 'fa-file-video text-amber-500' : 'fa-file-audio text-red-500'} text-4xl mb-3 animate-pulse`}></i>
           <h3 className="text-sm font-semibold text-slate-200">
-            {file ? file.name : 'Drag & Drop MP3 / MP4 file here, or click to browse'}
+            {file ? file.name : activeTab === 'mp4-to-mp3' ? 'Drag & Drop MP4 Video file here to convert to MP3' : 'Drag & Drop Audio or Video file here, or click to browse'}
           </h3>
           <p className="text-xs text-slate-500 mt-1">
-            Supports MP4 Video, MP3, WAV, OGG, FLAC, M4A, MOV (Max 150MB)
+            {activeTab === 'mp4-to-mp3' ? 'Supports MP4, MOV, WEBM, MKV, AVI video files (Max 200MB)' : 'Supports MP3, MP4 Video, WAV, OGG, FLAC, M4A, MOV'}
           </p>
           {file && (
             <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-red-500/10 border border-red-500/30 text-red-400 rounded-full text-xs font-mono">
@@ -337,7 +367,7 @@ export default function AudioConverter() {
           <div className="flex items-center justify-between text-xs text-slate-400">
             <span className="font-semibold text-slate-300 flex items-center gap-1.5">
               <i className={`fas ${isVideo ? 'fa-video text-blue-400' : 'fa-music text-red-400'}`}></i>
-              <span>Uploaded Media Preview ({isVideo ? 'Video' : 'Audio'})</span>
+              <span>Uploaded Media Preview ({isVideo ? 'MP4 Video' : 'Audio Track'})</span>
             </span>
             <span className="font-mono">{duration.toFixed(1)}s</span>
           </div>
@@ -354,7 +384,7 @@ export default function AudioConverter() {
       {audioBuffer && (
         <div className="mb-6 space-y-3">
           <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
-            <span>Waveform & Trimming Preview</span>
+            <span>Waveform & Audio Trimmer Preview</span>
             <span>Selected Duration: {(trimEnd - trimStart).toFixed(1)}s</span>
           </div>
           <div className="relative rounded-xl overflow-hidden border border-slate-800">
@@ -404,10 +434,10 @@ export default function AudioConverter() {
           <select
             value={targetFormat}
             onChange={(e) => setTargetFormat(e.target.value as AudioFormat)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-red-500"
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-red-500 font-semibold"
           >
-            <option value="mp3">MP3 — MPEG Audio</option>
-            <option value="wav">WAV — Uncompressed PCM Audio</option>
+            <option value="mp3">MP3 — MPEG Audio (Recommended)</option>
+            <option value="wav">WAV — Uncompressed Audio</option>
             <option value="ogg">OGG — Vorbis Audio</option>
             <option value="flac">FLAC — Lossless Audio</option>
             <option value="m4a">M4A — AAC Audio</option>
@@ -423,10 +453,10 @@ export default function AudioConverter() {
             onChange={(e) => setBitrate(Number(e.target.value))}
             className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-red-500"
           >
-            <option value={128}>128 kbps (Standard)</option>
-            <option value={192}>192 kbps (High Quality)</option>
+            <option value={320}>320 kbps (Studio HD Max)</option>
             <option value={256}>256 kbps (Very High)</option>
-            <option value={320}>320 kbps (Studio Max)</option>
+            <option value={192}>192 kbps (High Quality)</option>
+            <option value={128}>128 kbps (Standard)</option>
           </select>
         </div>
 
@@ -458,8 +488,8 @@ export default function AudioConverter() {
           </>
         ) : (
           <>
-            <i className="fas fa-[#22c55e] fa-bolt"></i>
-            <span>{isVideo ? `Extract MP4 Audio to .${targetFormat.toUpperCase()}` : `Convert Audio to .${targetFormat.toUpperCase()}`}</span>
+            <i className="fas fa-bolt text-amber-300"></i>
+            <span>{isVideo ? `Extract MP4 Video to .${targetFormat.toUpperCase()} Audio` : `Convert Audio to .${targetFormat.toUpperCase()}`}</span>
           </>
         )}
       </button>

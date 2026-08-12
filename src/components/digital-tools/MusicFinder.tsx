@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 
 interface MusicTrack {
   id: string;
+  youtubeId?: string;
   title: string;
   artist: string;
   album: string;
@@ -15,8 +16,6 @@ interface MusicTrack {
   downloadUrl: string;
   artworkUrlSmall: string;
   artworkUrlHD: string;
-  trackViewUrl: string;
-  collectionViewUrl: string;
   isExplicit: boolean;
   isFullTrack?: boolean;
   source?: string;
@@ -27,13 +26,8 @@ export default function MusicFinder() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<MusicTrack[]>([]);
   const [activeTrack, setActiveTrack] = useState<MusicTrack | null>(null);
+  const [playerMode, setPlayerMode] = useState<'audio' | 'video'>('audio');
   const [error, setError] = useState('');
-
-  // Mini-player persistent state
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const searchMusic = async (searchQuery: string) => {
     if (!searchQuery.trim()) return;
@@ -70,6 +64,15 @@ export default function MusicFinder() {
     searchMusic(genreKeyword);
   };
 
+  const openTrack = (track: MusicTrack) => {
+    setActiveTrack(track);
+    setPlayerMode('audio');
+  };
+
+  const closePlayer = () => {
+    setActiveTrack(null);
+  };
+
   const getAudioProxyUrl = (track: MusicTrack, isDownload = false) => {
     const rawUrl = track.downloadUrl || track.previewUrl;
     const filename = `${track.artist} - ${track.title}.mp3`;
@@ -78,48 +81,16 @@ export default function MusicFinder() {
     }`;
   };
 
-  const openTrack = (track: MusicTrack) => {
-    setActiveTrack(track);
-    setIsPlaying(false);
-    setCurrentTime(0);
-    setDuration(0);
-  };
-
-  const closePlayer = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
-    setActiveTrack(null);
-    setIsPlaying(false);
-  };
-
-  const togglePlay = () => {
-    if (!audioRef.current) return;
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
-    }
-    setIsPlaying(!isPlaying);
-  };
-
-  const formatTime = (s: number) => {
-    if (!s || isNaN(s)) return '0:00';
-    const m = Math.floor(s / 60);
-    const sec = Math.floor(s % 60);
-    return `${m}:${sec < 10 ? '0' : ''}${sec}`;
-  };
-
   return (
     <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 lg:p-8 shadow-2xl backdrop-blur">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 bg-blue-600/20 border border-blue-500/30 rounded-2xl flex items-center justify-center text-blue-400 text-xl font-bold">
-          <i className="fas fa-magnifying-glass"></i>
+        <div className="w-12 h-12 bg-red-600/20 border border-red-500/30 rounded-2xl flex items-center justify-center text-red-400 text-xl font-bold">
+          <i className="fab fa-youtube"></i>
         </div>
         <div>
-          <h2 className="text-xl font-bold text-white">Online Music & Artwork Search Engine</h2>
+          <h2 className="text-xl font-bold text-white">YouTube Online Music & Song Finder</h2>
           <p className="text-xs text-slate-400">
-            Search full songs by Artist, Track Title, or Keywords • Full-Length Popup Player & HD Cover Downloads
+            Search 100% full-length songs by Artist, Title or Keywords with Custom Player Popup & HD Art Downloads
           </p>
         </div>
       </div>
@@ -131,14 +102,14 @@ export default function MusicFinder() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Type artist name, track title, album, or song keywords..."
-            className="w-full px-4 py-3.5 pl-12 pr-28 bg-slate-950 border border-slate-800 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition-all shadow-inner"
+            placeholder="Search YouTube songs, artists, albums, or song titles..."
+            className="w-full px-4 py-3.5 pl-12 pr-28 bg-slate-950 border border-slate-800 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 text-sm transition-all shadow-inner"
           />
           <i className="fas fa-music absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-base"></i>
           <button
             type="submit"
             disabled={loading || !query.trim()}
-            className="absolute right-2 top-1/2 -translate-y-1/2 py-2 px-4 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl transition-all disabled:opacity-50 flex items-center gap-1.5 shadow-md"
+            className="absolute right-2 top-1/2 -translate-y-1/2 py-2 px-4 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-xl transition-all disabled:opacity-50 flex items-center gap-1.5 shadow-md"
           >
             {loading ? (
               <i className="fas fa-circle-notch fa-spin"></i>
@@ -153,13 +124,13 @@ export default function MusicFinder() {
 
         {/* Quick Suggestion Chips */}
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="text-slate-500 text-[11px] font-semibold uppercase tracking-wider">Popular:</span>
-          {['Afrobeats', 'Sierra Leone', 'Gospel', 'Hip Hop', 'R&B', 'Acoustic', 'Jazz', 'Reggae'].map((chip) => (
+          <span className="text-slate-500 text-[11px] font-semibold uppercase tracking-wider">Popular Searches:</span>
+          {['Afrobeats', 'Sierra Leone Music', 'Gospel Songs', 'Hip Hop Hits', 'R&B', 'Acoustic', 'Reggae'].map((chip) => (
             <button
               key={chip}
               type="button"
               onClick={() => handleChipClick(chip)}
-              className="px-2.5 py-1 bg-slate-950 hover:bg-blue-600/20 hover:text-blue-400 border border-slate-800 hover:border-blue-500/40 rounded-full text-slate-400 transition-all text-xs"
+              className="px-2.5 py-1 bg-slate-950 hover:bg-red-600/20 hover:text-red-400 border border-slate-800 hover:border-red-500/40 rounded-full text-slate-400 transition-all text-xs"
             >
               {chip}
             </button>
@@ -198,10 +169,10 @@ export default function MusicFinder() {
       {results.length > 0 && !loading && (
         <div className="space-y-4">
           <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>Found <strong className="text-white font-mono">{results.length}</strong> tracks</span>
+            <span>Found <strong className="text-white font-mono">{results.length}</strong> YouTube full tracks</span>
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Click any track to open full-length popup player</span>
+              <span>Click any song to play full track in custom player</span>
             </span>
           </div>
 
@@ -213,7 +184,7 @@ export default function MusicFinder() {
                   key={track.id}
                   className={`bg-slate-950 border rounded-2xl p-4 transition-all hover:scale-[1.01] flex flex-col justify-between ${
                     isActive
-                      ? 'border-blue-500 shadow-lg shadow-blue-900/40 bg-blue-950/20'
+                      ? 'border-red-500 shadow-lg shadow-red-900/40 bg-red-950/20'
                       : 'border-slate-800 hover:border-slate-700'
                   }`}
                 >
@@ -238,30 +209,23 @@ export default function MusicFinder() {
                     <div className="min-w-0 flex-1">
                       <h4
                         onClick={() => openTrack(track)}
-                        className="text-sm font-bold text-white truncate leading-tight cursor-pointer hover:text-blue-400 transition-colors"
+                        className="text-sm font-bold text-white truncate leading-tight cursor-pointer hover:text-red-400 transition-colors"
                         title={track.title}
                       >
                         {track.title}
                       </h4>
-                      <p className="text-xs text-blue-400 font-medium truncate mt-0.5" title={track.artist}>
+                      <p className="text-xs text-red-400 font-medium truncate mt-0.5" title={track.artist}>
                         {track.artist}
                       </p>
-                      <p className="text-[11px] text-slate-500 truncate mt-0.5">{track.album}</p>
 
                       <div className="flex items-center gap-1.5 mt-1.5 text-[10px] flex-wrap">
                         <span className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 rounded text-slate-300 font-mono">
                           {track.durationFormatted}
                         </span>
-                        {track.isFullTrack ? (
-                          <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded font-bold text-[9px]">
-                            🎵 FULL SONG
-                          </span>
-                        ) : (
-                          <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded text-[9px]">
-                            Preview
-                          </span>
-                        )}
-                        <span className="text-slate-600 text-[10px]">{track.genre}</span>
+                        <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded font-bold text-[9px]">
+                          🎵 FULL SONG
+                        </span>
+                        <span className="text-slate-500 text-[10px]">YouTube</span>
                       </div>
                     </div>
                   </div>
@@ -272,12 +236,12 @@ export default function MusicFinder() {
                       onClick={() => openTrack(track)}
                       className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
                         isActive
-                          ? 'bg-blue-600 text-white shadow-md'
+                          ? 'bg-red-600 text-white shadow-md'
                           : 'bg-slate-900 hover:bg-slate-800 text-slate-300'
                       }`}
                     >
-                      <i className={`fas ${isActive ? 'fa-volume-high text-white' : 'fa-play text-blue-400'}`}></i>
-                      <span>{isActive ? 'Now Playing' : 'Play in Popup'}</span>
+                      <i className={`fas ${isActive ? 'fa-volume-high text-white' : 'fa-play text-red-400'}`}></i>
+                      <span>{isActive ? 'Now Playing' : 'Play Full Song'}</span>
                     </button>
 
                     {track.artworkUrlHD && (
@@ -286,7 +250,7 @@ export default function MusicFinder() {
                         target="_blank"
                         download={`${track.artist}_${track.title}_cover.jpg`}
                         className="py-2 px-3 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all"
-                        title="Download HD Album Cover Artwork"
+                        title="Download HD Cover Art"
                       >
                         <i className="fas fa-image text-emerald-400"></i>
                         <span>HD Art</span>
@@ -300,90 +264,118 @@ export default function MusicFinder() {
         </div>
       )}
 
-      {/* POPUP MUSIC PLAYER MODAL */}
+      {/* POPUP CUSTOM MUSIC PLAYER MODAL */}
       {activeTrack && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="relative w-full max-w-md bg-gradient-to-b from-slate-800 to-slate-900 border border-blue-500/40 rounded-3xl p-6 shadow-2xl text-center space-y-5">
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="relative w-full max-w-lg bg-gradient-to-b from-slate-900 via-slate-950 to-black border border-red-500/40 rounded-3xl p-6 shadow-2xl text-center space-y-5">
             {/* Close Button */}
             <button
               onClick={closePlayer}
               className="absolute top-4 right-4 w-9 h-9 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-full flex items-center justify-center transition-colors z-10"
-              title="Close Music Player"
+              title="Close Player"
             >
               <i className="fas fa-xmark text-lg"></i>
             </button>
 
-            {/* Header Badge */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-400 rounded-full text-xs font-semibold">
-              <i className="fas fa-bolt text-amber-400"></i>
-              <span>{activeTrack.isFullTrack ? '🎵 Full-Length Song Player' : 'Music Preview Player'}</span>
+            {/* Header Badge & Player Mode Selector */}
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-500/10 border border-red-500/30 text-red-400 rounded-full text-xs font-semibold">
+                <i className="fab fa-youtube text-red-500"></i>
+                <span>BridgeTech Full-Length Music Player</span>
+              </div>
+
+              {activeTrack.youtubeId && (
+                <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                  <button
+                    onClick={() => setPlayerMode('audio')}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all ${
+                      playerMode === 'audio' ? 'bg-red-600 text-white' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <i className="fas fa-music"></i>
+                    <span>Audio Mode</span>
+                  </button>
+                  <button
+                    onClick={() => setPlayerMode('video')}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all ${
+                      playerMode === 'video' ? 'bg-red-600 text-white' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <i className="fas fa-video"></i>
+                    <span>Video View</span>
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* Album Cover Art — spinning while playing */}
-            <div className={`relative w-44 h-44 mx-auto rounded-2xl overflow-hidden border-2 border-blue-500/40 shadow-2xl shadow-blue-900/50 transition-all ${isPlaying ? 'border-blue-400 shadow-blue-500/30' : ''}`}>
-              {activeTrack.artworkUrlHD || activeTrack.artworkUrlSmall ? (
-                <img
-                  src={activeTrack.artworkUrlHD || activeTrack.artworkUrlSmall}
-                  alt={activeTrack.title}
-                  className={`w-full h-full object-cover transition-all duration-500 ${isPlaying ? 'scale-105' : 'scale-100'}`}
-                />
-              ) : (
-                <div className="w-full h-full bg-slate-800 flex items-center justify-center text-slate-600">
-                  <i className="fas fa-music text-4xl"></i>
+            {/* Player View Container */}
+            {activeTrack.youtubeId ? (
+              <div className="relative w-full rounded-2xl overflow-hidden border border-slate-800 bg-black shadow-2xl">
+                {playerMode === 'video' ? (
+                  <div className="aspect-video w-full">
+                    <iframe
+                      src={`https://www.youtube-nocookie.com/embed/${activeTrack.youtubeId}?autoplay=1&enablejsapi=1&rel=0`}
+                      title={activeTrack.title}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full"
+                    ></iframe>
+                  </div>
+                ) : (
+                  <div className="p-6 bg-gradient-to-b from-slate-900 to-slate-950 flex flex-col items-center gap-4">
+                    {/* Album Art Cover */}
+                    <div className="relative w-44 h-44 rounded-2xl overflow-hidden border-2 border-red-500/40 shadow-2xl shadow-red-900/50 group">
+                      <img
+                        src={activeTrack.artworkUrlHD || activeTrack.artworkUrlSmall}
+                        alt={activeTrack.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute bottom-2 right-2 bg-red-600 rounded-full p-1.5 shadow-lg">
+                        <i className="fas fa-music text-white text-xs animate-pulse"></i>
+                      </div>
+                    </div>
+
+                    {/* YouTube Embedded Audio Frame */}
+                    <div className="w-full aspect-video h-20 rounded-xl overflow-hidden opacity-90 border border-slate-800">
+                      <iframe
+                        src={`https://www.youtube-nocookie.com/embed/${activeTrack.youtubeId}?autoplay=1&enablejsapi=1&rel=0`}
+                        title={activeTrack.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        className="w-full h-full"
+                      ></iframe>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Non-YouTube track fallback audio player */
+              <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
+                <div className="w-36 h-36 mx-auto rounded-2xl overflow-hidden border-2 border-blue-500/40 shadow-xl">
+                  <img src={activeTrack.artworkUrlHD || activeTrack.artworkUrlSmall} alt={activeTrack.title} className="w-full h-full object-cover" />
                 </div>
-              )}
-              {/* Playing indicator overlay */}
-              {isPlaying && (
-                <div className="absolute bottom-2 right-2 bg-blue-600/90 rounded-full p-1">
-                  <i className="fas fa-wave-square text-white text-xs animate-pulse"></i>
-                </div>
-              )}
-            </div>
+                <audio controls autoPlay src={getAudioProxyUrl(activeTrack, false)} className="w-full h-10 rounded-lg" />
+              </div>
+            )}
 
             {/* Song Meta Details */}
             <div>
-              <h3 className="text-lg font-bold text-white truncate px-2">{activeTrack.title}</h3>
-              <p className="text-sm text-blue-400 font-semibold truncate mt-0.5">{activeTrack.artist}</p>
-              <p className="text-xs text-slate-500 truncate mt-0.5">
-                {activeTrack.album} {activeTrack.releaseYear ? `• ${activeTrack.releaseYear}` : ''} {activeTrack.genre ? `• ${activeTrack.genre}` : ''}
+              <h3 className="text-base font-bold text-white truncate px-2">{activeTrack.title}</h3>
+              <p className="text-xs text-red-400 font-semibold truncate mt-0.5">{activeTrack.artist}</p>
+              <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                Full-Length Song • Duration: {activeTrack.durationFormatted}
               </p>
-              {activeTrack.source && (
-                <p className="text-[10px] text-slate-600 mt-0.5">Source: {activeTrack.source}</p>
-              )}
             </div>
 
-            {/* Full Track Audio Stream Player */}
-            <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-2">
-              <audio
-                ref={audioRef}
-                controls
-                autoPlay
-                src={getAudioProxyUrl(activeTrack, false)}
-                className="w-full h-10 rounded-lg"
-                onPlay={() => setIsPlaying(true)}
-                onPause={() => setIsPlaying(false)}
-                onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-                onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-                onEnded={() => setIsPlaying(false)}
-              />
-              <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono px-1">
-                <span>{formatTime(currentTime)}</span>
-                <span className="text-slate-500">
-                  {activeTrack.isFullTrack ? '🎵 Full Track' : '▶ Preview'} — {activeTrack.durationFormatted}
-                </span>
-                <span>{formatTime(duration || 0)}</span>
-              </div>
-            </div>
-
-            {/* Download Action Buttons */}
+            {/* Actions */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               <a
-                href={getAudioProxyUrl(activeTrack, true)}
-                download={`${activeTrack.artist} - ${activeTrack.title}.mp3`}
-                className="py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-900/30 hover:scale-[1.02]"
+                href={activeTrack.previewUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-3 px-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-lg shadow-red-900/30 hover:scale-[1.02]"
               >
-                <i className="fas fa-download"></i>
-                <span>Download MP3</span>
+                <i className="fab fa-youtube"></i>
+                <span>Open on YouTube</span>
               </a>
 
               {activeTrack.artworkUrlHD && (
@@ -399,31 +391,33 @@ export default function MusicFinder() {
               )}
             </div>
 
-            {/* Navigate Results */}
+            {/* Prev / Next Track Navigation */}
             {results.length > 1 && (
-              <div className="flex items-center justify-center gap-3 pt-1 border-t border-slate-800">
+              <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-xs text-slate-400">
                 <button
                   onClick={() => {
                     const idx = results.findIndex(r => r.id === activeTrack.id);
                     if (idx > 0) openTrack(results[idx - 1]);
                   }}
                   disabled={results.findIndex(r => r.id === activeTrack.id) === 0}
-                  className="py-1.5 px-3 bg-slate-900 hover:bg-slate-800 text-slate-400 rounded-lg text-xs font-semibold flex items-center gap-1.5 disabled:opacity-30 transition-all"
+                  className="py-1.5 px-3 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 disabled:opacity-30 transition-all"
                 >
-                  <i className="fas fa-backward-step"></i> Prev
+                  <i className="fas fa-backward-step"></i> Previous Track
                 </button>
-                <span className="text-[11px] text-slate-500">
-                  {results.findIndex(r => r.id === activeTrack.id) + 1} / {results.length}
+
+                <span className="font-mono text-[11px]">
+                  {results.findIndex(r => r.id === activeTrack.id) + 1} of {results.length}
                 </span>
+
                 <button
                   onClick={() => {
                     const idx = results.findIndex(r => r.id === activeTrack.id);
                     if (idx < results.length - 1) openTrack(results[idx + 1]);
                   }}
                   disabled={results.findIndex(r => r.id === activeTrack.id) === results.length - 1}
-                  className="py-1.5 px-3 bg-slate-900 hover:bg-slate-800 text-slate-400 rounded-lg text-xs font-semibold flex items-center gap-1.5 disabled:opacity-30 transition-all"
+                  className="py-1.5 px-3 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 disabled:opacity-30 transition-all"
                 >
-                  Next <i className="fas fa-forward-step"></i>
+                  Next Track <i className="fas fa-forward-step"></i>
                 </button>
               </div>
             )}
