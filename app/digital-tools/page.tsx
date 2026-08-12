@@ -56,12 +56,6 @@ export default function DigitalToolsPage() {
             <span className="px-3 py-1 bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold rounded-full animate-pulse">
               ⚡ Digital Products Suite v1.0
             </span>
-            <Link
-              href="/admin"
-              className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition-all"
-            >
-              <i className="fas fa-shield-halved mr-1 text-red-400"></i> Admin Hub
-            </Link>
           </div>
         </div>
 
