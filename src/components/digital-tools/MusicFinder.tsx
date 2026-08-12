@@ -18,6 +18,7 @@ interface MusicTrack {
   trackViewUrl: string;
   collectionViewUrl: string;
   isExplicit: boolean;
+  isFullTrack?: boolean;
 }
 
 export default function MusicFinder() {
@@ -178,14 +179,20 @@ export default function MusicFinder() {
                       </p>
                       <p className="text-[11px] text-slate-500 truncate mt-0.5">{track.album}</p>
                       
-                      <div className="flex items-center gap-2 mt-1.5 text-[10px]">
-                        <span className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 rounded text-slate-400 font-mono">
+                      <div className="flex items-center gap-1.5 mt-1.5 text-[10px] flex-wrap">
+                        <span className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 rounded text-slate-300 font-mono">
                           {track.durationFormatted}
                         </span>
-                        <span className="text-slate-500">{track.genre}</span>
-                        {track.isExplicit && (
-                          <span className="px-1 bg-red-900/60 text-red-300 font-mono rounded">E</span>
+                        {track.isFullTrack ? (
+                          <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded font-bold text-[9px]">
+                            🎵 FULL SONG
+                          </span>
+                        ) : (
+                          <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded text-[9px]">
+                            Preview Clip
+                          </span>
                         )}
+                        <span className="text-slate-500">{track.genre}</span>
                       </div>
                     </div>
                   </div>
@@ -202,7 +209,7 @@ export default function MusicFinder() {
                         }`}
                       >
                         <i className={`fas ${isPlaying ? 'fa-pause text-white' : 'fa-play text-blue-400'}`}></i>
-                        <span>{isPlaying ? 'Pause' : 'Preview Audio'}</span>
+                        <span>{isPlaying ? 'Pause' : track.isFullTrack ? 'Play Full Song' : 'Play Preview'}</span>
                       </button>
                     )}
 
