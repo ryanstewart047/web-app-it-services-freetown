@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface MusicTrack {
   id: string;
@@ -23,11 +23,48 @@ interface MusicTrack {
 
 export default function MusicFinder() {
   const [query, setQuery] = useState('');
+  const [pastedUrl, setPastedUrl] = useState('');
+  const [pastedTrack, setPastedTrack] = useState<MusicTrack | null>(null);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<MusicTrack[]>([]);
   const [activeTrack, setActiveTrack] = useState<MusicTrack | null>(null);
-  const [playerMode, setPlayerMode] = useState<'audio' | 'video'>('audio');
   const [error, setError] = useState('');
+
+  // Extract YouTube Video ID from any YouTube URL format (watch, shorts, embed, mobile, shortened)
+  const extractYouTubeId = (urlStr: string): string | null => {
+    if (!urlStr) return null;
+    const match = urlStr.match(
+      /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/
+    );
+    return match ? match[1] : null;
+  };
+
+  // Automatically detect pasted YouTube URL
+  useEffect(() => {
+    const videoId = extractYouTubeId(pastedUrl.trim());
+    if (videoId) {
+      const track: MusicTrack = {
+        id: `yt_pasted_${videoId}`,
+        youtubeId: videoId,
+        title: `YouTube Video (${videoId})`,
+        artist: 'YouTube Media',
+        album: 'Pasted Link',
+        genre: 'Video / Music',
+        durationMs: 210000,
+        durationFormatted: 'Full Track',
+        previewUrl: `https://www.youtube.com/watch?v=${videoId}`,
+        downloadUrl: `https://www.youtube.com/watch?v=${videoId}`,
+        artworkUrlSmall: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+        artworkUrlHD: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+        isFullTrack: true,
+        source: 'YouTube Pasted Link',
+        isExplicit: false,
+      };
+      setPastedTrack(track);
+    } else {
+      setPastedTrack(null);
+    }
+  }, [pastedUrl]);
 
   const searchMusic = async (searchQuery: string) => {
     if (!searchQuery.trim()) return;
@@ -66,33 +103,127 @@ export default function MusicFinder() {
 
   const openTrack = (track: MusicTrack) => {
     setActiveTrack(track);
-    setPlayerMode('audio');
   };
 
   const closePlayer = () => {
     setActiveTrack(null);
   };
 
-  const getAudioProxyUrl = (track: MusicTrack, isDownload = false) => {
-    const rawUrl = track.downloadUrl || track.previewUrl;
-    const filename = `${track.artist} - ${track.title}.mp3`;
-    return `/api/music/proxy?url=${encodeURIComponent(rawUrl)}&filename=${encodeURIComponent(filename)}${
-      isDownload ? '&download=1' : ''
-    }`;
+  // Open high-speed YouTube MP3 / MP4 converter download
+  const handleDownloadFormat = (videoId: string, format: 'mp3' | 'mp4') => {
+    const ytUrl = `https://www.youtube.com/watch?v=${videoId}`;
+    if (format === 'mp3') {
+      window.open(`https://ssyoutube.com/watch?v=${videoId}`, '_blank');
+    } else {
+      window.open(`https://ssyoutube.com/watch?v=${videoId}`, '_blank');
+    }
+  };
+
+  // Download HD artwork directly to computer
+  const handleDownloadArtwork = async (track: MusicTrack) => {
+    try {
+      const imgUrl = track.artworkUrlHD || track.artworkUrlSmall;
+      const response = await fetch(imgUrl);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${track.artist.replace(/[^a-z0-9]/gi, '_')}_${track.title.replace(/[^a-z0-9]/gi, '_')}_cover.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (_) {
+      window.open(track.artworkUrlHD || track.artworkUrlSmall, '_blank');
+    }
   };
 
   return (
     <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 lg:p-8 shadow-2xl backdrop-blur">
+      {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 bg-red-600/20 border border-red-500/30 rounded-2xl flex items-center justify-center text-red-400 text-xl font-bold">
+        <div className="w-12 h-12 bg-red-600/20 border border-red-500/30 rounded-2xl flex items-center justify-center text-red-500 text-2xl font-bold shadow-lg">
           <i className="fab fa-youtube"></i>
         </div>
         <div>
-          <h2 className="text-xl font-bold text-white">YouTube Online Music & Song Finder</h2>
+          <h2 className="text-xl font-bold text-white">YouTube Online Music Search & Converter</h2>
           <p className="text-xs text-slate-400">
-            Search 100% full-length songs by Artist, Title or Keywords with Custom Player Popup & HD Art Downloads
+            Search 100% full-length songs or paste YouTube links to convert & download MP3 Audio, MP4 Video, or HD Artwork
           </p>
         </div>
+      </div>
+
+      {/* Paste YouTube URL Converter Bar */}
+      <div className="mb-8 bg-slate-950 p-5 rounded-2xl border border-red-500/30 shadow-xl space-y-3">
+        <label className="block text-xs font-bold text-red-400 uppercase tracking-wider flex items-center gap-2">
+          <i className="fas fa-[#22c55e] fa-link"></i>
+          <span>Paste Any YouTube Link to Convert (MP3 / MP4 Download)</span>
+        </label>
+        <div className="relative">
+          <input
+            type="text"
+            value={pastedUrl}
+            onChange={(e) => setPastedUrl(e.target.value)}
+            placeholder="Paste YouTube video or song link (e.g. https://www.youtube.com/watch?v=... or https://youtu.be/...)"
+            className="w-full px-4 py-3 pl-10 pr-24 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-red-500 text-sm font-mono transition-all"
+          />
+          <i className="fab fa-youtube absolute left-3 top-1/2 -translate-y-1/2 text-red-500 text-base"></i>
+          {pastedUrl && (
+            <button
+              onClick={() => { setPastedUrl(''); setPastedTrack(null); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 hover:text-white"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+
+        {/* Automatically detected YouTube Link Download Options Card */}
+        {pastedTrack && (
+          <div className="p-4 bg-slate-900 rounded-xl border border-red-500/40 space-y-3 animate-fade-in">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="text-xs font-bold text-emerald-400">YouTube Video Detected! Select Download Format:</span>
+              </div>
+              <span className="text-[11px] font-mono text-slate-400">ID: {pastedTrack.youtubeId}</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-1">
+              <button
+                onClick={() => openTrack(pastedTrack)}
+                className="py-2.5 px-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md"
+              >
+                <i className="fas fa-play"></i>
+                <span>Play Full Video</span>
+              </button>
+
+              <button
+                onClick={() => handleDownloadFormat(pastedTrack.youtubeId!, 'mp3')}
+                className="py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md"
+              >
+                <i className="fas fa-music"></i>
+                <span>Download MP3</span>
+              </button>
+
+              <button
+                onClick={() => handleDownloadFormat(pastedTrack.youtubeId!, 'mp4')}
+                className="py-2.5 px-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md"
+              >
+                <i className="fas fa-video"></i>
+                <span>Download MP4</span>
+              </button>
+
+              <button
+                onClick={() => handleDownloadArtwork(pastedTrack)}
+                className="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-purple-400 border border-slate-700 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all"
+              >
+                <i className="fas fa-image"></i>
+                <span>Download Cover</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Search Input Bar */}
@@ -105,7 +236,7 @@ export default function MusicFinder() {
             placeholder="Search YouTube songs, artists, albums, or song titles..."
             className="w-full px-4 py-3.5 pl-12 pr-28 bg-slate-950 border border-slate-800 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 text-sm transition-all shadow-inner"
           />
-          <i className="fas fa-music absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-base"></i>
+          <i className="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-base"></i>
           <button
             type="submit"
             disabled={loading || !query.trim()}
@@ -172,7 +303,7 @@ export default function MusicFinder() {
             <span>Found <strong className="text-white font-mono">{results.length}</strong> YouTube full tracks</span>
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Click any song to play full track in custom player</span>
+              <span>Click any song to play full video/audio in player</span>
             </span>
           </div>
 
@@ -189,7 +320,7 @@ export default function MusicFinder() {
                   }`}
                 >
                   <div className="flex items-start gap-3 mb-3">
-                    {/* Album Art */}
+                    {/* Thumbnail */}
                     <div
                       onClick={() => openTrack(track)}
                       className="relative w-16 h-16 rounded-xl overflow-hidden bg-slate-800 shrink-0 border border-slate-700/60 cursor-pointer group"
@@ -202,7 +333,7 @@ export default function MusicFinder() {
                         </div>
                       )}
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-all">
-                        <i className="fas fa-play text-lg"></i>
+                        <i className="fas fa-play text-lg text-red-500"></i>
                       </div>
                     </div>
 
@@ -225,7 +356,6 @@ export default function MusicFinder() {
                         <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded font-bold text-[9px]">
                           🎵 FULL SONG
                         </span>
-                        <span className="text-slate-500 text-[10px]">YouTube</span>
                       </div>
                     </div>
                   </div>
@@ -241,20 +371,18 @@ export default function MusicFinder() {
                       }`}
                     >
                       <i className={`fas ${isActive ? 'fa-volume-high text-white' : 'fa-play text-red-400'}`}></i>
-                      <span>{isActive ? 'Now Playing' : 'Play Full Song'}</span>
+                      <span>{isActive ? 'Now Playing' : 'Play Song'}</span>
                     </button>
 
                     {track.artworkUrlHD && (
-                      <a
-                        href={track.artworkUrlHD}
-                        target="_blank"
-                        download={`${track.artist}_${track.title}_cover.jpg`}
+                      <button
+                        onClick={() => handleDownloadArtwork(track)}
                         className="py-2 px-3 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all"
                         title="Download HD Cover Art"
                       >
-                        <i className="fas fa-image text-emerald-400"></i>
+                        <i className="fas fa-image text-purple-400"></i>
                         <span>HD Art</span>
-                      </a>
+                      </button>
                     )}
                   </div>
                 </div>
@@ -264,136 +392,88 @@ export default function MusicFinder() {
         </div>
       )}
 
-      {/* POPUP CUSTOM MUSIC PLAYER MODAL */}
+      {/* POPUP FULL-SIZE MUSIC PLAYER MODAL (Cover Art Removed for Large Crisp Video) */}
       {activeTrack && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="relative w-full max-w-lg bg-gradient-to-b from-slate-900 via-slate-950 to-black border border-red-500/40 rounded-3xl p-6 shadow-2xl text-center space-y-5">
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="relative w-full max-w-3xl bg-slate-950 border border-red-500/40 rounded-3xl p-6 shadow-2xl space-y-4">
             {/* Close Button */}
             <button
               onClick={closePlayer}
-              className="absolute top-4 right-4 w-9 h-9 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-full flex items-center justify-center transition-colors z-10"
+              className="absolute top-4 right-4 w-9 h-9 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-full flex items-center justify-center transition-colors z-20"
               title="Close Player"
             >
               <i className="fas fa-xmark text-lg"></i>
             </button>
 
-            {/* Header Badge & Player Mode Selector */}
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-500/10 border border-red-500/30 text-red-400 rounded-full text-xs font-semibold">
-                <i className="fab fa-youtube text-red-500"></i>
-                <span>BridgeTech Full-Length Music Player</span>
+            {/* Header Badge */}
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3 pr-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-500/10 border border-red-500/30 text-red-400 rounded-full text-xs font-bold">
+                <i className="fab fa-youtube text-red-500 text-sm"></i>
+                <span>BridgeTech Full-Length YouTube Player</span>
               </div>
+              <span className="text-xs text-slate-400 font-mono hidden sm:inline">{activeTrack.durationFormatted}</span>
+            </div>
 
-              {activeTrack.youtubeId && (
-                <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
-                  <button
-                    onClick={() => setPlayerMode('audio')}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all ${
-                      playerMode === 'audio' ? 'bg-red-600 text-white' : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    <i className="fas fa-music"></i>
-                    <span>Audio Mode</span>
-                  </button>
-                  <button
-                    onClick={() => setPlayerMode('video')}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all ${
-                      playerMode === 'video' ? 'bg-red-600 text-white' : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    <i className="fas fa-video"></i>
-                    <span>Video View</span>
-                  </button>
+            {/* LARGE CRISP YOUTUBE PLAYER CONTAINER (No cover art obstructing the view!) */}
+            <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-slate-800 bg-black shadow-2xl">
+              {activeTrack.youtubeId ? (
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${activeTrack.youtubeId}?autoplay=1&enablejsapi=1&rel=0`}
+                  title={activeTrack.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full"
+                ></iframe>
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900 text-slate-400 p-6 space-y-3">
+                  <i className="fas fa-music text-4xl text-blue-400"></i>
+                  <audio controls autoPlay src={activeTrack.previewUrl} className="w-full max-w-md h-10 rounded-lg" />
                 </div>
               )}
             </div>
-
-            {/* Player View Container */}
-            {activeTrack.youtubeId ? (
-              <div className="relative w-full rounded-2xl overflow-hidden border border-slate-800 bg-black shadow-2xl">
-                {playerMode === 'video' ? (
-                  <div className="aspect-video w-full">
-                    <iframe
-                      src={`https://www.youtube-nocookie.com/embed/${activeTrack.youtubeId}?autoplay=1&enablejsapi=1&rel=0`}
-                      title={activeTrack.title}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      className="w-full h-full"
-                    ></iframe>
-                  </div>
-                ) : (
-                  <div className="p-6 bg-gradient-to-b from-slate-900 to-slate-950 flex flex-col items-center gap-4">
-                    {/* Album Art Cover */}
-                    <div className="relative w-44 h-44 rounded-2xl overflow-hidden border-2 border-red-500/40 shadow-2xl shadow-red-900/50 group">
-                      <img
-                        src={activeTrack.artworkUrlHD || activeTrack.artworkUrlSmall}
-                        alt={activeTrack.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute bottom-2 right-2 bg-red-600 rounded-full p-1.5 shadow-lg">
-                        <i className="fas fa-music text-white text-xs animate-pulse"></i>
-                      </div>
-                    </div>
-
-                    {/* YouTube Embedded Audio Frame */}
-                    <div className="w-full aspect-video h-20 rounded-xl overflow-hidden opacity-90 border border-slate-800">
-                      <iframe
-                        src={`https://www.youtube-nocookie.com/embed/${activeTrack.youtubeId}?autoplay=1&enablejsapi=1&rel=0`}
-                        title={activeTrack.title}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        className="w-full h-full"
-                      ></iframe>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              /* Non-YouTube track fallback audio player */
-              <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
-                <div className="w-36 h-36 mx-auto rounded-2xl overflow-hidden border-2 border-blue-500/40 shadow-xl">
-                  <img src={activeTrack.artworkUrlHD || activeTrack.artworkUrlSmall} alt={activeTrack.title} className="w-full h-full object-cover" />
-                </div>
-                <audio controls autoPlay src={getAudioProxyUrl(activeTrack, false)} className="w-full h-10 rounded-lg" />
-              </div>
-            )}
 
             {/* Song Meta Details */}
-            <div>
-              <h3 className="text-base font-bold text-white truncate px-2">{activeTrack.title}</h3>
-              <p className="text-xs text-red-400 font-semibold truncate mt-0.5">{activeTrack.artist}</p>
-              <p className="text-[11px] text-slate-500 truncate mt-0.5">
-                Full-Length Song • Duration: {activeTrack.durationFormatted}
-              </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-slate-900 pt-3">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base font-bold text-white truncate">{activeTrack.title}</h3>
+                <p className="text-xs text-red-400 font-semibold truncate mt-0.5">{activeTrack.artist}</p>
+              </div>
+
+              <span className="px-2.5 py-1 bg-slate-900 border border-slate-800 text-slate-300 text-xs font-mono rounded-lg shrink-0">
+                100% Full Song
+              </span>
             </div>
 
-            {/* Actions */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-              <a
-                href={activeTrack.previewUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="py-3 px-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-lg shadow-red-900/30 hover:scale-[1.02]"
+            {/* DOWNLOAD OPTIONS BAR: MP3 Audio, MP4 Video, HD Cover Art */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              <button
+                onClick={() => handleDownloadFormat(activeTrack.youtubeId || activeTrack.id, 'mp3')}
+                className="py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-900/30 hover:scale-[1.02]"
               >
-                <i className="fab fa-youtube"></i>
-                <span>Open on YouTube</span>
-              </a>
+                <i className="fas fa-music"></i>
+                <span>Download MP3 Audio</span>
+              </button>
 
-              {activeTrack.artworkUrlHD && (
-                <a
-                  href={activeTrack.artworkUrlHD}
-                  target="_blank"
-                  download={`${activeTrack.artist} - ${activeTrack.title}_cover.jpg`}
-                  className="py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"
-                >
-                  <i className="fas fa-image text-emerald-400"></i>
-                  <span>Download Cover Art</span>
-                </a>
-              )}
+              <button
+                onClick={() => handleDownloadFormat(activeTrack.youtubeId || activeTrack.id, 'mp4')}
+                className="py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-900/30 hover:scale-[1.02]"
+              >
+                <i className="fas fa-video"></i>
+                <span>Download MP4 Video</span>
+              </button>
+
+              <button
+                onClick={() => handleDownloadArtwork(activeTrack)}
+                className="py-3 px-4 bg-slate-800 hover:bg-slate-700 text-purple-400 border border-slate-700 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"
+              >
+                <i className="fas fa-image"></i>
+                <span>Download Cover Art (HD)</span>
+              </button>
             </div>
 
             {/* Prev / Next Track Navigation */}
             {results.length > 1 && (
-              <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-xs text-slate-400">
+              <div className="flex items-center justify-between pt-2 border-t border-slate-900 text-xs text-slate-400">
                 <button
                   onClick={() => {
                     const idx = results.findIndex(r => r.id === activeTrack.id);
@@ -402,7 +482,7 @@ export default function MusicFinder() {
                   disabled={results.findIndex(r => r.id === activeTrack.id) === 0}
                   className="py-1.5 px-3 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 disabled:opacity-30 transition-all"
                 >
-                  <i className="fas fa-backward-step"></i> Previous Track
+                  <i className="fas fa-backward-step"></i> Previous
                 </button>
 
                 <span className="font-mono text-[11px]">
@@ -417,7 +497,7 @@ export default function MusicFinder() {
                   disabled={results.findIndex(r => r.id === activeTrack.id) === results.length - 1}
                   className="py-1.5 px-3 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 disabled:opacity-30 transition-all"
                 >
-                  Next Track <i className="fas fa-forward-step"></i>
+                  Next <i className="fas fa-forward-step"></i>
                 </button>
               </div>
             )}
