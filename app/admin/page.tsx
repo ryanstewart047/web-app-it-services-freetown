@@ -270,6 +270,15 @@ const ADMIN_PANELS: AdminPanelItem[] = [
     color: 'text-blue-500',
     url: '/admin/facebook-auto-post',
   },
+  {
+    id: 'digital-tools',
+    name: 'Digital Tools Suite',
+    category: 'ecommerce',
+    description: 'Audio, Image & Doc Converters',
+    icon: 'fas fa-wand-magic-sparkles',
+    color: 'text-red-400',
+    url: '/digital-tools',
+  },
 ];
 
 export default function AdminPage() {

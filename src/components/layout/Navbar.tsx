@@ -248,6 +248,10 @@ export default function Navbar() {
               </div>
             </div>
 
+            <Link href="/digital-tools" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname?.startsWith('/digital-tools') ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>
+              <i className="fas fa-wand-magic-sparkles text-red-500 mr-1"></i> Digital Tools
+            </Link>
+
             <Link href="/forum" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname?.startsWith('/forum') ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>
               <i className="fas fa-users mr-1"></i> Tech Forum
             </Link>

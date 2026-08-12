@@ -559,6 +559,12 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/digital-tools" className="text-gray-200 hover:text-red-400 transition-colors text-sm flex items-center group font-medium text-red-400">
+                  <i className="fas fa-wand-magic-sparkles mr-3 text-red-500 w-4"></i>
+                  <span className="group-hover:translate-x-1 transition-transform">Digital Products & Tools</span>
+                </Link>
+              </li>
+              <li>
                 <Link href="/book-appointment" className="text-gray-200 hover:text-red-400 transition-colors text-sm flex items-center group">
                   <i className="fas fa-calendar-alt mr-3 text-red-500 w-4"></i>
                   <span className="group-hover:translate-x-1 transition-transform">Book Appointment</span>
