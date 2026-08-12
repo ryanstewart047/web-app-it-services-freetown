@@ -4,7 +4,8 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q') || searchParams.get('query') || '';
-    const limit = parseInt(searchParams.get('limit') || '25', 10);
+    const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10), 100);
+    const page = parseInt(searchParams.get('page') || '1', 10);
 
     if (!query.trim()) {
       return NextResponse.json({ results: [], total: 0 }, { status: 200 });
@@ -14,38 +15,39 @@ export async function GET(request: NextRequest) {
     const results: any[] = [];
     const seenIds = new Set<string>();
 
-    // 1. YouTube Search Scraper (100% Full-Length Songs)
-    try {
-      const ytSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanQuery + ' music song')}`;
-      const ytRes = await fetch(ytSearchUrl, {
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-          'Accept-Language': 'en-US,en;q=0.9',
-        },
-        next: { revalidate: 180 },
-      });
+    // Helper to scrape YouTube Search HTML
+    const fetchYouTubeResults = async (searchKeyword: string) => {
+      try {
+        const ytSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(searchKeyword)}`;
+        const ytRes = await fetch(ytSearchUrl, {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            'Accept-Language': 'en-US,en;q=0.9',
+          },
+          next: { revalidate: 180 },
+        });
 
-      if (ytRes.ok) {
+        if (!ytRes.ok) return;
         const html = await ytRes.text();
         const match = html.match(/var ytInitialData = ({.*?});<\/script>/s);
 
         if (match && match[1]) {
           const ytData = JSON.parse(match[1]);
-          const contents =
-            ytData?.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents?.[0]
-              ?.itemSectionRenderer?.contents || [];
+          const sectionList =
+            ytData?.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents || [];
 
-          contents.forEach((item: any) => {
-            if (item.videoRenderer && results.length < limit) {
-              const v = item.videoRenderer;
-              const videoId = v.videoId;
-              const title = v.title?.runs?.[0]?.text || 'Untitled Song';
-              const artist = v.ownerText?.runs?.[0]?.text || 'Unknown Artist';
-              const durationFormatted = v.lengthText?.simpleText || '3:45';
-
-              if (videoId && !seenIds.has(videoId)) {
+          sectionList.forEach((section: any) => {
+            const items = section?.itemSectionRenderer?.contents || [];
+            items.forEach((item: any) => {
+              const v = item.videoRenderer || item.compactVideoRenderer;
+              if (v && v.videoId && !seenIds.has(v.videoId)) {
+                const videoId = v.videoId;
                 seenIds.add(videoId);
+
+                const title = v.title?.runs?.[0]?.text || v.title?.simpleText || 'Untitled Song';
+                const artist = v.ownerText?.runs?.[0]?.text || v.shortBylineText?.runs?.[0]?.text || 'Unknown Artist';
+                const durationFormatted = v.lengthText?.simpleText || v.lengthText?.runs?.[0]?.text || '3:45';
 
                 // Convert "3:45" formatted time to Ms
                 const parts = durationFormatted.split(':').map(Number);
@@ -71,17 +73,25 @@ export async function GET(request: NextRequest) {
                   isExplicit: false,
                 });
               }
-            }
+            });
           });
         }
+      } catch (e) {
+        console.error('YouTube Search Scrape Error:', e);
       }
-    } catch (e) {
-      console.error('YouTube Search Scrape Error:', e);
+    };
+
+    // 1. Primary Query Search
+    await fetchYouTubeResults(`${cleanQuery} music song`);
+
+    // 2. Secondary Query Search if results are fewer than target limit to ensure rich results list!
+    if (results.length < limit) {
+      await fetchYouTubeResults(`${cleanQuery} full audio`);
     }
 
-    // 2. Jamendo Music API (Full-Length Free Tracks)
+    // 3. Jamendo Music API (Full-Length Free Tracks supplement)
     try {
-      const jamendoUrl = `https://api.jamendo.com/v3.0/tracks/?client_id=56d30ee7&format=json&limit=15&namesearch=${encodeURIComponent(
+      const jamendoUrl = `https://api.jamendo.com/v3.0/tracks/?client_id=56d30ee7&format=json&limit=20&namesearch=${encodeURIComponent(
         cleanQuery
       )}&include=musicinfo`;
       const jamendoRes = await fetch(jamendoUrl, {
@@ -122,11 +132,16 @@ export async function GET(request: NextRequest) {
       console.error('Jamendo API Error:', e);
     }
 
+    const totalResults = results.length;
+    const paginatedResults = results.slice(0, page * limit);
+
     return NextResponse.json({
       success: true,
       query: cleanQuery,
-      total: results.length,
-      results,
+      total: totalResults,
+      page,
+      hasMore: paginatedResults.length < totalResults,
+      results: paginatedResults,
     });
   } catch (error: any) {
     console.error('Music Search Error:', error);
