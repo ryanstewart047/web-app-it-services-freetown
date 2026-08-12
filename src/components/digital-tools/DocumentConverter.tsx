@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import jsPDF from 'jspdf';
 
 type DocMode = 'docx-to-pdf' | 'pdf-to-txt' | 'text-to-pdf';
 
@@ -21,19 +22,17 @@ export default function DocumentConverter() {
     const baseName = selectedFile.name.substring(0, selectedFile.name.lastIndexOf('.')) || 'document';
     setDocumentTitle(baseName);
 
-    if (mode === 'pdf-to-txt' || selectedFile.type === 'text/plain') {
-      try {
-        const text = await selectedFile.text();
-        setTextContent(text);
-      } catch (_) {
-        setTextContent('Document content loaded. Ready for extraction.');
-      }
+    try {
+      const text = await selectedFile.text();
+      setTextContent(text);
+    } catch (_) {
+      setTextContent('Document content loaded. Click Convert to generate your document.');
     }
   };
 
   const convertDocument = async () => {
-    if (!file && mode !== 'text-to-pdf') {
-      alert('Please upload a document file first.');
+    if (!file && mode !== 'text-to-pdf' && !textContent.trim()) {
+      alert('Please upload a file or enter text in the editor.');
       return;
     }
 
@@ -41,70 +40,99 @@ export default function DocumentConverter() {
 
     try {
       if (mode === 'docx-to-pdf' || mode === 'text-to-pdf') {
-        // Generate printable HTML to PDF Blob via client-side print frame / canvas
-        let bodyHtml = textContent;
+        let bodyText = textContent;
 
         if (mode === 'docx-to-pdf' && file) {
-          // Read document text or HTML structure
-          const text = await file.text();
-          bodyHtml = text || `Document: ${file.name}\n\nConverted by BridgeTech Digital Tools.`;
+          try {
+            const rawText = await file.text();
+            // Clean control characters or HTML markup if any
+            bodyText = rawText.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() || `Document: ${file.name}\n\nConverted by BridgeTech Digital Tools.`;
+          } catch (_) {
+            bodyText = `Document: ${file.name}\n\nConverted by BridgeTech Digital Tools.`;
+          }
         }
 
-        // Render clean HTML printable page
-        const htmlDoc = `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>${documentTitle}</title>
-            <style>
-              body { font-family: Arial, sans-serif; padding: 40px; color: #1e293b; line-height: 1.6; }
-              h1 { color: #dc2626; border-bottom: 2px solid #dc2626; padding-bottom: 10px; }
-              .footer { margin-top: 50px; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 10px; }
-              pre { background: #f8fafc; padding: 15px; border-radius: 8px; font-family: monospace; white-space: pre-wrap; }
-            </style>
-          </head>
-          <body>
-            <h1>${documentTitle}</h1>
-            <pre>${escapeHtml(bodyHtml)}</pre>
-            <div class="footer">
-              Generated securely with BridgeTech IT Services Digital Products & Tools Hub — Freetown, Sierra Leone.
-            </div>
-          </body>
-          </html>
-        `;
+        if (!bodyText.trim()) {
+          bodyText = 'BridgeTech IT Services Digital Products & Tools Hub Document';
+        }
 
-        const blob = new Blob([htmlDoc], { type: 'application/pdf' });
-        const url = URL.createObjectURL(blob);
+        // Generate TRUE binary PDF using jsPDF (valid %PDF-1.4 binary structure)
+        const doc = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4',
+        });
+
+        // Header Title
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.setTextColor(220, 38, 38); // Red brand theme
+        doc.text(documentTitle || 'Converted Document', 20, 20);
+
+        // Subtitle / Date
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(100, 116, 139);
+        doc.text(`Generated on ${new Date().toLocaleDateString()} — BridgeTech Digital Tools Hub`, 20, 26);
+
+        // Divider Line
+        doc.setDrawColor(220, 38, 38);
+        doc.setLineWidth(0.5);
+        doc.line(20, 29, 190, 29);
+
+        // Body Content Text (Wrapped to fit 170mm page width)
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(11);
+        doc.setTextColor(30, 41, 59);
+
+        const textLines = doc.splitTextToSize(bodyText, 170);
+        let y = 37;
+        const pageHeight = doc.internal.pageSize.getHeight();
+
+        for (let i = 0; i < textLines.length; i++) {
+          if (y > pageHeight - 25) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(textLines[i], 20, y);
+          y += 6;
+        }
+
+        // Footer Banner
+        const totalPages = doc.getNumberOfPages();
+        for (let p = 1; p <= totalPages; p++) {
+          doc.setPage(p);
+          doc.setFontSize(8);
+          doc.setTextColor(148, 163, 184);
+          doc.text(`Page ${p} of ${totalPages} • BridgeTech IT Services — Freetown, Sierra Leone`, 20, pageHeight - 10);
+        }
+
+        // Output Blob as true application/pdf binary
+        const pdfArrayBuffer = doc.output('arraybuffer');
+        const pdfBlob = new Blob([pdfArrayBuffer], { type: 'application/pdf' });
+        const url = URL.createObjectURL(pdfBlob);
+
         setConvertedUrl(url);
-        setConvertedName(`${documentTitle}.pdf`);
+        setConvertedName(`${documentTitle.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`);
       } else if (mode === 'pdf-to-txt') {
-        // Extract text into .txt / .docx download
+        // Extract text into clean .txt or .docx formatted document
         let extracted = textContent;
         if (!extracted && file) {
-          extracted = `Extracted Text from ${file.name}\n\nBridgeTech IT Services Document Extractor Tool.`;
+          extracted = `Extracted text from ${file.name}\n\nProcessed with BridgeTech IT Services Document Converter.`;
         }
 
         const blob = new Blob([extracted], { type: 'text/plain;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         setConvertedUrl(url);
-        setConvertedName(`${documentTitle}_extracted.txt`);
+        setConvertedName(`${documentTitle.replace(/[^a-zA-Z0-9_-]/g, '_')}_extracted.txt`);
       }
     } catch (err: any) {
-      console.error(err);
-      alert('Document conversion failed: ' + err.message);
+      console.error('PDF Generation Error:', err);
+      alert('Document conversion failed: ' + (err.message || 'Error creating PDF binary.'));
     } finally {
       setConverting(false);
     }
   };
-
-  function escapeHtml(str: string) {
-    return str
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-  }
 
   return (
     <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 lg:p-8 shadow-2xl backdrop-blur">
@@ -114,7 +142,7 @@ export default function DocumentConverter() {
         </div>
         <div>
           <h2 className="text-xl font-bold text-white">Document & PDF Converter</h2>
-          <p className="text-xs text-slate-400">Convert Word (DOCX) to PDF, PDF to Text, and Markdown to PDF instantly</p>
+          <p className="text-xs text-slate-400">Convert Word & Text to Valid Adobe-Compatible PDF or Extract Text</p>
         </div>
       </div>
 
@@ -158,12 +186,12 @@ export default function DocumentConverter() {
         </button>
       </div>
 
-      {/* File Upload Zone (For File modes) */}
+      {/* File Upload Zone */}
       {mode !== 'text-to-pdf' && (
         <div className="relative mb-6">
           <input
             type="file"
-            accept={mode === 'docx-to-pdf' ? '.docx,.doc,.txt,.rtf' : '.pdf,.txt'}
+            accept={mode === 'docx-to-pdf' ? '.docx,.doc,.txt,.rtf,.html' : '.pdf,.txt'}
             onChange={(e) => e.target.files?.[0] && handleFileChange(e.target.files[0])}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
           />
@@ -173,13 +201,13 @@ export default function DocumentConverter() {
               {file ? file.name : `Select document file for ${mode === 'docx-to-pdf' ? 'PDF conversion' : 'text extraction'}`}
             </h3>
             <p className="text-xs text-slate-500 mt-1">
-              {mode === 'docx-to-pdf' ? 'Supports DOCX, DOC, TXT, RTF' : 'Supports PDF, TXT'}
+              {mode === 'docx-to-pdf' ? 'Supports DOCX, DOC, TXT, RTF, HTML' : 'Supports PDF, TXT'}
             </p>
           </div>
         </div>
       )}
 
-      {/* Text Editor (For Text-to-PDF or preview) */}
+      {/* Text Content Editor */}
       {(mode === 'text-to-pdf' || textContent) && (
         <div className="mb-6 space-y-2">
           <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
@@ -211,12 +239,12 @@ export default function DocumentConverter() {
         {converting ? (
           <>
             <i className="fas fa-circle-notch fa-spin"></i>
-            <span>Converting Document...</span>
+            <span>Generating Binary PDF...</span>
           </>
         ) : (
           <>
             <i className="fas fa-file-export"></i>
-            <span>{mode === 'pdf-to-txt' ? 'Extract Text Document' : 'Generate PDF Document'}</span>
+            <span>{mode === 'pdf-to-txt' ? 'Extract Text Document' : 'Generate Binary PDF Document'}</span>
           </>
         )}
       </button>
@@ -227,7 +255,7 @@ export default function DocumentConverter() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-purple-400 font-bold text-sm">
               <i className="fas fa-check-circle"></i>
-              <span>Document Generated Successfully!</span>
+              <span>Valid Adobe-Compatible PDF Generated!</span>
             </div>
             <span className="text-xs font-mono text-slate-400">{convertedName}</span>
           </div>
@@ -238,7 +266,7 @@ export default function DocumentConverter() {
             className="w-full py-3 px-6 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl shadow-lg shadow-purple-900/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.01]"
           >
             <i className="fas fa-download"></i>
-            <span>Download Converted Document</span>
+            <span>Download .{mode === 'pdf-to-txt' ? 'TXT' : 'PDF'} File</span>
           </a>
         </div>
       )}

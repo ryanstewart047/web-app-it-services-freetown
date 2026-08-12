@@ -439,6 +439,10 @@ export default function Navbar() {
               <i className="fas fa-blog w-5 mr-3 text-[#040e40]"></i>Blog
             </Link>
 
+            <Link href="/digital-tools" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
+              <i className="fas fa-wand-magic-sparkles w-5 mr-3 text-red-600"></i>Digital Tools Suite
+            </Link>
+
             <Link href="/forum" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
               <i className="fas fa-users w-5 mr-3 text-[#040e40]"></i>Tech Forum
             </Link>

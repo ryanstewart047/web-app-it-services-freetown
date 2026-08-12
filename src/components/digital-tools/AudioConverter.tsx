@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 
-type AudioFormat = 'wav' | 'mp3' | 'ogg' | 'flac' | 'm4a';
+type AudioFormat = 'mp3' | 'wav' | 'ogg' | 'flac' | 'm4a';
 
 interface ConversionProgress {
   status: 'idle' | 'decoding' | 'converting' | 'completed' | 'error';
@@ -12,6 +12,8 @@ interface ConversionProgress {
 
 export default function AudioConverter() {
   const [file, setFile] = useState<File | null>(null);
+  const [mediaPreviewUrl, setMediaPreviewUrl] = useState<string | null>(null);
+  const [isVideo, setIsVideo] = useState<boolean>(false);
   const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
   const [targetFormat, setTargetFormat] = useState<AudioFormat>('mp3');
   const [sampleRate, setSampleRate] = useState<number>(44100);
@@ -32,18 +34,25 @@ export default function AudioConverter() {
   });
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Load and decode audio file when uploaded
   const handleFileChange = async (selectedFile: File) => {
-    if (!selectedFile.type.startsWith('audio/') && !selectedFile.name.match(/\.(mp3|wav|ogg|m4a|flac|aac|wma)$/i)) {
-      alert('Please select a valid audio file (.mp3, .wav, .ogg, .flac, .m4a).');
+    const isAudioFile = selectedFile.type.startsWith('audio/') || selectedFile.name.match(/\.(mp3|wav|ogg|m4a|flac|aac|wma)$/i);
+    const isVideoFile = selectedFile.type.startsWith('video/') || selectedFile.name.match(/\.(mp4|mov|webm|mkv|avi|3gp)$/i);
+
+    if (!isAudioFile && !isVideoFile) {
+      alert('Please select a valid audio (.mp3, .wav, .ogg, .flac) or video file (.mp4, .mov, .webm).');
       return;
     }
 
     setFile(selectedFile);
+    setIsVideo(!!isVideoFile);
     setConvertedUrl(null);
-    setProgress({ status: 'decoding', percent: 20, message: 'Decoding audio data...' });
+    
+    // Create preview URL for instant playback
+    const previewUrl = URL.createObjectURL(selectedFile);
+    setMediaPreviewUrl(previewUrl);
+
+    setProgress({ status: 'decoding', percent: 20, message: 'Decoding audio/video tracks...' });
 
     try {
       const arrayBuffer = await selectedFile.arrayBuffer();
@@ -58,13 +67,19 @@ export default function AudioConverter() {
       setChannels(decodedBuffer.numberOfChannels > 1 ? 'stereo' : 'mono');
 
       drawWaveform(decodedBuffer);
-      setProgress({ status: 'idle', percent: 100, message: 'Audio ready for conversion.' });
+      setProgress({
+        status: 'idle',
+        percent: 100,
+        message: isVideoFile
+          ? 'MP4 Video loaded! Ready to extract & convert audio track.'
+          : 'Audio loaded! Ready for preview and conversion.',
+      });
     } catch (err: any) {
-      console.error('Audio decode error:', err);
+      console.error('Media decode error:', err);
       setProgress({
         status: 'error',
         percent: 0,
-        message: 'Could not decode audio file. Try a different format.',
+        message: 'Could not decode media file. Ensure it contains a valid audio track.',
       });
     }
   };
@@ -80,15 +95,14 @@ export default function AudioConverter() {
     const height = canvas.height;
     ctx.clearRect(0, 0, width, height);
 
-    // Gradient background
     const bgGrad = ctx.createLinearGradient(0, 0, width, 0);
     bgGrad.addColorStop(0, '#0f172a');
     bgGrad.addColorStop(1, '#1e1b4b');
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, width, height);
 
-    const rawData = buffer.getChannelData(0); // channel 1
-    const samples = 120; // bars
+    const rawData = buffer.getChannelData(0);
+    const samples = 120;
     const blockSize = Math.floor(rawData.length / samples);
     const barWidth = width / samples - 2;
 
@@ -106,7 +120,6 @@ export default function AudioConverter() {
       const x = i * (barWidth + 2);
       const y = (height - barHeight) / 2;
 
-      // Color variation for waveform
       const isTrimmedArea = (i / samples) * buffer.duration >= trimStart && (i / samples) * buffer.duration <= (trimEnd || buffer.duration);
       ctx.fillStyle = isTrimmedArea ? '#ef4444' : '#475569';
       ctx.fillRect(x, y, barWidth, barHeight);
@@ -124,13 +137,12 @@ export default function AudioConverter() {
   const convertAudio = async () => {
     if (!audioBuffer || !file) return;
 
-    setProgress({ status: 'converting', percent: 30, message: 'Processing audio channels & trimming...' });
+    setProgress({ status: 'converting', percent: 30, message: 'Processing audio tracks & trimming...' });
 
     try {
       const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const numChannels = channels === 'mono' ? 1 : Math.min(2, audioBuffer.numberOfChannels);
 
-      // Slice audio buffer according to trim times
       const startSample = Math.floor(trimStart * audioBuffer.sampleRate);
       const endSample = Math.floor((trimEnd || audioBuffer.duration) * audioBuffer.sampleRate);
       const frameCount = Math.max(0, endSample - startSample);
@@ -156,17 +168,16 @@ export default function AudioConverter() {
       if (targetFormat === 'wav') {
         blob = audioBufferToWavBlob(trimmedBuffer);
       } else {
-        // Use MediaRecorder or WAV encoding fallback for standard formats
         blob = await renderWithOfflineAudioContext(trimmedBuffer, targetFormat, bitrate);
       }
 
       const url = URL.createObjectURL(blob);
-      const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || 'audio';
+      const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || 'media';
       const outName = `${baseName}_converted.${targetFormat}`;
 
       setConvertedUrl(url);
       setConvertedFileName(outName);
-      setProgress({ status: 'completed', percent: 100, message: 'Conversion completed successfully!' });
+      setProgress({ status: 'completed', percent: 100, message: `Successfully converted to .${targetFormat.toUpperCase()}!` });
     } catch (err: any) {
       console.error('Conversion error:', err);
       setProgress({
@@ -177,11 +188,10 @@ export default function AudioConverter() {
     }
   };
 
-  // Convert AudioBuffer to WAV Blob format
   function audioBufferToWavBlob(buffer: AudioBuffer): Blob {
     const numChannels = buffer.numberOfChannels;
     const sampleRate = buffer.sampleRate;
-    const format = 1; // PCM
+    const format = 1;
     const bitDepth = 16;
     const bytesPerSample = bitDepth / 8;
     const blockAlign = numChannels * bytesPerSample;
@@ -201,7 +211,7 @@ export default function AudioConverter() {
     view.setUint32(4, 36 + dataLength, true);
     writeString(8, 'WAVE');
     writeString(12, 'fmt ');
-    view.setUint32(16, 16, true); // fmt chunk size
+    view.setUint32(16, 16, true);
     view.setUint16(20, format, true);
     view.setUint16(22, numChannels, true);
     view.setUint32(24, sampleRate, true);
@@ -211,7 +221,6 @@ export default function AudioConverter() {
     writeString(36, 'data');
     view.setUint32(40, dataLength, true);
 
-    // Interleave channels
     let offset = 44;
     const channelsData: Float32Array[] = [];
     for (let c = 0; c < numChannels; c++) {
@@ -230,7 +239,6 @@ export default function AudioConverter() {
     return new Blob([arrayBuffer], { type: 'audio/wav' });
   }
 
-  // Render via OfflineAudioContext and MediaRecorder for encoded audio streams
   async function renderWithOfflineAudioContext(
     buffer: AudioBuffer,
     format: string,
@@ -247,11 +255,8 @@ export default function AudioConverter() {
     source.start();
 
     const renderedBuffer = await offlineCtx.startRendering();
-
-    // Default to high quality WAV if MediaRecorder format isn't natively supported for export
     const wavBlob = audioBufferToWavBlob(renderedBuffer);
 
-    // Attempt web media recorder encoding if supported
     const mimeMap: Record<string, string> = {
       mp3: 'audio/webm;codecs=opus',
       ogg: 'audio/ogg',
@@ -295,8 +300,8 @@ export default function AudioConverter() {
           <i className="fas fa-music"></i>
         </div>
         <div>
-          <h2 className="text-xl font-bold text-white">Audio & Music Converter</h2>
-          <p className="text-xs text-slate-400">Convert MP3, WAV, OGG, FLAC, M4A with bitrate & trimming controls</p>
+          <h2 className="text-xl font-bold text-white">Audio & MP4 Video to MP3 Converter</h2>
+          <p className="text-xs text-slate-400">Extract & Convert MP4 Video to MP3, WAV, OGG, FLAC with Media Preview Player</p>
         </div>
       </div>
 
@@ -304,34 +309,53 @@ export default function AudioConverter() {
       <div className="relative mb-6">
         <input
           type="file"
-          accept="audio/*,.mp3,.wav,.ogg,.flac,.m4a,.aac"
+          accept="audio/*,video/*,.mp3,.mp4,.wav,.ogg,.flac,.m4a,.mov,.webm"
           onChange={(e) => e.target.files?.[0] && handleFileChange(e.target.files[0])}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
         />
         <div className="border-2 border-dashed border-slate-700 hover:border-red-500/60 bg-slate-950/60 rounded-2xl p-8 text-center transition-all">
-          <i className="fas fa-cloud-arrow-up text-4xl text-red-500/80 mb-3 animate-pulse"></i>
+          <i className="fas fa-file-video text-4xl text-red-500/80 mb-3 animate-pulse"></i>
           <h3 className="text-sm font-semibold text-slate-200">
-            {file ? file.name : 'Drag & Drop audio file here, or click to browse'}
+            {file ? file.name : 'Drag & Drop MP3 / MP4 file here, or click to browse'}
           </h3>
           <p className="text-xs text-slate-500 mt-1">
-            Supports MP3, WAV, OGG, FLAC, M4A, AAC (Max 100MB)
+            Supports MP4 Video, MP3, WAV, OGG, FLAC, M4A, MOV (Max 150MB)
           </p>
           {file && (
             <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-red-500/10 border border-red-500/30 text-red-400 rounded-full text-xs font-mono">
               <span>{(file.size / (1024 * 1024)).toFixed(2)} MB</span>
               <span>•</span>
-              <span>{file.type || 'audio'}</span>
+              <span>{isVideo ? 'MP4 Video' : 'Audio File'}</span>
             </div>
           )}
         </div>
       </div>
 
-      {/* Audio Waveform Canvas */}
+      {/* Uploaded File Media Preview Player */}
+      {mediaPreviewUrl && (
+        <div className="mb-6 p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <span className="font-semibold text-slate-300 flex items-center gap-1.5">
+              <i className={`fas ${isVideo ? 'fa-video text-blue-400' : 'fa-music text-red-400'}`}></i>
+              <span>Uploaded Media Preview ({isVideo ? 'Video' : 'Audio'})</span>
+            </span>
+            <span className="font-mono">{duration.toFixed(1)}s</span>
+          </div>
+
+          {isVideo ? (
+            <video controls src={mediaPreviewUrl} className="w-full max-h-60 rounded-xl bg-black border border-slate-800" />
+          ) : (
+            <audio controls src={mediaPreviewUrl} className="w-full h-9 rounded-lg" />
+          )}
+        </div>
+      )}
+
+      {/* Audio Waveform Canvas & Trimming */}
       {audioBuffer && (
         <div className="mb-6 space-y-3">
           <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
-            <span>Waveform Preview</span>
-            <span>Duration: {duration.toFixed(2)}s</span>
+            <span>Waveform & Trimming Preview</span>
+            <span>Selected Duration: {(trimEnd - trimStart).toFixed(1)}s</span>
           </div>
           <div className="relative rounded-xl overflow-hidden border border-slate-800">
             <canvas ref={canvasRef} width={800} height={100} className="w-full h-24 block bg-slate-950" />
@@ -375,15 +399,15 @@ export default function AudioConverter() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div>
           <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-            Target Format
+            Target Output Format
           </label>
           <select
             value={targetFormat}
             onChange={(e) => setTargetFormat(e.target.value as AudioFormat)}
             className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-red-500"
           >
-            <option value="mp3">MP3 — MPEG Layer 3</option>
-            <option value="wav">WAV — Uncompressed PCM</option>
+            <option value="mp3">MP3 — MPEG Audio</option>
+            <option value="wav">WAV — Uncompressed PCM Audio</option>
             <option value="ogg">OGG — Vorbis Audio</option>
             <option value="flac">FLAC — Lossless Audio</option>
             <option value="m4a">M4A — AAC Audio</option>
@@ -430,12 +454,12 @@ export default function AudioConverter() {
         {progress.status === 'converting' ? (
           <>
             <i className="fas fa-arrows-rotate fa-spin"></i>
-            <span>Converting Audio... ({progress.percent}%)</span>
+            <span>Extracting & Converting... ({progress.percent}%)</span>
           </>
         ) : (
           <>
             <i className="fas fa-[#22c55e] fa-bolt"></i>
-            <span>Convert Audio File to .{targetFormat.toUpperCase()}</span>
+            <span>{isVideo ? `Extract MP4 Audio to .${targetFormat.toUpperCase()}` : `Convert Audio to .${targetFormat.toUpperCase()}`}</span>
           </>
         )}
       </button>
@@ -470,12 +494,12 @@ export default function AudioConverter() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
               <i className="fas fa-check-circle"></i>
-              <span>Ready for Download</span>
+              <span>Converted Audio Ready for Download</span>
             </div>
             <span className="text-xs font-mono text-slate-400">{convertedFileName}</span>
           </div>
 
-          <audio ref={audioRef} controls src={convertedUrl} className="w-full rounded-lg bg-slate-900" />
+          <audio controls src={convertedUrl} className="w-full rounded-lg bg-slate-900" />
 
           <a
             href={convertedUrl}

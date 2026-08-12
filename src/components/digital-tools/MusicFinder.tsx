@@ -240,18 +240,23 @@ export default function MusicFinder() {
           </div>
 
           <div className="w-full md:w-1/2">
-            <audio controls autoPlay src={activeTrack.previewUrl} className="w-full h-9 rounded-lg" />
+            <audio
+              controls
+              autoPlay
+              src={`/api/music/proxy?url=${encodeURIComponent(activeTrack.previewUrl)}&filename=${encodeURIComponent(`${activeTrack.artist}_${activeTrack.title}.mp3`)}`}
+              className="w-full h-9 rounded-lg"
+            />
           </div>
 
           <div className="flex items-center gap-2">
             {activeTrack.previewUrl && (
               <a
-                href={activeTrack.previewUrl}
+                href={`/api/music/proxy?url=${encodeURIComponent(activeTrack.previewUrl)}&filename=${encodeURIComponent(`${activeTrack.artist}_${activeTrack.title}.mp3`)}`}
                 download={`${activeTrack.artist}_${activeTrack.title}_preview.mp3`}
                 className="py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-md"
               >
                 <i className="fas fa-download"></i>
-                <span>Download Audio</span>
+                <span>Download MP3 Audio</span>
               </a>
             )}
           </div>

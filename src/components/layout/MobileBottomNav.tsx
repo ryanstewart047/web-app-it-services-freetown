@@ -26,6 +26,12 @@ export default function MobileBottomNav() {
       activeColor: 'text-blue-600'
     },
     {
+      label: 'Tools',
+      href: '/digital-tools',
+      icon: 'fas fa-wand-magic-sparkles',
+      activeColor: 'text-red-600'
+    },
+    {
       label: 'Track',
       href: '/track-repair',
       icon: 'fas fa-search',
