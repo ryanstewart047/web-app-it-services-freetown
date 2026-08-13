@@ -12,6 +12,9 @@ type Mp3EncoderConstructor = new (channels: number, sampleRate: number, kbps: nu
 type LameJsRuntime = {
   Mp3Encoder: Mp3EncoderConstructor;
 };
+type LameJsWindow = Window & typeof globalThis & {
+  lamejs?: LameJsRuntime;
+};
 
 interface ProgressState {
   phase: 'idle' | 'uploading' | 'decoding' | 'converting' | 'completed' | 'error';
@@ -45,34 +48,59 @@ const AUDIO_FORMAT_MIME: Record<AudioFormat, string> = {
 
 let lamejsRuntimePromise: Promise<LameJsRuntime> | null = null;
 
-function getModuleExport<T>(mod: T): any {
-  return (mod as any)?.default ?? mod;
+function getBrowserLamejsRuntime(): LameJsRuntime | null {
+  const runtime = (window as LameJsWindow).lamejs;
+  return runtime?.Mp3Encoder ? runtime : null;
 }
 
 async function loadLamejsRuntime(): Promise<LameJsRuntime> {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    throw new Error('MP3 encoder can only run in the browser.');
+  }
+
+  const loadedRuntime = getBrowserLamejsRuntime();
+  if (loadedRuntime) return loadedRuntime;
+
   if (!lamejsRuntimePromise) {
-    lamejsRuntimePromise = (async () => {
-      const [mpegModeModule, lameModule] = await Promise.all([
-        import('lamejs/src/js/MPEGMode.js'),
-        import('lamejs/src/js/Lame.js'),
-      ]);
+    lamejsRuntimePromise = new Promise<LameJsRuntime>((resolve, reject) => {
+      const existingScript = document.querySelector<HTMLScriptElement>('script[data-lamejs-runtime="true"]');
+      const script = existingScript ?? document.createElement('script');
 
-      (globalThis as any).MPEGMode = getModuleExport(mpegModeModule);
-      (globalThis as any).Lame = getModuleExport(lameModule);
+      const timeout = window.setTimeout(() => {
+        reject(new Error('MP3 encoder script timed out while loading.'));
+      }, 15000);
 
-      const lamejsModule = await import('lamejs');
-      const runtime = getModuleExport(lamejsModule) as LameJsRuntime;
-      if (!runtime?.Mp3Encoder) {
-        throw new Error('MP3 encoder could not be loaded.');
+      const finish = () => {
+        window.clearTimeout(timeout);
+        const runtime = getBrowserLamejsRuntime();
+        if (runtime) {
+          resolve(runtime);
+          return;
+        }
+        reject(new Error('MP3 encoder loaded without exposing Mp3Encoder.'));
+      };
+
+      const fail = () => {
+        window.clearTimeout(timeout);
+        reject(new Error('MP3 encoder script failed to load.'));
+      };
+
+      script.addEventListener('load', finish, { once: true });
+      script.addEventListener('error', fail, { once: true });
+
+      if (!existingScript) {
+        script.src = '/vendor/lame.min.js';
+        script.async = true;
+        script.dataset.lamejsRuntime = 'true';
+        document.head.appendChild(script);
       }
-      return runtime;
-    })().catch((error) => {
+    }).catch((error: unknown) => {
       lamejsRuntimePromise = null;
       throw error;
     });
   }
 
-  return lamejsRuntimePromise;
+  return lamejsRuntimePromise!;
 }
 
 export default function AudioConverter() {

@@ -11,13 +11,3 @@ declare module 'lamejs' {
 
   export default lamejs;
 }
-
-declare module 'lamejs/src/js/MPEGMode.js' {
-  const MPEGMode: unknown;
-  export default MPEGMode;
-}
-
-declare module 'lamejs/src/js/Lame.js' {
-  const Lame: unknown;
-  export default Lame;
-}
