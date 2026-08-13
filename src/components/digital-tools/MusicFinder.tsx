@@ -580,7 +580,7 @@ export default function MusicFinder() {
         </div>
       )}
 
-      {/* Preview and legal download options modal */}
+      {/* WORLDWIDE MULTI-MIRROR YOUTUBE MP3 / MP4 DOWNLOAD SERVERS MODAL */}
       {downloadModalTrack && (
         <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
           <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-slate-950 border border-emerald-500/40 rounded-3xl p-6 shadow-2xl text-center space-y-5 custom-scrollbar">
@@ -596,8 +596,8 @@ export default function MusicFinder() {
             {/* Modal Title */}
             <div className="space-y-1">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full text-xs font-bold">
-                <i className="fas fa-shield-halved text-emerald-400"></i>
-                <span>Preview & Source Options</span>
+                <i className="fas fa-download text-emerald-400"></i>
+                <span>High-Speed Download Servers</span>
               </div>
               <h3 className="text-base font-bold text-white truncate px-4 pt-2">
                 {downloadModalTrack.title}
@@ -605,164 +605,169 @@ export default function MusicFinder() {
               <p className="text-xs text-slate-400 truncate">{downloadModalTrack.artist}</p>
             </div>
 
-            {/* Format/intent toggle */}
+            {/* Format Selector Toggle */}
             <div className="grid grid-cols-3 gap-2 bg-slate-900 p-1.5 rounded-2xl border border-slate-800">
-              {([
-                { id: 'mp3' as const, label: 'MP3', icon: 'fa-music', color: 'bg-emerald-600' },
-                { id: 'mp4' as const, label: 'MP4', icon: 'fa-video', color: 'bg-blue-600' },
-                { id: 'cover' as const, label: 'Cover', icon: 'fa-image', color: 'bg-purple-600' },
-              ]).map((format) => (
-                <button
-                  key={format.id}
-                  onClick={() => setSelectedFormat(format.id)}
-                  className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
-                    selectedFormat === format.id ? `${format.color} text-white shadow-md` : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  <i className={`fas ${format.icon}`}></i>
-                  <span>{format.label}</span>
-                </button>
-              ))}
+              <button
+                onClick={() => setSelectedFormat('mp3')}
+                className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                  selectedFormat === 'mp3' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <i className="fas fa-music"></i>
+                <span>MP3 Audio</span>
+              </button>
+
+              <button
+                onClick={() => setSelectedFormat('mp4')}
+                className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                  selectedFormat === 'mp4' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <i className="fas fa-video"></i>
+                <span>MP4 Video</span>
+              </button>
+
+              <button
+                onClick={() => setSelectedFormat('cover')}
+                className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                  selectedFormat === 'cover' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <i className="fas fa-image"></i>
+                <span>Cover Art</span>
+              </button>
             </div>
 
-            {/* Source options */}
-            <div className="space-y-2 text-left">
+            {/* Download Server Options (Multi-mirror for 100% worldwide download availability) */}
+            <div className="space-y-2.5 text-left">
               <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider text-center">
-                Professional options:
+                Select Download Server for .{selectedFormat.toUpperCase()}:
               </p>
 
               {downloadModalTrack.youtubeId ? (
                 <>
-                  <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 space-y-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-white">
-                          {selectedFormat === 'mp3' && 'MP3 audio workflow'}
-                          {selectedFormat === 'mp4' && 'MP4 video workflow'}
-                          {selectedFormat === 'cover' && 'Cover art workflow'}
-                        </p>
-                        <p className="text-[11px] text-slate-400 leading-5 mt-1">
-                          {selectedFormat === 'mp3' && 'For videos you own or have permission to convert, download the video from your creator account, then use the local MP4 to MP3 converter above.'}
-                          {selectedFormat === 'mp4' && 'For videos you own or manage, download the original video from YouTube Studio. For other videos, use YouTube source controls only.'}
-                          {selectedFormat === 'cover' && 'Download the public preview image for reference, thumbnails, or posts where you have permission to use the artwork.'}
-                        </p>
-                      </div>
-                      <span className="shrink-0 rounded-xl bg-slate-950 border border-slate-800 px-2.5 py-1 text-[10px] font-mono text-slate-300">
-                        .{selectedFormat === 'cover' ? 'JPG' : selectedFormat.toUpperCase()}
-                      </span>
-                    </div>
-                  </div>
+                  {selectedFormat !== 'cover' && (
+                    <>
+                      <a
+                        href={`https://y2mate.nu/en1/?url=https://www.youtube.com/watch?v=${downloadModalTrack.youtubeId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full p-3.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-emerald-500/60 rounded-xl text-xs font-bold text-slate-200 flex items-center justify-between transition-all group shadow-sm"
+                      >
+                        <span className="flex items-center gap-2.5">
+                          <i className="fas fa-bolt text-amber-400 text-sm"></i>
+                          <span>Server 1 — Y2Mate High-Speed {selectedFormat.toUpperCase()}</span>
+                        </span>
+                        <i className="fas fa-arrow-right text-slate-500 group-hover:text-emerald-400 transition-colors"></i>
+                      </a>
 
-                  <a
-                    href={`https://www.youtube.com/watch?v=${downloadModalTrack.youtubeId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full p-3 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-emerald-500/50 rounded-xl text-xs font-bold text-slate-200 flex items-center justify-between transition-all group"
-                  >
-                    <span className="flex items-center gap-2">
-                      <i className="fab fa-youtube text-red-500"></i>
-                      <span>Open and play on YouTube</span>
-                    </span>
-                    <i className="fas fa-arrow-right text-slate-500 group-hover:text-emerald-400 transition-colors"></i>
-                  </a>
+                      <a
+                        href={`https://yt5s.biz/en/watch?v=${downloadModalTrack.youtubeId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full p-3.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-blue-500/60 rounded-xl text-xs font-bold text-slate-200 flex items-center justify-between transition-all group shadow-sm"
+                      >
+                        <span className="flex items-center gap-2.5">
+                          <i className="fas fa-circle-play text-blue-400 text-sm"></i>
+                          <span>Server 2 — YT5s Direct {selectedFormat.toUpperCase()}</span>
+                        </span>
+                        <i className="fas fa-arrow-right text-slate-500 group-hover:text-blue-400 transition-colors"></i>
+                      </a>
 
-                  <button
-                    onClick={() => copyTrackLink(downloadModalTrack)}
-                    className="w-full p-3 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-blue-500/50 rounded-xl text-xs font-bold text-slate-200 flex items-center justify-between transition-all group"
-                  >
-                    <span className="flex items-center gap-2">
-                      <i className="fas fa-copy text-blue-400"></i>
-                      <span>{copiedLink ? 'Link copied' : 'Copy source link'}</span>
-                    </span>
-                    <i className={`fas ${copiedLink ? 'fa-check text-emerald-400' : 'fa-arrow-right text-slate-500 group-hover:text-blue-400'} transition-colors`}></i>
-                  </button>
+                      <a
+                        href={`https://9buddy.com/p?url=https://www.youtube.com/watch?v=${downloadModalTrack.youtubeId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full p-3.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/60 rounded-xl text-xs font-bold text-slate-200 flex items-center justify-between transition-all group shadow-sm"
+                      >
+                        <span className="flex items-center gap-2.5">
+                          <i className="fas fa-wand-magic-sparkles text-purple-400 text-sm"></i>
+                          <span>Server 3 — 9Buddy Multi-Format Downloader</span>
+                        </span>
+                        <i className="fas fa-arrow-right text-slate-500 group-hover:text-purple-400 transition-colors"></i>
+                      </a>
 
-                  {selectedFormat === 'mp4' && (
-                    <a
-                      href="https://studio.youtube.com/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full p-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-900/30"
-                    >
-                      <i className="fas fa-video"></i>
-                      <span>Open YouTube Studio</span>
-                    </a>
-                  )}
+                      <a
+                        href={`https://ssyoutube.com/watch?v=${downloadModalTrack.youtubeId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full p-3.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-red-500/60 rounded-xl text-xs font-bold text-slate-200 flex items-center justify-between transition-all group shadow-sm"
+                      >
+                        <span className="flex items-center gap-2.5">
+                          <i className="fab fa-youtube text-red-500 text-sm"></i>
+                          <span>Server 4 — SSYouTube / SaveFrom Mirror</span>
+                        </span>
+                        <i className="fas fa-arrow-right text-slate-500 group-hover:text-red-400 transition-colors"></i>
+                      </a>
 
-                  {selectedFormat === 'mp3' && (
-                    <button
-                      onClick={scrollToLocalConverter}
-                      className="w-full p-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-900/30"
-                    >
-                      <i className="fas fa-wand-magic-sparkles"></i>
-                      <span>Use Local MP4 to MP3 Converter</span>
-                    </button>
+                      <a
+                        href="https://cobalt.tools/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full p-3.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/60 rounded-xl text-xs font-bold text-slate-200 flex items-center justify-between transition-all group shadow-sm"
+                      >
+                        <span className="flex items-center gap-2.5">
+                          <i className="fas fa-server text-cyan-400 text-sm"></i>
+                          <span>Server 5 — Cobalt Web Downloader</span>
+                        </span>
+                        <i className="fas fa-arrow-right text-slate-500 group-hover:text-cyan-400 transition-colors"></i>
+                      </a>
+                    </>
                   )}
 
                   {selectedFormat === 'cover' && (
                     <button
                       onClick={() => handleDownloadArtwork(downloadModalTrack)}
-                      className="w-full p-3 bg-purple-600 hover:bg-purple-500 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-900/30"
+                      className="w-full p-3.5 bg-purple-600 hover:bg-purple-500 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-900/30"
                     >
-                      <i className="fas fa-image"></i>
-                      <span>Download Cover Art Image</span>
+                      <i className="fas fa-image text-sm"></i>
+                      <span>Download HD Cover Art Image</span>
                     </button>
                   )}
 
-                  <p className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-[11px] leading-5 text-amber-200">
-                    This panel supports lawful creator workflows and source navigation. It does not bypass YouTube restrictions or download videos from third-party ripping services.
-                  </p>
+                  <div className="pt-2 flex items-center justify-between gap-2">
+                    <button
+                      onClick={() => copyTrackLink(downloadModalTrack)}
+                      className="flex-1 p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs font-semibold text-slate-300 flex items-center justify-center gap-1.5 transition-all"
+                    >
+                      <i className="fas fa-copy text-blue-400"></i>
+                      <span>{copiedLink ? 'Copied!' : 'Copy Link'}</span>
+                    </button>
+
+                    <a
+                      href={`https://www.youtube.com/watch?v=${downloadModalTrack.youtubeId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs font-semibold text-slate-300 flex items-center justify-center gap-1.5 transition-all"
+                    >
+                      <i className="fab fa-youtube text-red-500"></i>
+                      <span>YouTube</span>
+                    </a>
+                  </div>
                 </>
               ) : (
                 <>
-                  <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 space-y-2">
-                    <p className="text-xs font-bold text-white">
-                      {selectedFormat === 'mp3' && 'Direct audio download'}
-                      {selectedFormat === 'mp4' && 'Video format unavailable'}
-                      {selectedFormat === 'cover' && 'Cover art download'}
-                    </p>
-                    <p className="text-[11px] text-slate-400 leading-5">
-                      {selectedFormat === 'mp3' && 'This source provides a legitimate downloadable audio file.'}
-                      {selectedFormat === 'mp4' && 'This source does not provide a downloadable video file. Use the audio option or open the original source.'}
-                      {selectedFormat === 'cover' && 'Download the preview image supplied by this music source.'}
-                    </p>
-                  </div>
-
                   {selectedFormat !== 'cover' && (
                     <a
                       href={downloadModalTrack.downloadUrl || downloadModalTrack.previewUrl}
                       download={`${downloadModalTrack.artist} - ${downloadModalTrack.title}.mp3`}
-                      className={`w-full p-3.5 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 transition-all shadow-lg ${
-                        selectedFormat === 'mp4'
-                          ? 'bg-slate-700 hover:bg-slate-600 shadow-slate-900/30'
-                          : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-900/30'
-                      }`}
+                      className="w-full p-3.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 transition-all shadow-lg"
                     >
                       <i className="fas fa-download"></i>
-                      <span>{selectedFormat === 'mp4' ? 'Download Available Audio Instead' : 'Direct Free-Track Audio Download'}</span>
+                      <span>Direct Download .{selectedFormat.toUpperCase()}</span>
                     </a>
                   )}
 
                   {selectedFormat === 'cover' && (
                     <button
                       onClick={() => handleDownloadArtwork(downloadModalTrack)}
-                      className="w-full p-3 bg-purple-600 hover:bg-purple-500 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-900/30"
+                      className="w-full p-3.5 bg-purple-600 hover:bg-purple-500 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-900/30"
                     >
                       <i className="fas fa-image"></i>
-                      <span>Download Cover Art Image</span>
+                      <span>Download HD Cover Art Image</span>
                     </button>
                   )}
                 </>
-              )}
-
-              {selectedFormat !== 'cover' && (
-                <button
-                  onClick={() => handleDownloadArtwork(downloadModalTrack)}
-                  className="w-full p-3 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs font-bold text-purple-400 flex items-center justify-center gap-2 transition-all"
-                >
-                  <i className="fas fa-image"></i>
-                  <span>Download HD Cover Art Image</span>
-                </button>
               )}
             </div>
           </div>
