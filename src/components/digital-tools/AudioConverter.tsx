@@ -52,7 +52,28 @@ export default function AudioConverter() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const convertedAudioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // ── Auto-play preview when mediaPreviewUrl is set ────────────────────────
+  useEffect(() => {
+    if (!mediaPreviewUrl) return;
+    // Small delay to let React finish rendering the element with the new src
+    const t = setTimeout(() => {
+      videoRef.current?.play().catch(() => {});
+      audioRef.current?.play().catch(() => {});
+    }, 150);
+    return () => clearTimeout(t);
+  }, [mediaPreviewUrl]);
+
+  // ── Auto-play converted result ────────────────────────────────────────────
+  useEffect(() => {
+    if (!convertedUrl) return;
+    const t = setTimeout(() => {
+      convertedAudioRef.current?.play().catch(() => {});
+    }, 200);
+    return () => clearTimeout(t);
+  }, [convertedUrl]);
 
   // ─── File Processing ──────────────────────────────────────────────────────
 
@@ -71,8 +92,14 @@ export default function AudioConverter() {
     setIsVideo(!!isVideoFile);
     setConvertedUrl(null);
     setAudioBuffer(null);
+
+    // ── Create preview URL FIRST from the original File object ───────────────
+    // Must happen BEFORE FileReader/decodeAudioData — those operations can
+    // detach the underlying ArrayBuffer making any later Blob() empty.
     if (mediaPreviewUrl) URL.revokeObjectURL(mediaPreviewUrl);
-    setMediaPreviewUrl(null);
+    const previewUrl = URL.createObjectURL(selectedFile);
+    setMediaPreviewUrl(previewUrl);
+    // auto-play is handled by the useEffect watching mediaPreviewUrl
 
     // ── Phase 1: Upload / Reading ──────────────────────────────────────────
     setProgress({ phase: 'uploading', uploadPercent: 0, convertPercent: 0, message: '📂 Reading file from disk...' });
@@ -86,30 +113,19 @@ export default function AudioConverter() {
           setProgress(prev => ({
             ...prev,
             uploadPercent: pct,
-            message: `📂 Uploading file... ${pct}%`,
+            message: `📂 Loading file... ${pct}%`,
           }));
         }
       };
 
       reader.onload = (e) => {
-        setProgress(prev => ({ ...prev, uploadPercent: 100, message: '✅ File loaded! Creating preview...' }));
+        setProgress(prev => ({ ...prev, uploadPercent: 100, message: '✅ File loaded! Decoding audio...' }));
         resolve(e.target!.result as ArrayBuffer);
       };
 
       reader.onerror = () => reject(reader.error);
       reader.readAsArrayBuffer(selectedFile);
     });
-
-    // Create object URL for preview (from the already-read data)
-    const blob = new Blob([arrayBuffer], { type: selectedFile.type });
-    const previewUrl = URL.createObjectURL(blob);
-    setMediaPreviewUrl(previewUrl);
-
-    // Auto-play: trigger after the element mounts (small delay)
-    setTimeout(() => {
-      videoRef.current?.play().catch(() => {});
-      audioRef.current?.play().catch(() => {});
-    }, 300);
 
     // ── Phase 2: Decode Audio ──────────────────────────────────────────────
     setProgress(prev => ({
@@ -699,7 +715,12 @@ export default function AudioConverter() {
             <span className="text-xs font-mono text-slate-400">{convertedFileName}</span>
           </div>
 
-          <audio controls src={convertedUrl} className="w-full rounded-lg bg-slate-900" autoPlay />
+          <audio
+            ref={convertedAudioRef}
+            controls
+            src={convertedUrl}
+            className="w-full rounded-lg bg-slate-900"
+          />
 
           <a
             href={convertedUrl}
