@@ -55,17 +55,6 @@ export default function AudioConverter() {
   const convertedAudioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // ── Auto-play preview when mediaPreviewUrl is set ────────────────────────
-  useEffect(() => {
-    if (!mediaPreviewUrl) return;
-    // Small delay to let React finish rendering the element with the new src
-    const t = setTimeout(() => {
-      videoRef.current?.play().catch(() => {});
-      audioRef.current?.play().catch(() => {});
-    }, 150);
-    return () => clearTimeout(t);
-  }, [mediaPreviewUrl]);
-
   // ── Auto-play converted result ────────────────────────────────────────────
   useEffect(() => {
     if (!convertedUrl) return;
@@ -93,13 +82,31 @@ export default function AudioConverter() {
     setConvertedUrl(null);
     setAudioBuffer(null);
 
-    // ── Create preview URL FIRST from the original File object ───────────────
-    // Must happen BEFORE FileReader/decodeAudioData — those operations can
-    // detach the underlying ArrayBuffer making any later Blob() empty.
+    // ── Create preview URL and set DIRECTLY on DOM refs ──────────────────────
+    // The video/audio elements are always in the DOM (just hidden via CSS),
+    // so refs are guaranteed valid — no React re-render timing issues at all.
     if (mediaPreviewUrl) URL.revokeObjectURL(mediaPreviewUrl);
     const previewUrl = URL.createObjectURL(selectedFile);
     setMediaPreviewUrl(previewUrl);
-    // auto-play is handled by the useEffect watching mediaPreviewUrl
+
+    // Reset both players first
+    if (videoRef.current) { videoRef.current.src = ''; videoRef.current.load(); }
+    if (audioRef.current) { audioRef.current.src = ''; audioRef.current.load(); }
+
+    // Set src directly on the correct element and play
+    if (isVideoFile) {
+      if (videoRef.current) {
+        videoRef.current.src = previewUrl;
+        videoRef.current.load();
+        videoRef.current.play().catch(() => {});
+      }
+    } else {
+      if (audioRef.current) {
+        audioRef.current.src = previewUrl;
+        audioRef.current.load();
+        audioRef.current.play().catch(() => {});
+      }
+    }
 
     // ── Phase 1: Upload / Reading ──────────────────────────────────────────
     setProgress({ phase: 'uploading', uploadPercent: 0, convertPercent: 0, message: '📂 Reading file from disk...' });
@@ -501,38 +508,35 @@ export default function AudioConverter() {
         </div>
       )}
 
-      {/* ── Media Preview Player ───────────────────────────────────────────── */}
-      {mediaPreviewUrl && (
-        <div className="mb-6 p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="font-semibold text-slate-300 flex items-center gap-1.5">
-              <i className={`fas ${isVideo ? 'fa-video text-blue-400' : 'fa-music text-red-400'}`} />
-              <span>Preview — {isVideo ? 'MP4 Video' : 'Audio Track'}</span>
-              {duration > 0 && <span className="ml-2 font-mono text-slate-500">{formatDuration(duration)}</span>}
-            </span>
-            <span className="text-emerald-400 font-semibold flex items-center gap-1">
-              <i className="fas fa-circle text-[6px] animate-pulse" /> Live Preview
-            </span>
-          </div>
-
-          {isVideo ? (
-            <video
-              ref={videoRef}
-              controls
-              src={mediaPreviewUrl}
-              className="w-full max-h-64 rounded-xl bg-black border border-slate-700"
-              playsInline
-            />
-          ) : (
-            <audio
-              ref={audioRef}
-              controls
-              src={mediaPreviewUrl}
-              className="w-full h-10 rounded-lg"
-            />
-          )}
+      {/* ── Media Preview Player — always in DOM, shown/hidden via CSS ─────── */}
+      {/* Elements must always be rendered so refs are always valid (no timing race) */}
+      <div className={`mb-6 p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3 transition-all duration-300 ${file ? 'opacity-100' : 'hidden'}`}>
+        <div className="flex items-center justify-between text-xs text-slate-400">
+          <span className="font-semibold text-slate-300 flex items-center gap-1.5">
+            <i className={`fas ${isVideo ? 'fa-video text-blue-400' : 'fa-music text-red-400'}`} />
+            <span>Preview — {isVideo ? 'MP4 Video' : 'Audio Track'}</span>
+            {duration > 0 && <span className="ml-2 font-mono text-slate-500">{formatDuration(duration)}</span>}
+          </span>
+          <span className="text-emerald-400 font-semibold flex items-center gap-1">
+            <i className="fas fa-circle text-[6px] animate-pulse" /> Live Preview
+          </span>
         </div>
-      )}
+
+        {/* Video player — always mounted, shown only for video files */}
+        <video
+          ref={videoRef}
+          controls
+          playsInline
+          className={`w-full max-h-64 rounded-xl bg-black border border-slate-700 ${isVideo && file ? 'block' : 'hidden'}`}
+        />
+
+        {/* Audio player — always mounted, shown only for audio files */}
+        <audio
+          ref={audioRef}
+          controls
+          className={`w-full h-10 rounded-lg ${!isVideo && file ? 'block' : 'hidden'}`}
+        />
+      </div>
 
       {/* ── Waveform & Trimmer ─────────────────────────────────────────────── */}
       {audioBuffer && (
