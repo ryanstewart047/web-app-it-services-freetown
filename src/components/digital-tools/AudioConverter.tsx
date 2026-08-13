@@ -1,10 +1,17 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import lamejs from 'lamejs';
 
 type AudioFormat = 'mp3' | 'wav' | 'ogg' | 'webm';
 type ConverterTab = 'mp4-to-mp3' | 'audio-format';
+type Mp3EncoderInstance = {
+  encodeBuffer(left: Int16Array, right?: Int16Array): Uint8Array;
+  flush(): Uint8Array;
+};
+type Mp3EncoderConstructor = new (channels: number, sampleRate: number, kbps: number) => Mp3EncoderInstance;
+type LameJsRuntime = {
+  Mp3Encoder: Mp3EncoderConstructor;
+};
 
 interface ProgressState {
   phase: 'idle' | 'uploading' | 'decoding' | 'converting' | 'completed' | 'error';
@@ -35,6 +42,38 @@ const AUDIO_FORMAT_MIME: Record<AudioFormat, string> = {
   ogg: 'audio/ogg;codecs=opus',
   webm: 'audio/webm;codecs=opus',
 };
+
+let lamejsRuntimePromise: Promise<LameJsRuntime> | null = null;
+
+function getModuleExport<T>(mod: T): any {
+  return (mod as any)?.default ?? mod;
+}
+
+async function loadLamejsRuntime(): Promise<LameJsRuntime> {
+  if (!lamejsRuntimePromise) {
+    lamejsRuntimePromise = (async () => {
+      const [mpegModeModule, lameModule] = await Promise.all([
+        import('lamejs/src/js/MPEGMode.js'),
+        import('lamejs/src/js/Lame.js'),
+      ]);
+
+      (globalThis as any).MPEGMode = getModuleExport(mpegModeModule);
+      (globalThis as any).Lame = getModuleExport(lameModule);
+
+      const lamejsModule = await import('lamejs');
+      const runtime = getModuleExport(lamejsModule) as LameJsRuntime;
+      if (!runtime?.Mp3Encoder) {
+        throw new Error('MP3 encoder could not be loaded.');
+      }
+      return runtime;
+    })().catch((error) => {
+      lamejsRuntimePromise = null;
+      throw error;
+    });
+  }
+
+  return lamejsRuntimePromise;
+}
 
 export default function AudioConverter() {
   const [activeTab, setActiveTab] = useState<ConverterTab>('mp4-to-mp3');
@@ -362,7 +401,8 @@ export default function AudioConverter() {
     return renderWithMediaRecorder(buffer, format, targetBitrate);
   }
 
-  function audioBufferToMp3Blob(buffer: AudioBuffer, targetBitrate: number): Blob {
+  async function audioBufferToMp3Blob(buffer: AudioBuffer, targetBitrate: number): Promise<Blob> {
+    const lamejs = await loadLamejsRuntime();
     const channelCount = Math.min(2, buffer.numberOfChannels);
     const encoder = new lamejs.Mp3Encoder(channelCount, buffer.sampleRate, targetBitrate);
     const blockSize = 1152;
