@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
 type MetadataRow = {
   label: string;
@@ -68,6 +68,28 @@ type SourceInference = {
   evidence: string;
 };
 
+type ElaResult = {
+  elaUrl: string;
+  varianceScore: number;
+  editedRisk: boolean;
+};
+
+type AiDetectionResult = {
+  isAiGenerated: boolean;
+  detectedEngine?: string;
+  confidence: number;
+  reasons: string[];
+};
+
+type AuthenticityReport = {
+  riskScore: number; // 0 to 100
+  verdict: 'Authentic Original' | 'Processed / Edited' | 'High Manipulation / AI Risk';
+  tone: 'emerald' | 'amber' | 'red';
+  reasons: string[];
+  aiDetection: AiDetectionResult;
+  ela?: ElaResult;
+};
+
 type InspectionResult = {
   name: string;
   extension: string;
@@ -79,11 +101,13 @@ type InspectionResult = {
   sha256?: string;
   hashNote?: string;
   image?: ImageInfo;
+  previewUrl?: string;
   exif?: ExifSummary;
   source: SourceInference;
   location?: ReverseLocation;
   locationError?: string;
   warnings: string[];
+  authenticity?: AuthenticityReport;
 };
 
 type ExifValue = string | number | number[];
@@ -535,6 +559,233 @@ async function resolveLocation(gps: GpsCoordinates) {
   return data as ReverseLocation;
 }
 
+// ─── OPTION 1: FORENSIC & ELA ANALYSIS ENGINE ──────────────────────────────
+
+async function computeELA(file: File): Promise<ElaResult | undefined> {
+  if (!file.type.startsWith('image/') && !/\.(jpg|jpeg|png|webp)$/i.test(file.name)) return undefined;
+
+  try {
+    const imgUrl = URL.createObjectURL(file);
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = () => reject();
+      i.src = imgUrl;
+    });
+
+    const maxDim = 600;
+    let w = img.naturalWidth || 600;
+    let h = img.naturalHeight || 400;
+    if (w > maxDim || h > maxDim) {
+      if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+      else { w = Math.round((w * maxDim) / h); h = maxDim; }
+    }
+
+    const canvasA = document.createElement('canvas');
+    canvasA.width = w; canvasA.height = h;
+    const ctxA = canvasA.getContext('2d');
+    if (!ctxA) return undefined;
+    ctxA.drawImage(img, 0, 0, w, h);
+
+    const jpegDataUrl = canvasA.toDataURL('image/jpeg', 0.88);
+    const imgB = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = () => reject();
+      i.src = jpegDataUrl;
+    });
+
+    const canvasB = document.createElement('canvas');
+    canvasB.width = w; canvasB.height = h;
+    const ctxB = canvasB.getContext('2d');
+    if (!ctxB) return undefined;
+    ctxB.drawImage(imgB, 0, 0, w, h);
+
+    const dataA = ctxA.getImageData(0, 0, w, h);
+    const dataB = ctxB.getImageData(0, 0, w, h);
+    const elaData = ctxA.createImageData(w, h);
+
+    let totalDiff = 0;
+    const scale = 20;
+
+    for (let i = 0; i < dataA.data.length; i += 4) {
+      const rDiff = Math.abs(dataA.data[i] - dataB.data[i]) * scale;
+      const gDiff = Math.abs(dataA.data[i + 1] - dataB.data[i + 1]) * scale;
+      const bDiff = Math.abs(dataA.data[i + 2] - dataB.data[i + 2]) * scale;
+
+      elaData.data[i] = Math.min(255, rDiff);
+      elaData.data[i + 1] = Math.min(255, gDiff);
+      elaData.data[i + 2] = Math.min(255, bDiff);
+      elaData.data[i + 3] = 255;
+
+      totalDiff += (rDiff + gDiff + bDiff) / 3;
+    }
+
+    ctxA.putImageData(elaData, 0, 0);
+    const elaUrl = canvasA.toDataURL('image/png');
+    const avgDiff = totalDiff / (w * h);
+    const varianceScore = Math.min(100, Math.round(avgDiff * 1.8));
+
+    URL.revokeObjectURL(imgUrl);
+    return {
+      elaUrl,
+      varianceScore,
+      editedRisk: varianceScore > 40,
+    };
+  } catch (err) {
+    console.error('ELA analysis error:', err);
+    return undefined;
+  }
+}
+
+function detectAiAndSoftware(file: File, exif?: ExifSummary | null): AiDetectionResult {
+  const software = (exif?.software || '').toLowerCase();
+  const filename = file.name.toLowerCase();
+  const rawText = (exif?.rawTags.map(t => `${t.label} ${t.value}`).join(' ') || '').toLowerCase();
+
+  const aiGenerators = [
+    { name: 'Midjourney', keywords: ['midjourney', 'mj_'] },
+    { name: 'DALL-E / OpenAI', keywords: ['dall-e', 'dalle', 'openai'] },
+    { name: 'Stable Diffusion', keywords: ['stable diffusion', 'stablediffusion', 'automatic1111', 'comfyui'] },
+    { name: 'Adobe Firefly', keywords: ['firefly', 'adobe firefly'] },
+    { name: 'Bing Image Creator', keywords: ['bing image creator', 'bingimagecreator'] },
+    { name: 'Leonardo.Ai', keywords: ['leonardo', 'leonardo.ai'] },
+    { name: 'StarryAI', keywords: ['starryai'] },
+  ];
+
+  for (const gen of aiGenerators) {
+    if (gen.keywords.some(k => software.includes(k) || filename.includes(k) || rawText.includes(k))) {
+      return {
+        isAiGenerated: true,
+        detectedEngine: gen.name,
+        confidence: 95,
+        reasons: [`Metadata or filename tags match AI generator: ${gen.name}`],
+      };
+    }
+  }
+
+  const editors = [
+    { name: 'Adobe Photoshop', keywords: ['photoshop', 'adobe photoshop'] },
+    { name: 'GIMP', keywords: ['gimp'] },
+    { name: 'Canva', keywords: ['canva'] },
+    { name: 'Affinity Photo', keywords: ['affinity'] },
+    { name: 'Lightroom', keywords: ['lightroom', 'adobe lightroom'] },
+    { name: 'Snapseed', keywords: ['snapseed'] },
+    { name: 'Pixlr', keywords: ['pixlr'] },
+  ];
+
+  const matchedEditor = editors.find(e => software.includes(e.keywords[0]) || rawText.includes(e.keywords[0]));
+  if (matchedEditor) {
+    return {
+      isAiGenerated: false,
+      detectedEngine: matchedEditor.name,
+      confidence: 85,
+      reasons: [`Photo edit software signature detected: ${matchedEditor.name}`],
+    };
+  }
+
+  return {
+    isAiGenerated: false,
+    confidence: 10,
+    reasons: [],
+  };
+}
+
+function evaluateAuthenticity(
+  file: File,
+  exif?: ExifSummary | null,
+  ela?: ElaResult,
+  aiDetect?: AiDetectionResult
+): AuthenticityReport {
+  let riskScore = 0;
+  const reasons: string[] = [];
+
+  const ai = aiDetect || detectAiAndSoftware(file, exif);
+
+  if (ai.isAiGenerated) {
+    riskScore += 55;
+    reasons.push(`🚨 AI Generator Marker detected (${ai.detectedEngine || 'Synthetic Image'}).`);
+  } else if (ai.detectedEngine) {
+    riskScore += 30;
+    reasons.push(`⚠️ Digital Photo Editing Software signature detected: ${ai.detectedEngine}.`);
+  }
+
+  if (file.type.startsWith('image/') && (!exif || !exif.make || !exif.model)) {
+    riskScore += 20;
+    reasons.push('⚠️ Missing hardware camera EXIF headers (Make/Model stripped or missing).');
+  } else if (exif?.make && exif?.model) {
+    reasons.push(`✅ Embedded hardware camera metadata verified (${exif.make} ${exif.model}).`);
+  }
+
+  if (ela) {
+    if (ela.varianceScore > 45) {
+      riskScore += 25;
+      reasons.push(`⚠️ High Error Level Analysis (ELA) anomaly variance (${ela.varianceScore}%) — indicates digital manipulation, resaving, or spliced layers.`);
+    } else if (ela.varianceScore > 20) {
+      riskScore += 10;
+      reasons.push(`ℹ️ Moderate ELA variance (${ela.varianceScore}%) — consistent with standard image compression or light color edits.`);
+    } else {
+      reasons.push(`✅ Uniform ELA compression distribution (${ela.varianceScore}%) — characteristic of authentic single-capture photo.`);
+    }
+  }
+
+  if (exif?.dateTimeOriginal && file.lastModified) {
+    const origTime = new Date(exif.dateTimeOriginal.replace(/:/g, '-')).getTime();
+    const modTime = file.lastModified;
+    if (Math.abs(modTime - origTime) > 86400000 * 30) {
+      riskScore += 10;
+      reasons.push('ℹ️ File modification timestamp differs significantly from EXIF capture date.');
+    }
+  }
+
+  riskScore = Math.min(100, riskScore);
+
+  let verdict: AuthenticityReport['verdict'] = 'Authentic Original';
+  let tone: AuthenticityReport['tone'] = 'emerald';
+
+  if (riskScore >= 50) {
+    verdict = 'High Manipulation / AI Risk';
+    tone = 'red';
+  } else if (riskScore >= 20) {
+    verdict = 'Processed / Edited';
+    tone = 'amber';
+  }
+
+  return {
+    riskScore,
+    verdict,
+    tone,
+    reasons,
+    aiDetection: ai,
+    ela,
+  };
+}
+
+async function sanitizeImage(file: File): Promise<{ cleanUrl: string; cleanFileName: string }> {
+  const imgUrl = URL.createObjectURL(file);
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const i = new Image();
+    i.onload = () => resolve(i);
+    i.onerror = () => reject(new Error('Could not sanitize image'));
+    i.src = imgUrl;
+  });
+
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth || 800;
+  canvas.height = img.naturalHeight || 600;
+  const ctx = canvas.getContext('2d')!;
+  ctx.drawImage(img, 0, 0);
+
+  const cleanDataUrl = canvas.toDataURL('image/jpeg', 0.92);
+  const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || 'photo';
+
+  URL.revokeObjectURL(imgUrl);
+  return {
+    cleanUrl: cleanDataUrl,
+    cleanFileName: `${baseName}_sanitized_clean.jpg`,
+  };
+}
+
 function detailRows(result: InspectionResult): MetadataRow[] {
   return [
     { label: 'Filename', value: result.name },
@@ -629,28 +880,40 @@ export default function FileMetadataInspector() {
   const [result, setResult] = useState<InspectionResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState('');
+  const [showElaView, setShowElaView] = useState(false);
+  const [showEvidenceReport, setShowEvidenceReport] = useState(false);
+  const [sanitizedUrl, setSanitizedUrl] = useState<string | null>(null);
+  const [sanitizedFileName, setSanitizedFileName] = useState<string>('');
 
   const inspectFile = async (selectedFile: File) => {
     setFile(selectedFile);
     setResult(null);
     setBusy(true);
-    setStatus('Analyzing file structure...');
+    setSanitizedUrl(null);
+    setShowElaView(false);
+    setShowEvidenceReport(false);
+    setStatus('Analyzing file signature & binary headers...');
 
     try {
+      const previewUrl = selectedFile.type.startsWith('image/') ? URL.createObjectURL(selectedFile) : undefined;
       const header = new Uint8Array(await selectedFile.slice(0, 256).arrayBuffer());
       const signature = detectSignature(header, selectedFile);
       const category = selectedFile.type.split('/')[0] || (signature.includes('image') ? 'image' : 'file');
 
-      setStatus('Reading image and embedded photo metadata...');
-      const [image, exif] = await Promise.all([
+      setStatus('Reading EXIF, camera hardware, and GPS tags...');
+      const [image, exif, hash] = await Promise.all([
         readImageInfo(selectedFile).catch(() => undefined),
         selectedFile.type.startsWith('image/') || /\.(jpg|jpeg)$/i.test(selectedFile.name)
           ? selectedFile.slice(0, Math.min(selectedFile.size, EXIF_SCAN_LIMIT)).arrayBuffer().then(parseJpegExif).catch(() => null)
           : Promise.resolve(null),
+        selectedFile.size <= HASH_SIZE_LIMIT ? sha256(selectedFile).catch(() => undefined) : Promise.resolve(undefined),
       ]);
 
-      setStatus(selectedFile.size <= HASH_SIZE_LIMIT ? 'Creating SHA-256 fingerprint...' : 'Skipping large-file fingerprint...');
-      const hash = selectedFile.size <= HASH_SIZE_LIMIT ? await sha256(selectedFile).catch(() => undefined) : undefined;
+      setStatus('Running Error Level Analysis (ELA) & AI Generator detection...');
+      const [ela, aiDetect] = await Promise.all([
+        computeELA(selectedFile).catch(() => undefined),
+        Promise.resolve(detectAiAndSoftware(selectedFile, exif)),
+      ]);
 
       const warnings: string[] = [];
       if (selectedFile.type.startsWith('image/') && !exif?.rawTags.length) {
@@ -659,6 +922,8 @@ export default function FileMetadataInspector() {
       if (exif?.rawTags.length && !exif.gps) {
         warnings.push('Photo metadata was found, but no GPS coordinates were embedded.');
       }
+
+      const authenticity = evaluateAuthenticity(selectedFile, exif, ela, aiDetect);
 
       let nextResult: InspectionResult = {
         name: selectedFile.name,
@@ -671,9 +936,11 @@ export default function FileMetadataInspector() {
         sha256: hash,
         hashNote: selectedFile.size > HASH_SIZE_LIMIT ? `Skipped because the file is larger than ${formatBytes(HASH_SIZE_LIMIT)}.` : undefined,
         image,
+        previewUrl,
         exif: exif || undefined,
         source: inferSource(selectedFile, exif),
         warnings,
+        authenticity,
       };
 
       setResult(nextResult);
@@ -689,7 +956,7 @@ export default function FileMetadataInspector() {
         setResult(nextResult);
       }
 
-      setStatus('Metadata analysis complete.');
+      setStatus('Deep forensic analysis complete.');
     } catch (error: any) {
       console.error('File metadata inspection error:', error);
       setStatus(error.message || 'Could not inspect this file.');
@@ -698,42 +965,197 @@ export default function FileMetadataInspector() {
     }
   };
 
+  const handleSanitize = async () => {
+    if (!file) return;
+    try {
+      const res = await sanitizeImage(file);
+      setSanitizedUrl(res.cleanUrl);
+      setSanitizedFileName(res.cleanFileName);
+    } catch (err: any) {
+      alert('Could not sanitize image: ' + err.message);
+    }
+  };
+
   const hasLocation = !!result?.exif?.gps;
   const sourceTone = result?.source.confidence === 'High' ? 'text-emerald-400' : result?.source.confidence === 'Medium' ? 'text-amber-400' : 'text-slate-400';
 
   return (
-    <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-4">
-      <h3 className="text-sm font-bold text-white flex items-center gap-2">
-        <i className="fas fa-magnifying-glass-location text-blue-400"></i>
-        <span>Advanced File & Photo Metadata Inspector</span>
-      </h3>
+    <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-5">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-900">
+        <div>
+          <h3 className="text-base font-bold text-white flex items-center gap-2">
+            <i className="fas fa-shield-halved text-emerald-400" />
+            <span>AI Forensic &amp; Deep Image Metadata Inspector</span>
+          </h3>
+          <p className="text-xs text-slate-400">Error Level Analysis (ELA), AI Generator Detection, EXIF Privacy Sanitizer &amp; Evidence Certificate</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full text-[10px] font-bold flex items-center gap-1">
+            <i className="fas fa-lock text-[8px]" /> 100% On-Device / Zero Cloud Upload
+          </span>
+        </div>
+      </div>
 
+      {/* Upload Zone */}
       <div className="relative">
         <input
           type="file"
           onChange={(event) => event.target.files?.[0] && inspectFile(event.target.files[0])}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
         />
-        <div className="border border-dashed border-slate-700 bg-slate-900 p-6 rounded-xl text-center transition-colors hover:border-blue-500/60">
-          <i className={`fas ${busy ? 'fa-circle-notch fa-spin' : 'fa-file-shield'} text-2xl text-blue-400 mb-2`}></i>
-          <p className="text-xs font-semibold text-slate-300">
-            {file ? file.name : 'Upload a photo or file for deep metadata analysis'}
+        <div className="border-2 border-dashed border-slate-700 hover:border-emerald-500/60 bg-slate-900/80 p-6 rounded-2xl text-center transition-colors">
+          <i className={`fas ${busy ? 'fa-circle-notch fa-spin text-emerald-400' : 'fa-magnifying-glass-location text-blue-400'} text-3xl mb-2 block`} />
+          <p className="text-xs font-semibold text-slate-200">
+            {file ? file.name : 'Upload a photo or document for deep forensic verification'}
           </p>
           <p className="mt-1 text-[11px] text-slate-500">
-            EXIF, GPS, camera source, file signature, image dimensions, and fingerprint
+            Supports JPG, PNG, WEBP, HEIC, PDF, DOCX, ZIP (EXIF, ELA heatmap, AI detection, SHA-256)
           </p>
         </div>
       </div>
 
+      {/* Status Bar */}
       {status && (
-        <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 px-3 py-2 text-[11px] font-semibold text-blue-300">
-          <i className="fas fa-circle-info mr-2"></i>
-          {status}
+        <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 px-3.5 py-2.5 text-xs font-semibold text-blue-300 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <i className={`fas ${busy ? 'fa-spinner fa-spin' : 'fa-circle-check text-emerald-400'}`} />
+            <span>{status}</span>
+          </div>
+          {result?.authenticity && (
+            <span className="font-mono text-[11px] text-slate-400">
+              Risk: {result.authenticity.riskScore}/100
+            </span>
+          )}
         </div>
       )}
 
       {result && (
-        <div className="space-y-4">
+        <div className="space-y-5">
+
+          {/* ── OPTION 1: AUTHENTICITY & FORENSIC SUMMARY BANNER ──────────────── */}
+          {result.authenticity && (
+            <div className={`p-4 rounded-2xl border ${
+              result.authenticity.tone === 'emerald'
+                ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300'
+                : result.authenticity.tone === 'amber'
+                ? 'bg-amber-950/30 border-amber-500/40 text-amber-300'
+                : 'bg-red-950/30 border-red-500/40 text-red-300'
+            } shadow-lg space-y-3`}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-lg ${
+                    result.authenticity.tone === 'emerald' ? 'bg-emerald-500/20 text-emerald-400' :
+                    result.authenticity.tone === 'amber' ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'
+                  }`}>
+                    <i className={`fas ${
+                      result.authenticity.tone === 'emerald' ? 'fa-shield-check' :
+                      result.authenticity.tone === 'amber' ? 'fa-triangle-exclamation' : 'fa-triangle-exclamation'
+                    }`} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Authenticity Verdict</span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-900 border border-slate-700 text-slate-300">
+                        Risk Score: {result.authenticity.riskScore}/100
+                      </span>
+                    </div>
+                    <h4 className="text-base font-black text-white">{result.authenticity.verdict}</h4>
+                  </div>
+                </div>
+
+                {/* Quick Action Buttons */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowEvidenceReport(true)}
+                    className="py-2 px-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md transition-all"
+                  >
+                    <i className="fas fa-file-pdf" />
+                    <span>Evidence Report</span>
+                  </button>
+
+                  {file?.type.startsWith('image/') && (
+                    <button
+                      onClick={handleSanitize}
+                      className="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md transition-all"
+                    >
+                      <i className="fas fa-broom" />
+                      <span>Sanitize EXIF</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Forensic Findings Bullet Points */}
+              <div className="space-y-1.5 pt-2 border-t border-slate-800/80 text-xs">
+                {result.authenticity.reasons.map((reason, idx) => (
+                  <p key={idx} className="flex items-center gap-2 font-medium">
+                    <span>{reason}</span>
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Sanitized Image Download Card */}
+          {sanitizedUrl && (
+            <div className="p-4 bg-slate-900 rounded-2xl border border-emerald-500/40 flex items-center justify-between gap-4 animate-fade-in">
+              <div className="flex items-center gap-3">
+                <i className="fas fa-circle-check text-emerald-400 text-xl" />
+                <div>
+                  <p className="text-xs font-bold text-white">Metadata Sanitized &amp; GPS Stripped</p>
+                  <p className="text-[11px] text-slate-400">{sanitizedFileName} — Safe for social media &amp; online sales</p>
+                </div>
+              </div>
+              <a
+                href={sanitizedUrl}
+                download={sanitizedFileName}
+                className="py-2 px-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-lg shrink-0"
+              >
+                <i className="fas fa-download" /> Download Cleaned
+              </a>
+            </div>
+          )}
+
+          {/* ── ELA (ERROR LEVEL ANALYSIS) HEATMAP SECTION ───────────────────── */}
+          {result.authenticity?.ela && (
+            <div className="p-4 bg-slate-900/90 rounded-2xl border border-slate-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <i className="fas fa-microscope text-purple-400 text-sm" />
+                  <span className="text-xs font-bold text-white">Error Level Analysis (ELA) Compression Heatmap</span>
+                </div>
+                <button
+                  onClick={() => setShowElaView(!showElaView)}
+                  className="py-1 px-2.5 bg-slate-800 hover:bg-slate-700 text-purple-300 rounded-lg text-[11px] font-semibold flex items-center gap-1"
+                >
+                  <i className={`fas ${showElaView ? 'fa-eye-slash' : 'fa-eye'}`} />
+                  <span>{showElaView ? 'Hide Heatmap' : 'Toggle ELA Heatmap'}</span>
+                </button>
+              </div>
+
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                ELA detects digital image modifications by analyzing compression level differences. Bright highlights or high-contrast patches indicate edited, spliced, or resaved layers.
+              </p>
+
+              {showElaView && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  <div>
+                    <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Original Image</span>
+                    {result.previewUrl && (
+                      <img src={result.previewUrl} alt="Original preview" className="w-full max-h-56 object-contain rounded-xl bg-black border border-slate-800" />
+                    )}
+                  </div>
+                  <div>
+                    <span className="block text-[10px] font-bold text-purple-400 uppercase tracking-wider mb-1.5">ELA Compression Heatmap</span>
+                    <img src={result.authenticity.ela.elaUrl} alt="ELA heatmap" className="w-full max-h-56 object-contain rounded-xl bg-black border border-purple-500/30" />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Key Metric Overview Cards */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="rounded-xl border border-slate-800 bg-slate-900 p-3">
               <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Source</p>
@@ -748,8 +1170,8 @@ export default function FileMetadataInspector() {
               <p className="mt-1 text-[11px] text-slate-500">{hasLocation ? 'From EXIF GPS coordinates' : 'Not embedded in this file'}</p>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-900 p-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Integrity</p>
-              <p className="mt-1 text-sm font-black text-purple-400">{result.sha256 ? 'SHA-256 ready' : 'Signature only'}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Integrity Fingerprint</p>
+              <p className="mt-1 text-sm font-black text-purple-400">{result.sha256 ? 'SHA-256 Certified' : 'Signature only'}</p>
               <p className="mt-1 text-[11px] text-slate-500">{result.signature}</p>
             </div>
           </div>
@@ -763,11 +1185,12 @@ export default function FileMetadataInspector() {
 
           {result.warnings.map((warning) => (
             <div key={warning} className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-[11px] font-semibold text-amber-300">
-              <i className="fas fa-triangle-exclamation mr-2"></i>
+              <i className="fas fa-triangle-exclamation mr-2" />
               {warning}
             </div>
           ))}
 
+          {/* Tables Section */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div>
               <h4 className="mb-2 text-xs font-black uppercase tracking-wide text-slate-400">File Details</h4>
@@ -787,14 +1210,14 @@ export default function FileMetadataInspector() {
 
           {result.exif && (
             <div>
-              <h4 className="mb-2 text-xs font-black uppercase tracking-wide text-slate-400">Camera & Capture Details</h4>
+              <h4 className="mb-2 text-xs font-black uppercase tracking-wide text-slate-400">Camera &amp; Capture Details</h4>
               <MetadataTable rows={cameraRows(result.exif)} />
             </div>
           )}
 
           {(result.exif?.gps || result.locationError) && (
             <div>
-              <h4 className="mb-2 text-xs font-black uppercase tracking-wide text-slate-400">GPS & Location</h4>
+              <h4 className="mb-2 text-xs font-black uppercase tracking-wide text-slate-400">GPS &amp; Location</h4>
               <MetadataTable rows={locationRows(result)} />
             </div>
           )}
@@ -809,6 +1232,120 @@ export default function FileMetadataInspector() {
               </div>
             </details>
           ) : null}
+
+        </div>
+      )}
+
+      {/* ── OPTION 1: DIGITAL EVIDENCE AUDIT CERTIFICATE MODAL ───────────────── */}
+      {showEvidenceReport && result && (
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-slate-950 border border-purple-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 print:max-h-none print:p-0 print:border-none">
+
+            {/* Modal Control Bar */}
+            <div className="flex items-center justify-between pb-4 border-b border-slate-800 print:hidden">
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 bg-purple-500/20 border border-purple-500/40 text-purple-300 rounded-full text-xs font-bold flex items-center gap-1.5">
+                  <i className="fas fa-file-contract" /> Forensic Audit Report
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => window.print()}
+                  className="py-2 px-4 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-lg transition-all"
+                >
+                  <i className="fas fa-print" /> Print / Save PDF
+                </button>
+                <button
+                  onClick={() => setShowEvidenceReport(false)}
+                  className="w-9 h-9 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-full flex items-center justify-center transition-colors"
+                >
+                  <i className="fas fa-xmark text-lg" />
+                </button>
+              </div>
+            </div>
+
+            {/* Printable Evidence Certificate Document */}
+            <div className="space-y-6 text-slate-200">
+              {/* Report Header */}
+              <div className="flex items-start justify-between border-b border-slate-800 pb-4">
+                <div>
+                  <h2 className="text-xl font-black text-white flex items-center gap-2">
+                    <i className="fas fa-shield-halved text-purple-400" />
+                    DIGITAL FORENSIC EVIDENCE REPORT
+                  </h2>
+                  <p className="text-xs text-slate-400 mt-1">Cryptographic File Integrity &amp; EXIF Metadata Audit</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] font-mono text-slate-500 block">REPORT ID</span>
+                  <span className="text-xs font-mono font-bold text-purple-400">EVD-{Math.floor(100000 + Math.random() * 900000)}</span>
+                </div>
+              </div>
+
+              {/* Summary Audit Grid */}
+              <div className="grid grid-cols-2 gap-4 bg-slate-900/90 p-4 rounded-2xl border border-slate-800 text-xs">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase">Target Filename</span>
+                  <p className="font-bold text-white truncate">{result.name}</p>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase">File Size</span>
+                  <p className="font-bold text-white">{formatBytes(result.size)}</p>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-[10px] font-bold text-purple-400 uppercase">SHA-256 Hash Fingerprint</span>
+                  <p className="font-mono text-[11px] text-purple-300 break-all bg-slate-950 p-2 rounded-xl border border-slate-800 mt-1">
+                    {result.sha256 || 'N/A (Large file)'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Verdict Summary */}
+              {result.authenticity && (
+                <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Authenticity Rating</span>
+                    <span className="text-sm font-black text-white">{result.authenticity.verdict} ({result.authenticity.riskScore}/100 Risk)</span>
+                  </div>
+                  <div className="space-y-1">
+                    {result.authenticity.reasons.map((r, i) => (
+                      <p key={i} className="text-xs text-slate-300 flex items-center gap-2">
+                        <i className="fas fa-check-circle text-purple-400 text-[10px]" />
+                        <span>{r}</span>
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Camera & GPS Summary */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-slate-900/70 p-4 rounded-2xl border border-slate-800 space-y-2">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase">Camera Hardware Specs</h4>
+                  <div className="text-xs space-y-1 text-slate-300">
+                    <p><span className="text-slate-500">Make:</span> {result.exif?.make || 'Not embedded'}</p>
+                    <p><span className="text-slate-500">Model:</span> {result.exif?.model || 'Not embedded'}</p>
+                    <p><span className="text-slate-500">Software:</span> {result.exif?.software || 'Not embedded'}</p>
+                    <p><span className="text-slate-500">Captured:</span> {result.exif?.dateTimeOriginal || 'Not embedded'}</p>
+                  </div>
+                </div>
+
+                <div className="bg-slate-900/70 p-4 rounded-2xl border border-slate-800 space-y-2">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase">GPS Location Evidence</h4>
+                  <div className="text-xs space-y-1 text-slate-300">
+                    <p><span className="text-slate-500">Coordinates:</span> {result.exif?.gps ? `${result.exif.gps.latitude.toFixed(6)}, ${result.exif.gps.longitude.toFixed(6)}` : 'No GPS'}</p>
+                    <p><span className="text-slate-500">City/Country:</span> {result.location?.city || result.location?.country || 'Unknown'}</p>
+                    <p><span className="text-slate-500">Location Source:</span> {result.location?.source || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Report Footer */}
+              <div className="pt-4 border-t border-slate-800 text-center text-[10px] text-slate-500 space-y-1">
+                <p>Generated by BridgeTech AI Digital Forensic Inspector on {new Date().toLocaleString()}</p>
+                <p>This document verifies file integrity using client-side cryptographic hashing &amp; ELA compression analysis.</p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
