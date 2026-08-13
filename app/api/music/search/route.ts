@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 
         if (!ytRes.ok) return;
         const html = await ytRes.text();
-        const match = html.match(/var ytInitialData = ({.*?});<\/script>/s);
+        const match = html.match(/var ytInitialData = ({[\s\S]*?});<\/script>/);
 
         if (match && match[1]) {
           const ytData = JSON.parse(match[1]);
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
                   youtubeId: videoId,
                   title: title.replace(/\[.*?\]|\(.*?\)/g, '').trim() || title,
                   artist: artist.replace(/ - Topic|VEVO/g, '').trim(),
-                  album: 'YouTube Full Track',
+                  album: 'YouTube Result',
                   genre: 'Music',
                   durationMs,
                   durationFormatted,
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
                   artworkUrlSmall: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
                   artworkUrlHD: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
                   isFullTrack: true,
-                  source: 'YouTube Music (100% Full Song)',
+                  source: 'YouTube Music Preview',
                   isExplicit: false,
                 });
               }

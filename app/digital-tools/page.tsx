@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import QRCode from 'qrcode';
 import AudioConverter from '@/components/digital-tools/AudioConverter';
 import MusicFinder from '@/components/digital-tools/MusicFinder';
 import ImageConverter from '@/components/digital-tools/ImageConverter';
@@ -383,7 +384,8 @@ export default function DigitalToolsPage() {
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   // QR Code generator state
-  const [qrText, setQrText] = useState('https://bridgetechsl.com');
+  const [qrText, setQrText] = useState('https://www.itservicesfreetown.com/digital-tools');
+  const [qrDataUrl, setQrDataUrl] = useState('');
 
   // File metadata state
   const [hashFile, setHashFile] = useState<File | null>(null);
@@ -398,6 +400,25 @@ export default function DigitalToolsPage() {
       lastModified: new Date(f.lastModified).toLocaleString(),
     });
   };
+
+  useEffect(() => {
+    let active = true;
+    QRCode.toDataURL(qrText.trim() || ' ', {
+      width: 420,
+      margin: 2,
+      errorCorrectionLevel: 'H',
+      color: {
+        dark: '#040e40',
+        light: '#ffffff',
+      },
+    }).then((url) => {
+      if (active) setQrDataUrl(url);
+    }).catch(() => {
+      if (active) setQrDataUrl('');
+    });
+
+    return () => { active = false; };
+  }, [qrText]);
 
   const matchesSearch = (title: string, desc: string, tags: string[]) => {
     if (!searchQuery.trim()) return true;
@@ -427,7 +448,7 @@ export default function DigitalToolsPage() {
 
           <div className="flex items-center gap-3">
             <span className="px-3 py-1 bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold rounded-full animate-pulse">
-              ⚡ Digital Products Suite v2.0
+              Digital Products Suite v2.1
             </span>
           </div>
         </div>
@@ -436,7 +457,7 @@ export default function DigitalToolsPage() {
         <div className="text-center max-w-3xl mx-auto mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-red-600/20 via-blue-600/20 to-purple-600/20 border border-slate-700/60 rounded-full text-xs font-semibold text-slate-200 mb-4 shadow-xl">
             <i className="fas fa-wand-magic-sparkles text-red-400"></i>
-            <span>All-In-One Digital File Converters & Media Search Engine</span>
+            <span>All-in-one local converters, previews, and media tools</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-4">
@@ -444,15 +465,15 @@ export default function DigitalToolsPage() {
           </h1>
 
           <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
-            Convert music files, search full songs & HD album art online, convert images (JPG, PNG, WebP, SVG, ICO), transform Word documents to PDF, generate passwords, analyze text, create color palettes and run developer utilities — 100% free & privately in your browser.
+            Convert video audio to real MP3, export WebM/MP4 frames to PNG or JPEG, convert DOCX and text to PDF, search music previews, create QR codes, generate passwords, analyze text, and run everyday digital utilities from one polished hub.
           </p>
 
           {/* Quick Stats Bar */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8 max-w-2xl mx-auto">
             <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-2xl text-center">
               <i className="fas fa-lock text-emerald-400 text-lg mb-1"></i>
-              <p className="text-xs font-bold text-white">100% Private</p>
-              <p className="text-[10px] text-slate-500">Processed in browser</p>
+              <p className="text-xs font-bold text-white">Local Converters</p>
+              <p className="text-[10px] text-slate-500">Files stay in browser</p>
             </div>
             <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-2xl text-center">
               <i className="fas fa-bolt text-amber-400 text-lg mb-1"></i>
@@ -461,13 +482,13 @@ export default function DigitalToolsPage() {
             </div>
             <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-2xl text-center">
               <i className="fas fa-music text-blue-400 text-lg mb-1"></i>
-              <p className="text-xs font-bold text-white">Full-Track Music</p>
-              <p className="text-[10px] text-slate-500">Artist & Title Search</p>
+              <p className="text-xs font-bold text-white">Media Preview</p>
+              <p className="text-[10px] text-slate-500">Video, audio, PDF</p>
             </div>
             <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-2xl text-center">
               <i className="fas fa-infinity text-purple-400 text-lg mb-1"></i>
-              <p className="text-xs font-bold text-white">Unlimited</p>
-              <p className="text-[10px] text-slate-500">Zero file restrictions</p>
+              <p className="text-xs font-bold text-white">No Sign-in</p>
+              <p className="text-[10px] text-slate-500">Open web tools</p>
             </div>
           </div>
         </div>
@@ -479,7 +500,7 @@ export default function DigitalToolsPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search tools (e.g. MP3 converter, Music Finder, Password, Color, JPG to PNG)..."
+              placeholder="Search tools (e.g. MP3 converter, WebM to JPG, DOCX to PDF, Password, QR code)..."
               className="w-full bg-slate-900 border border-slate-800 rounded-2xl pl-11 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all shadow-xl"
             />
             <i className="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
@@ -514,7 +535,7 @@ export default function DigitalToolsPage() {
         <div className="space-y-10">
           {/* 1. Audio Converter */}
           {(activeTab === 'all' || activeTab === 'audio-convert') &&
-            matchesSearch('Audio Converter', 'Convert audio files MP3 WAV OGG FLAC M4A MP4 video', ['audio', 'mp3', 'wav', 'flac', 'ogg', 'mp4', 'trim']) && (
+            matchesSearch('Audio Converter', 'Convert audio files MP3 WAV OGG WebM MP4 video', ['audio', 'mp3', 'wav', 'webm', 'ogg', 'mp4', 'trim']) && (
               <section id="audio-converter">
                 <AudioConverter />
               </section>
@@ -530,7 +551,7 @@ export default function DigitalToolsPage() {
 
           {/* 3. Image Converter */}
           {(activeTab === 'all' || activeTab === 'image-convert') &&
-            matchesSearch('Image Converter', 'Convert JPG PNG WebP SVG Favicon ICO resize compress', ['image', 'jpg', 'png', 'webp', 'ico', 'svg', 'resize']) && (
+            matchesSearch('Image Converter', 'Convert JPG PNG WebP SVG resize compress WebM MP4 video frame', ['image', 'jpg', 'png', 'webp', 'svg', 'resize', 'video', 'frame', 'webm']) && (
               <section id="image-converter">
                 <ImageConverter />
               </section>
@@ -581,17 +602,16 @@ export default function DigitalToolsPage() {
 
                     <div className="flex items-center justify-center p-4 bg-white rounded-xl shadow-inner max-w-[220px] mx-auto">
                       <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrText)}`}
+                        src={qrDataUrl}
                         alt="Generated QR Code"
                         className="w-48 h-48 object-contain"
                       />
                     </div>
 
                     <a
-                      href={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrText)}`}
-                      target="_blank"
+                      href={qrDataUrl}
                       download="qrcode.png"
-                      className="w-full py-2.5 px-4 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md"
+                      className={`w-full py-2.5 px-4 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md ${!qrDataUrl ? 'pointer-events-none opacity-50' : ''}`}
                     >
                       <i className="fas fa-download"></i>
                       <span>Download HD QR Code PNG</span>
@@ -664,13 +684,13 @@ export default function DigitalToolsPage() {
             <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
               <h4 className="text-xs font-bold text-red-400 mb-1">Are my files uploaded to any external server?</h4>
               <p className="text-xs text-slate-400">
-                No! All audio, image, and document conversions run 100% client-side inside your web browser. Your files never leave your computer or device.
+                Audio, image, video-frame, QR, password, and DOCX/PDF generation tools run in your browser. Music search uses online sources for public metadata/previews, but uploaded converter files stay on your device.
               </p>
             </div>
             <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
               <h4 className="text-xs font-bold text-blue-400 mb-1">How does the Online Music Search work?</h4>
               <p className="text-xs text-slate-400">
-                The Music Finder connects to Jamendo (full 3-6 minute songs) and iTunes metadata APIs to search tracks, stream full-length songs, and download high-resolution HD album cover artwork.
+                The Music Finder uses public music/video metadata sources for previews and cover art. Direct downloads are offered only when a source provides a legitimate downloadable audio file.
               </p>
             </div>
             <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
