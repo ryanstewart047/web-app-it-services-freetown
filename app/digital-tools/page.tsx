@@ -7,6 +7,7 @@ import AudioConverter from '@/components/digital-tools/AudioConverter';
 import MusicFinder from '@/components/digital-tools/MusicFinder';
 import ImageConverter from '@/components/digital-tools/ImageConverter';
 import DocumentConverter from '@/components/digital-tools/DocumentConverter';
+import FileMetadataInspector from '@/components/digital-tools/FileMetadataInspector';
 
 type ToolCategory = 'all' | 'audio-convert' | 'music-finder' | 'image-convert' | 'doc-convert' | 'qr-hash';
 
@@ -387,20 +388,6 @@ export default function DigitalToolsPage() {
   const [qrText, setQrText] = useState('https://www.itservicesfreetown.com/digital-tools');
   const [qrDataUrl, setQrDataUrl] = useState('');
 
-  // File metadata state
-  const [hashFile, setHashFile] = useState<File | null>(null);
-  const [hashResult, setHashResult] = useState<{ size: number; name: string; type: string; lastModified: string } | null>(null);
-
-  const handleHashFile = (f: File) => {
-    setHashFile(f);
-    setHashResult({
-      size: f.size,
-      name: f.name,
-      type: f.type || 'Unknown',
-      lastModified: new Date(f.lastModified).toLocaleString(),
-    });
-  };
-
   useEffect(() => {
     let active = true;
     QRCode.toDataURL(qrText.trim() || ' ', {
@@ -618,36 +605,7 @@ export default function DigitalToolsPage() {
                     </a>
                   </div>
 
-                  {/* File Metadata Inspector */}
-                  <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-4">
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                      <i className="fas fa-shield-halved text-blue-400"></i>
-                      <span>File Metadata Inspector</span>
-                    </h3>
-
-                    <div className="relative">
-                      <input
-                        type="file"
-                        onChange={(e) => e.target.files?.[0] && handleHashFile(e.target.files[0])}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                      />
-                      <div className="border border-dashed border-slate-700 bg-slate-900 p-6 rounded-xl text-center">
-                        <i className="fas fa-file-shield text-2xl text-blue-400 mb-2"></i>
-                        <p className="text-xs font-semibold text-slate-300">
-                          {hashFile ? hashFile.name : 'Upload any file to inspect metadata'}
-                        </p>
-                      </div>
-                    </div>
-
-                    {hashResult && (
-                      <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2 text-xs font-mono">
-                        <p className="text-slate-400">Filename: <strong className="text-white">{hashResult.name}</strong></p>
-                        <p className="text-slate-400">Type: <strong className="text-blue-400">{hashResult.type}</strong></p>
-                        <p className="text-slate-400">Size: <strong className="text-emerald-400">{hashResult.size.toLocaleString()} bytes ({(hashResult.size / (1024*1024)).toFixed(3)} MB)</strong></p>
-                        <p className="text-slate-400">Modified: <strong className="text-purple-400">{hashResult.lastModified}</strong></p>
-                      </div>
-                    )}
-                  </div>
+                  <FileMetadataInspector />
                 </div>
 
                 {/* Row 2: Password Generator + Color Palette */}
