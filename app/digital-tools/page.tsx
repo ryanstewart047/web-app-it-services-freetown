@@ -387,6 +387,33 @@ export default function DigitalToolsPage() {
   // QR Code generator state
   const [qrText, setQrText] = useState('https://www.itservicesfreetown.com/digital-tools');
   const [qrDataUrl, setQrDataUrl] = useState('');
+  const [copiedShareLink, setCopiedShareLink] = useState(false);
+  const [showEmbedModal, setShowEmbedModal] = useState(false);
+  const [copiedEmbed, setCopiedEmbed] = useState(false);
+
+  // Hash-based deep routing for direct search engine and social landing
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hash = window.location.hash.toLowerCase();
+    if (!hash) return;
+
+    if (hash.includes('audio') || hash.includes('mp4') || hash.includes('mp3')) {
+      setActiveTab('audio-convert');
+    } else if (hash.includes('music') || hash.includes('song') || hash.includes('finder')) {
+      setActiveTab('music-finder');
+    } else if (hash.includes('image') || hash.includes('photo') || hash.includes('webp') || hash.includes('png')) {
+      setActiveTab('image-convert');
+    } else if (hash.includes('doc') || hash.includes('pdf') || hash.includes('word') || hash.includes('docx')) {
+      setActiveTab('doc-convert');
+    } else if (hash.includes('qr') || hash.includes('password') || hash.includes('metadata') || hash.includes('exif') || hash.includes('hash')) {
+      setActiveTab('qr-hash');
+    }
+
+    setTimeout(() => {
+      const el = document.querySelector(hash);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }, 200);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -635,8 +662,152 @@ export default function DigitalToolsPage() {
             )}
         </div>
 
+        {/* Viral Social Share & Free Embed Hub */}
+        <div className="mt-14 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 rounded-3xl p-6 lg:p-8 backdrop-blur shadow-2xl">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+            <div className="text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-500/10 border border-red-500/30 rounded-full text-red-400 text-xs font-bold mb-2">
+                <i className="fas fa-bullhorn"></i> Spread the Word & Boost Productivity
+              </div>
+              <h3 className="text-xl lg:text-2xl font-black text-white">Share These Free Tools With Friends & Colleagues</h3>
+              <p className="text-xs lg:text-sm text-slate-400 mt-1 max-w-xl">
+                100% free, private browser utilities with zero limits. Help students, freelancers, and businesses in Freetown and worldwide convert files seamlessly.
+              </p>
+            </div>
+
+            {/* Social Share Buttons */}
+            <div className="flex flex-wrap items-center justify-center gap-2.5">
+              <a
+                href="https://api.whatsapp.com/send?text=Check%20out%20BridgeTech%27s%20Free%20Digital%20Tools%20Hub%20%E2%80%94%20convert%20MP4%20to%20MP3%2C%20Word%20to%20PDF%2C%20inspect%20photo%20metadata%20%26%20generate%20QR%20codes%20with%20zero%20signups%3A%20https%3A%2F%2Fwww.itservicesfreetown.com%2Fdigital-tools"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg hover:scale-105"
+              >
+                <i className="fab fa-whatsapp text-sm"></i> WhatsApp
+              </a>
+
+              <a
+                href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.itservicesfreetown.com%2Fdigital-tools"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg hover:scale-105"
+              >
+                <i className="fab fa-facebook text-sm"></i> Facebook
+              </a>
+
+              <a
+                href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.itservicesfreetown.com%2Fdigital-tools&text=Free%20Digital%20Tools%20Suite%20by%20BridgeTech%20%E2%80%94%20MP4%20to%20MP3%20Audio%2C%20Word%20to%20PDF%2C%20Image%20Converters%20%26%20QR%20Generator."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-all border border-slate-700 hover:scale-105"
+              >
+                <i className="fab fa-x-twitter text-sm"></i> Post on X
+              </a>
+
+              <a
+                href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fwww.itservicesfreetown.com%2Fdigital-tools"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2.5 bg-blue-700 hover:bg-blue-600 text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg hover:scale-105"
+              >
+                <i className="fab fa-linkedin text-sm"></i> LinkedIn
+              </a>
+
+              <button
+                onClick={async () => {
+                  if (typeof navigator !== 'undefined') {
+                    await navigator.clipboard.writeText('https://www.itservicesfreetown.com/digital-tools');
+                    setCopiedShareLink(true);
+                    setTimeout(() => setCopiedShareLink(false), 2500);
+                  }
+                }}
+                className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl flex items-center gap-2 transition-all border border-slate-700"
+              >
+                <i className="fas fa-link"></i> {copiedShareLink ? '✓ Link Copied!' : 'Copy Link'}
+              </button>
+
+              <button
+                onClick={() => setShowEmbedModal(true)}
+                className="px-4 py-2.5 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 text-xs font-bold rounded-xl flex items-center gap-2 transition-all border border-purple-500/40"
+              >
+                <i className="fas fa-code"></i> Embed on Website
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Embed Widget Modal */}
+        {showEmbedModal && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 lg:p-8 max-w-lg w-full shadow-2xl relative">
+              <button
+                onClick={() => setShowEmbedModal(false)}
+                className="absolute top-5 right-5 text-slate-400 hover:text-white text-lg"
+              >
+                <i className="fas fa-times"></i>
+              </button>
+
+              <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                <i className="fas fa-code text-purple-400"></i>
+                <span>Embed Digital Tools on Your Website</span>
+              </h3>
+              <p className="text-xs text-slate-400 mb-4">
+                Add a free converter badge or interactive widget to your blog, portfolio, or business website.
+              </p>
+
+              <div className="space-y-3">
+                <label className="block text-xs font-bold text-slate-300">HTML Badge Code:</label>
+                <textarea
+                  readOnly
+                  rows={3}
+                  value={`<a href="https://www.itservicesfreetown.com/digital-tools" target="_blank" rel="noopener" title="Free Online Audio, PDF & Image Tools"><img src="https://www.itservicesfreetown.com/assets/logo.svg" alt="BridgeTech Digital Tools" width="24" height="24" style="display:inline-block;vertical-align:middle;margin-right:6px;" />Free Digital Tools by BridgeTech</a>`}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs font-mono text-emerald-400 select-all resize-none"
+                />
+
+                <button
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(`<a href="https://www.itservicesfreetown.com/digital-tools" target="_blank" rel="noopener" title="Free Online Audio, PDF & Image Tools"><img src="https://www.itservicesfreetown.com/assets/logo.svg" alt="BridgeTech Digital Tools" width="24" height="24" style="display:inline-block;vertical-align:middle;margin-right:6px;" />Free Digital Tools by BridgeTech</a>`);
+                    setCopiedEmbed(true);
+                    setTimeout(() => setCopiedEmbed(false), 2500);
+                  }}
+                  className="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md"
+                >
+                  <i className="fas fa-copy"></i> {copiedEmbed ? '✓ Code Copied to Clipboard!' : 'Copy Embed Code'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* SEO Features & Supported Formats Matrix */}
+        <div className="mt-14 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 lg:p-8 backdrop-blur">
+          <div className="text-center max-w-2xl mx-auto mb-8">
+            <h3 className="text-xl font-bold text-white">Supported Formats & Conversion Matrix</h3>
+            <p className="text-xs text-slate-400 mt-1">High-speed, browser-accelerated processing with zero installation required.</p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800/80">
+              <span className="font-bold text-red-400 block mb-1">🎵 Audio Formats</span>
+              <p className="text-slate-400">MP4, WebM, WAV, OGG, AAC, M4A, FLAC to 320kbps Studio MP3.</p>
+            </div>
+            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800/80">
+              <span className="font-bold text-blue-400 block mb-1">🖼️ Image Formats</span>
+              <p className="text-slate-400">PNG, JPEG, WebP, AVIF, BMP, GIF, WebM video frame export.</p>
+            </div>
+            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800/80">
+              <span className="font-bold text-purple-400 block mb-1">📄 Documents</span>
+              <p className="text-slate-400">Microsoft Word (.docx), Markdown (.md), Text (.txt) to PDF.</p>
+            </div>
+            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800/80">
+              <span className="font-bold text-amber-400 block mb-1">🛡️ Forensics & Security</span>
+              <p className="text-slate-400">Deep EXIF inspector, ELA AI detection, QR PNG/SVG, SHA256.</p>
+            </div>
+          </div>
+        </div>
+
         {/* Footer FAQ & Support */}
-        <div className="mt-16 bg-slate-900/60 border border-slate-800/80 rounded-3xl p-8 text-center max-w-4xl mx-auto backdrop-blur">
+        <div className="mt-12 bg-slate-900/60 border border-slate-800/80 rounded-3xl p-8 text-center max-w-4xl mx-auto backdrop-blur">
           <h3 className="text-lg font-bold text-white mb-2">Frequently Asked Questions</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left mt-6">
             <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
@@ -663,6 +834,18 @@ export default function DigitalToolsPage() {
                 Yes! The Audio Converter supports MP4 video files. Upload your video, select MP3 as the output format, adjust bitrate quality, and click Convert to extract the full audio track as a clean downloadable MP3.
               </p>
             </div>
+          </div>
+
+          {/* Cross-Service Links for Maximum SEO Juice */}
+          <div className="mt-8 pt-6 border-t border-slate-800/80 flex flex-wrap items-center justify-center gap-4 text-xs text-slate-400">
+            <span>Explore BridgeTech:</span>
+            <Link href="/book-appointment" className="text-red-400 hover:underline">Book Device Repair</Link>
+            <span>&bull;</span>
+            <Link href="/repair-cost-checker-freetown" className="text-blue-400 hover:underline">Instant Cost Checker</Link>
+            <span>&bull;</span>
+            <Link href="/marketplace" className="text-amber-400 hover:underline">Tech Marketplace</Link>
+            <span>&bull;</span>
+            <Link href="/blog" className="text-purple-400 hover:underline">Tech News & Repair Guides</Link>
           </div>
         </div>
       </div>
