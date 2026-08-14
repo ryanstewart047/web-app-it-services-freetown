@@ -303,7 +303,7 @@ export default function AdminPage() {
   const [repairs, setRepairs] = useState<RepairSnapshot>({});
   const [ordersData, setOrdersData] = useState<OrdersSnapshot>({});
   const [deleting, setDeleting] = useState(false);
-  const [lastActivity, setLastActivity] = useState(Date.now());
+  const lastActivityTimestamp = useRef<number>(Date.now());
   const [showIdleWarning, setShowIdleWarning] = useState(false);
 
   // Master Hub State
@@ -367,8 +367,8 @@ export default function AdminPage() {
     const WARNING_TIME = 30 * 1000;
 
     const updateActivity = () => {
-      setLastActivity(Date.now());
-      setShowIdleWarning(false);
+      lastActivityTimestamp.current = Date.now();
+      setShowIdleWarning(prev => (prev ? false : prev));
     };
 
     const events = ['mousedown', 'mousemove', 'keydown', 'keyup', 'input', 'scroll', 'touchstart', 'click', 'focus'];
@@ -384,12 +384,12 @@ export default function AdminPage() {
     window.addEventListener('message', handleMessage);
 
     const idleCheckInterval = setInterval(() => {
-      const timeSinceLastActivity = Date.now() - lastActivity;
+      const timeSinceLastActivity = Date.now() - lastActivityTimestamp.current;
 
       if (timeSinceLastActivity >= IDLE_TIMEOUT) {
         handleLogout();
         alert('Session expired due to inactivity. Please log in again.');
-      } else if (timeSinceLastActivity >= IDLE_TIMEOUT - WARNING_TIME && !showIdleWarning) {
+      } else if (timeSinceLastActivity >= IDLE_TIMEOUT - WARNING_TIME) {
         setShowIdleWarning(true);
       }
     }, 10000);
@@ -401,7 +401,7 @@ export default function AdminPage() {
       window.removeEventListener('message', handleMessage);
       clearInterval(idleCheckInterval);
     };
-  }, [isAuthenticated, lastActivity, showIdleWarning]);
+  }, [isAuthenticated]);
 
   const checkAuth = async () => {
     try {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface UseAdminSessionOptions {
@@ -22,17 +22,25 @@ export function useAdminSession(options: UseAdminSessionOptions = {}) {
   } = options;
 
   const router = useRouter();
-  const [lastActivity, setLastActivity] = useState(Date.now());
+  const lastActivityTimestamp = useRef<number>(Date.now());
   const [showIdleWarning, setShowIdleWarning] = useState(false);
   const [isActive, setIsActive] = useState(true);
 
-  // Update last activity on user interaction
+  // Update last activity on user interaction without triggering component re-renders
   useEffect(() => {
+    let lastPostMessageTime = 0;
+
     const updateActivity = () => {
-      setLastActivity(Date.now());
-      setShowIdleWarning(false);
-      if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
-        window.parent.postMessage({ type: 'ADMIN_ACTIVITY' }, '*');
+      lastActivityTimestamp.current = Date.now();
+      setShowIdleWarning(prev => (prev ? false : prev));
+
+      // Throttle postMessage to parent iframe to at most once every 5 seconds
+      const now = Date.now();
+      if (now - lastPostMessageTime > 5000) {
+        lastPostMessageTime = now;
+        if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: 'ADMIN_ACTIVITY' }, '*');
+        }
       }
     };
 
@@ -44,7 +52,7 @@ export function useAdminSession(options: UseAdminSessionOptions = {}) {
 
     // Check for inactivity every 10 seconds
     const idleCheckInterval = setInterval(() => {
-      const timeSinceLastActivity = Date.now() - lastActivity;
+      const timeSinceLastActivity = Date.now() - lastActivityTimestamp.current;
       
       if (timeSinceLastActivity >= idleTimeout) {
         // Auto-logout
@@ -57,7 +65,7 @@ export function useAdminSession(options: UseAdminSessionOptions = {}) {
           // Default behavior: clear session and redirect
           handleAutoLogout();
         }
-      } else if (timeSinceLastActivity >= idleTimeout - warningTime && !showIdleWarning) {
+      } else if (timeSinceLastActivity >= idleTimeout - warningTime) {
         // Show warning
         setShowIdleWarning(true);
         if (onWarning) {
@@ -73,7 +81,7 @@ export function useAdminSession(options: UseAdminSessionOptions = {}) {
       });
       clearInterval(idleCheckInterval);
     };
-  }, [lastActivity, showIdleWarning, idleTimeout, warningTime, onIdle, onWarning]);
+  }, [idleTimeout, warningTime, onIdle, onWarning]);
 
   const handleAutoLogout = () => {
     // Clear any admin session data
@@ -93,13 +101,13 @@ export function useAdminSession(options: UseAdminSessionOptions = {}) {
   };
 
   const resetSession = () => {
-    setLastActivity(Date.now());
+    lastActivityTimestamp.current = Date.now();
     setShowIdleWarning(false);
     setIsActive(true);
   };
 
   const getRemainingTime = () => {
-    const elapsed = Date.now() - lastActivity;
+    const elapsed = Date.now() - lastActivityTimestamp.current;
     const remaining = Math.max(0, idleTimeout - elapsed);
     return Math.floor(remaining / 1000); // Return in seconds
   };
@@ -107,7 +115,7 @@ export function useAdminSession(options: UseAdminSessionOptions = {}) {
   return {
     isActive,
     showIdleWarning,
-    lastActivity,
+    lastActivity: lastActivityTimestamp.current,
     resetSession,
     getRemainingTime,
     handleAutoLogout

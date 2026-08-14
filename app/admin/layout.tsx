@@ -22,12 +22,15 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
                 if (theme === 'dark') {
                   document.documentElement.classList.add('dark');
                 }
+                let lastReportTime = 0;
                 const report = () => {
-                  if (window.parent && window.parent !== window) {
+                  const now = Date.now();
+                  if (now - lastReportTime > 5000 && window.parent && window.parent !== window) {
+                    lastReportTime = now;
                     window.parent.postMessage({ type: 'ADMIN_ACTIVITY' }, '*');
                   }
                 };
-                ['mousedown', 'mousemove', 'keydown', 'keyup', 'input', 'scroll', 'touchstart', 'click', 'focus'].forEach(e => {
+                ['mousedown', 'keydown', 'touchstart', 'click'].forEach(e => {
                   document.addEventListener(e, report, { passive: true });
                 });
               } catch (e) {}

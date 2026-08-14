@@ -20,6 +20,21 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
+/* Ensure select and options are always high-contrast and fully interactive */
+select {
+  cursor: pointer;
+}
+
+select option {
+  background-color: #1f2937;
+  color: #f9fafb;
+}
+
+html:not(.dark) select option {
+  background-color: #ffffff;
+  color: #111827;
+}
+
 /* Remove top margin for sticky navbar */
 .main-content {
   padding-top: 0;
