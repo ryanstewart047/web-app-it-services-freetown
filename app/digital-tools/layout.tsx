@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { BRAND_SITE_URL } from '@/lib/brand';
 
-const DIGITAL_TOOLS_OG_IMAGE = `${BRAND_SITE_URL}/assets/social-media/banners/Facebook-Cover-1640x924.png`;
+const DIGITAL_TOOLS_OG_IMAGE = `${BRAND_SITE_URL}/digital-tools-preview.jpg`;
 
 export const metadata: Metadata = {
   title: 'Free Digital Tools & Converters Suite | MP4 to MP3, DOCX to PDF, Image & QR Hub - BridgeTech',
@@ -38,18 +38,20 @@ export const metadata: Metadata = {
     images: [
       {
         url: DIGITAL_TOOLS_OG_IMAGE,
-        width: 1640,
-        height: 924,
-        alt: 'BridgeTech IT Services Digital Products and Online Tools Suite',
+        width: 1280,
+        height: 720,
+        alt: 'BridgeTech Digital Tools — Free MP4 to MP3, DOCX to PDF, Image Converter, AI EXIF Forensics, QR Code & Password Generator Suite',
+        type: 'image/jpeg',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Free Digital Tools Suite | Audio, Document, Image & QR Utilities',
-    description: 'Convert MP4 to MP3, DOCX to PDF, batch convert images, generate QR codes & secure passwords in your browser for free.',
+    title: 'Free Digital Tools Suite | MP4→MP3, DOCX→PDF, Image, QR & AI EXIF Tools',
+    description: 'BridgeTech\'s all-in-one digital toolkit: Convert MP4 to 320kbps MP3, Word DOCX to PDF, batch-convert WebP/PNG/JPG images, inspect AI forensics & EXIF data, generate QR codes & secure passwords. 100% free, no install.',
     images: [DIGITAL_TOOLS_OG_IMAGE],
     creator: '@BridgeTechSL',
+    site: '@BridgeTechSL',
   },
   robots: {
     index: true,
