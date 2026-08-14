@@ -1,9 +1,9 @@
 // Service Worker for BridgeTech IT Services PWA
-const CACHE_NAME = 'bridgetech-it-services-v6.0.0';
+const CACHE_NAME = 'bridgetech-it-services-v6.1.0';
 const OFFLINE_URL = '/offline';
 
-const ASSET_CACHE = 'assets-cache-v6';
-const IMAGE_CACHE = 'image-cache-v6';
+const ASSET_CACHE = 'assets-cache-v6.1';
+const IMAGE_CACHE = 'image-cache-v6.1';
 
 // Initial files to cache for offline functionality
 const STATIC_ASSETS = [
@@ -45,12 +45,22 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-
   const url = new URL(event.request.url);
 
   // Ignore non-HTTP/HTTPS schemes (like chrome-extension://)
   if (!url.protocol.startsWith('http')) return;
+
+  // ── ALWAYS bypass SW for API routes ─────────────────────────────────────
+  // Never cache or intercept API requests — these are always network-only.
+  // This prevents the SW from blocking PUT/POST/PATCH mutations when the SW
+  // is in a broken/updating state.
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/_next/')) {
+    // Let the browser handle it natively — don't call event.respondWith()
+    return;
+  }
+
+  // Only handle GET requests from here on
+  if (event.request.method !== 'GET') return;
 
   // 1. Navigation requests (Pages) - Network First
   if (event.request.mode === 'navigate') {
@@ -79,7 +89,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 3. Static Assets (CSS, JS) - Network First with Cache Fallback
+  // 3. Static Assets (CSS, JS, fonts) - Network First with Cache Fallback
   if (
     event.request.destination === 'style' ||
     event.request.destination === 'script' ||
@@ -99,10 +109,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 4. Everything else - Generic match
+  // 4. Everything else - Cache First, then Network
   event.respondWith(
     caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
+      return response || fetch(event.request).catch(() => undefined);
     })
   );
 });
