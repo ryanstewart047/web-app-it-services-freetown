@@ -53,7 +53,15 @@ export default function NewsletterPopup({ delay }: NewsletterPopupProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
-  const [popupSettings, setPopupSettings] = useState<PopupSettings>(DEFAULTS)
+  const [popupSettings, setPopupSettings] = useState<PopupSettings>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('newsletter_popup_settings')
+        if (cached) return { ...DEFAULTS, ...JSON.parse(cached) }
+      } catch (_) {}
+    }
+    return DEFAULTS
+  })
   const [settingsLoaded, setSettingsLoaded] = useState(false)
 
   useEffect(() => {
@@ -61,11 +69,16 @@ export default function NewsletterPopup({ delay }: NewsletterPopupProps) {
     fetch('/api/admin/newsletter-settings')
       .then(res => res.json())
       .then((data: PopupSettings) => {
-        setPopupSettings(data)
+        if (data && typeof data === 'object') {
+          setPopupSettings(prev => ({ ...prev, ...data }))
+          try {
+            localStorage.setItem('newsletter_popup_settings', JSON.stringify(data))
+          } catch (_) {}
+        }
         setSettingsLoaded(true)
       })
       .catch(() => {
-        // Fallback to defaults if fetch fails
+        // Fallback to defaults or cached if fetch fails
         setSettingsLoaded(true)
       })
   }, [])

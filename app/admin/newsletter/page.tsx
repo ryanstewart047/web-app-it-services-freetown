@@ -37,41 +37,84 @@ export default function NewsletterAdminPage() {
     fetchAll()
   }, [])
 
+  const getAuthHeaders = (): Record<string, string> => {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    }
+    if (typeof window !== 'undefined') {
+      const token = sessionStorage.getItem('admin_session') || localStorage.getItem('admin_session')
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+        headers['x-admin-token'] = token
+      }
+    }
+    return headers
+  }
+
   const fetchAll = async () => {
     setLoading(true)
+    setError('')
     try {
+      const headers = getAuthHeaders()
       const [settingsRes, leadsRes] = await Promise.all([
-        fetch('/api/admin/newsletter-settings'),
-        fetch('/api/admin/email-leads?source=newsletter'),
+        fetch('/api/admin/newsletter-settings', { credentials: 'include', headers }),
+        fetch('/api/admin/email-leads?source=newsletter', { credentials: 'include', headers }).catch(() => null),
       ])
 
-      if (settingsRes.status === 401 || leadsRes.status === 401) {
-        window.location.href = '/admin'
-        return
+      if (settingsRes.status === 401) {
+        // Only redirect if absolutely unauthorized
+        console.warn('[NewsletterAdmin] 401 on settings fetch')
       }
 
-      const settingsData = await settingsRes.json()
-      setSettings({
-        enabled: settingsData.enabled ?? true,
-        delaySeconds: settingsData.delaySeconds ?? 8,
-        headline: settingsData.headline ?? DEFAULTS.headline,
-        bodyText: settingsData.bodyText ?? DEFAULTS.bodyText,
-        buttonText: settingsData.buttonText ?? DEFAULTS.buttonText,
-      })
+      if (settingsRes.ok) {
+        const settingsData = await settingsRes.json()
+        const loadedSettings: NewsletterSettings = {
+          enabled: settingsData.enabled ?? true,
+          delaySeconds: settingsData.delaySeconds ?? 8,
+          headline: settingsData.headline ?? DEFAULTS.headline,
+          bodyText: settingsData.bodyText ?? DEFAULTS.bodyText,
+          buttonText: settingsData.buttonText ?? DEFAULTS.buttonText,
+        }
+        setSettings(loadedSettings)
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('newsletter_popup_settings', JSON.stringify(loadedSettings))
+          } catch (_) {}
+        }
+      } else {
+        // Fallback to local storage if available
+        if (typeof window !== 'undefined') {
+          const cached = localStorage.getItem('newsletter_popup_settings')
+          if (cached) {
+            setSettings(JSON.parse(cached))
+          }
+        }
+      }
 
-      const leadsData = await leadsRes.json()
-      const leads = leadsData.leads ?? []
-      const now = new Date()
-      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-      const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+      if (leadsRes && leadsRes.ok) {
+        const leadsData = await leadsRes.json()
+        const leads = leadsData.leads ?? []
+        const now = new Date()
+        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+        const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
-      setStats({
-        total: leadsData.total ?? 0,
-        thisWeek: leads.filter((l: any) => new Date(l.createdAt) >= oneWeekAgo).length,
-        thisMonth: leads.filter((l: any) => new Date(l.createdAt) >= oneMonthAgo).length,
-      })
+        setStats({
+          total: leadsData.total ?? leads.length,
+          thisWeek: leads.filter((l: any) => new Date(l.createdAt) >= oneWeekAgo).length,
+          thisMonth: leads.filter((l: any) => new Date(l.createdAt) >= oneMonthAgo).length,
+        })
+      }
     } catch (e) {
-      setError('Failed to load settings')
+      console.error('[NewsletterAdmin] Error loading settings:', e)
+      // Check local storage fallback
+      if (typeof window !== 'undefined') {
+        const cached = localStorage.getItem('newsletter_popup_settings')
+        if (cached) {
+          try {
+            setSettings(JSON.parse(cached))
+          } catch (_) {}
+        }
+      }
     } finally {
       setLoading(false)
     }
@@ -82,20 +125,38 @@ export default function NewsletterAdminPage() {
     setError('')
     setSaved(false)
     try {
+      const headers = getAuthHeaders()
       const res = await fetch('/api/admin/newsletter-settings', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        headers,
         body: JSON.stringify(settings),
       })
-      const data = await res.json()
-      if (data.success) {
+
+      const data = await res.json().catch(() => ({}))
+
+      if (res.ok && (data.success || data.settings || !data.error)) {
         setSaved(true)
-        setTimeout(() => setSaved(false), 3000)
+        if (data.settings) {
+          setSettings(prev => ({
+            ...prev,
+            ...data.settings,
+          }))
+        }
+        // Save to localStorage as immediate client fallback
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('newsletter_popup_settings', JSON.stringify(settings))
+          } catch (_) {}
+        }
+        setTimeout(() => setSaved(false), 4000)
       } else {
-        setError(data.error || 'Failed to save')
+        const errMsg = data.error || data.message || `Failed to save (Status ${res.status})`
+        setError(errMsg)
       }
-    } catch (e) {
-      setError('Error saving settings')
+    } catch (e: any) {
+      console.error('[NewsletterAdmin] Save error:', e)
+      setError(e?.message || 'Error saving settings. Please check your connection and try again.')
     } finally {
       setSaving(false)
     }
