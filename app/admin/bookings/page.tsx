@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Clock, Smartphone, CheckCircle, XCircle, AlertCircle, Search, RefreshCw, User, MapPin, Mail, Phone, FileText, X, ChevronRight } from 'lucide-react';
 import { useAdminSession } from '../../../src/hooks/useAdminSession';
+import { updateBookingStatus, type BookingData } from '../../../lib/unified-booking-storage';
 
 interface Appointment {
   id: string;
@@ -141,6 +142,21 @@ export default function AdminBookingsPage() {
 
   const updateStatus = async (id: string, newStatus: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
+
+    // Optimistically update UI immediately
+    setAppointments(prev => prev.map(item => item.id === id ? { ...item, status: newStatus } : item));
+    if (selectedAppointment && selectedAppointment.id === id) {
+      setSelectedAppointment(prev => prev ? { ...prev, status: newStatus } : null);
+    }
+
+    // Sync to localStorage (unified-booking-storage) immediately
+    try {
+      updateBookingStatus(id, newStatus as BookingData['status']);
+    } catch (storageErr) {
+      console.warn('[Bookings] Could not sync status to local storage:', storageErr);
+    }
+
+    // Persist to backend API (non-blocking — UI already updated)
     try {
       const res = await fetch(`/api/appointments/${id}`, {
         method: 'PATCH',
@@ -149,19 +165,13 @@ export default function AdminBookingsPage() {
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to update appointment');
-      }
-
-      // Update state locally for fast UI responsiveness
-      setAppointments(prev => prev.map(item => item.id === id ? { ...item, status: newStatus } : item));
-      
-      if (selectedAppointment && selectedAppointment.id === id) {
-        setSelectedAppointment(prev => prev ? { ...prev, status: newStatus } : null);
+        const data = await res.json().catch(() => ({}));
+        console.error('[Bookings] API status update failed:', data.error || res.statusText);
+        // Don't revert UI — local storage is the source of truth for offline mode
       }
     } catch (error) {
-      console.error('Error updating appointment:', error);
-      alert(error instanceof Error ? error.message : 'Failed to update appointment');
+      console.error('[Bookings] Network error updating appointment status:', error);
+      // Status already saved in localStorage, so we silently continue
     }
   };
 
