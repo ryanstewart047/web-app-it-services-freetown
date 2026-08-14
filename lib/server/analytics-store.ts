@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 // ──────────────────────────────────────────────
 
 export type RepairStatus =
+	| 'pending'
 	| 'submitted'
 	| 'diagnosed'
 	| 'in-progress'

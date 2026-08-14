@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 
 // Helper: add ?iframe=1 to a URL (handles existing query strings)
@@ -41,6 +41,7 @@ interface RepairRecord {
   totalCost?: number;
   diagnosticNotes?: string;
   diagnosticImages?: any[];
+  estimatedCompletion?: string;
 }
 
 interface RepairSnapshot {
@@ -49,6 +50,15 @@ interface RepairSnapshot {
   averageCompletionDays?: number;
   totalRevenue?: number;
   allRepairs?: RepairRecord[];
+}
+
+interface RepairUpdateForm {
+  status: string;
+  paymentStatus: string;
+  amountPaid: string;
+  diagnosticNotes: string;
+  diagnosticImages: string[];
+  estimatedCompletion: string;
 }
 
 interface OrdersSnapshot {
@@ -1598,12 +1608,13 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
   const [searchFilter, setSearchFilter] = useState<string>('');
   const [repairPage, setRepairPage] = useState<number>(1);
 
-  const [updateForm, setUpdateForm] = useState({
+  const [updateForm, setUpdateForm] = useState<RepairUpdateForm>({
     status: '',
     paymentStatus: 'pending',
     amountPaid: '',
     diagnosticNotes: '',
     diagnosticImages: [] as string[],
+    estimatedCompletion: '',
   });
 
   // Repair line items: each row has a label + individual cost
@@ -1611,17 +1622,37 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
   const [newItem, setNewItem] = useState({ description: '', cost: '' });
   const [waiveConsultationFee, setWaiveConsultationFee] = useState<boolean>(false);
 
+  // Track whether the user has manually edited the form — prevents background
+  // data reloads from stomping over in-progress changes.
+  const formDirty = useRef(false);
+  // Track which repair was last loaded into the form so we only re-populate
+  // when the selected repair actually changes (not on every background poll).
+  const loadedTrackingId = useRef<string | null>(null);
+
+  const markFormDirty = () => {
+    formDirty.current = true;
+  };
+
+  const updateRepairForm = (updater: React.SetStateAction<RepairUpdateForm>) => {
+    markFormDirty();
+    setUpdateForm(updater);
+  };
+
   // Reset pagination when filters change
   useEffect(() => { setRepairPage(1); }, [filterStatus, searchFilter]);
 
-  // Keep selectedRepair in sync with fresh data when repairs update
+  // Keep selectedRepair metadata in sync with fresh data when background polls run,
+  // but ONLY update the object reference — never touch the form when the user is
+  // actively editing (formDirty = true).
   useEffect(() => {
     if (selectedRepair && repairs.allRepairs) {
       const updated = repairs.allRepairs.find(r => r.trackingId === selectedRepair.trackingId);
-      if (updated) {
+      if (updated && !formDirty.current) {
+        // Safe to sync — user hasn't touched the form yet
         setSelectedRepair(updated);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [repairs.allRepairs]);
 
   // Determine base consultation fee by device type
@@ -1649,15 +1680,24 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
   );
   const grandTotal = consultationFee + itemsSubtotal;
 
-  // When a repair is selected, populate the form
+  // Populate the form only when the selected repair CHANGES (new trackingId),
+  // not on every background data poll. Also resets formDirty so the sync
+  // useEffect can resume keeping metadata up to date.
   useEffect(() => {
     if (!selectedRepair) {
-      setUpdateForm({ status: '', paymentStatus: 'pending', amountPaid: '', diagnosticNotes: '', diagnosticImages: [] });
+      formDirty.current = false;
+      loadedTrackingId.current = null;
+      setUpdateForm({ status: '', paymentStatus: 'pending', amountPaid: '', diagnosticNotes: '', diagnosticImages: [], estimatedCompletion: '' });
       setRepairItems([]);
       setNewItem({ description: '', cost: '' });
       setWaiveConsultationFee(false);
       return;
     }
+
+    // Already loaded this repair — don't re-populate (would wipe user edits)
+    if (loadedTrackingId.current === selectedRepair.trackingId) return;
+    loadedTrackingId.current = selectedRepair.trackingId;
+    formDirty.current = false; // Fresh load — mark clean so sync can run
 
     const images = ((selectedRepair as any).diagnosticImages ?? []).map(
       (img: any) => (typeof img === 'string' ? img : img.data)
@@ -1677,6 +1717,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
       amountPaid: existingAmountPaid,
       diagnosticNotes: (selectedRepair as any).diagnosticNotes ?? '',
       diagnosticImages: images,
+      estimatedCompletion: selectedRepair.estimatedCompletion ?? '',
     });
 
     // ── Restore waive state from consultation fee line ─────────────────────
@@ -1719,11 +1760,13 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
       alert('Enter a repair description and a valid cost.');
       return;
     }
+    markFormDirty();
     setRepairItems(prev => [...prev, { description: desc, cost }]);
     setNewItem({ description: '', cost: '' });
   };
 
   const removeRepairItem = (index: number) => {
+    markFormDirty();
     setRepairItems(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -1744,7 +1787,9 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
         reader.readAsDataURL(file);
       });
     }
-    setUpdateForm(prev => ({ ...prev, diagnosticImages: [...prev.diagnosticImages, ...newImages] }));
+    if (newImages.length) {
+      updateRepairForm(prev => ({ ...prev, diagnosticImages: [...prev.diagnosticImages, ...newImages] }));
+    }
   };
 
   const saveRepair = async () => {
@@ -1768,7 +1813,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
     costBreakdown += `\n\nTotal: Le ${grandTotal.toLocaleString()}`;
 
     try {
-      const res = await fetch('/api/analytics/repairs/', {
+      const res = await fetch('/api/analytics/repairs', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1782,6 +1827,14 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
         }),
       });
       if (res.ok) {
+        try {
+          const { updateBookingStatus, updateBookingDiagnostics } = await import('@/lib/unified-booking-storage');
+          if (updateForm.status) {
+            updateBookingStatus(selectedRepair.trackingId, updateForm.status as any, costBreakdown, updateForm.estimatedCompletion || undefined, grandTotal);
+          }
+          updateBookingDiagnostics(selectedRepair.trackingId, updateForm.diagnosticNotes, updateForm.diagnosticImages);
+        } catch (_) {}
+
         alert('Repair updated! Customer can now view the updated status and cost breakdown.');
         setSelectedRepair(null);
         onUpdate();
@@ -1799,7 +1852,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
     if (e) e.stopPropagation();
     if (!confirm(`Delete repair ${trackingId}? This cannot be undone.`)) return;
     try {
-      const res = await fetch('/api/analytics/repairs/', {
+      const res = await fetch('/api/analytics/repairs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete', trackingId }),
@@ -1818,12 +1871,16 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
     const reason = prompt(`Cancel repair ${trackingId}?\n\nEnter reason (optional):`);
     if (reason === null) return;
     try {
-      const res = await fetch('/api/analytics/repairs/', {
+      const res = await fetch('/api/analytics/repairs', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ trackingId, status: 'cancelled', notes: reason || 'Cancelled by admin.' }),
       });
       if (res.ok) {
+        try {
+          const { updateBookingStatus } = await import('@/lib/unified-booking-storage');
+          updateBookingStatus(trackingId, 'cancelled' as any, reason || 'Cancelled by admin.');
+        } catch (_) {}
         alert('Repair cancelled.');
         if (selectedRepair?.trackingId === trackingId) setSelectedRepair(null);
         onUpdate();
@@ -1991,7 +2048,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                 <label className="block text-slate-400 mb-1 text-[11px] uppercase tracking-wide">Repair Status</label>
                 <select
                   value={updateForm.status}
-                  onChange={e => setUpdateForm(p => ({ ...p, status: e.target.value }))}
+                  onChange={e => updateRepairForm(p => ({ ...p, status: e.target.value }))}
                   className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-red-500"
                 >
                   <option value="pending">Pending</option>
@@ -2010,7 +2067,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                 <label className="block text-slate-400 mb-1 text-[11px] uppercase tracking-wide font-bold">Payment Status</label>
                 <select
                   value={updateForm.paymentStatus}
-                  onChange={e => setUpdateForm(p => ({ ...p, paymentStatus: e.target.value }))}
+                  onChange={e => updateRepairForm(p => ({ ...p, paymentStatus: e.target.value }))}
                   className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-red-500 font-semibold"
                 >
                   <option value="pending">Pending (Unpaid)</option>
@@ -2035,7 +2092,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                     type="number"
                     placeholder="e.g. 200"
                     value={updateForm.amountPaid}
-                    onChange={e => setUpdateForm(p => ({ ...p, amountPaid: e.target.value }))}
+                    onChange={e => updateRepairForm(p => ({ ...p, amountPaid: e.target.value }))}
                     className="w-full bg-slate-900 border border-amber-500/50 rounded-lg px-3 py-2 text-white text-xs font-mono font-bold focus:outline-none focus:border-amber-400"
                   />
                   {grandTotal > 0 && (
@@ -2087,7 +2144,10 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                       </span>
                       <button
                         type="button"
-                        onClick={() => setWaiveConsultationFee(!waiveConsultationFee)}
+                        onClick={() => {
+                          markFormDirty();
+                          setWaiveConsultationFee(!waiveConsultationFee);
+                        }}
                         className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase transition-all shadow-sm flex items-center gap-1.5 shrink-0 ${
                           waiveConsultationFee
                             ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-900/50'
@@ -2129,7 +2189,10 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                         type="text"
                         placeholder="e.g. Screen replacement"
                         value={newItem.description}
-                        onChange={e => setNewItem(prev => ({ ...prev, description: e.target.value }))}
+                        onChange={e => {
+                          markFormDirty();
+                          setNewItem(prev => ({ ...prev, description: e.target.value }));
+                        }}
                         onKeyDown={e => e.key === 'Enter' && addRepairItem()}
                         className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-white text-[11px] focus:outline-none focus:border-red-500 min-w-0"
                       />
@@ -2137,7 +2200,10 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                         type="number"
                         placeholder="Le cost"
                         value={newItem.cost}
-                        onChange={e => setNewItem(prev => ({ ...prev, cost: e.target.value }))}
+                        onChange={e => {
+                          markFormDirty();
+                          setNewItem(prev => ({ ...prev, cost: e.target.value }));
+                        }}
                         onKeyDown={e => e.key === 'Enter' && addRepairItem()}
                         className="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-white text-[11px] focus:outline-none focus:border-red-500"
                       />
@@ -2169,7 +2235,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                 <textarea
                   rows={3}
                   value={updateForm.diagnosticNotes}
-                  onChange={e => setUpdateForm(p => ({ ...p, diagnosticNotes: e.target.value }))}
+                  onChange={e => updateRepairForm(p => ({ ...p, diagnosticNotes: e.target.value }))}
                   placeholder="e.g. Screen replaced. Board tested OK."
                   className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-red-500"
                 />
@@ -2237,4 +2303,3 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
     </div>
   );
 }
-

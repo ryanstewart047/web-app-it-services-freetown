@@ -51,7 +51,7 @@ interface AppointmentStatus {
   customerName: string
   deviceType: string
   deviceModel: string
-  status: 'received' | 'submitted' | 'diagnosed' | 'in-progress' | 'completed' | 'ready-for-pickup' | 'collected' | 'cancelled'
+  status: 'pending' | 'confirmed' | 'received' | 'submitted' | 'diagnosed' | 'in-progress' | 'completed' | 'ready-for-pickup' | 'collected' | 'cancelled'
   estimatedCompletion?: string
   notes?: string
   cost?: number
@@ -64,6 +64,8 @@ interface AppointmentStatus {
 }
 
 const statusSteps = [
+  { key: 'pending', label: 'Pending', icon: 'fas fa-clock', color: '#f59e0b' },
+  { key: 'confirmed', label: 'Confirmed', icon: 'fas fa-calendar-check', color: '#3b82f6' },
   { key: 'received', label: 'Received', icon: 'fas fa-inbox', color: '#040e40' },
   { key: 'submitted', label: 'Submitted', icon: 'fas fa-paper-plane', color: '#3b82f6' },
   { key: 'diagnosed', label: 'Diagnosed', icon: 'fas fa-search', color: '#ef4444' },
