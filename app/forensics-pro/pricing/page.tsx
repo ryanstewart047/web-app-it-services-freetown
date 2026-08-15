@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { BRAND_AVATAR_TRANSPARENT_SRC, BRAND_NAME } from '@/lib/brand';
@@ -22,7 +22,7 @@ const PLANS: PricingPlan[] = [
     id: 'free',
     name: 'Community Free',
     price: '$0.00',
-    billing: 'free forever • no credit card required',
+    billing: 'free forever • no card required',
     buttonText: 'Install Free Extension',
     isFree: true,
     features: [
@@ -71,6 +71,37 @@ const PLANS: PricingPlan[] = [
   },
 ];
 
+// Client-side card brand helper
+function detectCardBrand(num: string) {
+  const clean = num.replace(/\D/g, '');
+  if (/^4/.test(clean)) return { name: 'Visa', icon: 'fa-cc-visa', color: 'text-blue-400', cvcLen: 3 };
+  if (/^(5[1-5]|222[1-9]|22[3-9]|2[3-6]|27[01]|2720)/.test(clean)) return { name: 'Mastercard', icon: 'fa-cc-mastercard', color: 'text-orange-400', cvcLen: 3 };
+  if (/^3[47]/.test(clean)) return { name: 'Amex', icon: 'fa-cc-amex', color: 'text-cyan-400', cvcLen: 4 };
+  if (/^(6011|65|64[4-9]|622)/.test(clean)) return { name: 'Discover', icon: 'fa-cc-discover', color: 'text-amber-400', cvcLen: 3 };
+  if (/^(30[0-5]|36|38)/.test(clean)) return { name: 'Diners', icon: 'fa-cc-diners-club', color: 'text-sky-400', cvcLen: 3 };
+  if (/^(2131|1800|35)/.test(clean)) return { name: 'JCB', icon: 'fa-cc-jcb', color: 'text-emerald-400', cvcLen: 3 };
+  return { name: 'Card', icon: 'fa-credit-card', color: 'text-slate-400', cvcLen: 3 };
+}
+
+// Client-side Luhn Check
+function checkLuhn(num: string): boolean {
+  const digits = num.replace(/\D/g, '');
+  if (digits.length < 13 || digits.length > 19) return false;
+  let sum = 0;
+  let shouldDouble = false;
+  for (let i = digits.length - 1; i >= 0; i--) {
+    let digit = parseInt(digits.charAt(i), 10);
+    if (isNaN(digit)) return false;
+    if (shouldDouble) {
+      digit *= 2;
+      if (digit > 9) digit -= 9;
+    }
+    sum += digit;
+    shouldDouble = !shouldDouble;
+  }
+  return sum % 10 === 0;
+}
+
 export default function ForensicsPricingPage() {
   const [selectedPlan, setSelectedPlan] = useState<string>('lifetime');
   const [checkoutModalOpen, setCheckoutModalOpen] = useState<boolean>(false);
@@ -87,6 +118,9 @@ export default function ForensicsPricingPage() {
   const [purchasedKey, setPurchasedKey] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<boolean>(false);
 
+  const brandInfo = useMemo(() => detectCardBrand(cardNumber), [cardNumber]);
+  const isCardLuhnValid = useMemo(() => checkLuhn(cardNumber), [cardNumber]);
+
   const handlePlanClick = (plan: PricingPlan) => {
     if (plan.isFree) {
       window.location.href = '/digital-tools#metadata-inspector';
@@ -99,14 +133,36 @@ export default function ForensicsPricingPage() {
   };
 
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/\D/g, '').slice(0, 16);
-    const formatted = raw.replace(/(\d{4})(?=\d)/g, '$1 ');
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 19);
+    let formatted = '';
+    // Format 4-4-4-4 for standard cards or 4-6-5 for Amex
+    if (raw.startsWith('34') || raw.startsWith('37')) {
+      // Amex format: 4 - 6 - 5
+      if (raw.length > 10) formatted = `${raw.slice(0, 4)} ${raw.slice(4, 10)} ${raw.slice(10, 15)}`;
+      else if (raw.length > 4) formatted = `${raw.slice(0, 4)} ${raw.slice(4, 10)}`;
+      else formatted = raw;
+    } else {
+      formatted = raw.replace(/(\d{4})(?=\d)/g, '$1 ');
+    }
     setCardNumber(formatted);
   };
 
   const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/\D/g, '').slice(0, 4);
+    let raw = e.target.value.replace(/\D/g, '').slice(0, 4);
+    
+    // Auto-fix single digit months > 1 (e.g. typing '5' -> '05/')
+    if (raw.length === 1 && parseInt(raw, 10) > 1) {
+      raw = `0${raw}`;
+    }
+
+    // Validate month <= 12
     if (raw.length >= 2) {
+      const month = parseInt(raw.slice(0, 2), 10);
+      if (month > 12) {
+        raw = `12${raw.slice(2)}`;
+      } else if (month === 0) {
+        raw = `01${raw.slice(2)}`;
+      }
       setCardExpiry(`${raw.slice(0, 2)}/${raw.slice(2)}`);
     } else {
       setCardExpiry(raw);
@@ -123,8 +179,51 @@ export default function ForensicsPricingPage() {
     e.preventDefault();
     setErrorMessage(null);
 
-    if (!customerName || !customerEmail || !cardNumber || !cardExpiry || !cardCvc) {
-      setErrorMessage('Please fill in all card and contact fields.');
+    // Client-side strict pre-checks
+    if (!customerName || customerName.trim().length < 3) {
+      setErrorMessage('Please enter your full cardholder name.');
+      return;
+    }
+
+    if (!customerEmail || !customerEmail.includes('@')) {
+      setErrorMessage('Please enter a valid email address.');
+      return;
+    }
+
+    const cleanCardDigits = cardNumber.replace(/\D/g, '');
+    if (cleanCardDigits.length < 13) {
+      setErrorMessage('Please enter a complete 15 or 16-digit card number.');
+      return;
+    }
+
+    if (!isCardLuhnValid) {
+      setErrorMessage('❌ Invalid card number: Checksum validation failed. Please check for typos.');
+      return;
+    }
+
+    // Expiry check
+    if (!cardExpiry || !cardExpiry.includes('/') || cardExpiry.split('/')[1]?.length < 2) {
+      setErrorMessage('Please enter a valid expiration date (MM/YY).');
+      return;
+    }
+
+    const [expM, expY] = cardExpiry.split('/').map((s) => parseInt(s.trim(), 10));
+    const now = new Date();
+    const currentYear = now.getFullYear() % 100;
+    const currentMonth = now.getMonth() + 1;
+
+    if (expY < currentYear || (expY === currentYear && expM < currentMonth)) {
+      setErrorMessage(`❌ Card Expired: The expiration date (${cardExpiry}) is in the past.`);
+      return;
+    }
+
+    if (cardCvc.length < brandInfo.cvcLen) {
+      setErrorMessage(`Security code (CVC) must be ${brandInfo.cvcLen} digits for ${brandInfo.name}.`);
+      return;
+    }
+
+    if (!billingZip || billingZip.trim().length < 3) {
+      setErrorMessage('Please enter your billing ZIP/postal code.');
       return;
     }
 
@@ -150,10 +249,10 @@ export default function ForensicsPricingPage() {
       if (res.ok && data.success) {
         setPurchasedKey(data.licenseKey);
       } else {
-        setErrorMessage(data.error || 'Payment processing failed. Please verify your card details.');
+        setErrorMessage(data.error || 'Payment failed: Could not authorize card with issuing bank.');
       }
     } catch (err: any) {
-      setErrorMessage(err?.message || 'A network error occurred. Please try again.');
+      setErrorMessage(err?.message || 'A connection error occurred. Please check your internet and try again.');
     } finally {
       setIsProcessing(false);
     }
@@ -327,7 +426,7 @@ export default function ForensicsPricingPage() {
             </div>
             <div>
               <strong className="text-slate-200 block mb-0.5">Which payment methods are accepted?</strong>
-              We accept all major <strong>Credit and Debit Cards (Visa, Mastercard, American Express)</strong> via encrypted 256-bit SSL checkout.
+              We accept all major <strong>Credit and Debit Cards (Visa, Mastercard, American Express, Discover)</strong> with real-time bank verification and 256-bit SSL encryption.
             </div>
             <div>
               <strong className="text-slate-200 block mb-0.5">Does the extension work on Edge and Brave?</strong>
@@ -353,7 +452,7 @@ export default function ForensicsPricingPage() {
                 <div className="flex items-center gap-2 mb-1">
                   <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
                   <div className="text-lg font-black text-white">
-                    Secure Card Checkout
+                    Secure Bank Card Checkout
                   </div>
                 </div>
                 <div className="text-xs text-slate-400 mb-6">
@@ -361,8 +460,9 @@ export default function ForensicsPricingPage() {
                 </div>
 
                 {errorMessage && (
-                  <div className="mb-4 p-3 bg-red-950/80 border border-red-800 rounded-xl text-xs text-red-300">
-                    {errorMessage}
+                  <div className="mb-4 p-3 bg-red-950/80 border border-red-800 rounded-xl text-xs text-red-300 flex items-start gap-2">
+                    <i className="fas fa-triangle-exclamation text-red-400 mt-0.5 flex-shrink-0"></i>
+                    <span>{errorMessage}</span>
                   </div>
                 )}
 
@@ -376,7 +476,7 @@ export default function ForensicsPricingPage() {
                       <input
                         type="text"
                         required
-                        placeholder="John Doe"
+                        placeholder="e.g. Ryan Stewart"
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
                         className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500"
@@ -389,7 +489,7 @@ export default function ForensicsPricingPage() {
                       <input
                         type="email"
                         required
-                        placeholder="john@example.com"
+                        placeholder="you@domain.com"
                         value={customerEmail}
                         onChange={(e) => setCustomerEmail(e.target.value)}
                         className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500"
@@ -399,9 +499,20 @@ export default function ForensicsPricingPage() {
 
                   {/* Card Details */}
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                      Card Number
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        Card Number
+                      </label>
+                      <div className="flex items-center gap-1 text-xs">
+                        <i className={`fab ${brandInfo.icon} ${brandInfo.color}`}></i>
+                        <span className={`text-[10px] font-bold ${brandInfo.color}`}>{brandInfo.name}</span>
+                        {cardNumber.length >= 15 && (
+                          <span className={`text-[10px] ml-1 font-bold ${isCardLuhnValid ? 'text-emerald-400' : 'text-red-400'}`}>
+                            {isCardLuhnValid ? '✓ Valid' : '✕ Invalid Number'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                     <div className="relative">
                       <input
                         type="text"
@@ -409,20 +520,25 @@ export default function ForensicsPricingPage() {
                         placeholder="4111 2222 3333 4444"
                         value={cardNumber}
                         onChange={handleCardNumberChange}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-3 pr-10 py-2.5 text-xs text-white placeholder-slate-600 font-mono focus:outline-none focus:border-cyan-500 tracking-wider"
+                        className={`w-full bg-slate-950 border rounded-xl pl-3 pr-10 py-2.5 text-xs text-white placeholder-slate-600 font-mono focus:outline-none tracking-wider ${
+                          cardNumber.length >= 15 && !isCardLuhnValid
+                            ? 'border-red-500 focus:border-red-500'
+                            : 'border-slate-700 focus:border-cyan-500'
+                        }`}
                       />
-                      <i className="fas fa-credit-card absolute right-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                      <i className={`fab ${brandInfo.icon} absolute right-3 top-1/2 -translate-y-1/2 ${brandInfo.color}`}></i>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-3">
                     <div>
                       <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                        Expires
+                        Expires (MM/YY)
                       </label>
                       <input
                         type="text"
                         required
+                        maxLength={5}
                         placeholder="MM/YY"
                         value={cardExpiry}
                         onChange={handleExpiryChange}
@@ -435,11 +551,11 @@ export default function ForensicsPricingPage() {
                       </label>
                       <input
                         type="password"
-                        maxLength={4}
+                        maxLength={brandInfo.cvcLen}
                         required
-                        placeholder="123"
+                        placeholder={brandInfo.cvcLen === 4 ? '1234' : '123'}
                         value={cardCvc}
-                        onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                        onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, '').slice(0, brandInfo.cvcLen))}
                         className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 font-mono text-center focus:outline-none focus:border-cyan-500"
                       />
                     </div>
@@ -449,7 +565,8 @@ export default function ForensicsPricingPage() {
                       </label>
                       <input
                         type="text"
-                        placeholder="90210"
+                        required
+                        placeholder="ZIP / Postal"
                         value={billingZip}
                         onChange={(e) => setBillingZip(e.target.value)}
                         className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 text-center focus:outline-none focus:border-cyan-500"
@@ -464,14 +581,14 @@ export default function ForensicsPricingPage() {
                       className="w-full py-3.5 bg-gradient-to-r from-red-600 via-red-500 to-orange-500 hover:from-red-500 hover:to-orange-400 text-white font-black text-xs rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                       <i className={`fas ${isProcessing ? 'fa-spinner fa-spin' : 'fa-lock'}`}></i>
-                      <span>{isProcessing ? 'Authorizing Payment...' : `Pay ${activePlanObj.price} & Receive Pro Key`}</span>
+                      <span>{isProcessing ? 'Verifying with Bank & Checking Funds...' : `Authorize & Pay ${activePlanObj.price}`}</span>
                     </button>
                   </div>
 
                   <div className="flex items-center justify-center gap-4 text-[10px] text-slate-500 pt-1">
-                    <span>🔒 256-Bit SSL Encrypted</span>
+                    <span>🔒 256-Bit Bank Level Encryption</span>
                     <span>•</span>
-                    <span>Instant License Delivery</span>
+                    <span>Direct Merchant Payout</span>
                   </div>
                 </form>
               </div>
@@ -482,9 +599,9 @@ export default function ForensicsPricingPage() {
                   ✓
                 </div>
                 <div>
-                  <div className="text-xl font-black text-white">Payment Authorized!</div>
+                  <div className="text-xl font-black text-white">Payment Authorized & Verified!</div>
                   <div className="text-xs text-slate-400 mt-1">
-                    Your ForensicLens Pro license key has been generated and sent to <strong>{customerEmail}</strong>.
+                    Your ForensicLens Pro license key has been verified and sent to <strong>{customerEmail}</strong>.
                   </div>
                 </div>
 
