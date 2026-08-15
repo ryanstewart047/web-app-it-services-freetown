@@ -87,11 +87,12 @@ export async function POST(request: NextRequest) {
       safeDiscountCode = sanitizeText(discountCode).toUpperCase();
       const discount = await prisma.discountCode.findUnique({ where: { code: safeDiscountCode } });
 
-      if (discount && discount.isActive) {
-        // Percentage discount
-        serverDiscountAmount = discount.discountPercentage
-          ? serverSubtotal * (discount.discountPercentage / 100)
-          : 0;
+      if (discount && discount.active) {
+        if (discount.discountType === 'percentage') {
+          serverDiscountAmount = serverSubtotal * (discount.discountAmount / 100);
+        } else {
+          serverDiscountAmount = Math.min(discount.discountAmount, serverSubtotal);
+        }
       }
     }
 

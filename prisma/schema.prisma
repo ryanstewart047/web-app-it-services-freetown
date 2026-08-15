@@ -368,7 +368,7 @@ model ProjectPhoto {
 }
 
 model ForumReaction {
-  id           String     @id
+  id           String     @id @default(cuid())
   commentId    String
   topicId      String
   technicianId String
@@ -380,7 +380,7 @@ model ForumReaction {
 }
 
 model PushSubscription {
-  id           String     @id
+  id           String     @id @default(cuid())
   technicianId String
   endpoint     String     @unique
   p256dh       String

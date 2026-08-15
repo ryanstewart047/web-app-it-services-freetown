@@ -7,7 +7,7 @@ import Link from 'next/link'
 import 'react-quill/dist/quill.snow.css'
 
 // Dynamic import for React Quill to avoid SSR issues
-const ReactQuill = dynamicImport(() => import('react-quill'), { ssr: false })
+const ReactQuill = dynamicImport(() => import('react-quill'), { ssr: false }) as any
 
 interface EmailLead {
   id: string

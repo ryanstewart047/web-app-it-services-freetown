@@ -34,7 +34,7 @@ export async function sendForumNotification(payload: NotificationPayload, target
     // 1. Fetch relevant subscriptions
     const subscriptions = await prisma.pushSubscription.findMany({
       where: targetTechnicianId ? { technicianId: targetTechnicianId } : {},
-      include: { technician: { select: { name: true } } }
+      include: { Technician: { select: { name: true } } }
     });
 
     if (subscriptions.length === 0) {

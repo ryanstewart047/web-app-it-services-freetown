@@ -64,7 +64,7 @@ export default function Register() {
       const data = await res.json();
       if (res.ok && data.success) {
         setStatus({ type: 'success', message: data.message });
-        setFormData({ name: '', email: '', phone: '', expertise: '', password: '' });
+        setFormData({ name: '', email: '', phone: '', expertise: '', password: '', honeypot: '' });
       } else {
         setStatus({ type: 'error', message: data.error || 'Registration sequence failed.' });
       }

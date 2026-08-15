@@ -17,15 +17,19 @@ interface RateLimitEntry {
 // In production with multiple servers, use Redis instead
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
+const globalForRateLimit = globalThis as unknown as {
+  rateLimitCleanupInterval?: NodeJS.Timeout;
+};
+
 // Cleanup old entries every 5 minutes
-if (typeof global !== 'undefined' && !global.rateLimitCleanupInterval) {
-  global.rateLimitCleanupInterval = setInterval(() => {
+if (!globalForRateLimit.rateLimitCleanupInterval) {
+  globalForRateLimit.rateLimitCleanupInterval = setInterval(() => {
     const now = Date.now();
-    for (const [key, entry] of rateLimitStore.entries()) {
+    rateLimitStore.forEach((entry, key) => {
       if (now > entry.resetTime) {
         rateLimitStore.delete(key);
       }
-    }
+    });
   }, 5 * 60 * 1000);
 }
 

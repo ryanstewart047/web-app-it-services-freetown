@@ -104,7 +104,7 @@ export default function AdminBookingsPage() {
       if (!silent) setSyncing(true);
       setSyncMessage(null);
       
-      let localBookings = [];
+      let localBookings: any[] = [];
       if (typeof window !== 'undefined') {
         const { getAllBookings } = await import('../../../lib/unified-booking-storage');
         localBookings = getAllBookings();

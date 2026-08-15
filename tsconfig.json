@@ -51,6 +51,7 @@
   "exclude": [
     "node_modules",
     "_server-config-backup",
-    "server-side-backup"
+    "server-side-backup",
+    "src/app_backup"
   ]
 }
