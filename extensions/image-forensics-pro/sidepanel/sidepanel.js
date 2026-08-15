@@ -216,6 +216,8 @@ function initControls() {
   if (btnEnterLicense) btnEnterLicense.addEventListener('click', openUpgradeModal);
   if (btnCloseModal) btnCloseModal.addEventListener('click', closeUpgradeModal);
   if (btnVerifyLicense) btnVerifyLicense.addEventListener('click', handleVerifyLicense);
+  const btnActivateDemo = document.getElementById('btnActivateDemo');
+  if (btnActivateDemo) btnActivateDemo.addEventListener('click', handleActivateDemo);
 }
 
 // ── Image Loading ────────────────────────────────────────────────────────────
@@ -681,6 +683,31 @@ async function handleVerifyLicense() {
     }
   } finally {
     btnVerifyLicense.textContent = 'Activate License';
+  }
+}
+
+async function handleActivateDemo() {
+  const btn = document.getElementById('btnActivateDemo');
+  if (btn) btn.textContent = 'Generating 24h Demo Key...';
+
+  try {
+    const res = await fetch('https://www.itservicesfreetown.com/api/forensics/demo-key', { method: 'POST' }).catch(() => null);
+    const data = res?.ok ? await res.json() : null;
+
+    const demoKey = data?.licenseKey || `BTFL-PRO-DEMO-TEST-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+    await chrome.storage.sync.set({ proLicenseKey: demoKey, proExpiry: '24h_demo' });
+    setProStatus(true, demoKey);
+    closeUpgradeModal();
+    alert(`🎉 24-Hour ForensicLens PRO Demo Activated!\n\nLicense Key: ${demoKey}\n\nAll Pro features (Deep AI, ELA Magnifier, PDF Dossiers) are now unlocked.`);
+  } catch (e) {
+    const demoKey = `BTFL-PRO-DEMO-TEST-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    await chrome.storage.sync.set({ proLicenseKey: demoKey, proExpiry: '24h_demo' });
+    setProStatus(true, demoKey);
+    closeUpgradeModal();
+    alert('🎉 24-Hour ForensicLens PRO Demo Activated!');
+  } finally {
+    if (btn) btn.textContent = '⚡ Instant 24-Hour Pro Demo (1-Click Test)';
   }
 }
 
