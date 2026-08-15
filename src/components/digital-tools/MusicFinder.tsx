@@ -24,13 +24,13 @@ export interface MusicTrack {
 type DownloadFormat = 'mp3' | 'mp4' | 'cover';
 type RepeatMode = 'off' | 'all' | 'one';
 
-// Curated High-Quality Royalty-Free Stream Playlist (100% Free & Background Playable with Screen Off)
+// Curated High-Quality Royalty-Free MP3 Playlist (100% Free & Continuous Screen-Off Background Playback)
 const DEFAULT_ROYALTY_PLAYLIST: MusicTrack[] = [
   {
-    id: 'rf_lofi_chill',
-    title: 'Midnight Breeze (Lo-Fi Chill)',
-    artist: 'Lofi Dreamer',
-    album: 'Royalty-Free Chill Beats',
+    id: 'rf_lofi_study',
+    title: 'Midnight Lo-Fi Chill Study Beats',
+    artist: 'Lofi Study Beats',
+    album: 'Chillhop Sessions',
     genre: 'Lo-Fi / Chillhop',
     durationMs: 145000,
     durationFormatted: '2:25',
@@ -39,12 +39,12 @@ const DEFAULT_ROYALTY_PLAYLIST: MusicTrack[] = [
     artworkUrlSmall: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=300&auto=format&fit=crop&q=80',
     artworkUrlHD: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=800&auto=format&fit=crop&q=80',
     isFullTrack: true,
-    source: 'Royalty-Free Stream',
+    source: 'Royalty-Free MP3',
     isExplicit: false,
   },
   {
     id: 'rf_ambient_piano',
-    title: 'Peaceful Horizon (Ambient Piano)',
+    title: 'Peaceful Horizon & Soft Piano Strings',
     artist: 'Acoustic Horizon',
     album: 'Serenity Vol. 1',
     genre: 'Ambient / Classical',
@@ -55,12 +55,12 @@ const DEFAULT_ROYALTY_PLAYLIST: MusicTrack[] = [
     artworkUrlSmall: 'https://images.unsplash.com/photo-1520523839898-50712803c58b?w=300&auto=format&fit=crop&q=80',
     artworkUrlHD: 'https://images.unsplash.com/photo-1520523839898-50712803c58b?w=800&auto=format&fit=crop&q=80',
     isFullTrack: true,
-    source: 'Royalty-Free Stream',
+    source: 'Royalty-Free MP3',
     isExplicit: false,
   },
   {
-    id: 'rf_synthwave_cyber',
-    title: 'Neon Skyline (Synthwave)',
+    id: 'rf_synthwave_80s',
+    title: 'Neon Skyline (Retro Synthwave)',
     artist: 'CyberDrive',
     album: 'Retro Future 80s',
     genre: 'Synthwave / Electronic',
@@ -71,12 +71,12 @@ const DEFAULT_ROYALTY_PLAYLIST: MusicTrack[] = [
     artworkUrlSmall: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=300&auto=format&fit=crop&q=80',
     artworkUrlHD: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=800&auto=format&fit=crop&q=80',
     isFullTrack: true,
-    source: 'Royalty-Free Stream',
+    source: 'Royalty-Free MP3',
     isExplicit: false,
   },
   {
-    id: 'rf_acoustic_morning',
-    title: 'Sunrise Walk (Acoustic Guitar)',
+    id: 'rf_acoustic_guitar',
+    title: 'Sunrise Walk (Acoustic Folk Guitar)',
     artist: 'Golden Strings',
     album: 'Sunny Days',
     genre: 'Acoustic / Folk',
@@ -87,12 +87,12 @@ const DEFAULT_ROYALTY_PLAYLIST: MusicTrack[] = [
     artworkUrlSmall: 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=300&auto=format&fit=crop&q=80',
     artworkUrlHD: 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=800&auto=format&fit=crop&q=80',
     isFullTrack: true,
-    source: 'Royalty-Free Stream',
+    source: 'Royalty-Free MP3',
     isExplicit: false,
   },
   {
-    id: 'rf_deep_focus',
-    title: 'Deep Coding Focus (Electronica)',
+    id: 'rf_electronic_beats',
+    title: 'Deep Focus & Future Electronica',
     artist: 'ByteBeat',
     album: 'Flow State',
     genre: 'Deep House / Focus',
@@ -103,7 +103,7 @@ const DEFAULT_ROYALTY_PLAYLIST: MusicTrack[] = [
     artworkUrlSmall: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80',
     artworkUrlHD: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80',
     isFullTrack: true,
-    source: 'Royalty-Free Stream',
+    source: 'Royalty-Free MP3',
     isExplicit: false,
   },
 ];
@@ -132,17 +132,16 @@ export default function MusicFinder() {
   const [autoPlayNext, setAutoPlayNext] = useState<boolean>(true);
   const [repeatMode, setRepeatMode] = useState<RepeatMode>('all');
   const [isShuffle, setIsShuffle] = useState<boolean>(false);
-  const [isPlayerExpanded, setIsPlayerExpanded] = useState<boolean>(false);
 
+  // Download Modal & Action State
   const [downloadModalTrack, setDownloadModalTrack] = useState<MusicTrack | null>(null);
   const [selectedFormat, setSelectedFormat] = useState<DownloadFormat>('mp3');
   const [copiedLink, setCopiedLink] = useState(false);
   const [error, setError] = useState('');
 
-  // Audio element reference for background screen-off playback
+  // Audio element reference for continuous background screen-off playback
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Format seconds to mm:ss
   const formatTime = (secs: number) => {
     if (isNaN(secs) || secs < 0) return '0:00';
     const m = Math.floor(secs / 60);
@@ -150,7 +149,6 @@ export default function MusicFinder() {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  // Extract YouTube Video ID
   const extractYouTubeId = (urlStr: string): string | null => {
     if (!urlStr) return null;
     const match = urlStr.match(
@@ -159,14 +157,13 @@ export default function MusicFinder() {
     return match ? match[1] : null;
   };
 
-  // Detect pasted YouTube URL
   useEffect(() => {
     const videoId = extractYouTubeId(pastedUrl.trim());
     if (videoId) {
       const track: MusicTrack = {
         id: `yt_pasted_${videoId}`,
         youtubeId: videoId,
-        title: `YouTube Audio (${videoId})`,
+        title: `YouTube Media (${videoId})`,
         artist: 'YouTube Video',
         album: 'Pasted Link',
         genre: 'Music / Video',
@@ -186,7 +183,7 @@ export default function MusicFinder() {
     }
   }, [pastedUrl]);
 
-  // ── Auto-Select Next Track Logic ───────────────────────────────────────────
+  // ── Auto-Advance to Next Song Logic ──────────────────────────────────────────
   const playNextTrack = useCallback(() => {
     if (!results.length) return;
     if (repeatMode === 'one' && activeTrack) {
@@ -211,10 +208,10 @@ export default function MusicFinder() {
       } else if (currentIndex < results.length - 1) {
         nextIndex = currentIndex + 1;
       } else if (repeatMode === 'all') {
-        nextIndex = 0; // Loop to start
+        nextIndex = 0;
       } else {
         setIsPlaying(false);
-        return; // End of playlist
+        return;
       }
     }
 
@@ -243,27 +240,32 @@ export default function MusicFinder() {
     }
   }, [results, activeTrack]);
 
-  // ── Background Playback with Screen Off (MediaSession API) ───────────────────
+  // ── Screen-Off Background Playback & MediaSession Registration ───────────────
   useEffect(() => {
     if (!activeTrack) return;
 
-    // 1. Setup HTML5 Audio element
-    if (audioRef.current && activeTrack.previewUrl && !activeTrack.youtubeId) {
-      audioRef.current.src = activeTrack.previewUrl;
-      audioRef.current.volume = isMuted ? 0 : volume;
-      audioRef.current.play().then(() => {
-        setIsPlaying(true);
-      }).catch((e) => {
-        console.log('Autoplay deferred until user interaction:', e);
-      });
+    // If direct MP3 audio stream
+    if (!activeTrack.youtubeId && activeTrack.previewUrl) {
+      if (audioRef.current) {
+        audioRef.current.src = activeTrack.previewUrl;
+        audioRef.current.volume = isMuted ? 0 : volume;
+        audioRef.current.play().then(() => {
+          setIsPlaying(true);
+        }).catch((e) => {
+          console.log('Playback error/notice:', e);
+        });
+      }
+    } else {
+      // YouTube video preview
+      setIsPlaying(true);
     }
 
-    // 2. Register with OS MediaSession for Lock-Screen, Headphone & Screen-Off Playback
+    // Register with OS MediaSession for Lock Screen & Background Playback
     if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: activeTrack.title,
         artist: activeTrack.artist,
-        album: activeTrack.album || 'BridgeTech Royalty Music Player',
+        album: activeTrack.album || 'BridgeTech Royalty Music',
         artwork: [
           { src: activeTrack.artworkUrlSmall || activeTrack.artworkUrlHD, sizes: '96x96', type: 'image/jpeg' },
           { src: activeTrack.artworkUrlHD || activeTrack.artworkUrlSmall, sizes: '512x512', type: 'image/jpeg' },
@@ -271,17 +273,17 @@ export default function MusicFinder() {
       });
 
       navigator.mediaSession.setActionHandler('play', () => {
-        if (audioRef.current) {
+        if (audioRef.current && !activeTrack.youtubeId) {
           audioRef.current.play();
-          setIsPlaying(true);
         }
+        setIsPlaying(true);
       });
 
       navigator.mediaSession.setActionHandler('pause', () => {
-        if (audioRef.current) {
+        if (audioRef.current && !activeTrack.youtubeId) {
           audioRef.current.pause();
-          setIsPlaying(false);
         }
+        setIsPlaying(false);
       });
 
       navigator.mediaSession.setActionHandler('nexttrack', () => {
@@ -300,11 +302,15 @@ export default function MusicFinder() {
     }
   }, [activeTrack, playNextTrack, playPrevTrack]);
 
-  // Handle Play/Pause Toggle
   const togglePlayPause = () => {
     if (!activeTrack && results.length > 0) {
       setActiveTrack(results[0]);
       setIsPlaying(true);
+      return;
+    }
+
+    if (activeTrack?.youtubeId) {
+      setIsPlaying(!isPlaying);
       return;
     }
 
@@ -320,7 +326,6 @@ export default function MusicFinder() {
     }
   };
 
-  // Search Online Music
   const searchMusic = async (searchQuery: string, pageNum = 1, append = false) => {
     if (!searchQuery.trim()) return;
 
@@ -343,13 +348,13 @@ export default function MusicFinder() {
         setHasMore(data.hasMore || false);
       } else {
         if (!append) {
-          setError(`No songs found matching "${searchQuery}". Showing default royalty-free playlist.`);
+          setError(`No results for "${searchQuery}". Showing curated royalty-free playlist.`);
           setResults(DEFAULT_ROYALTY_PLAYLIST);
         }
       }
     } catch (err) {
       console.error(err);
-      setError('Connection error while searching online music.');
+      setError('Connection error while searching music.');
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -405,7 +410,7 @@ export default function MusicFinder() {
 
   return (
     <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 lg:p-8 shadow-2xl backdrop-blur space-y-6 pb-28">
-      {/* Hidden HTML5 Audio Element for Continuous Screen-Off Playback */}
+      {/* HTML5 Audio Element for Screen-Off Background Playback */}
       <audio
         ref={audioRef}
         playsInline
@@ -423,9 +428,6 @@ export default function MusicFinder() {
             setIsPlaying(false);
           }
         }}
-        onError={() => {
-          setIsPlaying(false);
-        }}
       />
 
       {/* Header */}
@@ -442,7 +444,7 @@ export default function MusicFinder() {
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              Plays automatically from one song to the next. Continuous background audio even when your phone or screen is turned off.
+              Plays continuously from song to song. Supports background audio when your device screen is locked or turned off.
             </p>
           </div>
         </div>
@@ -504,12 +506,20 @@ export default function MusicFinder() {
         {pastedTrack && (
           <div className="p-3 bg-slate-900 rounded-xl border border-red-500/40 flex items-center justify-between gap-2">
             <span className="text-xs font-bold text-emerald-400 truncate">✓ Track Loaded: {pastedTrack.title}</span>
-            <button
-              onClick={() => { setActiveTrack(pastedTrack); setIsPlaying(true); }}
-              className="py-1.5 px-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg text-xs flex items-center gap-1 shrink-0"
-            >
-              <i className="fas fa-play"></i> Play Now
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => { setActiveTrack(pastedTrack); setIsPlaying(true); }}
+                className="py-1.5 px-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg text-xs flex items-center gap-1 shrink-0"
+              >
+                <i className="fas fa-play"></i> Play Video
+              </button>
+              <button
+                onClick={() => openDownloadModal(pastedTrack, 'mp3')}
+                className="py-1.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs flex items-center gap-1 shrink-0"
+              >
+                <i className="fas fa-download"></i> Download Servers
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -549,6 +559,32 @@ export default function MusicFinder() {
         </div>
       </div>
 
+      {/* Active YouTube Video Player Box if a YouTube Track is Selected */}
+      {activeTrack?.youtubeId && (
+        <div className="p-4 bg-slate-950 rounded-2xl border border-red-500/40 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-red-400 flex items-center gap-1.5">
+              <i className="fab fa-youtube"></i> Now Playing: {activeTrack.title}
+            </span>
+            <button
+              onClick={() => openDownloadModal(activeTrack, 'mp3')}
+              className="py-1 px-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg flex items-center gap-1"
+            >
+              <i className="fas fa-download"></i> Download Options
+            </button>
+          </div>
+          <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black border border-slate-800">
+            <iframe
+              src={`https://www.youtube-nocookie.com/embed/${activeTrack.youtubeId}?autoplay=1&enablejsapi=1&rel=0`}
+              title={activeTrack.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full"
+            ></iframe>
+          </div>
+        </div>
+      )}
+
       {/* Error / Status Bar */}
       {error && (
         <div className="p-3.5 bg-amber-950/40 border border-amber-800/60 rounded-xl text-xs text-amber-300 flex items-center gap-2">
@@ -565,7 +601,7 @@ export default function MusicFinder() {
           </span>
           <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Auto-Continuous Play Enabled
+            Auto-Continuous Play Active
           </span>
         </div>
 
@@ -634,7 +670,7 @@ export default function MusicFinder() {
         </div>
       </div>
 
-      {/* ── PERSISTENT DOCKED MP3 PLAYER BAR (Plays Even with Screen Off) ── */}
+      {/* ── PERSISTENT DOCKED MP3 PLAYER BAR (Plays with Screen Off) ── */}
       {activeTrack && (
         <div className="fixed bottom-4 left-4 right-4 max-w-5xl mx-auto z-40 bg-slate-900/95 border-2 border-cyan-500/50 backdrop-blur-xl rounded-3xl p-4 shadow-2xl shadow-black/80 space-y-2.5 animate-slide-up">
           {/* Progress Scrubber Bar */}
@@ -730,7 +766,6 @@ export default function MusicFinder() {
 
             {/* Volume & Actions */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-              {/* Volume Slider (Hidden on small mobile) */}
               <div className="hidden sm:flex items-center gap-1.5">
                 <button
                   onClick={() => {
@@ -763,7 +798,6 @@ export default function MusicFinder() {
                 />
               </div>
 
-              {/* Download Option */}
               <button
                 onClick={() => openDownloadModal(activeTrack, 'mp3')}
                 className="py-1.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors shadow-md"
@@ -776,10 +810,10 @@ export default function MusicFinder() {
         </div>
       )}
 
-      {/* Download Options Modal */}
+      {/* RESTORED WORLDWIDE MULTI-MIRROR YOUTUBE & MP3 DOWNLOAD SERVERS MODAL */}
       {downloadModalTrack && (
         <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="relative w-full max-w-md bg-slate-950 border border-emerald-500/40 rounded-3xl p-6 shadow-2xl text-center space-y-5">
+          <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-slate-950 border border-emerald-500/40 rounded-3xl p-6 shadow-2xl text-center space-y-5">
             <button
               onClick={() => setDownloadModalTrack(null)}
               className="absolute top-4 right-4 w-9 h-9 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-full flex items-center justify-center transition-colors"
@@ -790,7 +824,7 @@ export default function MusicFinder() {
             <div className="space-y-1">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full text-xs font-bold">
                 <i className="fas fa-download"></i>
-                <span>Download Audio Track</span>
+                <span>High-Speed Download Servers</span>
               </div>
               <h3 className="text-base font-bold text-white truncate px-4 pt-2">
                 {downloadModalTrack.title}
@@ -798,37 +832,167 @@ export default function MusicFinder() {
               <p className="text-xs text-slate-400 truncate">{downloadModalTrack.artist}</p>
             </div>
 
-            <div className="space-y-2 text-left pt-2">
-              <a
-                href={downloadModalTrack.downloadUrl || downloadModalTrack.previewUrl}
-                download={`${downloadModalTrack.artist} - ${downloadModalTrack.title}.mp3`}
-                className="w-full p-3.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-bold text-white flex items-center justify-between transition-all shadow-lg"
-              >
-                <span className="flex items-center gap-2">
-                  <i className="fas fa-music"></i>
-                  <span>Direct MP3 Audio Download</span>
-                </span>
-                <i className="fas fa-download"></i>
-              </a>
-
+            {/* Format Selector Toggle */}
+            <div className="grid grid-cols-3 gap-2 bg-slate-900 p-1.5 rounded-2xl border border-slate-800">
               <button
-                onClick={() => handleDownloadArtwork(downloadModalTrack)}
-                className="w-full p-3.5 bg-purple-600 hover:bg-purple-500 rounded-xl text-xs font-bold text-white flex items-center justify-between transition-all shadow-lg shadow-purple-900/30"
+                onClick={() => setSelectedFormat('mp3')}
+                className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                  selectedFormat === 'mp3' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                }`}
               >
-                <span className="flex items-center gap-2">
-                  <i className="fas fa-image"></i>
-                  <span>Download High-Resolution Cover Art</span>
-                </span>
-                <i className="fas fa-download"></i>
+                <i className="fas fa-music"></i>
+                <span>MP3 Audio</span>
               </button>
-
               <button
-                onClick={() => copyTrackLink(downloadModalTrack)}
-                className="w-full p-3 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs font-semibold text-slate-300 flex items-center justify-center gap-1.5 transition-all"
+                onClick={() => setSelectedFormat('mp4')}
+                className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                  selectedFormat === 'mp4' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                }`}
               >
-                <i className="fas fa-copy text-blue-400"></i>
-                <span>{copiedLink ? 'Link Copied to Clipboard!' : 'Copy Track Link'}</span>
+                <i className="fas fa-video"></i>
+                <span>MP4 Video</span>
               </button>
+              <button
+                onClick={() => setSelectedFormat('cover')}
+                className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                  selectedFormat === 'cover' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <i className="fas fa-image"></i>
+                <span>Cover Art</span>
+              </button>
+            </div>
+
+            {/* Download Server Options */}
+            <div className="space-y-2.5 text-left">
+              <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider text-center">
+                Select Download Server for .{selectedFormat.toUpperCase()}:
+              </p>
+
+              {downloadModalTrack.youtubeId ? (
+                <>
+                  {selectedFormat !== 'cover' && (
+                    <>
+                      <a
+                        href={`https://y2mate.nu/en1/?url=https://www.youtube.com/watch?v=${downloadModalTrack.youtubeId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full p-3.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-emerald-500/60 rounded-xl text-xs font-bold text-slate-200 flex items-center justify-between transition-all group shadow-sm"
+                      >
+                        <span className="flex items-center gap-2.5">
+                          <i className="fas fa-bolt text-amber-400 text-sm"></i>
+                          <span>Server 1 — Y2Mate High-Speed {selectedFormat.toUpperCase()}</span>
+                        </span>
+                        <i className="fas fa-arrow-right text-slate-500 group-hover:text-emerald-400 transition-colors"></i>
+                      </a>
+
+                      <a
+                        href={`https://yt5s.biz/en/watch?v=${downloadModalTrack.youtubeId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full p-3.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-blue-500/60 rounded-xl text-xs font-bold text-slate-200 flex items-center justify-between transition-all group shadow-sm"
+                      >
+                        <span className="flex items-center gap-2.5">
+                          <i className="fas fa-circle-play text-blue-400 text-sm"></i>
+                          <span>Server 2 — YT5s Direct {selectedFormat.toUpperCase()}</span>
+                        </span>
+                        <i className="fas fa-arrow-right text-slate-500 group-hover:text-blue-400 transition-colors"></i>
+                      </a>
+
+                      <a
+                        href={`https://9buddy.com/p?url=https://www.youtube.com/watch?v=${downloadModalTrack.youtubeId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full p-3.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/60 rounded-xl text-xs font-bold text-slate-200 flex items-center justify-between transition-all group shadow-sm"
+                      >
+                        <span className="flex items-center gap-2.5">
+                          <i className="fas fa-wand-magic-sparkles text-purple-400 text-sm"></i>
+                          <span>Server 3 — 9Buddy Multi-Format Downloader</span>
+                        </span>
+                        <i className="fas fa-arrow-right text-slate-500 group-hover:text-purple-400 transition-colors"></i>
+                      </a>
+
+                      <a
+                        href={`https://ssyoutube.com/watch?v=${downloadModalTrack.youtubeId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full p-3.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-red-500/60 rounded-xl text-xs font-bold text-slate-200 flex items-center justify-between transition-all group shadow-sm"
+                      >
+                        <span className="flex items-center gap-2.5">
+                          <i className="fab fa-youtube text-red-500 text-sm"></i>
+                          <span>Server 4 — SSYouTube / SaveFrom Mirror</span>
+                        </span>
+                        <i className="fas fa-arrow-right text-slate-500 group-hover:text-red-400 transition-colors"></i>
+                      </a>
+
+                      <a
+                        href="https://cobalt.tools/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full p-3.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/60 rounded-xl text-xs font-bold text-slate-200 flex items-center justify-between transition-all group shadow-sm"
+                      >
+                        <span className="flex items-center gap-2.5">
+                          <i className="fas fa-server text-cyan-400 text-sm"></i>
+                          <span>Server 5 — Cobalt Web Downloader</span>
+                        </span>
+                        <i className="fas fa-arrow-right text-slate-500 group-hover:text-cyan-400 transition-colors"></i>
+                      </a>
+                    </>
+                  )}
+
+                  {selectedFormat === 'cover' && (
+                    <button
+                      onClick={() => handleDownloadArtwork(downloadModalTrack)}
+                      className="w-full p-3.5 bg-purple-600 hover:bg-purple-500 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-900/30"
+                    >
+                      <i className="fas fa-image text-sm"></i>
+                      <span>Download HD Cover Art Image</span>
+                    </button>
+                  )}
+
+                  <div className="pt-2 flex items-center justify-between gap-2">
+                    <button
+                      onClick={() => copyTrackLink(downloadModalTrack)}
+                      className="flex-1 p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs font-semibold text-slate-300 flex items-center justify-center gap-1.5 transition-all"
+                    >
+                      <i className="fas fa-copy text-blue-400"></i>
+                      <span>{copiedLink ? 'Copied!' : 'Copy Link'}</span>
+                    </button>
+                    <a
+                      href={`https://www.youtube.com/watch?v=${downloadModalTrack.youtubeId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs font-semibold text-slate-300 flex items-center justify-center gap-1.5 transition-all"
+                    >
+                      <i className="fab fa-youtube text-red-500"></i>
+                      <span>YouTube</span>
+                    </a>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {selectedFormat !== 'cover' && (
+                    <a
+                      href={downloadModalTrack.downloadUrl || downloadModalTrack.previewUrl}
+                      download={`${downloadModalTrack.artist} - ${downloadModalTrack.title}.mp3`}
+                      className="w-full p-3.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 transition-all shadow-lg"
+                    >
+                      <i className="fas fa-download"></i>
+                      <span>Direct Download .{selectedFormat.toUpperCase()}</span>
+                    </a>
+                  )}
+
+                  {selectedFormat === 'cover' && (
+                    <button
+                      onClick={() => handleDownloadArtwork(downloadModalTrack)}
+                      className="w-full p-3.5 bg-purple-600 hover:bg-purple-500 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-900/30"
+                    >
+                      <i className="fas fa-image"></i>
+                      <span>Download HD Cover Art Image</span>
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
