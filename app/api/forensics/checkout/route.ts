@@ -203,90 +203,81 @@ export async function POST(request: NextRequest) {
     // 7. Live Bank Authorization & Sufficient Funds Verification
     const stripeKey = process.env.STRIPE_SECRET_KEY;
 
-    if (stripeKey) {
-      // LIVE OR TEST MODE STRIPE GATEWAY CHARGE
-      const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' as any });
+    if (!stripeKey) {
+      return NextResponse.json({
+        error: '❌ Payment Gateway Offline: STRIPE_SECRET_KEY is not configured on the server. Live cards cannot be charged or verified for sufficient funds without an active merchant payment gateway.',
+      }, { status: 503 });
+    }
 
-      try {
-        // Create token for card
-        const token = await stripe.tokens.create({
-          card: {
-            number: cleanCard,
-            exp_month: expiryValidation.expMonth!,
-            exp_year: expiryValidation.expYear!,
-            cvc: cardCvc.trim(),
-            name: customerName.trim(),
-            address_zip: billingZip.trim(),
-          },
-        });
+    // LIVE STRIPE GATEWAY CHARGE
+    const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' as any });
 
-        // Charge card directly
-        const charge = await stripe.charges.create({
-          amount: Math.round(amount * 100), // amount in cents
-          currency: 'usd',
-          source: token.id,
-          description: `BridgeTech ForensicLens Pro - ${planTitle} (${customerEmail})`,
-          receipt_email: customerEmail.trim(),
-          metadata: {
-            customerName: sanitizeText(customerName),
-            customerEmail: sanitizeText(customerEmail),
-            planId,
-          },
-        });
+    try {
+      // Create token for card with string types for month and year
+      const token = await stripe.tokens.create({
+        card: {
+          number: cleanCard,
+          exp_month: String(expiryValidation.expMonth!),
+          exp_year: String(expiryValidation.expYear!),
+          cvc: cardCvc.trim(),
+          name: customerName.trim(),
+          address_zip: billingZip.trim(),
+        },
+      });
 
-        if (charge.status !== 'succeeded') {
-          return NextResponse.json({
-            error: `Payment failed: ${charge.failure_message || 'The bank declined this transaction.'}`,
-          }, { status: 402 });
-        }
-      } catch (stripeErr: any) {
-        console.error('[Stripe Charge Error]', stripeErr);
+      // Charge card directly
+      const charge = await stripe.charges.create({
+        amount: Math.round(amount * 100), // amount in cents
+        currency: 'usd',
+        source: token.id,
+        description: `BridgeTech ForensicLens Pro - ${planTitle} (${customerEmail})`,
+        receipt_email: customerEmail.trim(),
+        metadata: {
+          customerName: sanitizeText(customerName),
+          customerEmail: sanitizeText(customerEmail),
+          planId,
+        },
+      });
 
-        // Handle specific bank decline codes
-        if (stripeErr.type === 'StripeCardError') {
-          const declineCode = stripeErr.decline_code;
-          if (declineCode === 'insufficient_funds') {
-            return NextResponse.json({
-              error: '❌ Card Declined: Insufficient funds in this account. Please use a card with sufficient funds.',
-            }, { status: 402 });
-          }
-          if (declineCode === 'expired_card') {
-            return NextResponse.json({
-              error: '❌ Card Declined: This card is expired. Please check the expiration date or use another card.',
-            }, { status: 402 });
-          }
-          if (declineCode === 'incorrect_cvc') {
-            return NextResponse.json({
-              error: "❌ Card Declined: The security code (CVC/CVV) is incorrect.",
-            }, { status: 402 });
-          }
-          if (declineCode === 'lost_card' || declineCode === 'stolen_card') {
-            return NextResponse.json({
-              error: '❌ Card Declined: This card has been reported lost or stolen by the issuer bank.',
-            }, { status: 402 });
-          }
-          return NextResponse.json({
-            error: `❌ Card Declined by Bank: ${stripeErr.message || 'Transaction could not be authorized.'}`,
-          }, { status: 402 });
-        }
-
+      if (charge.status !== 'succeeded') {
         return NextResponse.json({
-          error: stripeErr.message || 'Payment processing gateway error. Please try again.',
-        }, { status: 500 });
-      }
-    } else {
-      // When Stripe Secret Key is not yet set in .env, enforce simulated decline checks for testing:
-      // Check for known insufficient funds test numbers
-      if (cleanCard.endsWith('9995') || cleanCard.endsWith('0002')) {
-        return NextResponse.json({
-          error: '❌ Card Declined: Insufficient funds in this account. Please use a card with sufficient funds.',
+          error: `Payment failed: ${charge.failure_message || 'The bank declined this transaction.'}`,
         }, { status: 402 });
       }
-      if (cleanCard.endsWith('0003')) {
+    } catch (stripeErr: any) {
+      console.error('[Stripe Charge Error]', stripeErr);
+
+      // Handle specific bank decline codes
+      if (stripeErr.type === 'StripeCardError' || stripeErr.code === 'card_declined') {
+        const declineCode = stripeErr.decline_code;
+        if (declineCode === 'insufficient_funds') {
+          return NextResponse.json({
+            error: '❌ Card Declined: Insufficient funds in this account. Please use a card with sufficient balance.',
+          }, { status: 402 });
+        }
+        if (declineCode === 'expired_card') {
+          return NextResponse.json({
+            error: '❌ Card Declined: This card is expired according to the issuing bank.',
+          }, { status: 402 });
+        }
+        if (declineCode === 'incorrect_cvc') {
+          return NextResponse.json({
+            error: "❌ Card Declined: The security code (CVC/CVV) is incorrect.",
+          }, { status: 402 });
+        }
+        if (declineCode === 'lost_card' || declineCode === 'stolen_card') {
+          return NextResponse.json({
+            error: '❌ Card Declined: This card has been reported lost or stolen by the issuer bank.',
+          }, { status: 402 });
+        }
         return NextResponse.json({
-          error: '❌ Card Declined: Incorrect CVC security code.',
+          error: `❌ Card Declined by Bank: ${stripeErr.message || 'Transaction could not be authorized.'}`,
         }, { status: 402 });
       }
+
+      return NextResponse.json({
+        error: stripeErr.message || 'Payment processing gateway error. Please try again.',
+      }, { status: 500 });
     }
 
     // 8. Generate Production License Key (Only reached AFTER all validations & bank approval pass!)
