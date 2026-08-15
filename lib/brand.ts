@@ -7,6 +7,10 @@ export const BRAND_LOGO_SRC = '/assets/logo.svg';
 // Dark background logo (footer, splash screen, dark panels)
 export const BRAND_LOGO_DARK_SRC = '/assets/logo-dark.svg';
 
+// Transparent Shield Avatar (PWA icons, mobile app icon, navbar avatar)
+export const BRAND_AVATAR_TRANSPARENT_SRC = '/assets/bridgetech-avatar-transparent.png';
+export const BRAND_LOGO_TRANSPARENT_SRC = '/assets/bridgetech-social-transparent.png';
+
 // Fallback now also points to the SVG (no PNG/JPG exists)
 export const BRAND_LOGO_FALLBACK_SRC = '/assets/logo.svg';
 

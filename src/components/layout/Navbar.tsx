@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { BRAND_LOGO_SRC, BRAND_NAME } from '@/lib/brand';
+import { BRAND_LOGO_SRC, BRAND_AVATAR_TRANSPARENT_SRC, BRAND_NAME } from '@/lib/brand';
 
 function MegaMenuLink({ href, icon, title, description, color, bg }: { 
   href: string; 
@@ -120,15 +120,23 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link href="/" className="flex items-center">
+            <Link href="/" className="flex items-center gap-2 sm:gap-2.5 group py-1">
               <Image 
-                src={BRAND_LOGO_SRC}
-                alt={`${BRAND_NAME} Logo`}
-                width={180} 
-                height={64} 
-                className="h-14 sm:h-16 md:h-18 hover:opacity-90 transition-opacity cursor-pointer object-contain"
-                style={{ width: 'auto' }}
+                src={BRAND_AVATAR_TRANSPARENT_SRC}
+                alt={`${BRAND_NAME} Avatar`}
+                width={48} 
+                height={48} 
+                className="h-10 w-10 sm:h-11 sm:w-11 md:h-12 md:w-12 object-contain group-hover:scale-105 transition-transform duration-200"
+                priority
               />
+              <div className="flex flex-col justify-center">
+                <span className="text-lg sm:text-xl font-black tracking-tight text-[#040e40] leading-none">
+                  BridgeTech
+                </span>
+                <span className="text-[9px] sm:text-[10px] font-extrabold tracking-[0.2em] text-red-600 uppercase leading-tight mt-0.5">
+                  IT Services
+                </span>
+              </div>
             </Link>
           </div>
           <div className="hidden md:flex items-center space-x-8">

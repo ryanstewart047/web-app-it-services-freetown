@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import ThemeToggle from './components/ThemeToggle';
-import { BRAND_LOGO_SRC, BRAND_NAME } from '@/lib/brand';
+import { BRAND_LOGO_SRC, BRAND_AVATAR_TRANSPARENT_SRC, BRAND_NAME } from '@/lib/brand';
 
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
@@ -62,8 +62,8 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 md:flex-row md:items-center md:justify-between md:gap-6 lg:px-8">
             <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
               <div className="relative flex-shrink-0">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-gray-200 bg-gradient-to-br from-red-500 via-red-600 to-red-700 shadow-lg sm:h-12 sm:w-12 dark:border-gray-700">
-                  <Image src={BRAND_LOGO_SRC} alt={`${BRAND_NAME} logo`} width={36} height={36} className="object-contain" priority />
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-gray-200 bg-white shadow-lg sm:h-12 sm:w-12 dark:border-gray-700 dark:bg-gray-800 p-1">
+                  <Image src={BRAND_AVATAR_TRANSPARENT_SRC} alt={`${BRAND_NAME} avatar`} width={40} height={40} className="object-contain" priority />
                 </div>
               </div>
               <div className="flex min-w-0 flex-col gap-1">
