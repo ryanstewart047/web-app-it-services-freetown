@@ -286,75 +286,180 @@ function TextAnalyzer() {
 }
 
 // ── Text to Speech ─────────────────────────────────────────────────────────────
+// Voice quality scoring — prefers Google/natural OS voices over robotic synth voices
+function scoreVoice(v: SpeechSynthesisVoice): number {
+  const name = v.name.toLowerCase();
+  if (name.includes('google')) return 100;
+  if (name.includes('natural') || name.includes('neural') || name.includes('enhanced')) return 90;
+  if (['samantha', 'daniel', 'karen', 'moira', 'tessa', 'alex', 'victoria', 'fiona', 'oliver'].some(n => name.includes(n))) return 80;
+  if (name.includes('premium') || name.includes('compact') === false) return 60;
+  if (name.includes('compact')) return 20;
+  return 40;
+}
+
+function getBestVoice(voices: SpeechSynthesisVoice[]): number {
+  if (!voices.length) return 0;
+  let best = 0;
+  let bestScore = -1;
+  voices.forEach((v, i) => {
+    const score = scoreVoice(v);
+    if (score > bestScore) { bestScore = score; best = i; }
+  });
+  return best;
+}
+
+// Split text into natural sentence chunks to avoid robotic run-on delivery
+function splitIntoChunks(text: string): string[] {
+  return text
+    .replace(/([.!?])\s+/g, '$1\n')
+    .split('\n')
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+function voiceQualityLabel(v: SpeechSynthesisVoice): { label: string; color: string } {
+  const name = v.name.toLowerCase();
+  if (name.includes('google')) return { label: 'Google Neural', color: 'text-cyan-400' };
+  if (name.includes('natural') || name.includes('neural') || name.includes('enhanced')) return { label: 'Neural', color: 'text-cyan-400' };
+  if (['samantha', 'daniel', 'karen', 'moira', 'tessa', 'alex', 'victoria', 'fiona', 'oliver'].some(n => name.includes(n))) return { label: 'Premium', color: 'text-emerald-400' };
+  if (name.includes('compact')) return { label: 'Basic', color: 'text-slate-400' };
+  return { label: 'Standard', color: 'text-yellow-400' };
+}
+
 function TextToSpeech() {
-  const [text, setText] = useState('Welcome to BridgeTech Digital Tools Hub. The ultimate free online file converter and media suite.');
+  const [text, setText] = useState('Welcome to BridgeTech Digital Tools Hub — your free, all-in-one online media and document converter suite. Convert files instantly, right in your browser.');
   const [speaking, setSpeaking] = useState(false);
+  const [paused, setPaused] = useState(false);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [selectedVoice, setSelectedVoice] = useState(0);
-  const [rate, setRate] = useState(1.0);
-  const [pitch, setPitch] = useState(1.0);
+  const [rate, setRate] = useState(0.92);
+  const [pitch, setPitch] = useState(0.98);
   const [volume, setVolume] = useState(1.0);
-  const utterRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const [progress, setProgress] = useState(0);
+  const chunksRef = useRef<string[]>([]);
+  const chunkIndexRef = useRef(0);
 
   useEffect(() => {
     const load = () => {
       const v = speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
       setVoices(v);
+      setSelectedVoice(getBestVoice(v));
     };
     load();
     speechSynthesis.onvoiceschanged = load;
     return () => { speechSynthesis.cancel(); };
   }, []);
 
-  const speak = () => {
-    if (!text.trim()) return;
-    speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
+  const speakChunk = (chunks: string[], index: number) => {
+    if (index >= chunks.length) {
+      setSpeaking(false);
+      setProgress(100);
+      return;
+    }
+    setProgress(Math.round((index / chunks.length) * 100));
+    const utter = new SpeechSynthesisUtterance(chunks[index]);
     if (voices[selectedVoice]) utter.voice = voices[selectedVoice];
     utter.rate = rate;
     utter.pitch = pitch;
     utter.volume = volume;
-    utter.onstart = () => setSpeaking(true);
-    utter.onend = () => setSpeaking(false);
-    utter.onerror = () => setSpeaking(false);
-    utterRef.current = utter;
+    utter.onend = () => {
+      chunkIndexRef.current = index + 1;
+      speakChunk(chunks, index + 1);
+    };
+    utter.onerror = (e) => {
+      if (e.error !== 'interrupted') setSpeaking(false);
+    };
     speechSynthesis.speak(utter);
   };
 
-  const stop = () => { speechSynthesis.cancel(); setSpeaking(false); };
+  const speak = () => {
+    if (!text.trim()) return;
+    speechSynthesis.cancel();
+    setPaused(false);
+    setProgress(0);
+    const chunks = splitIntoChunks(text);
+    chunksRef.current = chunks;
+    chunkIndexRef.current = 0;
+    setSpeaking(true);
+    speakChunk(chunks, 0);
+  };
+
+  const pause = () => {
+    if (speechSynthesis.speaking && !speechSynthesis.paused) {
+      speechSynthesis.pause();
+      setPaused(true);
+    }
+  };
+
+  const resume = () => {
+    if (speechSynthesis.paused) {
+      speechSynthesis.resume();
+      setPaused(false);
+    }
+  };
+
+  const stop = () => {
+    speechSynthesis.cancel();
+    setSpeaking(false);
+    setPaused(false);
+    setProgress(0);
+  };
+
+  const selectedVoiceObj = voices[selectedVoice];
+  const quality = selectedVoiceObj ? voiceQualityLabel(selectedVoiceObj) : null;
 
   return (
     <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-4">
       <h3 className="text-sm font-bold text-white flex items-center gap-2">
         <i className="fas fa-volume-high text-cyan-400"></i>
         <span>Text to Speech</span>
+        <span className="ml-auto text-[10px] bg-cyan-950 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-800">Natural Voice</span>
       </h3>
 
       <textarea
         value={text}
         onChange={e => setText(e.target.value)}
         rows={4}
-        placeholder="Type text to speak aloud..."
-        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-500 resize-none"
+        placeholder="Type or paste any text to convert to natural speech..."
+        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-500 resize-none leading-relaxed"
       />
 
+      {/* Voice selector */}
       {voices.length > 0 && (
-        <select value={selectedVoice} onChange={e => setSelectedVoice(Number(e.target.value))}
-          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500">
-          {voices.map((v, i) => <option key={i} value={i}>{v.name} ({v.lang})</option>)}
-        </select>
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="text-slate-400">Voice</span>
+            {quality && <span className={`font-semibold ${quality.color}`}>{quality.label}</span>}
+          </div>
+          <select
+            value={selectedVoice}
+            onChange={e => setSelectedVoice(Number(e.target.value))}
+            className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500"
+          >
+            {voices.map((v, i) => {
+              const q = voiceQualityLabel(v);
+              return (
+                <option key={i} value={i}>
+                  {v.name} — {q.label}
+                </option>
+              );
+            })}
+          </select>
+          <p className="text-[10px] text-slate-500">💡 Google Neural and Premium voices sound the most natural</p>
+        </div>
       )}
 
+      {/* Controls */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Speed', val: rate, set: setRate, min: 0.5, max: 2, step: 0.1, color: 'accent-cyan-500', unit: 'x' },
-          { label: 'Pitch', val: pitch, set: setPitch, min: 0.5, max: 2, step: 0.1, color: 'accent-purple-500', unit: '' },
-          { label: 'Volume', val: volume, set: setVolume, min: 0, max: 1, step: 0.1, color: 'accent-emerald-500', unit: '%' },
+          { label: 'Speed', val: rate, set: setRate, min: 0.5, max: 1.5, step: 0.02, color: 'accent-cyan-500', unit: 'x' },
+          { label: 'Pitch', val: pitch, set: setPitch, min: 0.7, max: 1.3, step: 0.02, color: 'accent-purple-500', unit: '' },
+          { label: 'Volume', val: volume, set: setVolume, min: 0, max: 1, step: 0.05, color: 'accent-emerald-500', unit: '%' },
         ].map(({ label, val, set, min, max, step, color, unit }) => (
           <div key={label}>
             <div className="flex justify-between text-[11px] text-slate-400 mb-1">
               <span>{label}</span>
-              <span className="font-mono">{unit === '%' ? Math.round(val * 100) + '%' : val.toFixed(1) + unit}</span>
+              <span className="font-mono">{unit === '%' ? Math.round(val * 100) + '%' : val.toFixed(2) + unit}</span>
             </div>
             <input type="range" min={min} max={max} step={step} value={val}
               onChange={e => set(parseFloat(e.target.value))} className={`w-full ${color}`} />
@@ -362,22 +467,56 @@ function TextToSpeech() {
         ))}
       </div>
 
-      <div className="flex gap-3">
-        <button onClick={speak} disabled={speaking || !text.trim()}
-          className="flex-1 py-2.5 px-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all disabled:opacity-50">
-          <i className={`fas ${speaking ? 'fa-wave-square fa-pulse' : 'fa-play'}`}></i>
-          <span>{speaking ? 'Speaking…' : 'Speak Text'}</span>
-        </button>
-        {speaking && (
-          <button onClick={stop}
-            className="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-red-400 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all">
-            <i className="fas fa-stop"></i> Stop
+      {/* Progress bar */}
+      {speaking && (
+        <div className="space-y-1">
+          <div className="flex justify-between text-[10px] text-slate-500">
+            <span>{paused ? 'Paused' : 'Speaking…'}</span>
+            <span>{progress}%</span>
+          </div>
+          <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Action buttons */}
+      <div className="flex gap-2">
+        {!speaking ? (
+          <button onClick={speak} disabled={!text.trim()}
+            className="flex-1 py-2.5 px-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all disabled:opacity-40">
+            <i className="fas fa-play"></i>
+            <span>Speak Text</span>
           </button>
+        ) : (
+          <>
+            {!paused ? (
+              <button onClick={pause}
+                className="flex-1 py-2.5 px-4 bg-yellow-600 hover:bg-yellow-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
+                <i className="fas fa-pause"></i>
+                <span>Pause</span>
+              </button>
+            ) : (
+              <button onClick={resume}
+                className="flex-1 py-2.5 px-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
+                <i className="fas fa-play"></i>
+                <span>Resume</span>
+              </button>
+            )}
+            <button onClick={stop}
+              className="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-red-400 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all">
+              <i className="fas fa-stop"></i> Stop
+            </button>
+          </>
         )}
       </div>
     </div>
   );
 }
+
 
 // ── Main Page ──────────────────────────────────────────────────────────────────
 export default function DigitalToolsPage() {
