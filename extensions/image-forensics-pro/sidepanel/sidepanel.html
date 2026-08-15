@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BridgeTech ForensicLens Pro</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="brand-row">
+      <div class="brand-badge">
+        <img src="../icons/icon-32.png" alt="BS" class="brand-icon">
+        <div class="brand-titles">
+          <div class="brand-name">BridgeTech <span class="brand-accent">Forensics</span></div>
+          <div class="brand-sub">Image Forensics & AI Detector</div>
+        </div>
+      </div>
+      <div class="tier-pill" id="tierBadge">
+        <span class="pill-dot"></span>
+        <span id="tierText">FREE TIER</span>
+      </div>
+    </div>
+
+    <!-- Mode Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="overview">Verdict</button>
+      <button class="nav-tab" data-tab="ela">ELA</button>
+      <button class="nav-tab" data-tab="ai">AI Scan</button>
+      <button class="nav-tab" data-tab="exif">EXIF</button>
+      <button class="nav-tab" data-tab="channels">Channels</button>
+      <button class="nav-tab" data-tab="export">Report</button>
+    </nav>
+  </header>
+
+  <!-- Main Scrollable Content -->
+  <main class="main-content">
+    <!-- Image Drop & Target Section -->
+    <section class="drop-section" id="dropZone">
+      <input type="file" id="fileInput" accept="image/*" class="file-input-hidden">
+      <div class="drop-empty" id="dropEmpty">
+        <div class="drop-icon">🔍</div>
+        <div class="drop-title">Drop an Image or Right-Click Web Image</div>
+        <div class="drop-sub">Supports JPEG, PNG, WebP, AVIF, TIFF</div>
+        <div class="url-input-row">
+          <input type="url" id="imageUrlInput" placeholder="Or paste image URL..." class="url-input">
+          <button id="btnFetchUrl" class="btn-sm">Load</button>
+        </div>
+      </div>
+
+      <div class="drop-loaded hidden" id="dropLoaded">
+        <div class="preview-container">
+          <img id="sourceImage" alt="Target" class="preview-img">
+          <canvas id="forensicCanvas" class="hidden"></canvas>
+          <div class="preview-overlay-controls">
+            <button id="btnToggleSource" class="btn-micro" title="Toggle Original / Analysis View">👁 Original</button>
+            <button id="btnResetImage" class="btn-micro btn-danger" title="Analyze New Image">✕ Reset</button>
+          </div>
+        </div>
+        <div class="image-meta-bar" id="imageBasicMeta">
+          <span id="metaDim">-</span> • <span id="metaSize">-</span> • <span id="metaFormat">-</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 1: Overview & Verdict -->
+    <section class="tab-pane active" id="pane-overview">
+      <div class="card verdict-card">
+        <div class="verdict-header">
+          <div class="verdict-score-circle" id="verdictCircle">
+            <span id="verdictScore">0%</span>
+            <span class="score-label">RISK</span>
+          </div>
+          <div class="verdict-summary">
+            <div class="verdict-title" id="verdictTitle">Awaiting Image Scan</div>
+            <div class="verdict-desc" id="verdictDesc">Load an image above or right-click any picture on the web to perform forensic analysis.</div>
+          </div>
+        </div>
+
+        <div class="verdict-signals">
+          <div class="signal-item">
+            <span class="signal-name">Error Level Inconsistency</span>
+            <span class="signal-val" id="signalEla">Clean</span>
+          </div>
+          <div class="signal-item">
+            <span class="signal-name">AI Synthetic Signature</span>
+            <span class="signal-val" id="signalAi">Not Detected</span>
+          </div>
+          <div class="signal-item">
+            <span class="signal-name">Camera EXIF Authenticity</span>
+            <span class="signal-val" id="signalExif">Unknown</span>
+          </div>
+          <div class="signal-item">
+            <span class="signal-name">Software Modification Tag</span>
+            <span class="signal-val" id="signalSoftware">None</span>
+          </div>
+          <div class="signal-item">
+            <span class="signal-name">SHA-256 Fingerprint</span>
+            <span class="signal-val font-mono" id="signalHash">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Pro CTA Banner -->
+      <div class="pro-banner" id="proCtaBanner">
+        <div class="pro-banner-title">⚡ Unlock ForensicLens PRO</div>
+        <div class="pro-banner-sub">Get Unlimited Deepfake Scans, GPS StreetView Mapping & Exportable PDF Forensic Dossiers.</div>
+        <button class="btn-pro" id="btnOpenUpgrade">Upgrade to Pro ($4.99)</button>
+      </div>
+    </section>
+
+    <!-- Tab 2: Error Level Analysis (ELA) -->
+    <section class="tab-pane" id="pane-ela">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Error Level Analysis (ELA)</div>
+          <div class="card-badge">Forensic Standard</div>
+        </div>
+        <p class="card-desc">ELA identifies regions of an image with differing compression levels. Bright, highlighted spots often indicate digital splicing, cloned patches, or pasted text.</p>
+
+        <div class="control-grid">
+          <div class="control-field">
+            <div class="control-label">
+              <span>JPEG Resave Quality</span>
+              <span id="elaQualityVal" class="val-tag">92%</span>
+            </div>
+            <input type="range" id="elaQualitySlider" min="70" max="98" value="92" class="slider">
+          </div>
+          <div class="control-field">
+            <div class="control-label">
+              <span>Error Contrast Multiplier</span>
+              <span id="elaScaleVal" class="val-tag">15x</span>
+            </div>
+            <input type="range" id="elaScaleSlider" min="5" max="40" value="15" class="slider">
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <button id="btnRunEla" class="btn-primary">Apply ELA Filter</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 3: AI & Synthetic Detector -->
+    <section class="tab-pane" id="pane-ai">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">AI & Deepfake Forensic Detector</div>
+          <span class="pro-lock-badge" id="aiProLock">PRO</span>
+        </div>
+        <p class="card-desc">Analyzes high-frequency pixel distribution, gradient variance, and diffusion grid artifacts (Midjourney, DALL-E 3, Stable Diffusion, Flux, GANs).</p>
+
+        <div class="ai-meter-box">
+          <div class="ai-meter-header">
+            <span>AI Probability Confidence</span>
+            <span id="aiProbText" class="ai-prob-val">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-bar" id="aiProgressBar" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div class="ai-indicators-grid" id="aiIndicators">
+          <div class="indicator-chip">
+            <span class="ind-dot" id="dotDiffusion"></span>
+            <span>Diffusion Texture</span>
+          </div>
+          <div class="indicator-chip">
+            <span class="ind-dot" id="dotFrequency"></span>
+            <span>Spectral Anomalies</span>
+          </div>
+          <div class="indicator-chip">
+            <span class="ind-dot" id="dotSymmetry"></span>
+            <span>Pupil / Iris Asymmetry</span>
+          </div>
+          <div class="indicator-chip">
+            <span class="ind-dot" id="dotNoise"></span>
+            <span>Unnatural Uniform Noise</span>
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <button id="btnRunAiScan" class="btn-primary">Run Deep AI Scan</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 4: EXIF & Camera Metadata -->
+    <section class="tab-pane" id="pane-exif">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Camera & Hardware EXIF Tags</div>
+        </div>
+        <div class="exif-table-wrapper" id="exifTableContainer">
+          <div class="empty-state">No EXIF data extracted yet.</div>
+        </div>
+      </div>
+
+      <!-- GPS Geolocation Card -->
+      <div class="card" id="gpsCard">
+        <div class="card-header">
+          <div class="card-title">📍 GPS Geolocation Capture</div>
+        </div>
+        <div id="gpsContent" class="gps-content">
+          <div class="empty-state">No GPS coordinates embedded in this image.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 5: Luminance & Channel Splitter -->
+    <section class="tab-pane" id="pane-channels">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Color Channels & Light Gradients</div>
+        </div>
+        <p class="card-desc">Inspect individual RGB channels and solarised luminance to detect composite shadows or spliced lighting.</p>
+        
+        <div class="channel-buttons">
+          <button class="btn-filter active" data-filter="normal">Normal</button>
+          <button class="btn-filter" data-filter="red">Red Channel</button>
+          <button class="btn-filter" data-filter="green">Green Channel</button>
+          <button class="btn-filter" data-filter="blue">Blue Channel</button>
+          <button class="btn-filter" data-filter="luminance">Luminance Gradient</button>
+          <button class="btn-filter" data-filter="solarise">Solarise (Inversion)</button>
+          <button class="btn-filter" data-filter="edges">Edge High-Pass</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 6: Export Forensic Report -->
+    <section class="tab-pane" id="pane-export">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Export Forensic Audit Dossier</div>
+          <span class="pro-lock-badge">PRO</span>
+        </div>
+        <p class="card-desc">Generate an official cryptographic forensic dossier containing all ELA heatmaps, EXIF tables, and AI certainty reports with SHA-256 verification seal.</p>
+
+        <div class="report-options">
+          <label class="checkbox-row">
+            <input type="checkbox" id="chkIncludeEla" checked> Include ELA Heatmap
+          </label>
+          <label class="checkbox-row">
+            <input type="checkbox" id="chkIncludeExif" checked> Include Full EXIF Dump
+          </label>
+          <label class="checkbox-row">
+            <input type="checkbox" id="chkIncludeAi" checked> Include AI Spectral Analysis
+          </label>
+          <label class="checkbox-row">
+            <input type="checkbox" id="chkIncludeHash" checked> Include SHA-256 Cryptographic Seal
+          </label>
+        </div>
+
+        <div class="card-actions">
+          <button id="btnExportReport" class="btn-primary">Download Audit Dossier (HTML/PDF)</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer Pro Activation Bar -->
+  <footer class="app-footer">
+    <div class="footer-status">
+      <span class="footer-credit">BridgeTech IT Services</span>
+      <a href="https://www.itservicesfreetown.com/digital-tools#metadata-inspector" target="_blank" class="footer-link">Web Hub ↗</a>
+    </div>
+    <button id="btnEnterLicense" class="btn-license-link">Have a Pro Key?</button>
+  </footer>
+
+  <!-- License Key Modal -->
+  <div class="modal-backdrop hidden" id="licenseModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">🔐 ForensicLens Pro Activation</div>
+        <button class="modal-close" id="btnCloseModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Unlock unlimited AI deepfake scans, high-resolution ELA analysis, and downloadable legal audit dossiers.</p>
+
+        <div class="license-input-box">
+          <label class="control-label">Enter License Key</label>
+          <input type="text" id="licenseKeyInput" placeholder="BTFL-XXXX-XXXX-XXXX" class="license-input font-mono">
+          <button id="btnVerifyLicense" class="btn-primary btn-full">Activate License</button>
+        </div>
+
+        <div class="license-divider">
+          <span>OR GET PRO ACCESS</span>
+        </div>
+
+        <div class="pricing-card">
+          <div class="price-title">ForensicLens Pro Plan</div>
+          <div class="price-val">$4.99 <span class="price-sub">/ month or $39 Lifetime</span></div>
+          <ul class="price-features">
+            <li>✓ Unlimited AI & Deepfake Scans</li>
+            <li>✓ High-Resolution ELA Magnification</li>
+            <li>✓ GPS Geolocation & StreetView Map</li>
+            <li>✓ Court/Journalism Admissible PDF Dossier</li>
+          </ul>
+          <a href="https://www.itservicesfreetown.com/marketplace?product=forensic-lens-pro" target="_blank" class="btn-pro btn-full text-center">Get Pro License Key ↗</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>
