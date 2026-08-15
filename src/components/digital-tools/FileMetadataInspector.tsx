@@ -997,6 +997,25 @@ export default function FileMetadataInspector() {
         </div>
       </div>
 
+      {/* Extension Promo — value distinct from the free web tool */}
+      <div className="flex flex-col sm:flex-row items-start gap-3 p-3 bg-slate-900/80 border border-cyan-800/40 rounded-xl">
+        <div className="w-8 h-8 flex-shrink-0 bg-cyan-900/50 border border-cyan-700/50 rounded-lg flex items-center justify-center text-cyan-400 text-sm">
+          <i className="fas fa-puzzle-piece" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-black text-white leading-tight">ForensicLens Browser Extension — Right-Click Any Web Image</p>
+          <p className="text-[10px] text-slate-400 mt-0.5 leading-relaxed">
+            Inspect <strong className="text-slate-300">any photo on any website</strong> without uploading it. Pro adds unlimited scans, full multi-scale ELA, GPS mapping, and court-admissible PDF dossiers.
+          </p>
+        </div>
+        <a
+          href="/forensics-pro/pricing"
+          className="flex-shrink-0 px-3 py-1.5 text-[10px] font-black bg-gradient-to-r from-red-600 to-orange-500 hover:opacity-90 text-white rounded-lg transition-all shadow-sm"
+        >
+          Get Extension ↗
+        </a>
+      </div>
+
       {/* Upload Zone */}
       <div className="relative">
         <input

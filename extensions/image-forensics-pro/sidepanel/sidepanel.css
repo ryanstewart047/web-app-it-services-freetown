@@ -382,6 +382,13 @@ body {
   color: var(--text-muted);
 }
 
+.verdict-card {
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  border-radius: 12px;
+}
+
 .verdict-signals {
   display: flex;
   flex-direction: column;
@@ -391,25 +398,34 @@ body {
 .signal-item {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 8px;
   font-size: 11px;
-  padding: 4px 0;
+  padding: 5px 0;
   border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
 }
 
 .signal-name {
   color: var(--text-sub);
+  flex-shrink: 0;
+  width: 48%;
 }
 
 .signal-val {
   font-weight: 600;
   color: #fff;
+  text-align: right;
+  word-break: break-word;
 }
 
 .font-mono {
   font-family: var(--font-mono);
   font-size: 10px;
 }
+
+.font-semibold { font-weight: 600; }
+
+.text-cyan-400 { color: var(--primary); }
 
 /* Tab Panes */
 .tab-pane {
@@ -623,8 +639,10 @@ body {
 
 /* EXIF & Report */
 .exif-table-wrapper {
-  max-height: 200px;
+  max-height: 320px;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg-card-border) transparent;
 }
 
 .exif-table {
@@ -634,19 +652,33 @@ body {
 }
 
 .exif-table td {
-  padding: 4px 6px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 5px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  vertical-align: top;
+}
+
+.exif-table tr:last-child td {
+  border-bottom: none;
 }
 
 .exif-key {
   color: var(--text-sub);
-  width: 45%;
+  width: 44%;
+  font-weight: 500;
+  letter-spacing: 0.1px;
 }
 
 .exif-val {
-  color: #fff;
+  color: #e2e8f0;
   font-family: var(--font-mono);
   word-break: break-all;
+  font-size: 10.5px;
+}
+
+.gps-content {
+  font-size: 11px;
+  color: var(--text-sub);
+  padding: 4px 0;
 }
 
 .empty-state {

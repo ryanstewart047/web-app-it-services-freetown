@@ -92,6 +92,10 @@
             <span class="signal-val" id="signalExif">Unknown</span>
           </div>
           <div class="signal-item">
+            <span class="signal-name">Inferred Photo Source</span>
+            <span class="signal-val font-semibold text-cyan-400" id="signalSource">-</span>
+          </div>
+          <div class="signal-item">
             <span class="signal-name">Software Modification Tag</span>
             <span class="signal-val" id="signalSoftware">None</span>
           </div>
@@ -106,7 +110,7 @@
       <div class="pro-banner" id="proCtaBanner">
         <div class="pro-banner-title">⚡ Unlock ForensicLens PRO</div>
         <div class="pro-banner-sub">Get Unlimited Deepfake Scans, GPS StreetView Mapping & Exportable PDF Forensic Dossiers.</div>
-        <button class="btn-pro" id="btnOpenUpgrade">Upgrade to Pro ($4.99)</button>
+        <a href="https://www.itservicesfreetown.com/forensics-pro/pricing" target="_blank" class="btn-pro text-center" style="text-decoration:none; display:block; margin-top:4px;">Upgrade to Pro ($4.99) ↗</a>
       </div>
     </section>
 
@@ -117,22 +121,22 @@
           <div class="card-title">Error Level Analysis (ELA)</div>
           <div class="card-badge">Forensic Standard</div>
         </div>
-        <p class="card-desc">ELA identifies regions of an image with differing compression levels. Bright, highlighted spots often indicate digital splicing, cloned patches, or pasted text.</p>
+        <p class="card-desc">ELA identifies regions with differing JPEG compression levels. High variance highlights digital splicing, cloned patches, or pasted text.</p>
 
         <div class="control-grid">
           <div class="control-field">
             <div class="control-label">
               <span>JPEG Resave Quality</span>
-              <span id="elaQualityVal" class="val-tag">92%</span>
+              <span id="elaQualityVal" class="val-tag">88%</span>
             </div>
-            <input type="range" id="elaQualitySlider" min="70" max="98" value="92" class="slider">
+            <input type="range" id="elaQualitySlider" min="70" max="98" value="88" class="slider">
           </div>
           <div class="control-field">
             <div class="control-label">
               <span>Error Contrast Multiplier</span>
-              <span id="elaScaleVal" class="val-tag">15x</span>
+              <span id="elaScaleVal" class="val-tag">20x</span>
             </div>
-            <input type="range" id="elaScaleSlider" min="5" max="40" value="15" class="slider">
+            <input type="range" id="elaScaleSlider" min="5" max="40" value="20" class="slider">
           </div>
         </div>
 
@@ -149,7 +153,7 @@
           <div class="card-title">AI & Deepfake Forensic Detector</div>
           <span class="pro-lock-badge" id="aiProLock">PRO</span>
         </div>
-        <p class="card-desc">Analyzes high-frequency pixel distribution, gradient variance, and diffusion grid artifacts (Midjourney, DALL-E 3, Stable Diffusion, Flux, GANs).</p>
+        <p class="card-desc">Deep scan for AI generator signatures (Midjourney, DALL-E, Stable Diffusion, Firefly, Flux, GANs), frequency domain anomalies, and diffusion noise patterns.</p>
 
         <div class="ai-meter-box">
           <div class="ai-meter-header">
@@ -172,7 +176,7 @@
           </div>
           <div class="indicator-chip">
             <span class="ind-dot" id="dotSymmetry"></span>
-            <span>Pupil / Iris Asymmetry</span>
+            <span>Pupil / Edge Artifacts</span>
           </div>
           <div class="indicator-chip">
             <span class="ind-dot" id="dotNoise"></span>
@@ -263,7 +267,7 @@
   <footer class="app-footer">
     <div class="footer-status">
       <span class="footer-credit">BridgeTech IT Services</span>
-      <a href="https://www.itservicesfreetown.com/digital-tools#metadata-inspector" target="_blank" class="footer-link">Web Hub ↗</a>
+      <a href="https://www.itservicesfreetown.com/forensics-pro/pricing" target="_blank" class="footer-link">Pricing & Plans ↗</a>
     </div>
     <button id="btnEnterLicense" class="btn-license-link">Have a Pro Key?</button>
   </footer>
@@ -276,22 +280,16 @@
         <button class="modal-close" id="btnCloseModal">✕</button>
       </div>
       <div class="modal-body">
-        <p class="modal-desc">Unlock unlimited AI deepfake scans, high-resolution ELA analysis, and downloadable legal audit dossiers.</p>
+        <p class="modal-desc">Enter your purchased license key to unlock unlimited AI deepfake scans, high-resolution ELA analysis, and downloadable legal audit dossiers.</p>
 
         <div class="license-input-box">
           <label class="control-label">Enter License Key</label>
-          <input type="text" id="licenseKeyInput" placeholder="BTFL-XXXX-XXXX-XXXX" class="license-input font-mono">
+          <input type="text" id="licenseKeyInput" placeholder="BTFL-PRO-XXXX-XXXX-XXXX" class="license-input font-mono">
           <button id="btnVerifyLicense" class="btn-primary btn-full">Activate License</button>
         </div>
 
-        <div class="demo-test-box" style="margin-top: 8px; text-align: center;">
-          <button id="btnActivateDemo" class="btn-sm btn-full" style="background: rgba(6, 182, 212, 0.15); border: 1px dashed rgba(6, 182, 212, 0.5); color: #06b6d4; font-weight: 700; padding: 7px;">
-            ⚡ Instant 24-Hour Pro Demo (1-Click Test)
-          </button>
-        </div>
-
         <div class="license-divider">
-          <span>OR GET FULL PRO ACCESS</span>
+          <span>OR PURCHASE PRO KEY</span>
         </div>
 
         <div class="pricing-card">
@@ -303,7 +301,7 @@
             <li>✓ GPS Geolocation & StreetView Map</li>
             <li>✓ Court/Journalism Admissible PDF Dossier</li>
           </ul>
-          <a href="https://www.itservicesfreetown.com/forensics-pro/pricing" target="_blank" class="btn-pro btn-full text-center">Open Dedicated Payment Page ↗</a>
+          <a href="https://www.itservicesfreetown.com/forensics-pro/pricing" target="_blank" class="btn-pro btn-full text-center">Get Pro License Key ↗</a>
         </div>
       </div>
     </div>

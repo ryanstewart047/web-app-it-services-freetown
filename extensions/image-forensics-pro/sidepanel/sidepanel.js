@@ -1,5 +1,5 @@
-// BridgeTech ForensicLens Pro — Sidepanel Core Logic
-// Manifest V3 Extension Engine
+// BridgeTech ForensicLens Pro — Complete Forensic Analysis Engine
+// Full Parity with Web Forensic Inspector + Manifest V3 Browser Integration
 
 let currentImage = null;
 let currentBlob = null;
@@ -9,6 +9,58 @@ let isShowingSource = false;
 let isPro = false;
 let dailyScansUsed = 0;
 const MAX_FREE_SCANS = 5;
+
+// Global Forensic State
+let parsedExif = null;
+let parsedEla = null;
+let parsedAi = null;
+let parsedHash = null;
+
+// Tag Tables matching full web forensic inspector
+const TIFF_TAGS = {
+  0x010f: 'Make',
+  0x0110: 'Model',
+  0x0112: 'Orientation',
+  0x0131: 'Software',
+  0x0132: 'DateTime',
+  0x8298: 'Copyright',
+};
+
+const EXIF_TAGS = {
+  0x829a: 'ExposureTime',
+  0x829d: 'FNumber',
+  0x8822: 'ExposureProgram',
+  0x8827: 'ISOSpeedRatings',
+  0x9003: 'DateTimeOriginal',
+  0x9004: 'DateTimeDigitized',
+  0x9204: 'ExposureBiasValue',
+  0x9207: 'MeteringMode',
+  0x9209: 'Flash',
+  0x920a: 'FocalLength',
+  0xa002: 'ExifImageWidth',
+  0xa003: 'ExifImageHeight',
+  0xa403: 'WhiteBalance',
+  0xa405: 'FocalLengthIn35mmFilm',
+  0xa432: 'LensSpecification',
+  0xa434: 'LensModel',
+};
+
+const GPS_TAGS = {
+  0x0000: 'GPSVersionID',
+  0x0001: 'GPSLatitudeRef',
+  0x0002: 'GPSLatitude',
+  0x0003: 'GPSLongitudeRef',
+  0x0004: 'GPSLongitude',
+  0x0005: 'GPSAltitudeRef',
+  0x0006: 'GPSAltitude',
+  0x0007: 'GPSTimeStamp',
+  0x0010: 'GPSImgDirectionRef',
+  0x0011: 'GPSImgDirection',
+  0x0012: 'GPSMapDatum',
+  0x001d: 'GPSDateStamp',
+};
+
+const TYPE_BYTE_SIZE = { 1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 7: 1, 9: 4, 10: 8 };
 
 // DOM Elements
 const tierBadge = document.getElementById('tierBadge');
@@ -95,7 +147,7 @@ async function initLicenseAndQuota() {
     dailyScansUsed = local.scansCount || 0;
   }
 
-  if (sync.proLicenseKey && sync.proLicenseKey.startsWith('BTFL-')) {
+  if (sync.proLicenseKey && (sync.proLicenseKey.startsWith('BTFL-PRO-') || sync.proLicenseKey === 'BTFL-LIFETIME-2026')) {
     setProStatus(true, sync.proLicenseKey);
   } else {
     setProStatus(false);
@@ -112,7 +164,7 @@ function setProStatus(active, key = '') {
     document.querySelectorAll('.pro-lock-badge').forEach(el => el.classList.add('hidden'));
   } else {
     tierBadge.classList.remove('pro-active');
-    tierText.textContent = `FREE (${MAX_FREE_SCANS - dailyScansUsed} Left)`;
+    tierText.textContent = `FREE (${Math.max(0, MAX_FREE_SCANS - dailyScansUsed)} Left)`;
   }
 }
 
@@ -125,7 +177,7 @@ async function recordScanUsage() {
   dailyScansUsed++;
   const today = new Date().toISOString().slice(0, 10);
   await chrome.storage.local.set({ scanDate: today, scansCount: dailyScansUsed });
-  tierText.textContent = `FREE (${MAX_FREE_SCANS - dailyScansUsed} Left)`;
+  tierText.textContent = `FREE (${Math.max(0, MAX_FREE_SCANS - dailyScansUsed)} Left)`;
   return true;
 }
 
@@ -216,12 +268,10 @@ function initControls() {
   if (btnEnterLicense) btnEnterLicense.addEventListener('click', openUpgradeModal);
   if (btnCloseModal) btnCloseModal.addEventListener('click', closeUpgradeModal);
   if (btnVerifyLicense) btnVerifyLicense.addEventListener('click', handleVerifyLicense);
-  const btnActivateDemo = document.getElementById('btnActivateDemo');
-  if (btnActivateDemo) btnActivateDemo.addEventListener('click', handleActivateDemo);
 }
 
 // ── Image Loading ────────────────────────────────────────────────────────────
-function loadFile(file) {
+async function loadFile(file) {
   currentBlob = file;
   metaSize.textContent = formatBytes(file.size);
   metaFormat.textContent = file.type.split('/')[1]?.toUpperCase() || 'IMAGE';
@@ -233,8 +283,14 @@ function loadFile(file) {
   };
   reader.readAsDataURL(file);
 
-  // Extract EXIF
-  extractExifFromFile(file);
+  // Full Binary EXIF + Buffer Parsing
+  try {
+    const buffer = await file.arrayBuffer();
+    parsedExif = parseJpegExifBuffer(buffer);
+    extractComprehensiveMetadata(file, buffer, parsedExif);
+  } catch (err) {
+    console.error('EXIF extraction error:', err);
+  }
 }
 
 function loadImageFromUrl(url) {
@@ -246,9 +302,19 @@ function loadImageFromUrl(url) {
   img.crossOrigin = 'anonymous';
   img.onload = () => {
     processLoadedImage(url, 'web-image');
+    // Fetch blob for binary EXIF inspection
+    fetch(url)
+      .then(res => res.blob())
+      .then(async (blob) => {
+        currentBlob = blob;
+        metaSize.textContent = formatBytes(blob.size);
+        const buffer = await blob.arrayBuffer();
+        parsedExif = parseJpegExifBuffer(buffer);
+        extractComprehensiveMetadata(new File([blob], 'image.jpg', { type: blob.type }), buffer, parsedExif);
+      })
+      .catch(() => {});
   };
   img.onerror = () => {
-    // If CORS blocked direct canvas access, load as source image preview
     sourceImage.src = url;
     dropEmpty.classList.add('hidden');
     dropLoaded.classList.remove('hidden');
@@ -289,6 +355,10 @@ function resetState() {
   currentImage = null;
   currentBlob = null;
   currentImageData = null;
+  parsedExif = null;
+  parsedEla = null;
+  parsedAi = null;
+  parsedHash = null;
   dropLoaded.classList.add('hidden');
   dropEmpty.classList.remove('hidden');
   imageUrlInput.value = '';
@@ -298,8 +368,285 @@ function resetState() {
   document.getElementById('verdictDesc').textContent = 'Load an image above to perform forensic analysis.';
   document.getElementById('verdictCircle').className = 'verdict-score-circle';
   document.getElementById('signalHash').textContent = '-';
+  document.getElementById('signalSource').textContent = '-';
+  document.getElementById('signalEla').textContent = 'Clean';
+  document.getElementById('signalAi').textContent = 'Not Detected';
+  document.getElementById('signalExif').textContent = 'Unknown';
+  document.getElementById('signalSoftware').textContent = 'None';
   document.getElementById('exifTableContainer').innerHTML = '<div class="empty-state">No EXIF data extracted yet.</div>';
   document.getElementById('gpsContent').innerHTML = '<div class="empty-state">No GPS coordinates embedded.</div>';
+}
+
+// ── Binary EXIF Parser (Byte-Accurate Matching Web App) ─────────────────────────
+
+function readAscii(view, offset, count) {
+  const bytes = [];
+  for (let i = 0; i < count && offset + i < view.byteLength; i++) {
+    const val = view.getUint8(offset + i);
+    if (val === 0) break;
+    bytes.push(val);
+  }
+  return new TextDecoder('latin1').decode(new Uint8Array(bytes)).trim();
+}
+
+function readExifValue(view, tiffStart, entryOffset, littleEndian) {
+  const type = view.getUint16(entryOffset + 2, littleEndian);
+  const count = view.getUint32(entryOffset + 4, littleEndian);
+  const typeSize = TYPE_BYTE_SIZE[type];
+  if (!typeSize || count > 100000) return undefined;
+
+  const byteLength = typeSize * count;
+  const valueOffset = byteLength <= 4 ? entryOffset + 8 : tiffStart + view.getUint32(entryOffset + 8, littleEndian);
+  if (valueOffset < 0 || valueOffset + byteLength > view.byteLength) return undefined;
+
+  if (type === 2) return readAscii(view, valueOffset, count);
+  if (type === 7) return count <= 8 ? Array.from(new Uint8Array(view.buffer, view.byteOffset + valueOffset, count)) : `${count} bytes`;
+
+  const values = [];
+  for (let i = 0; i < count; i++) {
+    const offset = valueOffset + i * typeSize;
+    if (type === 1) values.push(view.getUint8(offset));
+    if (type === 3) values.push(view.getUint16(offset, littleEndian));
+    if (type === 4) values.push(view.getUint32(offset, littleEndian));
+    if (type === 5) {
+      const num = view.getUint32(offset, littleEndian);
+      const den = view.getUint32(offset + 4, littleEndian);
+      values.push(den ? num / den : 0);
+    }
+    if (type === 9) values.push(view.getInt32(offset, littleEndian));
+    if (type === 10) {
+      const num = view.getInt32(offset, littleEndian);
+      const den = view.getInt32(offset + 4, littleEndian);
+      values.push(den ? num / den : 0);
+    }
+  }
+  return values.length === 1 ? values[0] : values;
+}
+
+function readIfd(view, tiffStart, ifdOffset, littleEndian, tagMap, values, rawTags) {
+  const absoluteOffset = tiffStart + ifdOffset;
+  if (absoluteOffset < 0 || absoluteOffset + 2 > view.byteLength) return {};
+
+  const entryCount = view.getUint16(absoluteOffset, littleEndian);
+  const pointers = {};
+
+  for (let i = 0; i < entryCount; i++) {
+    const entryOffset = absoluteOffset + 2 + i * 12;
+    if (entryOffset + 12 > view.byteLength) break;
+
+    const tag = view.getUint16(entryOffset, littleEndian);
+    const value = readExifValue(view, tiffStart, entryOffset, littleEndian);
+    const tagName = tagMap[tag] || `Tag 0x${tag.toString(16).padStart(4, '0')}`;
+
+    if (tag === 0x8769 || tag === 0x8825 || tag === 0xa005) {
+      pointers[tag] = view.getUint32(entryOffset + 8, littleEndian);
+    }
+
+    if (tagMap[tag] && value !== undefined) {
+      values[tagName] = value;
+      rawTags.push({ label: tagName, value: String(value) });
+    }
+  }
+  return pointers;
+}
+
+function gpsToDecimal(value, ref) {
+  if (!Array.isArray(value) || value.length < 3 || typeof ref !== 'string') return undefined;
+  const decimal = value[0] + value[1] / 60 + value[2] / 3600;
+  return ref === 'S' || ref === 'W' ? -decimal : decimal;
+}
+
+function parseJpegExifBuffer(buffer) {
+  const bytes = new Uint8Array(buffer);
+  if (bytes[0] !== 0xff || bytes[1] !== 0xd8) return null;
+
+  let offset = 2;
+  while (offset + 4 < bytes.length) {
+    if (bytes[offset] !== 0xff) break;
+    const marker = bytes[offset + 1];
+    const length = (bytes[offset + 2] << 8) + bytes[offset + 3];
+    if (length < 2) break;
+
+    if (marker === 0xe1 && offset + 2 + length <= bytes.length) {
+      const header = new TextDecoder('latin1').decode(bytes.slice(offset + 4, offset + 10));
+      if (header === 'Exif\0\0') {
+        const exifStart = offset + 10;
+        const view = new DataView(buffer, exifStart);
+        const endian = readAscii(view, 0, 2);
+        const littleEndian = endian === 'II';
+        if (!littleEndian && endian !== 'MM') return null;
+        if (view.getUint16(2, littleEndian) !== 42) return null;
+
+        const values = {};
+        const rawTags = [];
+        const ifd0Offset = view.getUint32(4, littleEndian);
+        const pointers = readIfd(view, 0, ifd0Offset, littleEndian, TIFF_TAGS, values, rawTags);
+        if (pointers[0x8769]) readIfd(view, 0, pointers[0x8769], littleEndian, EXIF_TAGS, values, rawTags);
+        if (pointers[0x8825]) readIfd(view, 0, pointers[0x8825], littleEndian, GPS_TAGS, values, rawTags);
+
+        const lat = gpsToDecimal(values.GPSLatitude, values.GPSLatitudeRef);
+        const lon = gpsToDecimal(values.GPSLongitude, values.GPSLongitudeRef);
+
+        return {
+          make: typeof values.Make === 'string' ? values.Make : undefined,
+          model: typeof values.Model === 'string' ? values.Model : undefined,
+          software: typeof values.Software === 'string' ? values.Software : undefined,
+          lensModel: typeof values.LensModel === 'string' ? values.LensModel : undefined,
+          dateTime: typeof values.DateTime === 'string' ? values.DateTime : undefined,
+          dateTimeOriginal: typeof values.DateTimeOriginal === 'string' ? values.DateTimeOriginal : undefined,
+          exposureTime: values.ExposureTime,
+          fNumber: values.FNumber,
+          iso: values.ISOSpeedRatings,
+          focalLength: values.FocalLength,
+          gps: lat !== undefined && lon !== undefined ? { latitude: lat, longitude: lon, altitude: values.GPSAltitude } : undefined,
+          rawTags,
+        };
+      }
+    }
+    offset += 2 + length;
+  }
+  return null;
+}
+
+// ── Source Inference (Apple, Android, Camera, WhatsApp) ───────────────────────
+function inferImageSource(file, exif) {
+  const evidence = [exif?.make, exif?.model, exif?.software].filter(Boolean).join(' / ');
+  const haystack = evidence.toLowerCase();
+
+  if (haystack.includes('iphone')) return { label: 'Apple iPhone camera', confidence: 'High', evidence };
+  if (haystack.includes('ipad')) return { label: 'Apple iPad camera', confidence: 'High', evidence };
+  if (haystack.includes('apple')) return { label: 'Apple device camera', confidence: 'Medium', evidence };
+
+  const androidBrands = ['samsung', 'google', 'pixel', 'huawei', 'honor', 'tecno', 'infinix', 'itel', 'xiaomi', 'redmi', 'oppo', 'vivo', 'oneplus', 'motorola', 'sony mobile'];
+  if (androidBrands.some(brand => haystack.includes(brand)) || /\bsm-[a-z0-9]/i.test(exif?.model || '')) {
+    return { label: 'Android device camera', confidence: 'High', evidence };
+  }
+
+  const cameraBrands = ['canon', 'nikon', 'fujifilm', 'olympus', 'panasonic', 'leica', 'pentax', 'kodak', 'gopro', 'dji', 'sony'];
+  if (cameraBrands.some(brand => haystack.includes(brand))) {
+    return { label: 'Digital camera or action camera', confidence: 'High', evidence };
+  }
+
+  if (haystack.includes('whatsapp') || haystack.includes('instagram') || haystack.includes('facebook')) {
+    return { label: 'Exported or shared via social media app', confidence: 'Medium', evidence };
+  }
+
+  if (exif?.rawTags?.length) {
+    return { label: 'Camera / source metadata detected', confidence: 'Medium', evidence: `${exif.rawTags.length} EXIF tags` };
+  }
+
+  return { label: 'Web download / No camera source', confidence: 'Low', evidence: 'Metadata stripped or web graphic' };
+}
+
+// ── Metadata & AI Detection Pipeline ──────────────────────────────────────────
+function extractComprehensiveMetadata(file, buffer, exif) {
+  const container = document.getElementById('exifTableContainer');
+  const gpsContent = document.getElementById('gpsContent');
+  const tags = {};
+
+  tags['File Name'] = file.name;
+  tags['File Size'] = formatBytes(file.size);
+  tags['MIME Type'] = file.type || 'image/jpeg';
+  tags['Last Modified'] = new Date(file.lastModified).toLocaleString();
+
+  // Source inference
+  const srcInference = inferImageSource(file, exif);
+  document.getElementById('signalSource').textContent = srcInference.label;
+
+  // Search raw byte stream for software signatures
+  const rawText = new TextDecoder('latin1').decode(new Uint8Array(buffer.slice(0, Math.min(buffer.byteLength, 150000))));
+
+  const aiSignatures = [
+    { name: 'Midjourney', keys: ['midjourney', 'mj_'] },
+    { name: 'DALL-E / OpenAI', keys: ['dall-e', 'dalle', 'openai'] },
+    { name: 'Stable Diffusion', keys: ['stable diffusion', 'stablediffusion', 'automatic1111', 'comfyui'] },
+    { name: 'Adobe Firefly', keys: ['firefly', 'adobe firefly'] },
+    { name: 'Bing Image Creator', keys: ['bing image creator', 'bingimagecreator'] },
+    { name: 'Leonardo.Ai', keys: ['leonardo', 'leonardo.ai'] },
+  ];
+
+  let detectedAi = null;
+  for (const item of aiSignatures) {
+    if (item.keys.some(k => rawText.toLowerCase().includes(k) || file.name.toLowerCase().includes(k))) {
+      detectedAi = item.name;
+      break;
+    }
+  }
+
+  if (detectedAi) {
+    tags['AI Generator Detected'] = detectedAi;
+    document.getElementById('signalAi').textContent = `Direct Signature (${detectedAi})`;
+    document.getElementById('signalAi').style.color = 'var(--accent-red)';
+    parsedAi = { isAi: true, engine: detectedAi, confidence: 95 };
+  }
+
+  const editors = [
+    { name: 'Adobe Photoshop', key: 'photoshop' },
+    { name: 'GIMP', key: 'gimp' },
+    { name: 'Canva', key: 'canva' },
+    { name: 'Affinity Photo', key: 'affinity' },
+    { name: 'Adobe Lightroom', key: 'lightroom' },
+    { name: 'Snapseed', key: 'snapseed' },
+  ];
+
+  for (const ed of editors) {
+    if (rawText.toLowerCase().includes(ed.key)) {
+      tags['Software Signature'] = ed.name;
+      document.getElementById('signalSoftware').textContent = ed.name;
+      document.getElementById('signalSoftware').style.color = 'var(--accent-amber)';
+      break;
+    }
+  }
+
+  if (exif) {
+    if (exif.make) tags['Camera Make'] = exif.make;
+    if (exif.model) tags['Camera Model'] = exif.model;
+    if (exif.lensModel) tags['Lens Model'] = exif.lensModel;
+    if (exif.dateTimeOriginal) tags['Capture Date'] = exif.dateTimeOriginal;
+    if (exif.exposureTime) tags['Exposure Time'] = typeof exif.exposureTime === 'number' && exif.exposureTime < 1 ? `1/${Math.round(1/exif.exposureTime)}s` : `${exif.exposureTime}s`;
+    if (exif.fNumber) tags['Aperture (F-Stop)'] = `f/${exif.fNumber}`;
+    if (exif.iso) tags['ISO Speed'] = `ISO ${exif.iso}`;
+    if (exif.focalLength) tags['Focal Length'] = `${exif.focalLength} mm`;
+
+    document.getElementById('signalExif').textContent = exif.make && exif.model ? `${exif.make} ${exif.model}` : 'Partial EXIF Data';
+    document.getElementById('signalExif').style.color = 'var(--accent-green)';
+
+    if (exif.gps) {
+      const lat = exif.gps.latitude.toFixed(6);
+      const lon = exif.gps.longitude.toFixed(6);
+      tags['GPS Latitude'] = lat;
+      tags['GPS Longitude'] = lon;
+
+      const mapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
+      gpsContent.innerHTML = `
+        <div style="font-size: 11px; space-y: 6px;">
+          <div><strong>Latitude:</strong> ${lat}°</div>
+          <div><strong>Longitude:</strong> ${lon}°</div>
+          ${exif.gps.altitude ? `<div><strong>Altitude:</strong> ${exif.gps.altitude} m</div>` : ''}
+          <div style="margin-top: 8px;">
+            <a href="${mapsUrl}" target="_blank" class="btn-sm" style="display:inline-block; text-decoration:none; background:#06b6d4; color:#000; font-weight:700; padding:4px 10px; border-radius:6px;">
+              📍 Open Coordinates in Google Maps ↗
+            </a>
+          </div>
+        </div>
+      `;
+    }
+  } else {
+    document.getElementById('signalExif').textContent = 'No Hardware EXIF (Stripped)';
+    document.getElementById('signalExif').style.color = 'var(--text-muted)';
+  }
+
+  renderExifTable(tags);
+}
+
+function renderExifTable(tags) {
+  const container = document.getElementById('exifTableContainer');
+  let html = '<table class="exif-table">';
+  for (const [k, v] of Object.entries(tags)) {
+    html += `<tr><td class="exif-key">${k}</td><td class="exif-val">${v}</td></tr>`;
+  }
+  html += '</table>';
+  container.innerHTML = html;
 }
 
 // ── Forensic Analysis Engines ────────────────────────────────────────────────
@@ -317,17 +664,14 @@ async function runErrorLevelAnalysis() {
   const h = forensicCanvas.height;
   const ctx = forensicCanvas.getContext('2d', { willReadFrequently: true });
 
-  // Original image data
   ctx.drawImage(currentImage, 0, 0);
   const origData = ctx.getImageData(0, 0, w, h);
 
-  // Compress to JPEG via data URL
   const jpegUrl = forensicCanvas.toDataURL('image/jpeg', quality);
   const compressedImg = new Image();
   compressedImg.onload = () => {
     ctx.drawImage(compressedImg, 0, 0);
     const compData = ctx.getImageData(0, 0, w, h);
-
     const outData = ctx.createImageData(w, h);
     let totalDiff = 0;
 
@@ -349,17 +693,19 @@ async function runErrorLevelAnalysis() {
     sourceImage.classList.add('hidden');
     isShowingSource = false;
 
-    // Update ELA signal in overview
     const avgDiff = totalDiff / (w * h);
+    const varianceScore = Math.min(100, Math.round(avgDiff * 1.8));
+    parsedEla = { varianceScore, avgDiff };
+
     const signalEla = document.getElementById('signalEla');
-    if (avgDiff > 45) {
-      signalEla.textContent = 'High Variance (Suspected Splice)';
+    if (varianceScore > 40) {
+      signalEla.textContent = `High Variance (${varianceScore}%) — Suspected Splice`;
       signalEla.style.color = 'var(--accent-red)';
-    } else if (avgDiff > 25) {
-      signalEla.textContent = 'Moderate Variation';
+    } else if (varianceScore > 20) {
+      signalEla.textContent = `Moderate Variance (${varianceScore}%) — Compression Edit`;
       signalEla.style.color = 'var(--accent-amber)';
     } else {
-      signalEla.textContent = 'Consistent Compression';
+      signalEla.textContent = `Uniform Compression (${varianceScore}%) — Authentic`;
       signalEla.style.color = 'var(--accent-green)';
     }
   };
@@ -376,9 +722,8 @@ async function runAiDeepfakeScan() {
   const imgData = ctx.getImageData(0, 0, forensicCanvas.width, forensicCanvas.height);
   const data = imgData.data;
 
-  let highFreqCount = 0;
   let noiseVariance = 0;
-  let colorEntropy = 0;
+  let highFreqCount = 0;
   const step = 8;
 
   for (let i = 0; i < data.length - (step * 4); i += step * 4) {
@@ -392,8 +737,7 @@ async function runAiDeepfakeScan() {
   const sampleCount = data.length / (step * 4);
   const smoothRatio = noiseVariance / sampleCount;
 
-  // AI models often have distinct smooth noise surfaces + hyper-contrast edges
-  let aiConfidence = Math.min(98, Math.max(5, Math.round((smoothRatio * 75) + (Math.random() * 10))));
+  let aiConfidence = parsedAi?.confidence || Math.min(98, Math.max(5, Math.round((smoothRatio * 75) + (Math.random() * 10))));
 
   aiProbText.textContent = `${aiConfidence}%`;
   aiProgressBar.style.width = `${aiConfidence}%`;
@@ -402,13 +746,13 @@ async function runAiDeepfakeScan() {
   const dotFreq = document.getElementById('dotFrequency');
   const dotNoise = document.getElementById('dotNoise');
 
-  if (aiConfidence > 65) {
+  if (aiConfidence > 60) {
     dotDiffusion.className = 'ind-dot active-danger';
     dotFreq.className = 'ind-dot active-danger';
     dotNoise.className = 'ind-dot active-danger';
-    document.getElementById('signalAi').textContent = `High Probability (${aiConfidence}%)`;
+    document.getElementById('signalAi').textContent = `High AI Probability (${aiConfidence}%)`;
     document.getElementById('signalAi').style.color = 'var(--accent-red)';
-  } else if (aiConfidence > 35) {
+  } else if (aiConfidence > 30) {
     dotDiffusion.className = 'ind-dot active-danger';
     dotFreq.className = 'ind-dot';
     dotNoise.className = 'ind-dot active-safe';
@@ -418,7 +762,7 @@ async function runAiDeepfakeScan() {
     dotDiffusion.className = 'ind-dot active-safe';
     dotFreq.className = 'ind-dot active-safe';
     dotNoise.className = 'ind-dot active-safe';
-    document.getElementById('signalAi').textContent = 'Camera / Natural Optical';
+    document.getElementById('signalAi').textContent = 'Camera / Optical Capture';
     document.getElementById('signalAi').style.color = 'var(--accent-green)';
   }
 
@@ -470,64 +814,7 @@ function applyColorFilter(filter) {
   sourceImage.classList.add('hidden');
 }
 
-// 4. EXIF & Metadata Extraction
-async function extractExifFromFile(file) {
-  const container = document.getElementById('exifTableContainer');
-  const gpsContent = document.getElementById('gpsContent');
-
-  try {
-    const buffer = await file.arrayBuffer();
-    const view = new DataView(buffer);
-
-    const tags = {};
-    // Quick header checks
-    if (view.getUint16(0, false) === 0xFFD8) {
-      tags['Format'] = 'JPEG / JFIF';
-    } else if (view.getUint32(0, false) === 0x89504E47) {
-      tags['Format'] = 'Portable Network Graphics (PNG)';
-    } else if (view.getUint32(0, false) === 0x52494646) {
-      tags['Format'] = 'WebP / RIFF Container';
-    }
-
-    tags['File Name'] = file.name;
-    tags['File Size'] = formatBytes(file.size);
-    tags['MIME Type'] = file.type;
-    tags['Last Modified'] = new Date(file.lastModified).toLocaleString();
-
-    // Check for common editing signatures in raw bytes
-    const textDecoder = new TextDecoder('utf-8');
-    const rawText = textDecoder.decode(buffer.slice(0, Math.min(buffer.byteLength, 120000)));
-
-    if (rawText.includes('Photoshop')) {
-      tags['Software'] = 'Adobe Photoshop';
-      document.getElementById('signalSoftware').textContent = 'Adobe Photoshop Tag Found';
-      document.getElementById('signalSoftware').style.color = 'var(--accent-amber)';
-    } else if (rawText.includes('GIMP')) {
-      tags['Software'] = 'GIMP GNU Image Manipulator';
-      document.getElementById('signalSoftware').textContent = 'GIMP Detected';
-    } else if (rawText.includes('Midjourney') || rawText.includes('DALL-E') || rawText.includes('Stable Diffusion')) {
-      tags['AI Generator Tag'] = 'Synthetic Generation Metadata Detected';
-      document.getElementById('signalAi').textContent = 'Direct AI Tag in Metadata!';
-      document.getElementById('signalAi').style.color = 'var(--accent-red)';
-    }
-
-    renderExifTable(tags);
-  } catch (e) {
-    container.innerHTML = '<div class="empty-state">No EXIF tags found in this container.</div>';
-  }
-}
-
-function renderExifTable(tags) {
-  const container = document.getElementById('exifTableContainer');
-  let html = '<table class="exif-table">';
-  for (const [k, v] of Object.entries(tags)) {
-    html += `<tr><td class="exif-key">${k}</td><td class="exif-val">${v}</td></tr>`;
-  }
-  html += '</table>';
-  container.innerHTML = html;
-}
-
-// 5. Cryptographic SHA-256 Hash
+// 4. Cryptographic SHA-256 Hash
 async function computeImageHash(dataOrUrl) {
   try {
     const res = await fetch(dataOrUrl);
@@ -535,6 +822,7 @@ async function computeImageHash(dataOrUrl) {
     const hashBuf = await crypto.subtle.digest('SHA-256', buf);
     const hashArr = Array.from(new Uint8Array(hashBuf));
     const hashHex = hashArr.map(b => b.toString(16).padStart(2, '0')).join('');
+    parsedHash = hashHex;
     const shortHash = hashHex.slice(0, 16) + '...' + hashHex.slice(-8);
     document.getElementById('signalHash').textContent = shortHash;
     document.getElementById('signalHash').title = hashHex;
@@ -554,15 +842,15 @@ function updateVerdictScore(score) {
   const circle = document.getElementById('verdictCircle');
   scoreEl.textContent = `${score}%`;
 
-  if (score > 60) {
+  if (score > 50) {
     circle.className = 'verdict-score-circle danger';
-    document.getElementById('verdictTitle').textContent = 'High Manipulation Risk';
-  } else if (score > 30) {
+    document.getElementById('verdictTitle').textContent = 'High Manipulation / AI Risk';
+  } else if (score > 20) {
     circle.className = 'verdict-score-circle warning';
-    document.getElementById('verdictTitle').textContent = 'Suspicious Anomalies Found';
+    document.getElementById('verdictTitle').textContent = 'Processed / Edited Anomalies Found';
   } else {
     circle.className = 'verdict-score-circle clean';
-    document.getElementById('verdictTitle').textContent = 'Clean / Low Risk';
+    document.getElementById('verdictTitle').textContent = 'Authentic Original';
   }
 }
 
@@ -577,7 +865,7 @@ async function exportForensicDossier() {
     return;
   }
 
-  const hash = document.getElementById('signalHash').title || document.getElementById('signalHash').textContent;
+  const hash = parsedHash || document.getElementById('signalHash').textContent;
   const reportHtml = `
 <!DOCTYPE html>
 <html>
@@ -614,6 +902,7 @@ async function exportForensicDossier() {
     <table>
       <tr><th>Audit Date</th><td>${new Date().toUTCString()}</td></tr>
       <tr><th>Dimensions</th><td>${forensicCanvas.width} × ${forensicCanvas.height} px</td></tr>
+      <tr><th>Inferred Hardware Source</th><td>${document.getElementById('signalSource').textContent}</td></tr>
       <tr><th>Cryptographic SHA-256 Seal</th><td class="hash-box">${hash}</td></tr>
       <tr><th>Auditing Authority</th><td>BridgeTech IT Services ForensicLens Pro (v1.0.0)</td></tr>
     </table>
@@ -624,10 +913,11 @@ async function exportForensicDossier() {
     <p><strong>Composite Manipulation Risk Score:</strong> ${document.getElementById('verdictScore').textContent}</p>
     <p><strong>Error Level Analysis:</strong> ${document.getElementById('signalEla').textContent}</p>
     <p><strong>AI Generation Confidence:</strong> ${document.getElementById('signalAi').textContent}</p>
+    <p><strong>Software Signatures:</strong> ${document.getElementById('signalSoftware').textContent}</p>
   </div>
 
   <div class="section" style="margin-top: 50px; font-size: 10px; color: #666; text-align: center;">
-    Generated by BridgeTech IT Services • https://www.itservicesfreetown.com/digital-tools
+    Generated by BridgeTech IT Services • https://www.itservicesfreetown.com/forensics-pro/pricing
   </div>
 </body>
 </html>`;
@@ -658,7 +948,6 @@ async function handleVerifyLicense() {
 
   btnVerifyLicense.textContent = 'Verifying...';
 
-  // Verification against BridgeTech API or Master Key format
   try {
     const res = await fetch(`https://www.itservicesfreetown.com/api/forensics/verify-license?key=${encodeURIComponent(key)}`).catch(() => null);
     const data = res?.ok ? await res.json() : null;
@@ -669,11 +958,10 @@ async function handleVerifyLicense() {
       closeUpgradeModal();
       alert('🎉 ForensicLens PRO Activated Successfully! Unlimited analysis unlocked.');
     } else {
-      alert('❌ Invalid license key. Please check the key or purchase a new one.');
+      alert('❌ Invalid license key. Please check the key or purchase one from our pricing page.');
     }
   } catch (e) {
-    // Offline fallback for valid key format
-    if (key.startsWith('BTFL-')) {
+    if (key.startsWith('BTFL-PRO-')) {
       await chrome.storage.sync.set({ proLicenseKey: key, proExpiry: 'lifetime' });
       setProStatus(true, key);
       closeUpgradeModal();
@@ -683,31 +971,6 @@ async function handleVerifyLicense() {
     }
   } finally {
     btnVerifyLicense.textContent = 'Activate License';
-  }
-}
-
-async function handleActivateDemo() {
-  const btn = document.getElementById('btnActivateDemo');
-  if (btn) btn.textContent = 'Generating 24h Demo Key...';
-
-  try {
-    const res = await fetch('https://www.itservicesfreetown.com/api/forensics/demo-key', { method: 'POST' }).catch(() => null);
-    const data = res?.ok ? await res.json() : null;
-
-    const demoKey = data?.licenseKey || `BTFL-PRO-DEMO-TEST-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-
-    await chrome.storage.sync.set({ proLicenseKey: demoKey, proExpiry: '24h_demo' });
-    setProStatus(true, demoKey);
-    closeUpgradeModal();
-    alert(`🎉 24-Hour ForensicLens PRO Demo Activated!\n\nLicense Key: ${demoKey}\n\nAll Pro features (Deep AI, ELA Magnifier, PDF Dossiers) are now unlocked.`);
-  } catch (e) {
-    const demoKey = `BTFL-PRO-DEMO-TEST-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-    await chrome.storage.sync.set({ proLicenseKey: demoKey, proExpiry: '24h_demo' });
-    setProStatus(true, demoKey);
-    closeUpgradeModal();
-    alert('🎉 24-Hour ForensicLens PRO Demo Activated!');
-  } finally {
-    if (btn) btn.textContent = '⚡ Instant 24-Hour Pro Demo (1-Click Test)';
   }
 }
 

@@ -12,23 +12,43 @@ interface PricingPlan {
   billing: string;
   badge?: string;
   popular?: boolean;
+  buttonText: string;
+  isFree?: boolean;
   features: string[];
 }
 
 const PLANS: PricingPlan[] = [
   {
+    id: 'free',
+    name: 'Community Free',
+    price: '$0.00',
+    billing: 'free forever • no credit card required',
+    buttonText: 'Install Free Extension',
+    isFree: true,
+    features: [
+      '5 Daily Forensic & ELA Image Audits',
+      'Standard Error Level Analysis (ELA)',
+      'Basic Hardware EXIF Metadata (Camera Make/Model)',
+      'Basic Image Dimensions & Size Summary',
+      'Right-Click Web Image Inspector',
+      'Chrome & Microsoft Edge Extension Access',
+    ],
+  },
+  {
     id: 'monthly',
     name: 'Pro Monthly',
     price: '$4.99',
     billing: 'billed monthly • cancel anytime',
+    buttonText: 'Get Pro Monthly ($4.99)',
     features: [
-      'Unlimited Error Level Analyses (ELA)',
-      'Deep AI & Synthetic Image Scanner',
-      'Advanced EXIF & GPS Coordinates Mapper',
-      'Luminance & Color Channel Splitter',
-      'Court/Journalism PDF Forensic Dossiers',
-      'Right-Click Web Image Inspector',
-      'Chrome & Microsoft Edge Support',
+      'Unlimited Forensic & ELA Analyses (No Daily Limits)',
+      'Full Multi-Compression ELA (70% - 98% quality scales)',
+      'Deep AI & Synthetic Image Signature Scanner',
+      'AI Generator Detection (Midjourney, DALL-E, SD, Flux)',
+      'GPS Geolocation Coordinates & Google Maps Link',
+      'Luminance Gradient & Shadow Consistency Filter',
+      'Color Channel Splitter (RGB, Solarise, Sobel Edges)',
+      'Export Official Cryptographic SHA-256 PDF Dossiers',
     ],
   },
   {
@@ -38,59 +58,58 @@ const PLANS: PricingPlan[] = [
     billing: 'one-time payment • lifetime access',
     badge: 'BEST VALUE',
     popular: true,
+    buttonText: 'Get Lifetime License ($39)',
     features: [
-      'Everything in Pro Monthly, forever',
-      'Zero subscription fees',
-      'Priority access to future AI forensic models',
-      'High-Resolution ELA Magnification engine',
-      'Unlimited Cryptographic SHA-256 Dossiers',
-      'Multi-Device sync across 5 browsers',
-      'Direct WhatsApp & Email Technician Support',
-    ],
-  },
-  {
-    id: 'single',
-    name: 'Quick Audit Pack',
-    price: '$1.99',
-    billing: '3 high-priority forensic audits',
-    features: [
-      '3 Complete Deepfake & Splicing Audits',
-      'Full EXIF + ELA Heatmap export',
-      'Cryptographic SHA-256 seal',
-      'Valid for 30 days',
+      'Everything in Pro Monthly, FOREVER',
+      'Zero monthly subscription fees',
+      'High-Resolution ELA Magnification Engine (up to 40x)',
+      'Priority updates to new synthetic AI models',
+      'Unlimited Court & Journalism-Ready PDF Dossiers',
+      'Multi-device license (up to 5 browsers/PCs)',
+      'Direct Priority Technician Support from BridgeTech',
     ],
   },
 ];
 
 export default function ForensicsPricingPage() {
   const [selectedPlan, setSelectedPlan] = useState<string>('lifetime');
-  const [demoKey, setDemoKey] = useState<string | null>(null);
-  const [demoLoading, setDemoLoading] = useState<boolean>(false);
+  const [checkoutModalOpen, setCheckoutModalOpen] = useState<boolean>(false);
+  
+  // Card form states
+  const [customerName, setCustomerName] = useState<string>('');
+  const [customerEmail, setCustomerEmail] = useState<string>('');
+  const [cardNumber, setCardNumber] = useState<string>('');
+  const [cardExpiry, setCardExpiry] = useState<string>('');
+  const [cardCvc, setCardCvc] = useState<string>('');
+  const [billingZip, setBillingZip] = useState<string>('');
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [purchasedKey, setPurchasedKey] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<boolean>(false);
 
-  // Checkout modal state
-  const [checkoutModalOpen, setCheckoutModalOpen] = useState<boolean>(false);
-  const [customerEmail, setCustomerEmail] = useState<string>('');
-  const [customerName, setCustomerName] = useState<string>('');
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'orange_money' | 'paypal'>('card');
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [purchasedKey, setPurchasedKey] = useState<string | null>(null);
+  const handlePlanClick = (plan: PricingPlan) => {
+    if (plan.isFree) {
+      window.location.href = '/digital-tools#metadata-inspector';
+      return;
+    }
+    setSelectedPlan(plan.id);
+    setPurchasedKey(null);
+    setErrorMessage(null);
+    setCheckoutModalOpen(true);
+  };
 
-  // Generate 24h Free Demo Key
-  const handleGenerateDemoKey = async () => {
-    setDemoLoading(true);
-    try {
-      const res = await fetch('/api/forensics/demo-key', { method: 'POST' });
-      const data = await res.json();
-      if (data.success) {
-        setDemoKey(data.licenseKey);
-      }
-    } catch (e) {
-      // Fallback
-      const randomSeg = Math.random().toString(36).substring(2, 6).toUpperCase();
-      setDemoKey(`BTFL-PRO-DEMO-TEST-${randomSeg}`);
-    } finally {
-      setDemoLoading(false);
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 16);
+    const formatted = raw.replace(/(\d{4})(?=\d)/g, '$1 ');
+    setCardNumber(formatted);
+  };
+
+  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 4);
+    if (raw.length >= 2) {
+      setCardExpiry(`${raw.slice(0, 2)}/${raw.slice(2)}`);
+    } else {
+      setCardExpiry(raw);
     }
   };
 
@@ -100,34 +119,51 @@ export default function ForensicsPricingPage() {
     setTimeout(() => setCopiedKey(false), 3000);
   };
 
-  const handleStartCheckout = (planId: string) => {
-    setSelectedPlan(planId);
-    setPurchasedKey(null);
-    setCheckoutModalOpen(true);
-  };
-
-  const handleCompletePayment = (e: React.FormEvent) => {
+  const handleProcessPayment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerEmail.trim()) return;
+    setErrorMessage(null);
+
+    if (!customerName || !customerEmail || !cardNumber || !cardExpiry || !cardCvc) {
+      setErrorMessage('Please fill in all card and contact fields.');
+      return;
+    }
 
     setIsProcessing(true);
-    setTimeout(() => {
-      // Generate a valid production license key
-      const seg1 = Math.random().toString(36).substring(2, 6).toUpperCase();
-      const seg2 = Math.random().toString(36).substring(2, 6).toUpperCase();
-      const seg3 = Math.random().toString(36).substring(2, 6).toUpperCase();
-      const newKey = `BTFL-PRO-${seg1}-${seg2}-${seg3}`;
 
-      setPurchasedKey(newKey);
+    try {
+      const res = await fetch('/api/forensics/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planId: selectedPlan,
+          customerName,
+          customerEmail,
+          cardNumber,
+          cardExpiry,
+          cardCvc,
+          billingZip,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setPurchasedKey(data.licenseKey);
+      } else {
+        setErrorMessage(data.error || 'Payment processing failed. Please verify your card details.');
+      }
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'A network error occurred. Please try again.');
+    } finally {
       setIsProcessing(false);
-    }, 1500);
+    }
   };
 
-  const activePlanObj = PLANS.find((p) => p.id === selectedPlan) || PLANS[1];
+  const activePlanObj = PLANS.find((p) => p.id === selectedPlan) || PLANS[2];
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-cyan-500 selection:text-black">
-      {/* Background glow effects */}
+      {/* Glow effects */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute -top-40 -left-40 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl"></div>
         <div className="absolute top-1/3 -right-40 w-96 h-96 bg-red-600/10 rounded-full blur-3xl"></div>
@@ -148,88 +184,43 @@ export default function ForensicsPricingPage() {
               <div className="text-base font-black tracking-tight text-white leading-none">
                 BridgeTech <span className="text-red-500">Forensics</span>
               </div>
-              <div className="text-[10px] text-slate-400 font-medium">ForensicLens Pro Checkout</div>
+              <div className="text-[10px] text-slate-400 font-medium">ForensicLens Pro Official Store</div>
             </div>
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <Link
               href="/digital-tools#metadata-inspector"
-              className="text-xs font-semibold text-slate-400 hover:text-cyan-400 transition-colors hidden sm:inline-block"
+              className="text-xs font-semibold text-slate-400 hover:text-cyan-400 transition-colors"
             >
               ← Back to Web Tools
             </Link>
             <button
-              onClick={handleGenerateDemoKey}
-              className="text-xs font-bold bg-cyan-950 text-cyan-300 border border-cyan-700/60 px-3 py-1.5 rounded-lg hover:bg-cyan-900 transition-all flex items-center gap-1.5"
+              onClick={() => handlePlanClick(PLANS[2])}
+              className="text-xs font-bold bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 text-white px-3.5 py-1.5 rounded-lg transition-all shadow-md"
             >
-              <span>⚡ Try 24h Free Demo</span>
+              Get Pro ($39)
             </button>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* Main Container */}
       <main className="relative z-10 max-w-5xl mx-auto px-4 py-12">
-        <div className="text-center max-w-2xl mx-auto mb-10">
+        <div className="text-center max-w-2xl mx-auto mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-800 text-cyan-400 text-xs font-bold mb-4">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-            Browser Extension Pro Access
+            <span className="w-2 h-2 rounded-full bg-cyan-400"></span>
+            ForensicLens Pro Licensing
           </div>
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white mb-3">
-            Unlock Unlimited <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">AI Deepfake & ELA</span> Forensics
+            Choose Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400">Forensic Investigation</span> Tier
           </h1>
           <p className="text-sm sm:text-base text-slate-400 leading-relaxed">
-            Equip your Chrome & Edge browser with military-grade Error Level Analysis, synthetic AI detection, GPS mapping, and cryptographic court-admissible dossiers.
+            From basic community audits to unlimited deepfake detection, high-resolution ELA magnification, and exportable legal court dossiers.
           </p>
         </div>
 
-        {/* Free Demo Banner / Sandbox */}
-        <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-cyan-950/40 border border-cyan-800/50 rounded-2xl p-5 mb-12 shadow-2xl">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-xl text-cyan-400 flex-shrink-0">
-                🧪
-              </div>
-              <div>
-                <div className="text-sm font-bold text-white flex items-center gap-2">
-                  <span>Test Drive ForensicLens PRO (Free 24-Hour Trial)</span>
-                  <span className="text-[10px] bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded border border-emerald-800">
-                    Instant Sandbox
-                  </span>
-                </div>
-                <div className="text-xs text-slate-400">
-                  Generate a full-featured demo key to verify all Pro ELA filters and AI deepfake detection tools in your browser extension.
-                </div>
-              </div>
-            </div>
-
-            <div className="flex-shrink-0 w-full sm:w-auto">
-              {!demoKey ? (
-                <button
-                  onClick={handleGenerateDemoKey}
-                  disabled={demoLoading}
-                  className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-black font-extrabold text-xs rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  <i className="fas fa-key"></i>
-                  <span>{demoLoading ? 'Generating Key...' : 'Generate Instant Demo Key'}</span>
-                </button>
-              ) : (
-                <div className="flex items-center gap-2 bg-slate-950 border border-cyan-700/80 rounded-xl p-1.5 pl-3">
-                  <span className="font-mono text-xs font-bold text-cyan-400 select-all">{demoKey}</span>
-                  <button
-                    onClick={() => handleCopyKey(demoKey)}
-                    className="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-black text-xs font-bold rounded-lg transition-all"
-                  >
-                    {copiedKey ? '✓ Copied!' : 'Copy'}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Pricing Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        {/* Pricing Cards Grid (Free, Monthly, Lifetime) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16 items-stretch">
           {PLANS.map((plan) => (
             <div
               key={plan.id}
@@ -263,59 +254,61 @@ export default function ForensicsPricingPage() {
               </div>
 
               <button
-                onClick={() => handleStartCheckout(plan.id)}
+                onClick={() => handlePlanClick(plan)}
                 className={`w-full py-3 rounded-xl font-bold text-xs transition-all shadow-md ${
                   plan.popular
                     ? 'bg-gradient-to-r from-red-600 via-red-500 to-orange-500 hover:opacity-90 text-white'
+                    : plan.isFree
+                    ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
                     : 'bg-cyan-600 hover:bg-cyan-500 text-black'
                 }`}
               >
-                Get License Key ({plan.price})
+                {plan.buttonText}
               </button>
             </div>
           ))}
         </div>
 
-        {/* Feature Comparison */}
+        {/* Feature Comparison Matrix */}
         <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 sm:p-8 mb-16">
-          <h2 className="text-xl font-bold text-white mb-6 text-center">Free vs. Pro Feature Matrix</h2>
+          <h2 className="text-xl font-bold text-white mb-6 text-center">Comprehensive Plan Breakdown</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">
               <thead>
                 <tr className="border-b border-slate-800 text-slate-400">
-                  <th className="pb-3 font-semibold">Feature</th>
-                  <th className="pb-3 font-semibold text-center w-28">Free Tier</th>
-                  <th className="pb-3 font-semibold text-center w-36 text-cyan-400">ForensicLens PRO</th>
+                  <th className="pb-3 font-semibold">Capability</th>
+                  <th className="pb-3 font-semibold text-center w-32">Community Free</th>
+                  <th className="pb-3 font-semibold text-center w-40 text-cyan-400">ForensicLens PRO</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-slate-300">
                 <tr>
-                  <td className="py-3 font-medium">Daily Forensic Scans</td>
+                  <td className="py-3 font-medium">Daily Image Scans</td>
                   <td className="py-3 text-center text-slate-400">5 / day</td>
                   <td className="py-3 text-center font-bold text-cyan-400">Unlimited</td>
                 </tr>
                 <tr>
                   <td className="py-3 font-medium">Error Level Analysis (ELA)</td>
-                  <td className="py-3 text-center text-slate-400">Standard</td>
-                  <td className="py-3 text-center font-bold text-cyan-400">High-Res Multi-Compression</td>
+                  <td className="py-3 text-center text-slate-400">Standard 88% JPEG</td>
+                  <td className="py-3 text-center font-bold text-cyan-400">Multi-Scale (70% - 98% + 40x Contrast)</td>
                 </tr>
                 <tr>
-                  <td className="py-3 font-medium">AI & Deepfake Signature Scanner</td>
+                  <td className="py-3 font-medium">Deep AI & Synthetic Signature Detection</td>
+                  <td className="py-3 text-center text-slate-500">✕ Basic</td>
+                  <td className="py-3 text-center font-bold text-cyan-400">✓ Full Spectral & Diffusion Markers</td>
+                </tr>
+                <tr>
+                  <td className="py-3 font-medium">Full Hardware EXIF & GPS Coordinates</td>
+                  <td className="py-3 text-center text-slate-400">Summary Only</td>
+                  <td className="py-3 text-center font-bold text-cyan-400">✓ Complete Raw IFD Table + Maps</td>
+                </tr>
+                <tr>
+                  <td className="py-3 font-medium">Cryptographic SHA-256 PDF Dossiers</td>
                   <td className="py-3 text-center text-slate-500">✕ Locked</td>
-                  <td className="py-3 text-center font-bold text-cyan-400">✓ Full Frequency Analysis</td>
+                  <td className="py-3 text-center font-bold text-cyan-400">✓ Court & Journalism Admissible</td>
                 </tr>
                 <tr>
-                  <td className="py-3 font-medium">EXIF & GPS Geolocation Mapping</td>
-                  <td className="py-3 text-center text-slate-400">Basic Text</td>
-                  <td className="py-3 text-center font-bold text-cyan-400">✓ StreetView & Hardware Decode</td>
-                </tr>
-                <tr>
-                  <td className="py-3 font-medium">Cryptographic SHA-256 Audit Dossiers</td>
-                  <td className="py-3 text-center text-slate-500">✕ Locked</td>
-                  <td className="py-3 text-center font-bold text-cyan-400">✓ One-Click PDF/HTML Export</td>
-                </tr>
-                <tr>
-                  <td className="py-3 font-medium">Context Menu 1-Click Web Inspection</td>
+                  <td className="py-3 font-medium">Right-Click Web Image Inspector</td>
                   <td className="py-3 text-center text-emerald-400">✓ Included</td>
                   <td className="py-3 text-center text-emerald-400 font-bold">✓ Included</td>
                 </tr>
@@ -324,22 +317,30 @@ export default function ForensicsPricingPage() {
           </div>
         </div>
 
-        {/* How to activate */}
-        <div className="border border-slate-800 rounded-2xl p-6 bg-slate-900/30">
-          <h3 className="text-base font-bold text-white mb-3">How to Activate Your Pro License in Chrome or Edge</h3>
-          <ol className="list-decimal list-inside space-y-2 text-xs text-slate-400 leading-relaxed">
-            <li>Open the BridgeTech ForensicLens side panel by clicking the extension icon or right-clicking an image.</li>
-            <li>Click <strong>&quot;Have a Pro Key?&quot;</strong> in the bottom footer or the <strong>&quot;Upgrade to Pro&quot;</strong> button.</li>
-            <li>Paste your license key (e.g. <code className="font-mono text-cyan-400 bg-slate-950 px-1 py-0.5 rounded">BTFL-PRO-...</code>) and click <strong>Activate License</strong>.</li>
-            <li>All Pro features will unlock immediately with zero reload required!</li>
-          </ol>
+        {/* FAQ Section */}
+        <div className="border border-slate-800 rounded-2xl p-6 bg-slate-900/30 space-y-4">
+          <h3 className="text-base font-bold text-white">Frequently Asked Questions</h3>
+          <div className="space-y-3 text-xs text-slate-400">
+            <div>
+              <strong className="text-slate-200 block mb-0.5">How does the license key work?</strong>
+              After checkout, you immediately receive a unique key (e.g. <code className="text-cyan-400 bg-slate-950 px-1 py-0.5 rounded">BTFL-PRO-XXXX-XXXX-XXXX</code>) on-screen and via email. Enter this in the extension to activate Pro instantly.
+            </div>
+            <div>
+              <strong className="text-slate-200 block mb-0.5">Which payment methods are accepted?</strong>
+              We accept all major <strong>Credit and Debit Cards (Visa, Mastercard, American Express)</strong> via encrypted 256-bit SSL checkout.
+            </div>
+            <div>
+              <strong className="text-slate-200 block mb-0.5">Does the extension work on Edge and Brave?</strong>
+              Yes! Because ForensicLens is built on Manifest V3, it runs natively on Google Chrome, Microsoft Edge, Brave, and Opera.
+            </div>
+          </div>
         </div>
       </main>
 
-      {/* Checkout Modal */}
+      {/* Credit / Debit Card Checkout Modal */}
       {checkoutModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative">
             <button
               onClick={() => setCheckoutModalOpen(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-white text-sm"
@@ -349,128 +350,159 @@ export default function ForensicsPricingPage() {
 
             {!purchasedKey ? (
               <div>
-                <div className="text-lg font-black text-white mb-1">
-                  Complete Your Order
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                  <div className="text-lg font-black text-white">
+                    Secure Card Checkout
+                  </div>
                 </div>
-                <div className="text-xs text-slate-400 mb-4">
+                <div className="text-xs text-slate-400 mb-6">
                   Selected Plan: <strong className="text-cyan-400">{activePlanObj.name} ({activePlanObj.price})</strong>
                 </div>
 
-                <form onSubmit={handleCompletePayment} className="space-y-4">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. John Doe"
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500"
-                    />
+                {errorMessage && (
+                  <div className="mb-4 p-3 bg-red-950/80 border border-red-800 rounded-xl text-xs text-red-300">
+                    {errorMessage}
                   </div>
+                )}
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                      Email Address (For Key Delivery)
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      placeholder="your.email@example.com"
-                      value={customerEmail}
-                      onChange={(e) => setCustomerEmail(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                      Payment Method
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setPaymentMethod('card')}
-                        className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1 transition-all ${
-                          paymentMethod === 'card'
-                            ? 'border-cyan-500 bg-cyan-950/30 text-white'
-                            : 'border-slate-800 bg-slate-950 text-slate-400'
-                        }`}
-                      >
-                        <i className="fas fa-credit-card text-base"></i>
-                        <span>Card</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setPaymentMethod('orange_money')}
-                        className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1 transition-all ${
-                          paymentMethod === 'orange_money'
-                            ? 'border-orange-500 bg-orange-950/30 text-white'
-                            : 'border-slate-800 bg-slate-950 text-slate-400'
-                        }`}
-                      >
-                        <i className="fas fa-mobile-alt text-base"></i>
-                        <span>Orange / Afri</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setPaymentMethod('paypal')}
-                        className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1 transition-all ${
-                          paymentMethod === 'paypal'
-                            ? 'border-blue-500 bg-blue-950/30 text-white'
-                            : 'border-slate-800 bg-slate-950 text-slate-400'
-                        }`}
-                      >
-                        <i className="fab fa-paypal text-base"></i>
-                        <span>PayPal</span>
-                      </button>
+                <form onSubmit={handleProcessPayment} className="space-y-4">
+                  {/* Name and Email */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                        Cardholder Name
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="John Doe"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                        Email Address (For Key)
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        placeholder="john@example.com"
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500"
+                      />
                     </div>
                   </div>
 
-                  <div className="pt-2">
+                  {/* Card Details */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      Card Number
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        required
+                        placeholder="4111 2222 3333 4444"
+                        value={cardNumber}
+                        onChange={handleCardNumberChange}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-3 pr-10 py-2.5 text-xs text-white placeholder-slate-600 font-mono focus:outline-none focus:border-cyan-500 tracking-wider"
+                      />
+                      <i className="fas fa-credit-card absolute right-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                        Expires
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="MM/YY"
+                        value={cardExpiry}
+                        onChange={handleExpiryChange}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 font-mono text-center focus:outline-none focus:border-cyan-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                        CVC / CVV
+                      </label>
+                      <input
+                        type="password"
+                        maxLength={4}
+                        required
+                        placeholder="123"
+                        value={cardCvc}
+                        onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 font-mono text-center focus:outline-none focus:border-cyan-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                        Billing ZIP
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="90210"
+                        value={billingZip}
+                        onChange={(e) => setBillingZip(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 text-center focus:outline-none focus:border-cyan-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-3">
                     <button
                       type="submit"
                       disabled={isProcessing}
-                      className="w-full py-3 bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 text-white font-extrabold text-xs rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
+                      className="w-full py-3.5 bg-gradient-to-r from-red-600 via-red-500 to-orange-500 hover:from-red-500 hover:to-orange-400 text-white font-black text-xs rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                       <i className={`fas ${isProcessing ? 'fa-spinner fa-spin' : 'fa-lock'}`}></i>
-                      <span>{isProcessing ? 'Securing Transaction...' : `Pay ${activePlanObj.price} & Get Key`}</span>
+                      <span>{isProcessing ? 'Authorizing Payment...' : `Pay ${activePlanObj.price} & Receive Pro Key`}</span>
                     </button>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-4 text-[10px] text-slate-500 pt-1">
+                    <span>🔒 256-Bit SSL Encrypted</span>
+                    <span>•</span>
+                    <span>Instant License Delivery</span>
                   </div>
                 </form>
               </div>
             ) : (
               /* Success & Key Screen */
               <div className="text-center py-4 space-y-4">
-                <div className="w-14 h-14 rounded-full bg-emerald-950 border border-emerald-500 text-emerald-400 flex items-center justify-center text-2xl mx-auto">
+                <div className="w-16 h-16 rounded-full bg-emerald-950 border-2 border-emerald-500 text-emerald-400 flex items-center justify-center text-3xl mx-auto shadow-lg shadow-emerald-950/50">
                   ✓
                 </div>
                 <div>
-                  <div className="text-lg font-black text-white">Payment Successful!</div>
+                  <div className="text-xl font-black text-white">Payment Authorized!</div>
                   <div className="text-xs text-slate-400 mt-1">
-                    Your ForensicLens Pro license key has been generated and emailed to <strong>{customerEmail}</strong>.
+                    Your ForensicLens Pro license key has been generated and sent to <strong>{customerEmail}</strong>.
                   </div>
                 </div>
 
-                <div className="bg-slate-950 border border-cyan-600 rounded-xl p-3.5 space-y-2">
+                <div className="bg-slate-950 border-2 border-cyan-500 rounded-2xl p-4 space-y-3">
                   <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Your Pro License Key</div>
-                  <div className="font-mono text-sm font-black text-cyan-400 select-all tracking-wider">
+                  <div className="font-mono text-base font-black text-cyan-400 select-all tracking-widest bg-slate-900 py-2 rounded-lg border border-slate-800">
                     {purchasedKey}
                   </div>
                   <button
                     onClick={() => handleCopyKey(purchasedKey)}
-                    className="w-full py-2 bg-cyan-600 hover:bg-cyan-500 text-black font-bold text-xs rounded-lg transition-all"
+                    className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-black font-extrabold text-xs rounded-xl transition-all shadow-md"
                   >
                     {copiedKey ? '✓ Copied to Clipboard!' : '📋 Copy License Key'}
                   </button>
                 </div>
 
-                <div className="text-[11px] text-slate-400">
-                  Paste this key into the extension side panel under <strong>&quot;Have a Pro Key?&quot;</strong> to activate instantly.
+                <div className="text-[11px] text-slate-400 leading-relaxed bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+                  <strong>How to activate:</strong> Open the BridgeTech ForensicLens extension side panel, click <strong>&quot;Have a Pro Key?&quot;</strong> in the footer, paste your key, and click <strong>Activate License</strong>.
                 </div>
               </div>
             )}
