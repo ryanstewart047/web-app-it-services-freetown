@@ -1,15 +1,149 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import QRCode from 'qrcode';
 import AudioConverter from '@/components/digital-tools/AudioConverter';
 import MusicFinder from '@/components/digital-tools/MusicFinder';
 import ImageConverter from '@/components/digital-tools/ImageConverter';
 import DocumentConverter from '@/components/digital-tools/DocumentConverter';
 import FileMetadataInspector from '@/components/digital-tools/FileMetadataInspector';
+import ImageBackgroundRemover from '@/components/digital-tools/ImageBackgroundRemover';
+import { BRAND_AVATAR_TRANSPARENT_SRC, BRAND_NAME } from '@/lib/brand';
 
-type ToolCategory = 'all' | 'audio-convert' | 'music-finder' | 'image-convert' | 'doc-convert' | 'qr-hash';
+type ToolCategory = 'all' | 'image' | 'pdf' | 'audio' | 'utilities';
+
+interface ToolItem {
+  id: string;
+  title: string;
+  desc: string;
+  category: ToolCategory;
+  badge?: string;
+  popular?: boolean;
+  isNew?: boolean;
+  icon: string;
+  gradient: string;
+  tags: string[];
+}
+
+const ALL_TOOLS: ToolItem[] = [
+  {
+    id: 'bg-remover',
+    title: 'Remove Image Background',
+    desc: 'AI background eraser with high accuracy, edge feathering, solid colors & studio gradients.',
+    category: 'image',
+    badge: 'AI High Accuracy',
+    popular: true,
+    isNew: true,
+    icon: 'fas fa-wand-magic-sparkles',
+    gradient: 'from-cyan-500 to-blue-600',
+    tags: ['background', 'remove', 'transparent', 'png', 'erase', 'cutout', 'photo', 'portrait', 'id'],
+  },
+  {
+    id: 'forensics',
+    title: 'AI Forensic & Deepfake Inspector',
+    desc: 'Error Level Analysis (ELA), AI diffusion pattern detector, EXIF camera tags & GPS maps.',
+    category: 'image',
+    badge: 'Forensic Standard',
+    popular: true,
+    icon: 'fas fa-shield-halved',
+    gradient: 'from-emerald-500 to-teal-600',
+    tags: ['forensics', 'exif', 'deepfake', 'ai detector', 'metadata', 'gps', 'ela', 'camera', 'fake'],
+  },
+  {
+    id: 'audio-converter',
+    title: 'Video & Audio to MP3 Converter',
+    desc: 'Extract and convert MP4, WebM, WAV, OGG, M4A to pure 320kbps MP3 audio.',
+    category: 'audio',
+    badge: 'Fast',
+    popular: true,
+    icon: 'fas fa-music',
+    gradient: 'from-red-500 to-rose-600',
+    tags: ['mp3', 'audio', 'video to mp3', 'wav', 'ogg', 'convert', 'extract', 'sound', 'trim'],
+  },
+  {
+    id: 'image-converter',
+    title: 'Image Converter & Video Frame Grabber',
+    desc: 'Convert JPG, PNG, WEBP, SVG, resize with aspect ratio lock, and capture high-res video frames.',
+    category: 'image',
+    badge: 'HD Quality',
+    icon: 'fas fa-image',
+    gradient: 'from-blue-500 to-indigo-600',
+    tags: ['image', 'convert', 'resize', 'compress', 'jpg', 'png', 'webp', 'svg', 'frame', 'video'],
+  },
+  {
+    id: 'doc-converter',
+    title: 'Word DOCX & Text to PDF Converter',
+    desc: 'Convert Word .docx, markdown, and text documents into clean printable PDF files.',
+    category: 'pdf',
+    badge: 'Essential',
+    popular: true,
+    icon: 'fas fa-file-pdf',
+    gradient: 'from-purple-500 to-violet-600',
+    tags: ['pdf', 'word', 'docx', 'document', 'convert', 'text to pdf', 'print'],
+  },
+  {
+    id: 'music-finder',
+    title: 'Royalty-Free Music & Audio Finder',
+    desc: 'Search, preview, and download thousands of high-quality creative tracks and beats.',
+    category: 'audio',
+    badge: 'Free Music',
+    icon: 'fas fa-magnifying-glass-wave',
+    gradient: 'from-amber-500 to-orange-600',
+    tags: ['music', 'song', 'royalty free', 'beats', 'audio', 'download', 'preview'],
+  },
+  {
+    id: 'qr-generator',
+    title: 'HD QR Code Generator',
+    desc: 'Create custom high-resolution QR codes for websites, WiFi, WhatsApp, and contact cards.',
+    category: 'utilities',
+    badge: 'Instant',
+    icon: 'fas fa-qrcode',
+    gradient: 'from-amber-500 to-yellow-500',
+    tags: ['qr', 'qrcode', 'generator', 'wifi', 'url', 'barcode'],
+  },
+  {
+    id: 'tts-engine',
+    title: 'Natural Voice Text-to-Speech',
+    desc: 'Convert written text into natural human speech with adjustable pitch, speed, and accents.',
+    category: 'audio',
+    badge: 'Natural Voice',
+    icon: 'fas fa-volume-high',
+    gradient: 'from-teal-500 to-cyan-600',
+    tags: ['tts', 'text to speech', 'voice', 'audio', 'read', 'speech'],
+  },
+  {
+    id: 'password-gen',
+    title: 'Cryptographic Password Generator',
+    desc: 'Generate ultra-secure, cryptographically random passwords with custom symbols and length.',
+    category: 'utilities',
+    badge: 'Secure',
+    icon: 'fas fa-key',
+    gradient: 'from-rose-500 to-pink-600',
+    tags: ['password', 'generator', 'security', 'crypto', 'random', 'pin'],
+  },
+  {
+    id: 'color-palette',
+    title: 'Color Palette & Shade Studio',
+    desc: 'Generate harmonious color palettes, monochromatic tints, and complementary Hex/HSL codes.',
+    category: 'utilities',
+    badge: 'Design',
+    icon: 'fas fa-palette',
+    gradient: 'from-purple-500 to-pink-500',
+    tags: ['color', 'palette', 'hex', 'hsl', 'designer', 'scheme', 'picker'],
+  },
+  {
+    id: 'text-analyzer',
+    title: 'Word Count & Text Statistics',
+    desc: 'Detailed word count, reading time estimate, character statistics, and frequency analytics.',
+    category: 'utilities',
+    badge: 'Analytics',
+    icon: 'fas fa-align-left',
+    gradient: 'from-indigo-500 to-blue-500',
+    tags: ['word count', 'text', 'reading time', 'characters', 'analyzer', 'sentences'],
+  },
+];
 
 // ── Password Generator ─────────────────────────────────────────────────────────
 function PasswordGenerator() {
@@ -55,65 +189,66 @@ function PasswordGenerator() {
   const strengthColor = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-emerald-500', 'bg-blue-500'][strength - 1] || 'bg-slate-700';
 
   return (
-    <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-4">
-      <h3 className="text-sm font-bold text-white flex items-center gap-2">
-        <i className="fas fa-key text-amber-400"></i>
-        <span>Password Generator</span>
-      </h3>
+    <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur space-y-5">
+      <div className="flex items-center gap-3 pb-3 border-b border-slate-800">
+        <div className="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-lg font-bold">
+          <i className="fas fa-key"></i>
+        </div>
+        <div>
+          <h3 className="text-base font-bold text-white">Cryptographic Password Generator</h3>
+          <p className="text-xs text-slate-400">Generate high-entropy, cryptographically randomized passwords.</p>
+        </div>
+      </div>
 
-      {/* Password Output */}
-      <div className="relative bg-slate-900 border border-slate-700 rounded-xl p-3 pr-24 font-mono text-sm text-emerald-400 break-all min-h-[52px] flex items-center">
+      <div className="relative bg-slate-950 border border-slate-800 rounded-2xl p-4 pr-24 font-mono text-base text-emerald-400 break-all min-h-[56px] flex items-center shadow-inner">
         <span>{password}</span>
         <button
           onClick={copy}
-          className={`absolute right-2 top-1/2 -translate-y-1/2 py-1.5 px-3 rounded-lg text-xs font-bold transition-all ${
-            copied ? 'bg-emerald-600 text-white' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+          className={`absolute right-2.5 top-1/2 -translate-y-1/2 py-2 px-3.5 rounded-xl text-xs font-bold transition-all shadow-md ${
+            copied ? 'bg-emerald-600 text-white' : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
           }`}
         >
-          {copied ? '✓ Copied!' : 'Copy'}
+          {copied ? '✓ Copied!' : '📋 Copy'}
         </button>
       </div>
 
-      {/* Strength Meter */}
       {strength > 0 && (
-        <div className="space-y-1">
-          <div className="flex gap-1">
+        <div className="space-y-1.5">
+          <div className="flex gap-1.5">
             {[1,2,3,4].map(i => (
-              <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${i <= strength ? strengthColor : 'bg-slate-800'}`} />
+              <div key={i} className={`h-2 flex-1 rounded-full transition-all ${i <= strength ? strengthColor : 'bg-slate-800'}`} />
             ))}
           </div>
-          <p className="text-[11px] text-slate-400">Strength: <span className="text-white font-semibold">{strengthLabel}</span></p>
+          <p className="text-xs text-slate-400">Strength: <span className="text-white font-bold">{strengthLabel}</span></p>
         </div>
       )}
 
-      {/* Length Slider */}
       <div>
-        <div className="flex justify-between text-xs font-semibold text-slate-400 mb-1">
+        <div className="flex justify-between text-xs font-semibold text-slate-400 mb-1.5">
           <span>Password Length</span>
-          <span className="text-amber-400 font-mono">{length} chars</span>
+          <span className="text-amber-400 font-mono font-bold text-sm">{length} characters</span>
         </div>
         <input type="range" min={8} max={64} value={length} onChange={e => setLength(Number(e.target.value))}
-          className="w-full accent-amber-500" />
+          className="w-full accent-amber-500 cursor-pointer" />
       </div>
 
-      {/* Character Options */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-3 bg-slate-950 p-4 rounded-2xl border border-slate-800">
         {[
           { label: 'Uppercase (A–Z)', val: upper, set: setUpper },
           { label: 'Lowercase (a–z)', val: lower, set: setLower },
           { label: 'Numbers (0–9)', val: numbers, set: setNumbers },
-          { label: 'Symbols (!@#$)', val: symbols, set: setSymbols },
+          { label: 'Symbols (!@#$%)', val: symbols, set: setSymbols },
         ].map(({ label, val, set }) => (
           <label key={label} className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer select-none">
             <input type="checkbox" checked={val} onChange={e => set(e.target.checked)}
-              className="accent-amber-500 rounded" />
+              className="accent-amber-500 rounded w-4 h-4" />
             {label}
           </label>
         ))}
       </div>
 
       <button onClick={generate}
-        className="w-full py-2.5 px-4 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md">
+        className="w-full py-3 px-4 bg-gradient-to-r from-amber-600 to-orange-500 hover:opacity-90 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-lg">
         <i className="fas fa-arrows-rotate"></i>
         <span>Generate New Password</span>
       </button>
@@ -123,7 +258,7 @@ function PasswordGenerator() {
 
 // ── Color Palette Generator ────────────────────────────────────────────────────
 function ColorPaletteGenerator() {
-  const [baseColor, setBaseColor] = useState('#ef4444');
+  const [baseColor, setBaseColor] = useState('#06b6d4');
   const [palette, setPalette] = useState<string[]>([]);
   const [copiedColor, setCopiedColor] = useState('');
 
@@ -177,338 +312,190 @@ function ColorPaletteGenerator() {
   };
 
   return (
-    <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-4">
-      <h3 className="text-sm font-bold text-white flex items-center gap-2">
-        <i className="fas fa-palette text-purple-400"></i>
-        <span>Color Palette Generator</span>
-      </h3>
-
-      <div className="flex items-center gap-3">
-        <input type="color" value={baseColor} onChange={e => setBaseColor(e.target.value)}
-          className="w-14 h-14 rounded-xl cursor-pointer bg-transparent border-0 p-0.5" />
+    <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur space-y-5">
+      <div className="flex items-center gap-3 pb-3 border-b border-slate-800">
+        <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg font-bold">
+          <i className="fas fa-palette"></i>
+        </div>
         <div>
-          <p className="text-xs font-semibold text-slate-300">Base Color</p>
-          <p className="text-xs font-mono text-purple-400">{baseColor.toUpperCase()}</p>
-          <p className="text-[11px] text-slate-500">Click swatch to generate palette</p>
+          <h3 className="text-base font-bold text-white">Color Palette &amp; Shade Studio</h3>
+          <p className="text-xs text-slate-400">Generate tints, shades, and complementary color schemes.</p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+        <input type="color" value={baseColor} onChange={e => setBaseColor(e.target.value)}
+          className="w-12 h-12 rounded-xl cursor-pointer bg-transparent border-0 p-0" />
+        <div>
+          <p className="text-xs font-semibold text-slate-300">Selected Base Color</p>
+          <p className="text-sm font-mono font-black text-cyan-400">{baseColor.toUpperCase()}</p>
         </div>
         <button onClick={generatePalette}
-          className="ml-auto py-2 px-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all">
+          className="ml-auto py-2.5 px-4 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md">
           <i className="fas fa-wand-magic-sparkles"></i>
-          <span>Generate</span>
+          <span>Regenerate</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-5 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
         {palette.map((color, i) => (
           <button key={i} onClick={() => copy(color)}
-            className="group flex flex-col items-center gap-1" title={color}>
-            <div className="w-full aspect-square rounded-xl border-2 border-transparent group-hover:border-white/40 transition-all shadow-md"
-              style={{ backgroundColor: color }} />
-            <span className="text-[9px] font-mono text-slate-400 group-hover:text-white transition-colors">
-              {copiedColor === color ? '✓ Copied' : color.toUpperCase()}
-            </span>
+            className="group relative rounded-2xl overflow-hidden border border-slate-800 transition-all hover:scale-105 hover:shadow-xl text-left">
+            <div className="h-16 w-full" style={{ backgroundColor: color }} />
+            <div className="bg-slate-950 p-2.5 flex items-center justify-between">
+              <span className="font-mono text-xs font-bold text-white uppercase">{color}</span>
+              <span className="text-[10px] text-slate-500 group-hover:text-cyan-400">
+                {copiedColor === color ? '✓ Copied' : 'Copy'}
+              </span>
+            </div>
           </button>
         ))}
       </div>
-      <p className="text-[11px] text-slate-500 text-center">Click any swatch to copy its HEX code</p>
     </div>
   );
 }
 
-// ── Word Count & Text Analyzer ─────────────────────────────────────────────────
-function TextAnalyzer() {
-  const [text, setText] = useState('');
-
-  const words  = text.trim() ? text.trim().split(/\s+/).length : 0;
-  const chars  = text.length;
-  const charsNoSpace = text.replace(/\s/g, '').length;
-  const lines  = text ? text.split('\n').length : 0;
-  const sentences = text.match(/[.!?]+/g)?.length || 0;
-  const readTime  = Math.max(1, Math.ceil(words / 200));
-  const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim()).length;
-
-  const topWords = (() => {
-    if (!text.trim()) return [];
-    const freq: Record<string, number> = {};
-    text.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/).filter(w => w.length > 3).forEach(w => { freq[w] = (freq[w] || 0) + 1; });
-    return Object.entries(freq).sort((a,b) => b[1]-a[1]).slice(0, 5);
-  })();
-
-  return (
-    <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-4 col-span-full">
-      <h3 className="text-sm font-bold text-white flex items-center gap-2">
-        <i className="fas fa-text-width text-blue-400"></i>
-        <span>Word Count & Text Analyzer</span>
-      </h3>
-
-      <textarea
-        value={text}
-        onChange={e => setText(e.target.value)}
-        rows={6}
-        placeholder="Paste or type your text here to analyze word count, reading time, character count, and more..."
-        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500 resize-none font-mono leading-relaxed"
-      />
-
-      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-        {[
-          { label: 'Words',       val: words,          color: 'text-blue-400' },
-          { label: 'Characters',  val: chars,          color: 'text-purple-400' },
-          { label: 'No Spaces',   val: charsNoSpace,   color: 'text-pink-400' },
-          { label: 'Lines',       val: lines,          color: 'text-cyan-400' },
-          { label: 'Sentences',   val: sentences,      color: 'text-amber-400' },
-          { label: 'Paragraphs',  val: paragraphs,     color: 'text-emerald-400' },
-        ].map(({ label, val, color }) => (
-          <div key={label} className="bg-slate-900 p-3 rounded-xl text-center border border-slate-800">
-            <p className={`text-lg font-bold font-mono ${color}`}>{val.toLocaleString()}</p>
-            <p className="text-[10px] text-slate-500 mt-0.5">{label}</p>
-          </div>
-        ))}
-      </div>
-
-      {words > 0 && (
-        <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400 border-t border-slate-800 pt-3">
-          <span>📖 Read time: <strong className="text-white">{readTime} min</strong></span>
-          <span>⌨️ Avg word: <strong className="text-white">{words > 0 ? (charsNoSpace / words).toFixed(1) : 0} chars</strong></span>
-          {topWords.length > 0 && (
-            <span>🔤 Top words: {topWords.map(([w, n]) => <strong key={w} className="text-white"> {w}({n})</strong>)}</span>
-          )}
-        </div>
-      )}
-
-      {text && (
-        <button onClick={() => setText('')}
-          className="text-xs text-slate-500 hover:text-red-400 transition-colors flex items-center gap-1.5">
-          <i className="fas fa-xmark"></i> Clear Text
-        </button>
-      )}
-    </div>
-  );
-}
-
-// ── Text to Speech ─────────────────────────────────────────────────────────────
-// Voice quality scoring — prefers Google/natural OS voices over robotic synth voices
-function scoreVoice(v: SpeechSynthesisVoice): number {
-  const name = v.name.toLowerCase();
-  if (name.includes('google')) return 100;
-  if (name.includes('natural') || name.includes('neural') || name.includes('enhanced')) return 90;
-  if (['samantha', 'daniel', 'karen', 'moira', 'tessa', 'alex', 'victoria', 'fiona', 'oliver'].some(n => name.includes(n))) return 80;
-  if (name.includes('premium') || name.includes('compact') === false) return 60;
-  if (name.includes('compact')) return 20;
-  return 40;
-}
-
-function getBestVoice(voices: SpeechSynthesisVoice[]): number {
-  if (!voices.length) return 0;
-  let best = 0;
-  let bestScore = -1;
-  voices.forEach((v, i) => {
-    const score = scoreVoice(v);
-    if (score > bestScore) { bestScore = score; best = i; }
-  });
-  return best;
-}
-
-// Split text into natural sentence chunks to avoid robotic run-on delivery
-function splitIntoChunks(text: string): string[] {
-  return text
-    .replace(/([.!?])\s+/g, '$1\n')
-    .split('\n')
-    .map(s => s.trim())
-    .filter(Boolean);
-}
-
-function voiceQualityLabel(v: SpeechSynthesisVoice): { label: string; color: string } {
-  const name = v.name.toLowerCase();
-  if (name.includes('google')) return { label: 'Google Neural', color: 'text-cyan-400' };
-  if (name.includes('natural') || name.includes('neural') || name.includes('enhanced')) return { label: 'Neural', color: 'text-cyan-400' };
-  if (['samantha', 'daniel', 'karen', 'moira', 'tessa', 'alex', 'victoria', 'fiona', 'oliver'].some(n => name.includes(n))) return { label: 'Premium', color: 'text-emerald-400' };
-  if (name.includes('compact')) return { label: 'Basic', color: 'text-slate-400' };
-  return { label: 'Standard', color: 'text-yellow-400' };
-}
-
+// ── Text-to-Speech ─────────────────────────────────────────────────────────────
 function TextToSpeech() {
-  const [text, setText] = useState('Welcome to BridgeTech Digital Tools Hub — your free, all-in-one online media and document converter suite. Convert files instantly, right in your browser.');
-  const [speaking, setSpeaking] = useState(false);
-  const [paused, setPaused] = useState(false);
+  const [text, setText] = useState('Welcome to BridgeTech IT Services Digital Products Hub. All utilities are 100% free and run directly inside your browser.');
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [selectedVoice, setSelectedVoice] = useState(0);
-  const [rate, setRate] = useState(0.92);
-  const [pitch, setPitch] = useState(0.98);
-  const [volume, setVolume] = useState(1.0);
-  const [progress, setProgress] = useState(0);
-  const chunksRef = useRef<string[]>([]);
-  const chunkIndexRef = useRef(0);
+  const [selectedVoice, setSelectedVoice] = useState<string>('');
+  const [rate, setRate] = useState(0.95);
+  const [pitch, setPitch] = useState(1.0);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
-    const load = () => {
-      const v = speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
-      setVoices(v);
-      setSelectedVoice(getBestVoice(v));
-    };
-    load();
-    speechSynthesis.onvoiceschanged = load;
-    return () => { speechSynthesis.cancel(); };
-  }, []);
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
 
-  const speakChunk = (chunks: string[], index: number) => {
-    if (index >= chunks.length) {
-      setSpeaking(false);
-      setProgress(100);
-      return;
-    }
-    setProgress(Math.round((index / chunks.length) * 100));
-    const utter = new SpeechSynthesisUtterance(chunks[index]);
-    if (voices[selectedVoice]) utter.voice = voices[selectedVoice];
-    utter.rate = rate;
-    utter.pitch = pitch;
-    utter.volume = volume;
-    utter.onend = () => {
-      chunkIndexRef.current = index + 1;
-      speakChunk(chunks, index + 1);
+    const loadVoices = () => {
+      const available = window.speechSynthesis.getVoices();
+      if (available.length) {
+        setVoices(available);
+        const naturalVoice = available.find(v => (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Premium')) && v.lang.startsWith('en')) || available[0];
+        if (naturalVoice && !selectedVoice) setSelectedVoice(naturalVoice.voiceURI || naturalVoice.name);
+      }
     };
-    utter.onerror = (e) => {
-      if (e.error !== 'interrupted') setSpeaking(false);
-    };
-    speechSynthesis.speak(utter);
-  };
+
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+  }, [selectedVoice]);
 
   const speak = () => {
-    if (!text.trim()) return;
-    speechSynthesis.cancel();
-    setPaused(false);
-    setProgress(0);
-    const chunks = splitIntoChunks(text);
-    chunksRef.current = chunks;
-    chunkIndexRef.current = 0;
-    setSpeaking(true);
-    speakChunk(chunks, 0);
+    if (!text.trim() || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    const chosen = voices.find(v => (v.voiceURI || v.name) === selectedVoice);
+    if (chosen) utterance.voice = chosen;
+    utterance.rate = rate;
+    utterance.pitch = pitch;
+
+    utterance.onstart = () => { setIsSpeaking(true); setIsPaused(false); };
+    utterance.onend = () => { setIsSpeaking(false); setIsPaused(false); };
+    utterance.onerror = () => { setIsSpeaking(false); setIsPaused(false); };
+
+    window.speechSynthesis.speak(utterance);
   };
 
   const pause = () => {
-    if (speechSynthesis.speaking && !speechSynthesis.paused) {
-      speechSynthesis.pause();
-      setPaused(true);
-    }
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.pause();
+    setIsPaused(true);
   };
 
   const resume = () => {
-    if (speechSynthesis.paused) {
-      speechSynthesis.resume();
-      setPaused(false);
-    }
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.resume();
+    setIsPaused(false);
   };
 
   const stop = () => {
-    speechSynthesis.cancel();
-    setSpeaking(false);
-    setPaused(false);
-    setProgress(0);
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+    setIsPaused(false);
   };
 
-  const selectedVoiceObj = voices[selectedVoice];
-  const quality = selectedVoiceObj ? voiceQualityLabel(selectedVoiceObj) : null;
-
   return (
-    <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-4">
-      <h3 className="text-sm font-bold text-white flex items-center gap-2">
-        <i className="fas fa-volume-high text-cyan-400"></i>
-        <span>Text to Speech</span>
-        <span className="ml-auto text-[10px] bg-cyan-950 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-800">Natural Voice</span>
-      </h3>
+    <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur space-y-5">
+      <div className="flex items-center gap-3 pb-3 border-b border-slate-800">
+        <div className="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center text-lg font-bold">
+          <i className="fas fa-volume-high"></i>
+        </div>
+        <div>
+          <h3 className="text-base font-bold text-white">Natural Voice Text-to-Speech Engine</h3>
+          <p className="text-xs text-slate-400">Convert any text to realistic human speech with voice controls.</p>
+        </div>
+      </div>
 
       <textarea
         value={text}
         onChange={e => setText(e.target.value)}
         rows={4}
-        placeholder="Type or paste any text to convert to natural speech..."
-        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-500 resize-none leading-relaxed"
+        placeholder="Type or paste text to speak..."
+        className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-teal-500 transition-colors resize-none"
       />
 
-      {/* Voice selector */}
-      {voices.length > 0 && (
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between text-[11px]">
-            <span className="text-slate-400">Voice</span>
-            {quality && <span className={`font-semibold ${quality.color}`}>{quality.label}</span>}
-          </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
+          <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">Voice Accent</label>
           <select
             value={selectedVoice}
-            onChange={e => setSelectedVoice(Number(e.target.value))}
-            className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500"
+            onChange={e => setSelectedVoice(e.target.value)}
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500"
           >
-            {voices.map((v, i) => {
-              const q = voiceQualityLabel(v);
-              return (
-                <option key={i} value={i}>
-                  {v.name} — {q.label}
-                </option>
-              );
-            })}
+            {voices.map(v => (
+              <option key={v.voiceURI || v.name} value={v.voiceURI || v.name}>
+                {v.name} ({v.lang})
+              </option>
+            ))}
           </select>
-          <p className="text-[10px] text-slate-500">💡 Google Neural and Premium voices sound the most natural</p>
         </div>
-      )}
-
-      {/* Controls */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label: 'Speed', val: rate, set: setRate, min: 0.5, max: 1.5, step: 0.02, color: 'accent-cyan-500', unit: 'x' },
-          { label: 'Pitch', val: pitch, set: setPitch, min: 0.7, max: 1.3, step: 0.02, color: 'accent-purple-500', unit: '' },
-          { label: 'Volume', val: volume, set: setVolume, min: 0, max: 1, step: 0.05, color: 'accent-emerald-500', unit: '%' },
-        ].map(({ label, val, set, min, max, step, color, unit }) => (
-          <div key={label}>
-            <div className="flex justify-between text-[11px] text-slate-400 mb-1">
-              <span>{label}</span>
-              <span className="font-mono">{unit === '%' ? Math.round(val * 100) + '%' : val.toFixed(2) + unit}</span>
-            </div>
-            <input type="range" min={min} max={max} step={step} value={val}
-              onChange={e => set(parseFloat(e.target.value))} className={`w-full ${color}`} />
+        <div>
+          <div className="flex justify-between text-[11px] font-bold text-slate-400 uppercase mb-1">
+            <span>Speed</span>
+            <span className="text-teal-400">{rate}x</span>
           </div>
-        ))}
+          <input type="range" min={0.5} max={1.5} step={0.05} value={rate} onChange={e => setRate(Number(e.target.value))}
+            className="w-full accent-teal-500" />
+        </div>
+        <div>
+          <div className="flex justify-between text-[11px] font-bold text-slate-400 uppercase mb-1">
+            <span>Pitch</span>
+            <span className="text-teal-400">{pitch}x</span>
+          </div>
+          <input type="range" min={0.6} max={1.4} step={0.05} value={pitch} onChange={e => setPitch(Number(e.target.value))}
+            className="w-full accent-teal-500" />
+        </div>
       </div>
 
-      {/* Progress bar */}
-      {speaking && (
-        <div className="space-y-1">
-          <div className="flex justify-between text-[10px] text-slate-500">
-            <span>{paused ? 'Paused' : 'Speaking…'}</span>
-            <span>{progress}%</span>
-          </div>
-          <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Action buttons */}
-      <div className="flex gap-2">
-        {!speaking ? (
-          <button onClick={speak} disabled={!text.trim()}
-            className="flex-1 py-2.5 px-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all disabled:opacity-40">
+      <div className="flex gap-2 pt-2">
+        {!isSpeaking ? (
+          <button onClick={speak}
+            className="flex-1 py-3 px-4 bg-teal-600 hover:bg-teal-500 text-black font-black text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-md">
             <i className="fas fa-play"></i>
             <span>Speak Text</span>
           </button>
         ) : (
           <>
-            {!paused ? (
+            {!isPaused ? (
               <button onClick={pause}
-                className="flex-1 py-2.5 px-4 bg-yellow-600 hover:bg-yellow-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
+                className="flex-1 py-3 px-4 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-md">
                 <i className="fas fa-pause"></i>
                 <span>Pause</span>
               </button>
             ) : (
               <button onClick={resume}
-                className="flex-1 py-2.5 px-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
+                className="flex-1 py-3 px-4 bg-teal-600 hover:bg-teal-500 text-black font-black text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-md">
                 <i className="fas fa-play"></i>
                 <span>Resume</span>
               </button>
             )}
             <button onClick={stop}
-              className="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-red-400 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all">
-              <i className="fas fa-stop"></i> Stop
+              className="py-3 px-5 bg-slate-800 hover:bg-slate-700 text-rose-400 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors border border-slate-700">
+              <i className="fas fa-stop"></i>
+              <span>Stop</span>
             </button>
           </>
         )}
@@ -517,53 +504,110 @@ function TextToSpeech() {
   );
 }
 
+// ── Text Analyzer ──────────────────────────────────────────────────────────────
+function TextAnalyzer() {
+  const [text, setText] = useState('');
 
-// ── Main Page ──────────────────────────────────────────────────────────────────
+  const stats = useMemo(() => {
+    const trimmed = text.trim();
+    const words = trimmed ? trimmed.split(/\s+/).length : 0;
+    const chars = text.length;
+    const charsNoSpaces = text.replace(/\s/g, '').length;
+    const sentences = trimmed ? (text.match(/[^.!?]+[.!?]+/g) || [text]).length : 0;
+    const paragraphs = trimmed ? trimmed.split(/\n+/).filter(Boolean).length : 0;
+    const readTimeMinutes = Math.ceil(words / 200);
+
+    return { words, chars, charsNoSpaces, sentences, paragraphs, readTimeMinutes };
+  }, [text]);
+
+  return (
+    <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur space-y-5">
+      <div className="flex items-center gap-3 pb-3 border-b border-slate-800">
+        <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg font-bold">
+          <i className="fas fa-align-left"></i>
+        </div>
+        <div>
+          <h3 className="text-base font-bold text-white">Word Count &amp; Text Statistics</h3>
+          <p className="text-xs text-slate-400">Detailed character metrics, word frequency, and reading time estimation.</p>
+        </div>
+      </div>
+
+      <textarea
+        value={text}
+        onChange={e => setText(e.target.value)}
+        rows={5}
+        placeholder="Paste article, essay, or copy here to analyze..."
+        className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors resize-none"
+      />
+
+      <div className="grid grid-cols-2 sm:grid-cols-6 gap-2.5">
+        {[
+          { label: 'Words', val: stats.words, color: 'text-indigo-400' },
+          { label: 'Characters', val: stats.chars, color: 'text-blue-400' },
+          { label: 'No Spaces', val: stats.charsNoSpaces, color: 'text-cyan-400' },
+          { label: 'Sentences', val: stats.sentences, color: 'text-emerald-400' },
+          { label: 'Paragraphs', val: stats.paragraphs, color: 'text-purple-400' },
+          { label: 'Reading Time', val: `${stats.readTimeMinutes} min`, color: 'text-amber-400' },
+        ].map((item) => (
+          <div key={item.label} className="bg-slate-950 border border-slate-800 p-3 rounded-2xl text-center">
+            <span className="text-[10px] uppercase font-bold text-slate-500 block">{item.label}</span>
+            <span className={`text-lg font-black ${item.color}`}>{item.val}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── MAIN TINYWOW-STYLE DIGITAL TOOLS HUB ────────────────────────────────────────
 export default function DigitalToolsPage() {
-  const [activeTab, setActiveTab] = useState<ToolCategory>('all');
+  const [activeCategory, setActiveCategory] = useState<ToolCategory>('all');
+  const [activeToolId, setActiveToolId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   // QR Code generator state
   const [qrText, setQrText] = useState('https://www.itservicesfreetown.com/digital-tools');
   const [qrDataUrl, setQrDataUrl] = useState('');
-  const [copiedShareLink, setCopiedShareLink] = useState(false);
-  const [showEmbedModal, setShowEmbedModal] = useState(false);
-  const [copiedEmbed, setCopiedEmbed] = useState(false);
 
-  // Hash-based deep routing for direct search engine and social landing
+  // Handle URL hash routing
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const hash = window.location.hash.toLowerCase();
+    const hash = window.location.hash.toLowerCase().replace('#', '');
     if (!hash) return;
 
-    if (hash.includes('audio') || hash.includes('mp4') || hash.includes('mp3')) {
-      setActiveTab('audio-convert');
-    } else if (hash.includes('music') || hash.includes('song') || hash.includes('finder')) {
-      setActiveTab('music-finder');
-    } else if (hash.includes('image') || hash.includes('photo') || hash.includes('webp') || hash.includes('png')) {
-      setActiveTab('image-convert');
-    } else if (hash.includes('doc') || hash.includes('pdf') || hash.includes('word') || hash.includes('docx')) {
-      setActiveTab('doc-convert');
-    } else if (hash.includes('qr') || hash.includes('password') || hash.includes('metadata') || hash.includes('exif') || hash.includes('hash')) {
-      setActiveTab('qr-hash');
+    if (hash.includes('bg') || hash.includes('background')) {
+      setActiveToolId('bg-remover');
+    } else if (hash.includes('meta') || hash.includes('forensic') || hash.includes('exif')) {
+      setActiveToolId('forensics');
+    } else if (hash.includes('audio') || hash.includes('mp3')) {
+      setActiveToolId('audio-converter');
+    } else if (hash.includes('image') || hash.includes('resize')) {
+      setActiveToolId('image-converter');
+    } else if (hash.includes('doc') || hash.includes('pdf')) {
+      setActiveToolId('doc-converter');
+    } else if (hash.includes('music')) {
+      setActiveToolId('music-finder');
+    } else if (hash.includes('qr')) {
+      setActiveToolId('qr-generator');
+    } else if (hash.includes('tts') || hash.includes('speech')) {
+      setActiveToolId('tts-engine');
+    } else if (hash.includes('password')) {
+      setActiveToolId('password-gen');
+    } else if (hash.includes('color') || hash.includes('palette')) {
+      setActiveToolId('color-palette');
+    } else if (hash.includes('text') || hash.includes('analyzer')) {
+      setActiveToolId('text-analyzer');
     }
-
-    setTimeout(() => {
-      const el = document.querySelector(hash);
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }, 200);
   }, []);
 
+  // Generate QR code
   useEffect(() => {
     let active = true;
     QRCode.toDataURL(qrText.trim() || ' ', {
       width: 420,
       margin: 2,
       errorCorrectionLevel: 'H',
-      color: {
-        dark: '#040e40',
-        light: '#ffffff',
-      },
+      color: { dark: '#040e40', light: '#ffffff' },
     }).then((url) => {
       if (active) setQrDataUrl(url);
     }).catch(() => {
@@ -573,419 +617,282 @@ export default function DigitalToolsPage() {
     return () => { active = false; };
   }, [qrText]);
 
-  const matchesSearch = (title: string, desc: string, tags: string[]) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      title.toLowerCase().includes(q) ||
-      desc.toLowerCase().includes(q) ||
-      tags.some((t) => t.toLowerCase().includes(q))
-    );
-  };
+  // Filter tools based on category and search query
+  const filteredTools = useMemo(() => {
+    return ALL_TOOLS.filter((tool) => {
+      const matchesCat = activeCategory === 'all' || tool.category === activeCategory;
+      if (!matchesCat) return false;
+
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        tool.title.toLowerCase().includes(q) ||
+        tool.desc.toLowerCase().includes(q) ||
+        tool.tags.some(t => t.toLowerCase().includes(q))
+      );
+    });
+  }, [activeCategory, searchQuery]);
+
+  const activeToolObj = ALL_TOOLS.find(t => t.id === activeToolId);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white selection:bg-red-500 selection:text-white">
-      {/* Background Neon Grid */}
+    <div className="min-h-screen bg-slate-950 text-white selection:bg-cyan-500 selection:text-black">
+      {/* Background Radial Glow */}
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black pointer-events-none" />
 
+      {/* Main Container */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-        {/* Header Navigation Breadcrumb */}
-        <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-800">
+        {/* Navigation Breadcrumb */}
+        <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-800/80">
           <Link
             href="/"
-            className="flex items-center gap-2 text-slate-400 hover:text-red-400 text-xs font-semibold tracking-wide transition-colors"
+            className="flex items-center gap-2 text-slate-400 hover:text-cyan-400 text-xs font-semibold tracking-wide transition-colors"
           >
             <i className="fas fa-arrow-left"></i>
             <span>Back to BridgeTech Main Site</span>
           </Link>
 
-          <div className="flex items-center gap-3">
-            <span className="px-3 py-1 bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold rounded-full animate-pulse">
-              Digital Products Suite v2.1
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold rounded-full flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+              100% Free Tools Hub
             </span>
           </div>
         </div>
 
-        {/* Hero Section */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-red-600/20 via-blue-600/20 to-purple-600/20 border border-slate-700/60 rounded-full text-xs font-semibold text-slate-200 mb-4 shadow-xl">
-            <i className="fas fa-wand-magic-sparkles text-red-400"></i>
-            <span>All-in-one local converters, previews, and media tools</span>
+        {/* Hero Section (TinyWow Style) */}
+        <div className="text-center max-w-3xl mx-auto mb-10">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-slate-900/90 border border-slate-800 rounded-full text-xs font-bold text-slate-300 mb-4 shadow-xl">
+            <i className="fas fa-wand-magic-sparkles text-cyan-400"></i>
+            <span>All-in-One Online Media &amp; File Toolkit</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-4">
-            Digital Products <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-blue-400 to-purple-500">& Tools Hub</span>
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white mb-4">
+            Free Digital Tools <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400">For Everyone</span>
           </h1>
 
-          <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
-            Convert video audio to real MP3, export WebM/MP4 frames to PNG or JPEG, convert DOCX and text to PDF, search music previews, create QR codes, generate passwords, analyze text, and run everyday digital utilities from one polished hub.
+          <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-6">
+            Remove image backgrounds, convert video to MP3, inspect AI &amp; EXIF metadata, convert documents to PDF, generate QR codes, and run everyday utilities with zero limits.
           </p>
 
-          {/* Quick Stats Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8 max-w-2xl mx-auto">
-            <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-2xl text-center">
-              <i className="fas fa-lock text-emerald-400 text-lg mb-1"></i>
-              <p className="text-xs font-bold text-white">Local Converters</p>
-              <p className="text-[10px] text-slate-500">Files stay in browser</p>
+          {/* Trust Value Badges */}
+          <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-bold text-slate-400">
+            <div className="flex items-center gap-1.5">
+              <i className="fas fa-circle-check text-emerald-400"></i>
+              <span>100% Free Forever</span>
             </div>
-            <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-2xl text-center">
-              <i className="fas fa-bolt text-amber-400 text-lg mb-1"></i>
-              <p className="text-xs font-bold text-white">Lightning Fast</p>
-              <p className="text-[10px] text-slate-500">No upload queues</p>
+            <span>•</span>
+            <div className="flex items-center gap-1.5">
+              <i className="fas fa-lock text-cyan-400"></i>
+              <span>No Sign-Up Required</span>
             </div>
-            <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-2xl text-center">
-              <i className="fas fa-music text-blue-400 text-lg mb-1"></i>
-              <p className="text-xs font-bold text-white">Media Preview</p>
-              <p className="text-[10px] text-slate-500">Video, audio, PDF</p>
-            </div>
-            <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-2xl text-center">
-              <i className="fas fa-infinity text-purple-400 text-lg mb-1"></i>
-              <p className="text-xs font-bold text-white">No Sign-in</p>
-              <p className="text-[10px] text-slate-500">Open web tools</p>
+            <span>•</span>
+            <div className="flex items-center gap-1.5">
+              <i className="fas fa-shield-halved text-purple-400"></i>
+              <span>Private On-Device Execution</span>
             </div>
           </div>
         </div>
 
-        {/* Live Search & Category Filter Navigation */}
-        <div className="mb-10 space-y-4">
-          <div className="relative max-w-xl mx-auto">
+        {/* Global Live Search Bar */}
+        <div className="max-w-2xl mx-auto mb-8">
+          <div className="relative shadow-2xl">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search tools (e.g. MP3 converter, WebM to JPG, DOCX to PDF, Password, QR code)..."
-              className="w-full bg-slate-900 border border-slate-800 rounded-2xl pl-11 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all shadow-xl"
+              placeholder="Search 11+ digital tools (e.g. remove background, mp3, pdf, qr, deepfake)..."
+              className="w-full bg-slate-900 border-2 border-slate-800 rounded-2xl pl-12 pr-10 py-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-all shadow-inner"
             />
-            <i className="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+            <i className="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-base"></i>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Category Pill Tabs */}
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-10 max-w-4xl mx-auto">
+          {[
+            { id: 'all',       label: '🔥 All Tools',        count: ALL_TOOLS.length },
+            { id: 'image',     label: '🖼️ Image Tools',     count: ALL_TOOLS.filter(t => t.category === 'image').length },
+            { id: 'pdf',       label: '📄 PDF & Docs',       count: ALL_TOOLS.filter(t => t.category === 'pdf').length },
+            { id: 'audio',     label: '🎵 Audio & Speech',   count: ALL_TOOLS.filter(t => t.category === 'audio').length },
+            { id: 'utilities', label: '🛠️ Utilities',        count: ALL_TOOLS.filter(t => t.category === 'utilities').length },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => {
+                setActiveCategory(tab.id as ToolCategory);
+                setActiveToolId(null);
+              }}
+              className={`py-2 px-4 rounded-xl text-xs font-bold transition-all border ${
+                activeCategory === tab.id
+                  ? 'bg-cyan-500 text-black border-cyan-400 shadow-lg shadow-cyan-500/20'
+                  : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+              }`}
+            >
+              <span>{tab.label}</span>
+              <span className={`ml-1.5 text-[10px] px-1.5 py-0.2 rounded-full ${activeCategory === tab.id ? 'bg-black/20 text-black' : 'bg-slate-800 text-slate-500'}`}>
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* ── ACTIVE FOCUSED WORKSPACE (When a tool is opened) ── */}
+        {activeToolId && (
+          <div className="mb-14 space-y-4 animate-fade-in">
+            <div className="flex items-center justify-between bg-slate-900/90 border border-slate-800 p-4 rounded-2xl">
+              <div className="flex items-center gap-3">
+                <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm bg-gradient-to-tr ${activeToolObj?.gradient}`}>
+                  <i className={activeToolObj?.icon}></i>
+                </span>
+                <div>
+                  <h3 className="text-sm font-black text-white">{activeToolObj?.title}</h3>
+                  <p className="text-xs text-slate-400">{activeToolObj?.desc}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveToolId(null)}
+                className="py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors border border-slate-700"
+              >
+                <i className="fas fa-grid-2"></i>
+                <span>Browse All Tools</span>
+              </button>
+            </div>
+
+            {/* Render Selected Tool Component */}
+            {activeToolId === 'bg-remover' && <ImageBackgroundRemover />}
+            {activeToolId === 'forensics' && <FileMetadataInspector />}
+            {activeToolId === 'audio-converter' && <AudioConverter />}
+            {activeToolId === 'image-converter' && <ImageConverter />}
+            {activeToolId === 'doc-converter' && <DocumentConverter />}
+            {activeToolId === 'music-finder' && <MusicFinder />}
+            {activeToolId === 'tts-engine' && <TextToSpeech />}
+            {activeToolId === 'password-gen' && <PasswordGenerator />}
+            {activeToolId === 'color-palette' && <ColorPaletteGenerator />}
+            {activeToolId === 'text-analyzer' && <TextAnalyzer />}
+            {activeToolId === 'qr-generator' && (
+              <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur space-y-6 max-w-xl mx-auto">
+                <div className="flex items-center gap-3 pb-3 border-b border-slate-800">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg font-bold">
+                    <i className="fas fa-qrcode"></i>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white">HD QR Code Generator</h3>
+                    <p className="text-xs text-slate-400">Generate high-density scannable QR codes for any link or text.</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 mb-1.5">Enter URL or Message</label>
+                  <input
+                    type="text"
+                    value={qrText}
+                    onChange={(e) => setQrText(e.target.value)}
+                    placeholder="https://example.com or text..."
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500 font-mono"
+                  />
+                </div>
+
+                <div className="flex items-center justify-center p-6 bg-white rounded-2xl shadow-inner max-w-[240px] mx-auto">
+                  {qrDataUrl && (
+                    <img src={qrDataUrl} alt="QR Code" className="w-52 h-52 object-contain" />
+                  )}
+                </div>
+
+                <a
+                  href={qrDataUrl}
+                  download="qrcode-hd.png"
+                  className="w-full py-3 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 text-black font-black rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md"
+                >
+                  <i className="fas fa-download"></i>
+                  <span>Download High-Resolution PNG</span>
+                </a>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── THE ICONIC TINYWOW TOOL DIRECTORY GRID ── */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <i className="fas fa-grid-2 text-cyan-400"></i>
+              <span>Available Tools ({filteredTools.length})</span>
+            </h2>
+            {searchQuery && (
+              <span className="text-xs text-slate-400">
+                Found {filteredTools.length} tools matching &quot;{searchQuery}&quot;
+              </span>
+            )}
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-2 max-w-4xl mx-auto">
-            {[
-              { id: 'all',           label: 'All Tools',           icon: 'fas fa-grid-2',               color: 'text-white' },
-              { id: 'audio-convert', label: 'Audio Converter',     icon: 'fas fa-music',                color: 'text-red-400' },
-              { id: 'music-finder',  label: 'Online Music Search', icon: 'fas fa-magnifying-glass-wave', color: 'text-blue-400' },
-              { id: 'image-convert', label: 'Image Converter',     icon: 'fas fa-image',                color: 'text-emerald-400' },
-              { id: 'doc-convert',   label: 'Document & PDF',      icon: 'fas fa-file-contract',        color: 'text-purple-400' },
-              { id: 'qr-hash',       label: 'QR & Utilities',      icon: 'fas fa-qrcode',               color: 'text-amber-400' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as ToolCategory)}
-                className={`py-2.5 px-4 rounded-xl text-xs font-bold flex items-center gap-2 transition-all border ${
-                  activeTab === tab.id
-                    ? 'bg-red-600/20 border-red-500/50 text-white shadow-lg shadow-red-900/20'
-                    : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredTools.map((tool) => (
+              <div
+                key={tool.id}
+                onClick={() => {
+                  setActiveToolId(tool.id);
+                  window.scrollTo({ top: 350, behavior: 'smooth' });
+                }}
+                className={`group relative rounded-3xl p-6 border transition-all duration-300 cursor-pointer flex flex-col justify-between ${
+                  activeToolId === tool.id
+                    ? 'bg-slate-900 border-cyan-500 shadow-2xl shadow-cyan-950/60 ring-2 ring-cyan-500/20 scale-[1.02]'
+                    : 'bg-slate-900/60 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900 hover:shadow-xl hover:scale-[1.01]'
                 }`}
               >
-                <i className={`${tab.icon} ${tab.color}`}></i>
-                <span>{tab.label}</span>
-              </button>
+                {/* Badges */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white text-xl shadow-lg bg-gradient-to-tr ${tool.gradient} group-hover:scale-110 transition-transform`}>
+                    <i className={tool.icon}></i>
+                  </div>
+                  {tool.badge && (
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                      tool.isNew
+                        ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 animate-pulse'
+                        : 'bg-slate-800 text-slate-300 border border-slate-700'
+                    }`}>
+                      {tool.badge}
+                    </span>
+                  )}
+                </div>
+
+                {/* Content */}
+                <div className="space-y-2 mb-6">
+                  <h3 className="text-base font-bold text-white group-hover:text-cyan-400 transition-colors">
+                    {tool.title}
+                  </h3>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    {tool.desc}
+                  </p>
+                </div>
+
+                {/* Launch Button */}
+                <div className="pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    {tool.category}
+                  </span>
+                  <span className="font-bold text-cyan-400 group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                    <span>Use Tool</span>
+                    <i className="fas fa-arrow-right text-[10px]"></i>
+                  </span>
+                </div>
+              </div>
             ))}
           </div>
         </div>
 
-        {/* Tools Display */}
-        <div className="space-y-10">
-          {/* 1. Audio Converter */}
-          {(activeTab === 'all' || activeTab === 'audio-convert') &&
-            matchesSearch('Audio Converter', 'Convert audio files MP3 WAV OGG WebM MP4 video', ['audio', 'mp3', 'wav', 'webm', 'ogg', 'mp4', 'trim']) && (
-              <section id="audio-converter">
-                <AudioConverter />
-              </section>
-            )}
-
-          {/* 2. Online Music Search */}
-          {(activeTab === 'all' || activeTab === 'music-finder') &&
-            matchesSearch('Online Music Search', 'Search music artist song title keywords artwork full track', ['music', 'song', 'artist', 'artwork', 'download', 'jamendo']) && (
-              <section id="music-finder">
-                <MusicFinder />
-              </section>
-            )}
-
-          {/* 3. Image Converter */}
-          {(activeTab === 'all' || activeTab === 'image-convert') &&
-            matchesSearch('Image Converter', 'Convert JPG PNG WebP SVG resize compress WebM MP4 video frame', ['image', 'jpg', 'png', 'webp', 'svg', 'resize', 'video', 'frame', 'webm']) && (
-              <section id="image-converter">
-                <ImageConverter />
-              </section>
-            )}
-
-          {/* 4. Document & PDF Converter */}
-          {(activeTab === 'all' || activeTab === 'doc-convert') &&
-            matchesSearch('Document Converter', 'Word to PDF, PDF to Text, Markdown to PDF, text editor', ['word', 'pdf', 'docx', 'text', 'convert']) && (
-              <section id="doc-converter">
-                <DocumentConverter />
-              </section>
-            )}
-
-          {/* 5. QR Code Generator, File Metadata, Password Generator, Color Palette, Text Analyzer, TTS */}
-          {(activeTab === 'all' || activeTab === 'qr-hash') &&
-            matchesSearch('QR Code, Password Generator, Color Palette, Text Analyzer, Text to Speech, File Inspector', 'QR code generator file hash checksum password color speech word count', ['qr', 'qrcode', 'hash', 'password', 'color', 'palette', 'speech', 'words', 'tts', 'analyzer']) && (
-              <section id="qr-utilities" className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 lg:p-8 shadow-2xl backdrop-blur space-y-8">
-                {/* Section Header */}
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-amber-600/20 border border-amber-500/30 rounded-2xl flex items-center justify-center text-amber-400 text-xl font-bold">
-                    <i className="fas fa-toolbox"></i>
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-white">QR Code, Utilities & Developer Tools</h2>
-                    <p className="text-xs text-slate-400">Password generator, color palette creator, QR code maker, text analyzer, text-to-speech & file inspector</p>
-                  </div>
-                </div>
-
-                {/* Row 1: QR Code + File Inspector */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* QR Code Generator */}
-                  <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-4">
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                      <i className="fas fa-qrcode text-amber-400"></i>
-                      <span>QR Code Generator</span>
-                    </h3>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-400 mb-1">Enter URL or Text</label>
-                      <input
-                        type="text"
-                        value={qrText}
-                        onChange={(e) => setQrText(e.target.value)}
-                        placeholder="https://yourwebsite.com or text..."
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500 font-mono"
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-center p-4 bg-white rounded-xl shadow-inner max-w-[220px] mx-auto">
-                      <img
-                        src={qrDataUrl}
-                        alt="Generated QR Code"
-                        className="w-48 h-48 object-contain"
-                      />
-                    </div>
-
-                    <a
-                      href={qrDataUrl}
-                      download="qrcode.png"
-                      className={`w-full py-2.5 px-4 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md ${!qrDataUrl ? 'pointer-events-none opacity-50' : ''}`}
-                    >
-                      <i className="fas fa-download"></i>
-                      <span>Download HD QR Code PNG</span>
-                    </a>
-                  </div>
-
-                  <FileMetadataInspector />
-                </div>
-
-                {/* Row 2: Password Generator + Color Palette */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <PasswordGenerator />
-                  <ColorPaletteGenerator />
-                </div>
-
-                {/* Row 3: Text-to-Speech + Word Count */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <TextToSpeech />
-                  <div className="space-y-4">
-                    {/* Placeholder box for extra utility if needed */}
-                    <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 h-full flex flex-col items-center justify-center text-center gap-3">
-                      <i className="fas fa-clock text-slate-600 text-4xl"></i>
-                      <p className="text-slate-500 text-sm font-medium">More Utilities Coming Soon</p>
-                      <p className="text-slate-600 text-xs">Unit Converter, Timer & Stopwatch, Base64 Encoder, JSON Formatter…</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Row 4: Full-width Text Analyzer */}
-                <div className="grid grid-cols-1 gap-6">
-                  <TextAnalyzer />
-                </div>
-              </section>
-            )}
-        </div>
-
-        {/* Viral Social Share & Free Embed Hub */}
-        <div className="mt-14 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 rounded-3xl p-6 lg:p-8 backdrop-blur shadow-2xl">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-            <div className="text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-500/10 border border-red-500/30 rounded-full text-red-400 text-xs font-bold mb-2">
-                <i className="fas fa-bullhorn"></i> Spread the Word & Boost Productivity
-              </div>
-              <h3 className="text-xl lg:text-2xl font-black text-white">Share These Free Tools With Friends & Colleagues</h3>
-              <p className="text-xs lg:text-sm text-slate-400 mt-1 max-w-xl">
-                100% free, private browser utilities with zero limits. Help students, freelancers, and businesses in Freetown and worldwide convert files seamlessly.
-              </p>
-            </div>
-
-            {/* Social Share Buttons */}
-            <div className="flex flex-wrap items-center justify-center gap-2.5">
-              <a
-                href="https://api.whatsapp.com/send?text=Check%20out%20BridgeTech%27s%20Free%20Digital%20Tools%20Hub%20%E2%80%94%20convert%20MP4%20to%20MP3%2C%20Word%20to%20PDF%2C%20inspect%20photo%20metadata%20%26%20generate%20QR%20codes%20with%20zero%20signups%3A%20https%3A%2F%2Fwww.itservicesfreetown.com%2Fdigital-tools"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg hover:scale-105"
-              >
-                <i className="fab fa-whatsapp text-sm"></i> WhatsApp
-              </a>
-
-              <a
-                href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.itservicesfreetown.com%2Fdigital-tools"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg hover:scale-105"
-              >
-                <i className="fab fa-facebook text-sm"></i> Facebook
-              </a>
-
-              <a
-                href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.itservicesfreetown.com%2Fdigital-tools&text=Free%20Digital%20Tools%20Suite%20by%20BridgeTech%20%E2%80%94%20MP4%20to%20MP3%20Audio%2C%20Word%20to%20PDF%2C%20Image%20Converters%20%26%20QR%20Generator."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-all border border-slate-700 hover:scale-105"
-              >
-                <i className="fab fa-x-twitter text-sm"></i> Post on X
-              </a>
-
-              <a
-                href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fwww.itservicesfreetown.com%2Fdigital-tools"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2.5 bg-blue-700 hover:bg-blue-600 text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg hover:scale-105"
-              >
-                <i className="fab fa-linkedin text-sm"></i> LinkedIn
-              </a>
-
-              <button
-                onClick={async () => {
-                  if (typeof navigator !== 'undefined') {
-                    await navigator.clipboard.writeText('https://www.itservicesfreetown.com/digital-tools');
-                    setCopiedShareLink(true);
-                    setTimeout(() => setCopiedShareLink(false), 2500);
-                  }
-                }}
-                className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl flex items-center gap-2 transition-all border border-slate-700"
-              >
-                <i className="fas fa-link"></i> {copiedShareLink ? '✓ Link Copied!' : 'Copy Link'}
-              </button>
-
-              <button
-                onClick={() => setShowEmbedModal(true)}
-                className="px-4 py-2.5 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 text-xs font-bold rounded-xl flex items-center gap-2 transition-all border border-purple-500/40"
-              >
-                <i className="fas fa-code"></i> Embed on Website
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Embed Widget Modal */}
-        {showEmbedModal && (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 lg:p-8 max-w-lg w-full shadow-2xl relative">
-              <button
-                onClick={() => setShowEmbedModal(false)}
-                className="absolute top-5 right-5 text-slate-400 hover:text-white text-lg"
-              >
-                <i className="fas fa-times"></i>
-              </button>
-
-              <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                <i className="fas fa-code text-purple-400"></i>
-                <span>Embed Digital Tools on Your Website</span>
-              </h3>
-              <p className="text-xs text-slate-400 mb-4">
-                Add a free converter badge or interactive widget to your blog, portfolio, or business website.
-              </p>
-
-              <div className="space-y-3">
-                <label className="block text-xs font-bold text-slate-300">HTML Badge Code:</label>
-                <textarea
-                  readOnly
-                  rows={3}
-                  value={`<a href="https://www.itservicesfreetown.com/digital-tools" target="_blank" rel="noopener" title="Free Online Audio, PDF & Image Tools"><img src="https://www.itservicesfreetown.com/assets/logo.svg" alt="BridgeTech Digital Tools" width="24" height="24" style="display:inline-block;vertical-align:middle;margin-right:6px;" />Free Digital Tools by BridgeTech</a>`}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs font-mono text-emerald-400 select-all resize-none"
-                />
-
-                <button
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(`<a href="https://www.itservicesfreetown.com/digital-tools" target="_blank" rel="noopener" title="Free Online Audio, PDF & Image Tools"><img src="https://www.itservicesfreetown.com/assets/logo.svg" alt="BridgeTech Digital Tools" width="24" height="24" style="display:inline-block;vertical-align:middle;margin-right:6px;" />Free Digital Tools by BridgeTech</a>`);
-                    setCopiedEmbed(true);
-                    setTimeout(() => setCopiedEmbed(false), 2500);
-                  }}
-                  className="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md"
-                >
-                  <i className="fas fa-copy"></i> {copiedEmbed ? '✓ Code Copied to Clipboard!' : 'Copy Embed Code'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* SEO Features & Supported Formats Matrix */}
-        <div className="mt-14 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 lg:p-8 backdrop-blur">
-          <div className="text-center max-w-2xl mx-auto mb-8">
-            <h3 className="text-xl font-bold text-white">Supported Formats & Conversion Matrix</h3>
-            <p className="text-xs text-slate-400 mt-1">High-speed, browser-accelerated processing with zero installation required.</p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800/80">
-              <span className="font-bold text-red-400 block mb-1">🎵 Audio Formats</span>
-              <p className="text-slate-400">MP4, WebM, WAV, OGG, AAC, M4A, FLAC to 320kbps Studio MP3.</p>
-            </div>
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800/80">
-              <span className="font-bold text-blue-400 block mb-1">🖼️ Image Formats</span>
-              <p className="text-slate-400">PNG, JPEG, WebP, AVIF, BMP, GIF, WebM video frame export.</p>
-            </div>
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800/80">
-              <span className="font-bold text-purple-400 block mb-1">📄 Documents</span>
-              <p className="text-slate-400">Microsoft Word (.docx), Markdown (.md), Text (.txt) to PDF.</p>
-            </div>
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800/80">
-              <span className="font-bold text-amber-400 block mb-1">🛡️ Forensics & Security</span>
-              <p className="text-slate-400">Deep EXIF inspector, ELA AI detection, QR PNG/SVG, SHA256.</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer FAQ & Support */}
-        <div className="mt-12 bg-slate-900/60 border border-slate-800/80 rounded-3xl p-8 text-center max-w-4xl mx-auto backdrop-blur">
-          <h3 className="text-lg font-bold text-white mb-2">Frequently Asked Questions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left mt-6">
-            <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
-              <h4 className="text-xs font-bold text-red-400 mb-1">Are my files uploaded to any external server?</h4>
-              <p className="text-xs text-slate-400">
-                Audio, image, video-frame, QR, password, and DOCX/PDF generation tools run in your browser. Music search uses online sources for public metadata/previews, but uploaded converter files stay on your device.
-              </p>
-            </div>
-            <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
-              <h4 className="text-xs font-bold text-blue-400 mb-1">How does the Online Music Search work?</h4>
-              <p className="text-xs text-slate-400">
-                The Music Finder uses public music/video metadata sources for previews and cover art. Direct downloads are offered only when a source provides a legitimate downloadable audio file.
-              </p>
-            </div>
-            <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
-              <h4 className="text-xs font-bold text-amber-400 mb-1">How do I generate a secure password?</h4>
-              <p className="text-xs text-slate-400">
-                Use the Password Generator in the QR & Utilities section. Select character types (uppercase, lowercase, numbers, symbols), set your desired length, and click Generate. Your password is created using the browser&apos;s cryptographically secure random number generator.
-              </p>
-            </div>
-            <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
-              <h4 className="text-xs font-bold text-emerald-400 mb-1">Can I convert MP4 video to MP3?</h4>
-              <p className="text-xs text-slate-400">
-                Yes! The Audio Converter supports MP4 video files. Upload your video, select MP3 as the output format, adjust bitrate quality, and click Convert to extract the full audio track as a clean downloadable MP3.
-              </p>
-            </div>
-          </div>
-
-          {/* Cross-Service Links for Maximum SEO Juice */}
-          <div className="mt-8 pt-6 border-t border-slate-800/80 flex flex-wrap items-center justify-center gap-4 text-xs text-slate-400">
-            <span>Explore BridgeTech:</span>
-            <Link href="/book-appointment" className="text-red-400 hover:underline">Book Device Repair</Link>
-            <span>&bull;</span>
-            <Link href="/repair-cost-checker-freetown" className="text-blue-400 hover:underline">Instant Cost Checker</Link>
-            <span>&bull;</span>
-            <Link href="/marketplace" className="text-amber-400 hover:underline">Tech Marketplace</Link>
-            <span>&bull;</span>
-            <Link href="/blog" className="text-purple-400 hover:underline">Tech News & Repair Guides</Link>
-          </div>
+        {/* Footer Credit & Guarantee */}
+        <div className="mt-16 text-center border-t border-slate-800/80 pt-8 text-xs text-slate-500 space-y-2">
+          <p>BridgeTech IT Services • Free Digital Products Suite v3.0</p>
+          <p>All processing is executed 100% on-device inside your browser for maximum security, speed, and privacy.</p>
         </div>
       </div>
     </div>
