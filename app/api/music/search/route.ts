@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const AUDIUS_NODES = [
+  'https://discoveryprovider.audius.co',
+  'https://audius-discovery-1.theblueprint.xyz',
+  'https://discovery-us-01.audius.openplayer.org',
+];
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -15,97 +21,66 @@ export async function GET(request: NextRequest) {
     const results: any[] = [];
     const seenIds = new Set<string>();
 
-    // 1. Primary: iTunes Search API (Provides instant playable audio stream previews for millions of songs worldwide)
-    try {
-      const itunesUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(
-        cleanQuery
-      )}&media=music&entity=song&limit=30`;
-      const itunesRes = await fetch(itunesUrl, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
-        next: { revalidate: 300 },
-      });
+    // 1. PRIMARY: Audius Decentralized Music Network (100% FULL-LENGTH MP3 Audio Streams)
+    for (const node of AUDIUS_NODES) {
+      try {
+        const audiusUrl = `${node}/v1/tracks/search?app_name=BRIDGETECH&query=${encodeURIComponent(
+          cleanQuery
+        )}&limit=30`;
+        const audiusRes = await fetch(audiusUrl, {
+          headers: { 'User-Agent': 'BridgeTech-DigitalTools/2.0' },
+          next: { revalidate: 300 },
+        });
 
-      if (itunesRes.ok) {
-        const itunesData = await itunesRes.json();
-        if (itunesData.results && Array.isArray(itunesData.results)) {
-          itunesData.results.forEach((item: any) => {
-            if (item.trackId && item.previewUrl && !seenIds.has(`itunes_${item.trackId}`)) {
-              const trackId = `itunes_${item.trackId}`;
-              seenIds.add(trackId);
-              const durationMs = item.trackTimeMillis || 30000;
-              const artwork = item.artworkUrl100
-                ? item.artworkUrl100.replace('100x100bb', '600x600bb')
-                : item.artworkUrl60 || '';
+        if (audiusRes.ok) {
+          const json = await audiusRes.json();
+          const items = json?.data || [];
+          if (Array.isArray(items) && items.length > 0) {
+            items.forEach((item: any) => {
+              const trackId = item.id || item.track_id;
+              if (trackId && !seenIds.has(`audius_${trackId}`) && item.is_streamable !== false) {
+                seenIds.add(`audius_${trackId}`);
 
-              results.push({
-                id: trackId,
-                title: item.trackName || 'Untitled Song',
-                artist: item.artistName || 'Unknown Artist',
-                album: item.collectionName || 'Single',
-                genre: item.primaryGenreName || 'Music',
-                releaseYear: item.releaseDate ? new Date(item.releaseDate).getFullYear() : undefined,
-                durationMs,
-                durationFormatted: formatSeconds(Math.floor(durationMs / 1000)),
-                previewUrl: item.previewUrl,
-                downloadUrl: item.previewUrl,
-                artworkUrlSmall: item.artworkUrl100 || artwork,
-                artworkUrlHD: artwork,
-                isFullTrack: false,
-                source: 'High-Quality Audio Stream',
-                isExplicit: item.trackExplicitness === 'explicit',
-              });
-            }
-          });
+                const durationSec = item.duration || 180;
+                const artworkUrl =
+                  item.artwork?.['1000x1000'] ||
+                  item.artwork?.['480x480'] ||
+                  item.artwork?.['150x150'] ||
+                  item.user?.profile_picture?.['1000x1000'] ||
+                  item.user?.profile_picture?.['480x480'] ||
+                  'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80';
+
+                const streamUrl = `${node}/v1/tracks/${trackId}/stream?app_name=BRIDGETECH`;
+
+                results.push({
+                  id: `audius_${trackId}`,
+                  title: item.title || 'Untitled Song',
+                  artist: item.user?.name || item.user?.handle || 'Unknown Artist',
+                  album: item.genre ? `${item.genre} Beats` : 'Full Track Single',
+                  genre: item.genre || 'Music',
+                  releaseYear: item.release_date ? new Date(item.release_date).getFullYear() : undefined,
+                  durationMs: durationSec * 1000,
+                  durationFormatted: formatSeconds(durationSec),
+                  previewUrl: streamUrl,
+                  downloadUrl: streamUrl,
+                  artworkUrlSmall: artworkUrl,
+                  artworkUrlHD: artworkUrl,
+                  isFullTrack: true,
+                  source: 'Full Length MP3 Track',
+                  isExplicit: false,
+                });
+              }
+            });
+            // If primary node returned results, break early
+            if (results.length > 0) break;
+          }
         }
+      } catch (err) {
+        console.warn(`Audius node ${node} error:`, err);
       }
-    } catch (e) {
-      console.error('iTunes Search API Error:', e);
     }
 
-    // 2. Secondary: Jamendo Music API (Full-Length Free Royalty-Free Tracks)
-    try {
-      const jamendoUrl = `https://api.jamendo.com/v3.0/tracks/?client_id=56d30ee7&format=json&limit=25&namesearch=${encodeURIComponent(
-        cleanQuery
-      )}&include=musicinfo`;
-      const jamendoRes = await fetch(jamendoUrl, {
-        headers: { 'User-Agent': 'BridgeTech-DigitalTools/1.0' },
-        next: { revalidate: 300 },
-      });
-
-      if (jamendoRes.ok) {
-        const jamendoData = await jamendoRes.json();
-        if (jamendoData.results && Array.isArray(jamendoData.results)) {
-          jamendoData.results.forEach((item: any) => {
-            const trackId = `jamendo_${item.id}`;
-            if (!seenIds.has(trackId) && (item.audio || item.audiodownload)) {
-              seenIds.add(trackId);
-              const durationSec = item.duration || 180;
-              results.push({
-                id: trackId,
-                title: item.name || 'Untitled Song',
-                artist: item.artist_name || 'Unknown Artist',
-                album: item.album_name || 'Jamendo Album',
-                genre: item.musicinfo?.tags?.genres?.[0] || 'Royalty-Free',
-                releaseYear: item.releasedate ? new Date(item.releasedate).getFullYear() : undefined,
-                durationMs: durationSec * 1000,
-                durationFormatted: formatSeconds(durationSec),
-                previewUrl: item.audio || item.audiodownload,
-                downloadUrl: item.audiodownload || item.audio,
-                artworkUrlSmall: item.album_image || item.image || '',
-                artworkUrlHD: item.album_image || item.image || '',
-                isFullTrack: true,
-                source: 'Jamendo Royalty-Free (Full Track)',
-                isExplicit: false,
-              });
-            }
-          });
-        }
-      }
-    } catch (e) {
-      console.error('Jamendo API Error:', e);
-    }
-
-    // 3. Tertiary: YouTube Search Scraper (For full video previews & server downloader links)
+    // 2. SECONDARY: YouTube Scraper (For full music videos and multi-server downloads)
     const fetchYouTubeResults = async (searchKeyword: string) => {
       try {
         const ytSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(searchKeyword)}`;
@@ -158,7 +133,7 @@ export async function GET(request: NextRequest) {
                   artworkUrlSmall: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
                   artworkUrlHD: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
                   isFullTrack: true,
-                  source: 'YouTube Music (Video & Audio)',
+                  source: 'YouTube Music (Full Video & Audio)',
                   isExplicit: false,
                 });
               }
@@ -172,6 +147,55 @@ export async function GET(request: NextRequest) {
 
     if (results.length < limit) {
       await fetchYouTubeResults(`${cleanQuery} music`);
+    }
+
+    // 3. TERTIARY: Apple/iTunes Search (High quality artwork and supplementary matches)
+    if (results.length < limit) {
+      try {
+        const itunesUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(
+          cleanQuery
+        )}&media=music&entity=song&limit=15`;
+        const itunesRes = await fetch(itunesUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+          next: { revalidate: 300 },
+        });
+
+        if (itunesRes.ok) {
+          const itunesData = await itunesRes.json();
+          if (itunesData.results && Array.isArray(itunesData.results)) {
+            itunesData.results.forEach((item: any) => {
+              if (item.trackId && item.previewUrl && !seenIds.has(`itunes_${item.trackId}`)) {
+                const trackId = `itunes_${item.trackId}`;
+                seenIds.add(trackId);
+                const durationMs = item.trackTimeMillis || 30000;
+                const artwork = item.artworkUrl100
+                  ? item.artworkUrl100.replace('100x100bb', '600x600bb')
+                  : item.artworkUrl60 || '';
+
+                results.push({
+                  id: trackId,
+                  title: item.trackName || 'Untitled Song',
+                  artist: item.artistName || 'Unknown Artist',
+                  album: item.collectionName || 'Single',
+                  genre: item.primaryGenreName || 'Music',
+                  releaseYear: item.releaseDate ? new Date(item.releaseDate).getFullYear() : undefined,
+                  durationMs,
+                  durationFormatted: formatSeconds(Math.floor(durationMs / 1000)),
+                  previewUrl: item.previewUrl,
+                  downloadUrl: item.previewUrl,
+                  artworkUrlSmall: item.artworkUrl100 || artwork,
+                  artworkUrlHD: artwork,
+                  isFullTrack: false,
+                  source: 'Music Audio Stream',
+                  isExplicit: item.trackExplicitness === 'explicit',
+                });
+              }
+            });
+          }
+        }
+      } catch (e) {
+        console.error('iTunes Search API Error:', e);
+      }
     }
 
     const totalResults = results.length;
