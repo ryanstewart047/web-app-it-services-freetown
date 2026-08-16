@@ -24,7 +24,7 @@ export interface MusicTrack {
 type DownloadFormat = 'mp3' | 'mp4' | 'cover';
 type RepeatMode = 'off' | 'all' | 'one';
 
-// Curated High-Quality Royalty-Free MP3 Playlist
+// Curated High-Quality Royalty-Free MP3 Playlist (100% Free & Continuous Screen-Off Background Playback)
 const DEFAULT_ROYALTY_PLAYLIST: MusicTrack[] = [
   {
     id: 'rf_lofi_study',
@@ -132,7 +132,7 @@ export default function MusicFinder() {
   const [playerDismissed, setPlayerDismissed] = useState(false);
   const [audioError, setAudioError] = useState('');
 
-  // Playback Control Modes
+  // Playback Control Modes (Auto-Play, Repeat, Shuffle)
   const [autoPlayNext, setAutoPlayNext] = useState<boolean>(true);
   const [repeatMode, setRepeatMode] = useState<RepeatMode>('all');
   const [isShuffle, setIsShuffle] = useState<boolean>(false);
@@ -143,11 +143,25 @@ export default function MusicFinder() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [error, setError] = useState('');
 
-  // Audio element reference
+  // Audio element reference for continuous background screen-off playback
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // The current queue — whichever list is "active" for next/prev navigation
-  const activeQueue = isSearchMode ? searchResults : results;
+  // Active Queue Reference to prevent stale closures in async auto-play events
+  const activeQueue = isSearchMode && searchResults.length > 0 ? searchResults : results;
+  const activeQueueRef = useRef<MusicTrack[]>(activeQueue);
+  activeQueueRef.current = activeQueue;
+
+  const activeTrackRef = useRef<MusicTrack | null>(activeTrack);
+  activeTrackRef.current = activeTrack;
+
+  const repeatModeRef = useRef<RepeatMode>(repeatMode);
+  repeatModeRef.current = repeatMode;
+
+  const autoPlayNextRef = useRef<boolean>(autoPlayNext);
+  autoPlayNextRef.current = autoPlayNext;
+
+  const isShuffleRef = useRef<boolean>(isShuffle);
+  isShuffleRef.current = isShuffle;
 
   const formatTime = (secs: number) => {
     if (isNaN(secs) || secs < 0) return '0:00';
@@ -159,7 +173,7 @@ export default function MusicFinder() {
   const extractYouTubeId = (urlStr: string): string | null => {
     if (!urlStr) return null;
     const match = urlStr.match(
-      /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\\w-]{11})/
+      /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/
     );
     return match ? match[1] : null;
   };
@@ -170,7 +184,7 @@ export default function MusicFinder() {
       const track: MusicTrack = {
         id: `yt_pasted_${videoId}`,
         youtubeId: videoId,
-        title: `YouTube Media (${videoId})`,
+        title: `YouTube Video (${videoId})`,
         artist: 'YouTube Video',
         album: 'Pasted Link',
         genre: 'Music / Video',
@@ -181,7 +195,7 @@ export default function MusicFinder() {
         artworkUrlSmall: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
         artworkUrlHD: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
         isFullTrack: true,
-        source: 'YouTube Link',
+        source: 'YouTube Video',
         isExplicit: false,
       };
       setPastedTrack(track);
@@ -190,31 +204,38 @@ export default function MusicFinder() {
     }
   }, [pastedUrl]);
 
-  // ── Auto-Advance to Next Song Logic ──────────────────────────────────────────
+  // ── Bulletproof Auto-Advance to Next Song ────────────────────────────────────
   const playNextTrack = useCallback(() => {
-    if (!activeQueue.length) return;
-    if (repeatMode === 'one' && activeTrack) {
-      if (audioRef.current) {
-        audioRef.current.currentTime = 0;
-        audioRef.current.play().catch(() => {});
+    const queue = activeQueueRef.current;
+    const current = activeTrackRef.current;
+    const rep = repeatModeRef.current;
+    const shuf = isShuffleRef.current;
+
+    if (!queue.length) return;
+
+    if (rep === 'one' && current) {
+      const audio = audioRef.current;
+      if (audio && !current.youtubeId) {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
       }
       return;
     }
 
     let nextIndex = 0;
-    const currentIndex = activeQueue.findIndex((r) => r.id === activeTrack?.id);
+    const currentIndex = queue.findIndex((r) => r.id === current?.id);
 
-    if (isShuffle) {
-      nextIndex = Math.floor(Math.random() * activeQueue.length);
-      if (nextIndex === currentIndex && activeQueue.length > 1) {
-        nextIndex = (nextIndex + 1) % activeQueue.length;
+    if (shuf) {
+      nextIndex = Math.floor(Math.random() * queue.length);
+      if (nextIndex === currentIndex && queue.length > 1) {
+        nextIndex = (nextIndex + 1) % queue.length;
       }
     } else {
       if (currentIndex === -1) {
         nextIndex = 0;
-      } else if (currentIndex < activeQueue.length - 1) {
+      } else if (currentIndex < queue.length - 1) {
         nextIndex = currentIndex + 1;
-      } else if (repeatMode === 'all') {
+      } else if (rep === 'all') {
         nextIndex = 0;
       } else {
         setIsPlaying(false);
@@ -222,71 +243,92 @@ export default function MusicFinder() {
       }
     }
 
-    const nextTrack = activeQueue[nextIndex];
+    const nextTrack = queue[nextIndex];
     if (nextTrack) {
       setActiveTrack(nextTrack);
       setPlayerDismissed(false);
       setIsPlaying(true);
+      setCurrentTime(0);
+      setDuration(0);
     }
-  }, [activeQueue, activeTrack, repeatMode, isShuffle]);
+  }, []);
 
   const playPrevTrack = useCallback(() => {
-    if (!activeQueue.length) return;
-    const currentIndex = activeQueue.findIndex((r) => r.id === activeTrack?.id);
+    const queue = activeQueueRef.current;
+    const current = activeTrackRef.current;
+    if (!queue.length) return;
+
+    const currentIndex = queue.findIndex((r) => r.id === current?.id);
     let prevIndex = 0;
     if (currentIndex > 0) {
       prevIndex = currentIndex - 1;
     } else {
-      prevIndex = activeQueue.length - 1;
+      prevIndex = queue.length - 1;
     }
-    const prevTrack = activeQueue[prevIndex];
+
+    const prevTrack = queue[prevIndex];
     if (prevTrack) {
       setActiveTrack(prevTrack);
       setPlayerDismissed(false);
       setIsPlaying(true);
+      setCurrentTime(0);
+      setDuration(0);
     }
-  }, [activeQueue, activeTrack]);
+  }, []);
 
-  // ── Audio Playback Effect ─────────────────────────────────────────────────────
+  // ── Screen-Off / Dark Screen Background Audio Playback & MediaSession ─────────
   useEffect(() => {
     if (!activeTrack) return;
     setAudioError('');
 
-    // If YouTube embed, no audio element needed
-    if (activeTrack.youtubeId) {
-      setIsPlaying(true);
-      return;
-    }
-
-    // Direct MP3 playback
     const audio = audioRef.current;
-    if (!audio) return;
 
-    audio.src = activeTrack.previewUrl;
-    audio.volume = isMuted ? 0 : volume;
-    audio.load();
+    // Handle Direct Playable Audio Streams (MP3, AAC, M4A, Jamendo, iTunes, Pixabay)
+    if (!activeTrack.youtubeId && activeTrack.previewUrl) {
+      if (audio) {
+        audio.src = activeTrack.previewUrl;
+        audio.volume = isMuted ? 0 : volume;
+        audio.load();
 
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          setIsPlaying(true);
-          setAudioError('');
-        })
-        .catch((e) => {
-          console.warn('Playback error:', e.message);
-          // Autoplay blocked — user interaction needed
-          if (e.name === 'NotAllowedError') {
-            setAudioError('Click play to start audio (browser requires interaction)');
-            setIsPlaying(false);
-          } else if (e.name === 'NotSupportedError') {
-            setAudioError('Audio format not supported by browser.');
-            setIsPlaying(false);
-          }
-        });
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              setIsPlaying(true);
+              setAudioError('');
+              if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = 'playing';
+              }
+            })
+            .catch((err) => {
+              console.warn('Audio direct play notice:', err.message);
+              // Fallback to audio proxy if CORS prevented direct stream
+              if (err.name === 'NotAllowedError') {
+                setAudioError('Click Play to enable audio');
+                setIsPlaying(false);
+              } else {
+                // Try proxying audio
+                const proxyUrl = `/api/music/proxy?url=${encodeURIComponent(activeTrack.previewUrl)}`;
+                audio.src = proxyUrl;
+                audio.load();
+                audio.play()
+                  .then(() => {
+                    setIsPlaying(true);
+                    setAudioError('');
+                  })
+                  .catch(() => {
+                    setIsPlaying(false);
+                  });
+              }
+            });
+        }
+      }
+    } else {
+      // YouTube Embed Video Item
+      setIsPlaying(true);
     }
 
-    // Register with OS MediaSession for Lock Screen & Background Playback
+    // ── Setup OS Lock-Screen / Dark-Screen Media Controls ──
     if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: activeTrack.title,
@@ -298,23 +340,43 @@ export default function MusicFinder() {
         ],
       });
 
+      navigator.mediaSession.playbackState = 'playing';
+
       navigator.mediaSession.setActionHandler('play', () => {
-        audio.play().then(() => setIsPlaying(true)).catch(() => {});
+        if (audio && !activeTrack.youtubeId) {
+          audio.play().then(() => {
+            setIsPlaying(true);
+            navigator.mediaSession.playbackState = 'playing';
+          }).catch(() => {});
+        } else {
+          setIsPlaying(true);
+        }
       });
+
       navigator.mediaSession.setActionHandler('pause', () => {
-        audio.pause();
+        if (audio && !activeTrack.youtubeId) {
+          audio.pause();
+        }
         setIsPlaying(false);
+        navigator.mediaSession.playbackState = 'paused';
       });
-      navigator.mediaSession.setActionHandler('nexttrack', () => playNextTrack());
-      navigator.mediaSession.setActionHandler('previoustrack', () => playPrevTrack());
+
+      navigator.mediaSession.setActionHandler('nexttrack', () => {
+        playNextTrack();
+      });
+
+      navigator.mediaSession.setActionHandler('previoustrack', () => {
+        playPrevTrack();
+      });
+
       navigator.mediaSession.setActionHandler('seekto', (details) => {
-        if (details.seekTime !== undefined) {
+        if (details.seekTime !== undefined && audio) {
           audio.currentTime = details.seekTime;
+          setCurrentTime(details.seekTime);
         }
       });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTrack]);
+  }, [activeTrack, isMuted, volume, playNextTrack, playPrevTrack]);
 
   // Sync volume/mute without reloading track
   useEffect(() => {
@@ -324,11 +386,35 @@ export default function MusicFinder() {
     }
   }, [volume, isMuted]);
 
+  // Update MediaSession position state during playback
+  const handleTimeUpdate = () => {
+    const audio = audioRef.current;
+    if (audio) {
+      setCurrentTime(audio.currentTime);
+      const dur = audio.duration || (activeTrack?.durationMs ? activeTrack.durationMs / 1000 : 0);
+      setDuration(dur);
+
+      if (
+        typeof window !== 'undefined' &&
+        'mediaSession' in navigator &&
+        'setPositionState' in navigator.mediaSession &&
+        dur > 0 &&
+        !isNaN(audio.currentTime)
+      ) {
+        try {
+          navigator.mediaSession.setPositionState({
+            duration: dur,
+            playbackRate: audio.playbackRate || 1.0,
+            position: Math.min(audio.currentTime, dur),
+          });
+        } catch (_) {}
+      }
+    }
+  };
+
   const togglePlayPause = () => {
     if (!activeTrack && activeQueue.length > 0) {
-      setActiveTrack(activeQueue[0]);
-      setPlayerDismissed(false);
-      setIsPlaying(true);
+      playTrack(activeQueue[0]);
       return;
     }
 
@@ -343,12 +429,21 @@ export default function MusicFinder() {
     if (isPlaying) {
       audio.pause();
       setIsPlaying(false);
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'paused';
+      }
     } else {
       audio.play()
-        .then(() => { setIsPlaying(true); setAudioError(''); })
+        .then(() => {
+          setIsPlaying(true);
+          setAudioError('');
+          if ('mediaSession' in navigator) {
+            navigator.mediaSession.playbackState = 'playing';
+          }
+        })
         .catch((e) => {
           console.warn('Play error:', e.message);
-          setAudioError('Tap play again to start audio.');
+          setAudioError('Tap play again to start audio');
         });
     }
   };
@@ -372,6 +467,9 @@ export default function MusicFinder() {
     setPlayerDismissed(true);
     setCurrentTime(0);
     setDuration(0);
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = 'none';
+    }
   };
 
   const searchMusic = async (searchQuery: string, pageNum = 1, append = false) => {
@@ -397,7 +495,7 @@ export default function MusicFinder() {
         setHasMore(data.hasMore || false);
       } else {
         if (!append) {
-          setError(`No results for "${searchQuery}". Showing curated royalty-free playlist.`);
+          setError(`No results found for "${searchQuery}". Showing curated royalty-free playlist.`);
           setIsSearchMode(false);
           setSearchResults([]);
         }
@@ -467,32 +565,46 @@ export default function MusicFinder() {
     }
   };
 
-  const displayList = isSearchMode ? searchResults : results;
-  const showPlayer = !!activeTrack && !playerDismissed;
+  const displayList = isSearchMode && searchResults.length > 0 ? searchResults : results;
+  const showPopupPlayer = !!activeTrack && !playerDismissed;
 
   return (
-    <div className={`bg-slate-900/90 border border-slate-800 rounded-3xl p-6 lg:p-8 shadow-2xl backdrop-blur space-y-6 ${showPlayer ? 'pb-36' : 'pb-8'}`}>
-      {/* HTML5 Audio Element for Screen-Off Background Playback */}
+    <div className={`bg-slate-900/90 border border-slate-800 rounded-3xl p-6 lg:p-8 shadow-2xl backdrop-blur space-y-6 ${showPopupPlayer ? 'pb-40' : 'pb-8'}`}>
+      {/* HTML5 Audio Element for Continuous Screen-Off Background Playback */}
       <audio
         ref={audioRef}
         playsInline
         preload="auto"
-        onTimeUpdate={() => {
-          if (audioRef.current) {
-            setCurrentTime(audioRef.current.currentTime);
-            setDuration(audioRef.current.duration || 0);
-          }
-        }}
+        onTimeUpdate={handleTimeUpdate}
         onEnded={() => {
-          if (autoPlayNext) {
+          if (autoPlayNextRef.current) {
             playNextTrack();
           } else {
             setIsPlaying(false);
+            if ('mediaSession' in navigator) {
+              navigator.mediaSession.playbackState = 'paused';
+            }
           }
         }}
         onError={() => {
-          setAudioError('This track is unavailable. Try another or use search for different music.');
-          setIsPlaying(false);
+          // If error occurs and proxy hasn't been tried yet, try audio proxy
+          if (activeTrack && !activeTrack.youtubeId && audioRef.current && !audioRef.current.src.includes('/api/music/proxy')) {
+            const proxyUrl = `/api/music/proxy?url=${encodeURIComponent(activeTrack.previewUrl)}`;
+            audioRef.current.src = proxyUrl;
+            audioRef.current.load();
+            audioRef.current.play()
+              .then(() => {
+                setIsPlaying(true);
+                setAudioError('');
+              })
+              .catch(() => {
+                setAudioError('Playback error on this stream. Advancing to next track...');
+                if (autoPlayNextRef.current) setTimeout(playNextTrack, 1500);
+              });
+          } else {
+            setAudioError('Stream unavailable. Moving to next track...');
+            if (autoPlayNextRef.current) setTimeout(playNextTrack, 1500);
+          }
         }}
       />
 
@@ -504,18 +616,18 @@ export default function MusicFinder() {
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl font-bold text-white">Royalty-Free Music Player</h2>
+              <h2 className="text-xl font-bold text-white">Royalty-Free MP3 Music Player</h2>
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                <i className="fas fa-bolt text-[9px]"></i> Screen-Off MP3
+                <i className="fas fa-bolt text-[9px]"></i> Screen-Off MP3 Engine
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              Search & play royalty-free music. Auto-advances track to track. Plays with screen off.
+              Plays seamlessly song-to-song. Keeps playing when your screen is turned off or locked.
             </p>
           </div>
         </div>
 
-        {/* Play All Button */}
+        {/* Global AutoPlay & Play All Control */}
         <div className="flex items-center gap-2">
           <button
             onClick={() => {
@@ -536,24 +648,24 @@ export default function MusicFinder() {
             title="Auto-Play Next Song"
           >
             <i className="fas fa-forward-step"></i>
-            <span className="hidden sm:inline">Auto: {autoPlayNext ? 'ON' : 'OFF'}</span>
+            <span>Auto: {autoPlayNext ? 'ON' : 'OFF'}</span>
           </button>
         </div>
       </div>
 
-      {/* Paste YouTube URL */}
+      {/* Paste YouTube URL or Song Link */}
       <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
         <label className="block text-xs font-bold text-red-400 uppercase tracking-wider flex items-center gap-2">
           <i className="fab fa-youtube"></i>
-          <span>Paste YouTube or Audio Link to Play</span>
+          <span>Paste Any YouTube Video or Stream Link to Play</span>
         </label>
         <div className="relative">
           <input
             type="text"
             value={pastedUrl}
             onChange={(e) => setPastedUrl(e.target.value)}
-            placeholder="Paste YouTube song link (e.g. https://youtu.be/...)"
-            className="w-full px-4 py-3 pl-10 pr-20 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-red-500 text-sm font-mono transition-all"
+            placeholder="Paste YouTube song link (e.g. https://www.youtube.com/watch?v=... or https://youtu.be/...)"
+            className="w-full px-4 py-3 pl-10 pr-24 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-red-500 text-sm font-mono transition-all"
           />
           <i className="fab fa-youtube absolute left-3 top-1/2 -translate-y-1/2 text-red-500 text-base"></i>
           {pastedUrl && (
@@ -568,33 +680,33 @@ export default function MusicFinder() {
 
         {pastedTrack && (
           <div className="p-3 bg-slate-900 rounded-xl border border-red-500/40 flex items-center justify-between gap-2">
-            <span className="text-xs font-bold text-emerald-400 truncate">✓ Loaded: {pastedTrack.title}</span>
+            <span className="text-xs font-bold text-emerald-400 truncate">✓ Track Loaded: {pastedTrack.title}</span>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => playTrack(pastedTrack)}
                 className="py-1.5 px-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg text-xs flex items-center gap-1 shrink-0"
               >
-                <i className="fas fa-play"></i> Play
+                <i className="fas fa-play"></i> Play Video
               </button>
               <button
                 onClick={() => openDownloadModal(pastedTrack, 'mp3')}
                 className="py-1.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs flex items-center gap-1 shrink-0"
               >
-                <i className="fas fa-download"></i> Download
+                <i className="fas fa-download"></i> Download Servers
               </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Search Input Bar & Genre Chips */}
+      {/* Search Input Bar & Quick Genre Chips */}
       <div className="space-y-3">
         <form onSubmit={handleSearchSubmit} className="relative">
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search royalty-free songs, lofi, beats, acoustic, electronic..."
+            placeholder="Search millions of songs, lo-fi, afrobeat, gospel, pop, acoustic, electronic..."
             className="w-full px-4 py-3.5 pl-12 pr-32 bg-slate-950 border border-slate-800 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 text-sm transition-all shadow-inner"
           />
           <i className="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-base"></i>
@@ -603,8 +715,8 @@ export default function MusicFinder() {
               <button
                 type="button"
                 onClick={clearSearch}
-                className="py-2 px-2.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold rounded-xl transition-all"
-                title="Clear search"
+                className="py-2 px-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all"
+                title="Clear Search"
               >
                 <i className="fas fa-xmark"></i>
               </button>
@@ -619,10 +731,10 @@ export default function MusicFinder() {
           </div>
         </form>
 
-        {/* Quick Genre Filter Chips */}
+        {/* Quick Genre Chips */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-slate-500 font-bold uppercase mr-1">Quick:</span>
-          {['Lo-Fi Chill', 'Acoustic Guitar', 'Synthwave', 'Ambient Piano', 'Deep Focus', 'Jazz', 'Hip Hop'].map((genre) => (
+          <span className="text-xs text-slate-500 font-bold uppercase mr-1">Quick Play:</span>
+          {['Lo-Fi Chill', 'Acoustic Guitar', 'Synthwave', 'Ambient Piano', 'Deep Focus', 'Afrobeats', 'Gospel', 'Jazz'].map((genre) => (
             <button
               key={genre}
               onClick={() => handleChipClick(genre)}
@@ -634,14 +746,14 @@ export default function MusicFinder() {
         </div>
       </div>
 
-      {/* Active YouTube Embed Player */}
+      {/* Active YouTube Video Player Box if a YouTube Track is Selected */}
       {activeTrack?.youtubeId && (
-        <div className="p-4 bg-slate-950 rounded-2xl border border-red-500/40 space-y-3">
+        <div className="p-4 bg-slate-950 rounded-2xl border border-red-500/40 space-y-3 animate-fade-in">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-red-400 flex items-center gap-1.5">
+            <span className="text-xs font-bold text-red-400 flex items-center gap-1.5 truncate">
               <i className="fab fa-youtube"></i> Now Playing: {activeTrack.title}
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => openDownloadModal(activeTrack, 'mp3')}
                 className="py-1 px-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg flex items-center gap-1"
@@ -651,7 +763,7 @@ export default function MusicFinder() {
               <button
                 onClick={dismissPlayer}
                 className="w-7 h-7 bg-slate-800 hover:bg-red-600 text-slate-400 hover:text-white rounded-lg flex items-center justify-center text-xs transition-colors"
-                title="Close player"
+                title="Close Video"
               >
                 <i className="fas fa-xmark"></i>
               </button>
@@ -673,7 +785,7 @@ export default function MusicFinder() {
       {audioError && (
         <div className="p-3 bg-amber-950/40 border border-amber-700/50 rounded-xl text-xs text-amber-300 flex items-center justify-between gap-2">
           <span className="flex items-center gap-2">
-            <i className="fas fa-triangle-exclamation"></i> {audioError}
+            <i className="fas fa-triangle-exclamation text-amber-400"></i> {audioError}
           </span>
           <button onClick={() => setAudioError('')} className="text-amber-500 hover:text-white text-xs shrink-0">
             <i className="fas fa-xmark"></i>
@@ -707,14 +819,14 @@ export default function MusicFinder() {
           </div>
           <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Auto-Continuous
+            Auto-Play Active
           </span>
         </div>
 
         {loading && (
-          <div className="flex items-center justify-center py-10 text-slate-400">
+          <div className="flex items-center justify-center py-12 text-slate-400">
             <i className="fas fa-circle-notch fa-spin text-2xl mr-3 text-cyan-400"></i>
-            <span className="text-sm">Searching for tracks...</span>
+            <span className="text-sm">Searching songs and direct audio streams...</span>
           </div>
         )}
 
@@ -765,7 +877,7 @@ export default function MusicFinder() {
                     </div>
                     <p className="text-[11px] text-slate-400 truncate mt-0.5">{track.artist}</p>
                     {track.source && (
-                      <span className="text-[10px] text-slate-600">{track.source}</span>
+                      <span className="text-[10px] text-slate-500">{track.source}</span>
                     )}
                   </div>
 
@@ -797,43 +909,45 @@ export default function MusicFinder() {
               setPage(nextPage);
               searchMusic(query, nextPage, true);
             }}
-            className="w-full py-3 bg-slate-950 hover:bg-slate-900 border border-slate-800 hover:border-cyan-600 text-slate-300 hover:text-white text-xs font-bold rounded-2xl transition-all flex items-center justify-center gap-2"
+            className="w-full py-3 bg-slate-950 hover:bg-slate-900 border border-slate-800 hover:border-cyan-600 text-slate-300 hover:text-white text-xs font-bold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-md"
           >
             <i className="fas fa-ellipsis"></i> Load More Tracks
           </button>
         )}
         {loadingMore && (
           <div className="flex items-center justify-center py-4 text-slate-400 text-sm">
-            <i className="fas fa-circle-notch fa-spin mr-2 text-cyan-400"></i> Loading more...
+            <i className="fas fa-circle-notch fa-spin mr-2 text-cyan-400"></i> Loading more songs...
           </div>
         )}
       </div>
 
-      {/* ── PERSISTENT DOCKED MP3 PLAYER BAR ── */}
-      {showPlayer && !activeTrack?.youtubeId && (
-        <div className="fixed bottom-4 left-4 right-4 max-w-5xl mx-auto z-40 bg-slate-900/97 border-2 border-cyan-500/50 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/80">
+      {/* ── PERSISTENT FLOATING / POPUP MP3 PLAYER BAR (Always Pops Up on Any Song Click) ── */}
+      {showPopupPlayer && (
+        <div className="fixed bottom-4 left-3 right-3 sm:left-4 sm:right-4 max-w-5xl mx-auto z-40 bg-slate-900/98 border-2 border-cyan-500/60 backdrop-blur-2xl rounded-3xl shadow-2xl shadow-black/90 animate-slide-up ring-1 ring-cyan-500/20">
           {/* Progress Scrubber Bar */}
           <div className="px-4 pt-3 flex items-center gap-3 text-[11px] text-slate-400 font-mono">
             <span>{formatTime(currentTime)}</span>
             <input
               type="range"
               min={0}
-              max={duration || activeTrack.durationMs / 1000 || 100}
+              max={duration || (activeTrack.durationMs ? activeTrack.durationMs / 1000 : 100)}
               value={currentTime}
               onChange={(e) => {
                 const newTime = Number(e.target.value);
                 setCurrentTime(newTime);
-                if (audioRef.current) audioRef.current.currentTime = newTime;
+                if (audioRef.current && !activeTrack.youtubeId) {
+                  audioRef.current.currentTime = newTime;
+                }
               }}
               className="flex-1 accent-cyan-400 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
             />
-            <span>{formatTime(duration || activeTrack.durationMs / 1000)}</span>
+            <span>{formatTime(duration || (activeTrack.durationMs ? activeTrack.durationMs / 1000 : 0))}</span>
           </div>
 
-          <div className="px-4 pb-3 pt-2 flex items-center justify-between gap-3">
+          <div className="px-4 pb-3 pt-2 flex items-center justify-between gap-2 sm:gap-4">
             {/* Song Meta & Animated Spinning Artwork */}
-            <div className="flex items-center gap-3 min-w-0 max-w-[32%] sm:max-w-[40%]">
-              <div className={`relative w-9 h-9 rounded-full overflow-hidden border border-cyan-500/50 flex-shrink-0 shadow-md ${isPlaying ? 'animate-spin [animation-duration:8s]' : ''}`}>
+            <div className="flex items-center gap-2.5 min-w-0 max-w-[32%] sm:max-w-[38%]">
+              <div className={`relative w-10 h-10 rounded-full overflow-hidden border-2 border-cyan-400/80 flex-shrink-0 shadow-lg ${isPlaying ? 'animate-spin [animation-duration:8s]' : ''}`}>
                 <img
                   src={activeTrack.artworkUrlSmall || activeTrack.artworkUrlHD}
                   alt={activeTrack.title}
@@ -846,47 +960,47 @@ export default function MusicFinder() {
               </div>
             </div>
 
-            {/* Central Controls */}
-            <div className="flex items-center gap-2 sm:gap-3">
+            {/* Central Controls (Shuffle, Prev, Play/Pause, Next, Repeat) */}
+            <div className="flex items-center gap-1.5 sm:gap-2.5">
               {/* Shuffle */}
               <button
                 onClick={() => setIsShuffle(!isShuffle)}
                 className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-colors ${
-                  isShuffle ? 'text-cyan-400 bg-cyan-950/60' : 'text-slate-500 hover:text-slate-300'
+                  isShuffle ? 'text-cyan-400 bg-cyan-950/70 border border-cyan-500/40' : 'text-slate-500 hover:text-slate-300'
                 }`}
-                title="Shuffle"
+                title="Shuffle Queue"
               >
                 <i className="fas fa-shuffle"></i>
               </button>
 
-              {/* Prev */}
+              {/* Prev Track */}
               <button
                 onClick={playPrevTrack}
-                className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center text-xs transition-transform active:scale-95"
+                className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center text-xs transition-transform active:scale-95 shadow-sm"
                 title="Previous Track"
               >
                 <i className="fas fa-backward-step"></i>
               </button>
 
-              {/* Play / Pause */}
+              {/* Main Play / Pause Button */}
               <button
                 onClick={togglePlayPause}
-                className="w-10 h-10 rounded-2xl bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-black font-black flex items-center justify-center text-base shadow-lg shadow-cyan-500/30 transition-transform active:scale-95"
+                className="w-10 h-10 rounded-2xl bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-black font-black flex items-center justify-center text-base shadow-lg shadow-cyan-500/40 transition-transform active:scale-95"
                 title={isPlaying ? 'Pause' : 'Play'}
               >
                 <i className={`fas ${isPlaying ? 'fa-pause' : 'fa-play ml-0.5'}`}></i>
               </button>
 
-              {/* Next */}
+              {/* Next Track */}
               <button
                 onClick={playNextTrack}
-                className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center text-xs transition-transform active:scale-95"
+                className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center text-xs transition-transform active:scale-95 shadow-sm"
                 title="Next Track"
               >
                 <i className="fas fa-forward-step"></i>
               </button>
 
-              {/* Repeat */}
+              {/* Repeat Button */}
               <button
                 onClick={() => {
                   if (repeatMode === 'all') setRepeatMode('one');
@@ -894,7 +1008,7 @@ export default function MusicFinder() {
                   else setRepeatMode('all');
                 }}
                 className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-colors ${
-                  repeatMode !== 'off' ? 'text-cyan-400 bg-cyan-950/60' : 'text-slate-500 hover:text-slate-300'
+                  repeatMode !== 'off' ? 'text-cyan-400 bg-cyan-950/70 border border-cyan-500/40' : 'text-slate-500 hover:text-slate-300'
                 }`}
                 title={`Repeat: ${repeatMode.toUpperCase()}`}
               >
@@ -903,8 +1017,9 @@ export default function MusicFinder() {
               </button>
             </div>
 
-            {/* Volume, Download, Close */}
-            <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            {/* Volume, Save/Download, and ✕ Close Player */}
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              {/* Volume Slider (Hidden on small mobile) */}
               <div className="hidden sm:flex items-center gap-1.5">
                 <button
                   onClick={() => {
@@ -931,22 +1046,23 @@ export default function MusicFinder() {
                       audioRef.current.muted = false;
                     }
                   }}
-                  className="w-16 accent-cyan-400 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  className="w-14 accent-cyan-400 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
               </div>
 
+              {/* Download Modal Trigger */}
               <button
                 onClick={() => openDownloadModal(activeTrack, 'mp3')}
-                className="py-1.5 px-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors shadow-md"
+                className="py-1.5 px-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1 transition-colors shadow-md"
               >
                 <i className="fas fa-download"></i>
                 <span className="hidden sm:inline">Save</span>
               </button>
 
-              {/* ✕ Close Player */}
+              {/* Close Button */}
               <button
                 onClick={dismissPlayer}
-                className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-red-600 text-slate-400 hover:text-white flex items-center justify-center text-xs transition-colors"
+                className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-rose-600 text-slate-400 hover:text-white flex items-center justify-center text-xs transition-colors shadow-sm"
                 title="Close Player"
               >
                 <i className="fas fa-xmark"></i>
