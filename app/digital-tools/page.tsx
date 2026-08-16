@@ -838,6 +838,7 @@ export default function DigitalToolsPage() {
             {filteredTools.map((tool) => (
               <div
                 key={tool.id}
+                id={`tool-${tool.id}`}
                 onClick={() => {
                   setActiveToolId(tool.id);
                   window.scrollTo({ top: 350, behavior: 'smooth' });
@@ -889,11 +890,160 @@ export default function DigitalToolsPage() {
           </div>
         </div>
 
-        {/* Footer Credit & Guarantee */}
-        <div className="mt-16 text-center border-t border-slate-800/80 pt-8 text-xs text-slate-500 space-y-2">
-          <p>BridgeTech IT Services • Free Digital Products Suite v3.0</p>
-          <p>All processing is executed 100% on-device inside your browser for maximum security, speed, and privacy.</p>
-        </div>
+        {/* ── Page Footer ─────────────────────────────────────────────── */}
+        <footer className="mt-20 border-t border-slate-800/80 pt-12">
+
+          {/* Privacy guarantee banner */}
+          <div className="mb-10 rounded-2xl bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10 border border-cyan-500/20 p-5 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+            <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+              <i className="fas fa-shield-alt text-cyan-400 text-xl" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-white">100% Private &amp; Secure — No Upload, No Storage</p>
+              <p className="text-xs text-slate-400 mt-0.5">
+                All processing runs entirely inside your browser. Your files never leave your device and are never sent to any server.
+              </p>
+            </div>
+            <div className="flex gap-3 text-xs text-slate-400 flex-shrink-0">
+              <span className="flex items-center gap-1"><i className="fas fa-lock text-cyan-400" /> Encrypted</span>
+              <span className="flex items-center gap-1"><i className="fas fa-bolt text-yellow-400" /> Fast</span>
+              <span className="flex items-center gap-1"><i className="fas fa-infinity text-green-400" /> Free</span>
+            </div>
+          </div>
+
+          {/* Three-column grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
+
+            {/* Brand column */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+                  <i className="fas fa-tools text-white text-sm" />
+                </div>
+                <span className="font-bold text-white text-sm">BridgeTech Digital Tools</span>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                A free, browser-based digital productivity suite built by BridgeTech IT Services —
+                Freetown&apos;s leading computer &amp; mobile repair specialists.
+              </p>
+              <div className="flex gap-3">
+                <a href="https://facebook.com/itservicefreetown" target="_blank" rel="noopener noreferrer"
+                   aria-label="Facebook"
+                   className="w-8 h-8 rounded-full bg-slate-800 hover:bg-blue-600 flex items-center justify-center text-slate-400 hover:text-white transition-all duration-200 hover:scale-110">
+                  <i className="fab fa-facebook-f text-xs" />
+                </a>
+                <a href="https://instagram.com/itservicesfreetown" target="_blank" rel="noopener noreferrer"
+                   aria-label="Instagram"
+                   className="w-8 h-8 rounded-full bg-slate-800 hover:bg-pink-600 flex items-center justify-center text-slate-400 hover:text-white transition-all duration-200 hover:scale-110">
+                  <i className="fab fa-instagram text-xs" />
+                </a>
+                <a href="https://youtube.com/@itservicesfreetown" target="_blank" rel="noopener noreferrer"
+                   aria-label="YouTube"
+                   className="w-8 h-8 rounded-full bg-slate-800 hover:bg-red-600 flex items-center justify-center text-slate-400 hover:text-white transition-all duration-200 hover:scale-110">
+                  <i className="fab fa-youtube text-xs" />
+                </a>
+                <a href="https://wa.me/23233399391" target="_blank" rel="noopener noreferrer"
+                   aria-label="WhatsApp"
+                   className="w-8 h-8 rounded-full bg-slate-800 hover:bg-green-600 flex items-center justify-center text-slate-400 hover:text-white transition-all duration-200 hover:scale-110">
+                  <i className="fab fa-whatsapp text-xs" />
+                </a>
+              </div>
+            </div>
+
+            {/* Tools column */}
+            <div>
+              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
+                <i className="fas fa-wand-magic-sparkles text-cyan-400" /> Digital Tools
+              </h4>
+              <ul className="space-y-2.5">
+                {[
+                  { icon: 'fa-wand-magic-sparkles', label: 'Remove Image Background', id: 'bg-remover' },
+                  { icon: 'fa-fingerprint',          label: 'AI Forensic Inspector',   id: 'forensics' },
+                  { icon: 'fa-music',                label: 'Audio / Video to MP3',    id: 'audio-converter' },
+                  { icon: 'fa-image',                label: 'Image Converter',         id: 'image-converter' },
+                  { icon: 'fa-file-pdf',             label: 'Word to PDF',             id: 'doc-converter' },
+                  { icon: 'fa-headphones',           label: 'Royalty-Free Music',      id: 'music-finder' },
+                  { icon: 'fa-qrcode',               label: 'QR Code Generator',       id: 'qr-generator' },
+                  { icon: 'fa-volume-high',          label: 'Text-to-Speech',          id: 'tts-engine' },
+                ].map(t => (
+                  <li key={t.id}>
+                    <button
+                      onClick={() => {
+                        const el = document.getElementById(`tool-${t.id}`);
+                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }}
+                      className="flex items-center gap-2 text-xs text-slate-400 hover:text-cyan-400 transition-colors group text-left w-full"
+                    >
+                      <i className={`fas ${t.icon} w-4 text-slate-600 group-hover:text-cyan-400 transition-colors`} />
+                      {t.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Quick Links + Contact column */}
+            <div>
+              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
+                <i className="fas fa-link text-cyan-400" /> Quick Links
+              </h4>
+              <ul className="space-y-2.5 mb-6">
+                {[
+                  { icon: 'fa-home',          label: 'Home',              href: '/' },
+                  { icon: 'fa-shopping-bag',  label: 'Shop Marketplace',  href: '/marketplace' },
+                  { icon: 'fa-calendar-alt',  label: 'Book Appointment',  href: '/book-appointment' },
+                  { icon: 'fa-search',        label: 'Track Repair',      href: '/track-repair' },
+                  { icon: 'fa-robot',         label: 'AI Support Chat',   href: '/chat' },
+                  { icon: 'fa-users',         label: 'Tech Forum',        href: '/forum' },
+                  { icon: 'fa-blog',          label: 'Blog',              href: '/blog' },
+                ].map(l => (
+                  <li key={l.href}>
+                    <Link href={l.href}
+                      className="flex items-center gap-2 text-xs text-slate-400 hover:text-cyan-400 transition-colors group">
+                      <i className={`fas ${l.icon} w-4 text-slate-600 group-hover:text-cyan-400 transition-colors`} />
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Contact mini card */}
+              <div className="rounded-xl bg-slate-800/60 border border-slate-700/50 p-4 space-y-2">
+                <p className="text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-2">Need Repair Help?</p>
+                <a href="tel:+23233399391"
+                   className="flex items-center gap-2 text-xs text-slate-400 hover:text-green-400 transition-colors">
+                  <i className="fas fa-phone text-slate-600 w-4" /> +232 33 399391
+                </a>
+                <a href="https://wa.me/23233399391" target="_blank" rel="noopener noreferrer"
+                   className="flex items-center gap-2 text-xs text-slate-400 hover:text-green-400 transition-colors">
+                  <i className="fab fa-whatsapp text-slate-600 w-4" /> WhatsApp Us
+                </a>
+                <a href="mailto:support@itservicesfreetown.com"
+                   className="flex items-center gap-2 text-xs text-slate-400 hover:text-cyan-400 transition-colors">
+                  <i className="fas fa-envelope text-slate-600 w-4" /> support@itservicesfreetown.com
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom bar */}
+          <div className="border-t border-slate-800/80 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-center sm:text-left">
+              <p className="text-xs text-slate-500">
+                © {new Date().getFullYear()} <span className="text-slate-400 font-medium">BridgeTech IT Services</span> — Free Digital Tools Suite v3.0
+              </p>
+              <p className="text-[11px] text-slate-600 mt-0.5">No. 1 Regent Highway, Jui Junction, Freetown, Sierra Leone</p>
+            </div>
+            <div className="flex items-center gap-4 text-[11px] text-slate-600">
+              <Link href="/privacy" className="hover:text-slate-400 transition-colors">Privacy</Link>
+              <span>·</span>
+              <Link href="/terms" className="hover:text-slate-400 transition-colors">Terms</Link>
+              <span>·</span>
+              <Link href="/disclaimer" className="hover:text-slate-400 transition-colors">Disclaimer</Link>
+            </div>
+          </div>
+
+        </footer>
       </div>
     </div>
   );
