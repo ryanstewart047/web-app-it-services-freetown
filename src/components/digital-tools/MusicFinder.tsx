@@ -573,9 +573,10 @@ export default function MusicFinder() {
           }
         }}
         onError={() => {
-          // Clean error notice without setting rogue timers or interrupting songs
-          setAudioError('Stream unavailable. Select another song.');
-          setIsPlaying(false);
+          if (activeTrack && audioRef.current?.src && audioRef.current.src !== '' && typeof window !== 'undefined' && audioRef.current.src !== window.location.href) {
+            setAudioError('Stream unavailable. Select another song.');
+            setIsPlaying(false);
+          }
         }}
       />
 
