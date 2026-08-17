@@ -2,6 +2,16 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 
+const NEURAL_REMOVER_MODULE_URL = 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.0/dist/index.mjs';
+const NEURAL_REMOVER_ASSET_PATH = 'https://staticimgly.com/@imgly/background-removal-data/1.5.0/dist/';
+
+type NeuralBackgroundRemovalFn = (
+  image: ImageData | ArrayBuffer | Uint8Array | Blob | URL | string,
+  config?: Record<string, unknown>
+) => Promise<Blob>;
+
+type Rgb = { r: number; g: number; b: number };
+
 // Studio backdrop presets
 const STUDIO_PRESETS = [
   { id: 'transparent', name: 'Transparent', value: 'transparent', previewClass: 'bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:12px_12px] bg-slate-950' },
@@ -12,6 +22,83 @@ const STUDIO_PRESETS = [
   { id: 'cyber', name: 'Neon Cyber', value: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 50%, #9333ea 100%)', previewClass: 'bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600' },
 ];
 
+const clamp = (value: number, min = 0, max = 255) => Math.max(min, Math.min(max, value));
+
+const getPixel = (data: Uint8ClampedArray, width: number, pixelIndex: number): Rgb => {
+  const offset = pixelIndex * 4;
+  return {
+    r: data[offset],
+    g: data[offset + 1],
+    b: data[offset + 2],
+  };
+};
+
+const weightedColorDistance = (a: Rgb, b: Rgb) => {
+  const dr = a.r - b.r;
+  const dg = a.g - b.g;
+  const db = a.b - b.b;
+  return Math.sqrt(dr * dr * 0.299 + dg * dg * 0.587 + db * db * 0.114);
+};
+
+const nearestPaletteMatch = (color: Rgb, palette: Rgb[]) => {
+  let bestColor = palette[0];
+  let bestDistance = Number.POSITIVE_INFINITY;
+
+  for (const paletteColor of palette) {
+    const distance = weightedColorDistance(color, paletteColor);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestColor = paletteColor;
+    }
+  }
+
+  return { color: bestColor, distance: bestDistance };
+};
+
+const buildBackgroundPalette = (samples: Rgb[], maxClusters = 6) => {
+  if (samples.length === 0) return [{ r: 255, g: 255, b: 255 }];
+
+  const clusterCount = Math.min(maxClusters, samples.length);
+  const centers = Array.from({ length: clusterCount }, (_, index) => {
+    const sampleIndex = Math.floor((index / Math.max(1, clusterCount - 1)) * (samples.length - 1));
+    return { ...samples[sampleIndex] };
+  });
+
+  for (let iteration = 0; iteration < 8; iteration++) {
+    const sums = centers.map(() => ({ r: 0, g: 0, b: 0, count: 0 }));
+
+    for (const sample of samples) {
+      let nearestIndex = 0;
+      let nearestDistance = Number.POSITIVE_INFINITY;
+
+      centers.forEach((center, index) => {
+        const distance = weightedColorDistance(sample, center);
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearestIndex = index;
+        }
+      });
+
+      sums[nearestIndex].r += sample.r;
+      sums[nearestIndex].g += sample.g;
+      sums[nearestIndex].b += sample.b;
+      sums[nearestIndex].count++;
+    }
+
+    sums.forEach((sum, index) => {
+      if (sum.count > 0) {
+        centers[index] = {
+          r: sum.r / sum.count,
+          g: sum.g / sum.count,
+          b: sum.b / sum.count,
+        };
+      }
+    });
+  }
+
+  return centers;
+};
+
 export default function ImageBackgroundRemover() {
   const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [originalFileName, setOriginalFileName] = useState<string>('');
@@ -20,9 +107,10 @@ export default function ImageBackgroundRemover() {
   const [progressPercent, setProgressPercent] = useState<number>(0);
   const [progressStage, setProgressStage] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+  const [processingMode, setProcessingMode] = useState<'neural' | 'fallback' | null>(null);
 
   // Background Customization State
-  const [selectedPreset, setSelectedPreset] = useState<string>('transparent');
+  const [selectedPreset, setSelectedPreset] = useState<string>('white');
   const [customColor, setCustomColor] = useState<string>('#FFFFFF');
   const [customBgImage, setCustomBgImage] = useState<string | null>(null);
 
@@ -38,40 +126,49 @@ export default function ImageBackgroundRemover() {
   const bgInputRef = useRef<HTMLInputElement | null>(null);
   const sliderContainerRef = useRef<HTMLDivElement | null>(null);
   const isDraggingSlider = useRef<boolean>(false);
+  const processedObjectUrlRef = useRef<string | null>(null);
 
-  // ── Load CDN Neural Model dynamically to prevent Next.js build errors ────────
-  const loadImglyCDN = useCallback(async (): Promise<any> => {
-    if (typeof window === 'undefined') return null;
-    if ((window as any).imglyBackgroundRemoval) {
-      return (window as any).imglyBackgroundRemoval;
+  const replaceProcessedImage = useCallback((url: string | null, isObjectUrl = false) => {
+    if (processedObjectUrlRef.current) {
+      URL.revokeObjectURL(processedObjectUrlRef.current);
+      processedObjectUrlRef.current = null;
     }
 
-    return new Promise((resolve, reject) => {
-      // Check if script tag already exists
-      const existingScript = document.getElementById('imgly-cdn-script');
-      if (existingScript) {
-        existingScript.addEventListener('load', () => resolve((window as any).imglyBackgroundRemoval));
-        existingScript.addEventListener('error', () => reject(new Error('Failed to load neural model script')));
-        return;
-      }
+    if (isObjectUrl && url) {
+      processedObjectUrlRef.current = url;
+    }
 
-      const script = document.createElement('script');
-      script.id = 'imgly-cdn-script';
-      script.src = 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.0/dist/bundle.js';
-      script.async = true;
-      script.onload = () => {
-        if ((window as any).imglyBackgroundRemoval) {
-          resolve((window as any).imglyBackgroundRemoval);
-        } else {
-          resolve(null);
-        }
-      };
-      script.onerror = () => {
-        // Fallback to local adaptive canvas matting
-        resolve(null);
-      };
-      document.head.appendChild(script);
-    });
+    setProcessedImage(url);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (processedObjectUrlRef.current) {
+        URL.revokeObjectURL(processedObjectUrlRef.current);
+      }
+    };
+  }, []);
+
+  // ── Load browser neural segmentation model dynamically to keep Next.js SSR safe ──
+  const loadNeuralBackgroundRemoval = useCallback(async (): Promise<NeuralBackgroundRemovalFn | null> => {
+    if (typeof window === 'undefined') return null;
+    if ((window as any).__bridgeTechBgRemoval) {
+      return (window as any).__bridgeTechBgRemoval as NeuralBackgroundRemovalFn;
+    }
+
+    try {
+      const imglyModule: any = await import(/* webpackIgnore: true */ NEURAL_REMOVER_MODULE_URL);
+      const removeBackground = imglyModule?.default || imglyModule?.removeBackground;
+
+      if (typeof removeBackground === 'function') {
+        (window as any).__bridgeTechBgRemoval = removeBackground;
+        return removeBackground as NeuralBackgroundRemovalFn;
+      }
+    } catch (loadError) {
+      console.warn('Neural background remover failed to load:', loadError);
+    }
+
+    return null;
   }, []);
 
   const handleFileSelect = (file: File) => {
@@ -81,9 +178,10 @@ export default function ImageBackgroundRemover() {
     }
 
     setError(null);
-    setProcessedImage(null);
+    replaceProcessedImage(null);
+    setProcessingMode(null);
     setCustomBgImage(null);
-    setSelectedPreset('transparent');
+    setSelectedPreset('white');
     setOriginalFileName(file.name.replace(/\.[^/.]+$/, ''));
 
     const reader = new FileReader();
@@ -124,104 +222,181 @@ export default function ImageBackgroundRemover() {
         const imageData = ctx.getImageData(0, 0, width, height);
         const data = imageData.data;
 
-        // Sample corner and perimeter colors to determine background palette
-        const samplePoints = [
-          [0, 0],
-          [width - 1, 0],
-          [0, height - 1],
-          [width - 1, height - 1],
-          [Math.floor(width / 2), 0],
-          [0, Math.floor(height / 2)],
-          [width - 1, Math.floor(height / 2)],
-          [Math.floor(width / 2), height - 1],
-          [Math.floor(width * 0.1), Math.floor(height * 0.1)],
-          [Math.floor(width * 0.9), Math.floor(height * 0.1)],
-        ];
+        const pixelCount = width * height;
+        const perimeterSamples: Rgb[] = [];
+        const sampleStep = Math.max(1, Math.floor(Math.min(width, height) / 90));
 
-        const bgSamples: { r: number; g: number; b: number }[] = [];
-        for (const [x, y] of samplePoints) {
-          const idx = (y * width + x) * 4;
-          bgSamples.push({ r: data[idx], g: data[idx + 1], b: data[idx + 2] });
+        for (let x = 0; x < width; x += sampleStep) {
+          perimeterSamples.push(getPixel(data, width, x));
+          perimeterSamples.push(getPixel(data, width, (height - 1) * width + x));
+        }
+        for (let y = 0; y < height; y += sampleStep) {
+          perimeterSamples.push(getPixel(data, width, y * width));
+          perimeterSamples.push(getPixel(data, width, y * width + width - 1));
         }
 
-        // Calculate average background luminance and color
-        const avgR = bgSamples.reduce((acc, s) => acc + s.r, 0) / bgSamples.length;
-        const avgG = bgSamples.reduce((acc, s) => acc + s.g, 0) / bgSamples.length;
-        const avgB = bgSamples.reduce((acc, s) => acc + s.b, 0) / bgSamples.length;
+        const backgroundPalette = buildBackgroundPalette(perimeterSamples);
+        const bgDistance = new Float32Array(pixelCount);
+        const strictBackgroundDistance = 16 + tol * 1.15;
+        const looseBackgroundDistance = 34 + tol * 2.2;
+        const connectedEdgeDistance = 22 + tol * 1.7;
+        const cx = width / 2;
+        const cy = height / 2;
 
-        // Alpha map allocation
-        const alphaMap = new Float32Array(width * height);
-        const threshold = tol * 2.2;
+        for (let index = 0; index < pixelCount; index++) {
+          bgDistance[index] = nearestPaletteMatch(getPixel(data, width, index), backgroundPalette).distance;
+        }
 
-        // Pass 1: Compute Color Distance & Saliency Mask
+        const backgroundMask = new Uint8Array(pixelCount);
+        const queue = new Int32Array(pixelCount);
+        let head = 0;
+        let tail = 0;
+
+        const seedBackground = (index: number) => {
+          if (backgroundMask[index] || bgDistance[index] > looseBackgroundDistance) return;
+          backgroundMask[index] = 1;
+          queue[tail++] = index;
+        };
+
+        for (let x = 0; x < width; x++) {
+          seedBackground(x);
+          seedBackground((height - 1) * width + x);
+        }
         for (let y = 0; y < height; y++) {
-          for (let x = 0; x < width; x++) {
-            const i = (y * width + x) * 4;
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
+          seedBackground(y * width);
+          seedBackground(y * width + width - 1);
+        }
 
-            // Minimum distance to any sampled background point
-            let minDiff = 999999;
-            for (const bg of bgSamples) {
-              const dr = r - bg.r;
-              const dg = g - bg.g;
-              const db = b - bg.b;
-              const dist = Math.sqrt(dr * dr * 0.299 + dg * dg * 0.587 + db * db * 0.114);
-              if (dist < minDiff) minDiff = dist;
-            }
+        const maybeAddNeighbor = (parentIndex: number, neighborIndex: number) => {
+          if (neighborIndex < 0 || neighborIndex >= pixelCount || backgroundMask[neighborIndex]) return;
 
-            // Distance from average background
-            const avgDist = Math.sqrt(
-              Math.pow(r - avgR, 2) * 0.299 +
-              Math.pow(g - avgG, 2) * 0.587 +
-              Math.pow(b - avgB, 2) * 0.114
-            );
+          const parentColor = getPixel(data, width, parentIndex);
+          const neighborColor = getPixel(data, width, neighborIndex);
+          const localContinuity = weightedColorDistance(parentColor, neighborColor);
+          const x = neighborIndex % width;
+          const y = Math.floor(neighborIndex / width);
+          const centerDistance = Math.sqrt(Math.pow((x - cx) / cx, 2) + Math.pow((y - cy) / cy, 2));
+          const centerProtection = Math.max(0, 1 - centerDistance) * (18 + tol * 0.35);
+          const adjustedLooseDistance = looseBackgroundDistance - centerProtection;
 
-            const effectiveDist = Math.min(minDiff, avgDist);
+          const isSmoothConnectedBackground =
+            bgDistance[neighborIndex] < adjustedLooseDistance &&
+            localContinuity < connectedEdgeDistance;
 
-            // Saliency center weighting (foreground subjects are typically centered)
-            const cx = width / 2;
-            const cy = height / 2;
-            const distFromCenter = Math.sqrt(Math.pow((x - cx) / cx, 2) + Math.pow((y - cy) / cy, 2));
-            const centerFactor = 1.0 - Math.min(distFromCenter * 0.35, 0.4);
+          if (bgDistance[neighborIndex] < strictBackgroundDistance || isSmoothConnectedBackground) {
+            backgroundMask[neighborIndex] = 1;
+            queue[tail++] = neighborIndex;
+          }
+        };
 
-            if (effectiveDist < threshold * 0.6) {
-              alphaMap[y * width + x] = 0; // Pure background
-            } else if (effectiveDist > threshold * 1.4) {
-              alphaMap[y * width + x] = 1.0; // Pure foreground
-            } else {
-              // Smooth transition / edge feathering
-              const norm = (effectiveDist - threshold * 0.6) / (threshold * 0.8);
-              alphaMap[y * width + x] = Math.max(0, Math.min(1, norm * centerFactor));
+        while (head < tail) {
+          const index = queue[head++];
+          const x = index % width;
+
+          if (x > 0) maybeAddNeighbor(index, index - 1);
+          if (x < width - 1) maybeAddNeighbor(index, index + 1);
+          if (index >= width) maybeAddNeighbor(index, index - width);
+          if (index < pixelCount - width) maybeAddNeighbor(index, index + width);
+        }
+
+        // Remove tiny foreground islands caused by image compression or patterned backgrounds.
+        const visited = new Uint8Array(pixelCount);
+        const componentQueue = new Int32Array(pixelCount);
+        const minIslandArea = Math.max(24, pixelCount * 0.00045);
+        const softIslandArea = Math.max(160, pixelCount * 0.0035);
+
+        for (let start = 0; start < pixelCount; start++) {
+          if (backgroundMask[start] || visited[start]) continue;
+
+          let componentHead = 0;
+          let componentTail = 0;
+          let centerHits = 0;
+          visited[start] = 1;
+          componentQueue[componentTail++] = start;
+
+          while (componentHead < componentTail) {
+            const index = componentQueue[componentHead++];
+            const x = index % width;
+            const y = Math.floor(index / width);
+            const inMainSubjectZone =
+              Math.abs((x - cx) / cx) < 0.72 &&
+              Math.abs((y - cy) / cy) < 0.82;
+
+            if (inMainSubjectZone) centerHits++;
+
+            const inspectNeighbor = (neighborIndex: number) => {
+              if (neighborIndex < 0 || neighborIndex >= pixelCount) return;
+              if (visited[neighborIndex] || backgroundMask[neighborIndex]) return;
+              visited[neighborIndex] = 1;
+              componentQueue[componentTail++] = neighborIndex;
+            };
+
+            if (x > 0) inspectNeighbor(index - 1);
+            if (x < width - 1) inspectNeighbor(index + 1);
+            if (index >= width) inspectNeighbor(index - width);
+            if (index < pixelCount - width) inspectNeighbor(index + width);
+          }
+
+          const isTinyNoise = componentTail < minIslandArea;
+          const isOffCenterSpeckle = componentTail < softIslandArea && centerHits < componentTail * 0.08;
+
+          if (isTinyNoise || isOffCenterSpeckle) {
+            for (let i = 0; i < componentTail; i++) {
+              backgroundMask[componentQueue[i]] = 1;
             }
           }
         }
 
-        // Pass 2: Edge smoothing & Matting (Feathering)
-        for (let y = 0; y < height; y++) {
-          for (let x = 0; x < width; x++) {
-            const i = (y * width + x) * 4;
-            let alpha = alphaMap[y * width + x];
+        const alphaMap = new Uint8ClampedArray(pixelCount);
+        const edgeRadius = Math.max(1, smooth);
 
-            if (smooth > 0 && (alpha > 0 && alpha < 1)) {
-              let sum = 0;
-              let count = 0;
-              for (let dy = -smooth; dy <= smooth; dy++) {
-                for (let dx = -smooth; dx <= smooth; dx++) {
-                  const nx = x + dx;
-                  const ny = y + dy;
-                  if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-                    sum += alphaMap[ny * width + nx];
-                    count++;
-                  }
-                }
+        for (let index = 0; index < pixelCount; index++) {
+          if (backgroundMask[index]) {
+            alphaMap[index] = 0;
+            continue;
+          }
+
+          const x = index % width;
+          const y = Math.floor(index / width);
+          let touchesBackground = false;
+
+          for (let dy = -edgeRadius; dy <= edgeRadius && !touchesBackground; dy++) {
+            for (let dx = -edgeRadius; dx <= edgeRadius; dx++) {
+              const nx = x + dx;
+              const ny = y + dy;
+              if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+              if (backgroundMask[ny * width + nx]) {
+                touchesBackground = true;
+                break;
               }
-              alpha = sum / count;
             }
-
-            data[i + 3] = Math.round(alpha * 255);
           }
+
+          if (!touchesBackground) {
+            alphaMap[index] = 255;
+            continue;
+          }
+
+          const matte = (bgDistance[index] - strictBackgroundDistance * 0.68) /
+            Math.max(1, looseBackgroundDistance - strictBackgroundDistance * 0.68);
+          alphaMap[index] = Math.round(clamp(matte, 0.18, 1) * 255);
+        }
+
+        for (let index = 0; index < pixelCount; index++) {
+          const offset = index * 4;
+          const alpha = alphaMap[index] / 255;
+
+          if (alpha > 0 && alpha < 1) {
+            const pixelColor = getPixel(data, width, index);
+            const { color: nearestBackground } = nearestPaletteMatch(pixelColor, backgroundPalette);
+            const decontaminateStrength = (1 - alpha) * 0.48;
+
+            data[offset] = clamp(pixelColor.r + (pixelColor.r - nearestBackground.r) * decontaminateStrength);
+            data[offset + 1] = clamp(pixelColor.g + (pixelColor.g - nearestBackground.g) * decontaminateStrength);
+            data[offset + 2] = clamp(pixelColor.b + (pixelColor.b - nearestBackground.b) * decontaminateStrength);
+          }
+
+          data[offset + 3] = alphaMap[index];
         }
 
         ctx.putImageData(imageData, 0, 0);
@@ -243,46 +418,54 @@ export default function ImageBackgroundRemover() {
     try {
       // 1. Attempt to load deep learning neural model via dynamic CDN
       setProgressPercent(25);
-      setProgressStage('Loading ISNet neural network...');
-      const imgly = await loadImglyCDN();
+      setProgressStage('Loading professional neural cutout model...');
+      const removeBackground = await loadNeuralBackgroundRemoval();
 
-      if (imgly && typeof imgly.removeBackground === 'function') {
+      if (removeBackground) {
         setProgressPercent(45);
-        setProgressStage('Neural model isolating foreground subject & hair...');
+        setProgressStage('Neural model isolating the main subject...');
         
-        const blob = await imgly.removeBackground(imageSrc, {
-          progress: (key: string, current: number, total: number) => {
+        const blob = await removeBackground(imageSrc, {
+          publicPath: NEURAL_REMOVER_ASSET_PATH,
+          model: 'medium',
+          proxyToWorker: true,
+          debug: false,
+          progress: (_key: string, current: number, total: number) => {
             if (total > 0) {
               const pct = Math.round((current / total) * 40) + 50;
               setProgressPercent(Math.min(pct, 95));
-              setProgressStage(`Processing neural layers (${Math.round((current / total) * 100)}%)...`);
+              setProgressStage(`Downloading and processing AI model (${Math.round((current / total) * 100)}%)...`);
             }
           },
           output: {
             format: 'image/png',
             quality: 1.0,
+            type: 'foreground',
           },
         });
 
         const url = URL.createObjectURL(blob);
-        setProcessedImage(url);
+        replaceProcessedImage(url, true);
+        setProcessingMode('neural');
         setProgressPercent(100);
-        setProgressStage('AI Subject Isolation Complete!');
+        setProgressStage('Subject isolated on white studio background.');
       } else {
         // 2. High-precision Adaptive Saliency Matting Fallback
         setProgressPercent(50);
-        setProgressStage('Analyzing color contours & edge boundaries...');
+        setProgressStage('Using advanced local edge-connected matting...');
         const resultUrl = await processWithAdaptiveMatting(imageSrc, tolerance, edgeSmoothing);
         setProgressPercent(100);
-        setProgressStage('Foreground Extracted Successfully!');
-        setProcessedImage(resultUrl);
+        setProgressStage('Foreground extracted on white studio background.');
+        replaceProcessedImage(resultUrl);
+        setProcessingMode('fallback');
       }
     } catch (err: any) {
       console.warn('Neural network fallback to contour matting:', err);
       try {
-        setProgressStage('Refining subject with adaptive contour matting...');
+        setProgressStage('Neural model unavailable. Refining with local contour matting...');
         const resultUrl = await processWithAdaptiveMatting(imageSrc, tolerance, edgeSmoothing);
-        setProcessedImage(resultUrl);
+        replaceProcessedImage(resultUrl);
+        setProcessingMode('fallback');
         setProgressPercent(100);
       } catch (fallbackErr: any) {
         setError('Failed to remove background. Please try another image.');
@@ -322,8 +505,12 @@ export default function ImageBackgroundRemover() {
   };
 
   // ── Export Full Resolution Image with Selected Studio Backdrop ───────────────
-  const handleDownload = async (format: 'png' | 'jpg' = 'png') => {
+  const handleDownload = async (
+    format: 'png' | 'jpg' = 'png',
+    backgroundOverride?: string
+  ) => {
     if (!processedImage) return;
+    const exportPreset = backgroundOverride || selectedPreset;
 
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -335,27 +522,27 @@ export default function ImageBackgroundRemover() {
       if (!ctx) return;
 
       // Render custom background
-      if (selectedPreset === 'transparent' && format === 'png') {
+      if (exportPreset === 'transparent' && format === 'png') {
         // Leave canvas transparent
-      } else if (customBgImage) {
+      } else if (exportPreset === 'custom-image' && customBgImage) {
         const bgImg = new Image();
         bgImg.onload = () => {
           ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          triggerSave(canvas, format);
+          triggerSave(canvas, format, exportPreset);
         };
         bgImg.src = customBgImage;
         return;
-      } else if (selectedPreset !== 'transparent') {
-        const preset = STUDIO_PRESETS.find((p) => p.id === selectedPreset);
-        const fillValue = preset?.value || customColor;
+      } else if (exportPreset !== 'transparent') {
+        const preset = STUDIO_PRESETS.find((p) => p.id === exportPreset);
+        const fillValue = preset?.value || (exportPreset === 'white' ? '#FFFFFF' : customColor);
 
         if (fillValue.startsWith('linear-gradient')) {
           const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-          if (selectedPreset === 'sunset') {
+          if (exportPreset === 'sunset') {
             grad.addColorStop(0, '#f97316');
             grad.addColorStop(1, '#db2777');
-          } else if (selectedPreset === 'cyber') {
+          } else if (exportPreset === 'cyber') {
             grad.addColorStop(0, '#06b6d4');
             grad.addColorStop(0.5, '#3b82f6');
             grad.addColorStop(1, '#9333ea');
@@ -372,18 +559,28 @@ export default function ImageBackgroundRemover() {
       }
 
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      triggerSave(canvas, format);
+      triggerSave(canvas, format, exportPreset);
     };
     img.src = processedImage;
   };
 
-  const triggerSave = (canvas: HTMLCanvasElement, format: 'png' | 'jpg') => {
+  const triggerSave = (canvas: HTMLCanvasElement, format: 'png' | 'jpg', exportPreset: string) => {
     const mime = format === 'png' ? 'image/png' : 'image/jpeg';
     const quality = format === 'png' ? undefined : 0.95;
     const dataUrl = canvas.toDataURL(mime, quality);
+    const suffixByPreset: Record<string, string> = {
+      transparent: 'transparent-cutout',
+      white: 'white-background',
+      'id-blue': 'id-blue-background',
+      'studio-slate': 'studio-slate-background',
+      sunset: 'sunset-background',
+      cyber: 'cyber-background',
+      'custom-color': 'custom-background',
+      'custom-image': 'photo-background',
+    };
 
     const link = document.createElement('a');
-    link.download = `${originalFileName || 'image'}-nobg.${format}`;
+    link.download = `${originalFileName || 'image'}-${suffixByPreset[exportPreset] || 'background-removed'}.${format}`;
     link.href = dataUrl;
     document.body.appendChild(link);
     link.click();
@@ -421,11 +618,11 @@ export default function ImageBackgroundRemover() {
               <span>New Photo</span>
             </button>
             <button
-              onClick={() => handleDownload('png')}
+              onClick={() => handleDownload('png', 'white')}
               className="py-2 px-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-purple-900/30 flex items-center gap-2"
             >
               <i className="fas fa-download"></i>
-              <span>Download HD PNG</span>
+              <span>Download White PNG</span>
             </button>
           </div>
         )}
@@ -718,34 +915,59 @@ export default function ImageBackgroundRemover() {
                   min={10}
                   max={60}
                   value={tolerance}
+                  disabled={processingMode === 'neural'}
                   onChange={(e) => {
                     const newTol = Number(e.target.value);
                     setTolerance(newTol);
-                    if (originalImage) {
-                      processWithAdaptiveMatting(originalImage, newTol, edgeSmoothing).then((url) => {
-                        setProcessedImage(url);
-                      });
+                    if (originalImage && processingMode !== 'neural') {
+                      setIsProcessing(true);
+                      setProgressStage('Refining local matting edges...');
+                      processWithAdaptiveMatting(originalImage, newTol, edgeSmoothing)
+                        .then((url) => {
+                          replaceProcessedImage(url);
+                          setProcessingMode('fallback');
+                        })
+                        .catch(() => {
+                          setError('Unable to refine the image. Please try a different sensitivity.');
+                        })
+                        .finally(() => {
+                          setIsProcessing(false);
+                        });
                     }
                   }}
-                  className="w-full accent-purple-400 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                  className={`w-full accent-purple-400 h-1.5 bg-slate-800 rounded-lg ${
+                    processingMode === 'neural' ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+                  }`}
                 />
+                <p className="text-[10px] text-slate-500">
+                  {processingMode === 'neural'
+                    ? 'Neural cutout active. Local sensitivity is only used if the fallback engine runs.'
+                    : 'Increase sensitivity for stronger colored-background removal; lower it to preserve fine edges.'}
+                </p>
               </div>
 
               {/* Export Buttons */}
               <div className="pt-3 space-y-2">
                 <button
-                  onClick={() => handleDownload('png')}
+                  onClick={() => handleDownload('png', 'white')}
                   className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-purple-900/40 transition-transform active:scale-95"
                 >
                   <i className="fas fa-download"></i>
-                  <span>Download Transparent PNG</span>
+                  <span>Download White Background PNG</span>
+                </button>
+                <button
+                  onClick={() => handleDownload('png', 'transparent')}
+                  className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-xs font-bold rounded-2xl flex items-center justify-center gap-2 transition-colors"
+                >
+                  <i className="fas fa-layer-group"></i>
+                  <span>Download Transparent Cutout</span>
                 </button>
                 <button
                   onClick={() => handleDownload('jpg')}
                   className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-xs font-bold rounded-2xl flex items-center justify-center gap-2 transition-colors"
                 >
                   <i className="fas fa-file-image"></i>
-                  <span>Download Solid JPG</span>
+                  <span>Download Current Backdrop JPG</span>
                 </button>
               </div>
             </div>
