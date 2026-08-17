@@ -8,6 +8,10 @@ export interface Offer {
   title: string
   description: string
   imageUrl: string
+  imageFit?: 'contain' | 'cover'
+  imageScale?: number
+  imagePositionX?: number
+  imagePositionY?: number
   buttonText?: string
   buttonLink?: string
   buttonColor?: string
@@ -135,12 +139,32 @@ export async function saveOffer(offer: Offer): Promise<boolean> {
   }
 }
 
-export async function createOffer(title: string, description: string, imageUrl: string, buttonText?: string, buttonLink?: string, buttonColor?: string, backgroundColor?: string, textColor?: string, badgeColor?: string, badgeText?: string, termsText?: string): Promise<Offer> {
+export async function createOffer(
+  title: string,
+  description: string,
+  imageUrl: string,
+  buttonText?: string,
+  buttonLink?: string,
+  buttonColor?: string,
+  backgroundColor?: string,
+  textColor?: string,
+  badgeColor?: string,
+  badgeText?: string,
+  termsText?: string,
+  imageFit?: 'contain' | 'cover',
+  imageScale?: number,
+  imagePositionX?: number,
+  imagePositionY?: number
+): Promise<Offer> {
   const offer: Offer = {
     id: Date.now().toString(),
     title,
     description,
     imageUrl,
+    imageFit: imageFit || 'contain',
+    imageScale: imageScale || 100,
+    imagePositionX: imagePositionX ?? 50,
+    imagePositionY: imagePositionY ?? 50,
     buttonText,
     buttonLink,
     buttonColor: buttonColor || '#9333ea',

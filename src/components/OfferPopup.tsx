@@ -1,12 +1,33 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type CSSProperties } from 'react'
 import { X } from 'lucide-react'
-import Image from 'next/image'
 
 interface OfferPopupProps {
   delay?: number // Delay in milliseconds before showing popup
 }
+
+type OfferImageFit = 'contain' | 'cover'
+
+const clampOfferNumber = (value: unknown, min: number, max: number, fallback: number) => {
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue)) return fallback
+  return Math.min(max, Math.max(min, numericValue))
+}
+
+const getOfferImageStyle = (
+  imageFit: OfferImageFit,
+  imageScale: number,
+  imagePositionX: number,
+  imagePositionY: number
+): CSSProperties => ({
+  width: '100%',
+  height: '100%',
+  objectFit: imageFit,
+  objectPosition: `${imagePositionX}% ${imagePositionY}%`,
+  transform: `scale(${imageScale / 100})`,
+  transformOrigin: `${imagePositionX}% ${imagePositionY}%`,
+})
 
 export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
   const [isVisible, setIsVisible] = useState(false)
@@ -57,6 +78,11 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
   }
 
   console.log('[OfferPopup] Rendering popup for:', offer.title)
+  const imageFit: OfferImageFit = offer.imageFit === 'cover' ? 'cover' : 'contain'
+  const imageScale = clampOfferNumber(offer.imageScale, 60, 180, 100)
+  const imagePositionX = clampOfferNumber(offer.imagePositionX, 0, 100, 50)
+  const imagePositionY = clampOfferNumber(offer.imagePositionY, 0, 100, 50)
+  const offerImageStyle = getOfferImageStyle(imageFit, imageScale, imagePositionX, imagePositionY)
 
   return (
     <>
@@ -69,7 +95,7 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
       {/* Popup Card */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 pointer-events-none">
         <div 
-          className="rounded-xl md:rounded-2xl shadow-2xl max-w-xs sm:max-w-sm md:max-w-2xl lg:max-w-3xl w-full overflow-hidden pointer-events-auto transform animate-elastic-pop"
+          className="relative rounded-xl md:rounded-2xl shadow-2xl max-w-xs sm:max-w-sm md:max-w-2xl lg:max-w-3xl w-full max-h-[92vh] overflow-y-auto pointer-events-auto transform animate-elastic-pop"
           style={{ backgroundColor: offer.backgroundColor || '#ffffff' }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -84,14 +110,15 @@ export default function OfferPopup({ delay = 30000 }: OfferPopupProps) {
 
           {/* Content */}
           <div className="flex flex-col md:flex-row">
-            {/* Image Section - Smaller on mobile */}
-            <div className="md:w-2/5 relative bg-gradient-to-br from-purple-100 to-pink-100">
-              <div className="w-full h-32 sm:h-40 md:h-full md:min-h-[300px]">
+            {/* Image Section */}
+            <div className="md:w-2/5 relative shrink-0 overflow-hidden bg-gradient-to-br from-purple-100 to-pink-100">
+              <div className="w-full h-40 sm:h-48 md:h-full md:min-h-[320px]">
                 {offer.imageUrl ? (
                   <img
                     src={offer.imageUrl}
                     alt={offer.title}
-                    className="w-full h-full object-cover"
+                    className="transition-transform duration-300"
+                    style={offerImageStyle}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">

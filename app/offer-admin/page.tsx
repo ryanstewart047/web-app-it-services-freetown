@@ -1,15 +1,41 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Save, Trash2, Eye, EyeOff, Image as ImageIcon, Download, Share2 } from 'lucide-react'
+import { useState, useEffect, useRef, type CSSProperties } from 'react'
+import { ArrowLeft, Save, Trash2, Eye, EyeOff, Image as ImageIcon, Download, Share2, ZoomIn, ZoomOut, Move } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'react-hot-toast'
 import html2canvas from 'html2canvas'
+
+type OfferImageFit = 'contain' | 'cover'
+
+const clampNumber = (value: unknown, min: number, max: number, fallback: number) => {
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue)) return fallback
+  return Math.min(max, Math.max(min, numericValue))
+}
+
+const getOfferImageStyle = (
+  imageFit: OfferImageFit,
+  imageScale: number,
+  imagePositionX: number,
+  imagePositionY: number
+): CSSProperties => ({
+  width: '100%',
+  height: '100%',
+  objectFit: imageFit,
+  objectPosition: `${imagePositionX}% ${imagePositionY}%`,
+  transform: `scale(${imageScale / 100})`,
+  transformOrigin: `${imagePositionX}% ${imagePositionY}%`,
+})
 
 export default function OfferAdminPage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [imageUrl, setImageUrl] = useState('')
+  const [imageFit, setImageFit] = useState<OfferImageFit>('contain')
+  const [imageScale, setImageScale] = useState(100)
+  const [imagePositionX, setImagePositionX] = useState(50)
+  const [imagePositionY, setImagePositionY] = useState(50)
   const [buttonText, setButtonText] = useState('')
   const [buttonLink, setButtonLink] = useState('')
   const [buttonColor, setButtonColor] = useState('#9333ea')
@@ -24,6 +50,7 @@ export default function OfferAdminPage() {
   const [previewImage, setPreviewImage] = useState('')
   const previewRef = useRef<HTMLDivElement>(null)
   const exportRef = useRef<HTMLDivElement>(null)
+  const offerImageStyle = getOfferImageStyle(imageFit, imageScale, imagePositionX, imagePositionY)
 
   useEffect(() => {
     loadCurrentOffer()
@@ -39,6 +66,10 @@ export default function OfferAdminPage() {
         setTitle(data.offer.title)
         setDescription(data.offer.description)
         setImageUrl(data.offer.imageUrl)
+        setImageFit(data.offer.imageFit === 'cover' ? 'cover' : 'contain')
+        setImageScale(clampNumber(data.offer.imageScale, 60, 180, 100))
+        setImagePositionX(clampNumber(data.offer.imagePositionX, 0, 100, 50))
+        setImagePositionY(clampNumber(data.offer.imagePositionY, 0, 100, 50))
         setButtonText(data.offer.buttonText || '')
         setButtonLink(data.offer.buttonLink || '')
         setButtonColor(data.offer.buttonColor || '#9333ea')
@@ -67,6 +98,17 @@ export default function OfferAdminPage() {
     }
   }
 
+  const adjustImageScale = (delta: number) => {
+    setImageScale((current) => clampNumber(current + delta, 60, 180, 100))
+  }
+
+  const resetImagePlacement = () => {
+    setImageFit('contain')
+    setImageScale(100)
+    setImagePositionX(50)
+    setImagePositionY(50)
+  }
+
   const handleSave = async () => {
     if (!title.trim()) {
       toast.error('Please enter a title')
@@ -87,6 +129,10 @@ export default function OfferAdminPage() {
           title,
           description,
           imageUrl,
+          imageFit,
+          imageScale,
+          imagePositionX,
+          imagePositionY,
           buttonText,
           buttonLink,
           buttonColor,
@@ -257,7 +303,8 @@ export default function OfferAdminPage() {
                   <img
                     src={previewImage}
                     alt="Offer preview"
-                    className="w-full h-full object-cover"
+                    className="transition-transform duration-200"
+                    style={offerImageStyle}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -289,6 +336,110 @@ export default function OfferAdminPage() {
                 <p className="text-xs text-gray-500">
                   Upload to <a href="https://imgur.com" target="_blank" rel="noopener noreferrer" className="text-red-600 hover:underline">Imgur</a> or <a href="https://postimages.org" target="_blank" rel="noopener noreferrer" className="text-red-600 hover:underline">PostImages</a>
                 </p>
+              </div>
+
+              {/* Image Fit Controls */}
+              <div className="mt-5 rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                    <Move className="h-4 w-4 text-red-600" />
+                    Popup Image Fit
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={resetImagePlacement}
+                    className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-100"
+                  >
+                    Reset
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { value: 'contain' as const, label: 'Fit Full Image' },
+                    { value: 'cover' as const, label: 'Fill Placeholder' },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setImageFit(option.value)}
+                      className={`rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${
+                        imageFit === option.value
+                          ? 'border-red-500 bg-red-50 text-red-700'
+                          : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div>
+                  <div className="mb-2 flex items-center justify-between text-xs font-semibold text-gray-700">
+                    <span>Zoom</span>
+                    <span>{imageScale}%</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => adjustImageScale(-5)}
+                      className="rounded-lg border border-gray-300 bg-white p-2 text-gray-700 transition-colors hover:bg-gray-100"
+                      aria-label="Zoom image out"
+                    >
+                      <ZoomOut className="h-4 w-4" />
+                    </button>
+                    <input
+                      type="range"
+                      min={60}
+                      max={180}
+                      step={5}
+                      value={imageScale}
+                      onChange={(e) => setImageScale(clampNumber(e.target.value, 60, 180, 100))}
+                      className="w-full accent-red-600"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => adjustImageScale(5)}
+                      className="rounded-lg border border-gray-300 bg-white p-2 text-gray-700 transition-colors hover:bg-gray-100"
+                      aria-label="Zoom image in"
+                    >
+                      <ZoomIn className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <div className="mb-1 flex items-center justify-between text-xs font-semibold text-gray-700">
+                      <span>Move Left / Right</span>
+                      <span>{imagePositionX}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={1}
+                      value={imagePositionX}
+                      onChange={(e) => setImagePositionX(clampNumber(e.target.value, 0, 100, 50))}
+                      className="w-full accent-red-600"
+                    />
+                  </div>
+                  <div>
+                    <div className="mb-1 flex items-center justify-between text-xs font-semibold text-gray-700">
+                      <span>Move Up / Down</span>
+                      <span>{imagePositionY}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={1}
+                      value={imagePositionY}
+                      onChange={(e) => setImagePositionY(clampNumber(e.target.value, 0, 100, 50))}
+                      className="w-full accent-red-600"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -623,12 +774,13 @@ export default function OfferAdminPage() {
               >
                 <div className="flex flex-col md:flex-row">
                   {/* Image Preview */}
-                  <div className="md:w-2/5 relative bg-gradient-to-br from-red-100 to-gray-100 min-h-[200px]">
+                  <div className="md:w-2/5 relative bg-gradient-to-br from-red-100 to-gray-100 min-h-[200px] overflow-hidden">
                     {previewImage ? (
                       <img
                         src={previewImage}
                         alt={title}
-                        className="w-full h-full object-cover"
+                        className="transition-transform duration-200"
+                        style={offerImageStyle}
                         crossOrigin="anonymous"
                       />
                     ) : (
@@ -685,11 +837,11 @@ export default function OfferAdminPage() {
           <div className="w-full h-full flex flex-col justify-center p-16" style={{ backgroundColor }}>
             {/* Image Section - Top Third */}
             {previewImage && (
-              <div className="w-full h-[340px] mb-8 rounded-3xl overflow-hidden">
+              <div className="w-full h-[340px] mb-8 rounded-3xl overflow-hidden bg-gradient-to-br from-red-100 to-gray-100">
                 <img
                   src={previewImage}
                   alt={title}
-                  className="w-full h-full object-cover"
+                  style={offerImageStyle}
                   crossOrigin="anonymous"
                 />
               </div>

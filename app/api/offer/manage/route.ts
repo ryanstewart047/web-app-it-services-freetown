@@ -3,10 +3,33 @@ import { createOffer, updateOffer, deactivateOffer, getOfferForAdmin } from '@/l
 
 export const dynamic = 'force-dynamic'
 
+function clampOfferNumber(value: unknown, min: number, max: number, fallback: number) {
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue)) return fallback
+  return Math.min(max, Math.max(min, numericValue))
+}
+
 export async function POST(request: Request) {
   try {
     console.log('[Offer Manage] Starting offer save...')
-    const { title, description, imageUrl, buttonText, buttonLink, buttonColor, backgroundColor, textColor, badgeColor, badgeText, termsText, isActive } = await request.json()
+    const {
+      title,
+      description,
+      imageUrl,
+      imageFit,
+      imageScale,
+      imagePositionX,
+      imagePositionY,
+      buttonText,
+      buttonLink,
+      buttonColor,
+      backgroundColor,
+      textColor,
+      badgeColor,
+      badgeText,
+      termsText,
+      isActive,
+    } = await request.json()
 
     console.log('[Offer Manage] Received data:', { title, badgeText, isActive })
 
@@ -64,6 +87,10 @@ export async function POST(request: Request) {
     const sanitizedButtonText = buttonText ? buttonText.trim().replace(/[<>]/g, '') : buttonText;
     const sanitizedBadgeText = badgeText ? badgeText.trim().replace(/[<>]/g, '').toUpperCase() : "TODAY'S OFFER";
     const sanitizedTermsText = termsText ? termsText.trim().replace(/[<>]/g, '') : termsText;
+    const sanitizedImageFit = imageFit === 'cover' ? 'cover' : 'contain';
+    const sanitizedImageScale = clampOfferNumber(imageScale, 60, 180, 100);
+    const sanitizedImagePositionX = clampOfferNumber(imagePositionX, 0, 100, 50);
+    const sanitizedImagePositionY = clampOfferNumber(imagePositionY, 0, 100, 50);
 
     // Check if offer exists (get for admin to see inactive offers too)
     console.log('[Offer Manage] Checking for existing offer...')
@@ -78,6 +105,10 @@ export async function POST(request: Request) {
         title: sanitizedTitle,
         description: sanitizedDescription,
         imageUrl,
+        imageFit: sanitizedImageFit,
+        imageScale: sanitizedImageScale,
+        imagePositionX: sanitizedImagePositionX,
+        imagePositionY: sanitizedImagePositionY,
         buttonText: sanitizedButtonText,
         buttonLink,
         buttonColor,
@@ -92,7 +123,23 @@ export async function POST(request: Request) {
     } else {
       // Create new offer (use sanitized values)
       console.log('[Offer Manage] Creating new offer...')
-      await createOffer(sanitizedTitle, sanitizedDescription, imageUrl, sanitizedButtonText, buttonLink, buttonColor, backgroundColor, textColor, badgeColor, sanitizedBadgeText, sanitizedTermsText)
+      await createOffer(
+        sanitizedTitle,
+        sanitizedDescription,
+        imageUrl,
+        sanitizedButtonText,
+        buttonLink,
+        buttonColor,
+        backgroundColor,
+        textColor,
+        badgeColor,
+        sanitizedBadgeText,
+        sanitizedTermsText,
+        sanitizedImageFit,
+        sanitizedImageScale,
+        sanitizedImagePositionX,
+        sanitizedImagePositionY
+      )
       success = true
       console.log('[Offer Manage] Create completed')
     }
