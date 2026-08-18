@@ -32,6 +32,7 @@ export interface ShirleyGalleryItem {
   price?: string
   orderButtonText?: string
   orderUrl?: string
+  showWatermark?: boolean
   fileName?: string
   createdAt: string
   updatedAt: string

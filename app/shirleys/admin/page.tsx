@@ -36,6 +36,7 @@ const emptyForm = {
   price: '',
   orderButtonText: 'Order This Item',
   orderUrl: '',
+  showWatermark: true,
 }
 
 function getEmbedUrl(url: string) {
@@ -199,6 +200,7 @@ export default function ShirleyGalleryAdminPage() {
       payload.append('mediaUrl', form.mediaUrl)
       payload.append('active', String(form.active))
       payload.append('isAvailableProduct', String(form.isAvailableProduct))
+      payload.append('showWatermark', String(form.showWatermark))
       payload.append('price', form.price)
       payload.append('orderButtonText', form.orderButtonText)
       payload.append('orderUrl', form.orderUrl)
@@ -242,6 +244,7 @@ export default function ShirleyGalleryAdminPage() {
       mediaUrl: item.url,
       active: item.active,
       isAvailableProduct: Boolean(item.isAvailableProduct),
+      showWatermark: item.showWatermark !== false,
       price: item.price || '',
       orderButtonText: item.orderButtonText || 'Order This Item',
       orderUrl: item.orderUrl || '',
@@ -265,6 +268,7 @@ export default function ShirleyGalleryAdminPage() {
       payload.append('mediaUrl', editForm.mediaUrl)
       payload.append('active', String(editForm.active))
       payload.append('isAvailableProduct', String(editForm.isAvailableProduct))
+      payload.append('showWatermark', String(editForm.showWatermark))
       payload.append('price', editForm.price)
       payload.append('orderButtonText', editForm.orderButtonText)
       payload.append('orderUrl', editForm.orderUrl)
@@ -294,6 +298,37 @@ export default function ShirleyGalleryAdminPage() {
       })
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function toggleWatermark(item: ShirleyGalleryItem) {
+    setStatus(null)
+    const newWatermarkState = item.showWatermark === false ? true : false
+
+    try {
+      const response = await fetch('/api/admin/shirleys/gallery', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: item.id, showWatermark: newWatermarkState }),
+      })
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Could not update watermark.')
+      }
+
+      setItems((current) =>
+        current.map((entry) => (entry.id === item.id ? { ...entry, showWatermark: newWatermarkState } : entry))
+      )
+      setStatus({
+        type: 'success',
+        message: `Watermark ${newWatermarkState ? 'enabled' : 'disabled'} for "${item.title}".`,
+      })
+    } catch (error) {
+      setStatus({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Could not update watermark.',
+      })
     }
   }
 
@@ -560,6 +595,35 @@ export default function ShirleyGalleryAdminPage() {
               )}
             </div>
 
+            {/* BRAND AVATAR WATERMARK OPTION */}
+            <div className="rounded-2xl border border-[#c9956c]/30 bg-[#fffdf8] p-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <img
+                  src="/assets/shirleys-logo-transparent.png"
+                  alt="Shirley's Avatar"
+                  className="h-10 w-10 rounded-full object-contain bg-[#fff7ea] p-0.5 border border-[#c9956c]/40 shrink-0 shadow-sm"
+                />
+                <div>
+                  <p className="text-xs font-black text-[#8a2746] flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5 text-[#d4af6a]" />
+                    Brand Avatar Watermark
+                  </p>
+                  <p className="text-[11px] text-[#6d4c57]">Overlay Shirley's circular avatar on this photo/post</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setForm((prev) => ({ ...prev, showWatermark: !prev.showWatermark }))}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-black transition cursor-pointer shrink-0 ${
+                  form.showWatermark
+                    ? 'bg-[#8a2746] text-white shadow-sm'
+                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+              >
+                {form.showWatermark ? '✓ Watermark ON' : '✕ Watermark OFF'}
+              </button>
+            </div>
+
             <label className="flex items-center gap-3 rounded-2xl bg-[#fffdf8] px-4 py-3 text-sm font-bold text-[#4d3039]">
               <input
                 type="checkbox"
@@ -615,6 +679,12 @@ export default function ShirleyGalleryAdminPage() {
                           Product Available
                         </span>
                       )}
+                      {item.showWatermark !== false && (
+                        <span className="absolute left-3 bottom-3 inline-flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-0.5 text-[10px] font-black text-white backdrop-blur-xs shadow-sm border border-white/20">
+                          <img src="/assets/shirleys-logo-transparent.png" alt="" className="h-3.5 w-3.5 rounded-full object-contain" />
+                          Watermark ON
+                        </span>
+                      )}
                       {item.price && (
                         <span className="absolute right-3 bottom-3 rounded-full bg-[#f7c948] px-3 py-1 text-xs font-black text-[#2f1f2a]">
                           {item.price}
@@ -641,6 +711,19 @@ export default function ShirleyGalleryAdminPage() {
                     >
                       <Edit2 className="h-3.5 w-3.5" />
                       Edit Text / Info
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleWatermark(item)}
+                      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1.5 text-xs font-black transition ${
+                        item.showWatermark !== false
+                          ? 'border-[#c9956c] bg-[#fff7ea] text-[#8a2746] hover:bg-[#ffeacf]'
+                          : 'border-gray-200 bg-gray-50 text-gray-400 hover:bg-gray-100'
+                      }`}
+                      title="Toggle brand avatar watermark"
+                    >
+                      <Sparkles className="h-3 w-3 text-[#d4af6a]" />
+                      {item.showWatermark !== false ? 'Watermark: ON' : 'Watermark: OFF'}
                     </button>
                     <button
                       type="button"
@@ -684,7 +767,7 @@ export default function ShirleyGalleryAdminPage() {
               </div>
               <div>
                 <h3 className="text-xl font-black">Edit Gallery Item</h3>
-                <p className="text-xs text-[#6d4c57]">Fix mistakes, update title/caption, price or order buttons.</p>
+                <p className="text-xs text-[#6d4c57]">Fix mistakes, update title/caption, watermark, price or order buttons.</p>
               </div>
             </div>
 
@@ -708,6 +791,35 @@ export default function ShirleyGalleryAdminPage() {
                   className="mt-1 min-h-20 w-full rounded-2xl border border-[#8a2746]/15 bg-[#fffdf8] px-4 py-2.5 text-sm text-[#2f1f2a] outline-none"
                 />
               </label>
+
+              {/* BRAND AVATAR WATERMARK OPTION IN EDIT MODAL */}
+              <div className="rounded-2xl border border-[#c9956c]/30 bg-[#fffdf8] p-4 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <img
+                    src="/assets/shirleys-logo-transparent.png"
+                    alt="Shirley's Avatar"
+                    className="h-10 w-10 rounded-full object-contain bg-[#fff7ea] p-0.5 border border-[#c9956c]/40 shrink-0 shadow-sm"
+                  />
+                  <div>
+                    <p className="text-xs font-black text-[#8a2746] flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5 text-[#d4af6a]" />
+                      Brand Avatar Watermark
+                    </p>
+                    <p className="text-[11px] text-[#6d4c57]">Overlay Shirley's circular avatar on this photo</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditForm((prev) => ({ ...prev, showWatermark: !prev.showWatermark }))}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-black transition cursor-pointer shrink-0 ${
+                    editForm.showWatermark
+                      ? 'bg-[#8a2746] text-white shadow-sm'
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  }`}
+                >
+                  {editForm.showWatermark ? '✓ Watermark ON' : '✕ Watermark OFF'}
+                </button>
+              </div>
 
               <div className="rounded-2xl border border-[#8a2746]/20 bg-[#fff7ea] p-4 space-y-3">
                 <label className="flex items-center gap-3 text-sm font-black text-[#8a2746]">

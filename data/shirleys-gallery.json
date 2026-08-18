@@ -13,6 +13,7 @@
       "price": "Le 120",
       "orderButtonText": "Order This Item",
       "orderUrl": "",
+      "showWatermark": true,
       "fileName": "1784979432980-image_94458869.png",
       "createdAt": "2026-07-25T11:37:14.295Z",
       "updatedAt": "2026-07-28T23:08:04.689Z"
@@ -30,6 +31,7 @@
       "price": "850",
       "orderButtonText": "Order This Item",
       "orderUrl": "",
+      "showWatermark": true,
       "fileName": "1786089850801-img_20260616_133659.jpg",
       "createdAt": "2026-08-07T08:04:13.671Z",
       "updatedAt": "2026-08-07T08:04:13.671Z"
@@ -47,6 +49,7 @@
       "price": "250",
       "orderButtonText": "Order Now",
       "orderUrl": "",
+      "showWatermark": true,
       "fileName": "1786090302901-screenshot_20260805_224813_com.pinterest.jpg",
       "createdAt": "2026-08-07T08:11:44.225Z",
       "updatedAt": "2026-08-07T08:11:44.225Z"

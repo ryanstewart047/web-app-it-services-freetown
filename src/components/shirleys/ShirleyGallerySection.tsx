@@ -226,6 +226,20 @@ export function ShirleyGallerySection({ items }: { items: ShirleyGalleryItem[] }
                         )}
                       </div>
 
+                      {/* Brand Avatar Watermark Badge */}
+                      {item.showWatermark !== false && (
+                        <div className="absolute bottom-3 left-3 z-10 flex items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 backdrop-blur-md border border-white/25 shadow-md pointer-events-none group-hover:bg-black/65 transition">
+                          <img
+                            src="/assets/shirleys-logo-transparent.png"
+                            alt="Shirley's Watermark"
+                            className="h-6 w-6 rounded-full object-contain"
+                          />
+                          <span className="font-serif italic font-bold text-[10px] text-rose-100 tracking-wide">
+                            Shirley's
+                          </span>
+                        </div>
+                      )}
+
                       {item.price && (
                         <div className="absolute bottom-3 right-3 rounded-full bg-[#f7c948] px-3.5 py-1 text-xs font-black text-[#2f1f2a] shadow-md">
                           {item.price}
@@ -328,6 +342,19 @@ export function ShirleyGallerySection({ items }: { items: ShirleyGalleryItem[] }
           <div className="relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl bg-[#fffdf8] shadow-2xl">
             <div className="relative max-h-[65vh] min-h-[300px] w-full overflow-hidden bg-black flex items-center justify-center">
               <GalleryMedia item={activeItem} autoPlay={true} />
+              {activeItem.showWatermark !== false && (
+                <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2 rounded-full bg-black/55 px-3.5 py-1.5 backdrop-blur-md border border-white/20 shadow-lg pointer-events-none">
+                  <img
+                    src="/assets/shirleys-logo-transparent.png"
+                    alt="Shirley's Watermark"
+                    className="h-8 w-8 rounded-full object-contain drop-shadow"
+                  />
+                  <div className="flex flex-col text-left">
+                    <span className="font-serif italic font-bold text-xs text-rose-100 leading-tight">Shirley's</span>
+                    <span className="text-[9px] font-black text-[#f7c948] tracking-wider uppercase">Stitches &amp; Sweet</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col justify-between gap-4 p-6 sm:flex-row sm:items-center">

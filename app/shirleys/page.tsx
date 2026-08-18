@@ -221,15 +221,19 @@ function ShirleyHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-[#8a2746]/15 bg-[#fffdf8]/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-        <Link href="/shirleys" className="flex items-center gap-3" aria-label={`${brandName} home`}>
+        <Link href="/shirleys" className="flex items-center gap-3 group" aria-label={`${brandName} home`}>
           <Image
-            src="/assets/shirleys-stiches-sweet-logo.svg"
-            alt={`${brandName} logo`}
-            width={174}
-            height={60}
-            className="h-12 w-auto"
+            src="/assets/shirleys-logo-transparent.png"
+            alt={`${brandName} avatar logo`}
+            width={48}
+            height={48}
+            className="h-11 w-11 rounded-full object-contain bg-[#fff7ea] p-1 border border-[#c9956c]/35 shadow-sm transition-transform duration-300 group-hover:scale-105"
             priority
           />
+          <div className="flex flex-col">
+            <span className="font-serif italic font-black text-xl text-[#8a2746] leading-none">Shirley's</span>
+            <span className="font-sans font-black text-[10px] tracking-[0.18em] text-[#4d3039] uppercase mt-0.5">Stitches &amp; Sweet</span>
+          </div>
         </Link>
         <nav className="hidden items-center gap-6 text-sm font-bold text-[#4d3039] md:flex">
           <a href="#gallery" className="transition hover:text-[#8a2746]">Gallery</a>
@@ -520,17 +524,17 @@ export default async function ShirleysPage() {
 
         <footer className="bg-[#2f1f2a] px-4 py-8 text-white sm:px-6 lg:px-8">
           <div className="mx-auto flex max-w-7xl flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3.5">
               <Image
-                src="/assets/shirleys-stiches-sweet-logo.svg"
-                alt={`${brandName} logo`}
-                width={150}
+                src="/assets/shirleys-logo-transparent.png"
+                alt={`${brandName} avatar logo`}
+                width={52}
                 height={52}
-                className="h-12 w-auto rounded-xl bg-white p-1"
+                className="h-12 w-12 rounded-full object-contain bg-white/10 p-1 border border-white/20 shadow-sm shrink-0"
               />
               <div>
-                <p className="font-black">{brandName}</p>
-                <p className="text-sm text-white/65">Bakery, pastries and fashion in Freetown.</p>
+                <p className="font-serif italic font-bold text-lg text-rose-200 leading-tight">{brandName}</p>
+                <p className="text-xs text-white/65">Bakery, pastries and custom fashion in Freetown.</p>
               </div>
             </div>
             <div className="flex flex-col gap-3 sm:items-end">

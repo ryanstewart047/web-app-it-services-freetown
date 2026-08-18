@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
     const selectedType: ShirleyGalleryMediaType = formData.get('type') === 'video' ? 'video' : 'image'
     const active = formData.get('active') !== 'false'
     const isAvailableProduct = formData.get('isAvailableProduct') === 'true'
+    const showWatermark = formData.get('showWatermark') !== 'false'
     const price = sanitizeText(formData.get('price')).slice(0, 50)
     const orderButtonText = sanitizeText(formData.get('orderButtonText')).slice(0, 50)
     const orderUrl = sanitizeUrl(formData.get('orderUrl'))
@@ -142,6 +143,7 @@ export async function POST(request: NextRequest) {
       price,
       orderButtonText,
       orderUrl,
+      showWatermark,
       fileName,
       createdAt: now,
       updatedAt: now,
@@ -179,6 +181,7 @@ export async function PATCH(request: NextRequest) {
         type: formData.get('type'),
         active: formData.get('active') !== null ? formData.get('active') === 'true' : undefined,
         isAvailableProduct: formData.get('isAvailableProduct') !== null ? formData.get('isAvailableProduct') === 'true' : undefined,
+        showWatermark: formData.get('showWatermark') !== null ? formData.get('showWatermark') === 'true' : undefined,
         price: formData.get('price'),
         orderButtonText: formData.get('orderButtonText'),
         orderUrl: formData.get('orderUrl'),
@@ -248,6 +251,7 @@ export async function PATCH(request: NextRequest) {
         fileName,
         active: typeof body.active === 'boolean' ? body.active : item.active,
         isAvailableProduct: typeof body.isAvailableProduct === 'boolean' ? body.isAvailableProduct : item.isAvailableProduct,
+        showWatermark: typeof body.showWatermark === 'boolean' ? body.showWatermark : item.showWatermark ?? true,
         price: body.price !== undefined ? sanitizeText(body.price).slice(0, 50) : item.price,
         orderButtonText: body.orderButtonText !== undefined ? sanitizeText(body.orderButtonText).slice(0, 50) : item.orderButtonText,
         orderUrl: body.orderUrl !== undefined ? sanitizeUrl(body.orderUrl) : item.orderUrl,
