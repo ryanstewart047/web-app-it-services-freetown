@@ -494,8 +494,8 @@ export default function InvoicesAdminPage() {
               box-sizing: border-box !important;
             }
             @page {
-              size: A4 portrait;
-              margin: 8mm;
+              size: auto;
+              margin: 5mm 6mm 6mm 6mm !important;
             }
             html, body {
               margin: 0 !important;
@@ -504,6 +504,8 @@ export default function InvoicesAdminPage() {
               color: #0f172a !important;
               font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
               -webkit-font-smoothing: antialiased;
+              height: auto !important;
+              overflow: visible !important;
             }
             .print-wrapper {
               width: 100% !important;
@@ -513,9 +515,45 @@ export default function InvoicesAdminPage() {
               padding: 0 !important;
             }
             @media print {
-              body { background: #ffffff !important; padding: 0 !important; }
-              .print-wrapper { width: 100% !important; max-width: 100% !important; box-shadow: none !important; border: none !important; border-radius: 0 !important; }
+              html, body {
+                background: #ffffff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                font-size: 11px !important;
+                height: auto !important;
+                overflow: visible !important;
+              }
+              .print-wrapper {
+                width: 100% !important;
+                max-width: 100% !important;
+                box-shadow: none !important;
+                border: none !important;
+                border-radius: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+              }
               .no-print { display: none !important; }
+              
+              /* Ensure everything fits on a single page with crisp layout */
+              .invoice-header {
+                padding: 12px 20px !important;
+              }
+              .invoice-body {
+                padding: 12px 20px !important;
+              }
+              .invoice-avoid-break {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+              }
+              .invoice-footer {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                margin-top: 8px !important;
+                padding-top: 6px !important;
+              }
+              table th, table td {
+                padding: 5px 8px !important;
+              }
             }
           </style>
         </head>
@@ -1125,11 +1163,14 @@ export default function InvoicesAdminPage() {
                 {/* Invoice Document (Branded Printable Unit) */}
                 <div ref={printRef} className="bg-white rounded-2xl shadow-2xl text-slate-900 overflow-hidden border border-slate-200" style={{ fontFamily: "'Inter', 'Segoe UI', Arial, sans-serif" }}>
 
-                  {/* Header: Site Brand Navy to Red Gradient */}
-                  <div className="px-8 py-6 text-white" style={{ background: 'linear-gradient(135deg, #040e40 0%, #0a1b68 55%, #dc2626 100%)' }}>
-                    <div className="flex items-start justify-between gap-4">
+                  {/* Header Banner */}
+                  <div
+                    className="invoice-header p-6 print:p-4 text-white relative overflow-hidden"
+                    style={{ background: 'linear-gradient(135deg, #040e40 0%, #0c1f72 55%, #dc2626 100%)' }}
+                  >
+                    <div className="flex justify-between items-start relative z-10 gap-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-28 h-20 rounded-xl bg-white/10 p-2 border border-white/20 flex items-center justify-center shrink-0 shadow-lg">
+                        <div className="w-24 h-18 print:w-20 print:h-14 rounded-xl bg-white/10 p-1.5 border border-white/20 flex items-center justify-center shrink-0 shadow-lg">
                           <img
                             src={BRAND_LOGO_DARK_SRC}
                             alt={invoice.companyName || BRAND_NAME}
@@ -1138,15 +1179,15 @@ export default function InvoicesAdminPage() {
                           />
                         </div>
                         <div>
-                          <div className="text-2xl font-black tracking-tight text-white">{invoice.companyName || BRAND_NAME}</div>
+                          <div className="text-xl print:text-lg font-black tracking-tight text-white">{invoice.companyName || BRAND_NAME}</div>
                           <div className="text-red-100 text-xs font-medium mt-0.5">{invoice.companyTagline || 'Professional IT Services & Hardware Repairs'}</div>
-                          <div className="text-blue-100 text-xs mt-0.5">{invoice.companyPhone} · {invoice.companyEmail}</div>
+                          <div className="text-blue-100 text-[11px] print:text-[10px] mt-0.5">{invoice.companyPhone} · {invoice.companyEmail}</div>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-3xl font-black tracking-widest text-white/30 uppercase">INVOICE</div>
-                        <div className="text-lg font-mono font-bold mt-0.5 text-white">{invoice.invoiceNumber}</div>
-                        <span className={`inline-block mt-1 px-3 py-0.5 rounded-full text-xs font-extrabold uppercase tracking-wider shadow-sm
+                        <div className="text-2xl print:text-xl font-black tracking-widest text-white/30 uppercase">INVOICE</div>
+                        <div className="text-base print:text-sm font-mono font-bold mt-0.5 text-white">{invoice.invoiceNumber}</div>
+                        <span className={`inline-block mt-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider shadow-sm
                           ${invoice.status === 'paid' ? 'bg-emerald-500 text-white'
                           : invoice.status === 'overdue' ? 'bg-red-600 text-white'
                           : invoice.status === 'part_paid' ? 'bg-blue-600 text-white'
@@ -1158,99 +1199,99 @@ export default function InvoicesAdminPage() {
                     </div>
                   </div>
 
-                  <div className="px-8 py-6 space-y-6">
+                  <div className="invoice-body px-7 py-5 print:px-5 print:py-3 space-y-3.5 print:space-y-2.5">
 
                     {/* Dates Row */}
-                    <div className="grid grid-cols-3 gap-4 text-xs">
+                    <div className="invoice-avoid-break grid grid-cols-3 gap-3 print:gap-2 text-xs">
                       {[
                         { label: 'Issue Date', value: invoice.invoiceDate, color: 'border-l-4 border-[#040e40]' },
                         { label: 'Payment Terms', value: invoice.paymentTerms, color: 'border-l-4 border-indigo-600' },
                         { label: 'Due Date', value: invoice.dueDate, color: 'border-l-4 border-[#dc2626]' },
                       ].map(d => (
-                        <div key={d.label} className={`bg-slate-50 rounded-lg p-3 border border-slate-200/80 ${d.color}`}>
+                        <div key={d.label} className={`bg-slate-50 rounded-lg p-2.5 print:p-2 border border-slate-200/80 ${d.color}`}>
                           <div className="text-slate-400 uppercase tracking-widest text-[9px] font-bold mb-0.5">{d.label}</div>
-                          <div className="font-bold text-slate-800 text-sm">{d.value}</div>
+                          <div className="font-bold text-slate-800 text-xs print:text-[11px]">{d.value}</div>
                         </div>
                       ))}
                     </div>
 
                     {/* Bill To & Provider */}
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="invoice-avoid-break grid grid-cols-2 gap-4 print:gap-2.5">
                       {/* Provider / From */}
-                      <div className="bg-slate-50/80 rounded-xl p-4 border border-slate-200/80">
-                        <div className="text-[10px] text-[#040e40] uppercase tracking-widest font-black mb-2 flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-[#040e40] inline-block"></span> Provider / From
+                      <div className="bg-slate-50/80 rounded-xl p-3.5 print:p-2.5 border border-slate-200/80 space-y-0.5">
+                        <div className="text-[10px] text-[#040e40] uppercase tracking-widest font-black mb-1 flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#040e40] inline-block"></span> Provider / From
                         </div>
-                        <div className="font-extrabold text-slate-900 text-sm">{invoice.companyName || BRAND_NAME}</div>
-                        <div className="text-xs text-slate-600 mt-1">{invoice.companyAddress || 'No 1 Regent Highway, Jui Junction, Freetown'}</div>
-                        <div className="text-xs text-slate-600">{invoice.companyCityCountry || 'Freetown, Sierra Leone'}</div>
-                        <div className="text-xs text-slate-600 mt-1 font-mono">{invoice.companyPhone || '+232 33 399 391 / +232 76 210 320'}</div>
-                        {invoice.companyEmail && <div className="text-xs text-slate-500">{invoice.companyEmail}</div>}
+                        <div className="font-extrabold text-slate-900 text-xs print:text-[11px]">{invoice.companyName || BRAND_NAME}</div>
+                        <div className="text-[11px] print:text-[10px] text-slate-600 leading-snug">{invoice.companyAddress || 'No 1 Regent Highway, Jui Junction, Freetown'}</div>
+                        <div className="text-[11px] print:text-[10px] text-slate-600">{invoice.companyCityCountry || 'Freetown, Sierra Leone'}</div>
+                        <div className="text-[11px] print:text-[10px] text-slate-600 font-mono mt-0.5">{invoice.companyPhone || '+232 33 399 391 / +232 76 210 320'}</div>
+                        {invoice.companyEmail && <div className="text-[10px] text-slate-500">{invoice.companyEmail}</div>}
                       </div>
 
                       {/* Billed To */}
-                      <div className="bg-red-50/60 rounded-xl p-4 border border-red-200/70">
-                        <div className="text-[10px] text-[#dc2626] uppercase tracking-widest font-black mb-2 flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-[#dc2626] inline-block"></span> Billed To
+                      <div className="bg-red-50/60 rounded-xl p-3.5 print:p-2.5 border border-red-200/70 space-y-0.5">
+                        <div className="text-[10px] text-[#dc2626] uppercase tracking-widest font-black mb-1 flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#dc2626] inline-block"></span> Billed To
                         </div>
-                        <div className="font-extrabold text-slate-900 text-sm">{invoice.clientName || <span className="text-slate-400 italic">Client Name Not Specified</span>}</div>
-                        {invoice.clientCompany && <div className="text-xs text-slate-700 font-semibold">{invoice.clientCompany}</div>}
-                        {invoice.clientEmail && <div className="text-xs text-slate-600">{invoice.clientEmail}</div>}
-                        {invoice.clientPhone && <div className="text-xs text-slate-600 font-mono">{invoice.clientPhone}</div>}
-                        {invoice.clientAddress && <div className="text-xs text-slate-600 mt-1 whitespace-pre-line">{invoice.clientAddress}</div>}
-                        {invoice.clientTaxId && <div className="text-xs text-slate-500 mt-1 font-mono">TIN: {invoice.clientTaxId}</div>}
+                        <div className="font-extrabold text-slate-900 text-xs print:text-[11px]">{invoice.clientName || <span className="text-slate-400 italic">Client Name Not Specified</span>}</div>
+                        {invoice.clientCompany && <div className="text-[11px] print:text-[10px] text-slate-700 font-semibold">{invoice.clientCompany}</div>}
+                        {invoice.clientEmail && <div className="text-[11px] print:text-[10px] text-slate-600">{invoice.clientEmail}</div>}
+                        {invoice.clientPhone && <div className="text-[11px] print:text-[10px] text-slate-600 font-mono">{invoice.clientPhone}</div>}
+                        {invoice.clientAddress && <div className="text-[11px] print:text-[10px] text-slate-600 whitespace-pre-line">{invoice.clientAddress}</div>}
+                        {invoice.clientTaxId && <div className="text-[10px] text-slate-500 font-mono">TIN: {invoice.clientTaxId}</div>}
                       </div>
                     </div>
 
                     {/* Line Items Table */}
-                    <div className="rounded-xl overflow-hidden border border-slate-200">
+                    <div className="invoice-avoid-break rounded-xl overflow-hidden border border-slate-200">
                       <table className="w-full text-xs">
                         <thead>
                           <tr style={{ backgroundColor: '#040e40', color: '#ffffff' }}>
-                            <th className="text-left px-4 py-3 font-bold uppercase tracking-wider w-10">#</th>
-                            <th className="text-left px-4 py-3 font-bold uppercase tracking-wider">Description</th>
-                            <th className="text-center px-4 py-3 font-bold uppercase tracking-wider w-16">Qty</th>
-                            <th className="text-right px-4 py-3 font-bold uppercase tracking-wider w-28">Unit Price</th>
-                            <th className="text-right px-4 py-3 font-bold uppercase tracking-wider w-32">Total</th>
+                            <th className="text-left px-3.5 py-2.5 print:py-1.5 print:px-2.5 font-bold uppercase tracking-wider w-10">#</th>
+                            <th className="text-left px-3.5 py-2.5 print:py-1.5 print:px-2.5 font-bold uppercase tracking-wider">Description</th>
+                            <th className="text-center px-3.5 py-2.5 print:py-1.5 print:px-2.5 font-bold uppercase tracking-wider w-14">Qty</th>
+                            <th className="text-right px-3.5 py-2.5 print:py-1.5 print:px-2.5 font-bold uppercase tracking-wider w-24">Unit Price</th>
+                            <th className="text-right px-3.5 py-2.5 print:py-1.5 print:px-2.5 font-bold uppercase tracking-wider w-28">Total</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
                           {invoice.items.filter(i => i.description).map((item, idx) => (
                             <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}>
-                              <td className="px-4 py-3 text-slate-400 font-mono">{idx + 1}</td>
-                              <td className="px-4 py-3 text-slate-800 font-semibold">{item.description}</td>
-                              <td className="px-4 py-3 text-center text-slate-700 font-mono font-medium">{item.quantity}</td>
-                              <td className="px-4 py-3 text-right text-slate-700 font-mono">{fmt(item.unitPrice)}</td>
-                              <td className="px-4 py-3 text-right text-slate-900 font-mono font-bold">{fmt(item.total)}</td>
+                              <td className="px-3.5 py-2.5 print:py-1.5 print:px-2.5 text-slate-400 font-mono">{idx + 1}</td>
+                              <td className="px-3.5 py-2.5 print:py-1.5 print:px-2.5 text-slate-800 font-semibold">{item.description}</td>
+                              <td className="px-3.5 py-2.5 print:py-1.5 print:px-2.5 text-center text-slate-700 font-mono font-medium">{item.quantity}</td>
+                              <td className="px-3.5 py-2.5 print:py-1.5 print:px-2.5 text-right text-slate-700 font-mono">{fmt(item.unitPrice)}</td>
+                              <td className="px-3.5 py-2.5 print:py-1.5 print:px-2.5 text-right text-slate-900 font-mono font-bold">{fmt(item.total)}</td>
                             </tr>
                           ))}
                           {invoice.items.filter(i => i.description).length === 0 && (
-                            <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-400 italic">No items added to invoice</td></tr>
+                            <tr><td colSpan={5} className="px-4 py-6 text-center text-slate-400 italic">No items added to invoice</td></tr>
                           )}
                         </tbody>
                       </table>
                     </div>
 
                     {/* Totals */}
-                    <div className="flex justify-end">
-                      <div className="w-80 bg-slate-50/90 rounded-xl p-4 border border-slate-200 space-y-2 text-xs">
+                    <div className="invoice-avoid-break flex justify-end">
+                      <div className="w-80 print:w-72 bg-slate-50/90 rounded-xl p-3.5 print:p-2.5 border border-slate-200 space-y-1.5 print:space-y-1 text-xs">
                         <div className="flex justify-between text-slate-600"><span>Subtotal</span><span className="font-mono font-semibold">{fmt(invoice.subtotal)}</span></div>
                         <div className="flex justify-between text-slate-700 font-medium">
                           <span>Value Added Tax (VAT {invoice.taxRate}%)</span>
                           <span className="font-mono font-bold text-slate-800">+ {fmt(invoice.taxAmount)}</span>
                         </div>
                         {invoice.discountAmount > 0 && <div className="flex justify-between text-emerald-600 font-semibold"><span>Discount</span><span className="font-mono">- {fmt(invoice.discountAmount)}</span></div>}
-                        <div className="flex justify-between font-extrabold text-sm border-t border-slate-200 pt-2 text-slate-900"><span>Grand Total</span><span className="font-mono text-[#040e40]">{fmt(invoice.totalAmount)}</span></div>
+                        <div className="flex justify-between font-extrabold text-sm print:text-xs border-t border-slate-200 pt-1.5 text-slate-900"><span>Grand Total</span><span className="font-mono text-[#040e40]">{fmt(invoice.totalAmount)}</span></div>
                         {invoice.amountPaid > 0 && <div className="flex justify-between text-emerald-700 font-semibold"><span>Amount Paid / Deposit</span><span className="font-mono">- {fmt(invoice.amountPaid)}</span></div>}
-                        <div className={`flex justify-between font-black text-base border-t-2 pt-2 ${invoice.balanceDue > 0 ? 'border-red-400 text-[#dc2626]' : 'border-emerald-400 text-emerald-700'}`}>
+                        <div className={`flex justify-between font-black text-sm print:text-xs border-t-2 pt-1.5 ${invoice.balanceDue > 0 ? 'border-red-400 text-[#dc2626]' : 'border-emerald-400 text-emerald-700'}`}>
                           <span>Balance Due</span>
                           <span className="font-mono">{fmt(invoice.balanceDue)}</span>
                         </div>
 
                         {/* Pay To Option under Balance Due */}
                         {invoice.payTo && (
-                          <div className="flex justify-between items-center text-xs border-t border-slate-200/90 pt-2 mt-1 bg-slate-100/90 px-3 py-1.5 rounded-lg border border-slate-200/60">
-                            <span className="text-slate-600 uppercase tracking-wider text-[10px] font-black flex items-center gap-1.5">
+                          <div className="flex justify-between items-center text-xs border-t border-slate-200/90 pt-1.5 mt-1 bg-slate-100/90 px-2.5 py-1 rounded-lg border border-slate-200/60">
+                            <span className="text-slate-600 uppercase tracking-wider text-[9px] font-black flex items-center gap-1.5">
                               <span className="w-1.5 h-1.5 rounded-full bg-[#040e40]"></span> Pay To:
                             </span>
                             <span className="font-extrabold text-[#040e40] font-sans text-xs">{invoice.payTo}</span>
@@ -1261,24 +1302,24 @@ export default function InvoicesAdminPage() {
 
                     {/* Payment Instructions */}
                     {invoice.paymentInstructions && (
-                      <div className="bg-blue-50/60 rounded-xl p-4 border border-blue-100">
-                        <div className="text-[10px] text-[#040e40] uppercase tracking-widest font-black mb-2 flex items-center gap-1.5">
-                          <CreditCard className="w-3.5 h-3.5 text-[#040e40]" /> Payment Details & Instructions
+                      <div className="invoice-avoid-break bg-blue-50/60 rounded-xl p-3 print:p-2 border border-blue-100">
+                        <div className="text-[9px] text-[#040e40] uppercase tracking-widest font-black mb-1 flex items-center gap-1.5">
+                          <CreditCard className="w-3.5 h-3.5 text-[#040e40]" /> Payment Details &amp; Instructions
                         </div>
-                        <pre className="text-xs text-slate-700 whitespace-pre-wrap font-sans leading-relaxed">{invoice.paymentInstructions}</pre>
+                        <pre className="text-xs print:text-[10px] text-slate-700 whitespace-pre-wrap font-sans leading-relaxed">{invoice.paymentInstructions}</pre>
                       </div>
                     )}
 
-                    {/* Notes */}
+                    {/* Notes & Terms */}
                     {invoice.notes && (
-                      <div className="bg-amber-50/60 rounded-xl p-4 border border-amber-200/80">
-                        <div className="text-[10px] text-amber-800 uppercase tracking-widest font-black mb-1">Notes & Terms</div>
-                        <p className="text-xs text-slate-700 leading-relaxed">{invoice.notes}</p>
+                      <div className="invoice-avoid-break bg-amber-50/60 rounded-xl p-3 print:p-2 border border-amber-200/80">
+                        <div className="text-[9px] text-amber-800 uppercase tracking-widest font-black mb-0.5">Notes &amp; Terms</div>
+                        <p className="text-xs print:text-[10px] text-slate-700 leading-relaxed">{invoice.notes}</p>
                       </div>
                     )}
 
                     {/* Footer */}
-                    <div className="border-t border-slate-200 pt-4 text-center text-[11px] text-slate-500 font-medium">
+                    <div className="invoice-footer border-t border-slate-200 pt-3 print:pt-2 text-center text-[11px] print:text-[10px] text-slate-600 font-semibold">
                       Thank you for choosing <span className="font-bold text-[#040e40]">{invoice.companyName || BRAND_NAME}</span>! · {invoice.companyAddress || 'No 1 Regent Highway, Jui Junction, Freetown'}
                     </div>
                   </div>
