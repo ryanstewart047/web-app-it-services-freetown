@@ -27,6 +27,7 @@ interface CompanyInfo {
   companyCityCountry: string;
   companyPhone: string;
   companyEmail: string;
+  payTo?: string;
 }
 
 interface Invoice extends CompanyInfo {
@@ -50,6 +51,7 @@ interface Invoice extends CompanyInfo {
   amountPaid: number;
   totalAmount: number;
   balanceDue: number;
+  payTo?: string;
   notes: string;
   paymentInstructions: string;
   createdAt?: string;
@@ -64,6 +66,7 @@ const DEFAULT_COMPANY_INFO: CompanyInfo = {
   companyCityCountry: 'Freetown, Sierra Leone',
   companyPhone: '+232 33 399 391 / +232 76 210 320',
   companyEmail: 'support@itservicesfreetown.com',
+  payTo: 'BridgeTech IT Services',
 };
 
 const SAVED_INVOICES_KEY = 'saved_invoices';
@@ -124,6 +127,7 @@ const blankInvoice = (): Invoice => {
   return {
     invoiceNumber: genInvoiceNo(),
     ...company,
+    payTo: company.payTo || company.companyName || 'BridgeTech IT Services',
     clientName: '',
     clientCompany: '',
     clientEmail: '',
@@ -232,6 +236,7 @@ export default function InvoicesAdminPage() {
         companyCityCountry: invoice.companyCityCountry || DEFAULT_COMPANY_INFO.companyCityCountry,
         companyPhone: invoice.companyPhone || DEFAULT_COMPANY_INFO.companyPhone,
         companyEmail: invoice.companyEmail || DEFAULT_COMPANY_INFO.companyEmail,
+        payTo: invoice.payTo || DEFAULT_COMPANY_INFO.payTo || DEFAULT_COMPANY_INFO.companyName,
       };
       localStorage.setItem(COMPANY_INFO_KEY, JSON.stringify(companyInfo));
       setCompanySavedMsg(true);
@@ -727,6 +732,17 @@ export default function InvoicesAdminPage() {
                           className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
+                      <div className="col-span-1 md:col-span-2">
+                        <label className="text-xs text-slate-300 font-medium mb-1 flex items-center gap-1">
+                          <CreditCard className="w-3.5 h-3.5 text-blue-400" /> Default Pay To Name (Account / Payee Name)
+                        </label>
+                        <input
+                          value={invoice.payTo || ''}
+                          onChange={e => setInvoice(p => ({ ...p, payTo: e.target.value }))}
+                          placeholder="e.g. BridgeTech IT Services / Account Name"
+                          className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
                     </div>
                     <div className="flex items-center justify-between pt-2">
                       <button
@@ -926,6 +942,23 @@ export default function InvoicesAdminPage() {
                     <span className="text-white">Balance Due</span>
                     <span className={`font-mono ${invoice.balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>{fmt(invoice.balanceDue)}</span>
                   </div>
+
+                  {/* Pay To Option under Balance Due */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-3 mt-1 border-t border-white/10 bg-slate-900/60 p-3 rounded-xl border border-white/5">
+                    <div>
+                      <label className="text-xs font-bold text-red-300 flex items-center gap-1.5">
+                        <CreditCard className="w-3.5 h-3.5 text-red-400" /> Pay To Option
+                      </label>
+                      <p className="text-[10px] text-slate-400">Recipient/Payee name displayed under Balance Due on the invoice</p>
+                    </div>
+                    <input
+                      type="text"
+                      value={invoice.payTo || ''}
+                      onChange={e => setInvoice(p => ({ ...p, payTo: e.target.value }))}
+                      placeholder="e.g. BridgeTech IT Services / Account Name"
+                      className="w-full sm:w-60 bg-slate-950 border border-white/20 rounded-lg px-3 py-2 text-white text-xs focus:ring-2 focus:ring-red-500 font-semibold placeholder-slate-500"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1104,6 +1137,16 @@ export default function InvoicesAdminPage() {
                           <span>Balance Due</span>
                           <span className="font-mono">{fmt(invoice.balanceDue)}</span>
                         </div>
+
+                        {/* Pay To Option under Balance Due */}
+                        {invoice.payTo && (
+                          <div className="flex justify-between items-center text-xs border-t border-slate-200/90 pt-2 mt-1 bg-slate-100/90 px-3 py-1.5 rounded-lg border border-slate-200/60">
+                            <span className="text-slate-600 uppercase tracking-wider text-[10px] font-black flex items-center gap-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#040e40]"></span> Pay To:
+                            </span>
+                            <span className="font-extrabold text-[#040e40] font-sans text-xs">{invoice.payTo}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 

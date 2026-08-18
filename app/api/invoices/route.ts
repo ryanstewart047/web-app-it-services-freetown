@@ -112,6 +112,7 @@ export async function GET(request: NextRequest) {
           companyCityCountry: companyInfo.companyCityCountry || inv.companyCityCountry || undefined,
           companyPhone: companyInfo.companyPhone || inv.companyPhone || undefined,
           companyEmail: companyInfo.companyEmail || inv.companyEmail || undefined,
+          payTo: companyInfo.payTo || inv.payTo || undefined,
         })
       }
     }
@@ -145,6 +146,7 @@ export async function POST(request: NextRequest) {
       companyCityCountry: data.companyCityCountry || 'Freetown, Sierra Leone',
       companyPhone: data.companyPhone || '+232 33 399 391 / +232 76 210 320',
       companyEmail: data.companyEmail || 'support@itservicesfreetown.com',
+      payTo: data.payTo || data.companyName || 'BridgeTech IT Services',
     }
 
     // Clean items list
