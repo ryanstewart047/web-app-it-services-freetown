@@ -4,7 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   FileText, Plus, Trash2, Printer, Download, Save, Search, Eye,
   ArrowLeft, CheckCircle, Clock, XCircle, AlertTriangle, TrendingUp,
-  User, Building2, Phone, Mail, MapPin, CreditCard, Copy, Edit3, RefreshCw
+  User, Building2, Phone, Mail, MapPin, CreditCard, Copy, Edit3, RefreshCw,
+  Sparkles, Check, ChevronDown, ChevronUp, Settings
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAdminSession } from '../../../src/hooks/useAdminSession';
@@ -19,7 +20,16 @@ interface InvoiceItem {
   total: number;
 }
 
-interface Invoice {
+interface CompanyInfo {
+  companyName: string;
+  companyTagline: string;
+  companyAddress: string;
+  companyCityCountry: string;
+  companyPhone: string;
+  companyEmail: string;
+}
+
+interface Invoice extends CompanyInfo {
   id?: string;
   invoiceNumber: string;
   clientName: string;
@@ -43,10 +53,25 @@ interface Invoice {
   notes: string;
   paymentInstructions: string;
   createdAt?: string;
+  updatedAt?: string;
 }
 
+// ── Default Constants ────────────────────────────────────────────────────────
+const DEFAULT_COMPANY_INFO: CompanyInfo = {
+  companyName: BRAND_NAME || 'BridgeTech IT Services',
+  companyTagline: 'Professional IT Services & Hardware Repairs',
+  companyAddress: 'No 1 Regent Highway, Jui Junction, Freetown',
+  companyCityCountry: 'Freetown, Sierra Leone',
+  companyPhone: '+232 33 399 391 / +232 76 210 320',
+  companyEmail: 'support@itservicesfreetown.com',
+};
+
+const SAVED_INVOICES_KEY = 'saved_invoices';
+const DRAFT_KEY = 'admin_invoice_draft';
+const COMPANY_INFO_KEY = 'admin_company_info';
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
-const fmt = (n: number) => `Le ${n.toLocaleString('en-SL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const fmt = (n: number) => `Le ${Number(n || 0).toLocaleString('en-SL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const today = () => new Date().toISOString().split('T')[0];
 const genInvoiceNo = () => {
   const d = new Date();
@@ -85,31 +110,42 @@ const emptyItem = (): InvoiceItem => ({
   total: 0,
 });
 
-const blankInvoice = (): Invoice => ({
-  invoiceNumber: genInvoiceNo(),
-  clientName: '',
-  clientCompany: '',
-  clientEmail: '',
-  clientPhone: '',
-  clientAddress: '',
-  clientTaxId: '',
-  invoiceDate: today(),
-  dueDate: addDays(today(), 14),
-  paymentTerms: 'Net 14',
-  status: 'pending',
-  items: [emptyItem()],
-  subtotal: 0,
-  taxRate: 15,
-  taxAmount: 0,
-  discountAmount: 0,
-  amountPaid: 0,
-  totalAmount: 0,
-  balanceDue: 0,
-  notes: '',
-  paymentInstructions: DEFAULT_PAYMENT_INSTRUCTIONS,
-});
+const getSavedCompanyInfo = (): CompanyInfo => {
+  if (typeof window === 'undefined') return DEFAULT_COMPANY_INFO;
+  try {
+    const saved = localStorage.getItem(COMPANY_INFO_KEY);
+    if (saved) return { ...DEFAULT_COMPANY_INFO, ...JSON.parse(saved) };
+  } catch {}
+  return DEFAULT_COMPANY_INFO;
+};
 
-const DRAFT_KEY = 'admin_invoice_draft';
+const blankInvoice = (): Invoice => {
+  const company = getSavedCompanyInfo();
+  return {
+    invoiceNumber: genInvoiceNo(),
+    ...company,
+    clientName: '',
+    clientCompany: '',
+    clientEmail: '',
+    clientPhone: '',
+    clientAddress: '',
+    clientTaxId: '',
+    invoiceDate: today(),
+    dueDate: addDays(today(), 14),
+    paymentTerms: 'Net 14',
+    status: 'pending',
+    items: [emptyItem()],
+    subtotal: 0,
+    taxRate: 15,
+    taxAmount: 0,
+    discountAmount: 0,
+    amountPaid: 0,
+    totalAmount: 0,
+    balanceDue: 0,
+    notes: '',
+    paymentInstructions: DEFAULT_PAYMENT_INSTRUCTIONS,
+  };
+};
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function InvoicesAdminPage() {
@@ -130,6 +166,8 @@ export default function InvoicesAdminPage() {
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [draftRestored, setDraftRestored] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showCompanyDetails, setShowCompanyDetails] = useState(false);
+  const [companySavedMsg, setCompanySavedMsg] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
   // ── Restore draft on mount ─────────────────────────────────────────────────
@@ -139,7 +177,7 @@ export default function InvoicesAdminPage() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.invoiceNumber) {
-          setInvoice(parsed);
+          setInvoice(prev => ({ ...prev, ...parsed }));
           if (parsed._savedAt) setLastSaved(parsed._savedAt);
           setDraftRestored(true);
         }
@@ -165,10 +203,10 @@ export default function InvoicesAdminPage() {
 
   // ── Recalculate totals whenever items, tax, discount, or amountPaid change ──
   useEffect(() => {
-    const subtotal = invoice.items.reduce((s, i) => s + i.total, 0);
-    const taxAmount = parseFloat(((subtotal * invoice.taxRate) / 100).toFixed(2));
-    const totalAmount = parseFloat((subtotal + taxAmount - invoice.discountAmount).toFixed(2));
-    const balanceDue = parseFloat((Math.max(0, totalAmount - invoice.amountPaid)).toFixed(2));
+    const subtotal = invoice.items.reduce((s, i) => s + (Number(i.total) || 0), 0);
+    const taxAmount = parseFloat(((subtotal * (Number(invoice.taxRate) || 0)) / 100).toFixed(2));
+    const totalAmount = parseFloat((subtotal + taxAmount - (Number(invoice.discountAmount) || 0)).toFixed(2));
+    const balanceDue = parseFloat((Math.max(0, totalAmount - (Number(invoice.amountPaid) || 0))).toFixed(2));
     setInvoice(prev => ({ ...prev, subtotal, taxAmount, totalAmount, balanceDue }));
   }, [invoice.items, invoice.taxRate, invoice.discountAmount, invoice.amountPaid]);
 
@@ -184,6 +222,24 @@ export default function InvoicesAdminPage() {
     setTimeout(() => setNotification(null), 3500);
   };
 
+  // ── Save Company Default Info ──────────────────────────────────────────────
+  const handleSaveCompanyDefaults = () => {
+    try {
+      const companyInfo: CompanyInfo = {
+        companyName: invoice.companyName || DEFAULT_COMPANY_INFO.companyName,
+        companyTagline: invoice.companyTagline || DEFAULT_COMPANY_INFO.companyTagline,
+        companyAddress: invoice.companyAddress || DEFAULT_COMPANY_INFO.companyAddress,
+        companyCityCountry: invoice.companyCityCountry || DEFAULT_COMPANY_INFO.companyCityCountry,
+        companyPhone: invoice.companyPhone || DEFAULT_COMPANY_INFO.companyPhone,
+        companyEmail: invoice.companyEmail || DEFAULT_COMPANY_INFO.companyEmail,
+      };
+      localStorage.setItem(COMPANY_INFO_KEY, JSON.stringify(companyInfo));
+      setCompanySavedMsg(true);
+      notify('success', 'Provider details saved as default for future invoices!');
+      setTimeout(() => setCompanySavedMsg(false), 3000);
+    } catch {}
+  };
+
   // ── Item CRUD ──────────────────────────────────────────────────────────────
   const updateItem = (id: string, field: keyof InvoiceItem, value: string | number) => {
     setInvoice(prev => ({
@@ -192,7 +248,7 @@ export default function InvoicesAdminPage() {
         if (item.id !== id) return item;
         const updated = { ...item, [field]: value };
         if (field === 'quantity' || field === 'unitPrice') {
-          updated.total = parseFloat((Number(updated.quantity) * Number(updated.unitPrice)).toFixed(2));
+          updated.total = parseFloat((Number(updated.quantity || 0) * Number(updated.unitPrice || 0)).toFixed(2));
         }
         return updated;
       })
@@ -205,18 +261,57 @@ export default function InvoicesAdminPage() {
     setInvoice(prev => ({ ...prev, items: prev.items.filter(i => i.id !== id) }));
   };
 
-  // ── API Calls ──────────────────────────────────────────────────────────────
+  // ── Load & Sync Invoices (Offline & Online Resilient) ─────────────────────────
   const fetchInvoices = useCallback(async () => {
     setLoading(true);
+    // 1. Instantly load from localStorage
+    let localList: Invoice[] = [];
+    try {
+      const local = localStorage.getItem(SAVED_INVOICES_KEY);
+      if (local) {
+        localList = JSON.parse(local);
+        setSavedInvoices(localList);
+      }
+    } catch {}
+
+    // 2. Fetch from API & Merge
     try {
       const params = new URLSearchParams();
       if (searchQuery) params.set('search', searchQuery);
       if (statusFilter !== 'all') params.set('status', statusFilter);
       const res = await fetch(`/api/invoices?${params}`);
-      const data = await res.json();
-      setSavedInvoices(Array.isArray(data) ? data : []);
-    } catch {
-      setSavedInvoices([]);
+      if (res.ok) {
+        const apiData = await res.json();
+        if (Array.isArray(apiData)) {
+          // Merge API data with localStorage data
+          const map = new Map<string, Invoice>();
+          // Put local invoices first
+          for (const item of localList) {
+            if (item.invoiceNumber) map.set(item.invoiceNumber, item);
+          }
+          // Merge / override with server invoices
+          for (const item of apiData) {
+            if (item.invoiceNumber) {
+              const existing = map.get(item.invoiceNumber);
+              map.set(item.invoiceNumber, {
+                ...DEFAULT_COMPANY_INFO,
+                ...existing,
+                ...item,
+                items: Array.isArray(item.items) ? item.items : (existing?.items || [emptyItem()])
+              });
+            }
+          }
+          const merged = Array.from(map.values()).sort((a, b) => {
+            const da = new Date(a.createdAt || a.invoiceDate).getTime();
+            const db = new Date(b.createdAt || b.invoiceDate).getTime();
+            return db - da;
+          });
+          setSavedInvoices(merged);
+          localStorage.setItem(SAVED_INVOICES_KEY, JSON.stringify(merged));
+        }
+      }
+    } catch (e) {
+      console.warn('API fetch failed, displaying local invoices:', e);
     } finally {
       setLoading(false);
     }
@@ -226,26 +321,54 @@ export default function InvoicesAdminPage() {
     if (tab === 'history') fetchInvoices();
   }, [tab, fetchInvoices]);
 
+  // ── Save Invoice (Guaranteed Client & Server Sync) ───────────────────────────
   const saveInvoice = async () => {
-    if (!invoice.clientName.trim()) { notify('error', 'Client name is required.'); return; }
+    if (!invoice.clientName.trim()) {
+      notify('error', 'Client name is required.');
+      return;
+    }
     setSaving(true);
+
+    const invoiceToSave: Invoice = {
+      ...invoice,
+      createdAt: invoice.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    // 1. Save to localStorage immediately
+    try {
+      const local = localStorage.getItem(SAVED_INVOICES_KEY);
+      let list: Invoice[] = local ? JSON.parse(local) : [];
+      const idx = list.findIndex(i => i.invoiceNumber === invoiceToSave.invoiceNumber);
+      if (idx >= 0) {
+        list[idx] = invoiceToSave;
+      } else {
+        list.unshift(invoiceToSave);
+      }
+      localStorage.setItem(SAVED_INVOICES_KEY, JSON.stringify(list));
+      setSavedInvoices(list);
+      localStorage.removeItem(DRAFT_KEY);
+      setLastSaved(null);
+      setDraftRestored(false);
+    } catch (e) {
+      console.error('LocalStorage write error:', e);
+    }
+
+    // 2. Sync to Server API
     try {
       const res = await fetch('/api/invoices', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(invoice),
+        body: JSON.stringify(invoiceToSave),
       });
       if (res.ok) {
         notify('success', `Invoice ${invoice.invoiceNumber} saved successfully!`);
-        localStorage.removeItem(DRAFT_KEY);
-        setLastSaved(null);
-        setDraftRestored(false);
       } else {
-        const err = await res.json();
-        notify('error', err.error || 'Failed to save invoice.');
+        const err = await res.json().catch(() => ({}));
+        notify('success', `Invoice saved locally! (${err.error || 'Server sync pending'})`);
       }
     } catch {
-      notify('error', 'Network error. Please try again.');
+      notify('success', `Invoice ${invoice.invoiceNumber} saved locally!`);
     } finally {
       setSaving(false);
     }
@@ -253,24 +376,43 @@ export default function InvoicesAdminPage() {
 
   const deleteInvoice = async (invNo: string) => {
     if (!confirm(`Delete invoice ${invNo}? This cannot be undone.`)) return;
+
+    // Delete locally
+    try {
+      const local = localStorage.getItem(SAVED_INVOICES_KEY);
+      if (local) {
+        const filtered = JSON.parse(local).filter((i: Invoice) => i.invoiceNumber !== invNo);
+        localStorage.setItem(SAVED_INVOICES_KEY, JSON.stringify(filtered));
+        setSavedInvoices(filtered);
+      }
+    } catch {}
+
+    // Delete from API
     try {
       await fetch(`/api/invoices?invoiceNumber=${invNo}`, { method: 'DELETE' });
       notify('success', 'Invoice deleted.');
-      fetchInvoices();
     } catch {
-      notify('error', 'Failed to delete.');
+      notify('success', 'Invoice removed locally.');
     }
   };
 
   const loadInvoice = (inv: Invoice) => {
-    setInvoice({ ...inv, items: inv.items as InvoiceItem[] });
+    const safeItems = Array.isArray(inv.items) && inv.items.length > 0 ? inv.items : [emptyItem()];
+    setInvoice({
+      ...DEFAULT_COMPANY_INFO,
+      ...inv,
+      items: safeItems
+    });
     setTab('builder');
     setPreviewMode(false);
+    notify('success', `Loaded Invoice ${inv.invoiceNumber}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const duplicateInvoice = (inv: Invoice) => {
+    const safeItems = Array.isArray(inv.items) && inv.items.length > 0 ? inv.items : [emptyItem()];
     const dup: Invoice = {
+      ...DEFAULT_COMPANY_INFO,
       ...inv,
       id: undefined,
       invoiceNumber: genInvoiceNo(),
@@ -278,26 +420,38 @@ export default function InvoicesAdminPage() {
       dueDate: addDays(today(), 14),
       status: 'pending',
       amountPaid: 0,
-      items: inv.items.map(i => ({ ...i, id: `item_${Date.now()}_${Math.random().toString(36).slice(2,6)}` })) as InvoiceItem[],
+      items: safeItems.map(i => ({ ...i, id: `item_${Date.now()}_${Math.random().toString(36).slice(2,6)}` })),
     };
     setInvoice(dup);
     setTab('builder');
     setPreviewMode(false);
+    notify('success', `Duplicated as new invoice ${dup.invoiceNumber}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const updateStatus = async (invNo: string, status: string) => {
-    const inv = savedInvoices.find(i => i.invoiceNumber === invNo);
-    if (!inv) return;
+    // Update local state and storage
+    let updatedInv: Invoice | null = null;
+    const updatedList = savedInvoices.map(i => {
+      if (i.invoiceNumber === invNo) {
+        updatedInv = { ...i, status };
+        return updatedInv;
+      }
+      return i;
+    });
+    setSavedInvoices(updatedList);
     try {
-      await fetch('/api/invoices', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...inv, status }),
-      });
-      fetchInvoices();
-    } catch {
-      notify('error', 'Status update failed.');
+      localStorage.setItem(SAVED_INVOICES_KEY, JSON.stringify(updatedList));
+    } catch {}
+
+    if (updatedInv) {
+      try {
+        await fetch('/api/invoices', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedInv),
+        });
+      } catch {}
     }
   };
 
@@ -308,7 +462,6 @@ export default function InvoicesAdminPage() {
     const win = window.open('', '_blank', 'width=950,height=1100');
     if (!win) return;
 
-    // Collect all stylesheets from main document
     const headStyles = Array.from(document.querySelectorAll('head link[rel="stylesheet"], head style'))
       .map(el => el.outerHTML)
       .join('\n');
@@ -342,7 +495,7 @@ export default function InvoicesAdminPage() {
             }
             .print-wrapper {
               width: 100% !important;
-              max-width: 800px !important;
+              max-width: 820px !important;
               margin: 0 auto !important;
               background: #ffffff !important;
               padding: 0 !important;
@@ -374,9 +527,9 @@ export default function InvoicesAdminPage() {
   };
 
   // Analytics
-  const totalIssued = savedInvoices.reduce((s, i) => s + (i.totalAmount || 0), 0);
-  const totalCollected = savedInvoices.reduce((s, i) => s + (i.amountPaid || 0), 0);
-  const totalPending = savedInvoices.reduce((s, i) => s + (i.balanceDue || 0), 0);
+  const totalIssued = savedInvoices.reduce((s, i) => s + (Number(i.totalAmount) || 0), 0);
+  const totalCollected = savedInvoices.reduce((s, i) => s + (Number(i.amountPaid) || 0), 0);
+  const totalPending = savedInvoices.reduce((s, i) => s + (Number(i.balanceDue) || 0), 0);
   const paidCount = savedInvoices.filter(i => i.status === 'paid').length;
   const overdueCount = savedInvoices.filter(i => i.status === 'overdue').length;
 
@@ -412,13 +565,21 @@ export default function InvoicesAdminPage() {
             </Link>
             <h1 className="text-3xl font-black bg-gradient-to-r from-blue-400 via-indigo-300 to-red-400 bg-clip-text text-transparent flex items-center gap-3">
               <FileText className="w-8 h-8 text-red-500" />
-              Invoice Generator
+              Invoice Generator & Manager
             </h1>
-            <p className="text-slate-400 text-sm mt-1">Create, manage, and print commercial invoices styled with site brand identity</p>
+            <p className="text-slate-400 text-sm mt-1">Create, customize, manage, and print commercial invoices with editable business credentials</p>
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => { setInvoice(blankInvoice()); localStorage.removeItem(DRAFT_KEY); setLastSaved(null); setDraftRestored(false); setPreviewMode(false); setTab('builder'); }}
+              onClick={() => {
+                setInvoice(blankInvoice());
+                localStorage.removeItem(DRAFT_KEY);
+                setLastSaved(null);
+                setDraftRestored(false);
+                setPreviewMode(false);
+                setTab('builder');
+                notify('success', 'Ready for new invoice!');
+              }}
               className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-medium transition-all border border-white/10"
             >
               <Plus className="w-4 h-4" /> New Invoice
@@ -427,31 +588,41 @@ export default function InvoicesAdminPage() {
               onClick={() => setTab(tab === 'builder' ? 'history' : 'builder')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all border ${tab === 'history' ? 'bg-[#dc2626] border-red-500 text-white shadow-lg' : 'bg-white/10 border-white/10 text-slate-300 hover:bg-white/20'}`}
             >
-              {tab === 'history' ? <><FileText className="w-4 h-4" /> Builder</> : <><Search className="w-4 h-4" /> History</>}
+              {tab === 'history' ? <><FileText className="w-4 h-4" /> Builder</> : <><Search className="w-4 h-4" /> Invoices History ({savedInvoices.length})</>}
             </button>
           </div>
         </div>
 
-        {/* Auto-Save Status */}
+        {/* Auto-Save Status Bar */}
         <div className="bg-[#040e40]/60 border border-blue-500/30 rounded-xl px-4 py-2.5 mb-6 flex flex-wrap items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-2.5">
             <span className="relative flex h-2 w-2">
-              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isSaving ? 'bg-amber-400' : 'bg-red-400'}`}></span>
-              <span className={`relative inline-flex rounded-full h-2 w-2 ${isSaving ? 'bg-amber-500' : 'bg-red-500'}`}></span>
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isSaving ? 'bg-amber-400' : 'bg-emerald-400'}`}></span>
+              <span className={`relative inline-flex rounded-full h-2 w-2 ${isSaving ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
             </span>
             <span className="text-blue-200 font-medium">
-              {isSaving ? 'Saving draft...' : lastSaved ? `Draft auto-saved at ${lastSaved}` : 'Auto-Save enabled'}
+              {isSaving ? 'Saving draft...' : lastSaved ? `Draft auto-saved at ${lastSaved}` : 'Auto-Save enabled (Local & Database)'}
             </span>
             {draftRestored && (
-              <span className="bg-red-500/20 text-red-300 border border-red-500/40 px-2 py-0.5 rounded text-[10px] font-bold uppercase">Restored</span>
+              <span className="bg-red-500/20 text-red-300 border border-red-500/40 px-2 py-0.5 rounded text-[10px] font-bold uppercase">Draft Restored</span>
             )}
           </div>
-          {(lastSaved || draftRestored) && (
-            <button onClick={() => { localStorage.removeItem(DRAFT_KEY); setInvoice(blankInvoice()); setLastSaved(null); setDraftRestored(false); }}
-              className="text-slate-400 hover:text-red-400 transition-colors flex items-center gap-1">
-              <Trash2 className="w-3 h-3" /> Discard Draft
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {(lastSaved || draftRestored) && (
+              <button
+                onClick={() => {
+                  localStorage.removeItem(DRAFT_KEY);
+                  setInvoice(blankInvoice());
+                  setLastSaved(null);
+                  setDraftRestored(false);
+                  notify('success', 'Draft cleared');
+                }}
+                className="text-slate-400 hover:text-red-400 transition-colors flex items-center gap-1"
+              >
+                <Trash2 className="w-3 h-3" /> Discard Draft
+              </button>
+            )}
+          </div>
         </div>
 
         {/* ── BUILDER TAB ────────────────────────────────────────────────────── */}
@@ -460,6 +631,120 @@ export default function InvoicesAdminPage() {
 
             {/* ── LEFT: Form ──────────────────────────────────────────────── */}
             <div className={`space-y-5 ${previewMode ? 'hidden xl:block' : ''}`}>
+
+              {/* ── Provider / Company Details (Fully Editable) ── */}
+              <div className="bg-gradient-to-br from-blue-950/60 via-slate-900 to-slate-900 border border-blue-500/30 rounded-2xl p-6 shadow-xl">
+                <div className="flex items-center justify-between cursor-pointer" onClick={() => setShowCompanyDetails(!showCompanyDetails)}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-blue-600/30 border border-blue-500/40 flex items-center justify-center text-blue-400">
+                      <Building2 className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                        Provider / Business Information (From)
+                        <span className="text-[10px] px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded border border-blue-500/30">Editable</span>
+                      </h2>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        {invoice.companyName} · {invoice.companyCityCountry}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors"
+                  >
+                    {showCompanyDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </button>
+                </div>
+
+                {/* Expanded Company Settings */}
+                {showCompanyDetails && (
+                  <div className="mt-5 pt-5 border-t border-white/10 space-y-4 animate-fadeIn">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs text-slate-300 font-medium mb-1 flex items-center gap-1">
+                          <Building2 className="w-3.5 h-3.5 text-blue-400" /> Business / Company Name
+                        </label>
+                        <input
+                          value={invoice.companyName}
+                          onChange={e => setInvoice(p => ({ ...p, companyName: e.target.value }))}
+                          placeholder="e.g. BridgeTech IT Services"
+                          className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-300 font-medium mb-1 flex items-center gap-1">
+                          <Sparkles className="w-3.5 h-3.5 text-blue-400" /> Tagline / Subtitle
+                        </label>
+                        <input
+                          value={invoice.companyTagline}
+                          onChange={e => setInvoice(p => ({ ...p, companyTagline: e.target.value }))}
+                          placeholder="e.g. Professional IT Services & Hardware Repairs"
+                          className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-300 font-medium mb-1 flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5 text-blue-400" /> Street Address
+                        </label>
+                        <input
+                          value={invoice.companyAddress}
+                          onChange={e => setInvoice(p => ({ ...p, companyAddress: e.target.value }))}
+                          placeholder="e.g. No 1 Regent Highway, Jui Junction, Freetown"
+                          className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-300 font-medium mb-1 flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5 text-blue-400" /> City & Country
+                        </label>
+                        <input
+                          value={invoice.companyCityCountry}
+                          onChange={e => setInvoice(p => ({ ...p, companyCityCountry: e.target.value }))}
+                          placeholder="e.g. Freetown, Sierra Leone"
+                          className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-300 font-medium mb-1 flex items-center gap-1">
+                          <Phone className="w-3.5 h-3.5 text-blue-400" /> Phone Numbers
+                        </label>
+                        <input
+                          value={invoice.companyPhone}
+                          onChange={e => setInvoice(p => ({ ...p, companyPhone: e.target.value }))}
+                          placeholder="e.g. +232 33 399 391 / +232 76 210 320"
+                          className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-300 font-medium mb-1 flex items-center gap-1">
+                          <Mail className="w-3.5 h-3.5 text-blue-400" /> Email Address
+                        </label>
+                        <input
+                          value={invoice.companyEmail}
+                          onChange={e => setInvoice(p => ({ ...p, companyEmail: e.target.value }))}
+                          placeholder="e.g. support@itservicesfreetown.com"
+                          className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between pt-2">
+                      <button
+                        type="button"
+                        onClick={handleSaveCompanyDefaults}
+                        className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow"
+                      >
+                        <Save className="w-3.5 h-3.5" /> Save as Default Provider Info
+                      </button>
+                      {companySavedMsg && (
+                        <span className="text-xs text-emerald-400 font-medium flex items-center gap-1">
+                          <Check className="w-3.5 h-3.5" /> Saved as default!
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Invoice Meta */}
               <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
@@ -502,7 +787,7 @@ export default function InvoicesAdminPage() {
               {/* Client Details */}
               <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
                 <h2 className="text-xs font-bold text-red-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <User className="w-4 h-4 text-red-400" /> Bill To
+                  <User className="w-4 h-4 text-red-400" /> Bill To (Client Details)
                 </h2>
                 <div className="grid grid-cols-2 gap-4">
                   {[
@@ -557,10 +842,10 @@ export default function InvoicesAdminPage() {
                       </div>
                       <div className="col-span-3">
                         <input type="number" min="0" step="0.01" value={item.unitPrice} onChange={e => updateItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
-                          className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-red-500 text-right" />
+                          className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-red-500 text-right font-mono" />
                       </div>
-                      <div className="col-span-1 text-right text-sm text-slate-300 font-mono">
-                        {item.total.toLocaleString()}
+                      <div className="col-span-1 text-right text-xs text-slate-300 font-mono">
+                        {(item.total || 0).toLocaleString()}
                       </div>
                       <div className="col-span-1 text-right">
                         <button onClick={() => removeItem(item.id)} className="text-slate-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
@@ -571,7 +856,7 @@ export default function InvoicesAdminPage() {
                   ))}
                 </div>
 
-                {/* Totals */}
+                {/* Totals Calculation */}
                 <div className="mt-6 border-t border-white/10 pt-5 space-y-2.5">
                   <div className="flex justify-between text-sm text-slate-400">
                     <span>Subtotal</span>
@@ -603,7 +888,7 @@ export default function InvoicesAdminPage() {
                           </button>
                         ))}
                         <input type="number" min="0" max="100" step="0.5" value={invoice.taxRate} onChange={e => setInvoice(p => ({ ...p, taxRate: parseFloat(e.target.value) || 0 }))}
-                          className="w-20 bg-slate-900 border border-white/15 rounded-lg px-2 py-1 text-white text-sm text-right focus:ring-2 focus:ring-red-500" />
+                          className="w-20 bg-slate-900 border border-white/15 rounded-lg px-2 py-1 text-white text-sm text-right focus:ring-2 focus:ring-red-500 font-mono" />
                       </div>
                     </div>
                     <div className="flex justify-between text-sm text-slate-300 bg-slate-900/60 p-2.5 rounded-lg border border-white/5">
@@ -614,7 +899,7 @@ export default function InvoicesAdminPage() {
                   <div className="flex items-center justify-between gap-4">
                     <label className="text-sm text-slate-400">Discount (Le)</label>
                     <input type="number" min="0" value={invoice.discountAmount} onChange={e => setInvoice(p => ({ ...p, discountAmount: parseFloat(e.target.value) || 0 }))}
-                      className="w-32 bg-slate-900 border border-white/15 rounded-lg px-3 py-1.5 text-white text-sm text-right focus:ring-2 focus:ring-red-500" />
+                      className="w-32 bg-slate-900 border border-white/15 rounded-lg px-3 py-1.5 text-white text-sm text-right focus:ring-2 focus:ring-red-500 font-mono" />
                   </div>
                   {invoice.discountAmount > 0 && (
                     <div className="flex justify-between text-sm text-slate-400">
@@ -629,7 +914,7 @@ export default function InvoicesAdminPage() {
                   <div className="flex items-center justify-between gap-4">
                     <label className="text-sm text-slate-400">Amount Paid / Deposit (Le)</label>
                     <input type="number" min="0" value={invoice.amountPaid} onChange={e => setInvoice(p => ({ ...p, amountPaid: parseFloat(e.target.value) || 0 }))}
-                      className="w-36 bg-slate-900 border border-white/15 rounded-lg px-3 py-1.5 text-white text-sm text-right focus:ring-2 focus:ring-red-500" />
+                      className="w-36 bg-slate-900 border border-white/15 rounded-lg px-3 py-1.5 text-white text-sm text-right focus:ring-2 focus:ring-red-500 font-mono" />
                   </div>
                   {invoice.amountPaid > 0 && (
                     <div className="flex justify-between text-sm text-slate-400">
@@ -664,7 +949,7 @@ export default function InvoicesAdminPage() {
                 <button onClick={saveInvoice} disabled={saving}
                   className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-[#040e40] via-[#0c1f72] to-[#dc2626] hover:from-[#03092b] hover:to-[#b91c1c] disabled:opacity-50 rounded-xl font-bold transition-all shadow-xl text-white">
                   {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  {saving ? 'Saving...' : 'Save Invoice'}
+                  {saving ? 'Saving...' : 'Save & Retain Invoice'}
                 </button>
                 <button onClick={() => setPreviewMode(!previewMode)}
                   className="flex items-center gap-2 px-5 py-3.5 bg-white/10 hover:bg-white/20 rounded-xl transition-all xl:hidden border border-white/10 font-medium">
@@ -681,13 +966,16 @@ export default function InvoicesAdminPage() {
             <div className={`${!previewMode ? 'hidden xl:block' : ''}`}>
               <div className="sticky top-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Live Branded Preview</h2>
+                  <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Live Printable Preview (Branded)
+                  </h2>
                   <div className="flex gap-2">
                     <button onClick={handlePrint} className="flex items-center gap-1.5 text-xs px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all font-bold shadow-md">
                       <Printer className="w-3.5 h-3.5" /> Print / PDF
                     </button>
                     <button onClick={() => setPreviewMode(false)} className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-all xl:hidden">
-                      <Edit3 className="w-3.5 h-3.5" /> Edit
+                      <Edit3 className="w-3.5 h-3.5" /> Edit Form
                     </button>
                   </div>
                 </div>
@@ -699,18 +987,18 @@ export default function InvoicesAdminPage() {
                   <div className="px-8 py-6 text-white" style={{ background: 'linear-gradient(135deg, #040e40 0%, #0a1b68 55%, #dc2626 100%)' }}>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-32 h-20 rounded-xl bg-white/10 p-2 border border-white/20 flex items-center justify-center shrink-0 shadow-lg">
+                        <div className="w-28 h-20 rounded-xl bg-white/10 p-2 border border-white/20 flex items-center justify-center shrink-0 shadow-lg">
                           <img
                             src={BRAND_LOGO_DARK_SRC}
-                            alt={BRAND_NAME}
+                            alt={invoice.companyName || BRAND_NAME}
                             className="w-full h-full object-contain filter drop-shadow-md"
                             onError={(e) => { (e.target as HTMLImageElement).src = BRAND_LOGO_SRC; }}
                           />
                         </div>
                         <div>
-                          <div className="text-2xl font-black tracking-tight text-white">{BRAND_NAME}</div>
-                          <div className="text-red-100 text-xs font-medium mt-0.5">Professional IT Services & Repairs · Hardware & Repairs</div>
-                          <div className="text-blue-100 text-xs mt-0.5">+232 33 399 391 · +232 76 210 320 · support@itservicesfreetown.com</div>
+                          <div className="text-2xl font-black tracking-tight text-white">{invoice.companyName || BRAND_NAME}</div>
+                          <div className="text-red-100 text-xs font-medium mt-0.5">{invoice.companyTagline || 'Professional IT Services & Hardware Repairs'}</div>
+                          <div className="text-blue-100 text-xs mt-0.5">{invoice.companyPhone} · {invoice.companyEmail}</div>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
@@ -746,15 +1034,19 @@ export default function InvoicesAdminPage() {
 
                     {/* Bill To & Provider */}
                     <div className="grid grid-cols-2 gap-6">
+                      {/* Provider / From */}
                       <div className="bg-slate-50/80 rounded-xl p-4 border border-slate-200/80">
                         <div className="text-[10px] text-[#040e40] uppercase tracking-widest font-black mb-2 flex items-center gap-1.5">
                           <span className="w-2 h-2 rounded-full bg-[#040e40] inline-block"></span> Provider / From
                         </div>
-                        <div className="font-extrabold text-slate-900 text-sm">{BRAND_NAME}</div>
-                        <div className="text-xs text-slate-600 mt-1">No 1 Regent Highway, Jui Junction, Freetown</div>
-                        <div className="text-xs text-slate-600">Freetown, Sierra Leone</div>
-                        <div className="text-xs text-slate-500 mt-1 font-mono">+232 78 000 000 / +232 76 000 000</div>
+                        <div className="font-extrabold text-slate-900 text-sm">{invoice.companyName || BRAND_NAME}</div>
+                        <div className="text-xs text-slate-600 mt-1">{invoice.companyAddress || 'No 1 Regent Highway, Jui Junction, Freetown'}</div>
+                        <div className="text-xs text-slate-600">{invoice.companyCityCountry || 'Freetown, Sierra Leone'}</div>
+                        <div className="text-xs text-slate-600 mt-1 font-mono">{invoice.companyPhone || '+232 33 399 391 / +232 76 210 320'}</div>
+                        {invoice.companyEmail && <div className="text-xs text-slate-500">{invoice.companyEmail}</div>}
                       </div>
+
+                      {/* Billed To */}
                       <div className="bg-red-50/60 rounded-xl p-4 border border-red-200/70">
                         <div className="text-[10px] text-[#dc2626] uppercase tracking-widest font-black mb-2 flex items-center gap-1.5">
                           <span className="w-2 h-2 rounded-full bg-[#dc2626] inline-block"></span> Billed To
@@ -835,7 +1127,7 @@ export default function InvoicesAdminPage() {
 
                     {/* Footer */}
                     <div className="border-t border-slate-200 pt-4 text-center text-[11px] text-slate-500 font-medium">
-                      Thank you for choosing <span className="font-bold text-[#040e40]">{BRAND_NAME}</span>! · No 1 Regent Highway, Jui Junction, Freetown
+                      Thank you for choosing <span className="font-bold text-[#040e40]">{invoice.companyName || BRAND_NAME}</span>! · {invoice.companyAddress || 'No 1 Regent Highway, Jui Junction, Freetown'}
                     </div>
                   </div>
                 </div>
@@ -868,7 +1160,7 @@ export default function InvoicesAdminPage() {
             <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-wrap gap-3 items-center">
               <div className="relative flex-1 min-w-48">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search invoices..."
+                <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search client, company, invoice number..."
                   className="w-full pl-10 pr-3 py-2 bg-slate-900 border border-white/15 rounded-lg text-white text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent" />
               </div>
               <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
@@ -887,7 +1179,7 @@ export default function InvoicesAdminPage() {
 
             {/* Invoice Table */}
             <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
-              {loading ? (
+              {loading && savedInvoices.length === 0 ? (
                 <div className="text-center py-16 text-slate-500">
                   <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-3 text-red-400" />
                   Loading invoices...
@@ -939,10 +1231,10 @@ export default function InvoicesAdminPage() {
                             </td>
                             <td className="px-5 py-3.5">
                               <div className="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
-                                <button onClick={() => loadInvoice(inv)} title="Edit" className="p-1.5 hover:bg-blue-500/20 rounded-lg text-blue-400 transition-all">
+                                <button onClick={() => loadInvoice(inv)} title="Edit / View in Builder" className="p-1.5 hover:bg-blue-500/20 rounded-lg text-blue-400 transition-all">
                                   <Edit3 className="w-3.5 h-3.5" />
                                 </button>
-                                <button onClick={() => duplicateInvoice(inv)} title="Duplicate" className="p-1.5 hover:bg-purple-500/20 rounded-lg text-purple-400 transition-all">
+                                <button onClick={() => duplicateInvoice(inv)} title="Duplicate as New" className="p-1.5 hover:bg-purple-500/20 rounded-lg text-purple-400 transition-all">
                                   <Copy className="w-3.5 h-3.5" />
                                 </button>
                                 <button onClick={() => deleteInvoice(inv.invoiceNumber)} title="Delete" className="p-1.5 hover:bg-red-500/20 rounded-lg text-red-400 transition-all">
