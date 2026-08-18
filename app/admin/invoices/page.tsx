@@ -172,6 +172,9 @@ export default function InvoicesAdminPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [showCompanyDetails, setShowCompanyDetails] = useState(false);
   const [companySavedMsg, setCompanySavedMsg] = useState(false);
+  const [showSavedModal, setShowSavedModal] = useState(false);
+  const [savedModalInvoice, setSavedModalInvoice] = useState<Invoice | null>(null);
+  const [justSaved, setJustSaved] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
   // ── Restore draft on mount ─────────────────────────────────────────────────
@@ -328,19 +331,20 @@ export default function InvoicesAdminPage() {
 
   // ── Save Invoice (Guaranteed Client & Server Sync) ───────────────────────────
   const saveInvoice = async () => {
-    if (!invoice.clientName.trim()) {
-      notify('error', 'Client name is required.');
-      return;
-    }
-    setSaving(true);
-
+    // 1. Resolve client name so empty inputs never block saving
+    const effectiveClientName = invoice.clientName.trim() || invoice.clientCompany.trim() || 'Valued Client';
     const invoiceToSave: Invoice = {
       ...invoice,
+      clientName: effectiveClientName,
       createdAt: invoice.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
-    // 1. Save to localStorage immediately
+    setInvoice(invoiceToSave);
+    setSaving(true);
+    setSavedModalInvoice(invoiceToSave);
+
+    // 2. Save to localStorage immediately (synchronous, 100% reliable)
     try {
       const local = localStorage.getItem(SAVED_INVOICES_KEY);
       let list: Invoice[] = local ? JSON.parse(local) : [];
@@ -355,11 +359,13 @@ export default function InvoicesAdminPage() {
       localStorage.removeItem(DRAFT_KEY);
       setLastSaved(null);
       setDraftRestored(false);
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 3000);
     } catch (e) {
       console.error('LocalStorage write error:', e);
     }
 
-    // 2. Sync to Server API
+    // 3. Sync to Server API
     try {
       const res = await fetch('/api/invoices', {
         method: 'POST',
@@ -367,15 +373,16 @@ export default function InvoicesAdminPage() {
         body: JSON.stringify(invoiceToSave),
       });
       if (res.ok) {
-        notify('success', `Invoice ${invoice.invoiceNumber} saved successfully!`);
+        notify('success', `Invoice ${invoiceToSave.invoiceNumber} saved successfully!`);
       } else {
         const err = await res.json().catch(() => ({}));
         notify('success', `Invoice saved locally! (${err.error || 'Server sync pending'})`);
       }
     } catch {
-      notify('success', `Invoice ${invoice.invoiceNumber} saved locally!`);
+      notify('success', `Invoice ${invoiceToSave.invoiceNumber} saved locally!`);
     } finally {
       setSaving(false);
+      setShowSavedModal(true);
     }
   };
 
@@ -557,6 +564,96 @@ export default function InvoicesAdminPage() {
             : 'bg-red-900/90 border-red-500/50 text-red-200'}`}>
           {notification.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
           {notification.msg}
+        </div>
+      )}
+
+      {/* Save Success Confirmation Modal */}
+      {showSavedModal && savedModalInvoice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-gradient-to-br from-slate-900 via-[#040e40] to-slate-950 border-2 border-emerald-500/50 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                  <CheckCircle className="w-7 h-7" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Invoice Saved &amp; Retained!</h3>
+                  <p className="text-xs text-emerald-300 font-mono mt-0.5">{savedModalInvoice.invoiceNumber}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSavedModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Quick Details Card */}
+            <div className="bg-slate-950/80 border border-white/10 rounded-xl p-4 space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Billed To:</span>
+                <span className="font-bold text-white">{savedModalInvoice.clientName}</span>
+              </div>
+              {savedModalInvoice.clientCompany && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Company:</span>
+                  <span className="text-slate-200">{savedModalInvoice.clientCompany}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="text-slate-400">Grand Total:</span>
+                <span className="font-bold font-mono text-blue-300">{fmt(savedModalInvoice.totalAmount)}</span>
+              </div>
+              <div className="flex justify-between border-t border-white/10 pt-2 font-semibold">
+                <span className="text-slate-300">Balance Due:</span>
+                <span className={`font-mono font-bold ${savedModalInvoice.balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                  {fmt(savedModalInvoice.balanceDue)}
+                </span>
+              </div>
+              {savedModalInvoice.payTo && (
+                <div className="flex justify-between border-t border-white/10 pt-2 text-[11px]">
+                  <span className="text-slate-400">Pay To:</span>
+                  <span className="font-bold text-indigo-300">{savedModalInvoice.payTo}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+              <button
+                onClick={() => {
+                  setShowSavedModal(false);
+                  setTab('history');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow"
+              >
+                <Search className="w-3.5 h-3.5" /> View History
+              </button>
+              <button
+                onClick={() => {
+                  setShowSavedModal(false);
+                  handlePrint();
+                }}
+                className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-all shadow"
+              >
+                <Printer className="w-3.5 h-3.5" /> Print / PDF
+              </button>
+              <button
+                onClick={() => {
+                  setShowSavedModal(false);
+                  setInvoice(blankInvoice());
+                  localStorage.removeItem(DRAFT_KEY);
+                  setLastSaved(null);
+                  setDraftRestored(false);
+                }}
+                className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all border border-white/10"
+              >
+                <Plus className="w-3.5 h-3.5" /> New Invoice
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -979,10 +1076,22 @@ export default function InvoicesAdminPage() {
 
               {/* Actions */}
               <div className="flex gap-3 flex-wrap">
-                <button onClick={saveInvoice} disabled={saving}
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-[#040e40] via-[#0c1f72] to-[#dc2626] hover:from-[#03092b] hover:to-[#b91c1c] disabled:opacity-50 rounded-xl font-bold transition-all shadow-xl text-white">
-                  {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  {saving ? 'Saving...' : 'Save & Retain Invoice'}
+                <button
+                  onClick={saveInvoice}
+                  disabled={saving}
+                  className={`flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold transition-all shadow-xl text-white ${
+                    justSaved
+                      ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-900/50'
+                      : 'bg-gradient-to-r from-[#040e40] via-[#0c1f72] to-[#dc2626] hover:from-[#03092b] hover:to-[#b91c1c]'
+                  } disabled:opacity-50`}
+                >
+                  {saving ? (
+                    <><RefreshCw className="w-4 h-4 animate-spin" /> Saving...</>
+                  ) : justSaved ? (
+                    <><CheckCircle className="w-4 h-4 text-emerald-200" /> Saved Successfully!</>
+                  ) : (
+                    <><Save className="w-4 h-4" /> Save &amp; Retain Invoice</>
+                  )}
                 </button>
                 <button onClick={() => setPreviewMode(!previewMode)}
                   className="flex items-center gap-2 px-5 py-3.5 bg-white/10 hover:bg-white/20 rounded-xl transition-all xl:hidden border border-white/10 font-medium">

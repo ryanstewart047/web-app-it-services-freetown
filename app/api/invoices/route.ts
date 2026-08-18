@@ -134,9 +134,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json()
-    if (!data.invoiceNumber || !data.clientName) {
-      return NextResponse.json({ error: 'Missing required fields (Invoice Number & Client Name)' }, { status: 400 })
-    }
+    const invoiceNumber = data.invoiceNumber?.trim() || `INV-${Date.now()}`;
+    const clientName = data.clientName?.trim() || data.clientCompany?.trim() || 'Valued Client';
 
     // Extract company info
     const companyInfo = {
