@@ -39,7 +39,7 @@ const nextConfig = {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60,
+    minimumCacheTTL: 31536000, // Cache optimized images at Vercel Edge for 1 year (dramatically reduces Fast Origin Transfer)
     remotePatterns: [
       {
         protocol: 'https',
@@ -121,6 +121,7 @@ const nextConfig = {
   // Handle 404s and set proper headers
   async headers() {
     return [
+      // PWA Service Worker (Always revalidate)
       {
         source: '/sw.js',
         headers: [
@@ -130,11 +131,33 @@ const nextConfig = {
           { key: 'Service-Worker-Allowed', value: '/' },
         ],
       },
+      // PWA Manifest
       {
         source: '/manifest.json',
         headers: [
           { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate, max-age=0' },
           { key: 'Content-Type', value: 'application/manifest+json' },
+        ],
+      },
+      // Next.js Optimized Images - Long-term Edge & Browser Cache
+      {
+        source: '/_next/image/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, stale-while-revalidate=86400' },
+        ],
+      },
+      // Static Public Assets (Images, Icons, CSS, JS) - 1 Year Immutable Cache
+      {
+        source: '/assets/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      // Common static file extensions in public root
+      {
+        source: '/:file*.(ico|png|jpg|jpeg|webp|avif|svg|woff|woff2|ttf|eot|mp4|webm|mp3)',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
       {
