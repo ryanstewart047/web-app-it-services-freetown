@@ -7,6 +7,14 @@ export interface EmailData {
   text?: string
 }
 
+export interface SendEmailResult {
+  success: boolean
+  messageId?: string
+  error?: string
+  note?: string
+  notConfigured?: boolean
+}
+
 function getTransporter() {
   const host = process.env.SMTP_HOST || 'smtp.gmail.com'
   const port = parseInt(process.env.SMTP_PORT || '587', 10)
@@ -26,7 +34,7 @@ function getTransporter() {
   })
 }
 
-export async function sendEmail({ to, subject, html, text }: EmailData) {
+export async function sendEmail({ to, subject, html, text }: EmailData): Promise<SendEmailResult> {
   try {
     const smtpUser = process.env.SMTP_USER
     const smtpPass = process.env.SMTP_PASS

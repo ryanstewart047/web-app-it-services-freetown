@@ -128,8 +128,8 @@ export async function POST(request: NextRequest) {
       `
     })
 
-    if (!result.success || result.note === 'Email service not configured') {
-      const msg = result.note === 'Email service not configured'
+    if (!result.success) {
+      const msg = result.notConfigured
         ? 'SMTP is not configured. Add SMTP_USER and SMTP_PASS to your environment variables.'
         : (result.error || 'Failed to send test email')
       throw new Error(msg)
