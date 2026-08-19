@@ -146,6 +146,13 @@ const nextConfig = {
           { key: 'Cache-Control', value: 'public, max-age=31536000, stale-while-revalidate=86400' },
         ],
       },
+      // Next.js Static JS & CSS Chunks - 1 Year Immutable Cache
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
       // Static Public Assets (Images, Icons, CSS, JS) - 1 Year Immutable Cache
       {
         source: '/assets/:path*',
@@ -153,9 +160,23 @@ const nextConfig = {
           { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
-      // Common static file extensions in public root
+      // Gallery Uploads - 1 Year Immutable Cache
       {
-        source: '/:file*.(ico|png|jpg|jpeg|webp|avif|svg|woff|woff2|ttf|eot|mp4|webm|mp3)',
+        source: '/shirleys-gallery/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      // Forum Uploads - 1 Year Immutable Cache
+      {
+        source: '/forum-uploads/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      // Common static file extensions across all routes
+      {
+        source: '/:path*.(ico|png|jpg|jpeg|webp|avif|svg|woff|woff2|ttf|eot|mp4|webm|mp3)',
         headers: [
           { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
