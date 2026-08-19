@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
 
     let syncedCount = 0;
 
-    // 1. Sync any existing Repair records in the database that don't have an Appointment
+    // 1. Link or sync existing Repair records in the database
     const unsyncedRepairs = await prisma.repair.findMany({
       where: { appointmentId: null },
       include: { customer: true }
@@ -22,6 +22,24 @@ export async function POST(request: NextRequest) {
 
     for (const repair of unsyncedRepairs) {
       try {
+        // Check if an appointment already exists for this customer (to prevent doubling)
+        const existingApp = await prisma.appointment.findFirst({
+          where: {
+            customerId: repair.customerId,
+            deviceType: repair.deviceType || undefined,
+          }
+        });
+
+        if (existingApp) {
+          // Link existing appointment to the repair instead of creating a duplicate
+          await prisma.repair.update({
+            where: { id: repair.id },
+            data: { appointmentId: existingApp.id }
+          });
+          continue;
+        }
+
+        // Only create if no appointment exists at all for this repair
         const appointment = await prisma.appointment.create({
           data: {
             customerId: repair.customerId,
@@ -77,29 +95,16 @@ export async function POST(request: NextRequest) {
           });
         }
 
-        // Check if an appointment already exists for this customer with similar issue description
+        // Check if an appointment already exists for this customer with similar device / date
         const existingAppointment = await prisma.appointment.findFirst({
           where: {
             customerId: customer.id,
-            issueDescription: { equals: issueDescription }
+            deviceType: booking.deviceType || undefined,
           }
         });
 
-        if (!existingAppointment) {
-          const newAppointment = await prisma.appointment.create({
-            data: {
-              customerId: customer.id,
-              deviceType: booking.deviceType || 'Unknown',
-              deviceModel: booking.deviceModel || 'Unknown',
-              issueDescription: issueDescription,
-              serviceType: booking.serviceType || 'General Repair',
-              preferredDate: booking.preferredDate || new Date().toISOString().split('T')[0],
-              preferredTime: booking.preferredTime || '09:00',
-              status: booking.status === 'received' ? 'pending' : (booking.status || 'pending')
-            }
-          });
-
-          // If there's a Repair with matching trackingId, link it
+        if (existingAppointment) {
+          // If there's a Repair with matching trackingId, link it to existing appointment
           if (booking.trackingId) {
             const matchingRepair = await prisma.repair.findUnique({
               where: { trackingId: booking.trackingId }
@@ -108,22 +113,77 @@ export async function POST(request: NextRequest) {
             if (matchingRepair && !matchingRepair.appointmentId) {
               await prisma.repair.update({
                 where: { id: matchingRepair.id },
-                data: { appointmentId: newAppointment.id }
+                data: { appointmentId: existingAppointment.id }
               });
             }
           }
-
-          syncedCount++;
+          continue;
         }
+
+        const newAppointment = await prisma.appointment.create({
+          data: {
+            customerId: customer.id,
+            deviceType: booking.deviceType || 'Unknown',
+            deviceModel: booking.deviceModel || 'Unknown',
+            issueDescription: issueDescription,
+            serviceType: booking.serviceType || 'General Repair',
+            preferredDate: booking.preferredDate || new Date().toISOString().split('T')[0],
+            preferredTime: booking.preferredTime || '09:00',
+            status: booking.status === 'received' ? 'pending' : (booking.status || 'pending')
+          }
+        });
+
+        // If there's a Repair with matching trackingId, link it
+        if (booking.trackingId) {
+          const matchingRepair = await prisma.repair.findUnique({
+            where: { trackingId: booking.trackingId }
+          });
+
+          if (matchingRepair && !matchingRepair.appointmentId) {
+            await prisma.repair.update({
+              where: { id: matchingRepair.id },
+              data: { appointmentId: newAppointment.id }
+            });
+          }
+        }
+
+        syncedCount++;
       } catch (err) {
         console.error('Failed to sync local booking:', err);
       }
     }
 
+    // 3. Database Cleanup Pass: Permanently remove any duplicate appointment records
+    try {
+      const allAppointments = await prisma.appointment.findMany({
+        orderBy: { createdAt: 'desc' }
+      });
+
+      const seen = new Set<string>();
+      const duplicatesToDelete: string[] = [];
+
+      for (const app of allAppointments) {
+        const sig = `${app.customerId}__${(app.deviceType || '').toLowerCase().trim()}__${(app.preferredDate || '').trim()}`;
+        if (seen.has(sig)) {
+          duplicatesToDelete.push(app.id);
+        } else {
+          seen.add(sig);
+        }
+      }
+
+      if (duplicatesToDelete.length > 0) {
+        await prisma.appointment.deleteMany({
+          where: { id: { in: duplicatesToDelete } }
+        });
+      }
+    } catch (cleanupErr) {
+      console.warn('Duplicate cleanup notice:', cleanupErr);
+    }
+
     return NextResponse.json({
       success: true,
       syncedCount,
-      message: `Successfully synced ${syncedCount} legacy booking records.`
+      message: `Successfully synchronized booking records.`
     });
   } catch (error) {
     console.error('Error in appointment sync endpoint:', error);

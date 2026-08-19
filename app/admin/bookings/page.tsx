@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Calendar, Clock, Smartphone, CheckCircle, XCircle, AlertCircle, Search, RefreshCw, User, MapPin, Mail, Phone, FileText, X, ChevronRight } from 'lucide-react';
 import { useAdminSession } from '../../../src/hooks/useAdminSession';
 import { updateBookingStatus, type BookingData } from '../../../lib/unified-booking-storage';
@@ -175,7 +175,27 @@ export default function AdminBookingsPage() {
     }
   };
 
-  const filteredAppointments = appointments.filter(appointment => {
+  // Deduplicate appointments so the exact same customer/booking never appears twice
+  const deduplicatedAppointments = useMemo(() => {
+    const seen = new Set<string>();
+    return appointments.filter(appointment => {
+      const name = (appointment.customer?.name || '').toLowerCase().trim();
+      const email = (appointment.customer?.email || '').toLowerCase().trim();
+      const phone = (appointment.customer?.phone || '').trim();
+      const device = (appointment.deviceType || '').toLowerCase().trim();
+      const date = (appointment.preferredDate || '').trim();
+      const issue = (appointment.issueDescription || '').toLowerCase().trim().replace(/[^a-z0-9]/g, '').slice(0, 30);
+      
+      const key = `${email || phone || name}__${device}__${date}__${issue}`;
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+  }, [appointments]);
+
+  const filteredAppointments = deduplicatedAppointments.filter(appointment => {
     const matchesSearch = 
       appointment.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       appointment.deviceType.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -194,11 +214,11 @@ export default function AdminBookingsPage() {
   );
 
   const stats = {
-    total: appointments.length,
-    pending: appointments.filter(a => a.status === 'pending').length,
-    confirmed: appointments.filter(a => a.status === 'confirmed').length,
-    completed: appointments.filter(a => a.status === 'completed').length,
-    cancelled: appointments.filter(a => a.status === 'cancelled').length
+    total: deduplicatedAppointments.length,
+    pending: deduplicatedAppointments.filter(a => a.status === 'pending').length,
+    confirmed: deduplicatedAppointments.filter(a => a.status === 'confirmed').length,
+    completed: deduplicatedAppointments.filter(a => a.status === 'completed').length,
+    cancelled: deduplicatedAppointments.filter(a => a.status === 'cancelled').length
   };
 
   if (loading) {

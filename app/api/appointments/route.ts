@@ -35,7 +35,35 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    return NextResponse.json(appointments);
+    // Deduplicate appointments in memory (and clean up duplicate records in DB)
+    const seen = new Set<string>();
+    const uniqueAppointments: typeof appointments = [];
+    const duplicateIdsToDelete: string[] = [];
+
+    for (const app of appointments) {
+      const customerKey = (app.customer?.email || app.customer?.phone || app.customer?.name || app.customerId || '').toLowerCase().trim();
+      const deviceKey = (app.deviceType || '').toLowerCase().trim();
+      const dateKey = (app.preferredDate || app.createdAt.toISOString().split('T')[0] || '').trim();
+      const issueKey = (app.issueDescription || '').toLowerCase().trim().replace(/[^a-z0-9]/g, '').slice(0, 30);
+      
+      const sig = `${customerKey}__${deviceKey}__${dateKey}__${issueKey}`;
+
+      if (seen.has(sig)) {
+        duplicateIdsToDelete.push(app.id);
+      } else {
+        seen.add(sig);
+        uniqueAppointments.push(app);
+      }
+    }
+
+    // Clean up duplicate records from DB asynchronously
+    if (duplicateIdsToDelete.length > 0) {
+      prisma.appointment.deleteMany({
+        where: { id: { in: duplicateIdsToDelete } }
+      }).catch(err => console.warn('[Appointments API] Background cleanup notice:', err));
+    }
+
+    return NextResponse.json(uniqueAppointments);
   } catch (error) {
     console.error('Error fetching appointments:', error);
     
@@ -100,6 +128,28 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Check if an identical active appointment already exists for this customer to prevent double booking
+    const existing = await prisma.appointment.findFirst({
+      where: {
+        customerId: customer.id,
+        deviceType: safeDevice,
+        preferredDate: preferredDate || new Date().toISOString().split('T')[0],
+      },
+      include: {
+        customer: {
+          select: {
+            name: true,
+            email: true,
+            phone: true
+          }
+        }
+      }
+    });
+
+    if (existing) {
+      return NextResponse.json(existing, { status: 200 });
+    }
+
     // Create appointment
     const appointment = await prisma.appointment.create({
       data: {
@@ -125,7 +175,6 @@ export async function POST(request: NextRequest) {
 
     // Capture email lead silently in background
     captureEmailLead({ email: safeEmail, name: safeName, phone: safePhone, source: 'appointment' });
-
 
     return NextResponse.json(appointment, { status: 201 });
   } catch (error) {
