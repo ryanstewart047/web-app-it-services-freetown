@@ -12,6 +12,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  // Check SMTP is configured before attempting any sends
+  const smtpUser = process.env.SMTP_USER
+  const smtpPass = process.env.SMTP_PASS
+  if (!smtpUser || smtpUser === 'your-email@gmail.com' || !smtpPass) {
+    return NextResponse.json({
+      error: 'Email service is not configured. Please add SMTP_USER, SMTP_PASS (and optionally SMTP_HOST, SMTP_PORT) to your Vercel environment variables, then redeploy.'
+    }, { status: 503 })
+  }
+
   try {
     const { subject, content, recipients } = await request.json()
 

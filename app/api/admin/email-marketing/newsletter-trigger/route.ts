@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/email'
-
-const GROQ_API_KEY = process.env.GROQ_API_KEY
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
-const GROQ_MODEL = 'llama-3.1-8b-instant'
+import { generateNewsletterIssue } from '@/lib/server/email-ai-generator'
 
 const DEFAULT_TOPICS = [
   "5 Essential Tips to Keep Your Laptop from Overheating in Freetown's Heat",
@@ -61,51 +58,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Newsletter Trigger] Generating test email for: "${selectedTopic}" to: ${testEmail}`)
 
-    if (!GROQ_API_KEY) {
-      throw new Error('GROQ_API_KEY environment variable is not configured.')
-    }
-
-    // Generate content
-    const systemPrompt = `
-      You are an expert email marketing specialist for "BridgeTech IT Services", a professional computer and mobile repair business in Sierra Leone.
-      Your goal is to write high-converting, professional, and engaging weekly newsletter emails.
-      
-      Response Format:
-      You MUST respond with a JSON object containing exactly three fields:
-      1. "subject": A catchy and professional subject line.
-      2. "content": The HTML body of the email. Use clean HTML with <h1>, <p>, <ul>, <li>, and <strong> tags. Do NOT include <html> or <body> tags. Keep it readable and highly informative.
-      3. "imagePrompt": A highly descriptive prompt for an AI image generator to create a vector illustration representing this topic. Avoid text in the image. Example: "A professional illustration of a laptop with clean blue repair tools, flat design, white background."
-      
-      Tone: Friendly, highly informative, professional, and localized to Sierra Leone context where appropriate.
-      Business Name: BridgeTech IT Services
-      Link Requirement: In the HTML "content" body ONLY, ANY time you mention the name "BridgeTech IT Services", you MUST format it as a clickable HTML link pointing exactly to "https://www.itservicesfreetown.com". For example: <a href="https://www.itservicesfreetown.com">BridgeTech IT Services</a>. Do NOT use HTML tags in the "subject" line.
-      Location: #1 Regent Highway, Jui Junction, Freetown.
-      Phone: +232 33 399 391.
-    `
-
-    const aiResponse = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Write a newsletter issue explaining: ${selectedTopic}` }
-        ],
-        temperature: 0.7,
-        response_format: { type: 'json_object' }
-      }),
-    })
-
-    if (!aiResponse.ok) {
-      throw new Error(`AI generation failed: ${await aiResponse.text()}`)
-    }
-
-    const data = await aiResponse.json()
-    const { subject, content, imagePrompt } = JSON.parse(data.choices[0].message.content)
+    const { subject, content, imagePrompt } = await generateNewsletterIssue(selectedTopic)
 
     // Generate illustration URL
     const encodedPrompt = encodeURIComponent(`${imagePrompt || selectedTopic}, vector illustration, digital art, clean white background`)
@@ -175,8 +128,11 @@ export async function POST(request: NextRequest) {
       `
     })
 
-    if (!result.success) {
-      throw new Error(result.error || 'Failed to send test email')
+    if (!result.success || result.note === 'Email service not configured') {
+      const msg = result.note === 'Email service not configured'
+        ? 'SMTP is not configured. Add SMTP_USER and SMTP_PASS to your environment variables.'
+        : (result.error || 'Failed to send test email')
+      throw new Error(msg)
     }
 
     return NextResponse.json({

@@ -1,15 +1,5 @@
 import nodemailer from 'nodemailer'
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-})
-
 export interface EmailData {
   to: string
   subject: string
@@ -17,26 +7,80 @@ export interface EmailData {
   text?: string
 }
 
+function getTransporter() {
+  const host = process.env.SMTP_HOST || 'smtp.gmail.com'
+  const port = parseInt(process.env.SMTP_PORT || '587', 10)
+  const isSecure = port === 465
+
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: isSecure,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  })
+}
+
 export async function sendEmail({ to, subject, html, text }: EmailData) {
   try {
-    // Check if email is configured
-    if (!process.env.SMTP_USER || process.env.SMTP_USER === 'your-email@gmail.com') {
-      console.log('Email service not configured. Would send:', { to, subject })
-      console.log('To configure email, update SMTP_USER and SMTP_PASS in .env.local')
-      return { success: true, messageId: 'dev-mode', note: 'Email service not configured' }
+    const smtpUser = process.env.SMTP_USER
+    const smtpPass = process.env.SMTP_PASS
+
+    // 1. Check if SMTP is configured
+    if (!smtpUser || smtpUser === 'your-email@gmail.com' || !smtpPass) {
+      // Check if Resend API key is available as an alternative
+      if (process.env.RESEND_API_KEY) {
+        try {
+          const resendRes = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: process.env.EMAIL_FROM || 'BridgeTech IT Services <onboarding@resend.dev>',
+              to: [to],
+              subject,
+              html,
+              text,
+            }),
+          })
+          if (resendRes.ok) {
+            const data = await resendRes.json()
+            return { success: true, messageId: data.id }
+          }
+        } catch (resendErr) {
+          console.warn('[Email] Resend attempt failed:', resendErr)
+        }
+      }
+
+      console.warn('[Email] SMTP service not configured (SMTP_USER/SMTP_PASS missing).')
+      return { 
+        success: false, 
+        notConfigured: true, 
+        error: 'Email service is not configured. Please add SMTP_USER and SMTP_PASS to environment variables.' 
+      }
     }
 
+    const transporter = getTransporter()
+    const fromAddress = process.env.EMAIL_FROM || `"BridgeTech IT Services" <${smtpUser}>`
+
     const result = await transporter.sendMail({
-      from: `"BridgeTech IT Services" <${process.env.SMTP_USER || 'noreply@itservicesfreetown.com'}>`,
+      from: fromAddress,
       to,
       subject,
       html,
       text,
     })
-    console.log('Email sent successfully:', result.messageId)
+    console.log('[Email] Sent successfully to', to, 'Message ID:', result.messageId)
     return { success: true, messageId: result.messageId }
   } catch (error) {
-    console.error('Email sending failed:', error)
+    console.error('[Email] Sending failed to', to, ':', error)
     return { success: false, error: (error as Error).message }
   }
 }

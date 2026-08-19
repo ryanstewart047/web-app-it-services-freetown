@@ -353,17 +353,17 @@ export default function EmailMarketingPage() {
         body: JSON.stringify({ prompt: aiPrompt })
       })
       const data = await res.json()
-      if (data.subject && data.content) {
+      if (res.ok && data.subject && data.content) {
         setSubject(data.subject)
         setContent(data.content)
         setShowAi(false)
         setAiPrompt('')
-        alert('AI content generated and placed in editor!')
+        alert('✅ AI content generated and placed in editor!')
       } else {
-        alert('AI generation failed: ' + (data.error || 'Unknown error'))
+        alert('❌ AI generation failed:\n\n' + (data.error || 'Unknown error. Check that GROQ_API_KEY is set in your Vercel environment variables.'))
       }
     } catch (e) {
-      alert('Error during AI generation')
+      alert('❌ Network error during AI generation. Please check your connection.')
     } finally {
       setGenerating(false)
     }

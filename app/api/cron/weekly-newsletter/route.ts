@@ -2,14 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/email'
 import { canRunProtectedAutomation } from '@/lib/server/admin-session'
-
+import { generateNewsletterIssue } from '@/lib/server/email-ai-generator'
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // Extend Vercel timeout to 60s for AI and email processing
-
-const GROQ_API_KEY = process.env.GROQ_API_KEY
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
-const GROQ_MODEL = 'llama-3.1-8b-instant'
 
 const DEFAULT_TOPICS = [
   "5 Essential Tips to Keep Your Laptop from Overheating in Freetown's Heat",
@@ -55,12 +51,22 @@ async function handleNewsletterCron(request: NextRequest) {
     }
 
     if (!settings.enabled && !isManual) {
-      return NextResponse.json({ message: 'Weekly automated newsletter is disabled.' })
+      return NextResponse.json({ message: 'Weekly automated newsletter is disabled. Enable it in Settings to run automatically, or use the Manual Blast button to send now.' })
+    }
+
+    // Check SMTP is configured
+    const smtpUser = process.env.SMTP_USER
+    const smtpPass = process.env.SMTP_PASS
+    if (!smtpUser || smtpUser === 'your-email@gmail.com' || !smtpPass) {
+      return NextResponse.json({
+        success: false,
+        error: 'Email service is not configured. Add SMTP_USER and SMTP_PASS to your Vercel environment variables, then redeploy.'
+      }, { status: 503 })
     }
 
     // Parse topics
-    const topics = Array.isArray(settings.topics) 
-      ? (settings.topics as string[]) 
+    const topics = Array.isArray(settings.topics)
+      ? (settings.topics as string[])
       : DEFAULT_TOPICS
 
     if (topics.length === 0) {
@@ -90,51 +96,8 @@ async function handleNewsletterCron(request: NextRequest) {
 
     console.log(`[Weekly Newsletter] Selected Topic: "${selectedTopic}"`)
 
-    // 4. Generate newsletter content using Groq AI
-    if (!GROQ_API_KEY) {
-      throw new Error('GROQ_API_KEY environment variable is not configured.')
-    }
-
-    const systemPrompt = `
-      You are an expert email marketing specialist for "BridgeTech IT Services", a professional computer and mobile repair business in Sierra Leone.
-      Your goal is to write high-converting, professional, and engaging weekly newsletter emails.
-      
-      Response Format:
-      You MUST respond with a JSON object containing exactly three fields:
-      1. "subject": A catchy and professional subject line.
-      2. "content": The HTML body of the email. Use clean HTML with <h1>, <p>, <ul>, <li>, and <strong> tags. Do NOT include <html> or <body> tags. Keep it readable and highly informative.
-      3. "imagePrompt": A highly descriptive prompt for an AI image generator to create a vector illustration representing this topic. Avoid text in the image. Example: "A professional illustration of a laptop with clean blue repair tools, flat design, white background."
-      
-      Tone: Friendly, highly informative, professional, and localized to Sierra Leone context where appropriate.
-      Business Name: BridgeTech IT Services
-      Link Requirement: In the HTML "content" body ONLY, ANY time you mention the name "BridgeTech IT Services", you MUST format it as a clickable HTML link pointing exactly to "https://www.itservicesfreetown.com". For example: <a href="https://www.itservicesfreetown.com">BridgeTech IT Services</a>. Do NOT use HTML tags in the "subject" line.
-      Location: #1 Regent Highway, Jui Junction, Freetown.
-      Phone: +232 33 399 391.
-    `
-
-    const aiResponse = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Write a newsletter issue explaining: ${selectedTopic}` }
-        ],
-        temperature: 0.7,
-        response_format: { type: 'json_object' }
-      }),
-    })
-
-    if (!aiResponse.ok) {
-      throw new Error(`AI generation failed: ${await aiResponse.text()}`)
-    }
-
-    const data = await aiResponse.json()
-    const { subject, content, imagePrompt } = JSON.parse(data.choices[0].message.content)
+    // 4. Generate newsletter content using AI (with multi-provider & template fallback)
+    const { subject, content, imagePrompt } = await generateNewsletterIssue(selectedTopic)
 
     // 5. Generate matching illustration using Pollinations.ai
     const encodedPrompt = encodeURIComponent(`${imagePrompt || selectedTopic}, vector illustration, digital art, clean white background`)
