@@ -476,20 +476,20 @@ export default function Troubleshoot() {
                   <h2 className="text-xl font-bold text-gray-900">AI Diagnosis</h2>
                   <div className="flex items-center space-x-4 mt-1">
                     <span className="text-sm text-gray-600">
-                      Confidence: {aiResponse.confidence}%
+                      Confidence: {aiResponse.confidence || 80}%
                     </span>
-                    <span className={`text-xs px-2 py-1 rounded-full ${getDifficultyColor(aiResponse.difficulty)}`}>
-                      {aiResponse.difficulty.toUpperCase()}
+                    <span className={`text-xs px-2 py-1 rounded-full ${getDifficultyColor(aiResponse.difficulty || 'easy')}`}>
+                      {(aiResponse.difficulty || 'easy').toUpperCase()}
                     </span>
                     <span className="text-sm text-gray-600">
-                      Est. Time: {aiResponse.estimatedTime}
+                      Est. Time: {aiResponse.estimatedTime || '15-30 minutes'}
                     </span>
                   </div>
                 </div>
               </div>
               
               <div className="bg-blue-50 border-l-4 border-primary p-4 rounded-r-lg">
-                <p className="text-gray-800">{aiResponse.diagnosis}</p>
+                <p className="text-gray-800">{aiResponse.diagnosis || 'Diagnosis completed.'}</p>
               </div>
             </div>
 
@@ -497,30 +497,41 @@ export default function Troubleshoot() {
             <div className="bg-white rounded-lg shadow-lg p-8">
               <h2 className="text-xl font-bold text-gray-900 mb-6">Step-by-Step Solution</h2>
               <div className="space-y-6">
-                {aiResponse.steps.map((step, index) => (
-                  <div key={step.id} className="flex items-start space-x-4">
-                    <div className="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-semibold">
-                      {index + 1}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        {getStepIcon(step.type, completedSteps.includes(step.id))}
-                        <h3 className="font-semibold text-gray-900">{step.title}</h3>
-                        <button
-                          onClick={() => toggleStepCompleted(step.id)}
-                          className={`text-xs px-2 py-1 rounded-full transition-colors ${
-                            completedSteps.includes(step.id)
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                          }`}
-                        >
-                          {completedSteps.includes(step.id) ? 'Completed' : 'Mark Complete'}
-                        </button>
+                {Array.isArray(aiResponse.steps) && aiResponse.steps.length > 0 ? (
+                  aiResponse.steps.map((step, index) => {
+                    const stepId = step?.id || `step-${index}`;
+                    const stepTitle = step?.title || `Step ${index + 1}`;
+                    const stepDesc = step?.description || 'Follow recommended procedure.';
+                    const stepType = step?.type || 'check';
+
+                    return (
+                      <div key={stepId} className="flex items-start space-x-4">
+                        <div className="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-semibold">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            {getStepIcon(stepType, completedSteps.includes(stepId))}
+                            <h3 className="font-semibold text-gray-900">{stepTitle}</h3>
+                            <button
+                              onClick={() => toggleStepCompleted(stepId)}
+                              className={`text-xs px-2 py-1 rounded-full transition-colors ${
+                                completedSteps.includes(stepId)
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                              }`}
+                            >
+                              {completedSteps.includes(stepId) ? 'Completed' : 'Mark Complete'}
+                            </button>
+                          </div>
+                          <p className="text-gray-700">{stepDesc}</p>
+                        </div>
                       </div>
-                      <p className="text-gray-700">{step.description}</p>
-                    </div>
-                  </div>
-                ))}
+                    );
+                  })
+                ) : (
+                  <p className="text-gray-600">No additional steps required. If the issue continues, please contact support.</p>
+                )}
               </div>
             </div>
 

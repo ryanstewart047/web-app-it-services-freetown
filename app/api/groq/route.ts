@@ -152,15 +152,42 @@ export async function POST(request: NextRequest) {
 
 function generateIntelligentFallback(userQuery: string, isJson: boolean): string {
   if (isJson) {
+    const q = (userQuery || '').toLowerCase();
+    const isMobile = q.includes('phone') || q.includes('mobile') || q.includes('iphone') || q.includes('samsung') || q.includes('tecno') || q.includes('infinix');
+    
     return JSON.stringify({
-      title: "Essential Technology & Device Maintenance Guide",
-      content: "<h2>Professional IT Support & Device Care</h2><p>Keeping your technology running smoothly requires proper diagnostics and maintenance. At <a href=\"https://www.itservicesfreetown.com\">BridgeTech IT Services</a>, we provide comprehensive computer and mobile repairs, data recovery, and IT networking solutions.</p><p>For assistance, visit us at No. 1 Regent Highway, Jui Junction or call <strong>+232 33 399 391</strong>.</p>",
-      diagnosis: "General device inquiry requiring inspection",
-      confidence: 80,
+      title: "Device Diagnostic & Troubleshooting Guide",
+      diagnosis: isMobile
+        ? "The mobile device is exhibiting power or software issues that typically require a forced restart, battery check, or charge port inspection."
+        : "The computer is experiencing performance or startup issues, likely related to background task loads, thermal buildup, or driver discrepancies.",
+      confidence: 84,
       steps: [
-        { id: "step1", title: "Diagnostic Assessment", description: "Bring device to BridgeTech IT Services for a free checkup.", type: "check" }
+        {
+          id: "step1",
+          title: "Initial Hardware & Power Check",
+          description: isMobile 
+            ? "Connect the device to an original fast charger for 20 minutes and inspect the charging port for dust or lint."
+            : "Ensure the power adapter is delivering steady voltage and check that cooling vents are clear of dust.",
+          type: "check"
+        },
+        {
+          id: "step2",
+          title: "Perform Force Restart / Safe Reboot",
+          description: isMobile
+            ? "Press and hold the Power and Volume Down buttons simultaneously for 12 seconds to force a clean reboot."
+            : "Restart the machine and boot into Safe Mode to determine if third-party background software is conflicting.",
+          type: "action"
+        },
+        {
+          id: "step3",
+          title: "Professional Inspection & Repair",
+          description: "If symptoms persist, visit BridgeTech IT Services at No. 1 Regent Highway, Jui Junction or call +232 33 399 391 for hardware diagnosis.",
+          type: "info"
+        }
       ],
-      escalate: true
+      escalate: true,
+      estimatedTime: "15-30 minutes",
+      difficulty: "easy"
     });
   }
 
