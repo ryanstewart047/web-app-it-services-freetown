@@ -197,8 +197,18 @@ ${webSearchSnippet ? `\n[LIVE WEB SEARCH RESULT FOR USER QUERY]\n${webSearchSnip
 2. **Deep Technical Expertise**: Provide insightful, accurate, and detailed technical troubleshooting, hardware explanations, software advice, or answers suited to the user's specific device model and situation.
 3. **Structured & Highly Readable**: Use clean paragraphs, bold key terms, and bullet points or numbered steps where appropriate so the customer can easily follow your advice.
 4. **Context Awareness**: Maintain full conversation memory. If the user previously mentioned their device, name, or symptoms, reference them naturally.
-5. **BridgeTech Local Relevance**: Always guide customers with relevant local details (Freetown, Sierra Leone, No. 1 Regent Highway Jui Junction, phone +232 33 399 391, booking link itservicesfreetown.com/book-appointment) whenever they need professional in-person or on-site service.
-6. **Tone**: Warm, exceptionally smart, courteous, and professional.`;
+5. **BridgeTech Local Relevance**: Guide customers with relevant local details (Freetown, Sierra Leone, No. 1 Regent Highway Jui Junction, phone +232 33 399 391, booking link itservicesfreetown.com/book-appointment) whenever they need professional in-person or on-site service.
+6. **Tone**: Warm, exceptionally smart, courteous, and professional.
+
+═══════════════════════════════════════
+🚫 CRITICAL RULES — NEVER VIOLATE THESE
+═══════════════════════════════════════
+- **NEVER re-introduce yourself** if there is already conversation history. The user knows who you are. Just answer their question naturally.
+- **NEVER repeat the welcome/greeting message** (the one listing your services and contact info) after the conversation has started.
+- **NEVER ask for the user's name, email, or phone number** unless they explicitly say they want to look up or track a repair they previously submitted. If they ask "my phone is overheating" — just help them with the overheating issue.
+- **NEVER default to a canned reply**. If a user says "I need help with my phone" — ask what the phone issue is, or offer to help right away.`;
+
+
 
   try {
     console.log('🔍 [CLIENT-SIDE] Calling AI via Backend Proxy:', context.userMessage)
@@ -1070,20 +1080,31 @@ export function hasCustomerLookupInfo(message: string, options: CustomerLookupOp
 }
 
 /**
- * Check if a message is a customer trying to find their tracking ID
+ * Check if a message is a customer trying to find their tracking ID.
+ * Only fires on explicit repair-lookup intent — NOT on general phrases like
+ * "my phone is overheating" or "my battery is dead".
  */
 export function isCustomerLookupQuery(message: string): boolean {
   const msg = message.toLowerCase();
-  // Must mention finding/looking for their repair AND provide identifying info
-  const lookupKeywords = [
+
+  // Explicit repair-lookup phrases only — must clearly signal intent to
+  // find or check a repair ticket, not just describe a device problem.
+  const explicitLookupPhrases = [
     'find my repair', 'find my tracking', 'look up my repair', 'lookup my repair',
-    'my repair', 'my tracking id', 'don\'t have my tracking', 'lost my tracking',
-    'forgot my tracking', 'don\'t know my tracking', 'what is my tracking',
-    'where is my repair', 'check my repair', 'can you find my',
-    'i dropped off', 'i brought my', 'i submitted', 'i booked',
-    'my name is', 'my email is', 'my phone is', 'my number is'
+    'my tracking id', "don't have my tracking", 'lost my tracking',
+    'forgot my tracking', "don't know my tracking", 'what is my tracking',
+    'where is my repair', 'check my repair', 'can you find my repair',
+    'i dropped off my', 'i brought my device', 'i submitted a repair',
+    'i booked a repair', 'i booked an appointment',
+    'my name is', 'my email is',
+    'my phone number is', 'my contact number is'
   ];
-  return lookupKeywords.some(keyword => msg.includes(keyword));
+
+  // "my repair" alone is too broad — only match when a lookup-intent word is present
+  const hasMYRepair = msg.includes('my repair') &&
+    ['find', 'look', 'check', 'where', 'status', 'track'].some(w => msg.includes(w));
+
+  return hasMYRepair || explicitLookupPhrases.some(phrase => msg.includes(phrase));
 }
 
 /**

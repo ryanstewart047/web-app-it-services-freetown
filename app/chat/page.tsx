@@ -51,7 +51,14 @@ const createInitialMessage = (): Message =>
 
 const buildConversationHistory = (chatMessages: Message[]) =>
   chatMessages
-    .filter(message => message.type !== 'system' && message.content.trim().length > 0)
+    .filter((message, index) => {
+      // Skip system messages and empty messages
+      if (message.type === 'system' || !message.content.trim()) return false
+      // Skip the very first bot message — it's a static welcome template,
+      // not a real AI turn. Including it causes Alison to repeat introductions.
+      if (index === 0 && message.sender === 'bot') return false
+      return true
+    })
     .map(message => ({
       role: message.sender === 'user' ? 'user' as const : 'assistant' as const,
       content: message.content
@@ -64,15 +71,17 @@ const hasPendingCustomerLookup = (chatMessages: Message[]) => {
     .map(message => message.content.toLowerCase())
     .join(' ')
 
+  // Only fire when the bot has sent its specific repair-lookup request message
+  // (the one that asks for email, phone number, or name to find a repair ticket).
+  // Using unique phrases from that specific prompt to avoid false positives.
   return [
     'forgot my tracking',
     'lost my tracking',
     'find my repair',
-    'find your repair',
     'provide one of the following',
-    'your full name',
-    'your email address',
-    'your phone number',
+    'to look it up, please provide',
+    '📧 **your email address** (used when booking)',
+    '📱 **your phone number**',
     'please provide your tracking id'
   ].some(phrase => recentText.includes(phrase))
 }
