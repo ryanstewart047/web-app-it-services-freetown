@@ -281,6 +281,15 @@ const ADMIN_PANELS: AdminPanelItem[] = [
     url: '/admin/facebook-auto-post',
   },
   {
+    id: 'social-sharing',
+    name: 'Social Sharing & OG Admin',
+    category: 'marketing',
+    description: 'Custom OG cards & WhatsApp share links for products & blogs',
+    icon: 'fas fa-share-nodes',
+    color: 'text-emerald-400',
+    url: '/admin/social-sharing',
+  },
+  {
     id: 'digital-tools',
     name: 'Digital Tools Suite',
     category: 'ecommerce',
