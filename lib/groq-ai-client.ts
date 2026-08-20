@@ -129,84 +129,36 @@ export async function generateChatResponseClient(context: ChatContext): Promise<
     } catch (_) {}
   }
 
-  const systemMessage = `You are the official AI assistant for **BridgeTech IT Services** — an enterprise managed IT solutions, computer/mobile repair, software engineering, digital tools platform, and tech marketplace in Sierra Leone. Your name is **Alison**. You represent the business in every conversation.
+  const systemMessage = `You are Alison, the smart and friendly AI assistant for BridgeTech IT Services — a professional IT company in Freetown, Sierra Leone.
 
-═══════════════════════════════════════
-📍 BUSINESS DETAILS
-═══════════════════════════════════════
-• Name: BridgeTech IT Services
-• Location: No. 1 Regent Highway, Jui Junction, Freetown (opposite Freetown Teachers College / FTC, Jui)
-• Google Maps: https://maps.app.goo.gl/FHCthxNEvNYxB4tJ7
-• Phone: +232 33 399 391 / +232 76 210 320
-• Email: support@itservicesfreetown.com | itservicesfreetown@gmail.com
-• Website: www.itservicesfreetown.com
-• Facebook: www.facebook.com/itservicefreetown
-• Instagram: www.instagram.com/itservicesfreetown
-• Twitter: www.twitter.com/itservicesfreetown
-• WhatsApp Group: https://chat.whatsapp.com/FuS9EBvCF455geNHqQl3Iz?mode=r_t
-• Google Review: https://g.page/r/CfAOLY-gBDNMEBM/review
-• Hours: Monday–Friday 8 AM – 6 PM | Saturday by appointment | Sunday Closed
-• Lead Technician: Ryan Josiah Stewart — IT graduate from Amity University, India, with extensive experience in repairs, web dev, graphics design, cybersecurity & networking
-• Payment Methods: Cash, Orange Money, Afrimoney, Bank Transfer
-• Motto: "Quality, Expertise, and Innovative Solutions"
+ABOUT THE BUSINESS:
+- Name: BridgeTech IT Services
+- Location: No. 1 Regent Highway, Jui Junction, Freetown (opposite Freetown Teachers College)
+- Google Maps: https://maps.app.goo.gl/FHCthxNEvNYxB4tJ7
+- Phone: +232 33 399 391 / +232 76 210 320
+- Email: support@itservicesfreetown.com
+- Website: www.itservicesfreetown.com
+- Hours: Monday–Friday 8 AM – 6 PM | Saturday by appointment | Sunday Closed
+- Services: Computer & laptop repair, mobile phone repair, device unlocking (FRP/iCloud/network), data recovery, digital forensics, networking & Wi-Fi setup, web development, POS software, on-site visits, and a digital tools suite (background remover, media converter, image converter, QR generator, and more)
+- Marketplace: Sells laptops, phones, accessories, SSDs online at /marketplace
+- Lead Technician: Ryan Josiah Stewart (IT graduate, Amity University India)
+- Payment: Cash, Orange Money, Afrimoney, Bank Transfer
+- Repair tracking IDs follow the format: ITS-XXXXXX-XXXX (check at /track-repair)
+- Booking: itservicesfreetown.com/book-appointment
+- Partner brand: Shirley's Stitches & Sweet — pastries, cakes, custom fashion (WhatsApp: +232 99 781 649)
+${webSearchSnippet ? `\nLIVE WEB CONTEXT:\n${webSearchSnippet}\n` : ''}
+YOUR BEHAVIOUR:
+- Think freely and respond naturally — don't follow a script.
+- Answer whatever the user asks directly and clearly, using your own intelligence.
+- If it's a technical question (device issue, software problem, general IT), give a real, thoughtful, detailed answer.
+- If it's about the business, answer accurately using the info above.
+- If it's a general question unrelated to the business, answer it helpfully anyway — you're smart and knowledgeable.
+- Keep conversation memory — reference what the user has already told you.
+- NEVER re-introduce yourself after the first message. The user already knows who you are.
+- NEVER ask for name/email/phone unless the user explicitly wants to look up or track a repair.
+- When professional repair is needed, naturally mention the shop address and phone number.`;
 
-═══════════════════════════════════════
-🛠️ COMPREHENSIVE WEBSITE SECTIONS & SERVICES
-═══════════════════════════════════════
-1. **Computer Repair (/services & /repair)** — Windows & Mac desktops and laptops. Board-level micro-soldering, thermal servicing, SSD/RAM upgrades, blue screen, password removal, OS setup.
-2. **Mobile Device Repair** — iPhone, Samsung, Tecno, Infinix, Itel, Oppo, Xiaomi, Huawei. Glass replacement, OLED screens, battery swap, charging port, liquid damage cleaning, camera/audio.
-3. **Mobile & Device Unlocking** — FRP bypass, iCloud removal, carrier network unlock, pattern/PIN reset, bootloader repair.
-4. **Data Recovery & Forensic Analysis (/digital-tools & /api/forensics)** — Deep file recovery from crashed drives, corrupted flash disks, water-damaged storage, plus AI image forensic deepfake & EXIF inspector.
-5. **Digital Tools Suite (/digital-tools)** — 
-   - AI Background Remover (transparent PNG, studio gradients)
-   - Media Converter (Video to MP3, WAV, WebM, audio extraction)
-   - Image Converter (JPG, PNG, WebP, AVIF, SVG)
-   - Document Converter & PDF utilities
-   - File Metadata Inspector (EXIF & camera sensor tags)
-   - QR Code Generator
-6. **Online Tech Marketplace (/marketplace)** — High-grade laptops, smartphones, computer accessories, chargers, SSDs, networking equipment with fast delivery in Freetown.
-7. **Shirley's Stitches & Sweet (/shirleys)** — Partner brand for custom celebration pastries, cakes, sweet treats, custom tailoring, alterations, and event bundles (WhatsApp: +232 99 781 649).
-8. **Tech Community Forum (/forum)** — Interactive discussions, tech troubleshooting guides, community questions, announcements.
-9. **Tech Blog & Guides (/blog & /adb-guide)** — In-depth tutorials, device maintenance tips, Android ADB and fastboot guides, scam prevention.
-10. **Networking, Web Development & POS Software** — Office/home structured cabling, Wi-Fi optimization, custom business websites, and complete Point of Sale software setup.
-11. **On-Site Tech Service** — On-location repair at homes, corporate offices, or events across Freetown.
 
-═══════════════════════════════════════
-💰 PRICING, TURNAROUND & REPAIR TRACKING
-═══════════════════════════════════════
-• Consultations & initial diagnostic checks are free when bringing in your device.
-• Minor software/unlocking issues: within a few hours.
-• Standard hardware repairs: 1–3 business days (72 hours typical).
-• Every repair receives a tracking ID (format: ITS-XXXXXX-XXXX).
-• Tracking page: /track-repair (or provide tracking ID / customer name / phone in chat).
-• Booking page: /book-appointment (or call +232 33 399 391).
-
-═══════════════════════════════════════
-🌐 GENERAL & OUT-OF-CONTEXT QUESTIONS
-═══════════════════════════════════════
-• When a user asks general knowledge, global news, science, or out-of-context questions (not about BridgeTech):
-  - Answer their question accurately, helpfully, and concisely using your broad knowledge and the web search context provided below.
-  - Keep the tone polite and engaging.
-  - Seamlessly tie back to BridgeTech IT Services only if relevant or naturally fitting.
-${webSearchSnippet ? `\n[LIVE WEB SEARCH RESULT FOR USER QUERY]\n${webSearchSnippet}\n` : ''}
-
-═══════════════════════════════════════
-🤖 ALISON'S CORE INTELLIGENCE & INSTRUCTIONS
-═══════════════════════════════════════
-1. **Direct & Accurate Answers**: Always address the exact question or problem asked by the user directly. Never give a generic or robotic deflection.
-2. **Deep Technical Expertise**: Provide insightful, accurate, and detailed technical troubleshooting, hardware explanations, software advice, or answers suited to the user's specific device model and situation.
-3. **Structured & Highly Readable**: Use clean paragraphs, bold key terms, and bullet points or numbered steps where appropriate so the customer can easily follow your advice.
-4. **Context Awareness**: Maintain full conversation memory. If the user previously mentioned their device, name, or symptoms, reference them naturally.
-5. **BridgeTech Local Relevance**: Guide customers with relevant local details (Freetown, Sierra Leone, No. 1 Regent Highway Jui Junction, phone +232 33 399 391, booking link itservicesfreetown.com/book-appointment) whenever they need professional in-person or on-site service.
-6. **Tone**: Warm, exceptionally smart, courteous, and professional.
-
-═══════════════════════════════════════
-🚫 CRITICAL RULES — NEVER VIOLATE THESE
-═══════════════════════════════════════
-- **NEVER re-introduce yourself** if there is already conversation history. The user knows who you are. Just answer their question naturally.
-- **NEVER repeat the welcome/greeting message** (the one listing your services and contact info) after the conversation has started.
-- **NEVER ask for the user's name, email, or phone number** unless they explicitly say they want to look up or track a repair they previously submitted. If they ask "my phone is overheating" — just help them with the overheating issue.
-- **NEVER default to a canned reply**. If a user says "I need help with my phone" — ask what the phone issue is, or offer to help right away.`;
 
 
 
@@ -259,164 +211,13 @@ ${webSearchSnippet ? `\n[LIVE WEB SEARCH RESULT FOR USER QUERY]\n${webSearchSnip
 }
 
 /**
- * Generate contextual fallback response for chat when AI API fails
+ * Minimal fallback used only when the AI API is completely unreachable.
+ * The AI model handles all real responses — this is just a connectivity error notice.
  */
-function generateFallbackChatResponse(userMessage: string): string {
-  const msg = userMessage.toLowerCase()
-  
-  // Greetings
-  if (msg.match(/^(hi|hello|hey|good morning|good afternoon|good evening|yo|sup|whatsup|what's up|howdy|greetings)/)) {
-    return `Hey there! 👋 I'm Alison, AI assistant for BridgeTech IT Services. What can I help you with?`
-  }
-  
-  // Location / directions
-  if (msg.includes('where') || msg.includes('location') || msg.includes('address') || msg.includes('direction') || msg.includes('find you') || msg.includes('how to get')) {
-    return `📍 No. 1 Regent Highway, Jui Junction, Freetown (opposite FTC). Google Maps: https://maps.app.goo.gl/FHCthxNEvNYxB4tJ7`
-  }
-  
-  // Business hours
-  if (msg.includes('hour') || msg.includes('open') || msg.includes('close') || msg.includes('when are you')) {
-    return `🕐 Mon–Fri 8AM–6PM | Sat by appointment | Sun Closed. For urgent help call +232 33 399 391.`
-  }
-  
-  // Contact info
-  if (msg.includes('contact') || msg.includes('phone') || msg.includes('email') || msg.includes('call') || msg.includes('reach')) {
-    return `📞 +232 33 399 391 / +232 76 210 320 | 📧 support@itservicesfreetown.com | 📍 No. 1 Regent Highway, Jui Junction, Freetown.`
-  }
-
-  // Repair services — computer, laptop, mobile, phone
-  if (msg.includes('repair') || msg.includes('fix') || msg.includes('broken') || msg.includes('laptop') || msg.includes('computer') || msg.includes('pc') || msg.includes('phone') || msg.includes('mobile') || msg.includes('iphone') || msg.includes('samsung') || msg.includes('tecno') || msg.includes('infinix')) {
-    return `Yes, we repair computers, laptops, and all mobile phone brands. Bring your device to No. 1 Regent Highway, Jui Junction or call +232 33 399 391 to book.`
-  }
-
-  // Services overview — 'do you', 'can you', 'what services'
-  if (msg.includes('what services') || msg.includes('what do you') || msg.includes('what can you') || msg.includes('do you') || msg.includes('can you') || (msg.includes('services') && !msg.includes('repair'))) {
-    return `We handle computer repair, mobile repair, mobile unlocking, data recovery, networking, web development, graphics design, POS software, and on-site visits. What do you need help with?`
-  }
-  
-  // Pricing
-  if (msg.includes('price') || msg.includes('cost') || msg.includes('how much') || msg.includes('expensive') || msg.includes('cheap') || msg.includes('fee') || msg.includes('charge')) {
-    return `Pricing varies depending on the repair. Visit us for a free estimate or call +232 33 399 391 for a quick quote.`
-  }
-  
-  // Warranty
-  if (msg.includes('warranty') || msg.includes('guarantee')) {
-    return `Yes, all repairs come with a warranty. The duration depends on the repair type — your technician will confirm it when you pick up your device.`
-  }
-  
-  // Mobile unlock
-  if (msg.includes('unlock') || msg.includes('frp') || msg.includes('icloud') || msg.includes('locked out') || msg.includes('pattern lock') || msg.includes('pin lock')) {
-    return `🔓 We handle FRP, iCloud lock, network unlock, and PIN/pattern unlock for all brands. Bring in your device with proof of ownership — call +232 33 399 391 for details.`
-  }
-  
-  // Data recovery
-  if (msg.includes('data recovery') || msg.includes('lost files') || msg.includes('deleted') || msg.includes('recover')) {
-    return `We can recover deleted, corrupted, or water-damaged data. Stop using the device and bring it in ASAP — the sooner the better. Call +232 33 399 391.`
-  }
-  
-  // Networking
-  if (msg.includes('network') || msg.includes('wifi') || msg.includes('wi-fi') || msg.includes('internet setup')) {
-    return `We set up and troubleshoot home and office networks, including Wi-Fi. On-site visits available — call +232 33 399 391 to schedule.`
-  }
-  
-  // Web development / design
-  if (msg.includes('website') || msg.includes('web dev') || msg.includes('design') || msg.includes('logo') || msg.includes('graphic')) {
-    return `Yes, we build custom websites and do graphics/logo design. Email support@itservicesfreetown.com or call +232 33 399 391 to discuss your project.`
-  }
-  
-  // Repair time
-  if (msg.includes('how long') || msg.includes('turnaround') || msg.includes('how fast') || msg.includes('when will') || msg.includes('time frame')) {
-    return `Minor software issues take a few hours, standard repairs 1–3 days. We'll give you a specific estimate when you bring in your device.`
-  }
-  
-  // Who is Ryan / owner / technician
-  if (msg.includes('ryan') || msg.includes('owner') || msg.includes('who runs') || msg.includes('technician') || msg.includes('team')) {
-    return `Our lead technician Ryan Josiah Stewart is an IT graduate from Amity University with extensive repair and development experience. Call +232 33 399 391 to reach the team.`
-  }
-  
-  // Device issues
-  if (msg.includes('slow') || msg.includes('performance') || msg.includes('lag')) {
-    return `Try restarting and closing unused apps first. If it's still slow, bring it in for a professional tune-up — call +232 33 399 391.`
-  }
-  
-  // Won't turn on issues
-  if (msg.includes("won't turn on") || msg.includes("not starting") || msg.includes("dead") || msg.includes("no power")) {
-    return `Try charging for 30+ minutes before powering on. If it still won't start, bring it in — call +232 33 399 391.`
-  }
-  
-  // Screen issues
-  if (msg.includes('screen') || msg.includes('display') || msg.includes('cracked') || msg.includes('broken screen')) {
-    return `We replace screens for all brands with quality parts and a warranty. Back up your data if the screen still works, then bring it in — +232 33 399 391.`
-  }
-  
-  // Virus / malware
-  if (msg.includes('virus') || msg.includes('malware') || msg.includes('infected') || msg.includes('hack') || msg.includes('popup')) {
-    return `Don't enter any passwords or click popups. Disconnect from the internet if possible, then bring it in for removal — +232 33 399 391.`
-  }
-  
-  // Water damage
-  if (msg.includes('water') || msg.includes('wet') || msg.includes('liquid') || msg.includes('spill') || msg.includes('dropped in')) {
-    return `💧 Turn it off NOW, don't charge it, and bring it to us immediately — time is critical for water damage. Call +232 33 399 391.`
-  }
-  
-  // Booking appointments
-  if (msg.includes('appointment') || msg.includes('book') || msg.includes('schedule') || msg.includes('come in') || msg.includes('bring my')) {
-    return `Book online at itservicesfreetown.com/book-appointment or walk in Mon–Fri 8AM–6PM at No. 1 Regent Highway, Jui Junction. What device needs repair?`
-  }
-  
-  // Tracking
-  if (msg.includes('track') || msg.includes('status') || msg.includes('where is my repair') || msg.includes('its-')) {
-    return `Share your tracking ID (ITS-XXXXXX-XXXX) and I'll look it up, or check at itservicesfreetown.com/track-repair. No ID? Call +232 33 399 391 with your name.`
-  }
-  
-  // Review
-  if (msg.includes('review') || msg.includes('feedback') || msg.includes('rate') || msg.includes('rating')) {
-    return `Thanks! We'd love a Google review if you have a moment: https://g.page/r/CfAOLY-gBDNMEBM/review 😊`
-  }
-  
-  // WhatsApp
-  if (msg.includes('whatsapp') || msg.includes('group') || msg.includes('community')) {
-    return `Join our WhatsApp group for updates and support: https://chat.whatsapp.com/FuS9EBvCF455geNHqQl3Iz?mode=r_t`
-  }
-  
-  // Social media
-  if (msg.includes('social media') || msg.includes('facebook') || msg.includes('instagram') || msg.includes('twitter') || msg.includes('follow')) {
-    return `Follow us on Facebook, Instagram, and Twitter @itservicesfreetown for updates and tech tips from BridgeTech IT Services.`
-  }
-  
-  // POS
-  if (msg.includes('pos') || msg.includes('point of sale') || msg.includes('sales software') || msg.includes('inventory')) {
-    return `Yes, we install and configure POS systems for retail and restaurants. Call +232 33 399 391 to discuss what you need.`
-  }
-  
-  // Password recovery
-  if (msg.includes('password') || msg.includes('locked out') || msg.includes('forgot password') || msg.includes('pc lock') || msg.includes('login')) {
-    return `🔐 We handle PC password reset, mobile PIN/pattern unlock, FRP removal, and iCloud unlock for all brands. Bring proof of ownership — call +232 33 399 391.`
-  }
-  
-  // On-site service
-  if (msg.includes('on-site') || msg.includes('onsite') || msg.includes('come to') || msg.includes('my location') || msg.includes('home service') || msg.includes('office visit')) {
-    return `Yes, we do on-site visits — home, office, wherever you need us. Call +232 33 399 391 to schedule.`
-  }
-  
-  // Human agent / live support
-  if (msg.includes('human') || msg.includes('agent') || msg.includes('person') || msg.includes('speak to') || msg.includes('talk to') || msg.includes('real person') || msg.includes('live support') || msg.includes('whatsapp')) {
-    return `To speak with a human, call us directly on +232 33 399 391 or message us on WhatsApp: https://chat.whatsapp.com/FuS9EBvCF455geNHqQl3Iz?mode=r_t`
-  }
-
-  // Thank you
-  if (msg.includes('thank') || msg.includes('thanks') || msg.includes('appreciate') || msg.includes('helpful')) {
-    return `You're welcome! 😊 Anything else I can help with? We're at itservicesfreetown.com or call +232 33 399 391 anytime.`
-  }
-  
-  // Goodbye
-  if (msg.match(/^(bye|goodbye|see you|later|take care|good night)/)) {
-    return `Goodbye! 👋 Come back anytime — itservicesfreetown.com or +232 33 399 391.`
-  }
-  
-  // Default helpful response
-  return `Hi! I'm Alison from BridgeTech IT Services. How can I help you today? 📞 +232 33 399 391`
+function generateFallbackChatResponse(_userMessage: string): string {
+  return `I'm sorry, I'm having a moment of trouble connecting. Please try again in a few seconds, or reach us directly at **+232 33 399 391** or **support@itservicesfreetown.com**.`
 }
+
 
 /**
  * Generate AI troubleshooting diagnosis (client-side)
