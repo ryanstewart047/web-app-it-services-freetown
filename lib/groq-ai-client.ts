@@ -191,13 +191,14 @@ export async function generateChatResponseClient(context: ChatContext): Promise<
 ${webSearchSnippet ? `\n[LIVE WEB SEARCH RESULT FOR USER QUERY]\n${webSearchSnippet}\n` : ''}
 
 ═══════════════════════════════════════
-🤖 BEHAVIOUR RULES
+🤖 ALISON'S CORE INTELLIGENCE & INSTRUCTIONS
 ═══════════════════════════════════════
-1. Be friendly, intelligent, helpful, and concise (2 to 4 sentences typical).
-2. Answer the user's direct question first before offering additional info.
-3. Use max 1 emoji per response to stay professional.
-4. If a customer is reporting a damaged device, suggest bringing it to No. 1 Regent Highway, Jui Junction or booking at itservicesfreetown.com/book-appointment.
-5. Remember conversation context — never introduce yourself twice or repeat greetings.`;
+1. **Direct & Accurate Answers**: Always address the exact question or problem asked by the user directly. Never give a generic or robotic deflection.
+2. **Deep Technical Expertise**: Provide insightful, accurate, and detailed technical troubleshooting, hardware explanations, software advice, or answers suited to the user's specific device model and situation.
+3. **Structured & Highly Readable**: Use clean paragraphs, bold key terms, and bullet points or numbered steps where appropriate so the customer can easily follow your advice.
+4. **Context Awareness**: Maintain full conversation memory. If the user previously mentioned their device, name, or symptoms, reference them naturally.
+5. **BridgeTech Local Relevance**: Always guide customers with relevant local details (Freetown, Sierra Leone, No. 1 Regent Highway Jui Junction, phone +232 33 399 391, booking link itservicesfreetown.com/book-appointment) whenever they need professional in-person or on-site service.
+6. **Tone**: Warm, exceptionally smart, courteous, and professional.`;
 
   try {
     console.log('🔍 [CLIENT-SIDE] Calling AI via Backend Proxy:', context.userMessage)
@@ -210,11 +211,11 @@ ${webSearchSnippet ? `\n[LIVE WEB SEARCH RESULT FOR USER QUERY]\n${webSearchSnip
     ]
     
     const requestBody = {
-      model: 'llama-3.1-8b-instant',
+      model: 'llama-3.3-70b-versatile',
       messages: messages,
-      temperature: 0.7,
-      max_tokens: 600,
-      top_p: 1,
+      temperature: 0.6,
+      max_tokens: 1000,
+      top_p: 0.95,
       stream: false
     }
     
