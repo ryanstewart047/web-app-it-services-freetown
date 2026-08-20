@@ -25,12 +25,17 @@ interface LegalDoc {
   signerEmail: string;
   signerPhone: string;
   recipientCompany: string;
+  recipientSignerName?: string;
+  recipientSignerRole?: string;
+  recipientSignDate?: string;
+  includeClientSignature?: boolean;
   issueDate: string;
   nraRefNumber?: string;
   regStatusNote?: string;
   authorizationScope: string[];
   customDetails: string;
   signatureDataUrl?: string;
+  clientSignatureDataUrl?: string;
   status: string;
   createdAt?: string;
 }
@@ -72,12 +77,17 @@ const blankDoc = (): LegalDoc => ({
   signerEmail: 'ryanjstewart@itservicesfreetown.com',
   signerPhone: '+232 33 399 391',
   recipientCompany: 'Hemmersbach GmbH & Co. KG',
+  recipientSignerName: '',
+  recipientSignerRole: 'Authorized Client Representative / Site Manager',
+  recipientSignDate: new Date().toISOString().split('T')[0],
+  includeClientSignature: true,
   issueDate: new Date().toISOString().split('T')[0],
   nraRefNumber: '',
   regStatusNote: 'Business registration and NRA Tax Certificate applications currently in progress with the Administrator and Registrar-General (OARG) and National Revenue Authority (NRA).',
   authorizationScope: [...DEFAULT_SCOPES],
   customDetails: '',
   signatureDataUrl: '',
+  clientSignatureDataUrl: '',
   status: 'active'
 });
 
@@ -91,7 +101,9 @@ export default function LegalDocumentsAdminPage() {
 
   const printRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const clientCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [isClientDrawing, setIsClientDrawing] = useState(false);
   const [tab, setTab] = useState<'builder' | 'history'>('builder');
   const [doc, setDoc] = useState<LegalDoc>(blankDoc());
   const [savedDocs, setSavedDocs] = useState<LegalDoc[]>([]);
@@ -104,6 +116,7 @@ export default function LegalDocumentsAdminPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
   const [hasSignature, setHasSignature] = useState(false);
+  const [hasClientSignature, setHasClientSignature] = useState(false);
 
   // ── Restore draft ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -119,8 +132,12 @@ export default function LegalDocumentsAdminPage() {
           if (parsed.companyPhone === '+232 78 000 000 / +232 76 000 000') {
             parsed.companyPhone = '+232 33 399 391 / +232 76 210 320';
           }
+          if (parsed.includeClientSignature === undefined) {
+            parsed.includeClientSignature = true;
+          }
           setDoc(parsed);
           if (parsed.signatureDataUrl) setHasSignature(true);
+          if (parsed.clientSignatureDataUrl) setHasClientSignature(true);
           if (parsed._savedAt) setLastSaved(parsed._savedAt);
           setDraftRestored(true);
         }
@@ -148,7 +165,7 @@ export default function LegalDocumentsAdminPage() {
     setTimeout(() => setNotification(null), 3500);
   };
 
-  // ── Signature Canvas Functions ─────────────────────────────────────────────
+  // ── Company Signature Canvas Functions ─────────────────────────────────────
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     setIsDrawing(true);
     const canvas = canvasRef.current;
@@ -203,7 +220,62 @@ export default function LegalDocumentsAdminPage() {
     setDoc(prev => ({ ...prev, signatureDataUrl: '' }));
   };
 
-  // Load signature into canvas when restoring
+  // ── Client / Recipient Signature Canvas Functions ─────────────────────────
+  const startClientDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    setIsClientDrawing(true);
+    const canvas = clientCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+    ctx.beginPath();
+    ctx.moveTo(clientX - rect.left, clientY - rect.top);
+  };
+
+  const drawClient = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isClientDrawing) return;
+    const canvas = clientCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#dc2626';
+    ctx.lineTo(clientX - rect.left, clientY - rect.top);
+    ctx.stroke();
+    setHasClientSignature(true);
+  };
+
+  const stopClientDrawing = () => {
+    if (!isClientDrawing) return;
+    setIsClientDrawing(false);
+    const canvas = clientCanvasRef.current;
+    if (canvas) {
+      const dataUrl = canvas.toDataURL('image/png');
+      setDoc(prev => ({ ...prev, clientSignatureDataUrl: dataUrl }));
+    }
+  };
+
+  const clearClientSignature = () => {
+    const canvas = clientCanvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    setHasClientSignature(false);
+    setDoc(prev => ({ ...prev, clientSignatureDataUrl: '' }));
+  };
+
+  // Load signatures into canvases when restoring
   useEffect(() => {
     if (doc.signatureDataUrl && canvasRef.current) {
       const canvas = canvasRef.current;
@@ -218,7 +290,20 @@ export default function LegalDocumentsAdminPage() {
         img.src = doc.signatureDataUrl;
       }
     }
-  }, [tab]);
+    if (doc.clientSignatureDataUrl && clientCanvasRef.current) {
+      const canvas = clientCanvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        const img = new Image();
+        img.onload = () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+          setHasClientSignature(true);
+        };
+        img.src = doc.clientSignatureDataUrl;
+      }
+    }
+  }, [tab, doc.signatureDataUrl, doc.clientSignatureDataUrl]);
 
   // ── Scope toggle ───────────────────────────────────────────────────────────
   const toggleScope = (item: string) => {
@@ -547,16 +632,16 @@ export default function LegalDocumentsAdminPage() {
                 </div>
               </div>
 
-              {/* Recipient & Dates */}
+              {/* Recipient & Client Acknowledgment Information */}
               <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
                 <h2 className="text-xs font-bold text-red-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <Building className="w-4 h-4 text-red-400" /> Recipient & Date Information
+                  <Building className="w-4 h-4 text-red-400" /> Recipient & Client Agreement Details
                 </h2>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs text-slate-400 mb-1 block">Recipient / Partner Company</label>
+                    <label className="text-xs text-slate-400 mb-1 block">Recipient / Client Organization *</label>
                     <input value={doc.recipientCompany} onChange={e => setDoc(p => ({ ...p, recipientCompany: e.target.value }))}
-                      placeholder="e.g. Hemmersbach GmbH & Co. KG or TO WHOM IT MAY CONCERN"
+                      placeholder="e.g. Hemmersbach GmbH & Co. KG or Client Name"
                       className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-red-500" />
                   </div>
                   <div>
@@ -575,6 +660,44 @@ export default function LegalDocumentsAdminPage() {
                       placeholder="e.g. NRA-REF-2026-0811 (Optional)"
                       className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm font-mono focus:ring-2 focus:ring-red-500 placeholder-slate-600" />
                   </div>
+                </div>
+
+                {/* Client / Recipient Representative Fields */}
+                <div className="mt-4 pt-4 border-t border-white/10 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-300 flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={doc.includeClientSignature !== false}
+                        onChange={e => setDoc(p => ({ ...p, includeClientSignature: e.target.checked }))}
+                        className="rounded border-slate-700 text-red-600 focus:ring-red-500"
+                      />
+                      Include Client Acceptance & Signature Section (Mutual Agreement)
+                    </label>
+                  </div>
+
+                  {doc.includeClientSignature !== false && (
+                    <div className="grid grid-cols-2 gap-3 pt-2">
+                      <div>
+                        <label className="text-xs text-slate-400 mb-1 block">Client Representative Name</label>
+                        <input
+                          value={doc.recipientSignerName || ''}
+                          onChange={e => setDoc(p => ({ ...p, recipientSignerName: e.target.value }))}
+                          placeholder="e.g. John Doe / Site Supervisor"
+                          className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-red-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-400 mb-1 block">Client Representative Role / Title</label>
+                        <input
+                          value={doc.recipientSignerRole || ''}
+                          onChange={e => setDoc(p => ({ ...p, recipientSignerRole: e.target.value }))}
+                          placeholder="e.g. Site Manager / Authorized Representative"
+                          className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-red-500"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -662,40 +785,83 @@ export default function LegalDocumentsAdminPage() {
                 </div>
               </div>
 
-              {/* On-Screen Interactive Signature Pad */}
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-xs font-bold text-red-400 uppercase tracking-widest flex items-center gap-2">
-                    <PenTool className="w-4 h-4 text-red-400" /> Screen Digital Signature Pad
-                  </h2>
-                  {hasSignature && (
-                    <button onClick={clearSignature} className="text-xs text-red-400 hover:text-red-300 transition-colors flex items-center gap-1 font-medium">
-                      <Trash2 className="w-3.5 h-3.5" /> Clear Signature
-                    </button>
-                  )}
+              {/* On-Screen Interactive Signature Pads (Dual-Party) */}
+              <div className="space-y-4">
+                {/* 1. Company / Service Provider Signature Pad */}
+                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-xs font-bold text-red-400 uppercase tracking-widest flex items-center gap-2">
+                      <PenTool className="w-4 h-4 text-red-400" /> 1. BridgeTech Signature Pad (Issuing Party)
+                    </h2>
+                    {hasSignature && (
+                      <button onClick={clearSignature} className="text-xs text-red-400 hover:text-red-300 transition-colors flex items-center gap-1 font-medium">
+                        <Trash2 className="w-3.5 h-3.5" /> Clear
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-400 mb-3">Draw signature for <strong>{doc.signerName || 'Ryan Stewart'}</strong> ({doc.companyName}):</p>
+                  <div className="bg-white rounded-xl p-2 border-2 border-dashed border-slate-300">
+                    <canvas
+                      ref={canvasRef}
+                      width={500}
+                      height={120}
+                      onMouseDown={startDrawing}
+                      onMouseMove={draw}
+                      onMouseUp={stopDrawing}
+                      onMouseLeave={stopDrawing}
+                      onTouchStart={startDrawing}
+                      onTouchMove={draw}
+                      onTouchEnd={stopDrawing}
+                      className="w-full h-28 touch-none cursor-crosshair bg-white rounded-lg"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between mt-2 text-[11px] text-slate-400">
+                    <span>Signer: <strong className="text-white">{doc.signerName || 'Ryan Stewart'}</strong></span>
+                    <span className={hasSignature ? 'text-emerald-400 font-bold' : 'text-amber-400'}>
+                      {hasSignature ? '✓ Signature captured' : 'Draw above to sign'}
+                    </span>
+                  </div>
                 </div>
-                <p className="text-xs text-slate-400 mb-3">Draw your signature below using touch screen, mouse, or stylus:</p>
-                <div className="bg-white rounded-xl p-2 border-2 border-dashed border-slate-300">
-                  <canvas
-                    ref={canvasRef}
-                    width={500}
-                    height={140}
-                    onMouseDown={startDrawing}
-                    onMouseMove={draw}
-                    onMouseUp={stopDrawing}
-                    onMouseLeave={stopDrawing}
-                    onTouchStart={startDrawing}
-                    onTouchMove={draw}
-                    onTouchEnd={stopDrawing}
-                    className="w-full h-32 touch-none cursor-crosshair bg-white rounded-lg"
-                  />
-                </div>
-                <div className="flex items-center justify-between mt-2 text-[11px] text-slate-400">
-                  <span>Signer: <strong className="text-white">{doc.signerName || 'Ryan Stewart'}</strong></span>
-                  <span className={hasSignature ? 'text-emerald-400 font-bold' : 'text-amber-400'}>
-                    {hasSignature ? '✓ Signature captured' : 'Draw above to sign'}
-                  </span>
-                </div>
+
+                {/* 2. Client / Recipient Signature Pad */}
+                {doc.includeClientSignature !== false && (
+                  <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <h2 className="text-xs font-bold text-blue-400 uppercase tracking-widest flex items-center gap-2">
+                        <PenTool className="w-4 h-4 text-blue-400" /> 2. Client / Recipient Signature Pad (Client Agreement)
+                      </h2>
+                      {hasClientSignature && (
+                        <button onClick={clearClientSignature} className="text-xs text-red-400 hover:text-red-300 transition-colors flex items-center gap-1 font-medium">
+                          <Trash2 className="w-3.5 h-3.5" /> Clear
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-400 mb-3">
+                      Draw signature for <strong>{doc.recipientSignerName || 'Client Representative'}</strong> ({doc.recipientCompany || 'Client Company'}):
+                    </p>
+                    <div className="bg-white rounded-xl p-2 border-2 border-dashed border-blue-300">
+                      <canvas
+                        ref={clientCanvasRef}
+                        width={500}
+                        height={120}
+                        onMouseDown={startClientDrawing}
+                        onMouseMove={drawClient}
+                        onMouseUp={stopClientDrawing}
+                        onMouseLeave={stopClientDrawing}
+                        onTouchStart={startClientDrawing}
+                        onTouchMove={drawClient}
+                        onTouchEnd={stopClientDrawing}
+                        className="w-full h-28 touch-none cursor-crosshair bg-white rounded-lg"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between mt-2 text-[11px] text-slate-400">
+                      <span>Signer: <strong className="text-white">{doc.recipientSignerName || 'Client Representative'}</strong></span>
+                      <span className={hasClientSignature ? 'text-emerald-400 font-bold' : 'text-slate-400 italic'}>
+                        {hasClientSignature ? '✓ Client Signature captured' : 'Sign on screen or sign upon document receipt'}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Actions */}
@@ -864,27 +1030,54 @@ export default function LegalDocumentsAdminPage() {
                       </p>
                     </div>
 
-                    {/* Sign-Off & Signature Box */}
-                    <div className="pt-6 border-t border-slate-200 flex justify-between items-end">
-                      <div className="space-y-1 text-xs">
-                        <div className="text-slate-500">Issued by:</div>
-                        <div className="font-extrabold text-[#040e40] text-sm">{doc.companyName}</div>
-                        <div className="text-slate-500">No 1 Regent Highway, Jui Junction, Freetown</div>
+                    {/* Dual-Party Mutual Agreement & Sign-Off Section */}
+                    <div className="pt-6 border-t-2 border-slate-300 space-y-4">
+                      <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 text-center">
+                        Mutual Agreement & Authorization Signatures
                       </div>
 
-                      <div className="text-right space-y-1">
-                        <div className="text-xs text-slate-500 mb-1">Authorized Signatory:</div>
-                        {doc.signatureDataUrl ? (
-                          <div className="inline-block border-b border-slate-400 pb-1">
-                            <img src={doc.signatureDataUrl} alt="Signature" className="h-14 object-contain max-w-48 mx-auto" />
+                      <div className="grid grid-cols-2 gap-6 items-start">
+                        {/* Party 1: Service Provider / Issuing Company */}
+                        <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200 space-y-2 text-left">
+                          <div className="text-[10px] font-bold text-red-600 uppercase tracking-wide">Party A: Service Provider (Issuing Entity)</div>
+                          <div className="text-xs font-black text-[#040e40]">{doc.companyName}</div>
+                          <div className="text-[10px] text-slate-500">Authorized Officer Signatory:</div>
+
+                          <div className="py-2 min-h-16 flex items-center justify-center border-b border-slate-300">
+                            {doc.signatureDataUrl ? (
+                              <img src={doc.signatureDataUrl} alt="Company Signature" className="h-12 object-contain max-w-44" />
+                            ) : (
+                              <div className="text-[10px] text-slate-400 italic">[ Signature on File / Signed on Screen ]</div>
+                            )}
                           </div>
-                        ) : (
-                          <div className="h-12 w-48 border-b-2 border-slate-400 border-dashed flex items-center justify-center text-[10px] text-slate-400 italic">
-                            [ Signature On File / Screen ]
+
+                          <div className="pt-1 text-xs">
+                            <div className="font-black text-slate-900">{doc.signerName}</div>
+                            <div className="text-[11px] font-bold text-red-600">{doc.signerRole}</div>
+                            <div className="text-[10px] text-slate-400 mt-0.5">Date: {fmtDate(doc.issueDate)}</div>
                           </div>
-                        )}
-                        <div className="font-black text-slate-900 text-sm mt-1">{doc.signerName}</div>
-                        <div className="text-xs font-bold text-red-600">{doc.signerRole}</div>
+                        </div>
+
+                        {/* Party 2: Client / Partner Organization */}
+                        <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200 space-y-2 text-left">
+                          <div className="text-[10px] font-bold text-blue-600 uppercase tracking-wide">Party B: Client / Recipient Acknowledgment</div>
+                          <div className="text-xs font-black text-slate-900">{doc.recipientCompany || 'Client Organization'}</div>
+                          <div className="text-[10px] text-slate-500">Authorized Client Representative Signatory:</div>
+
+                          <div className="py-2 min-h-16 flex items-center justify-center border-b border-slate-300">
+                            {doc.clientSignatureDataUrl ? (
+                              <img src={doc.clientSignatureDataUrl} alt="Client Signature" className="h-12 object-contain max-w-44" />
+                            ) : (
+                              <div className="text-[10px] text-slate-400 italic">[ Client Signature / Stamp upon Handover ]</div>
+                            )}
+                          </div>
+
+                          <div className="pt-1 text-xs">
+                            <div className="font-black text-slate-900">{doc.recipientSignerName || 'Authorized Client Representative'}</div>
+                            <div className="text-[11px] font-bold text-blue-600">{doc.recipientSignerRole || 'Site Manager / Client Officer'}</div>
+                            <div className="text-[10px] text-slate-400 mt-0.5">Date: {fmtDate(doc.recipientSignDate || doc.issueDate)}</div>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
