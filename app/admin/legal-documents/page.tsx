@@ -37,6 +37,7 @@ interface LegalDoc {
 
 const DOC_TYPES = [
   { id: 'authorization_letter', label: 'Letter of Authorization', subtitle: 'For signatory & legal representative' },
+  { id: 'work_permit', label: 'Work Permit & Field Authorization', subtitle: 'Official work permit for on-site technicians & operations' },
   { id: 'sole_proprietor_declaration', label: 'Sole Proprietorship Declaration', subtitle: 'Proof of legal ownership & authority' },
   { id: 'board_resolution', label: 'Board / Management Resolution', subtitle: 'Formal resolution authorizing officer' },
   { id: 'tax_reg_declaration', label: 'Tax & Registration Status Statement', subtitle: 'Declaration with NRA / OARG ref number' },
@@ -47,6 +48,8 @@ const DEFAULT_SCOPES = [
   'Issue official invoices, receipts, and financial claims',
   'Submit official quotations, tenders, and vendor registration applications',
   'Receive payments and manage company supplier accounts',
+  'Perform on-site IT installations, network deployments, and hardware repairs',
+  'Access client premises, server rooms, and technical infrastructure for authorized works',
   'Act as primary legal & operational contact person'
 ];
 
@@ -397,9 +400,9 @@ export default function LegalDocumentsAdminPage() {
             </Link>
             <h1 className="text-3xl font-black bg-gradient-to-r from-blue-400 via-indigo-300 to-red-400 bg-clip-text text-transparent flex items-center gap-3">
               <ShieldCheck className="w-8 h-8 text-red-500" />
-              Legal & Authorization Letters
+              Work Permits & Legal Authorizations
             </h1>
-            <p className="text-slate-400 text-sm mt-1">Generate official proof of legal authority, authorization letters, and sole proprietor declarations</p>
+            <p className="text-slate-400 text-sm mt-1">Generate official work permits, field authorizations, legal signatory authority letters, and ownership declarations</p>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -453,11 +456,22 @@ export default function LegalDocumentsAdminPage() {
                   {DOC_TYPES.map(dt => (
                     <button
                       key={dt.id}
-                      onClick={() => setDoc(p => ({
-                        ...p,
-                        docType: dt.id,
-                        title: dt.label.toUpperCase()
-                      }))}
+                      onClick={() => {
+                        let defaultTitle = dt.label.toUpperCase();
+                        if (dt.id === 'work_permit') defaultTitle = 'OFFICIAL WORK PERMIT & FIELD AUTHORIZATION';
+                        setDoc(p => ({
+                          ...p,
+                          docType: dt.id,
+                          title: defaultTitle,
+                          authorizationScope: dt.id === 'work_permit' ? [
+                            'Perform on-site IT installations, network deployments, and hardware repairs',
+                            'Access client premises, server rooms, and technical infrastructure for authorized works',
+                            'Conduct on-site troubleshooting, device pickups, and technical diagnostics',
+                            'Sign job completion certificates, hand-over forms, and technical service reports',
+                            'Act as authorized technical field engineer / operational representative'
+                          ] : p.authorizationScope
+                        }));
+                      }}
                       className={`text-left p-3.5 rounded-xl border transition-all ${doc.docType === dt.id ? 'bg-[#040e40] border-red-500 text-white shadow-lg ring-1 ring-red-500' : 'bg-slate-900/60 border-white/10 text-slate-300 hover:bg-slate-800'}`}
                     >
                       <div className="font-bold text-sm">{dt.label}</div>
@@ -564,9 +578,26 @@ export default function LegalDocumentsAdminPage() {
                 </div>
               </div>
 
+              {/* Document Title & Reference Details */}
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+                <h2 className="text-xs font-bold text-red-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <FileCheck className="w-4 h-4 text-red-400" /> Document Title & Header Settings
+                </h2>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <label className="text-xs text-slate-400 mb-1 block">Document Title (Header on Letter)</label>
+                    <input value={doc.title} onChange={e => setDoc(p => ({ ...p, title: e.target.value }))}
+                      placeholder="e.g. OFFICIAL WORK PERMIT & FIELD AUTHORIZATION"
+                      className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm font-bold focus:ring-2 focus:ring-red-500" />
+                  </div>
+                </div>
+              </div>
+
               {/* Authorization Powers & Scope */}
               <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-                <h2 className="text-xs font-bold text-red-400 uppercase tracking-widest mb-4">Authorized Powers & Scope</h2>
+                <h2 className="text-xs font-bold text-red-400 uppercase tracking-widest mb-4">
+                  {doc.docType === 'work_permit' ? 'Permitted Tasks, Sites & Field Scope' : 'Authorized Powers & Scope'}
+                </h2>
                 <div className="space-y-2.5">
                   {DEFAULT_SCOPES.map(scope => {
                     const checked = doc.authorizationScope.includes(scope);
@@ -582,6 +613,45 @@ export default function LegalDocumentsAdminPage() {
                       </label>
                     );
                   })}
+                  {/* Any custom scopes added that aren't in DEFAULT_SCOPES */}
+                  {doc.authorizationScope.filter(s => !DEFAULT_SCOPES.includes(s)).map(customScope => (
+                    <div key={customScope} className="flex items-center justify-between gap-3 p-3 rounded-xl border bg-blue-950/40 border-blue-500/50 text-white">
+                      <span className="text-xs leading-relaxed font-medium">✓ {customScope}</span>
+                      <button onClick={() => toggleScope(customScope)} className="text-red-400 hover:text-red-300 text-xs px-2 py-0.5">Remove</button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Add Custom Scope item */}
+                <div className="mt-4 pt-4 border-t border-white/10 flex gap-2">
+                  <input
+                    id="newScopeInput"
+                    placeholder="Add custom authorized task or site permission..."
+                    className="flex-1 bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-xs focus:ring-2 focus:ring-red-500"
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const val = (e.target as HTMLInputElement).value;
+                        if (val.trim()) {
+                          addCustomScope(val);
+                          (e.target as HTMLInputElement).value = '';
+                        }
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const inp = document.getElementById('newScopeInput') as HTMLInputElement;
+                      if (inp && inp.value.trim()) {
+                        addCustomScope(inp.value);
+                        inp.value = '';
+                      }
+                    }}
+                    className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all"
+                  >
+                    Add Scope
+                  </button>
                 </div>
 
                 <div className="mt-4">
@@ -703,22 +773,41 @@ export default function LegalDocumentsAdminPage() {
                     {/* Document Title */}
                     <div className="text-center py-2 bg-slate-50 rounded-xl border border-slate-200">
                       <h2 className="text-base font-black tracking-widest text-[#040e40] uppercase">{doc.title}</h2>
-                      <p className="text-[10px] text-red-600 font-bold tracking-wider uppercase mt-0.5">Formal Proof of Legal Signatory Authority</p>
+                      <p className="text-[10px] text-red-600 font-bold tracking-wider uppercase mt-0.5">
+                        {doc.docType === 'work_permit'
+                          ? 'Official Field Work Permit & Operational Authorization'
+                          : doc.docType === 'sole_proprietor_declaration'
+                          ? 'Legal Declaration of Ownership & Signing Powers'
+                          : 'Formal Proof of Legal Signatory Authority'}
+                      </p>
                     </div>
 
                     {/* Document Body Text */}
                     <div className="text-xs text-slate-800 leading-relaxed space-y-4">
-                      <p>
-                        This official letter serves as formal authorization and verification of legal authority for <strong className="text-[#040e40] font-black">{doc.companyName}</strong>.
-                      </p>
-                      <p>
-                        We hereby confirm and declare that:
-                      </p>
+                      {doc.docType === 'work_permit' ? (
+                        <>
+                          <p>
+                            This official permit certifies that <strong className="text-[#040e40] font-black">{doc.signerName}</strong> is a certified and designated technical representative of <strong className="text-[#040e40] font-black">{doc.companyName}</strong>, authorized to carry out field operations, hardware repairs, on-site diagnostics, and technical deployments.
+                          </p>
+                          <p>
+                            We hereby grant full authorization and confirmation for the personnel detailed below:
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p>
+                            This official letter serves as formal authorization and verification of legal authority for <strong className="text-[#040e40] font-black">{doc.companyName}</strong>.
+                          </p>
+                          <p>
+                            We hereby confirm and declare that:
+                          </p>
+                        </>
+                      )}
 
                       {/* Signer Identity Box */}
                       <div className="bg-blue-50/70 rounded-xl p-4 border border-blue-200/80 space-y-1.5 text-xs">
                         <div className="grid grid-cols-3 gap-2">
-                          <span className="text-slate-500 font-medium">Authorized Person:</span>
+                          <span className="text-slate-500 font-medium">{doc.docType === 'work_permit' ? 'Permit Holder / Engineer:' : 'Authorized Person:'}</span>
                           <span className="col-span-2 font-black text-slate-900 text-sm">{doc.signerName}</span>
                         </div>
                         <div className="grid grid-cols-3 gap-2">
@@ -740,7 +829,9 @@ export default function LegalDocumentsAdminPage() {
                       </div>
 
                       <p className="font-semibold text-slate-900">
-                        {doc.signerName} possesses full legal authority to execute the following operational, commercial, and legal actions on behalf of {doc.companyName}:
+                        {doc.docType === 'work_permit'
+                          ? `${doc.signerName} is officially authorized to perform the following field actions, works, and responsibilities for ${doc.companyName}:`
+                          : `${doc.signerName} possesses full legal authority to execute the following operational, commercial, and legal actions on behalf of ${doc.companyName}:`}
                       </p>
 
                       {/* Scope List */}
@@ -767,7 +858,9 @@ export default function LegalDocumentsAdminPage() {
                       )}
 
                       <p>
-                        This authorization remains valid and in full effect for all commercial proceedings, supplier onboarding, and contractual dealings with {doc.recipientCompany || 'partner organizations'}.
+                        {doc.docType === 'work_permit'
+                          ? `This work permit is active and valid for all on-site visits, client installations, and maintenance engagements with ${doc.recipientCompany || 'partner and client organizations'}. Please extend all required site access and courtesies to the authorized engineer.`
+                          : `This authorization remains valid and in full effect for all commercial proceedings, supplier onboarding, and contractual dealings with ${doc.recipientCompany || 'partner organizations'}.`}
                       </p>
                     </div>
 

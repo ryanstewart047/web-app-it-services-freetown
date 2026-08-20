@@ -98,11 +98,11 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
 
 const PAYMENT_TERMS = ['Due on Receipt', 'Net 7', 'Net 14', 'Net 30', 'Net 60'];
 const DEFAULT_PAYMENT_INSTRUCTIONS = `Payment can be made via:
-• Orange Money: +232 33 399 391
-• Africell Money: +232 76 210 320
-• Bank Transfer: Sierra Leone Commercial Bank
-  Account Name: BridgeTech IT Services
-  Account No: 0123456789
+• Orange Money: +232 76 210 320
+• Africell Money: +232 88 294 631
+• Bank Transfer: United Bank of Africa
+  Account Name: Ryan Josiah Stewart
+  Account No: 0018404044
 • Cash / Card: Payable at our office, No. 1 Regent Highway, Jui Junction`;
 
 const emptyItem = (): InvoiceItem => ({
@@ -184,6 +184,10 @@ export default function InvoicesAdminPage() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.invoiceNumber) {
+          // If draft has old default payment instructions, update to new one
+          if (parsed.paymentInstructions && (parsed.paymentInstructions.includes('Sierra Leone Commercial Bank') || parsed.paymentInstructions.includes('0123456789') || parsed.paymentInstructions.includes('+232 33 399 391\n• Africell Money: +232 76 210 320'))) {
+            parsed.paymentInstructions = DEFAULT_PAYMENT_INSTRUCTIONS;
+          }
           setInvoice(prev => ({ ...prev, ...parsed }));
           if (parsed._savedAt) setLastSaved(parsed._savedAt);
           setDraftRestored(true);
