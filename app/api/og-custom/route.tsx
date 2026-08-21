@@ -30,10 +30,18 @@ async function getImageAsBase64(url: string): Promise<string | null> {
   }
 }
 
+function formatPrice(price: string) {
+  const value = price.trim();
+  if (!value) return '';
+  if (/^(le|sll|usd|\$|gbp)/i.test(value)) return value;
+  return `Le ${value}`;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams, origin } = new URL(request.url);
 
+    const layout = searchParams.get('layout') || 'photo-only';
     const title = searchParams.get('title') || 'BridgeTech IT Services';
     const description = searchParams.get('description') || '';
     const price = searchParams.get('price') || '';
@@ -42,6 +50,8 @@ export async function GET(request: NextRequest) {
     const theme = searchParams.get('theme') || 'navy';
     const imageFit = searchParams.get('fit') || 'contain';
     const imageScale = Number(searchParams.get('scale') || '100');
+    const imagePositionX = Number(searchParams.get('positionX') || '50');
+    const imagePositionY = Number(searchParams.get('positionY') || '50');
 
     const baseUrl = origin || process.env.NEXT_PUBLIC_BASE_URL || 'https://www.itservicesfreetown.com';
     const fallbackImage = `${baseUrl}/assets/images/slide01.jpg`;
@@ -75,6 +85,240 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    const safeScale = Number.isFinite(imageScale)
+      ? Math.min(1.8, Math.max(0.55, imageScale / 100))
+      : 1;
+    const safePositionX = Number.isFinite(imagePositionX)
+      ? Math.min(100, Math.max(0, imagePositionX))
+      : 50;
+    const safePositionY = Number.isFinite(imagePositionY)
+      ? Math.min(100, Math.max(0, imagePositionY))
+      : 50;
+    const priceDisplay = formatPrice(price);
+    const truncatedTitle = title.length > 76 ? title.substring(0, 73) + '...' : title;
+    const truncatedDesc = description.length > 150 ? description.substring(0, 147) + '...' : description;
+
+    if (layout === 'photo-only') {
+      return new ImageResponse(
+        (
+          <div
+            style={{
+              height: '100%',
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: '#ffffff',
+              overflow: 'hidden',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+            }}
+          >
+            {image ? (
+              <img
+                src={image}
+                alt={title}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: imageFit === 'cover' ? 'cover' : 'contain',
+                  objectPosition: `${safePositionX}% ${safePositionY}%`,
+                  transform: `scale(${safeScale})`,
+                  transformOrigin: `${safePositionX}% ${safePositionY}%`,
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  display: 'flex',
+                  color: '#475569',
+                  fontSize: '54px',
+                  fontWeight: 800,
+                }}
+              >
+                BridgeTech IT Services
+              </div>
+            )}
+          </div>
+        ),
+        { width: 1200, height: 630 }
+      );
+    }
+
+    if (layout === 'product-preview') {
+      return new ImageResponse(
+        (
+          <div
+            style={{
+              height: '100%',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              background: '#ffffff',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                width: '100%',
+                height: '390px',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: '#f8fafc',
+                borderBottom: '1px solid #e2e8f0',
+                overflow: 'hidden',
+              }}
+            >
+              {image ? (
+                <img
+                  src={image}
+                  alt={title}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: imageFit === 'cover' ? 'cover' : 'contain',
+                    objectPosition: `${safePositionX}% ${safePositionY}%`,
+                    transform: `scale(${safeScale})`,
+                    transformOrigin: `${safePositionX}% ${safePositionY}%`,
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '58px',
+                    fontWeight: 900,
+                    color: '#64748b',
+                  }}
+                >
+                  BridgeTech
+                </div>
+              )}
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                flex: 1,
+                padding: '26px 42px 24px',
+                justifyContent: 'space-between',
+                background: '#ffffff',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  justifyContent: 'space-between',
+                  gap: '28px',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    flex: 1,
+                    minWidth: 0,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      fontSize: '39px',
+                      fontWeight: 950,
+                      color: '#0f172a',
+                      lineHeight: 1.08,
+                      maxHeight: '86px',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {truncatedTitle}
+                  </div>
+
+                  {truncatedDesc ? (
+                    <div
+                      style={{
+                        display: 'flex',
+                        fontSize: '21px',
+                        color: '#475569',
+                        lineHeight: 1.35,
+                        marginTop: '12px',
+                        maxHeight: '58px',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {truncatedDesc}
+                    </div>
+                  ) : null}
+                </div>
+
+                {priceDisplay ? (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexShrink: 0,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: '#dc2626',
+                      color: '#ffffff',
+                      borderRadius: '18px',
+                      padding: '16px 22px',
+                      fontSize: priceDisplay.length > 16 ? '27px' : '34px',
+                      fontWeight: 950,
+                      minWidth: '220px',
+                      boxShadow: '0 16px 34px rgba(220, 38, 38, 0.25)',
+                    }}
+                  >
+                    {priceDisplay}
+                  </div>
+                ) : null}
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  borderTop: '1px solid #e2e8f0',
+                  paddingTop: '14px',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    color: '#0f172a',
+                    fontSize: '15px',
+                    fontWeight: 850,
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px',
+                  }}
+                >
+                  {tag || 'Official Product Preview'}
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    color: '#64748b',
+                    fontSize: '15px',
+                    fontWeight: 750,
+                  }}
+                >
+                  itservicesfreetown.com
+                </div>
+              </div>
+            </div>
+          </div>
+        ),
+        {
+          width: 1200,
+          height: 630,
+        }
+      );
+    }
+
     // Theme backgrounds
     const bgGradients: Record<string, string> = {
       navy: 'linear-gradient(135deg, #040e40 0%, #091a63 50%, #040e40 100%)',
@@ -84,9 +328,6 @@ export async function GET(request: NextRequest) {
     };
 
     const bg = bgGradients[theme] || bgGradients.navy;
-
-    const truncatedTitle = title.length > 70 ? title.substring(0, 67) + '...' : title;
-    const truncatedDesc = description.length > 130 ? description.substring(0, 127) + '...' : description;
 
     return new ImageResponse(
       (
@@ -127,7 +368,9 @@ export async function GET(request: NextRequest) {
                   maxWidth: '100%',
                   maxHeight: '100%',
                   objectFit: imageFit === 'cover' ? 'cover' : 'contain',
-                  transform: `scale(${Math.min(1.6, Math.max(0.6, imageScale / 100))})`,
+                  objectPosition: `${safePositionX}% ${safePositionY}%`,
+                  transform: `scale(${safeScale})`,
+                  transformOrigin: `${safePositionX}% ${safePositionY}%`,
                 }}
               />
             ) : (
@@ -272,7 +515,7 @@ export async function GET(request: NextRequest) {
                       letterSpacing: '-0.5px',
                     }}
                   >
-                    Le {price}
+                    {priceDisplay}
                   </span>
                 ) : null}
                 <span

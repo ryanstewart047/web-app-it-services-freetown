@@ -14,6 +14,7 @@ const PROTECTED_ADMIN_PREFIXES = [
   '/admin/email-marketing',
   '/admin/newsletter',
   '/admin/facebook-auto-post',
+  '/admin/social-sharing',
   '/admin/discount-codes',
   '/admin/add-product',
 ];
@@ -109,7 +110,6 @@ export function middleware(request: NextRequest) {
     '/order-confirmation/',
     '/pwa-test',
     '/loading-',
-    '/s/',
     '/test-',
     '/debug',
   ];

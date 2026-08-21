@@ -1,46 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { normalizeShortUrlRecord, readShortUrlMap, writeShortUrlMap, type ShortUrlMetadata } from '@/lib/short-url-storage';
 
-// Store URLs in a JSON file for persistence
-const STORAGE_FILE = path.join(process.cwd(), 'data', 'short-urls.json');
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
-function ensureStorageFile() {
-  const dir = path.dirname(STORAGE_FILE);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  if (!fs.existsSync(STORAGE_FILE)) {
-    fs.writeFileSync(STORAGE_FILE, JSON.stringify({}));
-  }
+function hasAdminSession(request: NextRequest) {
+  const sessionToken = request.cookies.get('admin_session')?.value;
+  return Boolean(sessionToken && /^[a-f0-9]{64}$/.test(sessionToken));
 }
 
-interface ShortUrlRecord {
-  url: string;
-  metadata?: {
-    title?: string;
-    description?: string;
-    price?: string;
-    tag?: string;
-    image?: string;
-    theme?: string;
-    fit?: string;
-    scale?: number;
-  };
-}
-
-function getUrlMap(): Record<string, string | ShortUrlRecord> {
-  ensureStorageFile();
-  const data = fs.readFileSync(STORAGE_FILE, 'utf-8');
-  return JSON.parse(data);
-}
-
-function saveUrlMap(map: Record<string, string | ShortUrlRecord>) {
-  ensureStorageFile();
-  fs.writeFileSync(STORAGE_FILE, JSON.stringify(map, null, 2));
-}
-
-function generateShortCode(url: string): string {
+function generateShortCodePrefix(url: string): string {
   // Extract product slug from marketplace URL
   const marketMatch = url.match(/\/marketplace\/([^/?#]+)/);
   if (marketMatch) {
@@ -53,15 +22,30 @@ function generateShortCode(url: string): string {
     return `b-${blogMatch[1].substring(0, 8).toLowerCase().replace(/[^a-z0-9_-]/g, '')}`;
   }
 
-  // Fallback: generate random 6-character code
-  return Math.random().toString(36).substring(2, 8);
+  return 'share';
+}
+
+function generateUniqueShortCode(urlMap: Record<string, unknown>, url: string): string {
+  const prefix = generateShortCodePrefix(url).slice(0, 12) || 'share';
+
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    const suffix = Math.random().toString(36).slice(2, 9);
+    const code = `${prefix}-${suffix}`;
+    if (!urlMap[code]) return code;
+  }
+
+  return `${prefix}-${Date.now().toString(36)}`;
 }
 
 export async function POST(request: NextRequest) {
   try {
+    if (!hasAdminSession(request)) {
+      return NextResponse.json({ error: 'Admin authentication is required.' }, { status: 401 });
+    }
+
     const body = await request.json();
     const url = typeof body === 'string' ? body : body.url;
-    const metadata = body.metadata || (body.title ? {
+    const metadata: ShortUrlMetadata | undefined = body.metadata || (body.title ? {
       title: body.title,
       description: body.description,
       price: body.price,
@@ -70,6 +54,10 @@ export async function POST(request: NextRequest) {
       theme: body.theme,
       fit: body.fit,
       scale: body.scale,
+      positionX: body.positionX,
+      positionY: body.positionY,
+      layout: body.layout || 'photo-only',
+      previewType: body.previewType || 'product',
     } : undefined);
     
     if (!url || typeof url !== 'string') {
@@ -79,11 +67,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate short code
-    const shortCode = generateShortCode(url);
-    
     // Store mapping (backward compatible with plain string or rich record)
-    const urlMap = getUrlMap();
+    const urlMap = await readShortUrlMap();
+    const shortCode = generateUniqueShortCode(urlMap, url);
     if (metadata) {
       urlMap[shortCode] = {
         url,
@@ -92,7 +78,7 @@ export async function POST(request: NextRequest) {
     } else {
       urlMap[shortCode] = url;
     }
-    saveUrlMap(urlMap);
+    await writeShortUrlMap(urlMap);
     
     // Create short URL (using request origin or env)
     const origin = request.headers.get('origin') || request.nextUrl.origin;
@@ -128,8 +114,8 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    const urlMap = getUrlMap();
-    const originalUrl = urlMap[code];
+    const urlMap = await readShortUrlMap();
+    const originalUrl = normalizeShortUrlRecord(urlMap[code]);
     
     if (!originalUrl) {
       return NextResponse.json(
@@ -139,8 +125,9 @@ export async function GET(request: NextRequest) {
     }
     
     return NextResponse.json({
-      originalUrl,
-      shortCode: code
+      originalUrl: originalUrl.url,
+      shortCode: code,
+      metadata: originalUrl.metadata,
     });
   } catch (error) {
     console.error('Error retrieving short URL:', error);
