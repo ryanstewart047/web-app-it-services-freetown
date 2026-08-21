@@ -155,7 +155,7 @@ Return JSON with "subject", "content" (HTML body), and "imagePrompt" (vector art
 /* ---------------- Helper API Callers ---------------- */
 
 async function callGroq(messages: Array<{ role: string; content: string }>): Promise<any> {
-  const models = ['llama-3.1-8b-instant', 'llama3-70b-8192', 'gemma2-9b-it'];
+  const models = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'llama-3.3-70b-specdec'];
   let lastError: any = null;
 
   for (const model of models) {
@@ -340,29 +340,189 @@ function generateFallbackMarketingEmail(prompt: string): MarketingEmailResult {
 }
 
 function generateFallbackNewsletter(topic: string): NewsletterEmailResult {
+  const lower = topic.toLowerCase();
+
+  // 1. Social Media / 2FA / Account Security
+  if (lower.includes('social media') || lower.includes('2-factor') || lower.includes('hacker') || lower.includes('security') || lower.includes('password') || lower.includes('2fa')) {
+    return {
+      subject: `🔒 Security Alert: How to Lock Down Your Social Media & WhatsApp from Hackers`,
+      imagePrompt: `A cybersecurity concept illustration showing a shield with two-factor authentication key lock, smartphone security, flat vector design, clean background`,
+      content: `
+        <h1 style="color:#0f172a;font-size:24px;font-weight:800;margin-bottom:16px;">How to Secure Your Social Media Accounts &amp; WhatsApp from Hackers</h1>
+        <p>Hello Tech Community,</p>
+        <p>Welcome to this week's edition of the <a href="${BRAND_URL}">${BRAND_NAME}</a> Tech Insights! Recently, account hijackings and WhatsApp takeovers have increased significantly in Freetown. Today, we are sharing crucial steps to secure your online presence.</p>
+
+        <div style="background-color:#eff6ff;border-left:4px solid #3b82f6;padding:18px;border-radius:8px;margin:20px 0;">
+          <h3 style="color:#1d4ed8;margin-top:0;">🛡️ 4 Essential Steps to Protect Your Accounts:</h3>
+          <ul style="color:#334155;line-height:1.9;padding-left:20px;">
+            <li><strong>Enable Two-Factor Authentication (2FA) Everywhere:</strong> Never rely only on a password. Turn on 2FA in WhatsApp (Settings &gt; Account &gt; Two-step verification), Facebook, Instagram, and Google. Use authenticator apps like Google Authenticator.</li>
+            <li><strong>Never Share SMS / Verification Codes:</strong> Scammers often impersonate friends or organizations asking for a 6-digit code. Legitimate platforms will NEVER ask you to forward a verification PIN.</li>
+            <li><strong>Review Active Logged-In Sessions:</strong> Regularly check "Linked Devices" in WhatsApp and "Security &gt; Where You're Logged In" on Facebook and Gmail. Force logout any unfamiliar device immediately.</li>
+            <li><strong>Use Strong, Unique Passphrases:</strong> Avoid using your birth date, phone number, or simple names. Combine 3-4 random words with numbers and symbols (e.g. <code>Beach#Sierra2026!Lion</code>).</li>
+          </ul>
+        </div>
+
+        <p>Taking 5 minutes today to configure Two-Step Verification protects your banking information, personal photos, and sensitive communications from cybercriminals.</p>
+
+        <div style="background-color:#f8fafc;padding:20px;border-radius:12px;margin:25px 0;text-align:center;border:1px dashed #cbd5e1;">
+          <h4 style="color:#0f172a;margin-top:0;">Locked Out or Suspect Your Account is Compromised?</h4>
+          <p style="color:#64748b;font-size:14px;margin-bottom:15px;">Our certified tech engineers at <a href="${BRAND_URL}">${BRAND_NAME}</a> can help audit your security, recover compromised accounts, and configure enterprise-grade protection.</p>
+          <a href="${BRAND_URL}/book-appointment" style="display:inline-block;background-color:#dc2626;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:bold;">Get Free Security Consultation</a>
+        </div>
+
+        <p style="font-size:14px;color:#64748b;">Have a tech security question? Reach out via WhatsApp or call our support desk at <a href="tel:+23233399391" style="color:#dc2626;font-weight:bold;">${BRAND_PHONE}</a>.</p>
+      `
+    };
+  }
+
+  // 2. Laptop Overheating / Thermal Management
+  if (lower.includes('overheat') || lower.includes('heat') || lower.includes('fan') || lower.includes('temperature')) {
+    return {
+      subject: `🔥 Stop Your Laptop From Overheating: Essential Cooling Tips for Freetown`,
+      imagePrompt: `A modern vector illustration of a laptop with clean cooling airflow and fan thermal maintenance tools, flat design, white background`,
+      content: `
+        <h1 style="color:#0f172a;font-size:24px;font-weight:800;margin-bottom:16px;">5 Essential Tips to Keep Your Laptop from Overheating in Freetown's Climate</h1>
+        <p>Hello Tech Community,</p>
+        <p>With high ambient temperatures and tropical humidity in Freetown, laptops and computers face severe thermal stress. Overheating leads to sluggish performance, unexpected shutdowns, and permanent processor damage.</p>
+
+        <div style="background-color:#fef2f2;border-left:4px solid #ef4444;padding:18px;border-radius:8px;margin:20px 0;">
+          <h3 style="color:#b91c1c;margin-top:0;">❄️ Practical Tips to Keep Your Laptop Cool:</h3>
+          <ul style="color:#334155;line-height:1.9;padding-left:20px;">
+            <li><strong>Never Use Your Laptop on Beds or Sofas:</strong> Soft surfaces block bottom intake vents and trap hot air. Always place your machine on a hard, flat desk or elevated stand.</li>
+            <li><strong>Clean Dust from Air Vents Regularly:</strong> Dust and lint quickly clog laptop heatsinks. Use compressed air or have vents professionally cleaned every 6 months.</li>
+            <li><strong>Replace Dried Thermal Paste:</strong> Factory thermal paste dries up after 18-24 months. Applying fresh high-grade thermal compound drops operating temperatures by 15°C–25°C.</li>
+            <li><strong>Manage Background Programs:</strong> Close resource-heavy apps and browser tabs when not in use to reduce CPU &amp; GPU load.</li>
+            <li><strong>Use an Active Laptop Cooling Pad:</strong> A USB-powered cooling stand provides continuous cool airflow to your motherboard components.</li>
+          </ul>
+        </div>
+
+        <div style="background-color:#f8fafc;padding:20px;border-radius:12px;margin:25px 0;text-align:center;border:1px dashed #cbd5e1;">
+          <h4 style="color:#0f172a;margin-top:0;">Is Your Laptop Fan Running Loud or Overheating?</h4>
+          <p style="color:#64748b;font-size:14px;margin-bottom:15px;">Bring your laptop to <a href="${BRAND_URL}">${BRAND_NAME}</a> for a complete internal thermal service: deep heatsink dusting, fan lubrication, and premium thermal paste application.</p>
+          <a href="${BRAND_URL}/book-appointment" style="display:inline-block;background-color:#dc2626;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:bold;">Book Thermal Service</a>
+        </div>
+
+        <p style="font-size:14px;color:#64748b;">📍 Service Center: ${BRAND_LOCATION} | 📞 Call: <a href="tel:+23233399391" style="color:#dc2626;font-weight:bold;">${BRAND_PHONE}</a></p>
+      `
+    };
+  }
+
+  // 3. Screen Protection
+  if (lower.includes('screen') || lower.includes('drop') || lower.includes('scratch') || lower.includes('glass')) {
+    return {
+      subject: `📱 Protect Your Smartphone & Laptop Screen: Avoid Costly Breakages`,
+      imagePrompt: `A vector illustration showing smartphone with tempered glass screen protector shield, durable shockproof case, flat vector design`,
+      content: `
+        <h1 style="color:#0f172a;font-size:24px;font-weight:800;margin-bottom:16px;">How to Protect Your Smartphone Screen from Scratches and Accidental Drops</h1>
+        <p>Hello Tech Community,</p>
+        <p>Modern smartphone screens are among the most expensive components to replace. A single accidental drop can cost a significant portion of the device's value. Here are proven ways to safeguard your screens.</p>
+
+        <div style="background-color:#f0fdf4;border-left:4px solid #16a34a;padding:18px;border-radius:8px;margin:20px 0;">
+          <h3 style="color:#166534;margin-top:0;">🛡️ Proven Screen Protection Tactics:</h3>
+          <ul style="color:#334155;line-height:1.9;padding-left:20px;">
+            <li><strong>Install High-Quality 9H Tempered Glass:</strong> A tempered glass protector absorbs impact energy and shatters instead of your actual display.</li>
+            <li><strong>Use Cases with Raised Bezels:</strong> Pick phone cases that protrude at least 1.5mm above the glass surface so the screen never touches flat surfaces upon impact.</li>
+            <li><strong>Avoid Keeping Keys &amp; Coins in the Same Pocket:</strong> Micro-abrasions from metallic items weaken the glass structural integrity over time.</li>
+            <li><strong>Never Place Heavy Objects on Laptop Lids:</strong> Pressure on laptop top covers frequently cracks the inner LCD matrix even when outer glass looks intact.</li>
+          </ul>
+        </div>
+
+        <div style="background-color:#f8fafc;padding:20px;border-radius:12px;margin:25px 0;text-align:center;border:1px dashed #cbd5e1;">
+          <h4 style="color:#0f172a;margin-top:0;">Already Have a Cracked Screen or Dead Pixels?</h4>
+          <p style="color:#64748b;font-size:14px;margin-bottom:15px;">At <a href="${BRAND_URL}">${BRAND_NAME}</a>, we provide OEM-grade screen replacements with free tempered glass installation for all major brands (iPhone, Samsung, Tecno, HP, Dell).</p>
+          <a href="${BRAND_URL}/book-appointment" style="display:inline-block;background-color:#dc2626;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:bold;">Schedule Screen Fix</a>
+        </div>
+
+        <p style="font-size:14px;color:#64748b;">Reach out on WhatsApp or call at <a href="tel:+23233399391" style="color:#dc2626;font-weight:bold;">${BRAND_PHONE}</a>.</p>
+      `
+    };
+  }
+
+  // 4. Hard Drive & SSD Health / Data Loss
+  if (lower.includes('hard drive') || lower.includes('hdd') || lower.includes('ssd') || lower.includes('fail') || lower.includes('data recovery')) {
+    return {
+      subject: `💾 Warning Signs Your Computer Storage is Failing (How to Save Your Files)`,
+      imagePrompt: `A vector art illustration of computer storage drive backup, cloud sync and data recovery tools, flat design, clean white background`,
+      content: `
+        <h1 style="color:#0f172a;font-size:24px;font-weight:800;margin-bottom:16px;">Warning Signs Your Computer Hard Drive is About to Fail (And How to Save Your Data)</h1>
+        <p>Hello Tech Community,</p>
+        <p>Storage drive failure is one of the most devastating tech disasters because personal photos, business documents, and years of work can disappear in seconds. Learning to recognize early warning signs can save your irreplaceable data.</p>
+
+        <div style="background-color:#fefce8;border-left:4px solid #eab308;padding:18px;border-radius:8px;margin:20px 0;">
+          <h3 style="color:#854d0e;margin-top:0;">⚠️ 5 Red Flags Your Storage Drive is Dying:</h3>
+          <ul style="color:#334155;line-height:1.9;padding-left:20px;">
+            <li><strong>Clicking, Grinding, or Buzzing Sounds:</strong> Mechanical hard drives should never click. Clicking indicates physical head damage; turn off the PC immediately.</li>
+            <li><strong>Extremely Slow File Transfers or Freezing:</strong> If opening simple folders takes minutes, your drive is encountering bad sectors.</li>
+            <li><strong>Disappearing Files or Corrupt Document Errors:</strong> Files failing to open or renaming themselves indicates drive file system corruption.</li>
+            <li><strong>Frequent Blue Screen of Death (BSOD):</strong> Storage read errors are a leading cause of Windows crash screens.</li>
+            <li><strong>Upgrade to Solid State Drive (SSD):</strong> Modern SSDs are 10x faster, silent, and have no moving parts, making them far more resilient than old HDDs.</li>
+          </ul>
+        </div>
+
+        <div style="background-color:#f8fafc;padding:20px;border-radius:12px;margin:25px 0;text-align:center;border:1px dashed #cbd5e1;">
+          <h4 style="color:#0f172a;margin-top:0;">Need Urgent Data Recovery or SSD Speed Upgrade?</h4>
+          <p style="color:#64748b;font-size:14px;margin-bottom:15px;">Our data recovery lab at <a href="${BRAND_URL}">${BRAND_NAME}</a> extracts lost files from failed drives and performs same-day SSD speed upgrades.</p>
+          <a href="${BRAND_URL}/book-appointment" style="display:inline-block;background-color:#dc2626;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:bold;">Book Data Diagnostic</a>
+        </div>
+
+        <p style="font-size:14px;color:#64748b;">📍 Service Center: ${BRAND_LOCATION} | 📞 Hotline: <a href="tel:+23233399391" style="color:#dc2626;font-weight:bold;">${BRAND_PHONE}</a></p>
+      `
+    };
+  }
+
+  // 5. Water / Liquid Damage
+  if (lower.includes('water') || lower.includes('spill') || lower.includes('liquid') || lower.includes('tea') || lower.includes('coffee')) {
+    return {
+      subject: `🚨 Emergency Guide: What to Do Immediately After Spilling Water on Your Laptop`,
+      imagePrompt: `A vector illustration showing emergency steps for laptop liquid spill response, drying techniques, flat clean design`,
+      content: `
+        <h1 style="color:#0f172a;font-size:24px;font-weight:800;margin-bottom:16px;">What to Do Immediately if You Spill Water or Tea on Your Laptop</h1>
+        <p>Hello Tech Community,</p>
+        <p>Accidental spills happen in a split second. The actions you take in the first 3 minutes determine whether your laptop survives or suffers permanent short-circuit board corrosion.</p>
+
+        <div style="background-color:#fef2f2;border-left:4px solid #dc2626;padding:18px;border-radius:8px;margin:20px 0;">
+          <h3 style="color:#991b1b;margin-top:0;">⚡ The 4 Immediate Steps to Save Your Device:</h3>
+          <ul style="color:#334155;line-height:1.9;padding-left:20px;">
+            <li><strong>1. Power OFF Immediately:</strong> Do not exit your programs gracefully. Hold down the power button for 10 seconds until the screen goes completely black. Disconnect the charger immediately.</li>
+            <li><strong>2. Flip the Laptop into an Inverted 'V' Shape:</strong> Open the lid and stand the laptop upside down on a dry towel like an inverted tent (keyboard facing down) to prevent liquid from reaching the motherboard.</li>
+            <li><strong>3. DO NOT Use Rice or a Hairdryer:</strong> Rice dust clogs vents and does not remove moisture from internal ICs. Hairdryers push liquid deeper into motherboard circuitry.</li>
+            <li><strong>4. DO NOT Turn It Back On to "Test":</strong> Electricity passing through wet mineral residue causes immediate motherboard chip burnouts. Bring it in for ultrasonic cleaning first.</li>
+          </ul>
+        </div>
+
+        <div style="background-color:#f8fafc;padding:20px;border-radius:12px;margin:25px 0;text-align:center;border:1px dashed #cbd5e1;">
+          <h4 style="color:#0f172a;margin-top:0;">Fast Liquid Damage Emergency Repair</h4>
+          <p style="color:#64748b;font-size:14px;margin-bottom:15px;">Bring your device immediately to <a href="${BRAND_URL}">${BRAND_NAME}</a>. We disassemble, ultrasonically clean, and dry your motherboard to prevent corrosion.</p>
+          <a href="${BRAND_URL}/book-appointment" style="display:inline-block;background-color:#dc2626;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:bold;">Emergency Booking</a>
+        </div>
+
+        <p style="font-size:14px;color:#64748b;">📍 Service Center: ${BRAND_LOCATION} | 📞 Emergency Line: <a href="tel:+23233399391" style="color:#dc2626;font-weight:bold;">${BRAND_PHONE}</a></p>
+      `
+    };
+  }
+
+  // 6. Default Fallback
   return {
     subject: `🛡️ Tech Insights: ${topic}`,
     imagePrompt: `A clean, modern illustration of computer and phone repair technology with tools and digital elements, vector art, flat design, white background`,
     content: `
       <h1 style="color:#0f172a;font-size:24px;font-weight:800;margin-bottom:16px;">${topic}</h1>
       <p>Hello Tech Community,</p>
-      <p>Welcome to this week's edition of the <a href="${BRAND_URL}">${BRAND_NAME}</a> Tech Insights newsletter! Today, we are focusing on practical guidance to keep your electronics operating safely and efficiently.</p>
+      <p>Welcome to this week's edition of the <a href="${BRAND_URL}">${BRAND_NAME}</a> Tech Insights newsletter! Today, we are exploring essential guidance on <strong>${topic}</strong> to help you keep your digital life running smoothly.</p>
 
-      <div style="background-color:#f0fdf4;border-left:4px solid #16a34a;padding:16px;border-radius:8px;margin:20px 0;">
-        <h3 style="color:#166534;margin-top:0;">🔑 Key Takeaways &amp; Best Practices:</h3>
-        <ul style="color:#334155;line-height:1.8;padding-left:20px;">
-          <li><strong>Keep it Clean &amp; Ventilated:</strong> Dust buildup and humidity can severely throttle your processor and battery life. Clean air vents regularly.</li>
-          <li><strong>Use Stable Power Surge Protection:</strong> Fluctuations in power outlets can damage sensitive internal power ICs. Always use quality surge protectors.</li>
-          <li><strong>Perform Regular System Backups:</strong> Ensure your crucial business and personal files are backed up to external drives or cloud storage.</li>
-          <li><strong>Address Warning Signs Early:</strong> Unusual fan noises, sudden battery drain, or unexpected shutdowns should be diagnosed immediately before component failure.</li>
+      <div style="background-color:#f0fdf4;border-left:4px solid #16a34a;padding:18px;border-radius:8px;margin:20px 0;">
+        <h3 style="color:#166534;margin-top:0;">🔑 Key Action Points &amp; Best Practices:</h3>
+        <ul style="color:#334155;line-height:1.9;padding-left:20px;">
+          <li><strong>Understand the Root Cause:</strong> Most electronic malfunctions stem from power surges, dust accumulation, outdated software, or heat degradation.</li>
+          <li><strong>Regular Preventive Maintenance:</strong> Cleaning ports, replacing thermal paste every 18 months, and maintaining clean airflow prevents 80% of hardware failures.</li>
+          <li><strong>Adopt Strong Security Measures:</strong> Use 2-factor authentication, secure cloud backups, and avoid untrusted software downloads.</li>
+          <li><strong>Seek Professional Help Early:</strong> Addressing minor symptoms early (battery swelling, fan noise, slow boot times) saves you from costly major component replacements.</li>
         </ul>
       </div>
 
-      <p>Taking a few minutes for preventive maintenance can add years of life to your valuable smartphones, laptops, and office computers.</p>
-
       <div style="background-color:#f8fafc;padding:20px;border-radius:12px;margin:25px 0;text-align:center;border:1px dashed #cbd5e1;">
-        <h4 style="color:#0f172a;margin-top:0;">Need Hands-On Assistance?</h4>
-        <p style="color:#64748b;font-size:14px;margin-bottom:15px;">Our expert technicians at <a href="${BRAND_URL}">${BRAND_NAME}</a> are always available for free diagnostic checks and genuine hardware servicing.</p>
+        <h4 style="color:#0f172a;margin-top:0;">Need Expert Diagnostics or Device Servicing?</h4>
+        <p style="color:#64748b;font-size:14px;margin-bottom:15px;">Our certified repair technicians at <a href="${BRAND_URL}">${BRAND_NAME}</a> are here to provide free diagnostic checks and genuine hardware servicing in Freetown.</p>
         <a href="${BRAND_URL}/book-appointment" style="display:inline-block;background-color:#dc2626;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:bold;">Schedule a Free Checkup</a>
       </div>
 

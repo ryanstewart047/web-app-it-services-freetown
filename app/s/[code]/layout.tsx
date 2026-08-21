@@ -50,8 +50,25 @@ async function getProductFromUrl(url: string) {
   }
 }
 
+// Helper to get blog post data from URL
+async function getBlogFromUrl(url: string) {
+  try {
+    const match = url.match(/\/blog\/([^/?#]+)/);
+    if (!match) return null;
+    const id = match[1];
+
+    const { fetchBlogPosts } = await import('@/lib/github-blog-storage');
+    const posts = await fetchBlogPosts();
+    return posts.find((p: any) => p.id === id) || null;
+  } catch (error) {
+    console.error('Error fetching blog for short URL:', error);
+    return null;
+  }
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const originalUrl = await getOriginalUrl(params.code);
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.itservicesfreetown.com';
   
   if (!originalUrl) {
     return {
@@ -60,30 +77,42 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  // Check if it's a product URL
+  // 1. Check if it's a product URL
   const product = await getProductFromUrl(originalUrl);
-  
   if (product) {
-    const productImage = product.images?.[0]?.url || 'https://www.itservicesfreetown.com/og-marketplace.jpg';
+    const productImage = product.images?.[0]?.url || '/assets/images/slide01.jpg';
+    const absoluteProductImage = productImage.startsWith('http')
+      ? productImage
+      : `${baseUrl}${productImage}`;
+
     const price = new Intl.NumberFormat('en-SL', {
       style: 'currency',
       currency: 'SLL',
       minimumFractionDigits: 0,
     }).format(product.price);
 
+    const ogImageUrl = new URL('/api/og-product', baseUrl);
+    ogImageUrl.searchParams.set('name', product.name);
+    ogImageUrl.searchParams.set('price', product.price.toString());
+    ogImageUrl.searchParams.set('image', absoluteProductImage);
+    ogImageUrl.searchParams.set('description', product.description || '');
+    ogImageUrl.searchParams.set('condition', product.condition || 'new');
+
+    const desc = product.description?.substring(0, 160) || 'Shop quality IT products in Freetown, Sierra Leone';
+
     return {
       title: `${product.name} - ${price} | BridgeTech IT Services`,
-      description: product.description?.substring(0, 160) || 'Shop quality IT products in Freetown, Sierra Leone',
+      description: desc,
       openGraph: {
         title: `${product.name} - ${price}`,
-        description: product.description || 'Shop quality IT products in Freetown, Sierra Leone',
-        url: `https://www.itservicesfreetown.com/s/${params.code}`,
+        description: desc,
+        url: `${baseUrl}/s/${params.code}`,
         siteName: 'BridgeTech IT Services',
         locale: 'en_SL',
         type: 'website',
         images: [
           {
-            url: productImage,
+            url: ogImageUrl.toString(),
             width: 1200,
             height: 630,
             alt: product.name,
@@ -93,26 +122,62 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       twitter: {
         card: 'summary_large_image',
         title: `${product.name} - ${price}`,
-        description: product.description?.substring(0, 200) || 'Shop quality IT products in Freetown, Sierra Leone',
-        images: [productImage],
+        description: desc,
+        images: [ogImageUrl.toString()],
       },
     };
   }
 
-  // Fallback metadata
+  // 2. Check if it's a blog post URL
+  const blog = await getBlogFromUrl(originalUrl);
+  if (blog) {
+    const ogBlogUrl = new URL('/api/og-blog', baseUrl);
+    ogBlogUrl.searchParams.set('id', blog.id);
+
+    const excerpt = blog.content ? blog.content.replace(/<[^>]*>/g, '').substring(0, 160) : 'Read the latest tech insights from BridgeTech IT Services';
+
+    return {
+      title: `${blog.title} | BridgeTech IT Services`,
+      description: excerpt,
+      openGraph: {
+        title: blog.title,
+        description: excerpt,
+        url: `${baseUrl}/s/${params.code}`,
+        siteName: 'BridgeTech IT Services',
+        locale: 'en_SL',
+        type: 'article',
+        images: [
+          {
+            url: ogBlogUrl.toString(),
+            width: 1200,
+            height: 630,
+            alt: blog.title,
+          }
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: blog.title,
+        description: excerpt,
+        images: [ogBlogUrl.toString()],
+      },
+    };
+  }
+
+  // 3. Fallback metadata
   return {
     title: 'BridgeTech IT Services - Professional Repair Services',
     description: 'Professional computer and mobile repair services in Freetown, Sierra Leone',
     openGraph: {
       title: 'BridgeTech IT Services',
       description: 'Professional computer and mobile repair services in Freetown',
-      url: `https://www.itservicesfreetown.com/s/${params.code}`,
+      url: `${baseUrl}/s/${params.code}`,
       siteName: 'BridgeTech IT Services',
       locale: 'en_SL',
       type: 'website',
       images: [
         {
-          url: 'https://www.itservicesfreetown.com/assets/images/slide01.jpg',
+          url: `${baseUrl}/assets/images/slide01.jpg`,
           width: 1200,
           height: 630,
           alt: 'BridgeTech IT Services',
@@ -123,7 +188,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: 'summary_large_image',
       title: 'BridgeTech IT Services',
       description: 'Professional computer and mobile repair services in Freetown',
-      images: ['https://www.itservicesfreetown.com/assets/images/slide01.jpg'],
+      images: [`${baseUrl}/assets/images/slide01.jpg`],
     },
   };
 }

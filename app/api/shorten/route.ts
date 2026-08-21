@@ -28,13 +28,17 @@ function saveUrlMap(map: Record<string, string>) {
 
 function generateShortCode(url: string): string {
   // Extract product slug from marketplace URL
-  const match = url.match(/\/marketplace\/([^/?]+)/);
-  if (match) {
-    const slug = match[1];
-    // Create a short code from the slug (first 8 chars)
-    return slug.substring(0, 8).toLowerCase();
+  const marketMatch = url.match(/\/marketplace\/([^/?#]+)/);
+  if (marketMatch) {
+    return marketMatch[1].substring(0, 10).toLowerCase().replace(/[^a-z0-9_-]/g, '');
   }
-  
+
+  // Extract blog ID from blog URL
+  const blogMatch = url.match(/\/blog\/([^/?#]+)/);
+  if (blogMatch) {
+    return `b-${blogMatch[1].substring(0, 8).toLowerCase().replace(/[^a-z0-9_-]/g, '')}`;
+  }
+
   // Fallback: generate random 6-character code
   return Math.random().toString(36).substring(2, 8);
 }
@@ -58,8 +62,9 @@ export async function POST(request: NextRequest) {
     urlMap[shortCode] = url;
     saveUrlMap(urlMap);
     
-    // Create short URL
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.itservicesfreetown.com';
+    // Create short URL (using request origin or env)
+    const origin = request.headers.get('origin') || request.nextUrl.origin;
+    const baseUrl = origin || process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://www.itservicesfreetown.com';
     const shortUrl = `${baseUrl}/s/${shortCode}`;
     
     console.log(`Created short URL: ${shortUrl} -> ${url}`);

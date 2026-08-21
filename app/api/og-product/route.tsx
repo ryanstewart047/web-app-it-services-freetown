@@ -94,23 +94,24 @@ export async function GET(request: NextRequest) {
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
-            background: 'linear-gradient(135deg, #040e40 0%, #0a1854 100%)',
-            padding: '60px',
+            background: 'linear-gradient(135deg, #040e40 0%, #08164d 50%, #0c1f6d 100%)',
+            padding: '48px',
             fontFamily: 'system-ui, -apple-system, sans-serif',
           }}
         >
-          {/* Left side - Product Image */}
+          {/* Left side - Product Image Box (contained, centered, clean white frame) */}
           <div
             style={{
               display: 'flex',
-              width: '45%',
+              width: '42%',
               height: '100%',
               alignItems: 'center',
               justifyContent: 'center',
-              background: 'white',
-              borderRadius: '24px',
-              padding: '20px',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+              background: '#ffffff',
+              borderRadius: '20px',
+              padding: '24px',
+              boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.6)',
+              overflow: 'hidden',
             }}
           >
             {image ? (
@@ -118,10 +119,9 @@ export async function GET(request: NextRequest) {
                 src={image}
                 alt={name}
                 style={{
-                  width: '100%',
-                  height: '100%',
+                  maxWidth: '100%',
+                  maxHeight: '100%',
                   objectFit: 'contain',
-                  borderRadius: '16px',
                 }}
               />
             ) : (
@@ -132,10 +132,10 @@ export async function GET(request: NextRequest) {
                   justifyContent: 'center',
                   width: '100%',
                   height: '100%',
-                  background: '#f3f4f6',
+                  background: '#f1f5f9',
                   borderRadius: '16px',
-                  fontSize: '48px',
-                  color: '#9ca3af',
+                  fontSize: '54px',
+                  color: '#94a3b8',
                 }}
               >
                 📦
@@ -148,82 +148,103 @@ export async function GET(request: NextRequest) {
             style={{
               display: 'flex',
               flexDirection: 'column',
-              width: '50%',
+              width: '54%',
               height: '100%',
-              justifyContent: 'center',
-              paddingLeft: '40px',
+              justifyContent: 'space-between',
+              paddingLeft: '32px',
+              paddingTop: '8px',
+              paddingBottom: '8px',
             }}
           >
-            {/* Brand Badge */}
+            {/* Header: Badge & Brand */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                marginBottom: '20px',
+                justifyContent: 'space-between',
               }}
             >
               <div
                 style={{
-                  background: 'rgba(239, 68, 68, 0.2)',
-                  color: '#ef4444',
-                  padding: '8px 16px',
-                  borderRadius: '20px',
-                  fontSize: '18px',
-                  fontWeight: '600',
+                  background: 'rgba(239, 68, 68, 0.25)',
+                  border: '1.5px solid #ef4444',
+                  color: '#fca5a5',
+                  padding: '6px 14px',
+                  borderRadius: '16px',
+                  fontSize: '16px',
+                  fontWeight: '700',
                   textTransform: 'uppercase',
+                  letterSpacing: '1px',
                 }}
               >
-                {condition === 'new' ? '🆕 New' : condition === 'refurbished' ? '♻️ Refurbished' : '📦 Used'}
+                {condition === 'new' ? '✨ Brand New' : condition === 'refurbished' ? '♻️ Refurbished' : '📦 Quality Tested'}
+              </div>
+              <div
+                style={{
+                  fontSize: '14px',
+                  color: '#94a3b8',
+                  fontWeight: '600',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                }}
+              >
+                Official Store
               </div>
             </div>
 
-            {/* Product Name */}
+            {/* Middle: Title & Description */}
             <div
               style={{
                 display: 'flex',
-                fontSize: '48px',
-                fontWeight: 'bold',
-                color: 'white',
-                lineHeight: 1.2,
-                marginBottom: '24px',
-                maxHeight: '144px',
-                overflow: 'hidden',
+                flexDirection: 'column',
+                marginTop: '12px',
               }}
             >
-              {name}
-            </div>
-
-            {/* Description */}
-            {truncatedDesc && (
               <div
                 style={{
                   display: 'flex',
-                  fontSize: '24px',
-                  color: '#cbd5e1',
-                  lineHeight: 1.4,
-                  marginBottom: '32px',
-                  maxHeight: '100px',
+                  fontSize: '40px',
+                  fontWeight: '800',
+                  color: '#ffffff',
+                  lineHeight: 1.2,
+                  marginBottom: '12px',
+                  maxHeight: '96px',
                   overflow: 'hidden',
                 }}
               >
-                {truncatedDesc}
+                {name}
               </div>
-            )}
 
-            {/* Price */}
+              {truncatedDesc && (
+                <div
+                  style={{
+                    display: 'flex',
+                    fontSize: '20px',
+                    color: '#cbd5e1',
+                    lineHeight: 1.35,
+                    maxHeight: '60px',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {truncatedDesc}
+                </div>
+              )}
+            </div>
+
+            {/* Price section */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'baseline',
-                marginBottom: '32px',
+                marginTop: '12px',
               }}
             >
               <span
                 style={{
-                  fontSize: '64px',
-                  fontWeight: 'bold',
+                  fontSize: '52px',
+                  fontWeight: '900',
                   color: '#ef4444',
-                  marginRight: '12px',
+                  letterSpacing: '-1px',
                 }}
               >
                 Le {parseFloat(price).toLocaleString()}
@@ -236,7 +257,8 @@ export async function GET(request: NextRequest) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                marginTop: 'auto',
+                borderTop: '1px solid rgba(255, 255, 255, 0.15)',
+                paddingTop: '16px',
               }}
             >
               <div
@@ -247,21 +269,35 @@ export async function GET(request: NextRequest) {
               >
                 <span
                   style={{
-                    fontSize: '28px',
-                    fontWeight: 'bold',
-                    color: 'white',
+                    fontSize: '22px',
+                    fontWeight: '800',
+                    color: '#ffffff',
+                    letterSpacing: '0.5px',
                   }}
                 >
                   BridgeTech IT Services
                 </span>
                 <span
                   style={{
-                    fontSize: '20px',
+                    fontSize: '14px',
                     color: '#94a3b8',
                   }}
                 >
-                  Tap to view product →
+                  Freetown, Sierra Leone · itservicesfreetown.com
                 </span>
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  background: '#ef4444',
+                  color: '#ffffff',
+                  padding: '8px 18px',
+                  borderRadius: '10px',
+                  fontSize: '15px',
+                  fontWeight: '700',
+                }}
+              >
+                View Item ↗
               </div>
             </div>
           </div>

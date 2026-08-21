@@ -22,6 +22,8 @@ import {
   Tag,
 } from 'lucide-react';
 
+import toast from 'react-hot-toast';
+
 interface Product {
   id: string;
   name: string;
@@ -56,24 +58,36 @@ interface ShareCard {
   tag?: string;
 }
 
-const BASE_URL =
-  typeof window !== 'undefined'
-    ? window.location.origin
-    : 'https://www.itservicesfreetown.com';
-
 function getExcerpt(content: string, maxLen = 160) {
   const text = content
     .replace(/!\[.*?\]\(.*?\)/g, '')
     .replace(/\[([^\]]+)\]\(.*?\)/g, '$1')
+    .replace(/<[^>]*>/g, ' ')
     .replace(/#{1,6}\s+/g, '')
     .replace(/\*\*|__|\*|_|~~|`/g, '')
-    .replace(/\n+/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim();
   return text.length > maxLen ? text.slice(0, maxLen - 3) + '...' : text;
 }
 
 function fmtPrice(p: number) {
   return `Le ${p.toLocaleString()}`;
+}
+
+function normalizeImageUrl(rawUrl: string, base: string): string {
+  if (!rawUrl) return '';
+  let url = rawUrl.trim();
+  if (url.startsWith('/')) {
+    url = `${base}${url}`;
+  }
+  // Convert GitHub blob URLs to raw user content URLs
+  if (url.includes('github.com') && url.includes('/blob/')) {
+    url = url
+      .replace('https://github.com/', 'https://raw.githubusercontent.com/')
+      .replace('/blob/', '/')
+      .replace(/[?&]raw=true/, '');
+  }
+  return url;
 }
 
 function WhatsAppPreview({ card, ogImageUrl }: { card: ShareCard; ogImageUrl: string }) {
@@ -84,7 +98,7 @@ function WhatsAppPreview({ card, ogImageUrl }: { card: ShareCard; ogImageUrl: st
         <span className="text-white text-xs font-semibold">WhatsApp Preview</span>
       </div>
       <div className="bg-white rounded-xl overflow-hidden shadow-lg">
-        <div className="relative bg-slate-100 h-44 overflow-hidden">
+        <div className="relative bg-slate-100 h-44 overflow-hidden flex items-center justify-center">
           <img
             src={ogImageUrl}
             alt="OG Preview"
@@ -123,7 +137,7 @@ function LinkPreview({ card, ogImageUrl }: { card: ShareCard; ogImageUrl: string
         <span className="text-slate-300 text-xs font-semibold">Link Preview (iMessage / Telegram)</span>
       </div>
       <div className="bg-slate-700 rounded-xl overflow-hidden border border-slate-600">
-        <div className="h-40 overflow-hidden bg-slate-600">
+        <div className="h-40 overflow-hidden bg-slate-600 flex items-center justify-center">
           <img
             src={ogImageUrl}
             alt="OG Preview"
@@ -163,11 +177,23 @@ export default function SocialSharingAdminPage() {
   const [previewStyle, setPreviewStyle] = useState<'whatsapp' | 'link'>('whatsapp');
   const [ogImageRefreshKey, setOgImageRefreshKey] = useState(0);
 
+  const getBaseUrl = () => {
+    if (typeof window !== 'undefined') {
+      return window.location.origin;
+    }
+    return process.env.NEXT_PUBLIC_BASE_URL || 'https://www.itservicesfreetown.com';
+  };
+
   const loadProducts = useCallback(async () => {
     try {
       const res = await fetch('/api/products?status=active');
-      if (res.ok) setProducts(await res.json());
-    } catch {}
+      if (res.ok) {
+        const data = await res.json();
+        setProducts(Array.isArray(data) ? data : []);
+      }
+    } catch (e) {
+      console.error('Failed to load products:', e);
+    }
   }, []);
 
   const loadBlog = useCallback(async () => {
@@ -177,7 +203,9 @@ export default function SocialSharingAdminPage() {
         const data = await res.json();
         setBlogPosts(Array.isArray(data) ? data : data.posts || []);
       }
-    } catch {}
+    } catch (e) {
+      console.error('Failed to load blogs:', e);
+    }
   }, []);
 
   useEffect(() => {
@@ -186,23 +214,17 @@ export default function SocialSharingAdminPage() {
   }, [loadProducts, loadBlog]);
 
   const selectProduct = (p: Product) => {
-    const imgUrl = p.images?.[0]?.url || '';
-    const fullImg = imgUrl.startsWith('http') ? imgUrl : imgUrl ? `${BASE_URL}${imgUrl}` : '';
-    const fixedImg =
-      fullImg.includes('github.com') && fullImg.includes('/blob/')
-        ? fullImg
-            .replace('https://github.com/', 'https://raw.githubusercontent.com/')
-            .replace('/blob/', '/')
-            .replace(/[?&]raw=true/, '')
-        : fullImg;
+    const base = getBaseUrl();
+    const rawImg = p.images?.[0]?.url || '';
+    const normalizedImg = normalizeImageUrl(rawImg, base);
 
     const card: ShareCard = {
       type: 'product',
       id: p.id,
       title: p.name,
-      description: p.description.slice(0, 160),
-      imageUrl: fixedImg,
-      targetUrl: `${BASE_URL}/marketplace/${p.slug}`,
+      description: p.description ? p.description.slice(0, 160) : 'Quality IT product from BridgeTech IT Services',
+      imageUrl: normalizedImg,
+      targetUrl: `${base}/marketplace/${p.slug}`,
       price: fmtPrice(p.price),
       tag: p.condition === 'new' ? '🆕 New' : p.condition === 'refurbished' ? '♻️ Refurbished' : '📦 Used',
     };
@@ -217,15 +239,24 @@ export default function SocialSharingAdminPage() {
   };
 
   const selectBlog = (post: BlogPost) => {
-    const imgUrl = post.image || '';
-    const fullImg = imgUrl.startsWith('http') ? imgUrl : imgUrl ? `${BASE_URL}${imgUrl}` : '';
+    const base = getBaseUrl();
+    // Extract first image from image field or content
+    let rawImg = post.image || '';
+    if (!rawImg && post.content) {
+      const match = post.content.match(/<img[^>]+src=["']([^"']+)["']/i) || post.content.match(/!\[.*?\]\((.*?)\)/);
+      if (match && match[1]) {
+        rawImg = match[1];
+      }
+    }
+    const normalizedImg = normalizeImageUrl(rawImg, base);
+
     const card: ShareCard = {
       type: 'blog',
       id: post.id,
       title: post.title,
-      description: getExcerpt(post.content),
-      imageUrl: fullImg,
-      targetUrl: `${BASE_URL}/blog/${post.id}`,
+      description: getExcerpt(post.content || ''),
+      imageUrl: normalizedImg,
+      targetUrl: `${base}/blog/${post.id}`,
       tag: '📝 Blog',
     };
     setSelectedCard(card);
@@ -240,16 +271,17 @@ export default function SocialSharingAdminPage() {
 
   const ogImageUrl = (() => {
     if (!selectedCard) return '';
+    const base = getBaseUrl();
     if (selectedCard.type === 'product' && selectedProduct) {
       const params = new URLSearchParams({
         name: editTitle,
         price: selectedProduct.price.toString(),
         image: editImageUrl,
         description: editDesc.slice(0, 100),
-        condition: selectedProduct.condition,
+        condition: selectedProduct.condition || 'new',
         _k: String(ogImageRefreshKey),
       });
-      return `${BASE_URL}/api/og-product?${params}`;
+      return `${base}/api/og-product?${params.toString()}`;
     }
     if (selectedCard.type === 'blog' && selectedBlog) {
       const params = new URLSearchParams({
@@ -259,16 +291,32 @@ export default function SocialSharingAdminPage() {
         image: editImageUrl,
         _k: String(ogImageRefreshKey),
       });
-      return `${BASE_URL}/api/og-blog?${params}`;
+      return `${base}/api/og-blog?${params.toString()}`;
     }
     return '';
   })();
 
-  const copyText = (text: string, key: 'link' | 'short' | 'wa') => {
-    navigator.clipboard.writeText(text).then(() => {
+  const copyText = async (text: string, key: 'link' | 'short' | 'wa') => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-999999px';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand('copy');
+        textarea.remove();
+      }
       setCopied(key);
-      setTimeout(() => setCopied(null), 2200);
-    });
+      toast.success(key === 'wa' ? 'WhatsApp message copied!' : key === 'short' ? 'Short link copied!' : 'Link copied!');
+      setTimeout(() => setCopied(null), 2500);
+    } catch (err) {
+      toast.error('Failed to copy to clipboard');
+    }
   };
 
   const generateShortUrl = async () => {
@@ -283,17 +331,23 @@ export default function SocialSharingAdminPage() {
       if (res.ok) {
         const data = await res.json();
         setShortUrl(data.shortUrl);
+        toast.success('Short link generated successfully!');
+      } else {
+        toast.error('Failed to generate short link');
       }
-    } catch {}
-    setGeneratingShort(false);
+    } catch (e) {
+      toast.error('Network error creating short link');
+    } finally {
+      setGeneratingShort(false);
+    }
   };
 
   const buildWaMessage = () => {
     if (!selectedCard) return '';
     const link = shortUrl || selectedCard.targetUrl;
-    const priceStr = selectedCard.price ? `\n💰 ${selectedCard.price}` : '';
-    const tagStr = selectedCard.tag ? `\n🏷️ ${selectedCard.tag}` : '';
-    return `*${editTitle}*${priceStr}${tagStr}\n\n${editDesc}\n\n🔗 ${link}`;
+    const priceStr = selectedCard.price ? `\n💰 *Price:* ${selectedCard.price}` : '';
+    const tagStr = selectedCard.tag ? `\n🏷️ *Condition:* ${selectedCard.tag}` : '';
+    return `🔥 *${editTitle}*${priceStr}${tagStr}\n\n${editDesc}\n\n👉 *View & Order here:*\n${link}`;
   };
 
   const filteredProducts = products.filter(
