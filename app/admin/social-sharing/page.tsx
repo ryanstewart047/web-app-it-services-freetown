@@ -23,6 +23,7 @@ import {
   Tag,
   Sparkles,
   Link2,
+  Send,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import html2canvas from 'html2canvas';
@@ -89,7 +90,7 @@ export default function SocialSharingAdminPage() {
 
   // Card theme styling
   const [cardTheme, setCardTheme] = useState<'navy' | 'dark' | 'emerald' | 'crimson'>('navy');
-  const [previewTab, setPreviewTab] = useState<'card' | 'whatsapp' | 'imessage'>('card');
+  const [previewTab, setPreviewTab] = useState<'card' | 'whatsapp' | 'imessage' | 'facebook' | 'instagram'>('card');
 
   // Quick picker drawer / modal
   const [showPicker, setShowPicker] = useState(false);
@@ -105,6 +106,9 @@ export default function SocialSharingAdminPage() {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const cardRef = useRef<HTMLDivElement>(null);
+  const igCardRef = useRef<HTMLDivElement>(null);
+  const offscreenLandscapeRef = useRef<HTMLDivElement>(null);
+  const offscreenSquareRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const getBaseUrl = () => {
@@ -247,24 +251,44 @@ export default function SocialSharingAdminPage() {
     }
   };
 
+  // Render whatever target element (or offscreen standard 1200x630 / 1080x1080) to canvas
+  const getRenderCanvas = async (isSquare = false) => {
+    let targetEl: HTMLElement | null = null;
+    if (isSquare) {
+      targetEl = igCardRef.current || offscreenSquareRef.current;
+    } else {
+      targetEl = cardRef.current || offscreenLandscapeRef.current;
+    }
+
+    if (!targetEl) {
+      targetEl = offscreenLandscapeRef.current;
+    }
+
+    if (!targetEl) {
+      throw new Error('No render target available');
+    }
+
+    return await html2canvas(targetEl, {
+      useCORS: true,
+      allowTaint: true,
+      scale: 2,
+      backgroundColor: '#040e40',
+      logging: false,
+    });
+  };
+
   const downloadCardImage = async () => {
-    if (!cardRef.current) return;
     try {
       toast.loading('Rendering high-res card image...');
-      const canvas = await html2canvas(cardRef.current, {
-        useCORS: true,
-        allowTaint: true,
-        scale: 2,
-        backgroundColor: '#040e40',
-        logging: false,
-      });
+      const isSquare = previewTab === 'instagram';
+      const canvas = await getRenderCanvas(isSquare);
       canvas.toBlob((blob) => {
         toast.dismiss();
         if (blob) {
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = `share-card-${Date.now()}.png`;
+          a.download = `bridgetech-${isSquare ? 'instagram-square' : 'share-card'}-${Date.now()}.png`;
           a.click();
           URL.revokeObjectURL(url);
           toast.success('Share image downloaded!');
@@ -276,6 +300,70 @@ export default function SocialSharingAdminPage() {
     }
   };
 
+  // Render card to PNG blob and share it as an actual image file
+  const shareCardAsImage = async (platform?: 'whatsapp' | 'instagram' | 'facebook' | 'telegram') => {
+    const waText = buildWhatsAppMessage();
+    const link = shortUrl || landingUrl;
+    const isSquare = platform === 'instagram';
+
+    try {
+      toast.loading('Preparing share image...');
+      const canvas = await getRenderCanvas(isSquare);
+      toast.dismiss();
+
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, 'image/png')
+      );
+
+      if (!blob) {
+        toast.error('Could not render card image');
+        return;
+      }
+
+      const file = new File([blob], `bridgetech-share-${Date.now()}.png`, { type: 'image/png' });
+
+      // Try Web Share API with file (works natively on iOS / Android for WhatsApp, Instagram, Telegram)
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: title,
+          text: waText,
+          url: link,
+        });
+        toast.success('Shared successfully!');
+        return;
+      }
+
+      // Fallback on desktop: download the high-res PNG image and open the web app
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `bridgetech-${platform || 'share'}-${Date.now()}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      // Open target platform
+      setTimeout(() => {
+        if (platform === 'whatsapp') {
+          window.open(`https://wa.me/?text=${encodeURIComponent(waText)}`, '_blank');
+        } else if (platform === 'facebook') {
+          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`, '_blank');
+        } else if (platform === 'telegram') {
+          window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(waText)}`, '_blank');
+        } else if (platform === 'instagram') {
+          toast('Card image downloaded! Open Instagram and attach it to your Story or Post.', { icon: '📸', duration: 5500 });
+        }
+      }, 700);
+
+      toast.success('Card image downloaded — attach it to your post!');
+    } catch (err: any) {
+      toast.dismiss();
+      if (err?.name !== 'AbortError') {
+        toast.error('Failed to share image');
+      }
+    }
+  };
+
   const buildWhatsAppMessage = () => {
     const link = shortUrl || landingUrl;
     const priceText = price ? `\n💰 *Price:* Le ${price}` : '';
@@ -284,25 +372,7 @@ export default function SocialSharingAdminPage() {
   };
 
   const handleNativeShare = async () => {
-    const waText = buildWhatsAppMessage();
-    const link = shortUrl || landingUrl;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title,
-          text: waText,
-          url: link,
-        });
-        toast.success('Shared successfully!');
-      } catch (err: any) {
-        if (err?.name !== 'AbortError') {
-          copyToClipboard(waText, 'wa', 'Message copied to clipboard!');
-        }
-      }
-    } else {
-      copyToClipboard(waText, 'wa', 'Share message copied to clipboard!');
-    }
+    await shareCardAsImage();
   };
 
   const themeGradients = {
@@ -657,252 +727,371 @@ export default function SocialSharingAdminPage() {
                   Live Preview
                 </h3>
                 {/* Preview tab switcher */}
-                <div className="flex bg-gray-100 p-1 rounded-lg gap-1">
-                  <button
-                    onClick={() => setPreviewTab('card')}
-                    className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${
-                      previewTab === 'card' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'
-                    }`}
-                  >
-                    1200×630 Card
-                  </button>
-                  <button
-                    onClick={() => setPreviewTab('whatsapp')}
-                    className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${
-                      previewTab === 'whatsapp' ? 'bg-[#25D366] text-white shadow-sm' : 'text-gray-500 hover:text-gray-900'
-                    }`}
-                  >
-                    WhatsApp
-                  </button>
-                  <button
-                    onClick={() => setPreviewTab('imessage')}
-                    className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${
-                      previewTab === 'imessage' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-900'
-                    }`}
-                  >
-                    iMessage / Link
-                  </button>
+                <div className="flex bg-gray-100 p-1 rounded-lg gap-1 flex-wrap">
+                  {[
+                    { id: 'card' as const, label: '1200×630', color: '' },
+                    { id: 'whatsapp' as const, label: 'WhatsApp', color: 'bg-[#25D366] text-white' },
+                    { id: 'facebook' as const, label: 'Facebook', color: 'bg-[#1877F2] text-white' },
+                    { id: 'instagram' as const, label: 'Instagram', color: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' },
+                    { id: 'imessage' as const, label: 'iMessage', color: 'bg-blue-600 text-white' },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setPreviewTab(tab.id)}
+                      className={`px-2.5 py-1 text-[11px] font-bold rounded-md transition-all ${
+                        previewTab === tab.id
+                          ? tab.color || 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-500 hover:text-gray-900'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* 1. 1200x630 Card Render */}
-              {previewTab === 'card' && (
-                <div className="overflow-hidden rounded-2xl border border-gray-300 shadow-lg">
-                  <div
-                    ref={cardRef}
-                    className={`bg-gradient-to-br ${themeGradients[cardTheme]} p-6 text-white aspect-[1200/630] w-full flex flex-row items-center justify-between select-none relative`}
-                  >
-                    {/* Left Frame: Product Image */}
-                    <div className="w-[42%] h-full bg-white rounded-xl p-4 flex items-center justify-center overflow-hidden shadow-2xl relative">
-                      {imageUrl ? (
-                        <img
-                          src={imageUrl}
-                          alt={title}
-                          className="transition-transform duration-200"
-                          style={getImageStyle(imageFit, imageScale, imagePositionX, imagePositionY)}
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = '/assets/images/slide01.jpg';
-                          }}
-                        />
-                      ) : (
-                        <div className="text-gray-400 text-center">
-                          <ImageIcon className="w-12 h-12 mx-auto mb-1 opacity-50" />
-                          <span className="text-[10px]">No image</span>
-                        </div>
+            {/* ── 1. 1200x630 OG Card ── */}
+            {previewTab === 'card' && (
+              <div className="overflow-hidden rounded-2xl border border-gray-300 shadow-lg">
+                <div
+                  ref={cardRef}
+                  className={`bg-gradient-to-br ${themeGradients[cardTheme]} p-6 text-white aspect-[1200/630] w-full flex flex-row items-center justify-between select-none relative`}
+                >
+                  {/* Left Frame: Product Image */}
+                  <div className="w-[42%] h-full bg-white rounded-xl p-4 flex items-center justify-center overflow-hidden shadow-2xl relative">
+                    {imageUrl ? (
+                      <img
+                        src={imageUrl}
+                        alt={title}
+                        className="transition-transform duration-200"
+                        style={getImageStyle(imageFit, imageScale, imagePositionX, imagePositionY)}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/assets/images/slide01.jpg';
+                        }}
+                      />
+                    ) : (
+                      <div className="text-gray-400 text-center">
+                        <ImageIcon className="w-12 h-12 mx-auto mb-1 opacity-50" />
+                        <span className="text-[10px]">No image</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right Info: Details */}
+                  <div className="w-[55%] h-full flex flex-col justify-between pl-4 py-1">
+                    <div className="flex items-center justify-between">
+                      {tagText && (
+                        <span className="px-2.5 py-1 bg-red-600/90 text-white font-bold text-[11px] rounded-full uppercase tracking-wider shadow">
+                          {tagText}
+                        </span>
+                      )}
+                      <span className="text-[10px] text-gray-300 font-semibold tracking-wider uppercase">
+                        BridgeTech Official Store
+                      </span>
+                    </div>
+                    <div className="my-auto space-y-1">
+                      <h2 className="text-lg sm:text-xl font-extrabold text-white leading-tight line-clamp-2">
+                        {title || 'Your Product Title'}
+                      </h2>
+                      {description && (
+                        <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed">{description}</p>
                       )}
                     </div>
-
-                    {/* Right Info: Details */}
-                    <div className="w-[55%] h-full flex flex-col justify-between pl-4 py-1">
-                      {/* Badge */}
-                      <div className="flex items-center justify-between">
-                        {tagText && (
-                          <span className="px-2.5 py-1 bg-red-600/90 text-white font-bold text-[11px] rounded-full uppercase tracking-wider shadow">
-                            {tagText}
-                          </span>
+                    <div className="pt-2 border-t border-white/20 flex items-center justify-between">
+                      <div>
+                        {price && (
+                          <div className="text-xl font-extrabold text-red-400 tracking-tight">Le {price}</div>
                         )}
-                        <span className="text-[10px] text-gray-300 font-semibold tracking-wider uppercase">
-                          BridgeTech Official Store
-                        </span>
+                        <div className="text-[9px] text-gray-400">itservicesfreetown.com · Freetown, SL</div>
                       </div>
-
-                      {/* Title & Desc */}
-                      <div className="my-auto space-y-1">
-                        <h2 className="text-lg sm:text-xl font-extrabold text-white leading-tight line-clamp-2">
-                          {title || 'Your Product Title'}
-                        </h2>
-                        {description && (
-                          <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed">
-                            {description}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Price & Action Footer */}
-                      <div className="pt-2 border-t border-white/20 flex items-center justify-between">
-                        <div>
-                          {price && (
-                            <div className="text-xl font-extrabold text-red-400 tracking-tight">
-                              Le {price}
-                            </div>
-                          )}
-                          <div className="text-[9px] text-gray-400">
-                            itservicesfreetown.com · Freetown, SL
-                          </div>
-                        </div>
-                        <div className="px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg shadow-sm">
-                          Order Now ↗
-                        </div>
+                      <div className="px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg shadow-sm">
+                        Order Now ↗
                       </div>
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* 2. WhatsApp Preview Render */}
-              {previewTab === 'whatsapp' && (
-                <div className="bg-[#075E54] rounded-2xl p-5 max-w-sm mx-auto shadow-2xl">
-                  <div className="flex items-center gap-2 mb-3">
-                    <MessageCircle className="w-5 h-5 text-[#25D366]" />
-                    <span className="text-white text-xs font-bold">WhatsApp Shared Bubble</span>
-                  </div>
-                  <div className="bg-white rounded-xl overflow-hidden shadow-md">
-                    <div className="h-44 bg-slate-100 overflow-hidden relative flex items-center justify-center">
+            {/* ── 2. WhatsApp Preview ── */}
+            {previewTab === 'whatsapp' && (
+              <div className="bg-[#075E54] rounded-2xl p-5 max-w-sm mx-auto shadow-2xl">
+                <div className="flex items-center gap-2 mb-3">
+                  <MessageCircle className="w-5 h-5 text-[#25D366]" />
+                  <span className="text-white text-xs font-bold">WhatsApp Chat Bubble</span>
+                </div>
+                <div className="bg-white rounded-xl overflow-hidden shadow-md">
+                  <div className="h-48 bg-slate-100 overflow-hidden relative flex items-center justify-center">
+                    {imageUrl ? (
                       <img
-                        src={imageUrl || '/assets/images/slide01.jpg'}
+                        src={imageUrl}
                         alt={title}
-                        className="w-full h-full object-cover"
+                        className="transition-transform duration-200"
+                        style={getImageStyle(imageFit, imageScale, imagePositionX, imagePositionY)}
+                        onError={(e) => { (e.target as HTMLImageElement).src = '/assets/images/slide01.jpg'; }}
                       />
-                    </div>
-                    <div className="p-3 border-l-4 border-[#25D366] bg-[#f0fdf4]">
-                      <div className="text-[10px] text-emerald-800 font-bold uppercase tracking-wider mb-0.5">
-                        itservicesfreetown.com
-                      </div>
-                      <div className="font-bold text-slate-900 text-sm leading-tight line-clamp-2">
-                        {title}
-                      </div>
-                      {price && <div className="text-red-600 font-extrabold text-sm mt-0.5">Le {price}</div>}
-                      <div className="text-slate-600 text-xs mt-1 line-clamp-2">{description}</div>
-                    </div>
-                    <div className="px-3 py-1.5 bg-[#f0fdf4] text-[10px] text-slate-400 font-mono truncate border-t border-emerald-100">
-                      {shortUrl || landingUrl}
-                    </div>
+                    ) : (
+                      <ImageIcon className="w-10 h-10 text-gray-300" />
+                    )}
                   </div>
-                  <div className="mt-2 text-[11px] text-emerald-200 text-center font-medium">
-                    ⚡ Tap link opens exact landing page
+                  <div className="p-3 border-l-4 border-[#25D366] bg-[#f0fdf4]">
+                    <div className="text-[10px] text-emerald-800 font-bold uppercase tracking-wider mb-0.5">itservicesfreetown.com</div>
+                    <div className="font-bold text-slate-900 text-sm leading-tight line-clamp-2">{title}</div>
+                    {price && <div className="text-red-600 font-extrabold text-sm mt-0.5">Le {price}</div>}
+                    <div className="text-slate-600 text-xs mt-1 line-clamp-2">{description}</div>
+                  </div>
+                  <div className="px-3 py-1.5 bg-[#f0fdf4] text-[10px] text-slate-400 font-mono truncate border-t border-emerald-100">
+                    {shortUrl || landingUrl}
                   </div>
                 </div>
-              )}
+                <div className="mt-2 text-[11px] text-emerald-200 text-center font-medium">⚡ Tap link opens exact landing page</div>
+              </div>
+            )}
 
-              {/* 3. iMessage / Link Preview Render */}
-              {previewTab === 'imessage' && (
-                <div className="bg-slate-900 rounded-2xl p-5 max-w-sm mx-auto shadow-2xl">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Smartphone className="w-5 h-5 text-blue-400" />
-                    <span className="text-slate-300 text-xs font-bold">iMessage / Telegram Link</span>
-                  </div>
-                  <div className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700">
-                    <div className="h-40 bg-slate-700 overflow-hidden flex items-center justify-center">
+            {/* ── 3. Facebook Preview (1200×628 landscape) ── */}
+            {previewTab === 'facebook' && (
+              <div className="bg-[#1877F2]/10 rounded-2xl p-5 max-w-sm mx-auto shadow-2xl border border-[#1877F2]/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <svg className="w-5 h-5 text-[#1877F2]" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
+                  <span className="text-[#1877F2] text-xs font-bold">Facebook Link Preview</span>
+                </div>
+                <div className="bg-white rounded-xl overflow-hidden shadow-md border border-gray-200">
+                  <div className="h-48 bg-slate-100 overflow-hidden relative flex items-center justify-center">
+                    {imageUrl ? (
                       <img
-                        src={imageUrl || '/assets/images/slide01.jpg'}
+                        src={imageUrl}
                         alt={title}
-                        className="w-full h-full object-cover"
+                        className="transition-transform duration-200"
+                        style={getImageStyle(imageFit, imageScale, imagePositionX, imagePositionY)}
+                        onError={(e) => { (e.target as HTMLImageElement).src = '/assets/images/slide01.jpg'; }}
                       />
-                    </div>
-                    <div className="p-3">
-                      <div className="text-[10px] text-blue-400 font-bold uppercase tracking-wider mb-0.5">
-                        itservicesfreetown.com
-                      </div>
-                      <div className="font-bold text-white text-sm line-clamp-2">{title}</div>
-                      <div className="text-slate-400 text-xs mt-1 line-clamp-2">{description}</div>
-                    </div>
+                    ) : (
+                      <ImageIcon className="w-10 h-10 text-gray-300" />
+                    )}
+                  </div>
+                  <div className="p-3 bg-[#f0f2f5]">
+                    <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-0.5">ITSERVICESFREETOWN.COM</div>
+                    <div className="font-bold text-gray-900 text-sm leading-tight line-clamp-1">{title}</div>
+                    <div className="text-gray-600 text-xs mt-0.5 line-clamp-2">{description}</div>
                   </div>
                 </div>
-              )}
+                <div className="mt-2 text-[11px] text-[#1877F2]/70 text-center font-medium">Facebook post link preview (1200×628)</div>
+              </div>
+            )}
+
+            {/* ── 4. Instagram Square Preview (1080×1080) ── */}
+            {previewTab === 'instagram' && (
+              <div className="max-w-xs mx-auto">
+                <div className="flex items-center gap-2 mb-3">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                    <defs>
+                      <linearGradient id="ig" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#f09433"/>
+                        <stop offset="25%" stopColor="#e6683c"/>
+                        <stop offset="50%" stopColor="#dc2743"/>
+                        <stop offset="75%" stopColor="#cc2366"/>
+                        <stop offset="100%" stopColor="#bc1888"/>
+                      </linearGradient>
+                    </defs>
+                    <rect width="24" height="24" rx="6" fill="url(#ig)"/>
+                    <circle cx="12" cy="12" r="4.5" stroke="white" strokeWidth="1.5" fill="none"/>
+                    <circle cx="17.5" cy="6.5" r="1" fill="white"/>
+                  </svg>
+                  <span className="text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">Instagram Post / Story</span>
+                </div>
+                {/* Square card */}
+                <div
+                  ref={igCardRef}
+                  className={`bg-gradient-to-br ${themeGradients[cardTheme]} aspect-square w-full rounded-2xl overflow-hidden shadow-2xl flex flex-col items-center justify-between p-5`}
+                >
+                  {/* Image area — square center */}
+                  <div className="w-full flex-1 bg-white rounded-xl overflow-hidden flex items-center justify-center mb-3 shadow-lg">
+                    {imageUrl ? (
+                      <img
+                        src={imageUrl}
+                        alt={title}
+                        className="w-full h-full transition-transform duration-200"
+                        style={getImageStyle(imageFit, imageScale, imagePositionX, imagePositionY)}
+                        onError={(e) => { (e.target as HTMLImageElement).src = '/assets/images/slide01.jpg'; }}
+                      />
+                    ) : (
+                      <div className="text-gray-400 text-center">
+                        <ImageIcon className="w-12 h-12 mx-auto mb-1 opacity-50" />
+                      </div>
+                    )}
+                  </div>
+                  {/* Text bottom */}
+                  <div className="w-full text-white text-center space-y-1">
+                    {tagText && (
+                      <span className="inline-block px-3 py-0.5 bg-red-600/90 text-white font-bold text-[10px] rounded-full uppercase tracking-wider">
+                        {tagText}
+                      </span>
+                    )}
+                    <div className="font-extrabold text-sm leading-tight line-clamp-2">{title}</div>
+                    {price && <div className="text-red-400 font-extrabold text-base">Le {price}</div>}
+                    <div className="text-[9px] text-gray-400">itservicesfreetown.com</div>
+                  </div>
+                </div>
+                <div className="mt-2 text-[11px] text-gray-400 text-center font-medium">Square format (1080×1080) for Instagram Feed & Story</div>
+              </div>
+            )}
+
+            {/* ── 5. iMessage / Telegram Link Preview ── */}
+            {previewTab === 'imessage' && (
+              <div className="bg-slate-900 rounded-2xl p-5 max-w-sm mx-auto shadow-2xl">
+                <div className="flex items-center gap-2 mb-3">
+                  <Smartphone className="w-5 h-5 text-blue-400" />
+                  <span className="text-slate-300 text-xs font-bold">iMessage / Telegram Link</span>
+                </div>
+                <div className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700">
+                  <div className="h-40 bg-slate-700 overflow-hidden flex items-center justify-center">
+                    {imageUrl ? (
+                      <img
+                        src={imageUrl}
+                        alt={title}
+                        className="transition-transform duration-200"
+                        style={getImageStyle(imageFit, imageScale, imagePositionX, imagePositionY)}
+                        onError={(e) => { (e.target as HTMLImageElement).src = '/assets/images/slide01.jpg'; }}
+                      />
+                    ) : (
+                      <ImageIcon className="w-10 h-10 text-gray-500" />
+                    )}
+                  </div>
+                  <div className="p-3">
+                    <div className="text-[10px] text-blue-400 font-bold uppercase tracking-wider mb-0.5">itservicesfreetown.com</div>
+                    <div className="font-bold text-white text-sm line-clamp-2">{title}</div>
+                    <div className="text-slate-400 text-xs mt-1 line-clamp-2">{description}</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ── Social Share Action Deck ── */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 space-y-4">
+            <h3 className="text-base font-bold text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2">
+              <Share2 className="w-5 h-5 text-emerald-600" />
+              3. Social Media Sharing Deck
+            </h3>
+
+            {/* Short link generator */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
+                Short Link (<span className="text-emerald-600 font-mono">/s/code</span>)
+              </label>
+              <div className="flex gap-2">
+                {shortUrl ? (
+                  <>
+                    <input
+                      type="text"
+                      readOnly
+                      value={shortUrl}
+                      className="flex-1 px-3 py-2 text-xs font-mono text-emerald-800 bg-emerald-50 border border-emerald-300 rounded-lg"
+                    />
+                    <button
+                      onClick={() => copyToClipboard(shortUrl, 'short', 'Short link copied!')}
+                      className="flex items-center gap-1 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors"
+                    >
+                      {copiedKey === 'short' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copiedKey === 'short' ? 'Copied' : 'Copy'}
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={generateShortLink}
+                    disabled={generatingShort}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 bg-gray-900 hover:bg-black text-white rounded-xl text-xs font-bold transition-colors"
+                  >
+                    {generatingShort ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4" />}
+                    {generatingShort ? 'Generating...' : 'Generate Short Link'}
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Social Share & WhatsApp Action Deck */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 space-y-4">
-              <h3 className="text-base font-bold text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2">
-                <Share2 className="w-5 h-5 text-emerald-600" />
-                3. Social Media Sharing Deck
-              </h3>
-
-              {/* Short link generator */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  WhatsApp Short Link (<span className="text-emerald-600 font-mono">/s/code</span>)
-                </label>
-                <div className="flex gap-2">
-                  {shortUrl ? (
-                    <>
-                      <input
-                        type="text"
-                        readOnly
-                        value={shortUrl}
-                        className="flex-1 px-3 py-2 text-xs font-mono text-emerald-800 bg-emerald-50 border border-emerald-300 rounded-lg"
-                      />
-                      <button
-                        onClick={() => copyToClipboard(shortUrl, 'short', 'Short link copied!')}
-                        className="flex items-center gap-1 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors"
-                      >
-                        {copiedKey === 'short' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                        {copiedKey === 'short' ? 'Copied' : 'Copy'}
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={generateShortLink}
-                      disabled={generatingShort}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 bg-gray-900 hover:bg-black text-white rounded-xl text-xs font-bold transition-colors"
-                    >
-                      {generatingShort ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4" />}
-                      {generatingShort ? 'Generating...' : 'Generate Short Link for WhatsApp'}
-                    </button>
-                  )}
-                </div>
+            {/* Formatted WhatsApp Message */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
+                Ready-to-Post Message (WhatsApp / Telegram / SMS)
+              </label>
+              <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-mono text-gray-800 whitespace-pre-wrap leading-relaxed max-h-36 overflow-y-auto">
+                {buildWhatsAppMessage()}
               </div>
+              <button
+                onClick={() => copyToClipboard(buildWhatsAppMessage(), 'wa', 'Message copied!')}
+                className="mt-1.5 flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 font-semibold transition-colors"
+              >
+                {copiedKey === 'wa' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                {copiedKey === 'wa' ? 'Copied!' : 'Copy message text'}
+              </button>
+            </div>
 
-              {/* Formatted WhatsApp Message */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Ready-to-Post WhatsApp Status &amp; Message
-                </label>
-                <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-mono text-gray-800 whitespace-pre-wrap leading-relaxed max-h-36 overflow-y-auto">
-                  {buildWhatsAppMessage()}
-                </div>
-              </div>
+            {/* ── Per-Platform Share Buttons ── */}
+            <div className="space-y-2 pt-1">
+              <label className="block text-xs font-semibold text-gray-700">Share Card Image + Message to:</label>
 
-              {/* Action buttons */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              {/* WhatsApp */}
+              <div className="flex gap-2">
                 <button
-                  onClick={() => copyToClipboard(buildWhatsAppMessage(), 'wa', 'WhatsApp text copied!')}
-                  className="flex items-center justify-center gap-2 py-3 bg-[#25D366] hover:bg-[#1da853] text-white rounded-xl text-xs font-bold shadow-md transition-colors"
+                  onClick={() => shareCardAsImage('whatsapp')}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#25D366] hover:bg-[#1da853] text-white rounded-xl text-xs font-bold shadow-md transition-colors"
                 >
-                  {copiedKey === 'wa' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  {copiedKey === 'wa' ? 'Copied WhatsApp Message!' : 'Copy WhatsApp Message'}
+                  <MessageCircle className="w-4 h-4" />
+                  Share Card to WhatsApp
                 </button>
-
                 <a
                   href={`https://wa.me/?text=${encodeURIComponent(buildWhatsAppMessage())}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 py-3 bg-[#128C7E] hover:bg-[#0e7065] text-white rounded-xl text-xs font-bold shadow-md transition-colors"
+                  className="flex items-center gap-2 px-4 py-3 bg-[#128C7E] hover:bg-[#0e7065] text-white rounded-xl text-xs font-bold shadow-md transition-colors"
+                  title="Open WhatsApp with text only"
                 >
-                  <MessageCircle className="w-4 h-4" />
-                  Open in WhatsApp
+                  <Send className="w-4 h-4" />
+                  Text Only
                 </a>
               </div>
 
-              {/* Native mobile share */}
+              {/* Facebook */}
               <button
-                onClick={handleNativeShare}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-xs font-bold transition-colors"
+                onClick={() => shareCardAsImage('facebook')}
+                className="w-full flex items-center justify-center gap-2 py-3 bg-[#1877F2] hover:bg-[#1565d8] text-white rounded-xl text-xs font-bold shadow-md transition-colors"
               >
-                <Share2 className="w-4 h-4 text-gray-600" />
-                Share to Instagram / Facebook / Twitter / Telegram
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+                Save Card & Share to Facebook
+              </button>
+
+              {/* Instagram */}
+              <button
+                onClick={() => shareCardAsImage('instagram')}
+                className="w-full flex items-center justify-center gap-2 py-3 text-white rounded-xl text-xs font-bold shadow-md transition-colors"
+                style={{ background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                  <rect width="24" height="24" rx="6" fill="white" fillOpacity="0.2"/>
+                  <circle cx="12" cy="12" r="4.5" stroke="white" strokeWidth="1.5" fill="none"/>
+                  <circle cx="17.5" cy="6.5" r="1" fill="white"/>
+                </svg>
+                Save Card & Post to Instagram
+              </button>
+
+              {/* Telegram */}
+              <button
+                onClick={() => shareCardAsImage('telegram')}
+                className="w-full flex items-center justify-center gap-2 py-3 bg-[#229ED9] hover:bg-[#1a8fc7] text-white rounded-xl text-xs font-bold shadow-md transition-colors"
+              >
+                <Send className="w-4 h-4" />
+                Share Card to Telegram
               </button>
             </div>
+
+            {/* Info note */}
+            <p className="text-[11px] text-gray-400 leading-relaxed bg-gray-50 rounded-lg p-2.5 border border-gray-100">
+              💡 <strong>How image sharing works:</strong> On <strong>mobile</strong>, tapping a share button will render the card as a PNG and send it directly via the platform (WhatsApp, etc.). On <strong>desktop</strong>, the card PNG will download — then attach it manually when posting.
+            </p>
           </div>
         </div>
       </div>
@@ -910,7 +1099,7 @@ export default function SocialSharingAdminPage() {
       {/* QUICK AUTOFILL MODAL DRAWER */}
       {showPicker && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-gray-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-gray-200 overflow-hidden">
             {/* Modal Header */}
             <div className="p-5 border-b border-gray-100 flex items-center justify-between">
               <div>
@@ -1022,6 +1211,80 @@ export default function SocialSharingAdminPage() {
           </div>
         </div>
       )}
+
+      {/* HIDDEN OFFSCREEN CARDS FOR EXPORTS */}
+      <div style={{ position: 'fixed', left: '-9999px', top: '-9999px', opacity: 0, pointerEvents: 'none' }}>
+        {/* Landscape (1200×630) */}
+        <div
+          ref={offscreenLandscapeRef}
+          style={{ width: '1200px', height: '630px' }}
+          className={`bg-gradient-to-br ${themeGradients[cardTheme]} p-12 text-white flex flex-row items-center justify-between`}
+        >
+          <div className="w-[45%] h-full bg-white rounded-2xl p-6 flex items-center justify-center overflow-hidden shadow-2xl relative">
+            {imageUrl ? (
+              <img
+                src={imageUrl}
+                alt={title}
+                style={getImageStyle(imageFit, imageScale, imagePositionX, imagePositionY)}
+              />
+            ) : null}
+          </div>
+          <div className="w-[50%] h-full flex flex-col justify-between pl-6 py-2">
+            <div className="flex items-center justify-between">
+              {tagText && (
+                <span className="px-4 py-1.5 bg-red-600 text-white font-bold text-sm rounded-full uppercase tracking-wider">
+                  {tagText}
+                </span>
+              )}
+              <span className="text-sm text-gray-300 font-semibold tracking-wider uppercase">
+                BridgeTech Official Store
+              </span>
+            </div>
+            <div className="my-auto space-y-3">
+              <h2 className="text-3xl font-extrabold text-white leading-tight line-clamp-2">{title}</h2>
+              {description && (
+                <p className="text-base text-slate-300 line-clamp-3 leading-relaxed">{description}</p>
+              )}
+            </div>
+            <div className="pt-4 border-t border-white/20 flex items-center justify-between">
+              <div>
+                {price && <div className="text-3xl font-extrabold text-red-400">Le {price}</div>}
+                <div className="text-xs text-gray-400">itservicesfreetown.com · Freetown, SL</div>
+              </div>
+              <div className="px-6 py-3 bg-red-600 text-white text-base font-bold rounded-xl shadow-md">
+                Order Now ↗
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Square (1080×1080) */}
+        <div
+          ref={offscreenSquareRef}
+          style={{ width: '1080px', height: '1080px' }}
+          className={`bg-gradient-to-br ${themeGradients[cardTheme]} p-12 text-white flex flex-col items-center justify-between`}
+        >
+          <div className="w-full flex-1 bg-white rounded-3xl overflow-hidden flex items-center justify-center mb-6 shadow-2xl">
+            {imageUrl ? (
+              <img
+                src={imageUrl}
+                alt={title}
+                style={getImageStyle(imageFit, imageScale, imagePositionX, imagePositionY)}
+              />
+            ) : null}
+          </div>
+          <div className="w-full text-white text-center space-y-3">
+            {tagText && (
+              <span className="inline-block px-5 py-2 bg-red-600 text-white font-bold text-sm rounded-full uppercase tracking-wider">
+                {tagText}
+              </span>
+            )}
+            <div className="font-extrabold text-2xl leading-tight line-clamp-2">{title}</div>
+            {price && <div className="text-red-400 font-extrabold text-3xl">Le {price}</div>}
+            <div className="text-sm text-gray-400">itservicesfreetown.com · Freetown, Sierra Leone</div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
