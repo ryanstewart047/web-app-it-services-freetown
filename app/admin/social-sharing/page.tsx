@@ -24,6 +24,11 @@ import {
 
 import toast from 'react-hot-toast';
 
+const BASE_URL =
+  typeof window !== 'undefined'
+    ? window.location.origin
+    : process.env.NEXT_PUBLIC_BASE_URL || 'https://www.itservicesfreetown.com';
+
 interface Product {
   id: string;
   name: string;
