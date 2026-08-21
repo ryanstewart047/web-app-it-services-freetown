@@ -1095,6 +1095,7 @@ export default function SocialSharingAdminPage() {
           </div>
         </div>
       </div>
+    </div>
 
       {/* QUICK AUTOFILL MODAL DRAWER */}
       {showPicker && (
