@@ -98,44 +98,57 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // 1. If custom metadata was saved with the card in the Social Sharing Admin, prioritize it!
   if (customMeta && customMeta.title) {
     const title = customMeta.title;
-    const description = customMeta.description || 'Shop quality IT products & services in Freetown, Sierra Leone';
+    const baseDescription = customMeta.description || 'Shop quality IT products & services in Freetown, Sierra Leone';
     const priceFormatted = customMeta.price ? `Le ${customMeta.price}` : '';
-    const fullTitle = priceFormatted ? `${title} - ${priceFormatted} | BridgeTech IT Services` : `${title} | BridgeTech IT Services`;
 
-    const ogCustomUrl = new URL('/api/og-custom', baseUrl);
-    ogCustomUrl.searchParams.set('title', title);
-    if (customMeta.description) ogCustomUrl.searchParams.set('description', customMeta.description);
-    if (customMeta.price) ogCustomUrl.searchParams.set('price', customMeta.price);
-    if (customMeta.tag) ogCustomUrl.searchParams.set('tag', customMeta.tag);
-    if (customMeta.image) ogCustomUrl.searchParams.set('image', customMeta.image);
-    if (customMeta.theme) ogCustomUrl.searchParams.set('theme', customMeta.theme);
-    if (customMeta.fit) ogCustomUrl.searchParams.set('fit', customMeta.fit);
-    if (customMeta.scale) ogCustomUrl.searchParams.set('scale', String(customMeta.scale));
+    // Page title: "Product Name – Le 24,500,000 | BridgeTech IT Services"
+    const fullTitle = priceFormatted
+      ? `${title} – ${priceFormatted} | BridgeTech IT Services`
+      : `${title} | BridgeTech IT Services`;
+
+    // OG title shown in bold beneath image: "Product Name – Le 24,500,000"
+    const ogTitle = priceFormatted ? `${title} – ${priceFormatted}` : title;
+
+    // OG description shown as small text: price line + description
+    const ogDescription = priceFormatted
+      ? `💰 ${priceFormatted} · ${baseDescription}`
+      : baseDescription;
+
+    // Use the actual product photo as the OG image (not a branded card)
+    // This makes WhatsApp/Facebook/Instagram show the real product photo in the link preview
+    let ogImageUrl = customMeta.image || `${baseUrl}/assets/images/slide01.jpg`;
+    // Make relative URLs absolute
+    if (ogImageUrl.startsWith('/')) ogImageUrl = `${baseUrl}${ogImageUrl}`;
+    // Convert GitHub blob URLs to raw content URLs
+    if (ogImageUrl.includes('github.com') && ogImageUrl.includes('/blob/')) {
+      ogImageUrl = ogImageUrl
+        .replace('https://github.com/', 'https://raw.githubusercontent.com/')
+        .replace('/blob/', '/')
+        .replace(/[?&]raw=true/, '');
+    }
 
     return {
       title: fullTitle,
-      description,
+      description: ogDescription,
       openGraph: {
-        title: priceFormatted ? `${title} - ${priceFormatted}` : title,
-        description,
+        title: ogTitle,
+        description: ogDescription,
         url: `${baseUrl}/s/${params.code}`,
         siteName: 'BridgeTech IT Services',
         locale: 'en_SL',
         type: 'website',
         images: [
           {
-            url: ogCustomUrl.toString(),
-            width: 1200,
-            height: 630,
+            url: ogImageUrl,
             alt: title,
           }
         ],
       },
       twitter: {
         card: 'summary_large_image',
-        title: priceFormatted ? `${title} - ${priceFormatted}` : title,
-        description,
-        images: [ogCustomUrl.toString()],
+        title: ogTitle,
+        description: ogDescription,
+        images: [ogImageUrl],
       },
     };
   }
@@ -143,50 +156,39 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // 2. Fallback: Check if it's a product URL
   const product = await getProductFromUrl(originalUrl);
   if (product) {
-    const productImage = product.images?.[0]?.url || '/assets/images/slide01.jpg';
-    const absoluteProductImage = productImage.startsWith('http')
-      ? productImage
-      : `${baseUrl}${productImage}`;
+    let productImage = product.images?.[0]?.url || '/assets/images/slide01.jpg';
+    // Make absolute
+    if (productImage.startsWith('/')) productImage = `${baseUrl}${productImage}`;
+    // Convert GitHub blob to raw
+    if (productImage.includes('github.com') && productImage.includes('/blob/')) {
+      productImage = productImage
+        .replace('https://github.com/', 'https://raw.githubusercontent.com/')
+        .replace('/blob/', '/')
+        .replace(/[?&]raw=true/, '');
+    }
 
-    const price = new Intl.NumberFormat('en-SL', {
-      style: 'currency',
-      currency: 'SLL',
-      minimumFractionDigits: 0,
-    }).format(product.price);
-
-    const ogImageUrl = new URL('/api/og-product', baseUrl);
-    ogImageUrl.searchParams.set('name', product.name);
-    ogImageUrl.searchParams.set('price', product.price.toString());
-    ogImageUrl.searchParams.set('image', absoluteProductImage);
-    ogImageUrl.searchParams.set('description', product.description || '');
-    ogImageUrl.searchParams.set('condition', product.condition || 'new');
-
-    const desc = product.description?.substring(0, 160) || 'Shop quality IT products in Freetown, Sierra Leone';
+    const priceFormatted = `Le ${product.price.toLocaleString('en-SL')}`;
+    const baseDesc = product.description?.substring(0, 140) || 'Shop quality IT products in Freetown, Sierra Leone';
+    const ogTitle = `${product.name} – ${priceFormatted}`;
+    const ogDesc = `💰 ${priceFormatted} · ${baseDesc}`;
 
     return {
-      title: `${product.name} - ${price} | BridgeTech IT Services`,
-      description: desc,
+      title: `${product.name} – ${priceFormatted} | BridgeTech IT Services`,
+      description: ogDesc,
       openGraph: {
-        title: `${product.name} - ${price}`,
-        description: desc,
+        title: ogTitle,
+        description: ogDesc,
         url: `${baseUrl}/s/${params.code}`,
         siteName: 'BridgeTech IT Services',
         locale: 'en_SL',
         type: 'website',
-        images: [
-          {
-            url: ogImageUrl.toString(),
-            width: 1200,
-            height: 630,
-            alt: product.name,
-          }
-        ],
+        images: [{ url: productImage, alt: product.name }],
       },
       twitter: {
         card: 'summary_large_image',
-        title: `${product.name} - ${price}`,
-        description: desc,
-        images: [ogImageUrl.toString()],
+        title: ogTitle,
+        description: ogDesc,
+        images: [productImage],
       },
     };
   }

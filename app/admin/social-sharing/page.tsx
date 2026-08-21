@@ -90,7 +90,7 @@ export default function SocialSharingAdminPage() {
 
   // Card theme styling
   const [cardTheme, setCardTheme] = useState<'navy' | 'dark' | 'emerald' | 'crimson'>('navy');
-  const [previewTab, setPreviewTab] = useState<'card' | 'whatsapp' | 'imessage' | 'facebook' | 'instagram'>('card');
+  const [previewTab, setPreviewTab] = useState<'card' | 'whatsapp' | 'imessage' | 'facebook' | 'instagram'>('whatsapp');
 
   // Quick picker drawer / modal
   const [showPicker, setShowPicker] = useState(false);
@@ -739,7 +739,7 @@ export default function SocialSharingAdminPage() {
                 {/* Preview tab switcher */}
                 <div className="flex bg-gray-100 p-1 rounded-lg gap-1 flex-wrap">
                   {[
-                    { id: 'card' as const, label: '1200×630', color: '' },
+                    { id: 'card' as const, label: 'PNG Card ↓', color: '' },
                     { id: 'whatsapp' as const, label: 'WhatsApp', color: 'bg-[#25D366] text-white' },
                     { id: 'facebook' as const, label: 'Facebook', color: 'bg-[#1877F2] text-white' },
                     { id: 'instagram' as const, label: 'Instagram', color: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' },
