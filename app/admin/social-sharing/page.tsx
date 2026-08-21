@@ -235,12 +235,22 @@ export default function SocialSharingAdminPage() {
       const res = await fetch('/api/shorten', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: landingUrl }),
+        body: JSON.stringify({
+          url: landingUrl,
+          title,
+          description,
+          price,
+          tag: tagText,
+          image: imageUrl,
+          theme: cardTheme,
+          fit: imageFit,
+          scale: imageScale,
+        }),
       });
       if (res.ok) {
         const data = await res.json();
         setShortUrl(data.shortUrl);
-        toast.success('Short link generated!');
+        toast.success('🔗 Short link generated! Paste it anywhere to share the custom card.');
       } else {
         toast.error('Failed to generate short link');
       }
@@ -978,37 +988,60 @@ export default function SocialSharingAdminPage() {
 
             {/* Short link generator */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Short Link (<span className="text-emerald-600 font-mono">/s/code</span>)
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                Short Link (<span className="text-emerald-600 font-mono">/s/code</span>) — paste this on WhatsApp, Facebook, etc.
               </label>
-              <div className="flex gap-2">
-                {shortUrl ? (
-                  <>
-                    <input
-                      type="text"
-                      readOnly
-                      value={shortUrl}
-                      className="flex-1 px-3 py-2 text-xs font-mono text-emerald-800 bg-emerald-50 border border-emerald-300 rounded-lg"
-                    />
+
+              {shortUrl ? (
+                <div className="rounded-2xl border-2 border-emerald-400 bg-emerald-50 p-4 space-y-3 shadow-sm">
+                  {/* Prominent URL display */}
+                  <div className="flex items-center gap-2 bg-white border border-emerald-300 rounded-xl px-3 py-2.5 shadow-inner">
+                    <span className="flex-1 text-sm font-mono font-bold text-emerald-800 break-all select-all">
+                      {shortUrl}
+                    </span>
+                  </div>
+                  {/* Action buttons */}
+                  <div className="grid grid-cols-3 gap-2">
                     <button
-                      onClick={() => copyToClipboard(shortUrl, 'short', 'Short link copied!')}
-                      className="flex items-center gap-1 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors"
+                      onClick={() => copyToClipboard(shortUrl, 'short', '✅ Short link copied!')}
+                      className="flex items-center justify-center gap-1.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm"
                     >
                       {copiedKey === 'short' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                      {copiedKey === 'short' ? 'Copied' : 'Copy'}
+                      {copiedKey === 'short' ? 'Copied!' : 'Copy Link'}
                     </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={generateShortLink}
-                    disabled={generatingShort}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 bg-gray-900 hover:bg-black text-white rounded-xl text-xs font-bold transition-colors"
-                  >
-                    {generatingShort ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4" />}
-                    {generatingShort ? 'Generating...' : 'Generate Short Link'}
-                  </button>
-                )}
-              </div>
+                    <a
+                      href={shortUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-1.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Open Link
+                    </a>
+                    <button
+                      onClick={generateShortLink}
+                      disabled={generatingShort}
+                      className="flex items-center justify-center gap-1.5 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl text-xs font-bold transition-colors"
+                      title="Regenerate link with updated card settings"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${generatingShort ? 'animate-spin' : ''}`} />
+                      Regenerate
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-emerald-700 leading-snug">
+                    ✅ <strong>Paste this link on WhatsApp, Facebook, or Instagram</strong> — the platform will automatically show your custom card image, title, price, and description. Clicking the card opens the landing page directly.
+                  </p>
+                </div>
+              ) : (
+                <button
+                  onClick={generateShortLink}
+                  disabled={generatingShort}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 bg-gray-900 hover:bg-black text-white rounded-2xl text-sm font-bold transition-colors shadow-md"
+                >
+                  {generatingShort ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4" />}
+                  {generatingShort ? 'Generating...' : '🔗 Generate Short Link (for social sharing)'}
+                </button>
+              )}
             </div>
 
             {/* Formatted WhatsApp Message */}

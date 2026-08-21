@@ -17,7 +17,12 @@ function getOriginalUrl(code: string): string | null {
     
     const data = fs.readFileSync(filePath, 'utf-8');
     const urlMap = JSON.parse(data);
-    return urlMap[code] || null;
+    const entry = urlMap[code];
+    if (!entry) return null;
+    // Support both plain string entries and rich { url, metadata } objects
+    if (typeof entry === 'string') return entry;
+    if (typeof entry === 'object' && entry.url) return entry.url;
+    return null;
   } catch (error) {
     console.error('Error reading short URL mapping:', error);
     return null;

@@ -4,8 +4,22 @@ interface Props {
   params: { code: string };
 }
 
-// Helper to get URL mapping from file
-async function getOriginalUrl(code: string): Promise<string | null> {
+interface ShortUrlRecord {
+  url: string;
+  metadata?: {
+    title?: string;
+    description?: string;
+    price?: string;
+    tag?: string;
+    image?: string;
+    theme?: string;
+    fit?: string;
+    scale?: number;
+  };
+}
+
+// Helper to get URL mapping and optional custom metadata from file
+async function getShortUrlData(code: string): Promise<{ url: string; metadata?: ShortUrlRecord['metadata'] } | null> {
   try {
     const fs = require('fs');
     const path = require('path');
@@ -17,7 +31,13 @@ async function getOriginalUrl(code: string): Promise<string | null> {
     
     const data = fs.readFileSync(filePath, 'utf-8');
     const urlMap = JSON.parse(data);
-    return urlMap[code] || null;
+    const item = urlMap[code];
+    if (!item) return null;
+    
+    if (typeof item === 'string') {
+      return { url: item };
+    }
+    return { url: item.url, metadata: item.metadata };
   } catch (error) {
     console.error('Error reading short URL mapping:', error);
     return null;
@@ -27,13 +47,10 @@ async function getOriginalUrl(code: string): Promise<string | null> {
 // Helper to get product data from URL
 async function getProductFromUrl(url: string) {
   try {
-    // Extract slug from URL like /marketplace/dell-laptop-i5
     const match = url.match(/\/marketplace\/([^/?]+)/);
     if (!match) return null;
-    
     const slug = match[1];
     
-    // Fetch product data
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.itservicesfreetown.com';
     const res = await fetch(`${baseUrl}/api/products`, {
       cache: 'no-store',
@@ -41,7 +58,6 @@ async function getProductFromUrl(url: string) {
     });
     
     if (!res.ok) return null;
-    
     const products = await res.json();
     return products.find((p: any) => p.slug === slug);
   } catch (error) {
@@ -67,17 +83,64 @@ async function getBlogFromUrl(url: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const originalUrl = await getOriginalUrl(params.code);
+  const shortData = await getShortUrlData(params.code);
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.itservicesfreetown.com';
   
-  if (!originalUrl) {
+  if (!shortData) {
     return {
       title: 'Redirecting... | BridgeTech IT Services',
       description: 'BridgeTech IT Services - Professional Computer & Mobile Repair Services',
     };
   }
 
-  // 1. Check if it's a product URL
+  const { url: originalUrl, metadata: customMeta } = shortData;
+
+  // 1. If custom metadata was saved with the card in the Social Sharing Admin, prioritize it!
+  if (customMeta && customMeta.title) {
+    const title = customMeta.title;
+    const description = customMeta.description || 'Shop quality IT products & services in Freetown, Sierra Leone';
+    const priceFormatted = customMeta.price ? `Le ${customMeta.price}` : '';
+    const fullTitle = priceFormatted ? `${title} - ${priceFormatted} | BridgeTech IT Services` : `${title} | BridgeTech IT Services`;
+
+    const ogCustomUrl = new URL('/api/og-custom', baseUrl);
+    ogCustomUrl.searchParams.set('title', title);
+    if (customMeta.description) ogCustomUrl.searchParams.set('description', customMeta.description);
+    if (customMeta.price) ogCustomUrl.searchParams.set('price', customMeta.price);
+    if (customMeta.tag) ogCustomUrl.searchParams.set('tag', customMeta.tag);
+    if (customMeta.image) ogCustomUrl.searchParams.set('image', customMeta.image);
+    if (customMeta.theme) ogCustomUrl.searchParams.set('theme', customMeta.theme);
+    if (customMeta.fit) ogCustomUrl.searchParams.set('fit', customMeta.fit);
+    if (customMeta.scale) ogCustomUrl.searchParams.set('scale', String(customMeta.scale));
+
+    return {
+      title: fullTitle,
+      description,
+      openGraph: {
+        title: priceFormatted ? `${title} - ${priceFormatted}` : title,
+        description,
+        url: `${baseUrl}/s/${params.code}`,
+        siteName: 'BridgeTech IT Services',
+        locale: 'en_SL',
+        type: 'website',
+        images: [
+          {
+            url: ogCustomUrl.toString(),
+            width: 1200,
+            height: 630,
+            alt: title,
+          }
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: priceFormatted ? `${title} - ${priceFormatted}` : title,
+        description,
+        images: [ogCustomUrl.toString()],
+      },
+    };
+  }
+
+  // 2. Fallback: Check if it's a product URL
   const product = await getProductFromUrl(originalUrl);
   if (product) {
     const productImage = product.images?.[0]?.url || '/assets/images/slide01.jpg';
@@ -128,7 +191,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  // 2. Check if it's a blog post URL
+  // 3. Fallback: Check if it's a blog post URL
   const blog = await getBlogFromUrl(originalUrl);
   if (blog) {
     const ogBlogUrl = new URL('/api/og-blog', baseUrl);

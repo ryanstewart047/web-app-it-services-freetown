@@ -15,13 +15,27 @@ function ensureStorageFile() {
   }
 }
 
-function getUrlMap(): Record<string, string> {
+interface ShortUrlRecord {
+  url: string;
+  metadata?: {
+    title?: string;
+    description?: string;
+    price?: string;
+    tag?: string;
+    image?: string;
+    theme?: string;
+    fit?: string;
+    scale?: number;
+  };
+}
+
+function getUrlMap(): Record<string, string | ShortUrlRecord> {
   ensureStorageFile();
   const data = fs.readFileSync(STORAGE_FILE, 'utf-8');
   return JSON.parse(data);
 }
 
-function saveUrlMap(map: Record<string, string>) {
+function saveUrlMap(map: Record<string, string | ShortUrlRecord>) {
   ensureStorageFile();
   fs.writeFileSync(STORAGE_FILE, JSON.stringify(map, null, 2));
 }
@@ -45,7 +59,18 @@ function generateShortCode(url: string): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const { url } = await request.json();
+    const body = await request.json();
+    const url = typeof body === 'string' ? body : body.url;
+    const metadata = body.metadata || (body.title ? {
+      title: body.title,
+      description: body.description,
+      price: body.price,
+      tag: body.tag,
+      image: body.image,
+      theme: body.theme,
+      fit: body.fit,
+      scale: body.scale,
+    } : undefined);
     
     if (!url || typeof url !== 'string') {
       return NextResponse.json(
@@ -57,9 +82,16 @@ export async function POST(request: NextRequest) {
     // Generate short code
     const shortCode = generateShortCode(url);
     
-    // Store mapping
+    // Store mapping (backward compatible with plain string or rich record)
     const urlMap = getUrlMap();
-    urlMap[shortCode] = url;
+    if (metadata) {
+      urlMap[shortCode] = {
+        url,
+        metadata
+      };
+    } else {
+      urlMap[shortCode] = url;
+    }
     saveUrlMap(urlMap);
     
     // Create short URL (using request origin or env)
@@ -72,7 +104,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       shortUrl,
       originalUrl: url,
-      shortCode
+      shortCode,
+      metadata
     });
   } catch (error) {
     console.error('Error creating short URL:', error);
