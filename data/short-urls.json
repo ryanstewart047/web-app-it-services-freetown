@@ -13,5 +13,20 @@
       "layout": "photo-only",
       "previewType": "product"
     }
+  },
+  "apple-macb-g7ejiub": {
+    "url": "https://www.itservicesfreetown.com/marketplace/apple-macbook-a1534-12-8gb-256gb-high-speed-ssd-core-m-5y31-11ghz-mac-osx-space-gray Apple MacBook A1534 12\" 8GB 256GB High Speed SSD Core™ M-5Y31 1.1GHz Mac OSX, Space Gray  Le 7,000  Key Features  Stunning 12-inch Retina Display: Features a 2304 x 1440 resolution with over 3 million...  https://www.itservicesfreetown.com/marketplace/apple-macbook-a1534-12-8gb-256gb-high-speed-ssd-core-m-5y31-11ghz-mac-osx-space-gray",
+    "metadata": {
+      "title": "Apple MacBook A1534 12\" 8GB 256GB High Speed SSD",
+      "description": "Stunning 12-inch Retina Display: Features a 2304 x 1440 resolution with over 3 million pixels, providing astounding clarity and vivid images.",
+      "price": "7,000",
+      "image": "https://github.com/ryanstewart047/freetown-website-images/blob/main/images/Macbook-back.webp?raw=true",
+      "fit": "contain",
+      "scale": 120,
+      "positionX": 50,
+      "positionY": 50,
+      "layout": "photo-only",
+      "previewType": "product"
+    }
   }
 }
