@@ -64,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     // Direct image URL for OG preview (prevents Vercel serverless image rendering origin transfer)
     const primaryImg = getPrimaryImage(post);
-    let blogImage = primaryImg?.url || `${baseUrl}/assets/images/slide01.jpg`;
+    let blogImage = primaryImg || `${baseUrl}/assets/images/slide01.jpg`;
     if (blogImage.startsWith('/')) blogImage = `${baseUrl}${blogImage}`;
     if (blogImage.includes('github.com') && blogImage.includes('/blob/')) {
       blogImage = blogImage
