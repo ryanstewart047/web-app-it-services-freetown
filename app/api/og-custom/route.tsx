@@ -56,7 +56,7 @@ function detectImageContentType(bytes: Uint8Array, fallback: string) {
   ) {
     return 'image/webp';
   }
-  if (bytes.length >= 6 && String.fromCharCode(...bytes.slice(0, 6)).startsWith('GIF')) {
+  if (bytes.length >= 6 && String.fromCharCode(...Array.from(bytes.slice(0, 6))).startsWith('GIF')) {
     return 'image/gif';
   }
 
