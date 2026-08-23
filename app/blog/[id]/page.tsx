@@ -62,8 +62,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.itservicesfreetown.com'
     const canonicalUrl = `${baseUrl}/blog/${params.id}`
 
-    const ogImageUrl = new URL('/api/og-blog', baseUrl)
-    ogImageUrl.searchParams.set('id', params.id)
+    // Direct image URL for OG preview (prevents Vercel serverless image rendering origin transfer)
+    let blogImage = post.image || `${baseUrl}/assets/images/slide01.jpg`;
+    if (blogImage.startsWith('/')) blogImage = `${baseUrl}${blogImage}`;
+    if (blogImage.includes('github.com') && blogImage.includes('/blob/')) {
+      blogImage = blogImage
+        .replace('https://github.com/', 'https://raw.githubusercontent.com/')
+        .replace('/blob/', '/')
+        .replace(/[?&]raw=true/, '');
+    }
 
     return {
       title: post.title,
@@ -79,9 +86,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         siteName: 'BridgeTech IT Services',
         images: [
           {
-            url: ogImageUrl.toString(),
-            width: 1200,
-            height: 630,
+            url: blogImage,
             alt: post.title,
           },
         ],
@@ -92,7 +97,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         card: 'summary_large_image',
         title: post.title,
         description: contentPreview,
-        images: [ogImageUrl.toString()],
+        images: [blogImage],
       },
       robots: {
         index: true,

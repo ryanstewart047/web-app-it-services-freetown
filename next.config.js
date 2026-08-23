@@ -35,29 +35,16 @@ const nextConfig = {
     return config
   },
   images: {
-    unoptimized: false, // Enable image optimization
+    unoptimized: true, // Disable Vercel serverless image re-encoding to completely stop Fast Origin Transfer bandwidth consumption
     formats: ['image/avif', 'image/webp'],
-    deviceSizes: [640, 750, 828, 1080, 1200],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 31536000, // Cache optimized images at Vercel Edge for 1 year (dramatically reduces Fast Origin Transfer)
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'images.pexels.com',
-        port: '',
-        pathname: '/**',
+        hostname: '**',
       },
       {
         protocol: 'http',
-        hostname: 'localhost',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'placehold.co',
-        port: '',
-        pathname: '/**',
+        hostname: '**',
       },
     ],
   },

@@ -47,13 +47,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ? product.description.substring(0, 100) 
     : product.description;
 
-  const ogImageUrl = `${baseUrl}/api/og-product?` + new URLSearchParams({
-    name: product.name,
-    price: product.price.toString(),
-    image: fullImageUrl,
-    description: truncatedDesc,
-    condition: product.condition || 'new'
-  }).toString();
+  // Direct image URL for OG preview (prevents Vercel serverless image rendering origin transfer)
+  const ogImageUrl = fullImageUrl || `${baseUrl}/assets/images/slide01.jpg`;
 
   return {
     title: `${product.name} - Le ${product.price.toLocaleString()} | BridgeTech IT Services`,
@@ -66,8 +61,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       images: [
         {
           url: ogImageUrl,
-          width: 1200,
-          height: 630,
           alt: product.name,
         }
       ],
@@ -78,7 +71,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: `${product.name} - Le ${product.price.toLocaleString()}`,
       description: truncatedDesc,
       images: [ogImageUrl],
-    }
+    },
   };
 }
 
