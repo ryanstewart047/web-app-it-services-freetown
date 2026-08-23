@@ -16,6 +16,7 @@ import {
   ZoomOut,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { cleanSocialShareDestination } from '@/lib/social-share-url';
 
 type ImageFit = 'contain' | 'cover';
 
@@ -44,9 +45,8 @@ function formatPrice(price: string) {
 }
 
 function normalizeUrl(value: string) {
-  const trimmed = value.trim();
-  if (!trimmed) return '';
-  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  const baseUrl = typeof window === 'undefined' ? undefined : window.location.origin;
+  return cleanSocialShareDestination(value, baseUrl) || '';
 }
 
 function prepareUploadedImageDataUrl(file: File): Promise<string> {
@@ -100,6 +100,7 @@ export default function SocialSharingAdminPage() {
   const [generating, setGenerating] = useState(false);
   const [shortUrl, setShortUrl] = useState('');
   const [copied, setCopied] = useState(false);
+  const [generationError, setGenerationError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const previewDescription = description.trim() || 'Your short product description appears here.';
@@ -109,6 +110,12 @@ export default function SocialSharingAdminPage() {
   const invalidateLink = () => {
     setShortUrl('');
     setCopied(false);
+    setGenerationError('');
+  };
+
+  const showGenerationError = (message: string) => {
+    setGenerationError(message);
+    toast.error(message);
   };
 
   const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -138,11 +145,11 @@ export default function SocialSharingAdminPage() {
       });
       const result = await response.json();
 
-      if (!response.ok || !result.success || !result.url) {
+      if (!response.ok || !result.success || (!result.url && !result.inline)) {
         throw new Error(result.error || 'The image could not be stored for sharing.');
       }
 
-      setImageUrl(result.url);
+      if (result.url) setImageUrl(result.url);
       toast.success('Image uploaded and ready for the link preview.');
     } catch (error) {
       // Keep the optimized in-browser image so the operator can still retry.
@@ -156,25 +163,26 @@ export default function SocialSharingAdminPage() {
     const destination = normalizeUrl(landingUrl);
 
     if (!productName.trim()) {
-      toast.error('Add the product name.');
+      showGenerationError('Add the product name before generating the link.');
       return;
     }
     if (!description.trim()) {
-      toast.error('Add a short description.');
+      showGenerationError('Add a short description before generating the link.');
       return;
     }
     if (!imageUrl.trim()) {
-      toast.error('Upload a product image or paste its image URL.');
+      showGenerationError('Upload a product image or paste its image URL before generating the link.');
       return;
     }
     try {
       new URL(destination);
     } catch {
-      toast.error('Enter a valid landing page URL.');
+      showGenerationError('Enter a valid landing page URL before generating the link.');
       return;
     }
 
     setGenerating(true);
+    setGenerationError('');
     try {
       const response = await fetch('/api/shorten', {
         method: 'POST',
@@ -193,17 +201,17 @@ export default function SocialSharingAdminPage() {
           previewType: 'product',
         }),
       });
-      const result = await response.json();
+      const result = await response.json().catch(() => ({}));
 
       if (!response.ok || !result.shortUrl) {
-        throw new Error(result.error || 'The short link could not be generated.');
+        throw new Error(result.error || `The short link could not be generated (server returned ${response.status}).`);
       }
 
       setShortUrl(result.shortUrl);
       setCopied(false);
       toast.success('New social-share link created.');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'The short link could not be generated.');
+      showGenerationError(error instanceof Error ? error.message : 'The short link could not be generated.');
     } finally {
       setGenerating(false);
     }
@@ -400,6 +408,12 @@ export default function SocialSharingAdminPage() {
               {generating ? <RefreshCw className="h-5 w-5 animate-spin" /> : <Link2 className="h-5 w-5" />}
               {generating ? 'Generating short link' : 'Generate short link'}
             </button>
+
+            {generationError ? (
+              <p role="alert" className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold leading-6 text-red-800">
+                {generationError}
+              </p>
+            ) : null}
 
             {shortUrl ? (
               <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">

@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getShortUrlRecord, type ShortUrlMetadata } from '@/lib/short-url-storage';
+import { cleanSocialShareDestination } from '@/lib/social-share-url';
 
 interface Props {
   params: { code: string };
@@ -27,15 +28,6 @@ function getBaseUrl() {
     process.env.NEXT_PUBLIC_SITE_URL ||
     'https://www.itservicesfreetown.com'
   ).replace(/\/$/, '');
-}
-
-function isValidRedirectUrl(url: string): boolean {
-  try {
-    const parsed = new URL(url);
-    return ['http:', 'https:'].includes(parsed.protocol);
-  } catch {
-    return false;
-  }
 }
 
 function formatPrice(price?: string) {
@@ -156,7 +148,7 @@ export default async function ShortUrlPreview({ params }: Props) {
 
   const baseUrl = getBaseUrl();
   const metadata = record.metadata;
-  const safeOriginalUrl = isValidRedirectUrl(record.url) ? record.url : '/marketplace';
+  const safeOriginalUrl = cleanSocialShareDestination(record.url, baseUrl) || '/marketplace';
 
   if (!metadata) redirect(safeOriginalUrl);
 

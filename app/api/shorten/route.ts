@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { normalizeShortUrlRecord, readShortUrlMap, writeShortUrlMap, type ShortUrlMetadata } from '@/lib/short-url-storage';
+import { cleanSocialShareDestination } from '@/lib/social-share-url';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -44,7 +45,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const url = typeof body === 'string' ? body : body.url;
+    const rawUrl = typeof body === 'string' ? body : body.url;
+    const requestBaseUrl = request.nextUrl.origin;
+    const url = cleanSocialShareDestination(rawUrl, requestBaseUrl);
     const metadata: ShortUrlMetadata | undefined = body.metadata || (body.title ? {
       title: body.title,
       description: body.description,
@@ -60,9 +63,9 @@ export async function POST(request: NextRequest) {
       previewType: body.previewType || 'product',
     } : undefined);
     
-    if (!url || typeof url !== 'string') {
+    if (!url) {
       return NextResponse.json(
-        { error: 'URL is required' },
+        { error: 'Enter a valid landing page URL.' },
         { status: 400 }
       );
     }
@@ -96,7 +99,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating short URL:', error);
     return NextResponse.json(
-      { error: 'Failed to create short URL' },
+      { error: error instanceof Error ? error.message : 'Failed to create short URL' },
       { status: 500 }
     );
   }

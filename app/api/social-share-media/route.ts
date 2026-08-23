@@ -69,7 +69,14 @@ export async function POST(request: NextRequest) {
     }
 
     const upload = await uploadSocialShareMedia(base64Content, fileName);
-    return NextResponse.json({ success: true, ...upload });
+    const isInlineImage = upload.url.startsWith('data:');
+
+    return NextResponse.json({
+      success: true,
+      fileName: upload.fileName,
+      inline: isInlineImage,
+      ...(isInlineImage ? {} : { url: upload.url }),
+    });
   } catch (error) {
     console.error('[Social Share Media] Upload error:', error);
     return NextResponse.json(

@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { prisma } from '@/lib/prisma';
 
 export interface ShortUrlMetadata {
   title?: string;
@@ -36,6 +37,15 @@ const GITHUB_BRANCH = process.env.SOCIAL_SHARE_GITHUB_BRANCH || 'main';
 const SHORT_URL_REPO_PATH = process.env.SOCIAL_SHARE_LINKS_PATH || 'data/short-urls.json';
 const SOCIAL_SHARE_MEDIA_DIR = 'public/social-share';
 const IS_VERCEL_DEPLOYMENT = Boolean(process.env.VERCEL);
+const HAS_DATABASE = Boolean(process.env.DATABASE_URL);
+
+interface DatabaseShortUrlRow {
+  code: string;
+  url: string;
+  metadata: unknown;
+}
+
+let databaseTableReady: Promise<boolean> | null = null;
 
 export const SHORT_URL_STORAGE_FILE = path.join(process.cwd(), SHORT_URL_REPO_PATH);
 
@@ -77,6 +87,105 @@ function normalizeShortUrlMap(payload: unknown): ShortUrlMap {
 
     return map;
   }, {});
+}
+
+function normalizeDatabaseRecord(row: DatabaseShortUrlRow): ShortUrlRecord | null {
+  if (!row || typeof row.code !== 'string' || typeof row.url !== 'string') return null;
+
+  const metadata = row.metadata && typeof row.metadata === 'object' && !Array.isArray(row.metadata)
+    ? row.metadata as ShortUrlMetadata
+    : undefined;
+
+  return { url: row.url, metadata };
+}
+
+async function ensureDatabaseTable(): Promise<boolean> {
+  if (!HAS_DATABASE) return false;
+
+  if (!databaseTableReady) {
+    databaseTableReady = (async () => {
+      try {
+        await prisma.$executeRawUnsafe(`
+          CREATE TABLE IF NOT EXISTS "SocialShareLink" (
+            "code" TEXT PRIMARY KEY,
+            "url" TEXT NOT NULL,
+            "metadata" JSONB,
+            "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+        return true;
+      } catch (error) {
+        console.warn('[Social Share Storage] Database initialization warning:', error);
+        return false;
+      }
+    })();
+  }
+
+  return databaseTableReady;
+}
+
+async function readDatabaseRecord(code: string): Promise<ShortUrlRecord | null> {
+  if (!(await ensureDatabaseTable())) return null;
+
+  try {
+    const rows = await prisma.$queryRawUnsafe<DatabaseShortUrlRow[]>(
+      'SELECT "code", "url", "metadata" FROM "SocialShareLink" WHERE "code" = $1 LIMIT 1',
+      code
+    );
+    return rows[0] ? normalizeDatabaseRecord(rows[0]) : null;
+  } catch (error) {
+    console.warn('[Social Share Storage] Database read warning:', error);
+    return null;
+  }
+}
+
+async function readDatabaseMap(): Promise<ShortUrlMap | null> {
+  if (!(await ensureDatabaseTable())) return null;
+
+  try {
+    const rows = await prisma.$queryRawUnsafe<DatabaseShortUrlRow[]>(
+      'SELECT "code", "url", "metadata" FROM "SocialShareLink"'
+    );
+
+    return rows.reduce<ShortUrlMap>((map, row) => {
+      const record = normalizeDatabaseRecord(row);
+      if (record) map[row.code] = record;
+      return map;
+    }, {});
+  } catch (error) {
+    console.warn('[Social Share Storage] Database list warning:', error);
+    return null;
+  }
+}
+
+async function writeDatabaseMap(map: ShortUrlMap): Promise<boolean> {
+  if (!(await ensureDatabaseTable())) return false;
+
+  try {
+    for (const [code, entry] of Object.entries(normalizeShortUrlMap(map))) {
+      const record = normalizeShortUrlRecord(entry);
+      if (!record) continue;
+
+      await prisma.$executeRawUnsafe(
+        `
+          INSERT INTO "SocialShareLink" ("code", "url", "metadata", "updatedAt")
+          VALUES ($1, $2, $3::jsonb, CURRENT_TIMESTAMP)
+          ON CONFLICT ("code") DO UPDATE SET
+            "url" = EXCLUDED."url",
+            "metadata" = EXCLUDED."metadata",
+            "updatedAt" = CURRENT_TIMESTAMP
+        `,
+        code,
+        record.url,
+        JSON.stringify(record.metadata || null)
+      );
+    }
+    return true;
+  } catch (error) {
+    console.warn('[Social Share Storage] Database save warning:', error);
+    return false;
+  }
 }
 
 async function readFromGitHub(): Promise<ShortUrlMap | null> {
@@ -135,22 +244,25 @@ function readFromLocalDisk(): ShortUrlMap | null {
 }
 
 export async function readShortUrlMap(): Promise<ShortUrlMap> {
+  const databaseMap = await readDatabaseMap();
   const githubMap = await readFromGitHub();
-  if (githubMap) return githubMap;
+  if (githubMap) return { ...githubMap, ...(databaseMap || {}) };
 
   const localMap = readFromLocalDisk();
-  if (localMap) return localMap;
+  if (localMap) return { ...localMap, ...(databaseMap || {}) };
 
   const rawGithubMap = await readFromRawGitHub();
-  if (rawGithubMap) return rawGithubMap;
+  if (rawGithubMap) return { ...rawGithubMap, ...(databaseMap || {}) };
 
-  return {};
+  return databaseMap || {};
 }
 
 export async function writeShortUrlMap(map: ShortUrlMap) {
+  if (await writeDatabaseMap(map)) return;
+
   if (IS_VERCEL_DEPLOYMENT && !GITHUB_TOKEN) {
     throw new Error(
-      'Social share storage is not configured. Add SOCIAL_SHARE_GITHUB_TOKEN to Vercel before generating links.'
+      'Social share storage is not configured. Connect the production database or add SOCIAL_SHARE_GITHUB_TOKEN to Vercel.'
     );
   }
 
@@ -215,6 +327,9 @@ export function normalizeShortUrlRecord(entry?: string | ShortUrlRecord): ShortU
 }
 
 export async function getShortUrlRecord(code: string): Promise<ShortUrlRecord | null> {
+  const databaseRecord = await readDatabaseRecord(code);
+  if (databaseRecord) return databaseRecord;
+
   const map = await readShortUrlMap();
   return normalizeShortUrlRecord(map[code]);
 }
@@ -230,9 +345,18 @@ function sanitizeFileName(fileName: string) {
 }
 
 export async function uploadSocialShareMedia(base64Content: string, fileName: string) {
+  // The image is stored with its product metadata in PostgreSQL when available.
+  // It is exposed through /api/social-share-image only after its short link exists.
+  if (HAS_DATABASE) {
+    return {
+      fileName: `${Date.now()}-${sanitizeFileName(fileName)}`,
+      url: base64Content,
+    };
+  }
+
   if (IS_VERCEL_DEPLOYMENT && !GITHUB_TOKEN) {
     throw new Error(
-      'Social share storage is not configured. Add SOCIAL_SHARE_GITHUB_TOKEN to Vercel before uploading images.'
+      'Social share storage is not configured. Connect the production database or add SOCIAL_SHARE_GITHUB_TOKEN to Vercel.'
     );
   }
 
