@@ -71,18 +71,12 @@ function getSocialDescription(metadata?: ShortUrlMetadata) {
 }
 
 function getOgImageUrl(baseUrl: string, code: string, metadata?: ShortUrlMetadata) {
-  const ogUrl = new URL('/api/og-custom', baseUrl);
-  const imageUrl = getPreviewImageUrl(baseUrl, code, metadata?.image);
+  const ogUrl = new URL('/api/social-share-image', baseUrl);
 
-  // Platforms receive a clean product photograph. The title and description
-  // are supplied by standard Open Graph fields immediately below it.
-  ogUrl.searchParams.set('layout', 'photo-only');
-  ogUrl.searchParams.set('title', metadata?.title?.trim() || 'BridgeTech IT Services');
-  ogUrl.searchParams.set('image', imageUrl);
-  ogUrl.searchParams.set('fit', metadata?.fit || 'contain');
-  ogUrl.searchParams.set('scale', String(metadata?.scale || 100));
-  ogUrl.searchParams.set('positionX', String(metadata?.positionX ?? 50));
-  ogUrl.searchParams.set('positionY', String(metadata?.positionY ?? 50));
+  // Serve the actual image bytes from our own domain. This is substantially
+  // more reliable for WhatsApp and Facebook than asking their crawler to wait
+  // for a second image-rendering service.
+  ogUrl.searchParams.set('code', code);
 
   return ogUrl.toString();
 }
