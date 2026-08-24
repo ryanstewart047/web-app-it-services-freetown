@@ -12,28 +12,20 @@ export default function Hero() {
   // Real BridgeTech IT Services workshop photos
   const slides = [
     {
-      src: "/assets/images/slider/shop-technician-1.jpg",
-      alt: "BridgeTech IT Services technician performing expert motherboard repair at our Jui Junction workshop"
+      src: "/assets/images/slider/slide-1-before-after-handover.jpg",
+      alt: "BridgeTech IT Services technician handing repaired device to satisfied customer - Before and After Repair Handover"
     },
     {
-      src: "/assets/images/slider/shop-technician-2.jpg",
-      alt: "Certified BridgeTech IT Services repair specialist ready to fix your device"
+      src: "/assets/images/slider/slide-2-technician-repair-bench.jpg",
+      alt: "Certified BridgeTech IT Services technician repairing iPhone, Samsung, and HP laptop on workbench"
     },
     {
-      src: "/assets/images/slider/shop-technician-3.jpg",
-      alt: "Professional phone and laptop repair at BridgeTech IT Services, #1 Regent Highway, Jui Junction"
+      src: "/assets/images/slider/slide-3-before-after-phones.jpg",
+      alt: "Professional Before and After phone repair display at BridgeTech IT Services workshop"
     },
     {
-      src: "/assets/images/slider/phone-repair.jpg",
-      alt: "Smartphone and Screen Repair Specialist in Freetown"
-    },
-    {
-      src: "/assets/images/slider/motherboard-repair.jpg",
-      alt: "Detailed Motherboard Micro-Soldering and Hardware Repair"
-    },
-    {
-      src: "/assets/images/slider/software-service.jpg",
-      alt: "Professional Software Services and System Diagnostics in Freetown"
+      src: "/assets/images/slider/slide-4-expert-diagnostics-lab.jpg",
+      alt: "Expert motherboard diagnostics, micro-soldering, and chip-level repair lab at BridgeTech IT Services"
     }
   ]
 
