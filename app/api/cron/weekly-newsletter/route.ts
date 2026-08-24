@@ -97,21 +97,12 @@ async function handleNewsletterCron(request: NextRequest) {
     console.log(`[Weekly Newsletter] Selected Topic: "${selectedTopic}"`)
 
     // 4. Generate newsletter content using AI (with multi-provider & template fallback)
-    const { subject, content, imagePrompt } = await generateNewsletterIssue(selectedTopic)
+    const { subject, content } = await generateNewsletterIssue(selectedTopic)
 
-    // 5. Generate matching illustration using Pollinations.ai
-    const encodedPrompt = encodeURIComponent(`${imagePrompt || selectedTopic}, vector illustration, digital art, clean white background`)
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=600&height=400&nologo=true`
+    // Clean, professional HTML content without AI image banner
+    const finalContent = content
 
-    // Inject the generated illustration into the top of the email body
-    const finalContent = `
-      <div style="text-align: center; margin-bottom: 25px; background-color: #f8fafc; padding: 15px; border-radius: 16px;">
-        <img src="${imageUrl}" alt="${selectedTopic}" style="max-width: 100%; height: auto; border-radius: 12px; display: block; margin: 0 auto;" />
-      </div>
-      ${content}
-    `
-
-    // 6. Fetch subscribed newsletter recipients
+    // 5. Fetch subscribed newsletter recipients
     const subscribers = await prisma.emailLead.findMany({
       where: { 
         source: 'newsletter',
@@ -128,7 +119,7 @@ async function handleNewsletterCron(request: NextRequest) {
           status: 'success',
           topic: selectedTopic,
           subject: subject,
-          imageUrl: imageUrl,
+          imageUrl: null,
           recipients: 0,
           notes: 'No subscribers found'
         } as any // Use as any to prevent strict type errors before prisma client is re-generated
@@ -219,7 +210,7 @@ async function handleNewsletterCron(request: NextRequest) {
         status: 'success',
         topic: selectedTopic,
         subject: subject,
-        imageUrl: imageUrl,
+        imageUrl: null,
         recipients: successCount
       }
     })

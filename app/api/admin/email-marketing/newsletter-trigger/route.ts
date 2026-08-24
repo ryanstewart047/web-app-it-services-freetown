@@ -58,17 +58,10 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Newsletter Trigger] Generating test email for: "${selectedTopic}" to: ${testEmail}`)
 
-    const { subject, content, imagePrompt } = await generateNewsletterIssue(selectedTopic)
+    const { subject, content } = await generateNewsletterIssue(selectedTopic)
 
-    // Generate illustration URL
-    const encodedPrompt = encodeURIComponent(`${imagePrompt || selectedTopic}, vector illustration, digital art, clean white background`)
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=600&height=400&nologo=true`
-
-    // Inject the generated illustration into the top of the email body
+    // Clean, professional email body without AI image banner
     const finalContent = `
-      <div style="text-align: center; margin-bottom: 25px; background-color: #f8fafc; padding: 15px; border-radius: 16px;">
-        <img src="${imageUrl}" alt="${selectedTopic}" style="max-width: 100%; height: auto; border-radius: 12px; display: block; margin: 0 auto;" />
-      </div>
       <div style="background-color: #fef08a; border-left: 4px solid #eab308; padding: 12px; margin-bottom: 20px; border-radius: 4px; font-size: 13px; color: #854d0e;">
         <strong>⚠️ TEST EMAIL PREVIEW:</strong> This is a test email sent manually from the BridgeTech IT Services Admin Dashboard.
       </div>

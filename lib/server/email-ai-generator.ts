@@ -11,7 +11,6 @@ interface MarketingEmailResult {
 interface NewsletterEmailResult {
   subject: string;
   content: string;
-  imagePrompt: string;
 }
 
 const BRAND_NAME = 'BridgeTech IT Services';
@@ -106,23 +105,21 @@ export async function generateNewsletterIssue(topic: string): Promise<Newsletter
         {
           role: 'system',
           content: `You are an expert tech columnist and email specialist for "${BRAND_NAME}" in Freetown, Sierra Leone.
-Return ONLY a valid JSON object with three keys:
-"subject": Catchy subject line (no HTML).
-"content": Clean, highly informative, readable HTML body explaining the tech topic with tips, solutions, and advice.
-"imagePrompt": Descriptive prompt for a clean vector illustration representing this topic (e.g. "A modern illustration of a laptop on a clean desk with repair tools, vector art, flat design, white background").
+Return ONLY a valid JSON object with two keys:
+"subject": Catchy, clean subject line (no HTML).
+"content": Clean, highly informative, readable and professional HTML body explaining the tech topic with tips, solutions, and advice. Use clear headers, lists, and bold text. DO NOT include <html> or <body> tags.
 Any time you mention "${BRAND_NAME}", format it as <a href="${BRAND_URL}">${BRAND_NAME}</a>.
 Contact: ${BRAND_LOCATION}, Phone: ${BRAND_PHONE}.`
         },
         {
           role: 'user',
-          content: `Write an informative weekly tech newsletter issue explaining: ${cleanTopic}`
+          content: `Write an informative, clean, and professional weekly tech newsletter issue explaining: ${cleanTopic}`
         }
       ]);
       if (res && res.subject && res.content) {
         return {
           subject: cleanSubject(res.subject),
-          content: formatHtmlContent(res.content),
-          imagePrompt: res.imagePrompt || cleanTopic
+          content: formatHtmlContent(res.content)
         };
       }
     } catch (err) {
@@ -134,13 +131,12 @@ Contact: ${BRAND_LOCATION}, Phone: ${BRAND_PHONE}.`
   const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY;
   if (geminiKey) {
     try {
-      const res = await callGemini(geminiKey, `Write a weekly tech newsletter for ${BRAND_NAME} in Freetown about "${cleanTopic}".
-Return JSON with "subject", "content" (HTML body), and "imagePrompt" (vector art prompt).`);
+      const res = await callGemini(geminiKey, `Write a clean, professional weekly tech newsletter for ${BRAND_NAME} in Freetown about "${cleanTopic}".
+Return JSON with "subject" and "content" (HTML body).`);
       if (res && res.subject && res.content) {
         return {
           subject: cleanSubject(res.subject),
-          content: formatHtmlContent(res.content),
-          imagePrompt: res.imagePrompt || cleanTopic
+          content: formatHtmlContent(res.content)
         };
       }
     } catch (err) {
@@ -346,7 +342,6 @@ function generateFallbackNewsletter(topic: string): NewsletterEmailResult {
   if (lower.includes('social media') || lower.includes('2-factor') || lower.includes('hacker') || lower.includes('security') || lower.includes('password') || lower.includes('2fa')) {
     return {
       subject: `🔒 Security Alert: How to Lock Down Your Social Media & WhatsApp from Hackers`,
-      imagePrompt: `A cybersecurity concept illustration showing a shield with two-factor authentication key lock, smartphone security, flat vector design, clean background`,
       content: `
         <h1 style="color:#0f172a;font-size:24px;font-weight:800;margin-bottom:16px;">How to Secure Your Social Media Accounts &amp; WhatsApp from Hackers</h1>
         <p>Hello Tech Community,</p>
@@ -379,7 +374,6 @@ function generateFallbackNewsletter(topic: string): NewsletterEmailResult {
   if (lower.includes('overheat') || lower.includes('heat') || lower.includes('fan') || lower.includes('temperature')) {
     return {
       subject: `🔥 Stop Your Laptop From Overheating: Essential Cooling Tips for Freetown`,
-      imagePrompt: `A modern vector illustration of a laptop with clean cooling airflow and fan thermal maintenance tools, flat design, white background`,
       content: `
         <h1 style="color:#0f172a;font-size:24px;font-weight:800;margin-bottom:16px;">5 Essential Tips to Keep Your Laptop from Overheating in Freetown's Climate</h1>
         <p>Hello Tech Community,</p>
@@ -411,7 +405,6 @@ function generateFallbackNewsletter(topic: string): NewsletterEmailResult {
   if (lower.includes('screen') || lower.includes('drop') || lower.includes('scratch') || lower.includes('glass')) {
     return {
       subject: `📱 Protect Your Smartphone & Laptop Screen: Avoid Costly Breakages`,
-      imagePrompt: `A vector illustration showing smartphone with tempered glass screen protector shield, durable shockproof case, flat vector design`,
       content: `
         <h1 style="color:#0f172a;font-size:24px;font-weight:800;margin-bottom:16px;">How to Protect Your Smartphone Screen from Scratches and Accidental Drops</h1>
         <p>Hello Tech Community,</p>
@@ -442,7 +435,6 @@ function generateFallbackNewsletter(topic: string): NewsletterEmailResult {
   if (lower.includes('hard drive') || lower.includes('hdd') || lower.includes('ssd') || lower.includes('fail') || lower.includes('data recovery')) {
     return {
       subject: `💾 Warning Signs Your Computer Storage is Failing (How to Save Your Files)`,
-      imagePrompt: `A vector art illustration of computer storage drive backup, cloud sync and data recovery tools, flat design, clean white background`,
       content: `
         <h1 style="color:#0f172a;font-size:24px;font-weight:800;margin-bottom:16px;">Warning Signs Your Computer Hard Drive is About to Fail (And How to Save Your Data)</h1>
         <p>Hello Tech Community,</p>
@@ -474,7 +466,6 @@ function generateFallbackNewsletter(topic: string): NewsletterEmailResult {
   if (lower.includes('water') || lower.includes('spill') || lower.includes('liquid') || lower.includes('tea') || lower.includes('coffee')) {
     return {
       subject: `🚨 Emergency Guide: What to Do Immediately After Spilling Water on Your Laptop`,
-      imagePrompt: `A vector illustration showing emergency steps for laptop liquid spill response, drying techniques, flat clean design`,
       content: `
         <h1 style="color:#0f172a;font-size:24px;font-weight:800;margin-bottom:16px;">What to Do Immediately if You Spill Water or Tea on Your Laptop</h1>
         <p>Hello Tech Community,</p>
@@ -504,7 +495,6 @@ function generateFallbackNewsletter(topic: string): NewsletterEmailResult {
   // 6. Default Fallback
   return {
     subject: `🛡️ Tech Insights: ${topic}`,
-    imagePrompt: `A clean, modern illustration of computer and phone repair technology with tools and digital elements, vector art, flat design, white background`,
     content: `
       <h1 style="color:#0f172a;font-size:24px;font-weight:800;margin-bottom:16px;">${topic}</h1>
       <p>Hello Tech Community,</p>

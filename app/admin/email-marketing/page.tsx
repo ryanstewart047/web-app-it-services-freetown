@@ -914,7 +914,7 @@ export default function EmailMarketingPage() {
               </div>
               <div className="text-left">
                 <h2 className="text-xl font-black text-slate-900">Weekly Auto-Newsletter</h2>
-                <p className="text-sm text-slate-500">Fires every Monday at 9 AM — AI writes it, Pollinations generates the image, system sends it</p>
+                <p className="text-sm text-slate-500">Fires every Monday at 9 AM — AI writes clean, professional copy, system sends it</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
