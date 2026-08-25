@@ -340,6 +340,7 @@ export default function AdminPage() {
   const [twoFASetupData, setTwoFASetupData] = useState<any>(null);
   const [saving2FASettings, setSaving2FASettings] = useState<boolean>(false);
   const [setupFeedback, setSetupFeedback] = useState<string>('');
+  const [setupError, setSetupError] = useState<string>('');
 
   // Sync tab with URL search parameter
   useEffect(() => {
@@ -1419,6 +1420,12 @@ export default function AdminPage() {
                   </p>
                 )}
 
+                {setupError && (
+                  <p className="p-2.5 bg-red-500/10 border border-red-500/30 text-red-300 rounded-lg text-xs flex items-center gap-2">
+                    <i className="fas fa-circle-exclamation"></i> {setupError}
+                  </p>
+                )}
+
                 {/* Section 1: Google Authenticator QR Code Setup */}
                 <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3">
                   <h4 className="font-bold text-amber-400 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
@@ -1469,7 +1476,7 @@ export default function AdminPage() {
                       {
                         key: 'totp',
                         label: 'Authenticator App Only (TOTP)',
-                        desc: 'Requires code from Google Authenticator / Authy app on phone.'
+                        desc: 'Requires your Authenticator App code. Email code delivery and email verification stay disabled until you select another method.'
                       }
                     ].map(opt => (
                       <label
@@ -1484,24 +1491,29 @@ export default function AdminPage() {
                           type="radio"
                           name="2fa-mode"
                           checked={twoFASetupData.config?.mode === opt.key}
+                          disabled={saving2FASettings}
                           onChange={async () => {
                             setSaving2FASettings(true);
+                            setSetupError('');
                             try {
                               const res = await fetch('/api/admin/2fa/setup', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ mode: opt.key })
                               });
-                              if (res.ok) {
-                                setTwoFASetupData((prev: any) => ({
-                                  ...prev,
-                                  config: { ...prev.config, mode: opt.key }
-                                }));
-                                setSetupFeedback('2FA Mode updated successfully.');
-                                setTimeout(() => setSetupFeedback(''), 4000);
+                              const data = await res.json();
+                              if (!res.ok) {
+                                throw new Error(data.error || 'Unable to save the preferred verification method.');
                               }
+                              setTwoFASetupData((prev: any) => ({
+                                ...prev,
+                                config: { ...prev.config, mode: data.config?.mode || opt.key }
+                              }));
+                              setSetupFeedback('2FA Mode updated successfully.');
+                              setTimeout(() => setSetupFeedback(''), 4000);
                             } catch (e) {
                               console.error(e);
+                              setSetupError(e instanceof Error ? e.message : 'Unable to save the preferred verification method.');
                             } finally {
                               setSaving2FASettings(false);
                             }
@@ -1527,6 +1539,7 @@ export default function AdminPage() {
                         defaultValue={twoFASetupData.config?.recipientEmail || ''}
                         id="2fa-recipient-email-input"
                         placeholder="admin@itservicesfreetown.com"
+                        disabled={saving2FASettings || twoFASetupData.config?.mode === 'totp'}
                         className="flex-1 px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 text-xs"
                       />
                       <button
@@ -1556,12 +1569,17 @@ export default function AdminPage() {
                             setSaving2FASettings(false);
                           }
                         }}
-                        disabled={saving2FASettings}
+                        disabled={saving2FASettings || twoFASetupData.config?.mode === 'totp'}
                         className="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold rounded-lg transition-colors text-xs"
                       >
-                        Save Email
+                        {twoFASetupData.config?.mode === 'totp' ? 'Email Disabled' : 'Save Email'}
                       </button>
                     </div>
+                    {twoFASetupData.config?.mode === 'totp' && (
+                      <p className="mt-2 text-[11px] text-amber-300">
+                        Email OTP delivery, resend, and email-code verification are disabled while Authenticator App Only is selected.
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

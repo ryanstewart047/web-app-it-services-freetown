@@ -102,13 +102,13 @@ export async function POST(request: NextRequest) {
     loginAttempts.delete(clientIp);
 
     // Check 2FA Configuration
-    const twoFAConfig = get2FAConfig();
+    const twoFAConfig = await get2FAConfig();
 
     if (twoFAConfig.enabled) {
-      // 2FA is active: Create pending session & generate/send Email OTP
-      const { pendingToken, emailSent, emailNote } = await createPending2FASession(clientIp);
+      // An email OTP is issued only when the saved mode permits email verification.
+      const { pendingToken, emailSent, emailNote } = await createPending2FASession(clientIp, twoFAConfig);
       
-      // Obfuscate recipient email for privacy (e.g. ad***@itservicesfreetown.com)
+      // Only expose a destination label when email verification is an allowed method.
       const recipient = twoFAConfig.recipientEmail || 'admin@itservicesfreetown.com';
       const parts = recipient.split('@');
       const obfuscatedEmail = parts[0].length > 2 
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
         hasTotp: !!twoFAConfig.totpSecret,
         emailSent,
         emailNote,
-        recipientEmail: obfuscatedEmail
+        recipientEmail: twoFAConfig.mode === 'totp' ? undefined : obfuscatedEmail
       });
     }
     

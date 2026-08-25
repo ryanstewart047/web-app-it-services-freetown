@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const config = get2FAConfig();
+    const config = await get2FAConfig();
     const totpSetup = await generateTOTPSetup('BridgeTech IT Services Admin');
 
     return NextResponse.json({
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
         enabled: config.enabled,
         mode: config.mode,
         recipientEmail: config.recipientEmail,
-        hasTotpSecret: !!config.totpSecret
+        hasTotpSecret: !!totpSetup.secret
       },
       totp: {
         secret: totpSetup.secret,
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { enabled, mode, recipientEmail, totpSecret } = body;
 
-    const updated = save2FAConfig({
+    const updated = await save2FAConfig({
       ...(typeof enabled === 'boolean' ? { enabled } : {}),
       ...(mode && ['email', 'totp', 'both'].includes(mode) ? { mode } : {}),
       ...(recipientEmail && typeof recipientEmail === 'string' ? { recipientEmail } : {}),
