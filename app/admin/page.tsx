@@ -290,6 +290,15 @@ const ADMIN_PANELS: AdminPanelItem[] = [
     url: '/admin/social-sharing',
   },
   {
+    id: 'surprise-reveals',
+    name: 'Surprise Reveals',
+    category: 'marketing',
+    description: 'Personalized celebration links with photo reveals',
+    icon: 'fas fa-party-horn',
+    color: 'text-amber-400',
+    url: '/admin/surprise-reveals',
+  },
+  {
     id: 'digital-tools',
     name: 'Digital Tools Suite',
     category: 'ecommerce',

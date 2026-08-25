@@ -41,6 +41,7 @@ function ConditionalLayoutInner({ children }: ConditionalLayoutProps) {
   const isForumPage = pathname === '/forum' || pathname?.startsWith('/forum/');
   const isDonationPage = pathname === '/madinaface3bridgeproject' || pathname?.startsWith('/madinaface3bridgeproject/');
   const isShirleyPage = pathname === '/shirleys' || pathname?.startsWith('/shirleys/');
+  const isSurpriseRevealPage = pathname?.startsWith('/surprise/');
 
   // In iframe mode, always render bare children with no chrome
   if (isIframeMode) {
@@ -59,6 +60,16 @@ function ConditionalLayoutInner({ children }: ConditionalLayoutProps) {
         <main className="w-full">
           {children}
         </main>
+        <ServiceWorkerRegistration />
+        <NetworkMonitor />
+      </>
+    );
+  }
+
+  if (isSurpriseRevealPage) {
+    return (
+      <>
+        <main className="w-full">{children}</main>
         <ServiceWorkerRegistration />
         <NetworkMonitor />
       </>

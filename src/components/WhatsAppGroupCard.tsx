@@ -2,16 +2,23 @@
 
 import { useState, useEffect } from 'react';
 import { X, ChevronRight } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 const WHATSAPP_GROUP_URL = 'https://chat.whatsapp.com/FuS9EBvCF455geNHqQl3Iz?s=cl&p=a&ilr=1';
 const SHOW_DELAY_MS = 3000;
 
 export default function WhatsAppGroupCard() {
+  const pathname = usePathname();
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [minimized, setMinimized] = useState(false);
 
   useEffect(() => {
+    if (pathname?.startsWith('/surprise/')) {
+      setVisible(false);
+      return;
+    }
+
     const wasDismissed = sessionStorage.getItem('whatsapp_group_card_dismissed');
     if (wasDismissed) {
       setDismissed(true);
@@ -24,7 +31,9 @@ export default function WhatsAppGroupCard() {
     }, SHOW_DELAY_MS);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [pathname]);
+
+  if (pathname?.startsWith('/surprise/')) return null;
 
   const handleDismiss = (e: React.MouseEvent) => {
     e.preventDefault();
