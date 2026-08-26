@@ -5,6 +5,7 @@ import {
   getSurpriseReveals,
   removeSurpriseReveal,
 } from '@/lib/surprise-reveal-storage';
+import { DEFAULT_SURPRISE_SOUND_EFFECT, isSurpriseSoundEffect } from '@/lib/surprise-reveal-sounds';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -56,6 +57,8 @@ export async function POST(request: NextRequest) {
     const achievement = sanitizeText(body.achievement).slice(0, 160);
     const message = sanitizeText(body.message).slice(0, 500);
     const imageUrl = typeof body.imageUrl === 'string' ? body.imageUrl.trim() : '';
+    const requestedSoundEffect = typeof body.soundEffect === 'string' ? body.soundEffect : '';
+    const soundEffect = requestedSoundEffect || DEFAULT_SURPRISE_SOUND_EFFECT;
 
     if (!recipientName) {
       return NextResponse.json({ success: false, error: 'Add the recipient\'s name.' }, { status: 400 });
@@ -66,8 +69,11 @@ export async function POST(request: NextRequest) {
     if (!isImageUrl(imageUrl)) {
       return NextResponse.json({ success: false, error: 'Upload a valid image or paste an image URL.' }, { status: 400 });
     }
+    if (!isSurpriseSoundEffect(soundEffect)) {
+      return NextResponse.json({ success: false, error: 'Choose a valid reveal sound.' }, { status: 400 });
+    }
 
-    const reveal = await createSurpriseReveal({ recipientName, achievement, message, imageUrl });
+    const reveal = await createSurpriseReveal({ recipientName, achievement, message, imageUrl, soundEffect });
     return NextResponse.json({ success: true, reveal, shareUrl: getPublicUrl(request, reveal.code) }, { status: 201 });
   } catch (error) {
     console.error('[Surprise Reveal Admin] Create error:', error);

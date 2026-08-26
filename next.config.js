@@ -1,4 +1,8 @@
 /** @type {import('next').NextConfig} */
+const staticAssetCacheControl = process.env.NODE_ENV === 'development'
+  ? 'no-cache, no-store, must-revalidate'
+  : 'public, max-age=31536000, immutable';
+
 const nextConfig = {
   // Disable ESLint during builds to prevent failures
   eslint: {
@@ -137,7 +141,7 @@ const nextConfig = {
       {
         source: '/_next/static/:path*',
         headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+          { key: 'Cache-Control', value: staticAssetCacheControl },
         ],
       },
       // Static Public Assets (Images, Icons, CSS, JS) - 1 Year Immutable Cache

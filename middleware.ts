@@ -20,7 +20,7 @@ const PROTECTED_ADMIN_PREFIXES = [
 ];
 
 export function middleware(request: NextRequest) {
-  const { pathname, protocol } = request.nextUrl;
+  const { hostname, pathname, protocol } = request.nextUrl;
 
   // SECURITY: Protect admin sub-routes at the server level.
   // If the session cookie is missing or malformed, redirect to the main admin login.
@@ -41,7 +41,10 @@ export function middleware(request: NextRequest) {
   if (
     process.env.NODE_ENV === 'production' && 
     protocol === 'http:' && 
-    !process.env.DOCKER_ENV
+    !process.env.DOCKER_ENV &&
+    hostname !== 'localhost' &&
+    hostname !== '127.0.0.1' &&
+    !hostname.endsWith('.localhost')
   ) {
     const secureUrl = new URL(request.url);
     secureUrl.protocol = 'https:';

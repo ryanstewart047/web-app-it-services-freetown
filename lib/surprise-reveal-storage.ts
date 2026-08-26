@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { prisma } from '@/lib/prisma';
+import { DEFAULT_SURPRISE_SOUND_EFFECT, isSurpriseSoundEffect, type SurpriseSoundEffect } from '@/lib/surprise-reveal-sounds';
 
 export interface SurpriseReveal {
   code: string;
@@ -9,6 +10,7 @@ export interface SurpriseReveal {
   achievement: string;
   message: string;
   imageUrl: string;
+  soundEffect: SurpriseSoundEffect;
   createdAt: string;
   updatedAt: string;
 }
@@ -19,6 +21,7 @@ interface SurpriseRevealRow {
   achievement: string;
   message: string | null;
   imageUrl: string;
+  soundEffect: string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
 }
@@ -53,6 +56,7 @@ function normalizeReveal(value: unknown): SurpriseReveal | null {
     achievement: candidate.achievement,
     message: typeof candidate.message === 'string' ? candidate.message : '',
     imageUrl: candidate.imageUrl,
+    soundEffect: isSurpriseSoundEffect(candidate.soundEffect) ? candidate.soundEffect : DEFAULT_SURPRISE_SOUND_EFFECT,
     createdAt: asIsoDate(candidate.createdAt),
     updatedAt: asIsoDate(candidate.updatedAt),
   };
@@ -94,10 +98,14 @@ async function ensureDatabaseTable(): Promise<boolean> {
             "achievement" TEXT NOT NULL,
             "message" TEXT,
             "imageUrl" TEXT NOT NULL,
+            "soundEffect" TEXT NOT NULL DEFAULT '${DEFAULT_SURPRISE_SOUND_EFFECT}',
             "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
             "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
           )
         `);
+        await prisma.$executeRawUnsafe(
+          `ALTER TABLE "SurpriseReveal" ADD COLUMN IF NOT EXISTS "soundEffect" TEXT NOT NULL DEFAULT '${DEFAULT_SURPRISE_SOUND_EFFECT}'`
+        );
         return true;
       } catch (error) {
         console.error('[Surprise Reveal] Database initialization failed:', error);
@@ -114,7 +122,7 @@ async function readDatabaseReveals(): Promise<SurpriseReveal[] | null> {
 
   try {
     const rows = await prisma.$queryRawUnsafe<SurpriseRevealRow[]>(
-      `SELECT "code", "recipientName", "achievement", "message", "imageUrl", "createdAt", "updatedAt"
+      `SELECT "code", "recipientName", "achievement", "message", "imageUrl", "soundEffect", "createdAt", "updatedAt"
        FROM "SurpriseReveal" ORDER BY "createdAt" DESC`
     );
     return rows
@@ -131,7 +139,7 @@ async function readDatabaseReveal(code: string): Promise<SurpriseReveal | null> 
 
   try {
     const rows = await prisma.$queryRawUnsafe<SurpriseRevealRow[]>(
-      `SELECT "code", "recipientName", "achievement", "message", "imageUrl", "createdAt", "updatedAt"
+      `SELECT "code", "recipientName", "achievement", "message", "imageUrl", "soundEffect", "createdAt", "updatedAt"
        FROM "SurpriseReveal" WHERE "code" = $1 LIMIT 1`,
       code
     );
@@ -148,13 +156,14 @@ async function insertDatabaseReveal(reveal: SurpriseReveal): Promise<boolean> {
   try {
     await prisma.$executeRawUnsafe(
       `INSERT INTO "SurpriseReveal"
-        ("code", "recipientName", "achievement", "message", "imageUrl", "createdAt", "updatedAt")
-       VALUES ($1, $2, $3, $4, $5, $6::timestamptz, $7::timestamptz)`,
+        ("code", "recipientName", "achievement", "message", "imageUrl", "soundEffect", "createdAt", "updatedAt")
+       VALUES ($1, $2, $3, $4, $5, $6, $7::timestamptz, $8::timestamptz)`,
       reveal.code,
       reveal.recipientName,
       reveal.achievement,
       reveal.message || null,
       reveal.imageUrl,
+      reveal.soundEffect,
       reveal.createdAt,
       reveal.updatedAt
     );
