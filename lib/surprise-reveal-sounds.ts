@@ -5,6 +5,7 @@ export const SURPRISE_SOUND_EFFECTS = [
   { value: 'sparkle-cascade', label: 'Sparkle cascade' },
   { value: 'celebration-drums', label: 'Celebration drums' },
   { value: 'spotlight-chime', label: 'Spotlight chime' },
+  { value: 'hand-clap-cheer', label: 'Hand claps & cheering' },
   { value: 'silent', label: 'No sound' },
 ] as const;
 
