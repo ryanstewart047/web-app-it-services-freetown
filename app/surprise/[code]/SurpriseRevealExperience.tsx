@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Award, CheckCircle2, Download, HelpCircle, RotateCcw, Share2, Sparkles } from 'lucide-react';
