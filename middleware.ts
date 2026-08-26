@@ -17,6 +17,7 @@ const PROTECTED_ADMIN_PREFIXES = [
   '/admin/social-sharing',
   '/admin/discount-codes',
   '/admin/add-product',
+  '/admin/surprise-reveals',
 ];
 
 export function middleware(request: NextRequest) {

@@ -71,5 +71,8 @@ export default async function SurpriseRevealPage({ params }: SurpriseRevealPageP
   const reveal = await getSurpriseReveal(params.code);
   if (!reveal) notFound();
 
-  return <SurpriseRevealExperience {...reveal} />;
+  const baseUrl = getBaseUrl();
+  const shareUrl = `${baseUrl}/surprise/${reveal.code}`;
+
+  return <SurpriseRevealExperience {...reveal} shareUrl={shareUrl} />;
 }

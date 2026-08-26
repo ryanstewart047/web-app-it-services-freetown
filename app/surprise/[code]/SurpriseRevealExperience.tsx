@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { RotateCcw, Sparkles } from 'lucide-react';
+import { RotateCcw, Share2, Sparkles } from 'lucide-react';
 import { type SurpriseSoundEffect } from '@/lib/surprise-reveal-sounds';
 
 interface SurpriseRevealExperienceProps {
@@ -11,6 +11,8 @@ interface SurpriseRevealExperienceProps {
   message: string;
   imageUrl: string;
   soundEffect: SurpriseSoundEffect;
+  shareUrl?: string;
+  code?: string;
 }
 
 type RevealPhase = 'locked' | 'loading' | 'celebrating';
@@ -144,6 +146,8 @@ export default function SurpriseRevealExperience({
   message,
   imageUrl,
   soundEffect,
+  shareUrl,
+  code,
 }: SurpriseRevealExperienceProps) {
   const [phase, setPhase] = useState<RevealPhase>('locked');
   const [progress, setProgress] = useState(0);
@@ -387,7 +391,31 @@ export default function SurpriseRevealExperience({
 
               <AnimatePresence>
                 {canReplay && (
-                  <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }} type="button" onClick={beginSurprise} className="relative z-10 mt-10 inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-amber-100/60 px-5 text-sm font-black text-amber-100 transition hover:bg-amber-400 hover:text-neutral-950"><RotateCcw className="h-4 w-4" /> Replay celebration</motion.button>
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.35 }}
+                    className="relative z-10 mt-10 flex flex-wrap items-center justify-center gap-3"
+                  >
+                    <motion.button
+                      type="button"
+                      onClick={beginSurprise}
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-amber-100/60 px-5 text-sm font-black text-amber-100 transition hover:bg-amber-400 hover:text-neutral-950"
+                    >
+                      <RotateCcw className="h-4 w-4" /> Replay
+                    </motion.button>
+
+                    {/* WhatsApp share – auto-composes a personalised message */}
+                    <motion.a
+                      href={`https://wa.me/?text=${encodeURIComponent(`🎉 Look at this!\n\n${recipientName} just received a special recognition – ${achievement}!\n\nSee the surprise reveal 👉 ${shareUrl ?? (typeof window !== 'undefined' ? window.location.href : '')}\n\n🏆 Powered by BridgeTech IT Services`)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-[#25D366] px-5 text-sm font-black text-white transition hover:bg-[#1ebe5d]"
+                    >
+                      <Share2 className="h-4 w-4" /> Share on WhatsApp
+                    </motion.a>
+                  </motion.div>
                 )}
               </AnimatePresence>
             </motion.div>
