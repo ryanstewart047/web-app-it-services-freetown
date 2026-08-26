@@ -21,6 +21,7 @@ export interface SurpriseReveal {
   soundEffect: SurpriseSoundEffect;
   quiz?: QuizQuestion[];
   isVip?: boolean;
+  paymentStatus?: 'pending' | 'approved';
   createdAt: string;
   updatedAt: string;
 }
@@ -34,6 +35,7 @@ interface SurpriseRevealRow {
   soundEffect: string | null;
   quizData?: string | null;
   isVip?: boolean | null;
+  paymentStatus?: string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
 }
@@ -77,7 +79,7 @@ function parseQuizData(raw: unknown): QuizQuestion[] | undefined {
 function normalizeReveal(value: unknown): SurpriseReveal | null {
   if (!value || typeof value !== 'object') return null;
 
-  const candidate = value as Partial<SurpriseRevealRow> & { quiz?: unknown; quizData?: unknown };
+  const candidate = value as Partial<SurpriseRevealRow> & { quiz?: unknown; quizData?: unknown; isPaid?: unknown };
   if (
     typeof candidate.code !== 'string' ||
     typeof candidate.recipientName !== 'string' ||
@@ -88,6 +90,9 @@ function normalizeReveal(value: unknown): SurpriseReveal | null {
   }
 
   const quiz = parseQuizData(candidate.quiz ?? candidate.quizData);
+  const paymentStatus = candidate.paymentStatus === 'approved' || candidate.isPaid === true
+    ? 'approved'
+    : 'pending';
 
   return {
     code: candidate.code,
@@ -98,6 +103,7 @@ function normalizeReveal(value: unknown): SurpriseReveal | null {
     soundEffect: isSurpriseSoundEffect(candidate.soundEffect) ? candidate.soundEffect : DEFAULT_SURPRISE_SOUND_EFFECT,
     quiz: quiz && quiz.length > 0 ? quiz : undefined,
     isVip: Boolean(candidate.isVip),
+    paymentStatus,
     createdAt: asIsoDate(candidate.createdAt),
     updatedAt: asIsoDate(candidate.updatedAt),
   };
@@ -155,6 +161,9 @@ async function ensureDatabaseTable(): Promise<boolean> {
         await prisma.$executeRawUnsafe(
           `ALTER TABLE "SurpriseReveal" ADD COLUMN IF NOT EXISTS "isVip" BOOLEAN DEFAULT false`
         );
+        await prisma.$executeRawUnsafe(
+          `ALTER TABLE "SurpriseReveal" ADD COLUMN IF NOT EXISTS "paymentStatus" TEXT DEFAULT 'pending'`
+        );
         return true;
       } catch (error) {
         console.error('[Surprise Reveal] Database initialization failed:', error);
@@ -171,7 +180,7 @@ async function readDatabaseReveals(): Promise<SurpriseReveal[] | null> {
 
   try {
     const rows = await prisma.$queryRawUnsafe<SurpriseRevealRow[]>(
-      `SELECT "code", "recipientName", "achievement", "message", "imageUrl", "soundEffect", "quizData", "isVip", "createdAt", "updatedAt"
+      `SELECT "code", "recipientName", "achievement", "message", "imageUrl", "soundEffect", "quizData", "isVip", "paymentStatus", "createdAt", "updatedAt"
        FROM "SurpriseReveal" ORDER BY "createdAt" DESC`
     );
     return rows
@@ -188,7 +197,7 @@ async function readDatabaseReveal(code: string): Promise<SurpriseReveal | null> 
 
   try {
     const rows = await prisma.$queryRawUnsafe<SurpriseRevealRow[]>(
-      `SELECT "code", "recipientName", "achievement", "message", "imageUrl", "soundEffect", "quizData", "isVip", "createdAt", "updatedAt"
+      `SELECT "code", "recipientName", "achievement", "message", "imageUrl", "soundEffect", "quizData", "isVip", "paymentStatus", "createdAt", "updatedAt"
        FROM "SurpriseReveal" WHERE "code" = $1 LIMIT 1`,
       code
     );
@@ -204,10 +213,11 @@ async function insertDatabaseReveal(reveal: SurpriseReveal): Promise<boolean> {
 
   try {
     const quizDataJson = reveal.quiz && reveal.quiz.length > 0 ? JSON.stringify(reveal.quiz) : null;
+    const paymentStatus = reveal.paymentStatus || 'pending';
     await prisma.$executeRawUnsafe(
       `INSERT INTO "SurpriseReveal"
-        ("code", "recipientName", "achievement", "message", "imageUrl", "soundEffect", "quizData", "isVip", "createdAt", "updatedAt")
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::timestamptz, $10::timestamptz)`,
+        ("code", "recipientName", "achievement", "message", "imageUrl", "soundEffect", "quizData", "isVip", "paymentStatus", "createdAt", "updatedAt")
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::timestamptz, $11::timestamptz)`,
       reveal.code,
       reveal.recipientName,
       reveal.achievement,
@@ -216,6 +226,7 @@ async function insertDatabaseReveal(reveal: SurpriseReveal): Promise<boolean> {
       reveal.soundEffect,
       quizDataJson,
       Boolean(reveal.isVip),
+      paymentStatus,
       reveal.createdAt,
       reveal.updatedAt
     );
@@ -223,6 +234,22 @@ async function insertDatabaseReveal(reveal: SurpriseReveal): Promise<boolean> {
   } catch (error) {
     console.error('[Surprise Reveal] Database save failed:', error);
     return false;
+  }
+}
+
+async function updateDatabasePayment(code: string, paymentStatus: 'pending' | 'approved'): Promise<boolean | null> {
+  if (!(await ensureDatabaseTable())) return null;
+
+  try {
+    const updated = await prisma.$executeRawUnsafe(
+      `UPDATE "SurpriseReveal" SET "paymentStatus" = $1, "updatedAt" = CURRENT_TIMESTAMP WHERE "code" = $2`,
+      paymentStatus,
+      code
+    );
+    return updated > 0;
+  } catch (error) {
+    console.error('[Surprise Reveal] Database payment update failed:', error);
+    return null;
   }
 }
 
@@ -262,7 +289,8 @@ export async function createSurpriseReveal(input: Omit<SurpriseReveal, 'code' | 
   while (existing.some((reveal) => reveal.code === code)) code = createCode();
 
   const now = new Date().toISOString();
-  const reveal: SurpriseReveal = { ...input, code, createdAt: now, updatedAt: now };
+  const paymentStatus = input.paymentStatus || 'pending';
+  const reveal: SurpriseReveal = { ...input, paymentStatus, code, createdAt: now, updatedAt: now };
 
   if (await insertDatabaseReveal(reveal)) return reveal;
   if (IS_VERCEL_DEPLOYMENT) {
@@ -271,6 +299,29 @@ export async function createSurpriseReveal(input: Omit<SurpriseReveal, 'code' | 
 
   writeLocalReveals([reveal, ...existing]);
   return reveal;
+}
+
+export async function updateSurpriseRevealPayment(code: string, paymentStatus: 'pending' | 'approved'): Promise<SurpriseReveal | null> {
+  const dbUpdated = await updateDatabasePayment(code, paymentStatus);
+  const reveals = readLocalReveals();
+  const index = reveals.findIndex((r) => r.code === code);
+  let updatedLocal: SurpriseReveal | null = null;
+
+  if (index !== -1) {
+    reveals[index] = {
+      ...reveals[index],
+      paymentStatus,
+      updatedAt: new Date().toISOString(),
+    };
+    writeLocalReveals(reveals);
+    updatedLocal = reveals[index];
+  }
+
+  if (dbUpdated) {
+    return await getSurpriseReveal(code);
+  }
+
+  return updatedLocal;
 }
 
 export async function removeSurpriseReveal(code: string): Promise<boolean> {

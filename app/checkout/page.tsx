@@ -128,8 +128,9 @@ export default function CheckoutPage() {
       toast.error('Please enter your delivery address');
       return;
     }
-    if (paymentMethod === 'mobile_money' && !formData.mobileMoneyNumber.trim()) {
-      toast.error('Please enter your Orange Money number');
+    if ((paymentMethod === 'mobile_money' || (paymentMethod as string) === 'afrimoney') && !formData.mobileMoneyNumber.trim()) {
+      const method = (paymentMethod as string) === 'afrimoney' ? 'AfriMoney' : 'Orange Money';
+      toast.error(`Please enter your ${method} number`);
       return;
     }
 
@@ -152,8 +153,8 @@ export default function CheckoutPage() {
         total,
         discountCode: appliedDiscount?.code || null,
         discountAmount: appliedDiscount?.amount || 0,
-        paymentMethod,
-        mobileMoneyNumber: paymentMethod === 'mobile_money' ? formData.mobileMoneyNumber : null,
+        paymentMethod: (paymentMethod as string) === 'afrimoney' ? 'afrimoney' : paymentMethod,
+        mobileMoneyNumber: (paymentMethod === 'mobile_money' || (paymentMethod as string) === 'afrimoney') ? formData.mobileMoneyNumber : null,
         notes: formData.notes
       };
 
@@ -305,14 +306,14 @@ export default function CheckoutPage() {
               <h2 className="text-2xl font-black text-gray-900 mb-6">Payment Method</h2>
               
               <div className="space-y-4">
-                {/* Mobile Money */}
+                {/* Orange Money */}
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('mobile_money')}
-                  className={`w-full p-6 rounded-xl border-2 transition-all ${
+                  className={`w-full p-5 rounded-xl border-2 transition-all ${
                     paymentMethod === 'mobile_money'
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-100 bg-gray-50 hover:border-gray-200'
+                      ? 'border-orange-500 bg-orange-50'
+                      : 'border-gray-100 bg-gray-50 hover:border-orange-200'
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -327,19 +328,49 @@ export default function CheckoutPage() {
                         />
                       </div>
                       <div className="text-left">
-                        <h3 className="text-gray-900 font-bold text-lg">Orange Money</h3>
-                        <p className="text-gray-500 text-sm">Pay securely via Orange Money</p>
+                        <h3 className="text-gray-900 font-bold text-lg">🟠 Orange Money</h3>
+                        <p className="text-gray-500 text-sm">Pay securely via Orange Money USSD</p>
                       </div>
                     </div>
                     {paymentMethod === 'mobile_money' && (
-                      <Check className="w-6 h-6 text-blue-500" />
+                      <Check className="w-6 h-6 text-orange-500" />
                     )}
                   </div>
                 </button>
 
-                {paymentMethod === 'mobile_money' && (
-                  <div className="pl-4">
-                    <label className="block text-gray-700 font-bold mb-2">Orange Money Number *</label>
+                {/* AfriMoney */}
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('afrimoney' as any)}
+                  className={`w-full p-5 rounded-xl border-2 transition-all ${
+                    (paymentMethod as string) === 'afrimoney'
+                      ? 'border-emerald-500 bg-emerald-50'
+                      : 'border-gray-100 bg-gray-50 hover:border-emerald-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black text-lg ${
+                        (paymentMethod as string) === 'afrimoney' ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-500'
+                      }`}>
+                        💚
+                      </div>
+                      <div className="text-left">
+                        <h3 className="text-gray-900 font-bold text-lg">💚 AfriMoney</h3>
+                        <p className="text-gray-500 text-sm">Pay securely via AfriMoney mobile wallet</p>
+                      </div>
+                    </div>
+                    {(paymentMethod as string) === 'afrimoney' && (
+                      <Check className="w-6 h-6 text-emerald-500" />
+                    )}
+                  </div>
+                </button>
+
+                {(paymentMethod === 'mobile_money' || (paymentMethod as string) === 'afrimoney') && (
+                  <div className="pl-4 space-y-3">
+                    <label className="block text-gray-700 font-bold mb-2">
+                      {(paymentMethod as string) === 'afrimoney' ? 'AfriMoney' : 'Orange Money'} Number *
+                    </label>
                     <input
                       type="tel"
                       required
@@ -348,11 +379,11 @@ export default function CheckoutPage() {
                       className="w-full px-4 py-3 bg-gray-50 text-gray-900 rounded-lg border border-gray-200 focus:border-[#FF7900] focus:outline-none"
                       placeholder="+232 7X XXX XXX"
                     />
-                    <p className="text-gray-500 text-sm mt-2">
-                      You will receive an Orange Money prompt on this number
+                    <p className="text-gray-500 text-sm">
+                      You will receive a mobile money prompt on this number to confirm payment.
                     </p>
 
-                    {isDesktop && (
+                    {isDesktop && paymentMethod === 'mobile_money' && (
                       <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 shadow-sm space-y-4">
                         <div className="flex items-start gap-3">
                           <Smartphone className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0 animate-bounce" />
@@ -388,7 +419,7 @@ export default function CheckoutPage() {
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('cash')}
-                  className={`w-full p-6 rounded-xl border-2 transition-all ${
+                  className={`w-full p-5 rounded-xl border-2 transition-all ${
                     paymentMethod === 'cash'
                       ? 'border-blue-500 bg-blue-50'
                       : 'border-gray-100 bg-gray-50 hover:border-gray-200'

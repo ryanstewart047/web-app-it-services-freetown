@@ -53,10 +53,22 @@ const OCCASION_PRESETS: PresetTemplate[] = [
     soundEffect: 'hand-clap-cheer',
     defaultQuestions: [
       {
-        question: 'Who consistently delivers top-tier results and supports the whole team?',
-        options: ['Our Superstar Celebrant', 'Someone Else', 'Not Sure', 'Nobody'],
+        question: 'Who consistently delivers top-tier results and uplifts the whole team?',
+        options: ['Our Amazing Celebrant Today!', 'Someone in Another Department', 'Not Sure', 'Nobody'],
         correctIndex: 0,
-        hint: 'It is the amazing person we are honoring today!',
+        hint: 'It is the incredible person we are honoring right now!',
+      },
+      {
+        question: 'What quality best describes today\'s honoree at work?',
+        options: ['Hardworking & Inspiring', 'Always Late', 'Rarely Present', 'Does the Minimum'],
+        correctIndex: 0,
+        hint: 'Think about what makes them special in the team!',
+      },
+      {
+        question: 'Which award best describes today\'s recognition?',
+        options: ['Outstanding Team Member of the Quarter', 'Best Parking Spot Award', 'Fastest Lunch Break', 'Longest Meeting Attendee'],
+        correctIndex: 0,
+        hint: 'It is a prestigious quarterly recognition!',
       },
     ],
   },
@@ -69,10 +81,22 @@ const OCCASION_PRESETS: PresetTemplate[] = [
     soundEffect: 'hand-clap-cheer',
     defaultQuestions: [
       {
-        question: 'What special event are we celebrating today with joy?',
-        options: ['A Milestone Birthday!', 'Just a Regular Monday', 'A Random Meeting', 'Tax Season'],
+        question: 'What special occasion are we celebrating today with joy?',
+        options: ['A Milestone Birthday! 🎂', 'Just a Regular Monday', 'A Team Meeting', 'Tax Deadline'],
         correctIndex: 0,
-        hint: 'Hint: Candles, cake, and celebration!',
+        hint: 'Hint: Candles, cake, wishes, and celebration!',
+      },
+      {
+        question: 'Which best describes how today\'s birthday person makes others feel?',
+        options: ['Loved, Happy & Special Every Day', 'Neutral Most Times', 'Barely Noticed', 'Hard to Be Around'],
+        correctIndex: 0,
+        hint: 'Think about their warm personality!',
+      },
+      {
+        question: 'What is the best gift you can give someone on their special day?',
+        options: ['Your Heartfelt Love & This Surprise! 🎁', 'A Bill They Owe You', 'Extra Work', 'Nothing at All'],
+        correctIndex: 0,
+        hint: 'This very surprise reveal IS the answer!',
       },
     ],
   },
@@ -81,14 +105,26 @@ const OCCASION_PRESETS: PresetTemplate[] = [
     name: 'Graduation & Academic Honors',
     icon: '🎓',
     achievement: 'Official Graduation & Academic Distinction',
-    message: 'All the late nights, hard work, and determination have paid off. We are so proud of your incredible milestone!',
+    message: 'All the late nights, hard work, and determination have paid off. We are so incredibly proud of your milestone!',
     soundEffect: 'golden-fanfare',
     defaultQuestions: [
       {
-        question: 'What incredible achievement did our scholar just conquer?',
-        options: ['Earned Their Degree with Flying Colors!', 'Won a Video Game', 'Woke up Early', 'Learned to Whistle'],
+        question: 'What incredible feat did our scholar just conquer?',
+        options: ['Earned Their Degree with Flying Colors! 🎓', 'Won a Video Game Tournament', 'Woke Up Early', 'Survived a Meeting'],
         correctIndex: 0,
-        hint: 'Think about caps, gowns, and diplomas!',
+        hint: 'Think caps, gowns, and diplomas!',
+      },
+      {
+        question: 'How many years of hard work and dedication did this achievement take?',
+        options: ['Years of Consistent Effort & Sacrifice', 'Just One Afternoon', 'A Lucky Guess', 'It Happened by Accident'],
+        correctIndex: 0,
+        hint: 'Academic journeys require true perseverance!',
+      },
+      {
+        question: 'What comes next after this grand graduation milestone?',
+        options: ['A Bright & Limitless Future! 🌟', 'Going Back to Square One', 'Staying the Same', 'No Plans at All'],
+        correctIndex: 0,
+        hint: 'Graduation is just the beginning of greatness!',
       },
     ],
   },
@@ -97,14 +133,26 @@ const OCCASION_PRESETS: PresetTemplate[] = [
     name: 'Romantic / Anniversary',
     icon: '💍',
     achievement: 'Happy Anniversary & Everlasting Love',
-    message: 'Every moment with you is a treasure. Thank you for filling life with love, laughter, and happiness!',
+    message: 'Every moment with you is a treasure. Thank you for filling life with love, laughter, and pure happiness!',
     soundEffect: 'sparkle-cascade',
     defaultQuestions: [
       {
-        question: 'Who holds the key to my heart and makes every day magical?',
-        options: ['My One and Only Love', 'The Mailman', 'A Stranger', 'No Idea'],
+        question: 'Who holds the key to my heart and makes every single day magical?',
+        options: ['My One & Only True Love 💕', 'The Mailman', 'A Friendly Stranger', 'No Idea At All'],
         correctIndex: 0,
-        hint: 'The most special person in the universe!',
+        hint: 'The most extraordinary person in the universe!',
+      },
+      {
+        question: 'What do we celebrate together on this special anniversary?',
+        options: ['Our Beautiful Love Story & Journey Together', 'A Regular Tuesday', 'Nothing in Particular', 'Work Deadlines'],
+        correctIndex: 0,
+        hint: 'Think hearts, roses, and memories!',
+      },
+      {
+        question: 'What is the secret ingredient that makes our relationship so beautiful?',
+        options: ['Trust, Respect & Unconditional Love 💖', 'Constant Arguments', 'Ignoring Each Other', 'Just Luck'],
+        correctIndex: 0,
+        hint: 'It is the foundation of every lasting bond!',
       },
     ],
   },
@@ -312,7 +360,7 @@ export default function SurpriseRevealStudio() {
   };
 
   const orderVipPackage = () => {
-    const text = `Hello BridgeTech! I want to order the VIP Deluxe Celebration Package (Le 250 / $12) for ${recipientName || 'my celebrant'} with custom gold certificate, high-res QR card, and permanent archive.`;
+    const text = `Hello BridgeTech! I want to order the Surprise Reveal Certificate for ${recipientName || 'my celebrant'}.\n\nPackage options:\n• Single Certificate Download – Le 25\n• Monthly Pass (5 Downloads) – Le 150\n• Lifetime VIP Pass (Unlimited) – Le 500\n\nPayment via Orange Money or AfriMoney. Please confirm!`;
     window.open(`https://wa.me/23233399391?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -634,25 +682,44 @@ export default function SurpriseRevealStudio() {
         )}
       </div>
 
-      {/* Monetization / VIP Package Feature Box */}
-      <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/5 border border-amber-500/30 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="space-y-1 text-center sm:text-left">
-          <div className="flex items-center justify-center sm:justify-start gap-2">
-            <Crown className="w-4 h-4 text-amber-400" />
-            <h4 className="text-sm font-bold text-white">Monetized VIP Celebration Package (Le 250 / $12)</h4>
+      {/* Pricing / Certificate Unlock Box */}
+      <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/5 border border-amber-500/30 rounded-2xl p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <Crown className="w-4 h-4 text-amber-400 shrink-0" />
+          <h4 className="text-sm font-bold text-white">Unlock Official Printable Certificate</h4>
+        </div>
+        <p className="text-xs text-slate-400">
+          Admin approves payment in 1 click and the recipient&apos;s download unlocks instantly on their reveal page.
+        </p>
+
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 p-2.5 space-y-0.5">
+            <div className="text-lg font-black text-amber-300">Le 25</div>
+            <div className="text-[10px] text-slate-400 font-bold">Single Download</div>
           </div>
-          <p className="text-xs text-slate-400">
-            Includes HD Printable Gold-Foil Certificate, Personalized QR Card, Custom Domain &amp; Permanent Cloud Keepsake.
-          </p>
+          <div className="rounded-xl border border-amber-400/20 bg-white/5 p-2.5 space-y-0.5">
+            <div className="text-lg font-black text-amber-200">Le 150</div>
+            <div className="text-[10px] text-slate-400 font-bold">Monthly (5 uses)</div>
+          </div>
+          <div className="rounded-xl border border-amber-400/20 bg-white/5 p-2.5 space-y-0.5">
+            <div className="text-lg font-black text-amber-200">Le 500</div>
+            <div className="text-[10px] text-slate-400 font-bold">Lifetime Pass</div>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-400">
+          <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/20 text-orange-300 px-2 py-0.5 font-bold border border-orange-500/30">🟠 Orange Money</span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 text-emerald-300 px-2 py-0.5 font-bold border border-emerald-500/30">💚 AfriMoney</span>
+          <span className="text-slate-500">· Pay → Admin approves → Certificate unlocks!</span>
         </div>
 
         <button
           type="button"
           onClick={orderVipPackage}
-          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs shrink-0 shadow-md shadow-amber-500/20 flex items-center gap-2"
+          className="w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 flex items-center justify-center gap-2 transition-all"
         >
           <MessageCircle className="w-4 h-4" />
-          <span>Order VIP Package via WhatsApp</span>
+          <span>Order Certificate via WhatsApp</span>
         </button>
       </div>
     </div>

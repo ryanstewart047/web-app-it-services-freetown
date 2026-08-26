@@ -4,6 +4,7 @@ import {
   createSurpriseReveal,
   getSurpriseReveals,
   removeSurpriseReveal,
+  updateSurpriseRevealPayment,
 } from '@/lib/surprise-reveal-storage';
 import { DEFAULT_SURPRISE_SOUND_EFFECT, isSurpriseSoundEffect } from '@/lib/surprise-reveal-sounds';
 
@@ -82,6 +83,34 @@ export async function POST(request: NextRequest) {
     console.error('[Surprise Reveal Admin] Create error:', error);
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : 'Unable to create the Surprise Reveal.' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  const authError = requireAdmin(request);
+  if (authError) return authError;
+
+  try {
+    const body = await request.json();
+    const code = typeof body.code === 'string' ? body.code.trim() : '';
+    const paymentStatus = body.paymentStatus === 'approved' ? 'approved' : 'pending';
+
+    if (!code) {
+      return NextResponse.json({ success: false, error: 'Reveal code is required.' }, { status: 400 });
+    }
+
+    const updated = await updateSurpriseRevealPayment(code, paymentStatus);
+    if (!updated) {
+      return NextResponse.json({ success: false, error: 'Surprise Reveal not found.' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, reveal: updated });
+  } catch (error) {
+    console.error('[Surprise Reveal Admin] Patch payment error:', error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : 'Unable to update payment status.' },
       { status: 500 }
     );
   }

@@ -28,6 +28,8 @@ interface SurpriseRevealRecord {
   message: string;
   imageUrl: string;
   soundEffect: SurpriseSoundEffect;
+  paymentStatus?: 'pending' | 'approved';
+  isVip?: boolean;
   createdAt: string;
   shareUrl: string;
 }
@@ -91,6 +93,7 @@ export default function SurpriseRevealsAdminPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [approvingCode, setApprovingCode] = useState('');
   const [deletingCode, setDeletingCode] = useState('');
   const [copiedCode, setCopiedCode] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -106,6 +109,33 @@ export default function SurpriseRevealsAdminPage() {
       toast.error(error instanceof Error ? error.message : 'Unable to load Surprise Reveals.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const togglePayment = async (reveal: SurpriseRevealRecord) => {
+    const nextStatus = reveal.paymentStatus === 'approved' ? 'pending' : 'approved';
+    setApprovingCode(reveal.code);
+    try {
+      const response = await fetch('/api/admin/surprise-reveals', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: reveal.code, paymentStatus: nextStatus }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.error || 'Failed to update payment status.');
+
+      setReveals((current) =>
+        current.map((r) => (r.code === reveal.code ? { ...r, paymentStatus: nextStatus } : r))
+      );
+      toast.success(
+        nextStatus === 'approved'
+          ? `Payment APPROVED for ${reveal.recipientName}! Certificate download is now UNLOCKED.`
+          : `Payment set to PENDING for ${reveal.recipientName}.`
+      );
+    } catch (err: any) {
+      toast.error(err.message || 'Could not update payment.');
+    } finally {
+      setApprovingCode('');
     }
   };
 
@@ -275,7 +305,113 @@ export default function SurpriseRevealsAdminPage() {
 
         <section className="mt-8">
           <div className="mb-4 flex items-end justify-between gap-4"><div><h2 className="text-lg font-black text-slate-950">Published reveals</h2><p className="text-sm text-slate-600">Each link opens its own private celebration page.</p></div><button type="button" onClick={() => void loadReveals()} className="text-sm font-bold text-amber-800 hover:text-amber-950">Refresh</button></div>
-          {loading ? <div className="flex min-h-40 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm font-semibold text-slate-500"><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading reveals</div> : reveals.length === 0 ? <div className="flex min-h-40 flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white px-6 text-center"><PartyPopper className="mb-3 h-7 w-7 text-amber-600" /><p className="font-bold text-slate-800">No celebrations created yet.</p><p className="mt-1 text-sm text-slate-500">Your first personalized link will appear here.</p></div> : <div className="grid gap-3 lg:grid-cols-2">{reveals.map((reveal) => <article key={reveal.code} className="flex min-w-0 gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm"><img src={reveal.imageUrl} alt="" className="h-20 w-20 shrink-0 rounded-md object-cover" /><div className="min-w-0 flex-1"><p className="truncate font-black text-slate-950">{reveal.recipientName}</p><p className="mt-0.5 line-clamp-2 text-sm font-semibold text-amber-800">{reveal.achievement}</p><p className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-slate-500"><Volume2 className="h-3.5 w-3.5" /> {getSoundEffectLabel(reveal.soundEffect)}</p><p className="mt-1 text-xs text-slate-500">Created {formatCreatedAt(reveal.createdAt)}</p><div className="mt-3 flex flex-wrap gap-2"><button type="button" onClick={() => void copyLink(reveal)} aria-label="Copy reveal link" className="inline-flex h-9 items-center gap-1.5 rounded-md bg-slate-950 px-3 text-xs font-bold text-white hover:bg-slate-800">{copiedCode === reveal.code ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}{copiedCode === reveal.code ? 'Copied' : 'Copy link'}</button><button type="button" onClick={() => shareOnWhatsApp(reveal)} aria-label="Share on WhatsApp" title="Share via WhatsApp" className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#25D366] px-3 text-xs font-bold text-white hover:bg-[#1ebe5d]"><MessageCircle className="h-3.5 w-3.5" /> WhatsApp</button><a href={reveal.shareUrl} target="_blank" rel="noreferrer" aria-label="Open surprise reveal" className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 text-slate-700 hover:bg-slate-50"><ExternalLink className="h-4 w-4" /></a><button type="button" onClick={() => void deleteReveal(reveal)} disabled={deletingCode === reveal.code} aria-label={`Delete ${reveal.recipientName}'s surprise reveal`} className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50">{deletingCode === reveal.code ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}</button></div></div></article>)}</div>}
+          {loading ? (
+            <div className="flex min-h-40 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm font-semibold text-slate-500">
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading reveals
+            </div>
+          ) : reveals.length === 0 ? (
+            <div className="flex min-h-40 flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white px-6 text-center">
+              <PartyPopper className="mb-3 h-7 w-7 text-amber-600" />
+              <p className="font-bold text-slate-800">No celebrations created yet.</p>
+              <p className="mt-1 text-sm text-slate-500">Your first personalized link will appear here.</p>
+            </div>
+          ) : (
+            <div className="grid gap-3 lg:grid-cols-2">
+              {reveals.map((reveal) => {
+                const isPaid = reveal.paymentStatus === 'approved';
+                const isApproving = approvingCode === reveal.code;
+
+                return (
+                  <article key={reveal.code} className="flex min-w-0 gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                    <img src={reveal.imageUrl} alt="" className="h-20 w-20 shrink-0 rounded-md object-cover" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="truncate font-black text-slate-950">{reveal.recipientName}</p>
+                        <span
+                          className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-black ${
+                            isPaid
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                              : 'bg-amber-100 text-amber-800 border border-amber-300'
+                          }`}
+                        >
+                          {isPaid ? '✓ Paid (Le 25 Approved)' : '⏳ Payment Pending'}
+                        </span>
+                      </div>
+
+                      <p className="mt-0.5 line-clamp-2 text-sm font-semibold text-amber-800">{reveal.achievement}</p>
+                      <p className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-slate-500">
+                        <Volume2 className="h-3.5 w-3.5" /> {getSoundEffectLabel(reveal.soundEffect)}
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-slate-400">Created {formatCreatedAt(reveal.createdAt)}</p>
+
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        {/* 1-Click Payment Approval / Unlock Button */}
+                        <button
+                          type="button"
+                          onClick={() => togglePayment(reveal)}
+                          disabled={isApproving}
+                          aria-label="Toggle payment approval"
+                          className={`inline-flex h-9 items-center gap-1.5 rounded-md px-3 text-xs font-black transition-all ${
+                            isPaid
+                              ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300'
+                              : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm'
+                          }`}
+                        >
+                          {isApproving ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : isPaid ? (
+                            <span>🔒 Lock Certificate</span>
+                          ) : (
+                            <span>✓ Approve Payment (Unlock PDF)</span>
+                          )}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => void copyLink(reveal)}
+                          aria-label="Copy reveal link"
+                          className="inline-flex h-9 items-center gap-1.5 rounded-md bg-slate-950 px-3 text-xs font-bold text-white hover:bg-slate-800"
+                        >
+                          {copiedCode === reveal.code ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                          {copiedCode === reveal.code ? 'Copied' : 'Copy link'}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => shareOnWhatsApp(reveal)}
+                          aria-label="Share on WhatsApp"
+                          title="Share via WhatsApp"
+                          className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#25D366] px-3 text-xs font-bold text-white hover:bg-[#1ebe5d]"
+                        >
+                          <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                        </button>
+
+                        <a
+                          href={reveal.shareUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label="Open surprise reveal"
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 text-slate-700 hover:bg-slate-50"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+
+                        <button
+                          type="button"
+                          onClick={() => void deleteReveal(reveal)}
+                          disabled={deletingCode === reveal.code}
+                          aria-label={`Delete ${reveal.recipientName}'s surprise reveal`}
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50"
+                        >
+                          {deletingCode === reveal.code ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
         </section>
       </div>
     </main>

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { Award, CheckCircle2, Download, HelpCircle, RotateCcw, Share2, Sparkles } from 'lucide-react';
+import { Award, CheckCircle2, Download, HelpCircle, Lock, MessageCircle, RotateCcw, Share2, Sparkles, X } from 'lucide-react';
 import { type SurpriseSoundEffect } from '@/lib/surprise-reveal-sounds';
 import { type QuizQuestion } from '@/lib/surprise-reveal-storage';
 
@@ -16,6 +16,7 @@ interface SurpriseRevealExperienceProps {
   code?: string;
   quiz?: QuizQuestion[];
   isVip?: boolean;
+  paymentStatus?: 'pending' | 'approved';
 }
 
 type RevealPhase = 'locked' | 'quiz' | 'loading' | 'celebrating';
@@ -98,7 +99,6 @@ function playRealApplauseAudio(
     }
   }
 
-  // Direct HTML5 Audio fallback
   window.setTimeout(() => {
     try {
       const audio = new Audio(APPLAUSE_AUDIO_SRC);
@@ -152,6 +152,7 @@ export default function SurpriseRevealExperience({
   code,
   quiz,
   isVip,
+  paymentStatus = 'pending',
 }: SurpriseRevealExperienceProps) {
   const [phase, setPhase] = useState<RevealPhase>('locked');
   const [progress, setProgress] = useState(0);
@@ -162,6 +163,9 @@ export default function SurpriseRevealExperience({
   const [isAnswerWrong, setIsAnswerWrong] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [generatingCert, setGeneratingCert] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  const isPaymentApproved = paymentStatus === 'approved';
 
   const reduceMotion = useReducedMotion();
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -172,7 +176,6 @@ export default function SurpriseRevealExperience({
   const fallingConfetti = useMemo(getFallingConfetti, []);
   const validQuiz = useMemo(() => Array.isArray(quiz) && quiz.length > 0 ? quiz : null, [quiz]);
 
-  // Pre-fetch and decode the 8-second applause & cheering audio into memory
   useEffect(() => {
     let active = true;
     const preloadAudio = async () => {
@@ -236,11 +239,7 @@ export default function SurpriseRevealExperience({
     }
 
     if (context) {
-      // 1. Initial fanfare/melody herald
       playRevealSound(context, soundEffect);
-
-      // 2. As soon as the image finishes revealing (~1.35s into celebration),
-      // play real recorded hand clapping and cheering voices for 8 seconds!
       const startDelay = soundEffect === 'hand-clap-cheer' ? 0.05 : 1.35;
       playRealApplauseAudio(context, applauseBufferRef.current, startDelay, 8);
     }
@@ -305,7 +304,6 @@ export default function SurpriseRevealExperience({
       setIsAnswerWrong(false);
       setShowHint(false);
 
-      // Play pleasant confirmation ping
       if (audioContextRef.current && audioContextRef.current.state === 'running') {
         const pingMaster = audioContextRef.current.createGain();
         pingMaster.gain.setValueAtTime(0.18, audioContextRef.current.currentTime);
@@ -319,7 +317,6 @@ export default function SurpriseRevealExperience({
           setQuizStep((s) => s + 1);
           setSelectedAnswer(null);
         } else {
-          // Finished all questions! Proceed to the grand reveal
           setPhase('loading');
         }
       }, 700);
@@ -329,7 +326,15 @@ export default function SurpriseRevealExperience({
     }
   };
 
-  const downloadCertificate = () => {
+  const handleCertificateClick = () => {
+    if (!isPaymentApproved) {
+      setShowPaymentModal(true);
+      return;
+    }
+    void downloadCertificate();
+  };
+
+  const downloadCertificate = async () => {
     setGeneratingCert(true);
     try {
       const canvas = document.createElement('canvas');
@@ -340,13 +345,13 @@ export default function SurpriseRevealExperience({
 
       // Dark luxury background
       const bgGrad = ctx.createLinearGradient(0, 0, 1600, 1130);
-      bgGrad.addColorStop(0, '#050811');
-      bgGrad.addColorStop(0.5, '#0d1527');
-      bgGrad.addColorStop(1, '#050811');
+      bgGrad.addColorStop(0, '#040711');
+      bgGrad.addColorStop(0.5, '#0b1329');
+      bgGrad.addColorStop(1, '#040711');
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, 1600, 1130);
 
-      // Gold ornate border
+      // Gold ornate borders
       ctx.strokeStyle = '#f59e0b';
       ctx.lineWidth = 14;
       ctx.strokeRect(40, 40, 1520, 1050);
@@ -362,58 +367,91 @@ export default function SurpriseRevealExperience({
       ctx.fillRect(40, 1050, 40, 40);
       ctx.fillRect(1520, 1050, 40, 40);
 
+      // Load and draw recipient photo in gold luxury frame
+      const photoSize = 170;
+      const photoX = 800 - photoSize / 2;
+      const photoY = 120;
+
+      try {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = resolve; // Continue even if external image fails
+          img.src = imageUrl;
+        });
+
+        if (img.complete && img.naturalWidth > 0) {
+          ctx.save();
+          // Draw gold frame shadow & border
+          ctx.beginPath();
+          ctx.arc(800, photoY + photoSize / 2, photoSize / 2 + 8, 0, Math.PI * 2);
+          ctx.fillStyle = '#f59e0b';
+          ctx.shadowColor = 'rgba(245, 158, 11, 0.45)';
+          ctx.shadowBlur = 24;
+          ctx.fill();
+
+          // Clip image to circle
+          ctx.beginPath();
+          ctx.arc(800, photoY + photoSize / 2, photoSize / 2, 0, Math.PI * 2);
+          ctx.clip();
+          ctx.drawImage(img, photoX, photoY, photoSize, photoSize);
+          ctx.restore();
+        }
+      } catch {}
+
       // Header Tag
       ctx.fillStyle = '#f59e0b';
-      ctx.font = 'bold 26px sans-serif';
+      ctx.font = 'bold 22px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('★ OFFICIAL RECOGNITION & CELEBRATION ★', 800, 160);
+      ctx.fillText('★ OFFICIAL RECOGNITION & CELEBRATION ★', 800, 335);
 
       // Title
       ctx.fillStyle = '#ffffff';
-      ctx.font = '900 68px sans-serif';
-      ctx.fillText('CERTIFICATE OF RECOGNITION', 800, 260);
+      ctx.font = '900 54px sans-serif';
+      ctx.fillText('CERTIFICATE OF RECOGNITION', 800, 415);
 
       ctx.fillStyle = '#94a3b8';
-      ctx.font = '28px sans-serif';
-      ctx.fillText('This honor and warm celebration is proudly presented to', 800, 340);
+      ctx.font = '24px sans-serif';
+      ctx.fillText('This honor and celebration is proudly presented to', 800, 475);
 
       // Recipient Name in large gold
       ctx.fillStyle = '#fcd34d';
-      ctx.font = 'bold 78px sans-serif';
-      ctx.fillText(recipientName, 800, 460);
+      ctx.font = 'bold 72px sans-serif';
+      ctx.fillText(recipientName, 800, 580);
 
       // Underline bar
       ctx.fillStyle = '#f59e0b';
-      ctx.fillRect(500, 490, 600, 4);
+      ctx.fillRect(450, 610, 700, 4);
 
       // Achievement
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 44px sans-serif';
-      ctx.fillText(achievement, 800, 580);
+      ctx.font = 'bold 38px sans-serif';
+      ctx.fillText(achievement, 800, 690);
 
       // Personal message
       if (message) {
         ctx.fillStyle = '#cbd5e1';
-        ctx.font = 'italic 28px sans-serif';
-        const msgText = `"${message.slice(0, 140)}"`;
-        ctx.fillText(msgText, 800, 660);
+        ctx.font = 'italic 26px sans-serif';
+        const msgText = `"${message.slice(0, 130)}"`;
+        ctx.fillText(msgText, 800, 765);
       }
 
       // Footer divider
       ctx.fillStyle = '#334155';
-      ctx.fillRect(200, 840, 1200, 2);
+      ctx.fillRect(200, 860, 1200, 2);
 
       // Organization & Date
       ctx.fillStyle = '#f59e0b';
-      ctx.font = 'bold 30px sans-serif';
-      ctx.fillText('BRIDGETECH CELEBRATIONS', 800, 920);
+      ctx.font = 'bold 26px sans-serif';
+      ctx.fillText('BRIDGETECH CELEBRATION STUDIO', 800, 935);
 
       ctx.fillStyle = '#64748b';
-      ctx.font = '22px sans-serif';
-      ctx.fillText(`Issued: ${new Date().toLocaleDateString(undefined, { dateStyle: 'long' })} · Sierra Leone`, 800, 965);
+      ctx.font = '20px sans-serif';
+      ctx.fillText(`Official Verification ID: ${code || 'BT-VIP'} · ${new Date().toLocaleDateString(undefined, { dateStyle: 'long' })} · Sierra Leone`, 800, 980);
 
       const link = document.createElement('a');
-      link.download = `${recipientName.replace(/\s+/g, '_')}_Celebration_Certificate.png`;
+      link.download = `${recipientName.replace(/\s+/g, '_')}_Official_Certificate.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
     } catch (e) {
@@ -653,13 +691,27 @@ export default function SurpriseRevealExperience({
 
                     <motion.button
                       type="button"
-                      onClick={downloadCertificate}
+                      onClick={handleCertificateClick}
                       disabled={generatingCert}
-                      className="w-full inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-4 text-xs sm:text-sm font-black text-neutral-950 transition hover:from-amber-400 hover:to-amber-500 shadow-lg shadow-amber-500/20"
+                      className={`w-full inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-xs sm:text-sm font-black transition-all shadow-lg ${
+                        isPaymentApproved
+                          ? 'bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-neutral-950 shadow-amber-500/20'
+                          : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-400/40'
+                      }`}
                     >
-                      <Award className="h-4 w-4" />
-                      <span>{generatingCert ? 'Generating...' : 'Save Award Certificate (PNG)'}</span>
-                      <Download className="h-4 w-4 ml-1" />
+                      {isPaymentApproved ? (
+                        <>
+                          <Award className="h-4 w-4" />
+                          <span>{generatingCert ? 'Rendering Certificate...' : 'Download Official Certificate (PNG)'}</span>
+                          <Download className="h-4 w-4 ml-1" />
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="h-4 w-4 text-amber-400" />
+                          <span>Unlock Printable Certificate (Le 25)</span>
+                          <Sparkles className="h-3.5 w-3.5 ml-1 text-amber-300" />
+                        </>
+                      )}
                     </motion.button>
                   </motion.div>
                 )}
@@ -668,6 +720,92 @@ export default function SurpriseRevealExperience({
           )}
         </AnimatePresence>
       </section>
+
+      {/* Payment Approval / Certificate Unlock Modal */}
+      <AnimatePresence>
+        {showPaymentModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 15 }}
+              className="relative w-full max-w-md rounded-3xl border border-amber-400/40 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 p-6 sm:p-7 shadow-2xl text-left text-white"
+            >
+              <button
+                type="button"
+                onClick={() => setShowPaymentModal(false)}
+                className="absolute right-4 top-4 rounded-full p-2 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
+              <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                  <Award className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white">Official Printable Certificate</h3>
+                  <p className="text-xs text-amber-300 font-bold">Admin Payment Confirmation Required</p>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-3 text-xs text-slate-300 leading-relaxed">
+                <p>
+                  The official gold-foil Certificate of Recognition with <strong className="text-white">{recipientName}&apos;s</strong> photo is prepared and stored securely.
+                </p>
+
+                <div className="rounded-2xl border border-amber-400/30 bg-amber-400/10 p-3.5 space-y-2">
+                  <div className="flex justify-between items-center font-bold text-white text-xs">
+                    <span>Single Certificate Download</span>
+                    <span className="text-amber-300 font-mono text-sm">Le 25</span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-300 text-[11px]">
+                    <span>Monthly Pass (5 Downloads)</span>
+                    <span className="font-mono text-amber-300">Le 150</span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-300 text-[11px]">
+                    <span>Lifetime VIP Pass (Unlimited)</span>
+                    <span className="font-mono text-amber-300">Le 500</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/20 text-orange-300 px-2.5 py-1 text-[11px] font-black border border-orange-500/30">
+                    🟠 Orange Money
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 text-emerald-300 px-2.5 py-1 text-[11px] font-black border border-emerald-500/30">
+                    💚 AfriMoney
+                  </span>
+                </div>
+
+                <p className="text-[11px] text-slate-400">
+                  Pay via Orange Money or AfriMoney, then WhatsApp us your screenshot. Admin approves in 1 click and your certificate download unlocks instantly!
+                </p>
+              </div>
+
+              <div className="mt-6 flex flex-col gap-2.5">
+                <a
+                  href={`https://wa.me/23233399391?text=${encodeURIComponent(`Hello BridgeTech! I want to confirm payment (Le 25) for my Official Certificate: ${recipientName} - Code: ${code || ''}`)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center gap-2 rounded-xl bg-[#25D366] hover:bg-[#1ebe5d] p-3 text-xs font-black text-white transition-all shadow-lg"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  <span>Confirm Payment via WhatsApp (+232 33 399 391)</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => setShowPaymentModal(false)}
+                  className="w-full rounded-xl bg-slate-800 hover:bg-slate-700 p-2.5 text-xs font-bold text-slate-300 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }
