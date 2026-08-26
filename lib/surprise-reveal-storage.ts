@@ -22,6 +22,10 @@ export interface SurpriseReveal {
   quiz?: QuizQuestion[];
   isVip?: boolean;
   paymentStatus?: 'pending' | 'approved';
+  customerEmail?: string;
+  customerPhone?: string;
+  selectedPlan?: string;
+  paymentMethod?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -36,6 +40,10 @@ interface SurpriseRevealRow {
   quizData?: string | null;
   isVip?: boolean | null;
   paymentStatus?: string | null;
+  customerEmail?: string | null;
+  customerPhone?: string | null;
+  selectedPlan?: string | null;
+  paymentMethod?: string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
 }
@@ -104,6 +112,10 @@ function normalizeReveal(value: unknown): SurpriseReveal | null {
     quiz: quiz && quiz.length > 0 ? quiz : undefined,
     isVip: Boolean(candidate.isVip),
     paymentStatus,
+    customerEmail: typeof candidate.customerEmail === 'string' ? candidate.customerEmail : undefined,
+    customerPhone: typeof candidate.customerPhone === 'string' ? candidate.customerPhone : undefined,
+    selectedPlan: typeof candidate.selectedPlan === 'string' ? candidate.selectedPlan : undefined,
+    paymentMethod: typeof candidate.paymentMethod === 'string' ? candidate.paymentMethod : undefined,
     createdAt: asIsoDate(candidate.createdAt),
     updatedAt: asIsoDate(candidate.updatedAt),
   };
@@ -164,6 +176,18 @@ async function ensureDatabaseTable(): Promise<boolean> {
         await prisma.$executeRawUnsafe(
           `ALTER TABLE "SurpriseReveal" ADD COLUMN IF NOT EXISTS "paymentStatus" TEXT DEFAULT 'pending'`
         );
+        await prisma.$executeRawUnsafe(
+          `ALTER TABLE "SurpriseReveal" ADD COLUMN IF NOT EXISTS "customerEmail" TEXT`
+        );
+        await prisma.$executeRawUnsafe(
+          `ALTER TABLE "SurpriseReveal" ADD COLUMN IF NOT EXISTS "customerPhone" TEXT`
+        );
+        await prisma.$executeRawUnsafe(
+          `ALTER TABLE "SurpriseReveal" ADD COLUMN IF NOT EXISTS "selectedPlan" TEXT`
+        );
+        await prisma.$executeRawUnsafe(
+          `ALTER TABLE "SurpriseReveal" ADD COLUMN IF NOT EXISTS "paymentMethod" TEXT`
+        );
         return true;
       } catch (error) {
         console.error('[Surprise Reveal] Database initialization failed:', error);
@@ -180,7 +204,7 @@ async function readDatabaseReveals(): Promise<SurpriseReveal[] | null> {
 
   try {
     const rows = await prisma.$queryRawUnsafe<SurpriseRevealRow[]>(
-      `SELECT "code", "recipientName", "achievement", "message", "imageUrl", "soundEffect", "quizData", "isVip", "paymentStatus", "createdAt", "updatedAt"
+      `SELECT "code", "recipientName", "achievement", "message", "imageUrl", "soundEffect", "quizData", "isVip", "paymentStatus", "customerEmail", "customerPhone", "selectedPlan", "paymentMethod", "createdAt", "updatedAt"
        FROM "SurpriseReveal" ORDER BY "createdAt" DESC`
     );
     return rows
@@ -197,7 +221,7 @@ async function readDatabaseReveal(code: string): Promise<SurpriseReveal | null> 
 
   try {
     const rows = await prisma.$queryRawUnsafe<SurpriseRevealRow[]>(
-      `SELECT "code", "recipientName", "achievement", "message", "imageUrl", "soundEffect", "quizData", "isVip", "paymentStatus", "createdAt", "updatedAt"
+      `SELECT "code", "recipientName", "achievement", "message", "imageUrl", "soundEffect", "quizData", "isVip", "paymentStatus", "customerEmail", "customerPhone", "selectedPlan", "paymentMethod", "createdAt", "updatedAt"
        FROM "SurpriseReveal" WHERE "code" = $1 LIMIT 1`,
       code
     );
@@ -216,8 +240,8 @@ async function insertDatabaseReveal(reveal: SurpriseReveal): Promise<boolean> {
     const paymentStatus = reveal.paymentStatus || 'pending';
     await prisma.$executeRawUnsafe(
       `INSERT INTO "SurpriseReveal"
-        ("code", "recipientName", "achievement", "message", "imageUrl", "soundEffect", "quizData", "isVip", "paymentStatus", "createdAt", "updatedAt")
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::timestamptz, $11::timestamptz)`,
+        ("code", "recipientName", "achievement", "message", "imageUrl", "soundEffect", "quizData", "isVip", "paymentStatus", "customerEmail", "customerPhone", "selectedPlan", "paymentMethod", "createdAt", "updatedAt")
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::timestamptz, $15::timestamptz)`,
       reveal.code,
       reveal.recipientName,
       reveal.achievement,
@@ -227,6 +251,10 @@ async function insertDatabaseReveal(reveal: SurpriseReveal): Promise<boolean> {
       quizDataJson,
       Boolean(reveal.isVip),
       paymentStatus,
+      reveal.customerEmail || null,
+      reveal.customerPhone || null,
+      reveal.selectedPlan || null,
+      reveal.paymentMethod || null,
       reveal.createdAt,
       reveal.updatedAt
     );
@@ -237,10 +265,34 @@ async function insertDatabaseReveal(reveal: SurpriseReveal): Promise<boolean> {
   }
 }
 
-async function updateDatabasePayment(code: string, paymentStatus: 'pending' | 'approved'): Promise<boolean | null> {
+async function updateDatabasePayment(
+  code: string,
+  paymentStatus: 'pending' | 'approved',
+  customerInfo?: { customerEmail?: string; customerPhone?: string; selectedPlan?: string; paymentMethod?: string }
+): Promise<boolean | null> {
   if (!(await ensureDatabaseTable())) return null;
 
   try {
+    if (customerInfo) {
+      const updated = await prisma.$executeRawUnsafe(
+        `UPDATE "SurpriseReveal"
+         SET "paymentStatus" = $1,
+             "customerEmail" = COALESCE($2, "customerEmail"),
+             "customerPhone" = COALESCE($3, "customerPhone"),
+             "selectedPlan" = COALESCE($4, "selectedPlan"),
+             "paymentMethod" = COALESCE($5, "paymentMethod"),
+             "updatedAt" = CURRENT_TIMESTAMP
+         WHERE "code" = $6`,
+        paymentStatus,
+        customerInfo.customerEmail || null,
+        customerInfo.customerPhone || null,
+        customerInfo.selectedPlan || null,
+        customerInfo.paymentMethod || null,
+        code
+      );
+      return updated > 0;
+    }
+
     const updated = await prisma.$executeRawUnsafe(
       `UPDATE "SurpriseReveal" SET "paymentStatus" = $1, "updatedAt" = CURRENT_TIMESTAMP WHERE "code" = $2`,
       paymentStatus,
@@ -301,8 +353,41 @@ export async function createSurpriseReveal(input: Omit<SurpriseReveal, 'code' | 
   return reveal;
 }
 
-export async function updateSurpriseRevealPayment(code: string, paymentStatus: 'pending' | 'approved'): Promise<SurpriseReveal | null> {
-  const dbUpdated = await updateDatabasePayment(code, paymentStatus);
+export async function submitSurpriseRevealPayment(
+  code: string,
+  data: { customerEmail: string; customerPhone: string; selectedPlan: string; paymentMethod: string }
+): Promise<SurpriseReveal | null> {
+  const dbUpdated = await updateDatabasePayment(code, 'pending', data);
+  const reveals = readLocalReveals();
+  const index = reveals.findIndex((r) => r.code === code);
+  let updatedLocal: SurpriseReveal | null = null;
+
+  if (index !== -1) {
+    reveals[index] = {
+      ...reveals[index],
+      customerEmail: data.customerEmail,
+      customerPhone: data.customerPhone,
+      selectedPlan: data.selectedPlan,
+      paymentMethod: data.paymentMethod,
+      updatedAt: new Date().toISOString(),
+    };
+    writeLocalReveals(reveals);
+    updatedLocal = reveals[index];
+  }
+
+  if (dbUpdated) {
+    return await getSurpriseReveal(code);
+  }
+
+  return updatedLocal;
+}
+
+export async function updateSurpriseRevealPayment(
+  code: string,
+  paymentStatus: 'pending' | 'approved',
+  customerInfo?: { customerEmail?: string; customerPhone?: string; selectedPlan?: string; paymentMethod?: string }
+): Promise<SurpriseReveal | null> {
+  const dbUpdated = await updateDatabasePayment(code, paymentStatus, customerInfo);
   const reveals = readLocalReveals();
   const index = reveals.findIndex((r) => r.code === code);
   let updatedLocal: SurpriseReveal | null = null;
@@ -311,6 +396,10 @@ export async function updateSurpriseRevealPayment(code: string, paymentStatus: '
     reveals[index] = {
       ...reveals[index],
       paymentStatus,
+      ...(customerInfo?.customerEmail && { customerEmail: customerInfo.customerEmail }),
+      ...(customerInfo?.customerPhone && { customerPhone: customerInfo.customerPhone }),
+      ...(customerInfo?.selectedPlan && { selectedPlan: customerInfo.selectedPlan }),
+      ...(customerInfo?.paymentMethod && { paymentMethod: customerInfo.paymentMethod }),
       updatedAt: new Date().toISOString(),
     };
     writeLocalReveals(reveals);

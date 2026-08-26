@@ -164,6 +164,12 @@ export default function SurpriseRevealExperience({
   const [showHint, setShowHint] = useState(false);
   const [generatingCert, setGeneratingCert] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<'single' | 'monthly' | 'lifetime'>('single');
+  const [payMethod, setPayMethod] = useState<'orange_money' | 'afrimoney'>('orange_money');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [submittingPayment, setSubmittingPayment] = useState(false);
+  const [paymentSubmitted, setPaymentSubmitted] = useState(false);
 
   const isPaymentApproved = paymentStatus === 'approved';
 
@@ -461,6 +467,43 @@ export default function SurpriseRevealExperience({
     }
   };
 
+  const handleSubmitPaymentProof = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customerEmail.trim() || !customerEmail.includes('@')) {
+      alert('Please enter a valid email address to receive your certificate.');
+      return;
+    }
+
+    setSubmittingPayment(true);
+    try {
+      const response = await fetch('/api/surprise-reveals/submit-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code,
+          customerEmail: customerEmail.trim(),
+          customerPhone: customerPhone.trim(),
+          selectedPlan,
+          paymentMethod: payMethod,
+        }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setPaymentSubmitted(true);
+        if (result.waUrl) {
+          window.open(result.waUrl, '_blank', 'noopener,noreferrer');
+        }
+      } else {
+        alert(result.error || 'Failed to submit payment details.');
+      }
+    } catch {
+      alert('An error occurred while submitting payment. Please contact WhatsApp +232 33 399 391 directly.');
+    } finally {
+      setSubmittingPayment(false);
+    }
+  };
+
   const cinematicDuration = reduceMotion ? 0.01 : 4.8;
 
   return (
@@ -724,12 +767,12 @@ export default function SurpriseRevealExperience({
       {/* Payment Approval / Certificate Unlock Modal */}
       <AnimatePresence>
         {showPaymentModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.94, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.94, y: 15 }}
-              className="relative w-full max-w-md rounded-3xl border border-amber-400/40 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 p-6 sm:p-7 shadow-2xl text-left text-white"
+              className="relative w-full max-w-lg rounded-3xl border border-amber-400/40 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 p-6 sm:p-7 shadow-2xl text-left text-white my-8"
             >
               <button
                 type="button"
@@ -744,64 +787,165 @@ export default function SurpriseRevealExperience({
                   <Award className="h-6 w-6" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-white">Official Printable Certificate</h3>
-                  <p className="text-xs text-amber-300 font-bold">Admin Payment Confirmation Required</p>
+                  <h3 className="text-base font-black text-white">Unlock Official Printable Certificate</h3>
+                  <p className="text-xs text-amber-300 font-bold">Select Plan &amp; Confirm Payment via WhatsApp</p>
                 </div>
               </div>
 
-              <div className="mt-4 space-y-3 text-xs text-slate-300 leading-relaxed">
-                <p>
-                  The official gold-foil Certificate of Recognition with <strong className="text-white">{recipientName}&apos;s</strong> photo is prepared and stored securely.
-                </p>
+              {!paymentSubmitted ? (
+                <form onSubmit={handleSubmitPaymentProof} className="mt-4 space-y-4 text-xs text-slate-300">
+                  {/* Plan Selector */}
+                  <div>
+                    <label className="block text-[11px] font-black uppercase text-amber-300 mb-2">1. Choose Your Plan</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPlan('single')}
+                        className={`p-2.5 rounded-xl border text-center transition-all ${
+                          selectedPlan === 'single'
+                            ? 'border-amber-400 bg-amber-400/20 text-white shadow-md'
+                            : 'border-white/10 bg-white/5 text-slate-400 hover:bg-white/10'
+                        }`}
+                      >
+                        <div className="text-sm font-black text-amber-300">Le 25</div>
+                        <div className="text-[10px] font-bold mt-0.5">Single Use</div>
+                      </button>
 
-                <div className="rounded-2xl border border-amber-400/30 bg-amber-400/10 p-3.5 space-y-2">
-                  <div className="flex justify-between items-center font-bold text-white text-xs">
-                    <span>Single Certificate Download</span>
-                    <span className="text-amber-300 font-mono text-sm">Le 25</span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPlan('monthly')}
+                        className={`p-2.5 rounded-xl border text-center transition-all ${
+                          selectedPlan === 'monthly'
+                            ? 'border-amber-400 bg-amber-400/20 text-white shadow-md'
+                            : 'border-white/10 bg-white/5 text-slate-400 hover:bg-white/10'
+                        }`}
+                      >
+                        <div className="text-sm font-black text-amber-300">Le 150</div>
+                        <div className="text-[10px] font-bold mt-0.5">Monthly (5 uses)</div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPlan('lifetime')}
+                        className={`p-2.5 rounded-xl border text-center transition-all ${
+                          selectedPlan === 'lifetime'
+                            ? 'border-amber-400 bg-amber-400/20 text-white shadow-md'
+                            : 'border-white/10 bg-white/5 text-slate-400 hover:bg-white/10'
+                        }`}
+                      >
+                        <div className="text-sm font-black text-amber-300">Le 500</div>
+                        <div className="text-[10px] font-bold mt-0.5">Lifetime VIP</div>
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center text-slate-300 text-[11px]">
-                    <span>Monthly Pass (5 Downloads)</span>
-                    <span className="font-mono text-amber-300">Le 150</span>
+
+                  {/* Payment Method Selector */}
+                  <div>
+                    <label className="block text-[11px] font-black uppercase text-amber-300 mb-2">2. Payment Method</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setPayMethod('orange_money')}
+                        className={`p-2.5 rounded-xl border text-left flex items-center gap-2 transition-all ${
+                          payMethod === 'orange_money'
+                            ? 'border-orange-500 bg-orange-500/20 text-white'
+                            : 'border-white/10 bg-white/5 text-slate-400'
+                        }`}
+                      >
+                        <span className="text-base">🟠</span>
+                        <div>
+                          <div className="font-bold text-white text-xs">Orange Money</div>
+                          <div className="text-[10px] text-orange-300 font-mono">*144*2*2*241586#</div>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPayMethod('afrimoney')}
+                        className={`p-2.5 rounded-xl border text-left flex items-center gap-2 transition-all ${
+                          payMethod === 'afrimoney'
+                            ? 'border-emerald-500 bg-emerald-500/20 text-white'
+                            : 'border-white/10 bg-white/5 text-slate-400'
+                        }`}
+                      >
+                        <span className="text-base">💚</span>
+                        <div>
+                          <div className="font-bold text-white text-xs">AfriMoney</div>
+                          <div className="text-[10px] text-emerald-300 font-mono">+232 33 399 391</div>
+                        </div>
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center text-slate-300 text-[11px]">
-                    <span>Lifetime VIP Pass (Unlimited)</span>
-                    <span className="font-mono text-amber-300">Le 500</span>
+
+                  {/* Customer Email & Phone Input */}
+                  <div className="space-y-2.5 pt-1">
+                    <label className="block text-[11px] font-black uppercase text-amber-300">3. Your Contact for Certificate Delivery</label>
+                    <div>
+                      <input
+                        type="email"
+                        required
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        placeholder="Your Email (to receive the official certificate) *"
+                        className="w-full bg-slate-950 border border-white/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+                      />
+                      <p className="text-[10px] text-slate-400 mt-1">
+                        We will automatically email your high-resolution certificate link as soon as payment is confirmed.
+                      </p>
+                    </div>
+
+                    <div>
+                      <input
+                        type="tel"
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        placeholder="Your WhatsApp Number (e.g. +232 7X XXX XXX)"
+                        className="w-full bg-slate-950 border border-white/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-2 space-y-2">
+                    <button
+                      type="submit"
+                      disabled={submittingPayment}
+                      className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#25D366] hover:bg-[#1ebe5d] p-3 text-xs font-black text-white transition-all shadow-lg shadow-green-600/25 disabled:opacity-50"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      <span>{submittingPayment ? 'Submitting Details...' : 'Submit & Send Proof on WhatsApp (+232 33 399 391)'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowPaymentModal(false)}
+                      className="w-full rounded-xl bg-slate-800 hover:bg-slate-700 p-2.5 text-xs font-bold text-slate-400 hover:text-white transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="mt-4 space-y-4 text-xs text-slate-300 animate-fade-in text-center py-4">
+                  <div className="w-14 h-14 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mx-auto text-2xl">
+                    ✓
+                  </div>
+                  <h4 className="text-base font-black text-white">Payment Proof Submitted!</h4>
+                  <p className="text-slate-300 leading-relaxed max-w-sm mx-auto">
+                    We sent a confirmation email to <strong className="text-white">{customerEmail}</strong>.
+                    As soon as our admin verifies your payment, you will receive your direct certificate download link via Email and WhatsApp!
+                  </p>
+
+                  <div className="pt-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowPaymentModal(false)}
+                      className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all"
+                    >
+                      Got it, Back to Celebration
+                    </button>
                   </div>
                 </div>
-
-                <div className="flex flex-wrap gap-1.5">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/20 text-orange-300 px-2.5 py-1 text-[11px] font-black border border-orange-500/30">
-                    🟠 Orange Money
-                  </span>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 text-emerald-300 px-2.5 py-1 text-[11px] font-black border border-emerald-500/30">
-                    💚 AfriMoney
-                  </span>
-                </div>
-
-                <p className="text-[11px] text-slate-400">
-                  Pay via Orange Money or AfriMoney, then WhatsApp us your screenshot. Admin approves in 1 click and your certificate download unlocks instantly!
-                </p>
-              </div>
-
-              <div className="mt-6 flex flex-col gap-2.5">
-                <a
-                  href={`https://wa.me/23233399391?text=${encodeURIComponent(`Hello BridgeTech! I want to confirm payment (Le 25) for my Official Certificate: ${recipientName} - Code: ${code || ''}`)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center justify-center gap-2 rounded-xl bg-[#25D366] hover:bg-[#1ebe5d] p-3 text-xs font-black text-white transition-all shadow-lg"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  <span>Confirm Payment via WhatsApp (+232 33 399 391)</span>
-                </a>
-
-                <button
-                  type="button"
-                  onClick={() => setShowPaymentModal(false)}
-                  className="w-full rounded-xl bg-slate-800 hover:bg-slate-700 p-2.5 text-xs font-bold text-slate-300 transition-colors"
-                >
-                  Close
-                </button>
-              </div>
+              )}
             </motion.div>
           </div>
         )}

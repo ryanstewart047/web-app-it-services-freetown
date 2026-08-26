@@ -619,5 +619,98 @@ BridgeTech IT Services
       </div>
     `,
     text: `Your BridgeTech IT Services Admin 2FA Code is: ${data.code}\n\nThis code will expire in ${data.expiresMinutes} minutes.\nIf you did not request this code, please secure your admin credentials.`
+  }),
+
+  surprisePaymentSubmitted: (data: {
+    recipientName: string;
+    achievement: string;
+    planName: string;
+    amount: string;
+    paymentMethod: string;
+    code: string;
+    revealUrl: string;
+  }) => ({
+    subject: `🎉 Payment Confirmation Received: ${data.recipientName}'s Certificate`,
+    html: `
+      <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0b1120; border: 1px solid #1e293b; border-radius: 16px; overflow: hidden; color: #f8fafc;">
+        <div style="background: linear-gradient(135deg, #d97706 0%, #b45309 100%); padding: 30px 20px; text-align: center;">
+          <h2 style="margin: 0; font-size: 24px; color: #ffffff;">🌟 Payment Received & Under Review</h2>
+          <p style="margin: 6px 0 0; color: #fef3c7; font-size: 14px;">BridgeTech Celebration & Recognition Studio</p>
+        </div>
+        <div style="padding: 28px 24px;">
+          <p style="font-size: 15px; color: #e2e8f0; margin-top: 0;">Hello,</p>
+          <p style="font-size: 14px; color: #94a3b8; line-height: 1.6;">
+            We received your payment confirmation for <strong style="color: #fcd34d;">${data.recipientName}</strong>'s official Certificate of Recognition.
+          </p>
+
+          <div style="background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 18px; margin: 20px 0;">
+            <p style="margin: 0 0 8px; font-size: 13px; color: #94a3b8;"><strong>Recipient:</strong> <span style="color: #ffffff;">${data.recipientName}</span></p>
+            <p style="margin: 0 0 8px; font-size: 13px; color: #94a3b8;"><strong>Achievement:</strong> <span style="color: #ffffff;">${data.achievement}</span></p>
+            <p style="margin: 0 0 8px; font-size: 13px; color: #94a3b8;"><strong>Selected Plan:</strong> <span style="color: #f59e0b; font-weight: bold;">${data.planName} (${data.amount})</span></p>
+            <p style="margin: 0 0 8px; font-size: 13px; color: #94a3b8;"><strong>Payment Method:</strong> <span style="color: #ffffff;">${data.paymentMethod}</span></p>
+            <p style="margin: 0; font-size: 13px; color: #94a3b8;"><strong>Celebration Code:</strong> <code style="color: #fcd34d; font-family: monospace;">${data.code}</code></p>
+          </div>
+
+          <p style="font-size: 13px; color: #cbd5e1; line-height: 1.5;">
+            Our admin team is verifying your payment. Once approved, you will receive a follow-up email and WhatsApp message with your <strong>Direct Certificate Download Link</strong>!
+          </p>
+
+          <div style="text-align: center; margin: 28px 0 10px;">
+            <a href="${data.revealUrl}" style="background: #f59e0b; color: #0f172a; padding: 12px 28px; text-decoration: none; border-radius: 10px; font-weight: 800; font-size: 14px; display: inline-block;">
+              View Live Surprise Reveal ↗
+            </a>
+          </div>
+        </div>
+        <div style="background: #060911; padding: 16px; text-align: center; font-size: 12px; color: #475569;">
+          BridgeTech IT Services • #1 Regent Highway, Jui Junction, Freetown • WhatsApp: +232 33 399 391
+        </div>
+      </div>
+    `,
+    text: `Payment confirmation received for ${data.recipientName}'s Certificate (${data.planName} - ${data.amount}). Once admin approves, you will receive your direct certificate download link!\nView reveal: ${data.revealUrl}`
+  }),
+
+  surpriseCertificateApproved: (data: {
+    recipientName: string;
+    achievement: string;
+    certificateUrl: string;
+    revealUrl: string;
+    code: string;
+  }) => ({
+    subject: `🏆 Certificate Unlocked: Official Recognition for ${data.recipientName}`,
+    html: `
+      <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0b1120; border: 1px solid #d97706; border-radius: 16px; overflow: hidden; color: #f8fafc; box-shadow: 0 10px 30px rgba(217, 119, 6, 0.2);">
+        <div style="background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%); padding: 32px 20px; text-align: center;">
+          <h2 style="margin: 0; font-size: 26px; color: #0f172a; font-weight: 900;">🏆 CERTIFICATE APPROVED & UNLOCKED</h2>
+          <p style="margin: 6px 0 0; color: #451a03; font-size: 14px; font-weight: 700;">BridgeTech Celebration & Recognition Studio</p>
+        </div>
+        <div style="padding: 30px 24px; text-align: center;">
+          <p style="font-size: 16px; color: #fcd34d; font-weight: 700; margin-top: 0;">Congratulations!</p>
+          <p style="font-size: 14px; color: #e2e8f0; line-height: 1.6;">
+            Payment for <strong style="color: #ffffff;">${data.recipientName}</strong>'s official Certificate of Recognition has been approved!
+          </p>
+
+          <div style="background: #1e293b; border: 1px solid #f59e0b; border-radius: 12px; padding: 20px; margin: 24px 0; text-align: left;">
+            <p style="margin: 0 0 8px; font-size: 14px; color: #94a3b8;"><strong>Recipient:</strong> <span style="color: #fcd34d; font-weight: bold; font-size: 16px;">${data.recipientName}</span></p>
+            <p style="margin: 0 0 8px; font-size: 13px; color: #94a3b8;"><strong>Achievement:</strong> <span style="color: #ffffff;">${data.achievement}</span></p>
+            <p style="margin: 0; font-size: 13px; color: #94a3b8;"><strong>Verification ID:</strong> <code style="color: #fcd34d; font-family: monospace;">${data.code}</code></p>
+          </div>
+
+          <div style="margin: 28px 0;">
+            <a href="${data.certificateUrl}" style="background: linear-gradient(to right, #f59e0b, #d97706); color: #0f172a; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: 900; font-size: 15px; display: inline-block; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);">
+              📥 Download High-Resolution Certificate
+            </a>
+          </div>
+
+          <p style="font-size: 13px; color: #94a3b8; margin: 20px 0 0;">
+            You can also open and replay the live animated reveal page anytime:<br>
+            <a href="${data.revealUrl}" style="color: #f59e0b; text-decoration: underline;">${data.revealUrl}</a>
+          </p>
+        </div>
+        <div style="background: #060911; padding: 16px; text-align: center; font-size: 12px; color: #475569;">
+          BridgeTech IT Services • #1 Regent Highway, Jui Junction, Freetown • WhatsApp: +232 33 399 391
+        </div>
+      </div>
+    `,
+    text: `Your Certificate for ${data.recipientName} is approved!\nDownload here: ${data.certificateUrl}\nView reveal: ${data.revealUrl}`
   })
 }

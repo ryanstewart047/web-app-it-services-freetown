@@ -7,6 +7,7 @@ import {
   updateSurpriseRevealPayment,
 } from '@/lib/surprise-reveal-storage';
 import { DEFAULT_SURPRISE_SOUND_EFFECT, isSurpriseSoundEffect } from '@/lib/surprise-reveal-sounds';
+import { emailTemplates, sendEmail } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -104,6 +105,29 @@ export async function PATCH(request: NextRequest) {
     const updated = await updateSurpriseRevealPayment(code, paymentStatus);
     if (!updated) {
       return NextResponse.json({ success: false, error: 'Surprise Reveal not found.' }, { status: 404 });
+    }
+
+    // If payment was just approved and customer email exists, automatically send Certificate email!
+    if (paymentStatus === 'approved' && updated.customerEmail) {
+      try {
+        const certificateUrl = `${getPublicUrl(request, code)}/certificate`;
+        const template = emailTemplates.surpriseCertificateApproved({
+          recipientName: updated.recipientName,
+          achievement: updated.achievement,
+          certificateUrl,
+          revealUrl: getPublicUrl(request, code),
+          code: updated.code,
+        });
+
+        await sendEmail({
+          to: updated.customerEmail,
+          subject: template.subject,
+          html: template.html,
+          text: template.text,
+        });
+      } catch (emailErr) {
+        console.warn('[Surprise Reveal Admin] Automatic certificate email send warning:', emailErr);
+      }
     }
 
     return NextResponse.json({ success: true, reveal: updated });

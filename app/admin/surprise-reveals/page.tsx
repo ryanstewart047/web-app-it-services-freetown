@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
+  Award,
   Check,
   Copy,
   ExternalLink,
@@ -29,9 +30,14 @@ interface SurpriseRevealRecord {
   imageUrl: string;
   soundEffect: SurpriseSoundEffect;
   paymentStatus?: 'pending' | 'approved';
+  customerEmail?: string;
+  customerPhone?: string;
+  selectedPlan?: string;
+  paymentMethod?: string;
   isVip?: boolean;
   createdAt: string;
   shareUrl: string;
+  certificateUrl?: string;
 }
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
@@ -96,6 +102,7 @@ export default function SurpriseRevealsAdminPage() {
   const [approvingCode, setApprovingCode] = useState('');
   const [deletingCode, setDeletingCode] = useState('');
   const [copiedCode, setCopiedCode] = useState('');
+  const [copiedCertCode, setCopiedCertCode] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadReveals = async () => {
@@ -127,16 +134,40 @@ export default function SurpriseRevealsAdminPage() {
       setReveals((current) =>
         current.map((r) => (r.code === reveal.code ? { ...r, paymentStatus: nextStatus } : r))
       );
-      toast.success(
-        nextStatus === 'approved'
-          ? `Payment APPROVED for ${reveal.recipientName}! Certificate download is now UNLOCKED.`
-          : `Payment set to PENDING for ${reveal.recipientName}.`
-      );
+
+      if (nextStatus === 'approved') {
+        const emailMsg = result.emailSent || reveal.customerEmail
+          ? ` & Certificate link emailed to ${reveal.customerEmail || 'customer'}`
+          : '';
+        toast.success(`Payment APPROVED for ${reveal.recipientName}! Certificate UNLOCKED${emailMsg}.`, { duration: 5000 });
+      } else {
+        toast.success(`Payment set to PENDING for ${reveal.recipientName}.`);
+      }
     } catch (err: any) {
       toast.error(err.message || 'Could not update payment.');
     } finally {
       setApprovingCode('');
     }
+  };
+
+  const copyCertificateLink = async (reveal: SurpriseRevealRecord) => {
+    const certUrl = reveal.certificateUrl || `${reveal.shareUrl}/certificate`;
+    try {
+      await navigator.clipboard.writeText(certUrl);
+      setCopiedCertCode(reveal.code);
+      toast.success('Certificate download link copied!');
+      window.setTimeout(() => setCopiedCertCode((c) => c === reveal.code ? '' : c), 2200);
+    } catch {
+      toast.error('Could not copy certificate link.');
+    }
+  };
+
+  const shareCustomerCertificateWhatsApp = (reveal: SurpriseRevealRecord) => {
+    const certUrl = reveal.certificateUrl || `${reveal.shareUrl}/certificate`;
+    const cleanPhone = reveal.customerPhone ? reveal.customerPhone.replace(/[^0-9]/g, '') : '23233399391';
+    const message = `🎉 Congratulations! Your payment has been approved for ${reveal.recipientName}'s official Certificate of Recognition!\n\n🏆 Download your high-resolution printable certificate here 👇\n${certUrl}\n\n✨ Replay the animated surprise reveal 👉 ${reveal.shareUrl}\n\n🏆 Powered by BridgeTech IT Services`;
+    const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+    window.open(waUrl, '_blank', 'noopener,noreferrer');
   };
 
   useEffect(() => {
@@ -316,96 +347,139 @@ export default function SurpriseRevealsAdminPage() {
               <p className="mt-1 text-sm text-slate-500">Your first personalized link will appear here.</p>
             </div>
           ) : (
-            <div className="grid gap-3 lg:grid-cols-2">
+            <div className="grid gap-4 lg:grid-cols-2">
               {reveals.map((reveal) => {
                 const isPaid = reveal.paymentStatus === 'approved';
                 const isApproving = approvingCode === reveal.code;
+                const certUrl = reveal.certificateUrl || `${reveal.shareUrl}/certificate`;
 
                 return (
-                  <article key={reveal.code} className="flex min-w-0 gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-                    <img src={reveal.imageUrl} alt="" className="h-20 w-20 shrink-0 rounded-md object-cover" />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="truncate font-black text-slate-950">{reveal.recipientName}</p>
-                        <span
-                          className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-black ${
-                            isPaid
-                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                              : 'bg-amber-100 text-amber-800 border border-amber-300'
-                          }`}
-                        >
-                          {isPaid ? '✓ Paid (Le 25 Approved)' : '⏳ Payment Pending'}
-                        </span>
+                  <article key={reveal.code} className="flex min-w-0 flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm">
+                    <div className="flex min-w-0 gap-3">
+                      <img src={reveal.imageUrl} alt="" className="h-20 w-20 shrink-0 rounded-lg object-cover border border-slate-200" />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="truncate font-black text-slate-950 text-base">{reveal.recipientName}</p>
+                          <span
+                            className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-[10px] font-black ${
+                              isPaid
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                : 'bg-amber-100 text-amber-800 border border-amber-300'
+                            }`}
+                          >
+                            {isPaid ? '✓ Paid & Unlocked' : '⏳ Payment Pending'}
+                          </span>
+                        </div>
+
+                        <p className="mt-0.5 line-clamp-2 text-xs font-bold text-amber-800">{reveal.achievement}</p>
+                        <p className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500">
+                          <Volume2 className="h-3.5 w-3.5" /> {getSoundEffectLabel(reveal.soundEffect)}
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-slate-400">Created {formatCreatedAt(reveal.createdAt)}</p>
                       </div>
+                    </div>
 
-                      <p className="mt-0.5 line-clamp-2 text-sm font-semibold text-amber-800">{reveal.achievement}</p>
-                      <p className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-slate-500">
-                        <Volume2 className="h-3.5 w-3.5" /> {getSoundEffectLabel(reveal.soundEffect)}
-                      </p>
-                      <p className="mt-0.5 text-[11px] text-slate-400">Created {formatCreatedAt(reveal.createdAt)}</p>
-
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
-                        {/* 1-Click Payment Approval / Unlock Button */}
-                        <button
-                          type="button"
-                          onClick={() => togglePayment(reveal)}
-                          disabled={isApproving}
-                          aria-label="Toggle payment approval"
-                          className={`inline-flex h-9 items-center gap-1.5 rounded-md px-3 text-xs font-black transition-all ${
-                            isPaid
-                              ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300'
-                              : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm'
-                          }`}
-                        >
-                          {isApproving ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          ) : isPaid ? (
-                            <span>🔒 Lock Certificate</span>
-                          ) : (
-                            <span>✓ Approve Payment (Unlock PDF)</span>
-                          )}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => void copyLink(reveal)}
-                          aria-label="Copy reveal link"
-                          className="inline-flex h-9 items-center gap-1.5 rounded-md bg-slate-950 px-3 text-xs font-bold text-white hover:bg-slate-800"
-                        >
-                          {copiedCode === reveal.code ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                          {copiedCode === reveal.code ? 'Copied' : 'Copy link'}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => shareOnWhatsApp(reveal)}
-                          aria-label="Share on WhatsApp"
-                          title="Share via WhatsApp"
-                          className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#25D366] px-3 text-xs font-bold text-white hover:bg-[#1ebe5d]"
-                        >
-                          <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
-                        </button>
-
-                        <a
-                          href={reveal.shareUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          aria-label="Open surprise reveal"
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 text-slate-700 hover:bg-slate-50"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-
-                        <button
-                          type="button"
-                          onClick={() => void deleteReveal(reveal)}
-                          disabled={deletingCode === reveal.code}
-                          aria-label={`Delete ${reveal.recipientName}'s surprise reveal`}
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50"
-                        >
-                          {deletingCode === reveal.code ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                        </button>
+                    {/* Customer & Payment details */}
+                    {(reveal.customerEmail || reveal.customerPhone || reveal.selectedPlan) && (
+                      <div className="rounded-lg border border-slate-100 bg-slate-50 p-2.5 text-xs text-slate-700 space-y-1">
+                        {reveal.customerEmail && (
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-slate-500">📧 Customer Email:</span>
+                            <span className="font-mono font-bold text-slate-900 truncate">{reveal.customerEmail}</span>
+                          </div>
+                        )}
+                        {reveal.customerPhone && (
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-slate-500">📱 WhatsApp Phone:</span>
+                            <span className="font-mono font-bold text-slate-900">{reveal.customerPhone}</span>
+                          </div>
+                        )}
+                        {(reveal.selectedPlan || reveal.paymentMethod) && (
+                          <div className="flex items-center justify-between gap-2 text-[11px]">
+                            <span className="text-slate-500">💳 Plan / Method:</span>
+                            <span className="font-bold text-amber-800">
+                              {reveal.selectedPlan === 'lifetime' ? 'Lifetime (Le 500)' : reveal.selectedPlan === 'monthly' ? 'Monthly (Le 150)' : 'Single (Le 25)'}
+                              {reveal.paymentMethod ? ` via ${reveal.paymentMethod.replace('_', ' ')}` : ''}
+                            </span>
+                          </div>
+                        )}
                       </div>
+                    )}
+
+                    {/* Action buttons */}
+                    <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100">
+                      {/* 1-Click Payment Approval / Unlock Button */}
+                      <button
+                        type="button"
+                        onClick={() => togglePayment(reveal)}
+                        disabled={isApproving}
+                        aria-label="Toggle payment approval"
+                        className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-black transition-all ${
+                          isPaid
+                            ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300'
+                            : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm'
+                        }`}
+                      >
+                        {isApproving ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : isPaid ? (
+                          <span>🔒 Revoke / Lock</span>
+                        ) : (
+                          <span>✓ Approve Payment &amp; Send Email</span>
+                        )}
+                      </button>
+
+                      {/* Direct Customer WhatsApp Send Button */}
+                      {isPaid && (
+                        <button
+                          type="button"
+                          onClick={() => shareCustomerCertificateWhatsApp(reveal)}
+                          className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#25D366] px-3 text-xs font-black text-white hover:bg-[#1ebe5d] shadow-sm"
+                        >
+                          <MessageCircle className="h-3.5 w-3.5" /> Send Cert on WA
+                        </button>
+                      )}
+
+                      {/* Copy Certificate Link */}
+                      <button
+                        type="button"
+                        onClick={() => void copyCertificateLink(reveal)}
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 text-xs font-bold text-amber-900 hover:bg-amber-100"
+                      >
+                        <Award className="h-3.5 w-3.5 text-amber-700" />
+                        {copiedCertCode === reveal.code ? 'Copied Cert!' : 'Copy Cert Link'}
+                      </button>
+
+                      {/* Copy Reveal Link */}
+                      <button
+                        type="button"
+                        onClick={() => void copyLink(reveal)}
+                        aria-label="Copy reveal link"
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-slate-950 px-3 text-xs font-bold text-white hover:bg-slate-800"
+                      >
+                        {copiedCode === reveal.code ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                        {copiedCode === reveal.code ? 'Copied' : 'Copy Reveal'}
+                      </button>
+
+                      <a
+                        href={reveal.shareUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label="Open surprise reveal"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+
+                      <button
+                        type="button"
+                        onClick={() => void deleteReveal(reveal)}
+                        disabled={deletingCode === reveal.code}
+                        aria-label={`Delete ${reveal.recipientName}'s surprise reveal`}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50 ml-auto"
+                      >
+                        {deletingCode === reveal.code ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                      </button>
                     </div>
                   </article>
                 );
