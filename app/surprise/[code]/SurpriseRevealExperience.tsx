@@ -20,6 +20,9 @@ const MINIMUM_CELEBRATION_MS = 15000;
 const CONFETTI_TONES = ['#f6c453', '#ffe9a6', '#ffffff', '#d99528', '#f5e7c6'];
 const FLARE_ANGLES = [-74, -45, -18, 18, 45, 74, 106, 135, 162, 198, 225, 254];
 
+
+const APPLAUSE_AUDIO_SRC = '/assets/audio/hand-clap-cheering.m4a';
+
 function playTone(context: AudioContext, output: AudioNode, start: number, frequency: number, duration: number, volume: number, type: OscillatorType = 'sine') {
   const oscillator = context.createOscillator();
   const gain = context.createGain();
@@ -34,207 +37,25 @@ function playTone(context: AudioContext, output: AudioNode, start: number, frequ
   oscillator.stop(start + duration + 0.04);
 }
 
-function playNoise(context: AudioContext, output: AudioNode, start: number, duration: number, volume: number) {
-  const buffer = context.createBuffer(1, Math.ceil(context.sampleRate * duration), context.sampleRate);
-  const channel = buffer.getChannelData(0);
-  for (let index = 0; index < channel.length; index += 1) channel[index] = Math.random() * 2 - 1;
-
-  const source = context.createBufferSource();
-  const filter = context.createBiquadFilter();
-  const gain = context.createGain();
-  filter.type = 'highpass';
-  filter.frequency.setValueAtTime(1200, start);
-  gain.gain.setValueAtTime(volume, start);
-  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-  source.buffer = buffer;
-  source.connect(filter);
-  filter.connect(gain);
-  gain.connect(output);
-  source.start(start);
-}
-
-function playApplauseAndCheering(context: AudioContext, startDelay: number = 0, duration: number = 8) {
-  const master = context.createGain();
-  const start = context.currentTime + startDelay;
-
-  master.gain.setValueAtTime(0.0001, start);
-  // Swell up quickly in 0.3s
-  master.gain.exponentialRampToValueAtTime(0.38, start + 0.35);
-  // Maintain enthusiastic energy for ~6.2 seconds
-  master.gain.setValueAtTime(0.38, start + 6.2);
-  // Fade out smoothly over the final 1.8 seconds to reach total 8 seconds
-  master.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-
-  master.connect(context.destination);
-
-  // 1. DENSE CROWD APPLAUSE NOISE BUFFER (Stereo clapping impulses + crowd energy)
-  const sampleRate = context.sampleRate;
-  const bufferSize = Math.ceil(sampleRate * duration);
-  const crowdBuffer = context.createBuffer(2, bufferSize, sampleRate);
-  const left = crowdBuffer.getChannelData(0);
-  const right = crowdBuffer.getChannelData(1);
-
-  for (let i = 0; i < bufferSize; i++) {
-    const t = i / sampleRate;
-    const whiteL = Math.random() * 2 - 1;
-    const whiteR = Math.random() * 2 - 1;
-
-    // Organic clapping rhythm pulses (~13Hz to ~18Hz)
-    const clapMod1 = Math.pow(Math.max(0, Math.sin(t * 14 * Math.PI + Math.sin(t * 3.7) * 2)), 8) * 2.2;
-    const clapMod2 = Math.pow(Math.max(0, Math.sin(t * 17.5 * Math.PI + 1.2)), 6) * 1.8;
-
-    left[i] = whiteL * 0.35 + whiteL * (clapMod1 + clapMod2) * 0.65;
-    right[i] = whiteR * 0.35 + whiteR * (clapMod1 + clapMod2) * 0.65;
-  }
-
-  // Layer 1: Mid-bandpass for hand claps body (1.2kHz - 2.8kHz)
-  const clapSource = context.createBufferSource();
-  clapSource.buffer = crowdBuffer;
-  const clapFilter = context.createBiquadFilter();
-  clapFilter.type = 'bandpass';
-  clapFilter.frequency.setValueAtTime(1650, start);
-  clapFilter.Q.setValueAtTime(1.4, start);
-  const clapGain = context.createGain();
-  clapGain.gain.setValueAtTime(0.7, start);
-  clapSource.connect(clapFilter);
-  clapFilter.connect(clapGain);
-  clapGain.connect(master);
-  clapSource.start(start);
-  clapSource.stop(start + duration + 0.1);
-
-  // Layer 2: Low-mid bandpass for hand slap depth (650Hz - 1100Hz)
-  const bodySource = context.createBufferSource();
-  bodySource.buffer = crowdBuffer;
-  const bodyFilter = context.createBiquadFilter();
-  bodyFilter.type = 'bandpass';
-  bodyFilter.frequency.setValueAtTime(850, start);
-  bodyFilter.Q.setValueAtTime(2.0, start);
-  const bodyGain = context.createGain();
-  bodyGain.gain.setValueAtTime(0.55, start);
-  bodySource.connect(bodyFilter);
-  bodyFilter.connect(bodyGain);
-  bodyGain.connect(master);
-  bodySource.start(start);
-  bodySource.stop(start + duration + 0.1);
-
-  // Layer 3: High-frequency snap
-  const snapSource = context.createBufferSource();
-  snapSource.buffer = crowdBuffer;
-  const snapFilter = context.createBiquadFilter();
-  snapFilter.type = 'highpass';
-  snapFilter.frequency.setValueAtTime(2800, start);
-  const snapGain = context.createGain();
-  snapGain.gain.setValueAtTime(0.35, start);
-  snapSource.connect(snapFilter);
-  snapFilter.connect(snapGain);
-  snapGain.connect(master);
-  snapSource.start(start);
-  snapSource.stop(start + duration + 0.1);
-
-  // 2. CHEERING VOICES (Vocal sweeps + formants for "Yeah!", "Whoo-hoo!")
-  const cheerFormants = [
-    { f1: 650, f2: 1200, gain: 0.26, pitchStart: 380, pitchEnd: 560, delay: 0.1 },
-    { f1: 800, f2: 1450, gain: 0.22, pitchStart: 440, pitchEnd: 620, delay: 0.4 },
-    { f1: 520, f2: 1050, gain: 0.20, pitchStart: 320, pitchEnd: 480, delay: 1.1 },
-    { f1: 750, f2: 1350, gain: 0.24, pitchStart: 500, pitchEnd: 680, delay: 2.2 },
-    { f1: 600, f2: 1150, gain: 0.19, pitchStart: 420, pitchEnd: 540, delay: 3.8 },
-  ];
-
-  cheerFormants.forEach((cf) => {
-    const cheerStart = start + cf.delay;
-    const cheerDuration = 2.4;
-
-    const osc = context.createOscillator();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(cf.pitchStart, cheerStart);
-    osc.frequency.exponentialRampToValueAtTime(cf.pitchEnd, cheerStart + 0.5);
-    osc.frequency.exponentialRampToValueAtTime(cf.pitchStart * 0.9, cheerStart + cheerDuration);
-
-    const f1 = context.createBiquadFilter();
-    f1.type = 'bandpass';
-    f1.frequency.setValueAtTime(cf.f1, cheerStart);
-    f1.Q.setValueAtTime(3.5, cheerStart);
-
-    const f2 = context.createBiquadFilter();
-    f2.type = 'bandpass';
-    f2.frequency.setValueAtTime(cf.f2, cheerStart);
-    f2.Q.setValueAtTime(4.0, cheerStart);
-
-    const vGain = context.createGain();
-    vGain.gain.setValueAtTime(0.0001, cheerStart);
-    vGain.gain.exponentialRampToValueAtTime(cf.gain, cheerStart + 0.25);
-    vGain.gain.exponentialRampToValueAtTime(0.0001, cheerStart + cheerDuration);
-
-    osc.connect(f1);
-    f1.connect(f2);
-    f2.connect(vGain);
-    vGain.connect(master);
-
-    osc.start(cheerStart);
-    osc.stop(cheerStart + cheerDuration + 0.05);
-  });
-
-  // Layer 4: Discrete foreground individual handclaps
-  const clapCount = 36;
-  for (let c = 0; c < clapCount; c++) {
-    const clapTime = start + 0.15 + (c * (duration - 0.5)) / clapCount + (Math.random() * 0.12 - 0.06);
-    if (clapTime > start + duration - 0.2) continue;
-
-    const singleClapDur = 0.024;
-    const singleBuf = context.createBuffer(1, Math.ceil(sampleRate * singleClapDur), sampleRate);
-    const sData = singleBuf.getChannelData(0);
-    for (let k = 0; k < sData.length; k++) {
-      sData[k] = (Math.random() * 2 - 1) * Math.exp(-k / (sampleRate * 0.006));
-    }
-
-    const sSource = context.createBufferSource();
-    sSource.buffer = singleBuf;
-
-    const sFilter = context.createBiquadFilter();
-    sFilter.type = 'bandpass';
-    sFilter.frequency.setValueAtTime(1400 + Math.random() * 800, clapTime);
-    sFilter.Q.setValueAtTime(1.8, clapTime);
-
-    const sGain = context.createGain();
-    sGain.gain.setValueAtTime(0.3 + Math.random() * 0.25, clapTime);
-
-    sSource.connect(sFilter);
-    sFilter.connect(sGain);
-    sGain.connect(master);
-
-    sSource.start(clapTime);
-    sSource.stop(clapTime + singleClapDur + 0.01);
-  }
-
-  window.setTimeout(() => {
-    try {
-      master.disconnect();
-    } catch {}
-  }, (duration + 1) * 1000);
-}
-
 function playRevealSound(context: AudioContext, soundEffect: SurpriseSoundEffect) {
-  if (soundEffect === 'silent') return;
+  if (soundEffect === 'silent' || soundEffect === 'hand-clap-cheer') return;
 
   const master = context.createGain();
-  master.gain.setValueAtTime(0.27, context.currentTime);
+  master.gain.setValueAtTime(0.25, context.currentTime);
   master.connect(context.destination);
   const start = context.currentTime + 0.04;
 
   if (soundEffect === 'golden-fanfare') {
-    [523.25, 659.25, 783.99].forEach((frequency, index) => playTone(context, master, start + index * 0.2, frequency, 0.36, 0.34, 'triangle'));
-    [1046.5, 1318.51, 1567.98].forEach((frequency) => playTone(context, master, start + 0.67, frequency, 1.6, 0.2, 'sine'));
+    [523.25, 659.25, 783.99].forEach((frequency, index) => playTone(context, master, start + index * 0.2, frequency, 0.34, 0.32, 'triangle'));
+    [1046.5, 1318.51, 1567.98].forEach((frequency) => playTone(context, master, start + 0.67, frequency, 1.4, 0.18, 'sine'));
   } else if (soundEffect === 'sparkle-cascade') {
-    [1046.5, 1318.51, 1567.98, 2093, 2637.02, 3135.96].forEach((frequency, index) => playTone(context, master, start + index * 0.11, frequency, 0.62, 0.16, 'sine'));
-    playTone(context, master, start + 0.83, 2093, 1.1, 0.22, 'triangle');
+    [1046.5, 1318.51, 1567.98, 2093, 2637.02, 3135.96].forEach((frequency, index) => playTone(context, master, start + index * 0.11, frequency, 0.55, 0.15, 'sine'));
+    playTone(context, master, start + 0.83, 2093, 1.0, 0.2, 'triangle');
   } else if (soundEffect === 'celebration-drums') {
     [0, 0.32, 0.64].forEach((offset) => {
-      playTone(context, master, start + offset, 92, 0.22, 0.48, 'sine');
-      playNoise(context, master, start + offset + 0.16, 0.12, 0.16);
+      playTone(context, master, start + offset, 92, 0.22, 0.45, 'sine');
     });
-    [523.25, 659.25, 783.99].forEach((frequency) => playTone(context, master, start + 0.91, frequency, 1.1, 0.17, 'sawtooth'));
-  } else if (soundEffect === 'hand-clap-cheer') {
-    playApplauseAndCheering(context, 0.04, 8);
+    [523.25, 659.25, 783.99].forEach((frequency) => playTone(context, master, start + 0.91, frequency, 1.1, 0.16, 'sawtooth'));
   } else {
     playTone(context, master, start, 261.63, 0.86, 0.2, 'sine');
     playTone(context, master, start + 0.24, 392, 0.92, 0.2, 'triangle');
@@ -242,6 +63,51 @@ function playRevealSound(context: AudioContext, soundEffect: SurpriseSoundEffect
   }
 
   window.setTimeout(() => master.disconnect(), 3200);
+}
+
+function playRealApplauseAudio(
+  context: AudioContext,
+  buffer: AudioBuffer | null,
+  startDelay: number = 0,
+  duration: number = 8
+) {
+  if (buffer) {
+    try {
+      const source = context.createBufferSource();
+      source.buffer = buffer;
+      const gain = context.createGain();
+      const start = context.currentTime + startDelay;
+
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(0.9, start + 0.2);
+      gain.gain.setValueAtTime(0.9, start + 6.2);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+
+      source.connect(gain);
+      gain.connect(context.destination);
+
+      source.start(start);
+      source.stop(start + duration + 0.1);
+      return;
+    } catch (e) {
+      console.warn('[Surprise Audio] WebAudio buffer play error:', e);
+    }
+  }
+
+  // Direct HTML5 Audio fallback
+  window.setTimeout(() => {
+    try {
+      const audio = new Audio(APPLAUSE_AUDIO_SRC);
+      audio.volume = 0.9;
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
+      window.setTimeout(() => {
+        try {
+          audio.pause();
+        } catch {}
+      }, duration * 1000);
+    } catch {}
+  }, Math.max(0, startDelay * 1000));
 }
 
 function getBurstParticles() {
@@ -285,10 +151,44 @@ export default function SurpriseRevealExperience({
   const [canReplay, setCanReplay] = useState(false);
   const reduceMotion = useReducedMotion();
   const audioContextRef = useRef<AudioContext | null>(null);
+  const applauseBufferRef = useRef<AudioBuffer | null>(null);
   const playedSoundRunRef = useRef<number | null>(null);
 
   const burstParticles = useMemo(getBurstParticles, []);
   const fallingConfetti = useMemo(getFallingConfetti, []);
+
+  // Pre-fetch and decode the 8-second applause & cheering audio into memory
+  useEffect(() => {
+    let active = true;
+    const preloadAudio = async () => {
+      try {
+        const response = await fetch(APPLAUSE_AUDIO_SRC);
+        if (!response.ok) return;
+        const arrayBuffer = await response.arrayBuffer();
+
+        const AudioContextClass =
+          window.AudioContext ||
+          (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+        if (!AudioContextClass) return;
+
+        const tempContext = audioContextRef.current || new AudioContextClass();
+        if (!audioContextRef.current) audioContextRef.current = tempContext;
+
+        tempContext.decodeAudioData(
+          arrayBuffer,
+          (decoded) => {
+            if (active) applauseBufferRef.current = decoded;
+          },
+          () => {}
+        );
+      } catch {}
+    };
+
+    void preloadAudio();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (phase !== 'loading') return;
@@ -315,13 +215,19 @@ export default function SurpriseRevealExperience({
     if (phase !== 'celebrating' || soundEffect === 'silent' || playedSoundRunRef.current === run) return;
     playedSoundRunRef.current = run;
     const context = audioContextRef.current;
-    if (context?.state === 'running') {
+
+    if (context && context.state === 'suspended') {
+      void context.resume();
+    }
+
+    if (context) {
+      // 1. Initial fanfare/melody herald
       playRevealSound(context, soundEffect);
-      // As soon as the image finishes revealing (~1.4s when spring animation lands),
-      // play hand clapping with cheering voices that lasts for 8 seconds.
-      if (soundEffect !== 'hand-clap-cheer') {
-        playApplauseAndCheering(context, 1.4, 8);
-      }
+
+      // 2. As soon as the image finishes revealing (~1.35s into celebration),
+      // play real recorded hand clapping and cheering voices for 8 seconds!
+      const startDelay = soundEffect === 'hand-clap-cheer' ? 0.05 : 1.35;
+      playRealApplauseAudio(context, applauseBufferRef.current, startDelay, 8);
     }
   }, [phase, run, soundEffect]);
 
@@ -337,11 +243,26 @@ export default function SurpriseRevealExperience({
   }, [phase, run]);
 
   const beginSurprise = () => {
-    if (soundEffect !== 'silent' && !audioContextRef.current) {
-      const AudioContextConstructor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-      if (AudioContextConstructor) audioContextRef.current = new AudioContextConstructor();
+    if (soundEffect !== 'silent') {
+      if (!audioContextRef.current) {
+        const AudioContextConstructor =
+          window.AudioContext ||
+          (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+        if (AudioContextConstructor) audioContextRef.current = new AudioContextConstructor();
+      }
+      void audioContextRef.current?.resume();
+
+      // Also trigger a pre-buffer load if not ready
+      if (!applauseBufferRef.current) {
+        fetch(APPLAUSE_AUDIO_SRC)
+          .then((res) => res.arrayBuffer())
+          .then((buf) => audioContextRef.current?.decodeAudioData(buf))
+          .then((decoded) => {
+            if (decoded) applauseBufferRef.current = decoded;
+          })
+          .catch(() => {});
+      }
     }
-    void audioContextRef.current?.resume();
     setProgress(0);
     setCanReplay(false);
     setRun((current) => current + 1);
