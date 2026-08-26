@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { Award, CheckCircle2, Download, ExternalLink, Lock, MessageCircle, Printer, RotateCcw, Share2, Sparkles } from 'lucide-react';
 import { type SurpriseReveal } from '@/lib/surprise-reveal-storage';
 
+import ProtectedCertificatePreview from '@/components/digital-tools/ProtectedCertificatePreview';
+
 interface CertificateClientProps {
   reveal: SurpriseReveal;
   shareUrl: string;
@@ -137,8 +139,10 @@ export default function CertificateClient({ reveal, shareUrl, certificateUrl }: 
   };
 
   useEffect(() => {
-    void renderCertificate();
-  }, [reveal]);
+    if (isPaid) {
+      void renderCertificate();
+    }
+  }, [reveal, isPaid]);
 
   const handleDownload = () => {
     if (!certDataUrl) return;
@@ -205,24 +209,24 @@ export default function CertificateClient({ reveal, shareUrl, certificateUrl }: 
         </div>
 
         {/* Certificate Display */}
-        <div className="rounded-3xl border border-amber-400/30 bg-slate-900/90 p-4 sm:p-6 shadow-2xl overflow-hidden text-center space-y-6">
-          {certDataUrl ? (
-            <div className="rounded-2xl overflow-hidden border-2 border-amber-400/50 shadow-[0_0_50px_rgba(245,158,11,0.15)] bg-black">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={certDataUrl}
-                alt={`Certificate for ${reveal.recipientName}`}
-                className="w-full object-contain"
-              />
-            </div>
-          ) : (
-            <div className="h-80 flex items-center justify-center text-slate-500 text-sm">
-              Rendering High-Resolution Certificate...
-            </div>
-          )}
+        {isPaid ? (
+          <div className="rounded-3xl border border-amber-400/30 bg-slate-900/90 p-4 sm:p-6 shadow-2xl overflow-hidden text-center space-y-6">
+            {certDataUrl ? (
+              <div className="rounded-2xl overflow-hidden border-2 border-amber-400/50 shadow-[0_0_50px_rgba(245,158,11,0.15)] bg-black">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={certDataUrl}
+                  alt={`Certificate for ${reveal.recipientName}`}
+                  className="w-full object-contain"
+                />
+              </div>
+            ) : (
+              <div className="h-80 flex items-center justify-center text-slate-500 text-sm">
+                Rendering High-Resolution Certificate...
+              </div>
+            )}
 
-          {/* Action Buttons */}
-          {isPaid ? (
+            {/* Action Buttons */}
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <button
                 type="button"
@@ -249,26 +253,19 @@ export default function CertificateClient({ reveal, shareUrl, certificateUrl }: 
                 <MessageCircle className="w-4 h-4" /> Share Certificate on WhatsApp
               </a>
             </div>
-          ) : (
-            <div className="rounded-2xl border border-amber-400/40 bg-amber-400/10 p-5 text-left space-y-3">
-              <div className="flex items-center gap-2 text-amber-300 font-black text-sm">
-                <Lock className="w-4 h-4" />
-                <span>Certificate Locked Pending Admin Payment Approval (Le 25)</span>
-              </div>
-              <p className="text-xs text-slate-300">
-                Payment confirmation is required to unlock full-resolution PNG download and official printing rights.
-              </p>
-              <a
-                href={`https://wa.me/23233399391?text=${encodeURIComponent(`Hello BridgeTech! Please approve payment for Certificate: ${reveal.recipientName} - Code: ${reveal.code}`)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#1ebe5d] text-white text-xs font-black shadow-lg"
-              >
-                <MessageCircle className="w-4 h-4" /> Send Payment Proof on WhatsApp (+232 33 399 391)
-              </a>
-            </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <ProtectedCertificatePreview
+              recipientName={reveal.recipientName}
+              achievement={reveal.achievement}
+              message={reveal.message}
+              imageUrl={reveal.imageUrl}
+              code={reveal.code}
+              inline={true}
+            />
+          </div>
+        )}
       </div>
     </main>
   );

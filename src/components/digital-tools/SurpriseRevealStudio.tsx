@@ -32,6 +32,7 @@ import {
 import toast from 'react-hot-toast';
 import { DEFAULT_SURPRISE_SOUND_EFFECT, SURPRISE_SOUND_EFFECTS, type SurpriseSoundEffect } from '@/lib/surprise-reveal-sounds';
 import { type QuizQuestion } from '@/lib/surprise-reveal-storage';
+import ProtectedCertificatePreview from './ProtectedCertificatePreview';
 
 interface PresetTemplate {
   id: string;
@@ -493,17 +494,28 @@ export default function SurpriseRevealStudio() {
               <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
             </div>
 
-            <div className="flex gap-2 w-full max-w-xs">
-              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="flex-1 py-2 px-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-200 flex items-center justify-center gap-1.5 transition-colors border border-slate-700"
-              >
-                {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-                <span>{uploading ? 'Processing...' : 'Upload Photo'}</span>
-              </button>
+            <div className="flex flex-col gap-2 w-full max-w-xs">
+              <div className="flex gap-2 w-full">
+                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="flex-1 py-2 px-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-200 flex items-center justify-center gap-1.5 transition-colors border border-slate-700"
+                >
+                  {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                  <span>{uploading ? 'Processing...' : 'Upload Photo'}</span>
+                </button>
+              </div>
+
+              <ProtectedCertificatePreview
+                recipientName={recipientName || 'Mariama Sesay'}
+                achievement={achievement || 'Outstanding Achievement'}
+                message={message}
+                imageUrl={imageUrl}
+                onUnlockClick={orderVipPackage}
+                inline={false}
+              />
             </div>
             <span className="text-[10px] text-slate-500 mt-2">Square or portrait photos look best</span>
           </div>
@@ -630,7 +642,7 @@ export default function SurpriseRevealStudio() {
             <span>{publishing ? 'Generating Celebration Link...' : 'Publish & Generate Surprise Link'}</span>
           </button>
         ) : (
-          <div className="bg-gradient-to-br from-amber-500/10 via-slate-900 to-slate-950 border-2 border-amber-400/40 rounded-2xl p-6 space-y-4 animate-fade-in">
+          <div className="bg-gradient-to-br from-amber-500/10 via-slate-900 to-slate-950 border-2 border-amber-400/40 rounded-2xl p-6 space-y-5 animate-fade-in">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
                 <Sparkles className="w-4 h-4" />
@@ -668,7 +680,7 @@ export default function SurpriseRevealStudio() {
               </a>
             </div>
 
-            <div className="flex flex-wrap gap-2.5 pt-2">
+            <div className="flex flex-wrap gap-2.5">
               <button
                 type="button"
                 onClick={openWhatsAppShare}
@@ -677,6 +689,23 @@ export default function SurpriseRevealStudio() {
                 <MessageCircle className="w-4 h-4" />
                 <span>Share Instantly on WhatsApp</span>
               </button>
+            </div>
+
+            {/* Instant Certificate Watermarked Preview to Prompt Purchase */}
+            <div className="pt-3 border-t border-amber-400/20 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-bold text-amber-300">
+                <Crown className="w-4 h-4 text-amber-400" />
+                <span>Printable Certificate Preview (Protected)</span>
+              </div>
+              <ProtectedCertificatePreview
+                recipientName={recipientName || 'Mariama Sesay'}
+                achievement={achievement || 'Outstanding Achievement'}
+                message={message}
+                imageUrl={imageUrl}
+                code={publishedReveal.code}
+                onUnlockClick={orderVipPackage}
+                inline={true}
+              />
             </div>
           </div>
         )}

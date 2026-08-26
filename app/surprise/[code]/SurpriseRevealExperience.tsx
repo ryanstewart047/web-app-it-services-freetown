@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { Award, CheckCircle2, Download, HelpCircle, Lock, MessageCircle, RotateCcw, Share2, Sparkles, X } from 'lucide-react';
+import { Award, CheckCircle2, Download, Eye, HelpCircle, Lock, MessageCircle, RotateCcw, Share2, Sparkles, X } from 'lucide-react';
 import { type SurpriseSoundEffect } from '@/lib/surprise-reveal-sounds';
 import { type QuizQuestion } from '@/lib/surprise-reveal-storage';
+import ProtectedCertificatePreview from '@/components/digital-tools/ProtectedCertificatePreview';
 
 interface SurpriseRevealExperienceProps {
   recipientName: string;
@@ -732,6 +733,18 @@ export default function SurpriseRevealExperience({
                       <Share2 className="h-4 w-4" /> WhatsApp
                     </motion.a>
 
+                    {!isPaymentApproved && (
+                      <ProtectedCertificatePreview
+                        recipientName={recipientName}
+                        achievement={achievement}
+                        message={message}
+                        imageUrl={imageUrl}
+                        code={code}
+                        onUnlockClick={() => setShowPaymentModal(true)}
+                        inline={false}
+                      />
+                    )}
+
                     <motion.button
                       type="button"
                       onClick={handleCertificateClick}
@@ -739,7 +752,7 @@ export default function SurpriseRevealExperience({
                       className={`w-full inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-xs sm:text-sm font-black transition-all shadow-lg ${
                         isPaymentApproved
                           ? 'bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-neutral-950 shadow-amber-500/20'
-                          : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-400/40'
+                          : 'bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 shadow-amber-500/25'
                       }`}
                     >
                       {isPaymentApproved ? (
@@ -750,9 +763,9 @@ export default function SurpriseRevealExperience({
                         </>
                       ) : (
                         <>
-                          <Lock className="h-4 w-4 text-amber-400" />
+                          <Lock className="h-4 w-4 text-slate-950" />
                           <span>Unlock Printable Certificate (Le 25)</span>
-                          <Sparkles className="h-3.5 w-3.5 ml-1 text-amber-300" />
+                          <Sparkles className="h-3.5 w-3.5 ml-1 text-slate-900" />
                         </>
                       )}
                     </motion.button>
