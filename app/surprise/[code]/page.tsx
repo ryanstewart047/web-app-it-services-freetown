@@ -22,9 +22,10 @@ function getBaseUrl() {
   return (process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://www.itservicesfreetown.com').replace(/\/$/, '');
 }
 
-function getImageUrl(baseUrl: string, imageUrl: string) {
-  if (imageUrl.startsWith('/')) return `${baseUrl}${imageUrl}`;
-  return imageUrl;
+function getOgImageUrl(baseUrl: string, code: string) {
+  const ogUrl = new URL('/api/surprise-reveal-image', baseUrl);
+  ogUrl.searchParams.set('code', code);
+  return ogUrl.toString();
 }
 
 export async function generateMetadata({ params }: SurpriseRevealPageProps): Promise<Metadata> {
@@ -33,15 +34,35 @@ export async function generateMetadata({ params }: SurpriseRevealPageProps): Pro
 
   const title = `Congratulations, ${reveal.recipientName}!`;
   const description = reveal.message || `${reveal.recipientName} is being celebrated for ${reveal.achievement}.`;
-  const url = `${getBaseUrl()}/surprise/${reveal.code}`;
-  const image = getImageUrl(getBaseUrl(), reveal.imageUrl);
+  const baseUrl = getBaseUrl();
+  const url = `${baseUrl}/surprise/${reveal.code}`;
+  const ogImageUrl = getOgImageUrl(baseUrl, reveal.code);
 
   return {
     title,
     description,
     alternates: { canonical: url },
-    openGraph: { title, description, url, type: 'website', images: [{ url: image, alt: reveal.recipientName }] },
-    twitter: { card: 'summary_large_image', title, description, images: [image] },
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: 'BridgeTech IT Services',
+      type: 'website',
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${reveal.recipientName} - ${reveal.achievement}`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogImageUrl],
+    },
     robots: { index: false, follow: false },
   };
 }

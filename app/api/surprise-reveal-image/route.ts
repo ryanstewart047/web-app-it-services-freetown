@@ -1,33 +1,12 @@
 import fs from 'fs';
 import path from 'path';
 import { NextRequest, NextResponse } from 'next/server';
-import { getShortUrlRecord } from '@/lib/short-url-storage';
 import { getSurpriseReveal } from '@/lib/surprise-reveal-storage';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-function getBaseUrl(request: NextRequest) {
-  return (
-    request.nextUrl.origin ||
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    'https://www.itservicesfreetown.com'
-  ).replace(/\/$/, '');
-}
-
-function normalizeExternalImage(image: string) {
-  if (image.includes('github.com') && image.includes('/blob/')) {
-    return image
-      .replace('https://github.com/', 'https://raw.githubusercontent.com/')
-      .replace('/blob/', '/')
-      .replace(/[?&]raw=true/, '');
-  }
-
-  return image;
-}
-
-function detectImageContentType(bytes: Uint8Array, fallback: string) {
+function detectImageContentType(bytes: Uint8Array, fallback: string): string {
   if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
     return 'image/jpeg';
   }
@@ -60,7 +39,17 @@ function detectImageContentType(bytes: Uint8Array, fallback: string) {
   return fallback.startsWith('image/') ? fallback.split(';')[0] : 'image/jpeg';
 }
 
-function isSafeExternalImageUrl(value: string) {
+function normalizeExternalImage(image: string): string {
+  if (image.includes('github.com') && image.includes('/blob/')) {
+    return image
+      .replace('https://github.com/', 'https://raw.githubusercontent.com/')
+      .replace('/blob/', '/')
+      .replace(/[?&]raw=true/, '');
+  }
+  return image;
+}
+
+function isSafeExternalImageUrl(value: string): boolean {
   try {
     const url = new URL(value);
     if (!['http:', 'https:'].includes(url.protocol)) return false;
@@ -100,71 +89,22 @@ function getFallbackBuffer(baseUrl: string): NextResponse {
   return NextResponse.redirect(`${baseUrl}/assets/images/slide01.jpg`);
 }
 
-async function proxyExternalImage(url: string, baseUrl: string) {
-  if (!isSafeExternalImageUrl(url)) {
-    return getFallbackBuffer(baseUrl);
-  }
-
-  try {
-    const response = await fetch(url, {
-      headers: {
-        Accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
-        'User-Agent': 'BridgeTechSocialPreview/1.0',
-      },
-      redirect: 'follow',
-      cache: 'no-store',
-    });
-
-    if (!response.ok) {
-      return getFallbackBuffer(baseUrl);
-    }
-
-    const buffer = Buffer.from(await response.arrayBuffer());
-    if (buffer.length === 0 || buffer.length > 12 * 1024 * 1024) {
-      return getFallbackBuffer(baseUrl);
-    }
-
-    return new NextResponse(buffer, {
-      status: 200,
-      headers: {
-        'Content-Type': detectImageContentType(buffer, response.headers.get('content-type') || ''),
-        'Content-Length': buffer.length.toString(),
-        'Cache-Control': 'public, max-age=31536000, immutable',
-        'Content-Disposition': 'inline',
-        'X-Content-Type-Options': 'nosniff',
-      },
-    });
-  } catch {
-    return getFallbackBuffer(baseUrl);
-  }
-}
-
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code') || searchParams.get('id') || '';
-  const revealCode = searchParams.get('reveal') || '';
-  const baseUrl = getBaseUrl(request);
+  const baseUrl = (
+    request.nextUrl.origin ||
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    'https://www.itservicesfreetown.com'
+  ).replace(/\/$/, '');
 
-  if (!code && !revealCode) {
+  if (!code) {
     return getFallbackBuffer(baseUrl);
   }
 
-  let image: string | undefined;
-
-  // Check short URLs first
-  if (code) {
-    const record = await getShortUrlRecord(code);
-    image = record?.metadata?.image?.trim();
-  }
-
-  // If not found in short URLs or if it's a reveal link, check surprise reveals
-  if (!image) {
-    const targetRevealCode = revealCode || (code.startsWith('celebrate-') ? code : '');
-    if (targetRevealCode) {
-      const reveal = await getSurpriseReveal(targetRevealCode);
-      image = reveal?.imageUrl?.trim();
-    }
-  }
+  const reveal = await getSurpriseReveal(code);
+  const image = reveal?.imageUrl?.trim();
 
   if (!image) {
     return getFallbackBuffer(baseUrl);
@@ -173,7 +113,6 @@ export async function GET(request: NextRequest) {
   // 1. Data URL (Base64 or URI encoded)
   if (image.startsWith('data:')) {
     const match = image.match(/^data:([^;,]+)(;base64)?,(.*)$/);
-
     if (!match) {
       return getFallbackBuffer(baseUrl);
     }
@@ -234,7 +173,42 @@ export async function GET(request: NextRequest) {
 
   // 3. External HTTP/HTTPS image URL
   if (/^https?:\/\//i.test(image)) {
-    return proxyExternalImage(normalizeExternalImage(image), baseUrl);
+    const normalizedUrl = normalizeExternalImage(image);
+    if (isSafeExternalImageUrl(normalizedUrl)) {
+      try {
+        const response = await fetch(normalizedUrl, {
+          headers: {
+            Accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+            'User-Agent': 'BridgeTechSocialPreview/1.0',
+          },
+          redirect: 'follow',
+          cache: 'no-store',
+        });
+
+        if (response.ok) {
+          const buffer = Buffer.from(await response.arrayBuffer());
+          if (buffer.length > 0 && buffer.length <= 12 * 1024 * 1024) {
+            const contentType = detectImageContentType(
+              buffer,
+              response.headers.get('content-type') || 'image/jpeg'
+            );
+
+            return new NextResponse(buffer, {
+              status: 200,
+              headers: {
+                'Content-Type': contentType,
+                'Content-Length': buffer.length.toString(),
+                'Cache-Control': 'public, max-age=31536000, immutable',
+                'Content-Disposition': 'inline',
+                'X-Content-Type-Options': 'nosniff',
+              },
+            });
+          }
+        }
+      } catch {}
+    }
+
+    return getFallbackBuffer(baseUrl);
   }
 
   return getFallbackBuffer(baseUrl);
