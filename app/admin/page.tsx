@@ -2023,13 +2023,14 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
               <div className="flex items-center justify-between mb-2">
                 <span className="font-bold text-white text-sm">{repair.trackingId}</span>
                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                  repair.status === 'collected' ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40'
+                  repair.status === 'terminal' ? 'bg-red-950 text-red-100 border-2 border-red-600 font-black shadow-sm'
+                  : repair.status === 'collected' ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40'
                   : repair.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                   : repair.status === 'ready-for-pickup' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
                   : repair.status === 'cancelled' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
                   : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                 }`}>
-                  {repair.status ? repair.status.replace(/-/g, ' ') : 'Pending'}
+                  {repair.status === 'terminal' ? '❌ Terminal' : repair.status ? repair.status.replace(/-/g, ' ') : 'Pending'}
                 </span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-slate-400">
@@ -2085,7 +2086,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                 <select
                   value={updateForm.status}
                   onChange={e => updateRepairForm(p => ({ ...p, status: e.target.value }))}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-red-500"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-red-500 font-medium"
                 >
                   <option value="pending">Pending</option>
                   <option value="received">Received</option>
@@ -2095,6 +2096,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                   <option value="collected">Collected (Customer Picked Up)</option>
                   <option value="completed">Completed</option>
                   <option value="cancelled">Cancelled</option>
+                  <option value="terminal">❌ Terminal — Cannot Proceed (Fatal / Unrepairable)</option>
                 </select>
               </div>
 

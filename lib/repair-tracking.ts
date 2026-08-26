@@ -31,7 +31,8 @@ export const REPAIR_STATUSES = {
   COMPLETED: 'completed',
   READY_PICKUP: 'ready-pickup',
   COLLECTED: 'collected',
-  DELIVERED: 'delivered'
+  DELIVERED: 'delivered',
+  TERMINAL: 'terminal'
 } as const;
 
 export const APPOINTMENT_STATUSES = {
@@ -39,7 +40,8 @@ export const APPOINTMENT_STATUSES = {
   CONFIRMED: 'confirmed',
   IN_PROGRESS: 'in-progress',
   COMPLETED: 'completed',
-  CANCELLED: 'cancelled'
+  CANCELLED: 'cancelled',
+  TERMINAL: 'terminal'
 } as const;
 
 export const CHAT_STATUSES = {
@@ -59,7 +61,8 @@ export const STATUS_MESSAGES = {
   [REPAIR_STATUSES.COMPLETED]: 'Your device has been successfully repaired and tested.',
   [REPAIR_STATUSES.READY_PICKUP]: 'Your device is ready for pickup! Please bring your ID and repair receipt.',
   [REPAIR_STATUSES.COLLECTED]: 'Your device has been collected. Thank you for choosing BridgeTech IT Services!',
-  [REPAIR_STATUSES.DELIVERED]: 'Your repaired device has been delivered successfully.'
+  [REPAIR_STATUSES.DELIVERED]: 'Your repaired device has been delivered successfully.',
+  [REPAIR_STATUSES.TERMINAL]: '❌ Terminal — Assessment complete. This device cannot be repaired further due to fatal/irreparable damage or unavailable components.'
 };
 
 // Timeline steps for repair process

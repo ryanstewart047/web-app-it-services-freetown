@@ -51,7 +51,7 @@ interface AppointmentStatus {
   customerName: string
   deviceType: string
   deviceModel: string
-  status: 'pending' | 'confirmed' | 'received' | 'submitted' | 'diagnosed' | 'in-progress' | 'completed' | 'ready-for-pickup' | 'collected' | 'cancelled'
+  status: 'pending' | 'confirmed' | 'received' | 'submitted' | 'diagnosed' | 'in-progress' | 'completed' | 'ready-for-pickup' | 'collected' | 'cancelled' | 'terminal'
   estimatedCompletion?: string
   notes?: string
   cost?: number
@@ -73,7 +73,8 @@ const statusSteps = [
   { key: 'completed', label: 'Completed', icon: 'fas fa-check', color: '#10b981' },
   { key: 'ready-for-pickup', label: 'Ready for Pickup', icon: 'fas fa-bell', color: '#040e40' },
   { key: 'collected', label: 'Collected', icon: 'fas fa-check-circle', color: '#10b981' },
-  { key: 'cancelled', label: 'Cancelled', icon: 'fas fa-times-circle', color: '#ef4444' }
+  { key: 'cancelled', label: 'Cancelled', icon: 'fas fa-times-circle', color: '#ef4444' },
+  { key: 'terminal', label: '✕ Terminal — Cannot Proceed', icon: 'fas fa-ban', color: '#7f1d1d' }
 ]
 
 // Parse the "--- Cost Breakdown ---" block from notes
@@ -416,7 +417,7 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
         </div>
         
         <div className="flex flex-wrap items-center gap-2 no-print">
-          {appointment.status !== 'cancelled' && appointment.status !== 'collected' && (
+          {appointment.status !== 'cancelled' && appointment.status !== 'collected' && appointment.status !== 'terminal' && (
             <button
               onClick={() => setShowCancelConfirm(true)}
               className="px-3 py-1.5 border border-red-300 text-red-600 hover:bg-red-50 font-medium text-xs rounded-lg transition-colors flex items-center gap-1.5"
@@ -452,8 +453,33 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
         </div>
       )}
 
+      {/* Terminal Banner — Device cannot be repaired / no further action possible */}
+      {appointment.status === 'terminal' && (
+        <div className="mb-8 p-5 bg-red-950 border-2 border-red-700 rounded-xl flex items-start gap-4 shadow-lg shadow-red-900/40">
+          <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-700 flex items-center justify-center">
+            <span className="text-white font-black text-2xl leading-none">✕</span>
+          </div>
+          <div>
+            <h4 className="font-black text-red-100 text-base flex items-center gap-2">
+              Terminal — No Further Action Possible
+            </h4>
+            <p className="text-red-300 text-xs mt-1.5 leading-relaxed">
+              After thorough assessment, this repair has reached a terminal state. This may be due to irreparable hardware damage, unavailability of parts, or a device beyond economical repair. No further repair work can be carried out. Please contact our team to discuss device disposal or replacement options.
+            </p>
+            <a
+              href="https://wa.me/23233399391"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-red-700 hover:bg-red-600 text-white text-xs font-bold rounded-lg transition-colors"
+            >
+              <i className="fab fa-whatsapp"></i> Contact BridgeTech on WhatsApp
+            </a>
+          </div>
+        </div>
+      )}
+
       {/* Status Progress Bar */}
-      {appointment.status !== 'cancelled' && (
+      {appointment.status !== 'cancelled' && appointment.status !== 'terminal' && (
         <div className="mb-8">
           <div className="relative">
             {/* Desktop progress bar */}

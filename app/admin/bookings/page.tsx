@@ -29,14 +29,16 @@ const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800',
   confirmed: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800',
   completed: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 border border-green-200 dark:border-green-800',
-  cancelled: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 border border-red-200 dark:border-red-800'
+  cancelled: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 border border-red-200 dark:border-red-800',
+  terminal: 'bg-red-950 text-red-100 dark:bg-red-950 dark:text-red-100 border-2 border-red-600 font-black shadow-sm'
 };
 
 const statusIcons = {
   pending: AlertCircle,
   confirmed: Clock,
   completed: CheckCircle,
-  cancelled: XCircle
+  cancelled: XCircle,
+  terminal: XCircle
 };
 
 export default function AdminBookingsPage() {
@@ -377,6 +379,7 @@ export default function AdminBookingsPage() {
             <option value="confirmed">Confirmed</option>
             <option value="completed">Completed</option>
             <option value="cancelled">Cancelled</option>
+            <option value="terminal">❌ Terminal (Cannot Proceed)</option>
           </select>
         </div>
       </div>
@@ -675,6 +678,15 @@ export default function AdminBookingsPage() {
                 <p className="text-xs text-gray-500 font-medium">Update Job Status</p>
               </div>
               <div className="flex items-center gap-3">
+                {selectedAppointment.status !== 'terminal' && selectedAppointment.status !== 'collected' && (
+                  <button
+                    onClick={() => updateStatus(selectedAppointment.id, 'terminal')}
+                    className="px-4 py-2.5 rounded-xl border border-red-800 bg-red-950/80 hover:bg-red-900 text-red-200 font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm"
+                  >
+                    <span>❌</span>
+                    <span>Mark as Terminal</span>
+                  </button>
+                )}
                 {selectedAppointment.status === 'pending' && (
                   <>
                     <button
@@ -708,7 +720,7 @@ export default function AdminBookingsPage() {
                     Mark as Collected
                   </button>
                 )}
-                {(selectedAppointment.status === 'collected' || selectedAppointment.status === 'completed' || selectedAppointment.status === 'cancelled') && (
+                {(selectedAppointment.status === 'collected' || selectedAppointment.status === 'completed' || selectedAppointment.status === 'cancelled' || selectedAppointment.status === 'terminal') && (
                   <button
                     onClick={() => setSelectedAppointment(null)}
                     className="px-6 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 text-white font-semibold text-sm shadow transition-all"

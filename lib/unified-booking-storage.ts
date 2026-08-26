@@ -20,7 +20,7 @@ export interface BookingData {
   issueDescription: string;
   preferredDate: string;
   preferredTime: string;
-  status: 'pending' | 'confirmed' | 'submitted' | 'received' | 'diagnosed' | 'in-progress' | 'ready-for-pickup' | 'completed' | 'collected' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'submitted' | 'received' | 'diagnosed' | 'in-progress' | 'ready-for-pickup' | 'completed' | 'collected' | 'cancelled' | 'terminal';
   createdAt: string;
   updatedAt: string;
   cost?: number;
