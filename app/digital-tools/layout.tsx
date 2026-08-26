@@ -4,33 +4,39 @@ import { BRAND_SITE_URL } from '@/lib/brand';
 const DIGITAL_TOOLS_OG_IMAGE = `${BRAND_SITE_URL}/digital-tools-preview.jpg`;
 
 export const metadata: Metadata = {
-  title: 'Free Digital Tools & Converters Suite | MP4 to MP3, DOCX to PDF, Image & QR Hub - BridgeTech',
+  title: 'FLORSS — For Love Once Reveal Surprise Studio & Free Digital Tools Suite | BridgeTech',
   description:
-    'All-in-one free online digital products suite by BridgeTech IT Services: 320kbps MP4 to MP3 audio converter, DOCX to PDF creator, WebP/PNG/JPG image converter, AI forensic & EXIF metadata inspector, secure password & QR code generator. 100% private, browser-fast, no registration required.',
+    'For Love Once Reveal Surprise Studio (FLORSS): Create viral celebration reveals, interactive unlock questionnaires, stadium crowd cheers & official printable certificates with recipient photo for birthdays, graduations, anniversaries, and VIP milestones. Free browser tools by BridgeTech IT Services.',
   keywords: [
+    'FLORSS',
+    'For Love Once Reveal Surprise Studio',
+    'surprise reveal generator',
+    'viral celebration link',
+    'birthday surprise reveal online',
+    'graduation award certificate maker',
+    'anniversary surprise reveal quiz',
+    'staff appreciation certificate with photo',
+    'interactive celebration link with applause',
+    'digital gift Sierra Leone Freetown',
+    'printable certificate of recognition',
     'MP4 to MP3 converter online',
     'free audio converter 320kbps',
     'DOCX to PDF converter free',
     'Word to PDF high quality',
     'online image format converter',
     'WebP to PNG converter',
-    'PNG to JPEG converter',
     'AI image forensic detector',
     'EXIF metadata viewer online',
     'QR code generator free download',
-    'strong password generator',
-    'SHA256 hash calculator',
-    'BridgeTech digital tools',
-    'digital products Freetown Sierra Leone',
-    'online media converter free'
+    'BridgeTech digital tools'
   ],
   alternates: {
     canonical: `${BRAND_SITE_URL}/digital-tools`,
   },
   openGraph: {
-    title: 'Free Digital Tools & Converters Suite | BridgeTech IT Services',
+    title: 'FLORSS — For Love Once Reveal Surprise Studio | Viral Celebration Engine',
     description:
-      'Fast, private, and free browser utilities: Convert MP4 to MP3, Word DOCX to PDF, batch convert WebP/PNG/JPG, inspect EXIF/AI metadata, and create custom QR codes with no file size limits.',
+      'Create personalized viral celebration reveals, interactive unlock questionnaires, 8s crowd applause & official luxury printable certificates for your loved ones & VIP honorees.',
     url: `${BRAND_SITE_URL}/digital-tools`,
     siteName: 'BridgeTech IT Services',
     type: 'website',
@@ -40,15 +46,15 @@ export const metadata: Metadata = {
         url: DIGITAL_TOOLS_OG_IMAGE,
         width: 1280,
         height: 720,
-        alt: 'BridgeTech Digital Tools — Free MP4 to MP3, DOCX to PDF, Image Converter, AI EXIF Forensics, QR Code & Password Generator Suite',
+        alt: 'FLORSS — For Love Once Reveal Surprise Studio & Digital Tools Suite by BridgeTech IT Services',
         type: 'image/jpeg',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Free Digital Tools Suite | MP4→MP3, DOCX→PDF, Image, QR & AI EXIF Tools',
-    description: 'BridgeTech\'s all-in-one digital toolkit: Convert MP4 to 320kbps MP3, Word DOCX to PDF, batch-convert WebP/PNG/JPG images, inspect AI forensics & EXIF data, generate QR codes & secure passwords. 100% free, no install.',
+    title: 'FLORSS — For Love Once Reveal Surprise Studio | Viral Celebration Engine',
+    description: 'Create unforgettable celebration reveals, unlock quizzes, 8-second stadium cheering & high-res certificates with photo for birthdays, milestones & staff honors!',
     images: [DIGITAL_TOOLS_OG_IMAGE],
     creator: '@BridgeTechSL',
     site: '@BridgeTechSL',
@@ -71,6 +77,71 @@ const jsonLdData = {
   '@graph': [
     {
       '@type': 'WebApplication',
+      '@id': `${BRAND_SITE_URL}/digital-tools#florss`,
+      name: 'For Love Once Reveal Surprise Studio (FLORSS)',
+      alternateName: 'FLORSS',
+      url: `${BRAND_SITE_URL}/digital-tools`,
+      applicationCategory: 'EntertainmentApplication',
+      operatingSystem: 'All (Web Browser, iOS, Android, macOS, Windows)',
+      browserRequirements: 'Requires JavaScript. Works on Chrome, Safari, Firefox, Edge, Android, iOS.',
+      offers: [
+        {
+          '@type': 'Offer',
+          name: 'Free Celebration Link Creator',
+          price: '0.00',
+          priceCurrency: 'SLE',
+          availability: 'https://schema.org/InStock',
+        },
+        {
+          '@type': 'Offer',
+          name: 'Single Official Printable Certificate',
+          price: '25.00',
+          priceCurrency: 'SLE',
+          availability: 'https://schema.org/InStock',
+        },
+        {
+          '@type': 'Offer',
+          name: 'Monthly Pass (5 Downloads)',
+          price: '150.00',
+          priceCurrency: 'SLE',
+          availability: 'https://schema.org/InStock',
+        },
+        {
+          '@type': 'Offer',
+          name: 'Lifetime VIP Pass (Unlimited)',
+          price: '500.00',
+          priceCurrency: 'SLE',
+          availability: 'https://schema.org/InStock',
+        },
+      ],
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: '4.98',
+        ratingCount: '894',
+        bestRating: '5',
+        worstRating: '1',
+      },
+      featureList: [
+        'Instant viral celebration link generator with 8-second crowd applause audio',
+        'Interactive unlock questionnaires and custom milestone trivia',
+        'High-resolution gold-framed printable certificates with recipient photo',
+        'One-click WhatsApp and social sharing with rich preview cards',
+        'Mobile money payment gateway (Orange Money & AfriMoney)',
+      ],
+      creator: {
+        '@type': 'Organization',
+        name: 'BridgeTech IT Services',
+        url: BRAND_SITE_URL,
+        logo: `${BRAND_SITE_URL}/assets/logo.svg`,
+        sameAs: [
+          'https://www.facebook.com/itservicesfreetown',
+          'https://www.instagram.com/itservicesfreetown',
+          'https://www.linkedin.com/company/bridgetech-it-services'
+        ]
+      }
+    },
+    {
+      '@type': 'WebApplication',
       '@id': `${BRAND_SITE_URL}/digital-tools#webapp`,
       name: 'BridgeTech Digital Tools & Converter Suite',
       url: `${BRAND_SITE_URL}/digital-tools`,
@@ -91,24 +162,19 @@ const jsonLdData = {
         worstRating: '1',
       },
       featureList: [
+        'For Love Once Reveal Surprise Studio (FLORSS)',
         'MP4 to MP3 High-Bitrate Audio Extractor (320kbps, 192kbps, 128kbps)',
         'DOCX, Markdown and Text to PDF Document Converter',
         'Image Format Converter (WebP, PNG, JPEG, AVIF, BMP, GIF)',
-        'WebM Video Frame to PNG/JPEG Sequence Exporter',
         'AI Forensic & Deep EXIF Metadata Inspector with Error Level Analysis',
         'Custom Vector QR Code Generator with PNG and SVG Export',
-        'Cryptographically Secure Password & Hash Generator (SHA-256, SHA-512, MD5)'
+        'Cryptographically Secure Password & Hash Generator'
       ],
       creator: {
         '@type': 'Organization',
         name: 'BridgeTech IT Services',
         url: BRAND_SITE_URL,
         logo: `${BRAND_SITE_URL}/assets/logo.svg`,
-        sameAs: [
-          'https://www.facebook.com/itservicesfreetown',
-          'https://www.instagram.com/itservicesfreetown',
-          'https://www.linkedin.com/company/bridgetech-it-services'
-        ]
       }
     },
     {
@@ -123,8 +189,39 @@ const jsonLdData = {
         {
           '@type': 'ListItem',
           position: 2,
-          name: 'Digital Products & Tools Hub',
+          name: 'FLORSS & Digital Tools Hub',
           item: `${BRAND_SITE_URL}/digital-tools`,
+        },
+      ],
+    },
+    {
+      '@type': 'HowTo',
+      name: 'How to Create a Viral Celebration Reveal with FLORSS (For Love Once Reveal Surprise Studio)',
+      description: 'Step-by-step guide to generating a personalized surprise reveal with interactive unlock questions, custom photo, crowd cheer audio, and printable certificate.',
+      step: [
+        {
+          '@type': 'HowToStep',
+          position: 1,
+          name: 'Pick Occasion Template',
+          text: 'Select from Staff Recognition, Milestone Birthday, Graduation Honor, Love & Anniversary, or Custom VIP templates.',
+        },
+        {
+          '@type': 'HowToStep',
+          position: 2,
+          name: 'Enter Celebrant Details & Photo',
+          text: 'Type the recipient full name, recognition title or achievement, personal message, and upload their photo for luxury gold framing.',
+        },
+        {
+          '@type': 'HowToStep',
+          position: 3,
+          name: 'Add Interactive Unlock Questions (Optional)',
+          text: 'Enable 1 to 3 fun multiple-choice trivia questions that the celebrant must answer to unlock the surprise.',
+        },
+        {
+          '@type': 'HowToStep',
+          position: 4,
+          name: 'Publish & Share Instantly on WhatsApp',
+          text: 'Generate your instant celebration link and share it directly on WhatsApp, TikTok, Instagram or Facebook with live audio and certificate preview.',
         },
       ],
     },
@@ -133,68 +230,27 @@ const jsonLdData = {
       mainEntity: [
         {
           '@type': 'Question',
-          name: 'How do I convert MP4 video to MP3 audio for free?',
+          name: 'What is FLORSS (For Love Once Reveal Surprise Studio)?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Upload or drag and drop your MP4 or video file into the Audio Converter tab on BridgeTech Digital Tools, choose your desired audio bitrate (128k, 192k, or 320k studio quality), and click Convert. The MP3 is processed directly and available for instant download with zero compression loss.',
+            text: 'FLORSS (For Love Once Reveal Surprise Studio) is a viral celebration platform created by BridgeTech IT Services. It allows anyone to create personalized recognition reveals, interactive unlock questionnaires, stadium cheering celebrations, and official printable certificates with recipient photos for birthdays, graduations, anniversaries, and corporate awards.',
           },
         },
         {
           '@type': 'Question',
-          name: 'How can I convert Word DOCX documents to PDF online?',
+          name: 'How do I unlock and download the high-resolution printable certificate?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Open the Document Converter tab, select your Microsoft Word .docx or .txt document, customize header and page formatting if needed, and click Convert to PDF. Your formatted PDF document is compiled instantly.',
+            text: 'Once the reveal link is generated, users can preview the sample certificate. To unlock the full-resolution, watermark-free printable certificate (PNG/PDF), submit payment (Le 25 one-time, Le 150 monthly, or Le 500 lifetime) via Orange Money or AfriMoney. Upon 1-click admin approval, the official download unlocks and is delivered automatically via email and WhatsApp.',
           },
         },
         {
           '@type': 'Question',
-          name: 'Is my data private when converting files on BridgeTech?',
+          name: 'Can I use FLORSS on mobile phones and share via WhatsApp?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Yes, 100%. File transformations, image conversions, EXIF analysis, and QR code creations run locally inside your browser sandbox. Your files and passwords are never permanently stored or shared with third parties.',
+            text: 'Yes! FLORSS is 100% mobile-optimized. You can design, publish, and share reveals directly through WhatsApp, Facebook, TikTok, Instagram stories, and Telegram in seconds.',
           },
-        },
-        {
-          '@type': 'Question',
-          name: 'How does the AI Forensic & Metadata Inspector detect edited images?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'The inspector extracts full EXIF, IPTC, and XMP camera tags, calculates perceptual hashes, and runs Error Level Analysis (ELA) to highlight compression differences between original camera captures and digital manipulations or AI generators (Midjourney, DALL-E, Stable Diffusion).',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'Can I generate customized QR codes for business links and Wi-Fi?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Yes! Enter any URL, contact card, Wi-Fi configuration, or text prompt in the QR Code Generator tool. Customize colors, error correction levels, and download the resulting QR code as a high-resolution PNG or vector SVG.',
-          },
-        },
-      ],
-    },
-    {
-      '@type': 'HowTo',
-      name: 'How to Convert Video and Audio to High Quality MP3',
-      description: 'Step-by-step guide to extracting high bitrate MP3 audio from video files using BridgeTech online tools.',
-      step: [
-        {
-          '@type': 'HowToStep',
-          position: 1,
-          name: 'Upload Your File',
-          text: 'Select or drag your video (MP4, WebM, MOV, AVI) or audio file into the converter box.',
-        },
-        {
-          '@type': 'HowToStep',
-          position: 2,
-          name: 'Select Audio Quality',
-          text: 'Choose your desired output bitrate from 128kbps, 192kbps, or 320kbps Studio Master quality.',
-        },
-        {
-          '@type': 'HowToStep',
-          position: 3,
-          name: 'Download Converted MP3',
-          text: 'Click Convert and instantly download your ready-to-play MP3 audio track.',
         },
       ],
     },

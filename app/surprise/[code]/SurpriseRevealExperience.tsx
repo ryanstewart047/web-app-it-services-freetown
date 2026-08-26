@@ -725,7 +725,7 @@ export default function SurpriseRevealExperience({
                     </motion.button>
 
                     <motion.a
-                      href={`https://wa.me/?text=${encodeURIComponent(`🎉 Look at this!\n\n${recipientName} just received a special recognition – ${achievement}!\n\nSee the surprise reveal 👉 ${shareUrl ?? (typeof window !== 'undefined' ? window.location.href : '')}\n\n🏆 Powered by BridgeTech IT Services`)}`}
+                      href={`https://wa.me/?text=${encodeURIComponent(`🎉 Look at this special surprise!\n\n${recipientName} just received a special recognition – ${achievement}!\n\nSee the surprise reveal 👉 ${shareUrl ?? (typeof window !== 'undefined' ? window.location.href : '')}\n\n🌟 Made with For Love Once Reveal Surprise Studio (FLORSS) by BridgeTech IT Services`)}`}
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 text-xs sm:text-sm font-black text-white transition hover:bg-[#1ebe5d]"

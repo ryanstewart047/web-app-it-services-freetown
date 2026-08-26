@@ -125,11 +125,11 @@ export default function CertificateClient({ reveal, shareUrl, certificateUrl }: 
       // Organization & Date
       ctx.fillStyle = '#f59e0b';
       ctx.font = 'bold 26px sans-serif';
-      ctx.fillText('BRIDGETECH CELEBRATION STUDIO', 800, 935);
+      ctx.fillText('FOR LOVE ONCE REVEAL SURPRISE STUDIO (FLORSS)', 800, 935);
 
       ctx.fillStyle = '#64748b';
       ctx.font = '20px sans-serif';
-      ctx.fillText(`Official Verification ID: ${reveal.code} · ${new Date().toLocaleDateString(undefined, { dateStyle: 'long' })} · Sierra Leone`, 800, 980);
+      ctx.fillText(`FLORSS Official Verification ID: ${reveal.code} · ${new Date().toLocaleDateString(undefined, { dateStyle: 'long' })} · BridgeTech IT Services`, 800, 980);
 
       const url = canvas.toDataURL('image/png');
       setCertDataUrl(url);

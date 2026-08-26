@@ -30,10 +30,10 @@ function getOgImageUrl(baseUrl: string, code: string) {
 
 export async function generateMetadata({ params }: SurpriseRevealPageProps): Promise<Metadata> {
   const reveal = await getSurpriseReveal(params.code);
-  if (!reveal) return { title: 'Surprise Reveal' };
+  if (!reveal) return { title: 'FLORSS — Surprise Reveal' };
 
-  const title = `Congratulations, ${reveal.recipientName}!`;
-  const description = reveal.message || `${reveal.recipientName} is being celebrated for ${reveal.achievement}.`;
+  const title = `🎉 Special Surprise for ${reveal.recipientName}! | FLORSS by BridgeTech`;
+  const description = reveal.message || `${reveal.recipientName} is receiving special recognition: ${reveal.achievement}. Open to experience their celebration with audio & interactive reveal!`;
   const baseUrl = getBaseUrl();
   const url = `${baseUrl}/surprise/${reveal.code}`;
   const ogImageUrl = getOgImageUrl(baseUrl, reveal.code);
@@ -46,14 +46,14 @@ export async function generateMetadata({ params }: SurpriseRevealPageProps): Pro
       title,
       description,
       url,
-      siteName: 'BridgeTech IT Services',
+      siteName: 'For Love Once Reveal Surprise Studio (FLORSS) · BridgeTech',
       type: 'website',
       images: [
         {
           url: ogImageUrl,
           width: 1200,
           height: 630,
-          alt: `${reveal.recipientName} - ${reveal.achievement}`,
+          alt: `${reveal.recipientName} - ${reveal.achievement} - FLORSS Celebration`,
         },
       ],
     },
@@ -62,8 +62,9 @@ export async function generateMetadata({ params }: SurpriseRevealPageProps): Pro
       title,
       description,
       images: [ogImageUrl],
+      creator: '@BridgeTechSL',
     },
-    robots: { index: false, follow: false },
+    robots: { index: true, follow: true },
   };
 }
 
@@ -73,6 +74,35 @@ export default async function SurpriseRevealPage({ params }: SurpriseRevealPageP
 
   const baseUrl = getBaseUrl();
   const shareUrl = `${baseUrl}/surprise/${reveal.code}`;
+  const ogImageUrl = getOgImageUrl(baseUrl, reveal.code);
 
-  return <SurpriseRevealExperience {...reveal} shareUrl={shareUrl} />;
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork',
+    name: `Recognition for ${reveal.recipientName} - ${reveal.achievement}`,
+    headline: `Celebration and Award for ${reveal.recipientName}`,
+    description: reveal.message || `Special recognition for ${reveal.achievement}`,
+    image: ogImageUrl,
+    author: {
+      '@type': 'Organization',
+      name: 'For Love Once Reveal Surprise Studio (FLORSS)',
+      url: `${baseUrl}/digital-tools`,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'BridgeTech IT Services',
+      url: baseUrl,
+    },
+    url: shareUrl,
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <SurpriseRevealExperience {...reveal} shareUrl={shareUrl} />
+    </>
+  );
 }

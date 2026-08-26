@@ -141,11 +141,11 @@ export default function ProtectedCertificatePreview({
         // Organization & Date
         ctx.fillStyle = '#f59e0b';
         ctx.font = 'bold 26px sans-serif';
-        ctx.fillText('BRIDGETECH CELEBRATION STUDIO', 800, 935);
+        ctx.fillText('FOR LOVE ONCE REVEAL SURPRISE STUDIO (FLORSS)', 800, 935);
 
         ctx.fillStyle = '#64748b';
         ctx.font = '20px sans-serif';
-        ctx.fillText(`Official Verification ID: ${code} · ${new Date().toLocaleDateString(undefined, { dateStyle: 'long' })} · Sierra Leone`, 800, 980);
+        ctx.fillText(`FLORSS Official Verification ID: ${code} · ${new Date().toLocaleDateString(undefined, { dateStyle: 'long' })} · BridgeTech IT Services`, 800, 980);
 
         // ==========================================
         // 🔒 HEAVY SECURITY WATERMARK OVERLAY
@@ -158,10 +158,10 @@ export default function ProtectedCertificatePreview({
         ctx.font = '900 48px sans-serif';
         for (let y = -400; y < 1600; y += 190) {
           for (let x = -800; x < 2400; x += 680) {
-            ctx.fillText('SAMPLE PREVIEW · UNLICENSED', x, y);
+            ctx.fillText('FLORSS SAMPLE PREVIEW · UNLICENSED', x, y);
             ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
             ctx.font = 'bold 28px monospace';
-            ctx.fillText('🔒 PROHIBITED FOR PRINT · UNLOCK AT IT SERVICES FREETOWN', x - 40, y + 45);
+            ctx.fillText('🔒 PROHIBITED FOR PRINT · UNLOCK AT FLORSS / IT SERVICES FREETOWN', x - 40, y + 45);
             ctx.fillStyle = 'rgba(245, 158, 11, 0.22)';
             ctx.font = '900 48px sans-serif';
           }

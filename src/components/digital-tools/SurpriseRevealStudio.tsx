@@ -356,12 +356,12 @@ export default function SurpriseRevealStudio() {
 
   const openWhatsAppShare = () => {
     if (!publishedReveal) return;
-    const text = `🎉 Special Surprise for ${recipientName}!\n\n✨ ${achievement}\n\nTap here to unlock your reveal 👇\n${publishedReveal.shareUrl}\n\n🏆 Powered by BridgeTech IT Services`;
+    const text = `🎉 Look at this special surprise!\n\n${recipientName} has a personalized celebration reveal waiting for them!\n\nTap to open the reveal 👉 ${publishedReveal.shareUrl}\n\n🌟 Created with For Love Once Reveal Surprise Studio (FLORSS) by BridgeTech IT Services`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const orderVipPackage = () => {
-    const text = `Hello BridgeTech! I want to order the Surprise Reveal Certificate for ${recipientName || 'my celebrant'}.\n\nPackage options:\n• Single Certificate Download – Le 25\n• Monthly Pass (5 Downloads) – Le 150\n• Lifetime VIP Pass (Unlimited) – Le 500\n\nPayment via Orange Money or AfriMoney. Please confirm!`;
+    const text = `Hello BridgeTech! I want to unlock the official printable certificate from For Love Once Reveal Surprise Studio (FLORSS) for ${recipientName || 'my celebrant'}.\n\nPackage options:\n• Single Certificate Download – Le 25\n• Monthly Pass (5 Downloads) – Le 150\n• Lifetime VIP Pass (Unlimited) – Le 500\n\nPayment via Orange Money or AfriMoney. Please confirm!`;
     window.open(`https://wa.me/23233399391?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -370,18 +370,20 @@ export default function SurpriseRevealStudio() {
       {/* Header Banner */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-800">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-slate-950 flex items-center justify-center text-2xl font-black shadow-lg shadow-amber-500/20">
-            <Gift className="w-6 h-6" />
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-orange-500 text-white flex items-center justify-center text-2xl font-black shadow-lg shadow-amber-500/20">
+            <Heart className="w-6 h-6 fill-current text-white animate-pulse" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-black text-white sm:text-2xl">Interactive Surprise Reveal Studio</h2>
-              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                Digital Product
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-xl font-black text-white sm:text-2xl">
+                For Love Once Reveal Surprise Studio <span className="text-amber-400">(FLORSS)</span>
+              </h2>
+              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                ❤️ Viral Surprise Engine
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
-              Create personalized celebration links with interactive unlock questions, photo reveals &amp; 8-second crowd applause.
+              Create unforgettable celebration reveals for your loved ones with interactive unlock questions, custom photo reveals, stadium cheering &amp; luxury printable certificates.
             </p>
           </div>
         </div>
@@ -392,7 +394,7 @@ export default function SurpriseRevealStudio() {
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 text-xs font-black transition-all shadow-md shadow-amber-500/20"
         >
           <Crown className="w-4 h-4 text-slate-950" />
-          <span>VIP Upgrade Package (Le 250)</span>
+          <span>Unlock HD Certificate (Le 25)</span>
         </button>
       </div>
 

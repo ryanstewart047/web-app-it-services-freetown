@@ -18,8 +18,8 @@ export async function generateMetadata({ params }: CertificatePageProps): Promis
   if (!reveal) return { title: 'Certificate Not Found' };
 
   return {
-    title: `Official Certificate: ${reveal.recipientName} | BridgeTech IT Services`,
-    description: `Official Certificate of Recognition presented to ${reveal.recipientName} for ${reveal.achievement}.`,
+    title: `Official Certificate: ${reveal.recipientName} | FLORSS · BridgeTech IT Services`,
+    description: `Official Certificate of Recognition presented to ${reveal.recipientName} for ${reveal.achievement}. Powered by For Love Once Reveal Surprise Studio (FLORSS).`,
     robots: { index: false, follow: false },
   };
 }
