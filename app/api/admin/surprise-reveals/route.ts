@@ -73,7 +73,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Choose a valid reveal sound.' }, { status: 400 });
     }
 
-    const reveal = await createSurpriseReveal({ recipientName, achievement, message, imageUrl, soundEffect });
+    const quiz = Array.isArray(body.quiz) ? body.quiz : undefined;
+    const isVip = Boolean(body.isVip);
+
+    const reveal = await createSurpriseReveal({ recipientName, achievement, message, imageUrl, soundEffect, quiz, isVip });
     return NextResponse.json({ success: true, reveal, shareUrl: getPublicUrl(request, reveal.code) }, { status: 201 });
   } catch (error) {
     console.error('[Surprise Reveal Admin] Create error:', error);

@@ -10,6 +10,7 @@ import ImageConverter from '@/components/digital-tools/ImageConverter';
 import DocumentConverter from '@/components/digital-tools/DocumentConverter';
 import FileMetadataInspector from '@/components/digital-tools/FileMetadataInspector';
 import ImageBackgroundRemover from '@/components/digital-tools/ImageBackgroundRemover';
+import SurpriseRevealStudio from '@/components/digital-tools/SurpriseRevealStudio';
 import { BRAND_AVATAR_TRANSPARENT_SRC, BRAND_NAME } from '@/lib/brand';
 
 type ToolCategory = 'all' | 'image' | 'pdf' | 'audio' | 'utilities';
@@ -28,6 +29,18 @@ interface ToolItem {
 }
 
 const ALL_TOOLS: ToolItem[] = [
+  {
+    id: 'surprise-reveal',
+    title: 'Surprise & Questionnaire Reveal Studio',
+    desc: 'Create personalized VIP achievement reveals, interactive unlock questionnaires & viral celebration links with 8-second crowd applause.',
+    category: 'utilities',
+    badge: 'Monetized • Viral',
+    popular: true,
+    isNew: true,
+    icon: 'fas fa-gift',
+    gradient: 'from-amber-400 via-orange-500 to-amber-600',
+    tags: ['surprise', 'reveal', 'quiz', 'questionnaire', 'celebration', 'birthday', 'staff', 'award', 'certificate', 'gift', 'audio'],
+  },
   {
     id: 'bg-remover',
     title: 'Remove Image Background',
@@ -583,7 +596,9 @@ export default function DigitalToolsPage() {
     const hash = window.location.hash.toLowerCase().replace('#', '');
     if (!hash) return;
 
-    if (hash.includes('bg') || hash.includes('background')) {
+    if (hash.includes('surprise') || hash.includes('reveal') || hash.includes('celebrat') || hash.includes('quiz')) {
+      setActiveToolId('surprise-reveal');
+    } else if (hash.includes('bg') || hash.includes('background')) {
       setActiveToolId('bg-remover');
     } else if (hash.includes('meta') || hash.includes('forensic') || hash.includes('exif')) {
       setActiveToolId('forensics');
@@ -776,6 +791,7 @@ export default function DigitalToolsPage() {
             </div>
 
             {/* Render Selected Tool Component */}
+            {activeToolId === 'surprise-reveal' && <SurpriseRevealStudio />}
             {activeToolId === 'bg-remover' && <ImageBackgroundRemover />}
             {activeToolId === 'forensics' && <FileMetadataInspector />}
             {activeToolId === 'audio-converter' && <AudioConverter />}
