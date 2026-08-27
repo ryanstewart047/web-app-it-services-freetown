@@ -462,6 +462,9 @@ export default function SurpriseRevealExperience({
       console.warn('Certificate generation failed:', e);
     } finally {
       setGeneratingCert(false);
+    }
+  };
+
   const cinematicDuration = reduceMotion ? 0.01 : 4.8;
 
   return (
