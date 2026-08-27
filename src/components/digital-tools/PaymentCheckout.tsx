@@ -73,46 +73,39 @@ const AFRI_USSD_RAW = '*161*6*2*088294631#';
 const ORANGE_TEL_URI = 'tel:*144*2*2*241586%23';
 const AFRI_TEL_URI = 'tel:*161*6*2*088294631%23';
 
-// Official Orange Money SVG Logo
-export function OrangeMoneyLogo({ className = 'w-9 h-9' }: { className?: string }) {
+// Official Orange Money Logo (using uploaded asset)
+export function OrangeMoneyLogo({ className = 'w-10 h-10' }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="48" height="48" rx="12" fill="#FF7900" />
-      <path
-        d="M24 10C16.268 10 10 16.268 10 24C10 31.732 16.268 38 24 38C31.732 38 38 31.732 38 24C38 16.268 31.732 10 24 10ZM24 34.5C18.201 34.5 13.5 29.799 13.5 24C13.5 18.201 18.201 13.5 24 13.5C29.799 13.5 34.5 18.201 34.5 24C34.5 29.799 29.799 34.5 24 34.5Z"
-        fill="white"
-        fillOpacity="0.25"
-      />
-      {/* Stylized M */}
-      <path
-        d="M17 29V19H20.5L24 24.5L27.5 19H31V29H28V23.2L24.8 28H23.2L20 23.2V29H17Z"
-        fill="white"
-        stroke="white"
-        strokeWidth="0.5"
-      />
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/images/payments/orange-money.png"
+      alt="Orange Money"
+      className={`${className} object-contain rounded-xl`}
+    />
   );
 }
 
-// Official AfriMoney SVG Logo
-export function AfriMoneyLogo({ className = 'w-9 h-9' }: { className?: string }) {
+// Official AfriMoney Logo (using uploaded asset)
+export function AfriMoneyLogo({ className = 'w-10 h-10' }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="48" height="48" rx="12" fill="#008751" />
-      {/* AfriMoney Shield/A accent */}
-      <path
-        d="M24 8L36 15V24C36 31.5 24 39 24 39C24 39 12 31.5 12 24V15L24 8Z"
-        fill="#FFD100"
-        fillOpacity="0.3"
-      />
-      <path
-        d="M24 13L33 33H28.5L26.5 28.5H21.5L19.5 33H15L24 13ZM24 21L22.5 25.5H25.5L24 21Z"
-        fill="white"
-        stroke="white"
-        strokeWidth="0.4"
-      />
-      <circle cx="33" cy="16" r="3" fill="#FFD100" />
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/images/payments/afrimoney-icon.png"
+      alt="AfriMoney"
+      className={`${className} object-contain rounded-xl`}
+    />
+  );
+}
+
+// Full AfriMoney Wordmark
+export function AfriMoneyFullLogo({ className = 'h-6' }: { className?: string }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/images/payments/afrimoney.png"
+      alt="AfriMoney"
+      className={`${className} object-contain`}
+    />
   );
 }
 
@@ -482,9 +475,9 @@ export default function PaymentCheckout({
                 {paymentMethod === 'afrimoney' && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                      <div className="flex items-center gap-2">
-                        <AfriMoneyLogo className="w-6 h-6" />
-                        <span className="text-xs font-black text-emerald-400">AfriMoney Payment ({activePlan.slePrice})</span>
+                      <div className="flex items-center gap-2.5">
+                        <AfriMoneyFullLogo className="h-6 w-auto" />
+                        <span className="text-xs font-black text-fuchsia-300">Payment Steps ({activePlan.slePrice})</span>
                       </div>
                       <span className="text-[11px] font-mono text-slate-400">Agent: 088294631</span>
                     </div>
@@ -493,7 +486,7 @@ export default function PaymentCheckout({
                       {/* Left: Mobile USSD Click Action */}
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 text-xs font-bold text-slate-200">
-                          <Smartphone className="w-4 h-4 text-emerald-400" />
+                          <Smartphone className="w-4 h-4 text-fuchsia-400" />
                           <span>Mobile One-Tap Dial</span>
                         </div>
                         <p className="text-[11px] text-slate-300 leading-relaxed">
@@ -502,18 +495,18 @@ export default function PaymentCheckout({
 
                         <a
                           href={AFRI_TEL_URI}
-                          className="cursor-pointer w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 transition-all select-none active:scale-[0.98]"
+                          className="cursor-pointer w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#8A157C] to-[#F37023] hover:from-[#751169] hover:to-[#db6018] text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#8A157C]/25 transition-all select-none active:scale-[0.98]"
                         >
                           <PhoneCall className="w-4 h-4 shrink-0" />
                           <span>Dial {AFRI_USSD_RAW}</span>
                         </a>
 
                         <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-[11px] text-slate-300">
-                          <span className="font-mono font-bold text-emerald-300">{AFRI_USSD_RAW}</span>
+                          <span className="font-mono font-bold text-fuchsia-300">{AFRI_USSD_RAW}</span>
                           <button
                             type="button"
                             onClick={() => copyToClipboard(AFRI_USSD_RAW, 'afri')}
-                            className="cursor-pointer text-emerald-400 font-bold hover:text-emerald-300 flex items-center gap-1 px-2 py-1 rounded hover:bg-emerald-500/10 transition-colors"
+                            className="cursor-pointer text-fuchsia-400 font-bold hover:text-fuchsia-300 flex items-center gap-1 px-2 py-1 rounded hover:bg-fuchsia-500/10 transition-colors"
                           >
                             {copiedCode === 'afri' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                             <span>{copiedCode === 'afri' ? 'Copied' : 'Copy Code'}</span>
@@ -524,7 +517,7 @@ export default function PaymentCheckout({
                       {/* Right: Desktop QR Code */}
                       <div className="border-t md:border-t-0 md:border-l border-white/10 pt-3 md:pt-0 md:pl-4 flex flex-col items-center text-center space-y-2">
                         <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-300">
-                          <Monitor className="w-3.5 h-3.5 text-emerald-400" />
+                          <Monitor className="w-3.5 h-3.5 text-fuchsia-400" />
                           <span>Desktop Scan to Dial</span>
                         </div>
                         <div className="p-2 rounded-xl bg-white shadow-md">
