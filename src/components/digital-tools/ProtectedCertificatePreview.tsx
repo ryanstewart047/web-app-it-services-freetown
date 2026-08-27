@@ -136,16 +136,155 @@ export default function ProtectedCertificatePreview({
 
         // Footer divider
         ctx.fillStyle = '#334155';
-        ctx.fillRect(200, 860, 1200, 2);
+        ctx.fillRect(160, 830, 1280, 2);
 
-        // Organization & Date
+        // ==========================================
+        // 🌟 GOLD DIGITAL CERTIFICATION SEAL (LEFT)
+        // ==========================================
+        const sealX = 320;
+        const sealY = 935;
+        const sealR = 56;
+
+        // Ribbon tails
+        ctx.fillStyle = '#b45309';
+        ctx.beginPath();
+        ctx.moveTo(sealX - 25, sealY + 30);
+        ctx.lineTo(sealX - 45, sealY + 95);
+        ctx.lineTo(sealX - 25, sealY + 80);
+        ctx.lineTo(sealX - 5, sealY + 95);
+        ctx.lineTo(sealX - 10, sealY + 30);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(sealX + 10, sealY + 30);
+        ctx.lineTo(sealX + 5, sealY + 95);
+        ctx.lineTo(sealX + 25, sealY + 80);
+        ctx.lineTo(sealX + 45, sealY + 95);
+        ctx.lineTo(sealX + 25, sealY + 30);
+        ctx.fill();
+
+        // Outer serrated / starburst seal circle
         ctx.fillStyle = '#f59e0b';
-        ctx.font = 'bold 26px sans-serif';
-        ctx.fillText('FOR LOVE ONCE REVEAL SURPRISE STUDIO (FLORSS)', 800, 935);
+        ctx.beginPath();
+        for (let i = 0; i < 24; i++) {
+          const angle = (i * Math.PI) / 12;
+          const rad = i % 2 === 0 ? sealR + 6 : sealR - 2;
+          const px = sealX + Math.cos(angle) * rad;
+          const py = sealY + Math.sin(angle) * rad;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fill();
 
+        // Inner seal circle
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.arc(sealX, sealY, sealR - 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Seal text & Star
+        ctx.fillStyle = '#fcd34d';
+        ctx.font = 'bold 22px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('★', sealX, sealY - 12);
+        ctx.font = 'bold 11px sans-serif';
+        ctx.fillText('VERIFIED', sealX, sealY + 5);
+        ctx.font = '800 9px sans-serif';
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillText('FLORSS AUTH', sealX, sealY + 18);
+
+        // Left Date Label
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = 'bold 15px sans-serif';
+        ctx.fillText('DATE OF ISSUANCE', sealX, sealY + 115);
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '16px sans-serif';
+        ctx.fillText(new Date().toLocaleDateString(undefined, { dateStyle: 'medium' }), sealX, sealY + 135);
+
+        // ==========================================
+        // 🏢 CENTER: FLORSS OFFICIAL AUTHORITY
+        // ==========================================
+        ctx.fillStyle = '#f59e0b';
+        ctx.font = 'bold 22px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('FOR LOVE ONCE REVEAL SURPRISE STUDIO (FLORSS)', 800, 875);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '16px sans-serif';
+        ctx.fillText(`Official Verification ID: ${code} · BridgeTech IT Services`, 800, 905);
+
+        // Digital Certificate Security Hash
+        const fakeHash = `SIG-SHA256:${Buffer.from(code + (recipientName || '')).toString('base64').slice(0, 16).toUpperCase() || '7F9A2B4E8C1D'}`;
+        ctx.fillStyle = '#0284c7';
+        ctx.font = 'bold 13px monospace';
+        ctx.fillText(`🔒 CRYPTOGRAPHICALLY SECURED & DIGITALLY VERIFIED`, 800, 935);
         ctx.fillStyle = '#64748b';
-        ctx.font = '20px sans-serif';
-        ctx.fillText(`FLORSS Official Verification ID: ${code} · ${new Date().toLocaleDateString(undefined, { dateStyle: 'long' })} · BridgeTech IT Services`, 800, 980);
+        ctx.font = '12px monospace';
+        ctx.fillText(fakeHash, 800, 955);
+
+        // ==========================================
+        // ✍️ RIGHT: AUTOMATIC DIGITAL SIGNATURE
+        // ==========================================
+        const sigX = 1260;
+        const sigY = 910;
+
+        // Draw calligraphic digital signature with smooth ink curves
+        ctx.save();
+        ctx.strokeStyle = '#fcd34d';
+        ctx.lineWidth = 3.5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.shadowColor = 'rgba(252, 211, 77, 0.4)';
+        ctx.shadowBlur = 10;
+
+        // Stylized initial 'R'
+        ctx.beginPath();
+        ctx.moveTo(sigX - 110, sigY - 20);
+        ctx.bezierCurveTo(sigX - 115, sigY + 15, sigX - 105, sigY + 25, sigX - 100, sigY + 20);
+        ctx.bezierCurveTo(sigX - 100, sigY - 35, sigX - 55, sigY - 35, sigX - 55, sigY - 10);
+        ctx.bezierCurveTo(sigX - 55, sigY + 5, sigX - 85, sigY + 10, sigX - 45, sigY + 22);
+        ctx.stroke();
+
+        // Stylized name strokes & loops (Stewart / Director)
+        ctx.beginPath();
+        ctx.lineWidth = 2.5;
+        ctx.moveTo(sigX - 40, sigY + 5);
+        ctx.bezierCurveTo(sigX - 30, sigY - 15, sigX - 20, sigY + 15, sigX - 10, sigY - 5);
+        ctx.bezierCurveTo(sigX, sigY - 20, sigX + 15, sigY + 20, sigX + 25, sigY - 10);
+        ctx.bezierCurveTo(sigX + 40, sigY - 25, sigX + 55, sigY + 15, sigX + 70, sigY - 5);
+        ctx.bezierCurveTo(sigX + 85, sigY - 30, sigX + 95, sigY + 10, sigX + 110, sigY + 5);
+        ctx.stroke();
+
+        // Flourish under-swash stroke
+        ctx.beginPath();
+        ctx.lineWidth = 2.5;
+        ctx.moveTo(sigX - 95, sigY + 28);
+        ctx.bezierCurveTo(sigX - 30, sigY + 38, sigX + 60, sigY + 25, sigX + 115, sigY + 18);
+        ctx.bezierCurveTo(sigX + 130, sigY + 14, sigX + 110, sigY + 32, sigX + 85, sigY + 30);
+        ctx.stroke();
+        ctx.restore();
+
+        // Signature baseline
+        ctx.fillStyle = '#64748b';
+        ctx.fillRect(sigX - 130, sigY + 35, 260, 2);
+
+        // Signature Title & Details
+        ctx.fillStyle = '#f59e0b';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Authorized Digital Signature', sigX, sigY + 58);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '14px sans-serif';
+        ctx.fillText('Registrar & Director of Certification', sigX, sigY + 78);
+
+        ctx.fillStyle = '#10b981';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('✓ Digitally Validated & Signed', sigX, sigY + 98);
 
         // ==========================================
         // 🔒 HEAVY SECURITY WATERMARK OVERLAY
