@@ -19,6 +19,7 @@ export interface SurpriseReveal {
   message: string;
   imageUrl: string;
   soundEffect: SurpriseSoundEffect;
+  presenterName?: string;
   quiz?: QuizQuestion[];
   isVip?: boolean;
   paymentStatus?: 'pending' | 'approved';
@@ -37,6 +38,7 @@ interface SurpriseRevealRow {
   message: string | null;
   imageUrl: string;
   soundEffect: string | null;
+  presenterName?: string | null;
   quizData?: string | null;
   isVip?: boolean | null;
   paymentStatus?: string | null;
@@ -109,6 +111,7 @@ function normalizeReveal(value: unknown): SurpriseReveal | null {
     message: typeof candidate.message === 'string' ? candidate.message : '',
     imageUrl: candidate.imageUrl,
     soundEffect: isSurpriseSoundEffect(candidate.soundEffect) ? candidate.soundEffect : DEFAULT_SURPRISE_SOUND_EFFECT,
+    presenterName: typeof candidate.presenterName === 'string' && candidate.presenterName.trim() ? candidate.presenterName.trim() : undefined,
     quiz: quiz && quiz.length > 0 ? quiz : undefined,
     isVip: Boolean(candidate.isVip),
     paymentStatus,
@@ -158,6 +161,7 @@ async function ensureDatabaseTable(): Promise<boolean> {
             "message" TEXT,
             "imageUrl" TEXT NOT NULL,
             "soundEffect" TEXT NOT NULL DEFAULT '${DEFAULT_SURPRISE_SOUND_EFFECT}',
+            "presenterName" TEXT,
             "quizData" TEXT,
             "isVip" BOOLEAN DEFAULT false,
             "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -166,6 +170,9 @@ async function ensureDatabaseTable(): Promise<boolean> {
         `);
         await prisma.$executeRawUnsafe(
           `ALTER TABLE "SurpriseReveal" ADD COLUMN IF NOT EXISTS "soundEffect" TEXT NOT NULL DEFAULT '${DEFAULT_SURPRISE_SOUND_EFFECT}'`
+        );
+        await prisma.$executeRawUnsafe(
+          `ALTER TABLE "SurpriseReveal" ADD COLUMN IF NOT EXISTS "presenterName" TEXT`
         );
         await prisma.$executeRawUnsafe(
           `ALTER TABLE "SurpriseReveal" ADD COLUMN IF NOT EXISTS "quizData" TEXT`
@@ -204,7 +211,7 @@ async function readDatabaseReveals(): Promise<SurpriseReveal[] | null> {
 
   try {
     const rows = await prisma.$queryRawUnsafe<SurpriseRevealRow[]>(
-      `SELECT "code", "recipientName", "achievement", "message", "imageUrl", "soundEffect", "quizData", "isVip", "paymentStatus", "customerEmail", "customerPhone", "selectedPlan", "paymentMethod", "createdAt", "updatedAt"
+      `SELECT "code", "recipientName", "achievement", "message", "imageUrl", "soundEffect", "presenterName", "quizData", "isVip", "paymentStatus", "customerEmail", "customerPhone", "selectedPlan", "paymentMethod", "createdAt", "updatedAt"
        FROM "SurpriseReveal" ORDER BY "createdAt" DESC`
     );
     return rows
@@ -221,7 +228,7 @@ async function readDatabaseReveal(code: string): Promise<SurpriseReveal | null> 
 
   try {
     const rows = await prisma.$queryRawUnsafe<SurpriseRevealRow[]>(
-      `SELECT "code", "recipientName", "achievement", "message", "imageUrl", "soundEffect", "quizData", "isVip", "paymentStatus", "customerEmail", "customerPhone", "selectedPlan", "paymentMethod", "createdAt", "updatedAt"
+      `SELECT "code", "recipientName", "achievement", "message", "imageUrl", "soundEffect", "presenterName", "quizData", "isVip", "paymentStatus", "customerEmail", "customerPhone", "selectedPlan", "paymentMethod", "createdAt", "updatedAt"
        FROM "SurpriseReveal" WHERE "code" = $1 LIMIT 1`,
       code
     );
@@ -240,14 +247,15 @@ async function insertDatabaseReveal(reveal: SurpriseReveal): Promise<boolean> {
     const paymentStatus = reveal.paymentStatus || 'pending';
     await prisma.$executeRawUnsafe(
       `INSERT INTO "SurpriseReveal"
-        ("code", "recipientName", "achievement", "message", "imageUrl", "soundEffect", "quizData", "isVip", "paymentStatus", "customerEmail", "customerPhone", "selectedPlan", "paymentMethod", "createdAt", "updatedAt")
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::timestamptz, $15::timestamptz)`,
+        ("code", "recipientName", "achievement", "message", "imageUrl", "soundEffect", "presenterName", "quizData", "isVip", "paymentStatus", "customerEmail", "customerPhone", "selectedPlan", "paymentMethod", "createdAt", "updatedAt")
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15::timestamptz, $16::timestamptz)`,
       reveal.code,
       reveal.recipientName,
       reveal.achievement,
       reveal.message || null,
       reveal.imageUrl,
       reveal.soundEffect,
+      reveal.presenterName || null,
       quizDataJson,
       Boolean(reveal.isVip),
       paymentStatus,

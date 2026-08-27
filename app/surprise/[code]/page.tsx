@@ -30,9 +30,10 @@ function getOgImageUrl(baseUrl: string, code: string) {
 
 export async function generateMetadata({ params }: SurpriseRevealPageProps): Promise<Metadata> {
   const reveal = await getSurpriseReveal(params.code);
-  if (!reveal) return { title: 'FLORSS — Surprise Reveal' };
+  if (!reveal) return { title: 'BridgeTec Surprise Studio — Celebration Reveal' };
 
-  const title = `🎉 Special Surprise for ${reveal.recipientName}! | FLORSS by BridgeTech`;
+  const presenterSnippet = reveal.presenterName ? ` presented by ${reveal.presenterName}` : '';
+  const title = `🎉 Special Surprise for ${reveal.recipientName}!${presenterSnippet} | BridgeTec Surprise Studio`;
   const description = reveal.message || `${reveal.recipientName} is receiving special recognition: ${reveal.achievement}. Open to experience their celebration with audio & interactive reveal!`;
   const baseUrl = getBaseUrl();
   const url = `${baseUrl}/surprise/${reveal.code}`;
@@ -46,14 +47,14 @@ export async function generateMetadata({ params }: SurpriseRevealPageProps): Pro
       title,
       description,
       url,
-      siteName: 'For Love Once Reveal Surprise Studio (FLORSS) · BridgeTech',
+      siteName: 'BridgeTec Surprise Studio · BridgeTech IT Services',
       type: 'website',
       images: [
         {
           url: ogImageUrl,
           width: 1200,
           height: 630,
-          alt: `${reveal.recipientName} - ${reveal.achievement} - FLORSS Celebration`,
+          alt: `${reveal.recipientName} - ${reveal.achievement} - BridgeTec Surprise Studio`,
         },
       ],
     },
@@ -85,7 +86,7 @@ export default async function SurpriseRevealPage({ params }: SurpriseRevealPageP
     image: ogImageUrl,
     author: {
       '@type': 'Organization',
-      name: 'For Love Once Reveal Surprise Studio (FLORSS)',
+      name: reveal.presenterName || 'BridgeTec Surprise Studio',
       url: `${baseUrl}/digital-tools`,
     },
     publisher: {

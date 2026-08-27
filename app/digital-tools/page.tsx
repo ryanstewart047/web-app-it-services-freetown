@@ -31,15 +31,15 @@ interface ToolItem {
 const ALL_TOOLS: ToolItem[] = [
   {
     id: 'surprise-reveal',
-    title: 'For Love Once Reveal Surprise Studio (FLORSS)',
-    desc: 'Create personalized viral celebration reveals, interactive unlock questionnaires & luxury printable certificates for your loved ones with cheering sound effects.',
+    title: 'BridgeTec Surprise Studio',
+    desc: 'Create personalized viral celebration reveals, interactive unlock questionnaires & high-end printable certificates with dynamic presenter branding & cheering sound effects.',
     category: 'utilities',
     badge: '❤️ Viral • Trending',
     popular: true,
     isNew: true,
     icon: 'fas fa-heart',
     gradient: 'from-rose-500 via-amber-500 to-orange-500',
-    tags: ['florss', 'for love once reveal surprise studio', 'surprise', 'reveal', 'quiz', 'questionnaire', 'celebration', 'birthday', 'staff', 'award', 'certificate', 'gift', 'audio', 'viral'],
+    tags: ['bridgetec surprise studio', 'surprise reveal', 'surprise', 'reveal', 'quiz', 'questionnaire', 'celebration', 'birthday', 'staff', 'award', 'certificate', 'gift', 'audio', 'viral'],
   },
   {
     id: 'bg-remover',

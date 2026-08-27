@@ -197,6 +197,7 @@ function prepareRevealImage(file: File): Promise<string> {
 
 export default function SurpriseRevealStudio() {
   const [recipientName, setRecipientName] = useState('');
+  const [presenterName, setPresenterName] = useState('');
   const [achievement, setAchievement] = useState('Staff Member of the Quarter');
   const [message, setMessage] = useState('');
   const [imageUrl, setImageUrl] = useState('/assets/images/slide01.jpg');
@@ -321,6 +322,7 @@ export default function SurpriseRevealStudio() {
           recipientName,
           achievement,
           message,
+          presenterName: presenterName.trim() || undefined,
           imageUrl,
           soundEffect,
           quiz: enableQuiz ? questions : undefined,
@@ -356,12 +358,13 @@ export default function SurpriseRevealStudio() {
 
   const openWhatsAppShare = () => {
     if (!publishedReveal) return;
-    const text = `🎉 Look at this special surprise!\n\n${recipientName} has a personalized celebration reveal waiting for them!\n\nTap to open the reveal 👉 ${publishedReveal.shareUrl}\n\n🌟 Created with For Love Once Reveal Surprise Studio (FLORSS) by BridgeTech IT Services`;
+    const presenterCredit = presenterName ? ` from ${presenterName}` : '';
+    const text = `🎉 Look at this special surprise!\n\n${recipientName} has a personalized celebration reveal${presenterCredit} waiting for them!\n\nTap to open the reveal 👉 ${publishedReveal.shareUrl}\n\n🌟 Created with BridgeTec Surprise Studio`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const orderVipPackage = () => {
-    const text = `Hello BridgeTech! I want to unlock the official printable certificate from For Love Once Reveal Surprise Studio (FLORSS) for ${recipientName || 'my celebrant'}.\n\nPackage options:\n• Single Certificate Download – Le 25\n• Monthly Pass (5 Downloads) – Le 150\n• Lifetime VIP Pass (Unlimited) – Le 500\n\nPayment via Orange Money or AfriMoney. Please confirm!`;
+    const text = `Hello BridgeTec! I want to unlock the official printable certificate from BridgeTec Surprise Studio for ${recipientName || 'my celebrant'}.\n\nPackage options:\n• Single Certificate Download – Le 25\n• Monthly Pass (5 Downloads) – Le 150\n• Lifetime VIP Pass (Unlimited) – Le 500\n\nPayment via Orange Money or AfriMoney. Please confirm!`;
     window.open(`https://wa.me/23233399391?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -376,14 +379,14 @@ export default function SurpriseRevealStudio() {
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-xl font-black text-white sm:text-2xl">
-                For Love Once Reveal Surprise Studio <span className="text-amber-400">(FLORSS)</span>
+                BridgeTec Surprise Studio
               </h2>
               <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
                 ❤️ Viral Surprise Engine
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
-              Create unforgettable celebration reveals for your loved ones with interactive unlock questions, custom photo reveals, stadium cheering &amp; luxury printable certificates.
+              Create unforgettable celebration reveals with interactive unlock questions, dynamic presenter styling, custom photo reveals, stadium cheering &amp; high-end printable certificates.
             </p>
           </div>
         </div>
@@ -425,7 +428,7 @@ export default function SurpriseRevealStudio() {
         {/* Left Column: Details */}
         <div className="space-y-4">
           <label className="text-xs font-bold uppercase tracking-wider text-slate-400 block">
-            2. Celebrant &amp; Recognition Details
+            2. Celebrant &amp; Presenter Details
           </label>
 
           <div>
@@ -436,6 +439,21 @@ export default function SurpriseRevealStudio() {
               placeholder="e.g. Mariama Sesay"
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-bold"
             />
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-slate-300 block mb-1.5">
+              Presenter / Issuer Name (Who is celebrating them?)
+            </label>
+            <input
+              value={presenterName}
+              onChange={(e) => setPresenterName(e.target.value)}
+              placeholder="e.g. Google Africa Team, Mom & Dad, Management, Class of '24"
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+            />
+            <span className="text-[10px] text-slate-500 mt-1 block">
+              ✨ Dynamically customizes certificate seal, colors, issuer name &amp; digital signature!
+            </span>
           </div>
 
           <div>
@@ -514,6 +532,7 @@ export default function SurpriseRevealStudio() {
                 recipientName={recipientName || 'Mariama Sesay'}
                 achievement={achievement || 'Outstanding Achievement'}
                 message={message}
+                presenterName={presenterName}
                 imageUrl={imageUrl}
                 onUnlockClick={orderVipPackage}
                 inline={false}
@@ -703,6 +722,7 @@ export default function SurpriseRevealStudio() {
                 recipientName={recipientName || 'Mariama Sesay'}
                 achievement={achievement || 'Outstanding Achievement'}
                 message={message}
+                presenterName={presenterName}
                 imageUrl={imageUrl}
                 code={publishedReveal.code}
                 onUnlockClick={orderVipPackage}

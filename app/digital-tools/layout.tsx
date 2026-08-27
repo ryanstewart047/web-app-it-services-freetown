@@ -4,12 +4,12 @@ import { BRAND_SITE_URL } from '@/lib/brand';
 const DIGITAL_TOOLS_OG_IMAGE = `${BRAND_SITE_URL}/digital-tools-preview.jpg`;
 
 export const metadata: Metadata = {
-  title: 'FLORSS — For Love Once Reveal Surprise Studio & Free Digital Tools Suite | BridgeTech',
+  title: 'BridgeTec Surprise Studio & Free Digital Tools Suite | BridgeTec',
   description:
-    'For Love Once Reveal Surprise Studio (FLORSS): Create viral celebration reveals, interactive unlock questionnaires, stadium crowd cheers & official printable certificates with recipient photo for birthdays, graduations, anniversaries, and VIP milestones. Free browser tools by BridgeTech IT Services.',
+    'BridgeTec Surprise Studio: Create viral celebration reveals, interactive unlock questionnaires, dynamic presenter branding, stadium crowd cheers & official high-end printable certificates with recipient photo for birthdays, graduations, anniversaries, and VIP milestones. Free browser tools by BridgeTec IT Services.',
   keywords: [
-    'FLORSS',
-    'For Love Once Reveal Surprise Studio',
+    'BridgeTec Surprise Studio',
+    'surprise studio',
     'surprise reveal generator',
     'viral celebration link',
     'birthday surprise reveal online',
@@ -34,9 +34,9 @@ export const metadata: Metadata = {
     canonical: `${BRAND_SITE_URL}/digital-tools`,
   },
   openGraph: {
-    title: 'FLORSS — For Love Once Reveal Surprise Studio | Viral Celebration Engine',
+    title: 'BridgeTec Surprise Studio | Viral Celebration & Recognition Engine',
     description:
-      'Create personalized viral celebration reveals, interactive unlock questionnaires, 8s crowd applause & official luxury printable certificates for your loved ones & VIP honorees.',
+      'Create personalized viral celebration reveals, interactive unlock questionnaires, dynamic presenter branding, 8s crowd applause & official luxury printable certificates for your loved ones & VIP honorees.',
     url: `${BRAND_SITE_URL}/digital-tools`,
     siteName: 'BridgeTech IT Services',
     type: 'website',
@@ -46,15 +46,15 @@ export const metadata: Metadata = {
         url: DIGITAL_TOOLS_OG_IMAGE,
         width: 1280,
         height: 720,
-        alt: 'FLORSS — For Love Once Reveal Surprise Studio & Digital Tools Suite by BridgeTech IT Services',
+        alt: 'BridgeTec Surprise Studio & Digital Tools Suite by BridgeTech IT Services',
         type: 'image/jpeg',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'FLORSS — For Love Once Reveal Surprise Studio | Viral Celebration Engine',
-    description: 'Create unforgettable celebration reveals, unlock quizzes, 8-second stadium cheering & high-res certificates with photo for birthdays, milestones & staff honors!',
+    title: 'BridgeTec Surprise Studio | Viral Celebration & Recognition Engine',
+    description: 'Create unforgettable celebration reveals, unlock quizzes, dynamic presenter branding, 8-second stadium cheering & high-res certificates with photo for birthdays, milestones & staff honors!',
     images: [DIGITAL_TOOLS_OG_IMAGE],
     creator: '@BridgeTechSL',
     site: '@BridgeTechSL',
@@ -77,9 +77,9 @@ const jsonLdData = {
   '@graph': [
     {
       '@type': 'WebApplication',
-      '@id': `${BRAND_SITE_URL}/digital-tools#florss`,
-      name: 'For Love Once Reveal Surprise Studio (FLORSS)',
-      alternateName: 'FLORSS',
+      '@id': `${BRAND_SITE_URL}/digital-tools#bridgetec-surprise-studio`,
+      name: 'BridgeTec Surprise Studio',
+      alternateName: 'Surprise Studio',
       url: `${BRAND_SITE_URL}/digital-tools`,
       applicationCategory: 'EntertainmentApplication',
       operatingSystem: 'All (Web Browser, iOS, Android, macOS, Windows)',
@@ -124,7 +124,7 @@ const jsonLdData = {
       featureList: [
         'Instant viral celebration link generator with 8-second crowd applause audio',
         'Interactive unlock questionnaires and custom milestone trivia',
-        'High-resolution gold-framed printable certificates with recipient photo',
+        'High-resolution gold-framed printable certificates with recipient photo and dynamic presenter branding',
         'One-click WhatsApp and social sharing with rich preview cards',
         'Mobile money payment gateway (Orange Money & AfriMoney)',
       ],
@@ -162,7 +162,7 @@ const jsonLdData = {
         worstRating: '1',
       },
       featureList: [
-        'For Love Once Reveal Surprise Studio (FLORSS)',
+        'BridgeTec Surprise Studio',
         'MP4 to MP3 High-Bitrate Audio Extractor (320kbps, 192kbps, 128kbps)',
         'DOCX, Markdown and Text to PDF Document Converter',
         'Image Format Converter (WebP, PNG, JPEG, AVIF, BMP, GIF)',
@@ -189,14 +189,14 @@ const jsonLdData = {
         {
           '@type': 'ListItem',
           position: 2,
-          name: 'FLORSS & Digital Tools Hub',
+          name: 'BridgeTec Surprise Studio & Digital Tools Hub',
           item: `${BRAND_SITE_URL}/digital-tools`,
         },
       ],
     },
     {
       '@type': 'HowTo',
-      name: 'How to Create a Viral Celebration Reveal with FLORSS (For Love Once Reveal Surprise Studio)',
+      name: 'How to Create a Viral Celebration Reveal with BridgeTec Surprise Studio',
       description: 'Step-by-step guide to generating a personalized surprise reveal with interactive unlock questions, custom photo, crowd cheer audio, and printable certificate.',
       step: [
         {
@@ -209,7 +209,7 @@ const jsonLdData = {
           '@type': 'HowToStep',
           position: 2,
           name: 'Enter Celebrant Details & Photo',
-          text: 'Type the recipient full name, recognition title or achievement, personal message, and upload their photo for luxury gold framing.',
+          text: 'Type the recipient full name, recognition title or achievement, presenter name, personal message, and upload their photo for luxury gold framing.',
         },
         {
           '@type': 'HowToStep',
@@ -230,10 +230,10 @@ const jsonLdData = {
       mainEntity: [
         {
           '@type': 'Question',
-          name: 'What is FLORSS (For Love Once Reveal Surprise Studio)?',
+          name: 'What is BridgeTec Surprise Studio?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'FLORSS (For Love Once Reveal Surprise Studio) is a viral celebration platform created by BridgeTech IT Services. It allows anyone to create personalized recognition reveals, interactive unlock questionnaires, stadium cheering celebrations, and official printable certificates with recipient photos for birthdays, graduations, anniversaries, and corporate awards.',
+            text: 'BridgeTec Surprise Studio is a viral celebration platform created by BridgeTech IT Services. It allows anyone to create personalized recognition reveals, dynamic presenter branding, interactive unlock questionnaires, stadium cheering celebrations, and official printable certificates with recipient photos for birthdays, graduations, anniversaries, and corporate awards.',
           },
         },
         {
@@ -246,10 +246,10 @@ const jsonLdData = {
         },
         {
           '@type': 'Question',
-          name: 'Can I use FLORSS on mobile phones and share via WhatsApp?',
+          name: 'Can I use BridgeTec Surprise Studio on mobile phones and share via WhatsApp?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Yes! FLORSS is 100% mobile-optimized. You can design, publish, and share reveals directly through WhatsApp, Facebook, TikTok, Instagram stories, and Telegram in seconds.',
+            text: 'Yes! BridgeTec Surprise Studio is 100% mobile-optimized. You can design, publish, and share reveals directly through WhatsApp, Facebook, TikTok, Instagram stories, and Telegram in seconds.',
           },
         },
       ],

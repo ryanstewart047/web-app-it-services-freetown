@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
     const recipientName = sanitizeText(body.recipientName || '').slice(0, 90);
     const achievement = sanitizeText(body.achievement || '').slice(0, 160);
     const message = sanitizeText(body.message || '').slice(0, 500);
+    const presenterName = sanitizeText(body.presenterName || '').slice(0, 100);
     const imageUrl = typeof body.imageUrl === 'string' ? body.imageUrl.trim() : '';
     const requestedSoundEffect = typeof body.soundEffect === 'string' ? body.soundEffect : '';
     const soundEffect = isSurpriseSoundEffect(requestedSoundEffect) ? requestedSoundEffect : DEFAULT_SURPRISE_SOUND_EFFECT;
@@ -91,6 +92,7 @@ export async function POST(request: NextRequest) {
       recipientName,
       achievement,
       message,
+      presenterName: presenterName || undefined,
       imageUrl,
       soundEffect,
       quiz: quiz && quiz.length > 0 ? quiz : undefined,

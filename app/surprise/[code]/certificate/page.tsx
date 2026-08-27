@@ -17,9 +17,10 @@ export async function generateMetadata({ params }: CertificatePageProps): Promis
   const reveal = await getSurpriseReveal(params.code);
   if (!reveal) return { title: 'Certificate Not Found' };
 
+  const presenterSnippet = reveal.presenterName ? ` by ${reveal.presenterName}` : '';
   return {
-    title: `Official Certificate: ${reveal.recipientName} | FLORSS · BridgeTech IT Services`,
-    description: `Official Certificate of Recognition presented to ${reveal.recipientName} for ${reveal.achievement}. Powered by For Love Once Reveal Surprise Studio (FLORSS).`,
+    title: `Official Certificate: ${reveal.recipientName}${presenterSnippet} | BridgeTec Surprise Studio`,
+    description: `Official Certificate of Recognition presented to ${reveal.recipientName} for ${reveal.achievement}. Powered by BridgeTec Surprise Studio.`,
     robots: { index: false, follow: false },
   };
 }
