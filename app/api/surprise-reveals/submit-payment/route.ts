@@ -10,7 +10,8 @@ const PLAN_NAMES: Record<string, { name: string; amount: string }> = {
 
 const PAYMENT_METHODS: Record<string, string> = {
   orange_money: 'Orange Money (*144*2*2*241586#)',
-  afrimoney: 'AfriMoney (+232 33 399 391)',
+  afrimoney: 'AfriMoney (*161*6*2*088294631#)',
+  paypal: 'PayPal International Gateway',
   cash: 'Cash / Direct Agent',
 };
 
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
 
     const planKey = selectedPlan in PLAN_NAMES ? selectedPlan : 'single';
     const planInfo = PLAN_NAMES[planKey];
-    const paymentMethodLabel = PAYMENT_METHODS[paymentMethod] || 'Orange Money / AfriMoney';
+    const paymentMethodLabel = PAYMENT_METHODS[paymentMethod] || 'Orange Money / AfriMoney / PayPal';
 
     const updated = await submitSurpriseRevealPayment(code, {
       customerEmail: customerEmail.trim(),
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
       console.warn('[Surprise Reveal Payment] Confirmation email send warning:', emailErr);
     }
 
-    const waMessage = `Hello BridgeTech! I have sent payment (${planInfo.amount} for ${planInfo.name} via ${paymentMethodLabel}) for the Certificate:\n\n👤 Recipient: ${reveal.recipientName}\n🔑 Code: ${code}\n📧 My Email: ${customerEmail.trim()}\n\nPlease verify and approve my download!`;
+    const waMessage = `Hello BridgeTec! I have sent payment (${planInfo.amount} for ${planInfo.name} via ${paymentMethodLabel}) for the Certificate:\n\n👤 Recipient: ${reveal.recipientName}\n🔑 Code: ${code}\n📧 My Email: ${customerEmail.trim()}\n\nPlease verify and approve my download!`;
     const waUrl = `https://wa.me/23233399391?text=${encodeURIComponent(waMessage)}`;
 
     return NextResponse.json({

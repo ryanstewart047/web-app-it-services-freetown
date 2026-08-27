@@ -33,6 +33,7 @@ import toast from 'react-hot-toast';
 import { DEFAULT_SURPRISE_SOUND_EFFECT, SURPRISE_SOUND_EFFECTS, type SurpriseSoundEffect } from '@/lib/surprise-reveal-sounds';
 import { type QuizQuestion } from '@/lib/surprise-reveal-storage';
 import ProtectedCertificatePreview from './ProtectedCertificatePreview';
+import PaymentCheckout from './PaymentCheckout';
 
 interface PresetTemplate {
   id: string;
@@ -217,6 +218,7 @@ export default function SurpriseRevealStudio() {
   const [publishedReveal, setPublishedReveal] = useState<{ code: string; shareUrl: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const [playingAudioPreview, setPlayingAudioPreview] = useState(false);
+  const [showPaymentCheckout, setShowPaymentCheckout] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -364,8 +366,7 @@ export default function SurpriseRevealStudio() {
   };
 
   const orderVipPackage = () => {
-    const text = `Hello BridgeTec! I want to unlock the official printable certificate from BridgeTec Surprise Studio for ${recipientName || 'my celebrant'}.\n\nPackage options:\n• Single Certificate Download – Le 25\n• Monthly Pass (5 Downloads) – Le 150\n• Lifetime VIP Pass (Unlimited) – Le 500\n\nPayment via Orange Money or AfriMoney. Please confirm!`;
-    window.open(`https://wa.me/23233399391?text=${encodeURIComponent(text)}`, '_blank');
+    setShowPaymentCheckout(true);
   };
 
   return (
@@ -759,20 +760,29 @@ export default function SurpriseRevealStudio() {
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-400">
-          <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/20 text-orange-300 px-2 py-0.5 font-bold border border-orange-500/30">🟠 Orange Money</span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 text-emerald-300 px-2 py-0.5 font-bold border border-emerald-500/30">💚 AfriMoney</span>
-          <span className="text-slate-500">· Pay → Admin approves → Certificate unlocks!</span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/20 text-orange-300 px-2 py-0.5 font-bold border border-orange-500/30">🟠 Orange Money (*144#)</span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 text-emerald-300 px-2 py-0.5 font-bold border border-emerald-500/30">💚 AfriMoney (*161#)</span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/20 text-blue-300 px-2 py-0.5 font-bold border border-blue-500/30">🅿️ PayPal</span>
+          <span className="text-slate-500">· USSD mobile trigger &amp; desktop QR code</span>
         </div>
 
         <button
           type="button"
           onClick={orderVipPackage}
-          className="w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 flex items-center justify-center gap-2 transition-all"
+          className="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-md shadow-amber-500/20 flex items-center justify-center gap-2 transition-all"
         >
-          <MessageCircle className="w-4 h-4" />
-          <span>Order Certificate via WhatsApp</span>
+          <Crown className="w-4 h-4 text-slate-950" />
+          <span>Unlock Official Printable Certificate</span>
         </button>
       </div>
+
+      {showPaymentCheckout && (
+        <PaymentCheckout
+          recipientName={recipientName || 'Your Celebrant'}
+          code="STUDIO-VIP"
+          onClose={() => setShowPaymentCheckout(false)}
+        />
+      )}
     </div>
   );
 }

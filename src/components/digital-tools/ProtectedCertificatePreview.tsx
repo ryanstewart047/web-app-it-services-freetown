@@ -231,12 +231,15 @@ export default function ProtectedCertificatePreview({
 
         <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-slate-400">
           <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/20 text-orange-300 px-2 py-0.5 font-bold border border-orange-500/30">
-            🟠 Orange Money
+            🟠 Orange Money (*144#)
           </span>
           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 text-emerald-300 px-2 py-0.5 font-bold border border-emerald-500/30">
-            💚 AfriMoney
+            💚 AfriMoney (*161#)
           </span>
-          <span className="text-slate-400">· Pay &amp; admin approves in 1 click!</span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/20 text-blue-300 px-2 py-0.5 font-bold border border-blue-500/30">
+            🅿️ PayPal / Card
+          </span>
+          <span className="text-slate-400">· USSD mobile trigger &amp; desktop QR code</span>
         </div>
 
         <button
