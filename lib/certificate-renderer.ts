@@ -684,18 +684,13 @@ export async function renderMasterCertificate({
   // 15. If Watermarked (Sample Preview Protection Mode)
   if (isWatermarked) {
     ctx.save();
-    ctx.rotate((-22 * Math.PI) / 180);
+    ctx.rotate((-20 * Math.PI) / 180);
 
-    ctx.fillStyle = 'rgba(245, 158, 11, 0.22)';
-    ctx.font = '900 46px sans-serif';
-    for (let y = -400; y < 1600; y += 190) {
-      for (let x = -800; x < 2400; x += 680) {
+    ctx.fillStyle = 'rgba(245, 158, 11, 0.08)';
+    ctx.font = 'bold 24px sans-serif';
+    for (let y = -400; y < 1600; y += 320) {
+      for (let x = -800; x < 2400; x += 800) {
         ctx.fillText('BRIDGETEC SAMPLE PREVIEW · UNLICENSED', x, y);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
-        ctx.font = 'bold 26px monospace';
-        ctx.fillText('🔒 PROHIBITED FOR PRINT · UNLOCK AT BRIDGETEC SURPRISE STUDIO', x - 40, y + 45);
-        ctx.fillStyle = 'rgba(245, 158, 11, 0.22)';
-        ctx.font = '900 46px sans-serif';
       }
     }
     ctx.restore();

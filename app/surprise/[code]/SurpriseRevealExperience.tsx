@@ -2,9 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { Award, CheckCircle2, Download, Eye, HelpCircle, Lock, MessageCircle, RotateCcw, Share2, Sparkles, X } from 'lucide-react';
+import { Award, CheckCircle2, Download, ExternalLink, Eye, FileText, HelpCircle, Lock, MessageCircle, Printer, RotateCcw, Share2, Sparkles, X } from 'lucide-react';
+import jsPDF from 'jspdf';
 import { type SurpriseSoundEffect } from '@/lib/surprise-reveal-sounds';
 import { type QuizQuestion } from '@/lib/surprise-reveal-storage';
+import { renderMasterCertificate } from '@/lib/certificate-renderer';
 import ProtectedCertificatePreview from '@/components/digital-tools/ProtectedCertificatePreview';
 import PaymentCheckout from '@/components/digital-tools/PaymentCheckout';
 
@@ -330,136 +332,129 @@ export default function SurpriseRevealExperience({
     }
   };
 
-  const handleCertificateClick = () => {
-    if (!isPaymentApproved) {
-      setShowPaymentModal(true);
-      return;
-    }
-    void downloadCertificate();
-  };
-
-  const downloadCertificate = async () => {
-    setGeneratingCert(true);
+  const generateMasterCanvas = async (): Promise<HTMLCanvasElement | null> => {
     try {
       const canvas = document.createElement('canvas');
-      canvas.width = 1600;
-      canvas.height = 1130;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
+      await renderMasterCertificate({
+        canvas,
+        recipientName,
+        achievement,
+        message,
+        imageUrl,
+        code: code || 'BT-VIP',
+        presenterName,
+        isWatermarked: false,
+      });
+      return canvas;
+    } catch (err) {
+      console.error('Certificate master render error:', err);
+      return null;
+    }
+  };
 
-      // Dark luxury background
-      const bgGrad = ctx.createLinearGradient(0, 0, 1600, 1130);
-      bgGrad.addColorStop(0, '#040711');
-      bgGrad.addColorStop(0.5, '#0b1329');
-      bgGrad.addColorStop(1, '#040711');
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, 1600, 1130);
+  const downloadCertificatePdf = async () => {
+    setGeneratingCert(true);
+    try {
+      const canvas = await generateMasterCanvas();
+      if (!canvas) return;
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4',
+        compress: true,
+      });
+      pdf.addImage(imgData, 'PNG', 0, 0, 297, 210, undefined, 'FAST');
+      const safeName = (recipientName || 'Celebrant').replace(/[^a-zA-Z0-9_-]/g, '_');
+      pdf.save(`${safeName}_Official_Certificate.pdf`);
+    } catch (err) {
+      console.error('PDF export error:', err);
+    } finally {
+      setGeneratingCert(false);
+    }
+  };
 
-      // Gold ornate borders
-      ctx.strokeStyle = '#f59e0b';
-      ctx.lineWidth = 14;
-      ctx.strokeRect(40, 40, 1520, 1050);
-
-      ctx.strokeStyle = '#fbbf24';
-      ctx.lineWidth = 3;
-      ctx.strokeRect(60, 60, 1480, 1010);
-
-      // Corner ornaments
-      ctx.fillStyle = '#f59e0b';
-      ctx.fillRect(40, 40, 40, 40);
-      ctx.fillRect(1520, 40, 40, 40);
-      ctx.fillRect(40, 1050, 40, 40);
-      ctx.fillRect(1520, 1050, 40, 40);
-
-      // Load and draw recipient photo in gold luxury frame
-      const photoSize = 170;
-      const photoX = 800 - photoSize / 2;
-      const photoY = 120;
-
-      try {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = resolve; // Continue even if external image fails
-          img.src = imageUrl;
-        });
-
-        if (img.complete && img.naturalWidth > 0) {
-          ctx.save();
-          // Draw gold frame shadow & border
-          ctx.beginPath();
-          ctx.arc(800, photoY + photoSize / 2, photoSize / 2 + 8, 0, Math.PI * 2);
-          ctx.fillStyle = '#f59e0b';
-          ctx.shadowColor = 'rgba(245, 158, 11, 0.45)';
-          ctx.shadowBlur = 24;
-          ctx.fill();
-
-          // Clip image to circle
-          ctx.beginPath();
-          ctx.arc(800, photoY + photoSize / 2, photoSize / 2, 0, Math.PI * 2);
-          ctx.clip();
-          ctx.drawImage(img, photoX, photoY, photoSize, photoSize);
-          ctx.restore();
-        }
-      } catch {}
-
-      // Header Tag
-      ctx.fillStyle = '#f59e0b';
-      ctx.font = 'bold 22px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('★ OFFICIAL RECOGNITION & CELEBRATION ★', 800, 335);
-
-      // Title
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '900 54px sans-serif';
-      ctx.fillText('CERTIFICATE OF RECOGNITION', 800, 415);
-
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '24px sans-serif';
-      ctx.fillText('This honor and celebration is proudly presented to', 800, 475);
-
-      // Recipient Name in large gold
-      ctx.fillStyle = '#fcd34d';
-      ctx.font = 'bold 72px sans-serif';
-      ctx.fillText(recipientName, 800, 580);
-
-      // Underline bar
-      ctx.fillStyle = '#f59e0b';
-      ctx.fillRect(450, 610, 700, 4);
-
-      // Achievement
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 38px sans-serif';
-      ctx.fillText(achievement, 800, 690);
-
-      // Personal message
-      if (message) {
-        ctx.fillStyle = '#cbd5e1';
-        ctx.font = 'italic 26px sans-serif';
-        const msgText = `"${message.slice(0, 130)}"`;
-        ctx.fillText(msgText, 800, 765);
-      }
-
-      // Footer divider
-      ctx.fillStyle = '#334155';
-      ctx.fillRect(200, 860, 1200, 2);
-
-      // Organization & Date
-      ctx.fillStyle = '#f59e0b';
-      ctx.font = 'bold 26px sans-serif';
-      ctx.fillText('BRIDGETECH CELEBRATION STUDIO', 800, 935);
-
-      ctx.fillStyle = '#64748b';
-      ctx.font = '20px sans-serif';
-      ctx.fillText(`Official Verification ID: ${code || 'BT-VIP'} · ${new Date().toLocaleDateString(undefined, { dateStyle: 'long' })} · Sierra Leone`, 800, 980);
-
+  const downloadCertificatePng = async () => {
+    setGeneratingCert(true);
+    try {
+      const canvas = await generateMasterCanvas();
+      if (!canvas) return;
       const link = document.createElement('a');
-      link.download = `${recipientName.replace(/\s+/g, '_')}_Official_Certificate.png`;
+      const safeName = (recipientName || 'Celebrant').replace(/[^a-zA-Z0-9_-]/g, '_');
+      link.download = `${safeName}_Official_Certificate.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
+    } catch (err) {
+      console.error('PNG export error:', err);
+    } finally {
+      setGeneratingCert(false);
+    }
+  };
+
+  const printCertificate = async () => {
+    setGeneratingCert(true);
+    try {
+      const canvas = await generateMasterCanvas();
+      if (!canvas) return;
+      const certDataUrl = canvas.toDataURL('image/png');
+
+      let iframe = document.getElementById('cert-print-iframe') as HTMLIFrameElement | null;
+      if (!iframe) {
+        iframe = document.createElement('iframe');
+        iframe.id = 'cert-print-iframe';
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0';
+        iframe.style.bottom = '0';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = '0';
+        document.body.appendChild(iframe);
+      }
+
+      const doc = iframe.contentWindow?.document || iframe.contentDocument;
+      if (!doc) return;
+
+      doc.open();
+      doc.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>${recipientName} - Official Certificate</title>
+            <style>
+              @page { size: landscape; margin: 0; }
+              html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; display: flex; align-items: center; justify-content: center; }
+              img { width: 100%; height: 100%; object-fit: contain; display: block; }
+              @media print {
+                body { background: transparent; }
+                img { width: 100%; height: 100vh; object-fit: contain; }
+              }
+            </style>
+          </head>
+          <body>
+            <img id="cert-img" src="${certDataUrl}" alt="Certificate" />
+          </body>
+        </html>
+      `);
+      doc.close();
+
+      const img = doc.getElementById('cert-img') as HTMLImageElement | null;
+      if (img) {
+        const triggerPrint = () => {
+          setTimeout(() => {
+            try {
+              iframe?.contentWindow?.focus();
+              iframe?.contentWindow?.print();
+            } catch (e) {
+              console.warn('Iframe print error, fallback to window.print', e);
+              window.print();
+            }
+          }, 300);
+        };
+        if (img.complete) triggerPrint();
+        else img.onload = triggerPrint;
+      }
     } catch (e) {
-      console.warn('Certificate generation failed:', e);
+      console.error('Print error:', e);
     } finally {
       setGeneratingCert(false);
     }
@@ -706,30 +701,63 @@ export default function SurpriseRevealExperience({
                       />
                     )}
 
-                    <motion.button
-                      type="button"
-                      onClick={handleCertificateClick}
-                      disabled={generatingCert}
-                      className={`cursor-pointer select-none active:scale-[0.99] w-full inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-xs sm:text-sm font-black transition-all shadow-lg ${
-                        isPaymentApproved
-                          ? 'bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-neutral-950 shadow-amber-500/20'
-                          : 'bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 shadow-amber-500/25'
-                      }`}
-                    >
-                      {isPaymentApproved ? (
-                        <>
-                          <Award className="h-4 w-4" />
-                          <span>{generatingCert ? 'Rendering Certificate...' : 'Download Official Certificate (PNG)'}</span>
-                          <Download className="h-4 w-4 ml-1" />
-                        </>
-                      ) : (
-                        <>
-                          <Lock className="h-4 w-4 text-slate-950" />
-                          <span>Unlock Printable Certificate (Le 25)</span>
-                          <Sparkles className="h-3.5 w-3.5 ml-1 text-slate-900" />
-                        </>
-                      )}
-                    </motion.button>
+                    {isPaymentApproved ? (
+                      <div className="space-y-2 pt-1">
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={downloadCertificatePdf}
+                            disabled={generatingCert}
+                            className="cursor-pointer select-none active:scale-[0.99] flex-1 min-w-[140px] inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-xs sm:text-sm font-black transition-all shadow-lg bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-neutral-950 shadow-amber-500/20 disabled:opacity-50"
+                          >
+                            <FileText className="h-4 w-4" />
+                            <span>{generatingCert ? 'Generating...' : 'Download PDF'}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={downloadCertificatePng}
+                            disabled={generatingCert}
+                            className="cursor-pointer select-none active:scale-[0.99] inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-xs sm:text-sm font-bold transition-all shadow-md bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/30 disabled:opacity-50"
+                          >
+                            <Download className="h-4 w-4" />
+                            <span>PNG</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={printCertificate}
+                            disabled={generatingCert}
+                            className="cursor-pointer select-none active:scale-[0.99] inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-3.5 text-xs sm:text-sm font-bold transition-all shadow-md bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 disabled:opacity-50"
+                          >
+                            <Printer className="h-4 w-4 text-slate-300" />
+                            <span>Print</span>
+                          </button>
+                        </div>
+
+                        {code && (
+                          <div className="text-center pt-1">
+                            <a
+                              href={`/surprise/${code}/certificate`}
+                              className="text-[11px] text-amber-300/80 hover:text-amber-300 font-semibold underline underline-offset-2 inline-flex items-center gap-1"
+                            >
+                              <span>Open dedicated Certificate View &amp; Print Studio</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <motion.button
+                        type="button"
+                        onClick={() => setShowPaymentModal(true)}
+                        className="cursor-pointer select-none active:scale-[0.99] w-full inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-xs sm:text-sm font-black transition-all shadow-lg bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 shadow-amber-500/25"
+                      >
+                        <Lock className="h-4 w-4 text-slate-950" />
+                        <span>Unlock Printable Certificate (Le 25)</span>
+                        <Sparkles className="h-3.5 w-3.5 ml-1 text-slate-900" />
+                      </motion.button>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>

@@ -165,22 +165,19 @@ export default function ProtectedCertificatePreview({
 
             {/* Holographic Security Pattern Overlay (Blocks clean capture) */}
             <div
-              className="absolute inset-0 pointer-events-none opacity-40 mix-blend-overlay"
+              className="absolute inset-0 pointer-events-none opacity-10 mix-blend-overlay"
               style={{
                 backgroundImage: `radial-gradient(#f59e0b 1px, transparent 1px), radial-gradient(#ffffff 1px, #000000 1px)`,
-                backgroundSize: '24px 24px',
-                backgroundPosition: '0 0, 12px 12px',
+                backgroundSize: '32px 32px',
+                backgroundPosition: '0 0, 16px 16px',
               }}
             />
 
             {/* Watermark Diagonal Banner */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="rotate-[-18deg] bg-amber-500/30 backdrop-blur-[2px] border-y-2 border-amber-400/60 px-8 py-3 text-center shadow-2xl">
-                <p className="text-amber-200 font-black tracking-widest text-xs sm:text-sm uppercase drop-shadow-md">
-                  ★ SAMPLE PREVIEW · NOT VALID FOR PRINT ★
-                </p>
-                <p className="text-white text-[10px] font-bold tracking-wider">
-                  UNLOCK FULL HIGH-RES CERTIFICATE FOR LE 25
+              <div className="rotate-[-18deg] bg-amber-500/10 border-y border-amber-400/25 px-6 py-1.5 text-center w-full">
+                <p className="text-amber-300/50 font-bold tracking-widest text-[10px] uppercase">
+                  SAMPLE PREVIEW · NOT FOR PRINT
                 </p>
               </div>
             </div>
