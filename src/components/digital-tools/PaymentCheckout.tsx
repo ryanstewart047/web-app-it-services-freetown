@@ -245,10 +245,7 @@ export default function PaymentCheckout({
 
   const getPayPalCheckoutUrl = () => {
     const amount = activePlan.id === 'single' ? '1.25' : activePlan.id === 'monthly' ? '7.50' : '25.00';
-    // Link to WhatsApp / BridgeTech business paypal checkout with prefilled reference
-    return `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=bridgetechsl@gmail.com&item_name=${encodeURIComponent(
-      `BridgeTec Surprise Studio Certificate (${activePlan.name} for ${recipientName})`
-    )}&item_number=${encodeURIComponent(code)}&amount=${amount}&currency_code=USD`;
+    return `https://paypal.me/ryanjstewart047/${amount}USD`;
   };
 
   return (
@@ -537,13 +534,13 @@ export default function PaymentCheckout({
                     <div className="flex items-center justify-between border-b border-white/10 pb-3">
                       <div className="flex items-center gap-2">
                         <PayPalLogo className="w-6 h-6" />
-                        <span className="text-xs font-black text-blue-400">PayPal International Checkout ({activePlan.usdPrice})</span>
+                        <span className="text-xs font-black text-blue-400">PayPal Checkout ({activePlan.usdPrice})</span>
                       </div>
-                      <span className="text-[11px] font-mono text-slate-400">USD Gateway</span>
+                      <span className="text-[11px] font-mono text-blue-300 font-bold">paypal.me/ryanjstewart047</span>
                     </div>
 
                     <p className="text-xs text-slate-300 leading-relaxed">
-                      Pay securely with your PayPal balance, Visa, Mastercard, or debit card from anywhere globally:
+                      Pay securely with your PayPal account, debit card, or credit card from anywhere globally:
                     </p>
 
                     <a
@@ -553,9 +550,21 @@ export default function PaymentCheckout({
                       className="cursor-pointer w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#0070BA] to-[#003087] hover:from-[#005ea6] hover:to-[#00205b] text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition-all select-none active:scale-[0.98]"
                     >
                       <PayPalLogo className="w-5 h-5 shrink-0" />
-                      <span>Proceed to PayPal Gateway ({activePlan.usdPrice})</span>
+                      <span>Pay {activePlan.usdPrice} on PayPal.Me</span>
                       <ExternalLink className="w-4 h-4 ml-1 shrink-0" />
                     </a>
+
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-[11px] text-slate-300">
+                      <span className="font-mono font-bold text-blue-300 truncate">https://paypal.me/ryanjstewart047</span>
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard('https://paypal.me/ryanjstewart047', 'paypal')}
+                        className="cursor-pointer text-blue-400 font-bold hover:text-blue-300 flex items-center gap-1 px-2 py-1 rounded hover:bg-blue-500/10 transition-colors shrink-0 ml-2"
+                      >
+                        {copiedCode === 'paypal' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copiedCode === 'paypal' ? 'Copied' : 'Copy Link'}</span>
+                      </button>
+                    </div>
 
                     <div className="flex items-center gap-2 text-[11px] text-slate-400 bg-slate-900 p-2.5 rounded-lg border border-slate-800">
                       <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
