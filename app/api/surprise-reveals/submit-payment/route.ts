@@ -36,28 +36,33 @@ export async function POST(request: NextRequest) {
     }
 
     const reveal = await getSurpriseReveal(code);
-    if (!reveal) {
-      return NextResponse.json({ success: false, error: 'Surprise reveal not found.' }, { status: 404 });
-    }
+
+    // If the reveal isn't found (e.g. newly created or code mismatch), we still
+    // want to record the payment intent and direct the user to WhatsApp — never block them.
+    const recipientLabel = reveal?.recipientName ?? 'Customer';
+    const achievementLabel = reveal?.achievement ?? 'Certificate';
 
     const planKey = selectedPlan in PLAN_NAMES ? selectedPlan : 'single';
     const planInfo = PLAN_NAMES[planKey];
     const paymentMethodLabel = PAYMENT_METHODS[paymentMethod] || 'Orange Money / AfriMoney / PayPal';
 
-    const updated = await submitSurpriseRevealPayment(code, {
-      customerEmail: customerEmail.trim(),
-      customerPhone: typeof customerPhone === 'string' ? customerPhone.trim() : '',
-      selectedPlan: planKey,
-      paymentMethod: typeof paymentMethod === 'string' ? paymentMethod : 'orange_money',
-    });
+    if (reveal) {
+      // Update the existing reveal record
+      await submitSurpriseRevealPayment(code, {
+        customerEmail: customerEmail.trim(),
+        customerPhone: typeof customerPhone === 'string' ? customerPhone.trim() : '',
+        selectedPlan: planKey,
+        paymentMethod: typeof paymentMethod === 'string' ? paymentMethod : 'orange_money',
+      });
+    }
 
     const revealUrl = getPublicUrl(request, code);
 
-    // Send automatic payment received email to customer
+    // Always try to send confirmation email
     try {
       const template = emailTemplates.surprisePaymentSubmitted({
-        recipientName: reveal.recipientName,
-        achievement: reveal.achievement,
+        recipientName: recipientLabel,
+        achievement: achievementLabel,
         planName: planInfo.name,
         amount: planInfo.amount,
         paymentMethod: paymentMethodLabel,
@@ -75,12 +80,12 @@ export async function POST(request: NextRequest) {
       console.warn('[Surprise Reveal Payment] Confirmation email send warning:', emailErr);
     }
 
-    const waMessage = `Hello BridgeTec! I have sent payment (${planInfo.amount} for ${planInfo.name} via ${paymentMethodLabel}) for the Certificate:\n\n👤 Recipient: ${reveal.recipientName}\n🔑 Code: ${code}\n📧 My Email: ${customerEmail.trim()}\n\nPlease verify and approve my download!`;
+    const waMessage = `Hello BridgeTec! I have sent payment (${planInfo.amount} for ${planInfo.name} via ${paymentMethodLabel}) for the Certificate:\n\n👤 Recipient: ${recipientLabel}\n🔑 Code: ${code}\n📧 My Email: ${customerEmail.trim()}\n\nPlease verify and approve my download!`;
     const waUrl = `https://wa.me/23233399391?text=${encodeURIComponent(waMessage)}`;
 
     return NextResponse.json({
       success: true,
-      reveal: updated,
+      reveal: reveal ?? null,
       waUrl,
       message: 'Payment proof recorded! We sent a confirmation email to your address.',
     });

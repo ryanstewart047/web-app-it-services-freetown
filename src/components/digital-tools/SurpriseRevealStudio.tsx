@@ -778,18 +778,24 @@ export default function SurpriseRevealStudio() {
 
         <button
           type="button"
-          onClick={orderVipPackage}
+          onClick={() => {
+            if (!publishedReveal) {
+              toast.error('Please publish the Surprise Reveal link first, then unlock the printable certificate.');
+              return;
+            }
+            orderVipPackage();
+          }}
           className="cursor-pointer w-full px-4 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-md shadow-amber-500/20 flex items-center justify-center gap-2 transition-all select-none active:scale-[0.99]"
         >
           <Crown className="w-4 h-4 text-slate-950" />
-          <span>Unlock Official Printable Certificate</span>
+          <span>{publishedReveal ? 'Unlock Official Printable Certificate' : 'Publish Reveal First, Then Unlock Certificate'}</span>
         </button>
       </div>
 
       {showPaymentCheckout && (
         <PaymentCheckout
           recipientName={recipientName || 'Your Celebrant'}
-          code="STUDIO-VIP"
+          code={publishedReveal?.code || ''}
           onClose={() => setShowPaymentCheckout(false)}
         />
       )}

@@ -743,7 +743,7 @@ export default function SurpriseRevealExperience({
         {showPaymentModal && (
           <PaymentCheckout
             recipientName={recipientName}
-            code={code || 'BT-VIP'}
+            code={code ?? ''}
             onClose={() => setShowPaymentModal(false)}
           />
         )}
