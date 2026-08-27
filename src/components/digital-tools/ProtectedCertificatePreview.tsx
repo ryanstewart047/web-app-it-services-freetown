@@ -231,13 +231,13 @@ export default function ProtectedCertificatePreview({
 
         <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-slate-400">
           <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/20 text-orange-300 px-2 py-0.5 font-bold border border-orange-500/30">
-            🟠 Orange Money (*144#)
+            Orange Money (*144#)
           </span>
           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 text-emerald-300 px-2 py-0.5 font-bold border border-emerald-500/30">
-            💚 AfriMoney (*161#)
+            AfriMoney (*161#)
           </span>
           <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/20 text-blue-300 px-2 py-0.5 font-bold border border-blue-500/30">
-            🅿️ PayPal / Card
+            PayPal / Card
           </span>
           <span className="text-slate-400">· USSD mobile trigger &amp; desktop QR code</span>
         </div>
@@ -245,7 +245,7 @@ export default function ProtectedCertificatePreview({
         <button
           type="button"
           onClick={handleActionClick}
-          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 transition-all"
+          className="cursor-pointer w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 transition-all select-none active:scale-[0.99]"
         >
           <Sparkles className="w-4 h-4" />
           <span>Unlock Official Printable Certificate (Le 25)</span>
@@ -263,10 +263,10 @@ export default function ProtectedCertificatePreview({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-400/30 text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-md"
+        className="cursor-pointer py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-400/30 text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-md select-none"
       >
         <Eye className="w-4 h-4 text-amber-400" />
-        <span>👁️ Preview Certificate (Protected Sample)</span>
+        <span>Preview Certificate (Protected Sample)</span>
       </button>
 
       <AnimatePresence>

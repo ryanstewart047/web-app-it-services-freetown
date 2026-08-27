@@ -710,7 +710,7 @@ export default function SurpriseRevealExperience({
                       type="button"
                       onClick={handleCertificateClick}
                       disabled={generatingCert}
-                      className={`w-full inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-xs sm:text-sm font-black transition-all shadow-lg ${
+                      className={`cursor-pointer select-none active:scale-[0.99] w-full inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-xs sm:text-sm font-black transition-all shadow-lg ${
                         isPaymentApproved
                           ? 'bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-neutral-950 shadow-amber-500/20'
                           : 'bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 shadow-amber-500/25'

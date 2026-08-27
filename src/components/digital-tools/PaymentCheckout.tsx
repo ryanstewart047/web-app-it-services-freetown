@@ -6,12 +6,14 @@ import {
   Award,
   Check,
   CheckCircle2,
-  ChevronRight,
   Copy,
+  CreditCard,
   ExternalLink,
-  HelpCircle,
   Lock,
+  Mail,
   MessageCircle,
+  Monitor,
+  Phone,
   PhoneCall,
   QrCode as QrIcon,
   ShieldCheck,
@@ -44,7 +46,7 @@ export const PAYMENT_PLANS: PaymentPlan[] = [
   {
     id: 'monthly',
     name: 'Monthly Pass',
-    badge: '★ Best Value',
+    badge: 'Best Value',
     slePrice: 'Le 150',
     usdPrice: '$7.50',
     downloads: '5 HD Downloads',
@@ -54,7 +56,7 @@ export const PAYMENT_PLANS: PaymentPlan[] = [
   {
     id: 'lifetime',
     name: 'Lifetime VIP Pass',
-    badge: '👑 VIP Unlimited',
+    badge: 'VIP Unlimited',
     slePrice: 'Le 500',
     usdPrice: '$25.00',
     downloads: 'Unlimited HD Downloads',
@@ -257,36 +259,37 @@ export default function PaymentCheckout({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3 sm:p-4 backdrop-blur-md overflow-y-auto">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md p-3 sm:p-6 flex items-center justify-center">
       <motion.div
-        initial={{ opacity: 0, scale: 0.94, y: 15 }}
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.94, y: 15 }}
-        className="relative w-full max-w-2xl my-6 rounded-3xl border border-amber-400/40 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 shadow-2xl text-left text-white overflow-hidden"
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        className="relative w-full max-w-2xl my-auto rounded-3xl border border-amber-500/30 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 shadow-2xl text-left text-white overflow-hidden"
       >
         {/* Top Header Banner */}
-        <div className="relative border-b border-white/10 bg-gradient-to-r from-amber-500/20 via-orange-500/10 to-amber-500/20 p-5 sm:p-6">
+        <div className="relative border-b border-white/10 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 p-5 sm:p-6">
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-4 top-4 rounded-full p-2 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+            aria-label="Close checkout"
+            className="cursor-pointer absolute right-4 top-4 rounded-full p-2.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </button>
 
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 text-slate-950 font-black shadow-lg shadow-amber-500/25">
+          <div className="flex items-center gap-3.5 pr-8">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 text-slate-950 font-black shadow-lg shadow-amber-500/20">
               <Award className="h-6 w-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-base sm:text-lg font-black text-white">Unlock Official Certificate</h3>
-                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                  Instant Access
+                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                  Instant Verification
                 </span>
               </div>
               <p className="text-xs text-slate-300 mt-0.5">
-                Honoring <strong className="text-amber-300">{recipientName}</strong> · Code:{' '}
+                Honoring <strong className="text-amber-300 font-bold">{recipientName}</strong> · Ref:{' '}
                 <span className="font-mono text-white/90">{code}</span>
               </p>
             </div>
@@ -301,7 +304,7 @@ export default function PaymentCheckout({
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                    1. Choose Access Plan
+                    1. Select Plan
                   </label>
                   <span className="text-[11px] text-slate-400">All plans include HD Print file</span>
                 </div>
@@ -314,10 +317,10 @@ export default function PaymentCheckout({
                         key={plan.id}
                         type="button"
                         onClick={() => setSelectedPlan(plan.id)}
-                        className={`relative rounded-2xl p-4 text-left border transition-all flex flex-col justify-between group ${
+                        className={`cursor-pointer relative rounded-2xl p-4 text-left border transition-all flex flex-col justify-between select-none ${
                           isSelected
-                            ? 'border-amber-400 bg-gradient-to-b from-amber-500/20 to-amber-500/5 shadow-lg shadow-amber-500/15 ring-2 ring-amber-400/30'
-                            : 'border-white/10 bg-slate-900/60 hover:bg-slate-800/80 hover:border-white/20'
+                            ? 'border-amber-400 bg-amber-500/15 shadow-lg shadow-amber-500/15 ring-2 ring-amber-400/40'
+                            : 'border-white/10 bg-slate-900/70 hover:bg-slate-800 hover:border-white/20'
                         }`}
                       >
                         {plan.badge && (
@@ -327,10 +330,10 @@ export default function PaymentCheckout({
                         )}
 
                         <div>
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between gap-2">
                             <span className="text-xs font-bold text-slate-200">{plan.name}</span>
                             <div
-                              className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                              className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
                                 isSelected ? 'border-amber-400 bg-amber-400' : 'border-slate-600'
                               }`}
                             >
@@ -338,7 +341,7 @@ export default function PaymentCheckout({
                             </div>
                           </div>
 
-                          <div className="mt-2.5 flex items-baseline gap-1.5">
+                          <div className="mt-2 flex items-baseline gap-1.5">
                             <span className="text-xl font-black text-amber-300 font-mono">{plan.slePrice}</span>
                             <span className="text-[11px] text-slate-400 font-mono">({plan.usdPrice})</span>
                           </div>
@@ -352,9 +355,10 @@ export default function PaymentCheckout({
                 </div>
               </div>
 
-              {/* 2. SELECT PAYMENT METHOD WITH OFFICIAL LOGOS */}
-              <div className="space-y-3 pt-2 border-t border-white/10">
-                <label className="text-xs font-black uppercase tracking-wider text-amber-300 block">
+              {/* 2. SELECT PAYMENT METHOD */}
+              <div className="space-y-3 pt-3 border-t border-white/10">
+                <label className="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+                  <CreditCard className="w-3.5 h-3.5 text-amber-400" />
                   2. Choose Payment Method
                 </label>
 
@@ -363,16 +367,16 @@ export default function PaymentCheckout({
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('orange_money')}
-                    className={`p-3.5 rounded-2xl border flex items-center gap-3 transition-all text-left ${
+                    className={`cursor-pointer p-3.5 rounded-2xl border flex items-center gap-3 transition-all text-left select-none ${
                       paymentMethod === 'orange_money'
-                        ? 'border-orange-500 bg-orange-500/20 ring-2 ring-orange-500/30'
-                        : 'border-white/10 bg-slate-900/60 hover:bg-slate-800'
+                        ? 'border-orange-500 bg-orange-500/20 ring-2 ring-orange-500/40 shadow-lg shadow-orange-500/10'
+                        : 'border-white/10 bg-slate-900/70 hover:bg-slate-800 hover:border-white/20'
                     }`}
                   >
-                    <OrangeMoneyLogo className="w-10 h-10 shrink-0" />
-                    <div>
-                      <div className="text-xs font-black text-white">Orange Money</div>
-                      <div className="text-[10px] text-orange-300 font-mono font-bold mt-0.5">Instant USSD</div>
+                    <OrangeMoneyLogo className="w-10 h-10 shrink-0 pointer-events-none" />
+                    <div className="min-w-0">
+                      <div className="text-xs font-black text-white truncate">Orange Money</div>
+                      <div className="text-[10px] text-orange-300 font-mono font-bold mt-0.5">USSD *144#</div>
                     </div>
                   </button>
 
@@ -380,16 +384,16 @@ export default function PaymentCheckout({
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('afrimoney')}
-                    className={`p-3.5 rounded-2xl border flex items-center gap-3 transition-all text-left ${
+                    className={`cursor-pointer p-3.5 rounded-2xl border flex items-center gap-3 transition-all text-left select-none ${
                       paymentMethod === 'afrimoney'
-                        ? 'border-emerald-500 bg-emerald-500/20 ring-2 ring-emerald-500/30'
-                        : 'border-white/10 bg-slate-900/60 hover:bg-slate-800'
+                        ? 'border-emerald-500 bg-emerald-500/20 ring-2 ring-emerald-500/40 shadow-lg shadow-emerald-500/10'
+                        : 'border-white/10 bg-slate-900/70 hover:bg-slate-800 hover:border-white/20'
                     }`}
                   >
-                    <AfriMoneyLogo className="w-10 h-10 shrink-0" />
-                    <div>
-                      <div className="text-xs font-black text-white">AfriMoney</div>
-                      <div className="text-[10px] text-emerald-300 font-mono font-bold mt-0.5">Direct Trigger</div>
+                    <AfriMoneyLogo className="w-10 h-10 shrink-0 pointer-events-none" />
+                    <div className="min-w-0">
+                      <div className="text-xs font-black text-white truncate">AfriMoney</div>
+                      <div className="text-[10px] text-emerald-300 font-mono font-bold mt-0.5">USSD *161#</div>
                     </div>
                   </button>
 
@@ -397,15 +401,15 @@ export default function PaymentCheckout({
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('paypal')}
-                    className={`p-3.5 rounded-2xl border flex items-center gap-3 transition-all text-left ${
+                    className={`cursor-pointer p-3.5 rounded-2xl border flex items-center gap-3 transition-all text-left select-none ${
                       paymentMethod === 'paypal'
-                        ? 'border-blue-500 bg-blue-500/20 ring-2 ring-blue-500/30'
-                        : 'border-white/10 bg-slate-900/60 hover:bg-slate-800'
+                        ? 'border-blue-500 bg-blue-500/20 ring-2 ring-blue-500/40 shadow-lg shadow-blue-500/10'
+                        : 'border-white/10 bg-slate-900/70 hover:bg-slate-800 hover:border-white/20'
                     }`}
                   >
-                    <PayPalLogo className="w-10 h-10 shrink-0" />
-                    <div>
-                      <div className="text-xs font-black text-white">PayPal / Card</div>
+                    <PayPalLogo className="w-10 h-10 shrink-0 pointer-events-none" />
+                    <div className="min-w-0">
+                      <div className="text-xs font-black text-white truncate">PayPal / Card</div>
                       <div className="text-[10px] text-blue-300 font-mono font-bold mt-0.5">International</div>
                     </div>
                   </button>
@@ -413,39 +417,46 @@ export default function PaymentCheckout({
               </div>
 
               {/* 3. DYNAMIC METHOD INSTRUCTIONS & ACTIONS */}
-              <div className="rounded-2xl border border-white/15 bg-slate-950/80 p-4 sm:p-5 space-y-4">
+              <div className="rounded-2xl border border-white/15 bg-slate-950/90 p-4 sm:p-5 space-y-4">
                 {/* ORANGE MONEY PANEL */}
                 {paymentMethod === 'orange_money' && (
-                  <div className="space-y-4 animate-fade-in">
-                    <div className="flex items-center gap-2 text-xs font-black text-orange-400">
-                      <OrangeMoneyLogo className="w-6 h-6" />
-                      <span>Orange Money Payment Steps ({activePlan.slePrice})</span>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                      <div className="flex items-center gap-2">
+                        <OrangeMoneyLogo className="w-6 h-6" />
+                        <span className="text-xs font-black text-orange-400">Orange Money Payment ({activePlan.slePrice})</span>
+                      </div>
+                      <span className="text-[11px] font-mono text-slate-400">Code: 241586</span>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-4 items-center">
                       {/* Left: Mobile USSD Click Action */}
-                      <div className="space-y-2.5">
-                        <p className="text-xs text-slate-300 leading-relaxed">
-                          <strong>📱 On Mobile:</strong> Tap the button below to automatically launch your phone dialler with our official merchant code:
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-xs font-bold text-slate-200">
+                          <Smartphone className="w-4 h-4 text-orange-400" />
+                          <span>Mobile One-Tap Dial</span>
+                        </div>
+                        <p className="text-[11px] text-slate-300 leading-relaxed">
+                          Tap below to open your phone dialler with the official USSD payment string preloaded:
                         </p>
 
                         <a
                           href={ORANGE_TEL_URI}
-                          className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-orange-500/25 transition-all"
+                          className="cursor-pointer w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-orange-500/25 transition-all select-none active:scale-[0.98]"
                         >
-                          <PhoneCall className="w-4 h-4" />
-                          <span>Tap to Dial {ORANGE_USSD_RAW}</span>
+                          <PhoneCall className="w-4 h-4 shrink-0" />
+                          <span>Dial {ORANGE_USSD_RAW}</span>
                         </a>
 
-                        <div className="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-800 text-[11px] text-slate-300">
-                          <span className="font-mono">{ORANGE_USSD_RAW}</span>
+                        <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-[11px] text-slate-300">
+                          <span className="font-mono font-bold text-orange-300">{ORANGE_USSD_RAW}</span>
                           <button
                             type="button"
                             onClick={() => copyToClipboard(ORANGE_USSD_RAW, 'orange')}
-                            className="text-orange-400 font-bold hover:text-orange-300 flex items-center gap-1"
+                            className="cursor-pointer text-orange-400 font-bold hover:text-orange-300 flex items-center gap-1 px-2 py-1 rounded hover:bg-orange-500/10 transition-colors"
                           >
-                            {copiedCode === 'orange' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                            <span>{copiedCode === 'orange' ? 'Copied' : 'Copy'}</span>
+                            {copiedCode === 'orange' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                            <span>{copiedCode === 'orange' ? 'Copied' : 'Copy Code'}</span>
                           </button>
                         </div>
                       </div>
@@ -453,14 +464,14 @@ export default function PaymentCheckout({
                       {/* Right: Desktop QR Code */}
                       <div className="border-t md:border-t-0 md:border-l border-white/10 pt-3 md:pt-0 md:pl-4 flex flex-col items-center text-center space-y-2">
                         <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-300">
-                          <QrIcon className="w-3.5 h-3.5 text-orange-400" />
-                          <span>💻 On Desktop? Scan with Phone</span>
+                          <Monitor className="w-3.5 h-3.5 text-orange-400" />
+                          <span>Desktop Scan to Dial</span>
                         </div>
                         <div className="p-2 rounded-xl bg-white shadow-md">
                           <canvas ref={orangeQrCanvasRef} className="block w-28 h-28 sm:w-32 sm:h-32" />
                         </div>
-                        <p className="text-[10px] text-slate-400">
-                          Open Camera on iPhone or Android to dial instantly.
+                        <p className="text-[10px] text-slate-400 max-w-[200px]">
+                          Scan with your phone camera to initiate dialling.
                         </p>
                       </div>
                     </div>
@@ -469,36 +480,43 @@ export default function PaymentCheckout({
 
                 {/* AFRIMONEY PANEL */}
                 {paymentMethod === 'afrimoney' && (
-                  <div className="space-y-4 animate-fade-in">
-                    <div className="flex items-center gap-2 text-xs font-black text-emerald-400">
-                      <AfriMoneyLogo className="w-6 h-6" />
-                      <span>AfriMoney Payment Steps ({activePlan.slePrice})</span>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                      <div className="flex items-center gap-2">
+                        <AfriMoneyLogo className="w-6 h-6" />
+                        <span className="text-xs font-black text-emerald-400">AfriMoney Payment ({activePlan.slePrice})</span>
+                      </div>
+                      <span className="text-[11px] font-mono text-slate-400">Agent: 088294631</span>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-4 items-center">
                       {/* Left: Mobile USSD Click Action */}
-                      <div className="space-y-2.5">
-                        <p className="text-xs text-slate-300 leading-relaxed">
-                          <strong>📱 On Mobile:</strong> Tap the button below to initiate the direct AfriMoney payment string:
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-xs font-bold text-slate-200">
+                          <Smartphone className="w-4 h-4 text-emerald-400" />
+                          <span>Mobile One-Tap Dial</span>
+                        </div>
+                        <p className="text-[11px] text-slate-300 leading-relaxed">
+                          Tap below to open your phone dialler with the official AfriMoney code:
                         </p>
 
                         <a
                           href={AFRI_TEL_URI}
-                          className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 transition-all"
+                          className="cursor-pointer w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 transition-all select-none active:scale-[0.98]"
                         >
-                          <PhoneCall className="w-4 h-4" />
-                          <span>Tap to Dial {AFRI_USSD_RAW}</span>
+                          <PhoneCall className="w-4 h-4 shrink-0" />
+                          <span>Dial {AFRI_USSD_RAW}</span>
                         </a>
 
-                        <div className="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-800 text-[11px] text-slate-300">
-                          <span className="font-mono">{AFRI_USSD_RAW}</span>
+                        <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-[11px] text-slate-300">
+                          <span className="font-mono font-bold text-emerald-300">{AFRI_USSD_RAW}</span>
                           <button
                             type="button"
                             onClick={() => copyToClipboard(AFRI_USSD_RAW, 'afri')}
-                            className="text-emerald-400 font-bold hover:text-emerald-300 flex items-center gap-1"
+                            className="cursor-pointer text-emerald-400 font-bold hover:text-emerald-300 flex items-center gap-1 px-2 py-1 rounded hover:bg-emerald-500/10 transition-colors"
                           >
-                            {copiedCode === 'afri' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                            <span>{copiedCode === 'afri' ? 'Copied' : 'Copy'}</span>
+                            {copiedCode === 'afri' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                            <span>{copiedCode === 'afri' ? 'Copied' : 'Copy Code'}</span>
                           </button>
                         </div>
                       </div>
@@ -506,14 +524,14 @@ export default function PaymentCheckout({
                       {/* Right: Desktop QR Code */}
                       <div className="border-t md:border-t-0 md:border-l border-white/10 pt-3 md:pt-0 md:pl-4 flex flex-col items-center text-center space-y-2">
                         <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-300">
-                          <QrIcon className="w-3.5 h-3.5 text-emerald-400" />
-                          <span>💻 On Desktop? Scan with Phone</span>
+                          <Monitor className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>Desktop Scan to Dial</span>
                         </div>
                         <div className="p-2 rounded-xl bg-white shadow-md">
                           <canvas ref={afriQrCanvasRef} className="block w-28 h-28 sm:w-32 sm:h-32" />
                         </div>
-                        <p className="text-[10px] text-slate-400">
-                          Scans &amp; triggers the USSD code on your mobile device.
+                        <p className="text-[10px] text-slate-400 max-w-[200px]">
+                          Scan with your phone camera to initiate dialling.
                         </p>
                       </div>
                     </div>
@@ -522,25 +540,28 @@ export default function PaymentCheckout({
 
                 {/* PAYPAL PANEL */}
                 {paymentMethod === 'paypal' && (
-                  <div className="space-y-4 animate-fade-in">
-                    <div className="flex items-center gap-2 text-xs font-black text-blue-400">
-                      <PayPalLogo className="w-6 h-6" />
-                      <span>PayPal International Checkout ({activePlan.usdPrice})</span>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                      <div className="flex items-center gap-2">
+                        <PayPalLogo className="w-6 h-6" />
+                        <span className="text-xs font-black text-blue-400">PayPal International Checkout ({activePlan.usdPrice})</span>
+                      </div>
+                      <span className="text-[11px] font-mono text-slate-400">USD Gateway</span>
                     </div>
 
                     <p className="text-xs text-slate-300 leading-relaxed">
-                      Pay securely with your PayPal balance, Visa, Mastercard, or debit card from anywhere in the world:
+                      Pay securely with your PayPal balance, Visa, Mastercard, or debit card from anywhere globally:
                     </p>
 
                     <a
                       href={getPayPalCheckoutUrl()}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#0070BA] to-[#003087] hover:from-[#005ea6] hover:to-[#00205b] text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition-all"
+                      className="cursor-pointer w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#0070BA] to-[#003087] hover:from-[#005ea6] hover:to-[#00205b] text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition-all select-none active:scale-[0.98]"
                     >
-                      <PayPalLogo className="w-5 h-5" />
-                      <span>Pay {activePlan.usdPrice} via PayPal Gateway</span>
-                      <ExternalLink className="w-4 h-4 ml-1" />
+                      <PayPalLogo className="w-5 h-5 shrink-0" />
+                      <span>Proceed to PayPal Gateway ({activePlan.usdPrice})</span>
+                      <ExternalLink className="w-4 h-4 ml-1 shrink-0" />
                     </a>
 
                     <div className="flex items-center gap-2 text-[11px] text-slate-400 bg-slate-900 p-2.5 rounded-lg border border-slate-800">
@@ -551,10 +572,11 @@ export default function PaymentCheckout({
                 )}
               </div>
 
-              {/* 4. DELIVERY DETAILS & WHATSAPP NOTIFICATION */}
-              <div className="space-y-3 pt-2 border-t border-white/10">
-                <label className="text-xs font-black uppercase tracking-wider text-amber-300 block">
-                  3. Delivery &amp; Instant Verification
+              {/* 4. DELIVERY DETAILS */}
+              <div className="space-y-3 pt-3 border-t border-white/10">
+                <label className="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-amber-400" />
+                  3. Delivery &amp; Verification Details
                 </label>
 
                 <div className="grid sm:grid-cols-2 gap-3">
@@ -568,7 +590,7 @@ export default function PaymentCheckout({
                       value={customerEmail}
                       onChange={(e) => setCustomerEmail(e.target.value)}
                       placeholder="e.g. yourname@example.com"
-                      className="w-full bg-slate-950 border border-white/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 outline-none"
+                      className="w-full bg-slate-950 border border-white/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 outline-none transition-all"
                     />
                   </div>
 
@@ -581,20 +603,20 @@ export default function PaymentCheckout({
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
                       placeholder="e.g. +232 78 000 000"
-                      className="w-full bg-slate-950 border border-white/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 outline-none"
+                      className="w-full bg-slate-950 border border-white/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 outline-none transition-all"
                     />
                   </div>
                 </div>
               </div>
 
               {/* ACTION BUTTON */}
-              <div className="pt-2">
+              <div className="pt-2 space-y-2">
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black text-sm shadow-xl shadow-amber-500/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                  className="cursor-pointer w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black text-sm shadow-xl shadow-amber-500/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50 select-none active:scale-[0.99]"
                 >
-                  <MessageCircle className="w-5 h-5" />
+                  <MessageCircle className="w-5 h-5 shrink-0" />
                   <span>
                     {submitting
                       ? 'Submitting Proof...'
@@ -602,17 +624,17 @@ export default function PaymentCheckout({
                   </span>
                 </button>
 
-                <p className="text-center text-[10px] text-slate-400 mt-2">
-                  ⚡ 1-click admin approval: your certificate unlocks instantly on this screen &amp; arrives in your email!
+                <p className="text-center text-[11px] text-slate-400">
+                  Instant admin approval: your certificate unlocks directly on this screen and is sent to your email.
                 </p>
               </div>
             </form>
           ) : (
-            <div className="py-6 text-center space-y-4 animate-fade-in">
+            <div className="py-6 text-center space-y-4">
               <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mx-auto text-3xl">
-                ✓
+                <CheckCircle2 className="w-8 h-8" />
               </div>
-              <h4 className="text-lg font-black text-white">Payment Proof Submitted!</h4>
+              <h4 className="text-lg font-black text-white">Payment Proof Submitted</h4>
               <p className="text-xs text-slate-300 leading-relaxed max-w-md mx-auto">
                 Thank you! We sent a confirmation to <strong className="text-white">{customerEmail}</strong>.
                 Our team is verifying your payment and your high-resolution printable certificate will unlock automatically.
@@ -622,7 +644,7 @@ export default function PaymentCheckout({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition-all shadow-md"
+                  className="cursor-pointer px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition-all shadow-md"
                 >
                   Back to Celebration Experience
                 </button>

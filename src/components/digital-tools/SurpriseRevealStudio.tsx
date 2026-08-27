@@ -760,16 +760,16 @@ export default function SurpriseRevealStudio() {
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-400">
-          <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/20 text-orange-300 px-2 py-0.5 font-bold border border-orange-500/30">🟠 Orange Money (*144#)</span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 text-emerald-300 px-2 py-0.5 font-bold border border-emerald-500/30">💚 AfriMoney (*161#)</span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/20 text-blue-300 px-2 py-0.5 font-bold border border-blue-500/30">🅿️ PayPal</span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/20 text-orange-300 px-2 py-0.5 font-bold border border-orange-500/30">Orange Money (*144#)</span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 text-emerald-300 px-2 py-0.5 font-bold border border-emerald-500/30">AfriMoney (*161#)</span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/20 text-blue-300 px-2 py-0.5 font-bold border border-blue-500/30">PayPal</span>
           <span className="text-slate-500">· USSD mobile trigger &amp; desktop QR code</span>
         </div>
 
         <button
           type="button"
           onClick={orderVipPackage}
-          className="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-md shadow-amber-500/20 flex items-center justify-center gap-2 transition-all"
+          className="cursor-pointer w-full px-4 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-md shadow-amber-500/20 flex items-center justify-center gap-2 transition-all select-none active:scale-[0.99]"
         >
           <Crown className="w-4 h-4 text-slate-950" />
           <span>Unlock Official Printable Certificate</span>
