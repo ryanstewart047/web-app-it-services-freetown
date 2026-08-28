@@ -184,18 +184,131 @@ export default function PaymentCheckout({
     }
   }, [paymentMethod]);
 
+  // PayPal Smart Buttons State
+  const [paypalConfig, setPaypalConfig] = useState<{ configured: boolean; clientId: string | null; mode: string } | null>(null);
+  const [paypalLoading, setPaypalLoading] = useState(false);
+  const [paypalError, setPaypalError] = useState<string | null>(null);
+  const paypalContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // Fetch PayPal Config on mount
   useEffect(() => {
-    if (afriQrCanvasRef.current) {
-      QRCode.toCanvas(afriQrCanvasRef.current, AFRI_TEL_URI, {
-        width: 170,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#ffffff',
-        },
-      }).catch((e) => console.warn('QR error:', e));
-    }
-  }, [paymentMethod]);
+    fetch('/api/paypal/config')
+      .then((res) => res.json())
+      .then((data) => setPaypalConfig(data))
+      .catch((err) => console.warn('Failed to load PayPal config:', err));
+  }, []);
+
+  // Initialize PayPal Buttons when method is paypal and config is loaded
+  useEffect(() => {
+    if (paymentMethod !== 'paypal' || !paypalConfig?.configured || !paypalConfig.clientId) return;
+
+    let isMounted = true;
+    const clientId = paypalConfig.clientId;
+
+    const loadSdkAndRender = async () => {
+      setPaypalLoading(true);
+      setPaypalError(null);
+
+      try {
+        const scriptId = 'paypal-sdk-script';
+        let script = document.getElementById(scriptId) as HTMLScriptElement | null;
+
+        if (!script) {
+          script = document.createElement('script');
+          script.id = scriptId;
+          script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD&intent=capture`;
+          script.async = true;
+          document.body.appendChild(script);
+          await new Promise((resolve, reject) => {
+            script!.onload = resolve;
+            script!.onerror = reject;
+          });
+        } else if (!(window as any).paypal) {
+          await new Promise((resolve) => {
+            script!.onload = resolve;
+          });
+        }
+
+        if (!isMounted || !paypalContainerRef.current) return;
+
+        // Clear container before rendering
+        paypalContainerRef.current.innerHTML = '';
+
+        if ((window as any).paypal?.Buttons) {
+          (window as any).paypal
+            .Buttons({
+              style: {
+                layout: 'vertical',
+                color: 'gold',
+                shape: 'rect',
+                label: 'pay',
+                height: 42,
+              },
+              createOrder: async () => {
+                const res = await fetch('/api/paypal/create-order', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    planId: selectedPlan,
+                    code,
+                    recipientName,
+                    customerEmail: customerEmail.trim(),
+                  }),
+                });
+                const data = await res.json();
+                if (!data.success || !data.orderId) {
+                  throw new Error(data.error || 'Failed to create PayPal order');
+                }
+                return data.orderId;
+              },
+              onApprove: async (data: any) => {
+                setSubmitting(true);
+                try {
+                  const res = await fetch('/api/paypal/capture-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      orderId: data.orderID,
+                      code,
+                      customerEmail: customerEmail.trim(),
+                      customerPhone: customerPhone.trim(),
+                      selectedPlan,
+                    }),
+                  });
+                  const captureData = await res.json();
+                  if (captureData.success) {
+                    setSubmitted(true);
+                    if (onSuccess) onSuccess();
+                  } else {
+                    alert(captureData.error || 'Payment capture failed.');
+                  }
+                } catch (err: any) {
+                  alert(err.message || 'Payment capture error.');
+                } finally {
+                  setSubmitting(false);
+                }
+              },
+              onError: (err: any) => {
+                console.error('PayPal Button Error:', err);
+                setPaypalError('Could not launch interactive PayPal popup. You can use the direct PayPal.Me link below.');
+              },
+            })
+            .render(paypalContainerRef.current);
+        }
+      } catch (err: any) {
+        console.warn('PayPal SDK initialization failed:', err);
+        setPaypalError('Unable to load interactive PayPal buttons. Please use the direct PayPal.Me button below.');
+      } finally {
+        if (isMounted) setPaypalLoading(false);
+      }
+    };
+
+    void loadSdkAndRender();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [paymentMethod, paypalConfig, selectedPlan, code, recipientName, customerEmail, customerPhone]);
 
   const copyToClipboard = async (text: string, label: string) => {
     try {
@@ -534,41 +647,71 @@ export default function PaymentCheckout({
                     <div className="flex items-center justify-between border-b border-white/10 pb-3">
                       <div className="flex items-center gap-2">
                         <PayPalLogo className="w-6 h-6" />
-                        <span className="text-xs font-black text-blue-400">PayPal Checkout ({activePlan.usdPrice})</span>
+                        <span className="text-xs font-black text-blue-400">PayPal &amp; Card Gateway ({activePlan.usdPrice})</span>
                       </div>
-                      <span className="text-[11px] font-mono text-blue-300 font-bold">paypal.me/ryanjstewart047</span>
+                      <span className="text-[11px] font-mono text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                        Instant 1-Click Unlock
+                      </span>
                     </div>
 
-                    <p className="text-xs text-slate-300 leading-relaxed">
-                      Pay securely with your PayPal account, debit card, or credit card from anywhere globally:
-                    </p>
+                    {/* Interactive PayPal Smart Buttons (Loads when API credentials present) */}
+                    {paypalConfig?.configured && (
+                      <div className="space-y-2.5">
+                        <div className="text-[11px] font-bold text-slate-300 flex items-center justify-between">
+                          <span>Pay with PayPal or Debit/Credit Card:</span>
+                          <span className="text-amber-300 font-mono font-bold">{activePlan.usdPrice} USD</span>
+                        </div>
 
-                    <a
-                      href={getPayPalCheckoutUrl()}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="cursor-pointer w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#0070BA] to-[#003087] hover:from-[#005ea6] hover:to-[#00205b] text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition-all select-none active:scale-[0.98]"
-                    >
-                      <PayPalLogo className="w-5 h-5 shrink-0" />
-                      <span>Pay {activePlan.usdPrice} on PayPal.Me</span>
-                      <ExternalLink className="w-4 h-4 ml-1 shrink-0" />
-                    </a>
+                        {paypalLoading && (
+                          <div className="h-11 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-xs text-slate-400 animate-pulse">
+                            Loading PayPal Gateway...
+                          </div>
+                        )}
 
-                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-[11px] text-slate-300">
-                      <span className="font-mono font-bold text-blue-300 truncate">https://paypal.me/ryanjstewart047</span>
-                      <button
-                        type="button"
-                        onClick={() => copyToClipboard('https://paypal.me/ryanjstewart047', 'paypal')}
-                        className="cursor-pointer text-blue-400 font-bold hover:text-blue-300 flex items-center gap-1 px-2 py-1 rounded hover:bg-blue-500/10 transition-colors shrink-0 ml-2"
+                        <div ref={paypalContainerRef} className="min-h-[44px] rounded-xl overflow-hidden" />
+
+                        {paypalError && (
+                          <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-[11px] text-rose-300">
+                            {paypalError}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Direct PayPal.Me Option */}
+                    <div className="space-y-2.5 pt-2 border-t border-white/5">
+                      <div className="flex items-center justify-between text-[11px] text-slate-400">
+                        <span>Alternative: Direct PayPal.Me Payment</span>
+                        <span className="font-mono text-blue-300">paypal.me/ryanjstewart047</span>
+                      </div>
+
+                      <a
+                        href={getPayPalCheckoutUrl()}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="cursor-pointer w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#0070BA] to-[#003087] hover:from-[#005ea6] hover:to-[#00205b] text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition-all select-none active:scale-[0.98]"
                       >
-                        {copiedCode === 'paypal' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                        <span>{copiedCode === 'paypal' ? 'Copied' : 'Copy Link'}</span>
-                      </button>
+                        <PayPalLogo className="w-4 h-4 shrink-0" />
+                        <span>Open {activePlan.usdPrice} on PayPal.Me</span>
+                        <ExternalLink className="w-3.5 h-3.5 ml-1 shrink-0" />
+                      </a>
+
+                      <div className="flex items-center justify-between p-2 rounded-xl bg-slate-900 border border-slate-800 text-[10px] text-slate-300">
+                        <span className="font-mono text-blue-300 truncate">https://paypal.me/ryanjstewart047/{activePlan.id === 'single' ? '1.25' : activePlan.id === 'monthly' ? '7.50' : '25.00'}USD</span>
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(`https://paypal.me/ryanjstewart047/${activePlan.id === 'single' ? '1.25' : activePlan.id === 'monthly' ? '7.50' : '25.00'}USD`, 'paypal')}
+                          className="cursor-pointer text-blue-400 font-bold hover:text-blue-300 flex items-center gap-1 px-2 py-0.5 rounded hover:bg-blue-500/10 transition-colors shrink-0 ml-2"
+                        >
+                          {copiedCode === 'paypal' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                          <span>{copiedCode === 'paypal' ? 'Copied' : 'Copy Link'}</span>
+                        </button>
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-2 text-[11px] text-slate-400 bg-slate-900 p-2.5 rounded-lg border border-slate-800">
                       <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                      <span>Buyer protection &amp; 256-bit SSL encrypted checkout.</span>
+                      <span>Official PayPal Buyer Protection · 256-bit Encrypted SSL.</span>
                     </div>
                   </div>
                 )}
