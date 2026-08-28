@@ -203,7 +203,21 @@ export default function PaymentCheckout({
     if (paymentMethod !== 'paypal' || !paypalConfig?.configured || !paypalConfig.clientId) return;
 
     let isMounted = true;
-    const clientId = paypalConfig.clientId;
+    const clientId = paypalConfig.clientId.trim();
+
+    /** Poll for window.paypal to be ready — handles the case where the
+     *  script tag already exists and its onload event already fired. */
+    const waitForPayPal = (timeoutMs = 10000): Promise<void> =>
+      new Promise((resolve, reject) => {
+        if ((window as any).paypal) { resolve(); return; }
+        const start = Date.now();
+        const tick = () => {
+          if ((window as any).paypal) { resolve(); return; }
+          if (Date.now() - start > timeoutMs) { reject(new Error('PayPal SDK timed out')); return; }
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
 
     const loadSdkAndRender = async () => {
       setPaypalLoading(true);
@@ -214,90 +228,102 @@ export default function PaymentCheckout({
         let script = document.getElementById(scriptId) as HTMLScriptElement | null;
 
         if (!script) {
+          // Script not in DOM yet — inject it and wait for load
           script = document.createElement('script');
           script.id = scriptId;
-          script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD&intent=capture`;
+          script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=USD&intent=capture&components=buttons`;
           script.async = true;
-          document.body.appendChild(script);
-          await new Promise((resolve, reject) => {
-            script!.onload = resolve;
-            script!.onerror = reject;
-          });
-        } else if (!(window as any).paypal) {
-          await new Promise((resolve) => {
-            script!.onload = resolve;
+          await new Promise<void>((resolve, reject) => {
+            script!.onload = () => resolve();
+            script!.onerror = () => reject(new Error('PayPal SDK script failed to load'));
+            document.body.appendChild(script!);
           });
         }
+
+        // Whether we just injected or it was already there, wait for window.paypal
+        await waitForPayPal();
+
+        if (!isMounted) return;
+
+        // Wait one more frame so React has committed the ref's DOM node
+        await new Promise<void>((r) => requestAnimationFrame(() => r()));
 
         if (!isMounted || !paypalContainerRef.current) return;
 
-        // Clear container before rendering
+        // Clear any previous render
         paypalContainerRef.current.innerHTML = '';
 
-        if ((window as any).paypal?.Buttons) {
-          (window as any).paypal
-            .Buttons({
-              style: {
-                layout: 'vertical',
-                color: 'gold',
-                shape: 'rect',
-                label: 'pay',
-                height: 42,
-              },
-              createOrder: async () => {
-                const res = await fetch('/api/paypal/create-order', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    planId: selectedPlan,
-                    code,
-                    recipientName,
-                    customerEmail: customerEmail.trim(),
-                  }),
-                });
-                const data = await res.json();
-                if (!data.success || !data.orderId) {
-                  throw new Error(data.error || 'Failed to create PayPal order');
-                }
-                return data.orderId;
-              },
-              onApprove: async (data: any) => {
-                setSubmitting(true);
-                try {
-                  const res = await fetch('/api/paypal/capture-order', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      orderId: data.orderID,
-                      code,
-                      customerEmail: customerEmail.trim(),
-                      customerPhone: customerPhone.trim(),
-                      selectedPlan,
-                    }),
-                  });
-                  const captureData = await res.json();
-                  if (captureData.success) {
-                    setSubmitted(true);
-                    if (onSuccess) onSuccess();
-                  } else {
-                    alert(captureData.error || 'Payment capture failed.');
-                  }
-                } catch (err: any) {
-                  alert(err.message || 'Payment capture error.');
-                } finally {
-                  setSubmitting(false);
-                }
-              },
-              onError: (err: any) => {
-                console.error('PayPal Button Error:', err);
-                setPaypalError('Could not launch interactive PayPal popup. You can use the direct PayPal.Me link below.');
-              },
-            })
-            .render(paypalContainerRef.current);
+        const paypal = (window as any).paypal;
+        if (!paypal?.Buttons) throw new Error('PayPal Buttons not available');
+
+        const buttons = paypal.Buttons({
+          style: {
+            layout: 'vertical',
+            color: 'gold',
+            shape: 'rect',
+            label: 'pay',
+            height: 44,
+          },
+          createOrder: async () => {
+            const res = await fetch('/api/paypal/create-order', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                planId: selectedPlan,
+                code,
+                recipientName,
+                customerEmail: customerEmail.trim(),
+              }),
+            });
+            const data = await res.json();
+            if (!data.success || !data.orderId) {
+              throw new Error(data.error || 'Failed to create PayPal order');
+            }
+            return data.orderId;
+          },
+          onApprove: async (data: any) => {
+            setSubmitting(true);
+            try {
+              const res = await fetch('/api/paypal/capture-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  orderId: data.orderID,
+                  code,
+                  customerEmail: customerEmail.trim(),
+                  customerPhone: customerPhone.trim(),
+                  selectedPlan,
+                }),
+              });
+              const captureData = await res.json();
+              if (captureData.success) {
+                setSubmitted(true);
+                if (onSuccess) onSuccess();
+              } else {
+                alert(captureData.error || 'Payment capture failed.');
+              }
+            } catch (err: any) {
+              alert(err.message || 'Payment capture error.');
+            } finally {
+              setSubmitting(false);
+            }
+          },
+          onError: (err: any) => {
+            console.warn('PayPal Button Error:', err);
+            // Silently fall back — show PayPal.Me button without alarming message
+            if (isMounted) setPaypalError('fallback');
+          },
+        });
+
+        // Check if eligible before rendering (e.g. buyer country not supported)
+        if (buttons.isEligible()) {
+          await buttons.render(paypalContainerRef.current);
+        } else {
+          if (isMounted) setPaypalError('fallback');
         }
       } catch (err: any) {
         console.warn('PayPal SDK initialization failed:', err);
-        setPaypalError('Unable to load interactive PayPal buttons. Please use the direct PayPal.Me button below.');
+        if (isMounted) setPaypalError('fallback');
       } finally {
         if (isMounted) setPaypalLoading(false);
       }
@@ -668,20 +694,27 @@ export default function PaymentCheckout({
                           </div>
                         )}
 
-                        <div ref={paypalContainerRef} className="min-h-[44px] rounded-xl overflow-hidden" />
+                        {/* Smart Buttons container — hidden when fallback is active */}
+                        <div
+                          ref={paypalContainerRef}
+                          className={`min-h-[44px] rounded-xl overflow-hidden ${paypalError ? 'hidden' : ''}`}
+                        />
 
-                        {paypalError && (
-                          <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-[11px] text-rose-300">
-                            {paypalError}
-                          </div>
+                        {/* Soft info note when buttons couldn't load — no alarming banner */}
+                        {paypalError && !paypalLoading && (
+                          <p className="text-[10px] text-slate-400 text-center">
+                            PayPal gateway unavailable in your region — please use the direct link below.
+                          </p>
                         )}
                       </div>
                     )}
 
-                    {/* Direct PayPal.Me Option */}
-                    <div className="space-y-2.5 pt-2 border-t border-white/5">
+                    {/* Direct PayPal.Me Option — becomes primary when Smart Buttons fall back */}
+                    <div className={`space-y-2.5 pt-2 border-t border-white/5 ${paypalError ? 'ring-1 ring-amber-500/20 rounded-2xl p-3 bg-amber-500/5' : ''}`}>
                       <div className="flex items-center justify-between text-[11px] text-slate-400">
-                        <span>Alternative: Direct PayPal.Me Payment</span>
+                        <span className={paypalError ? 'text-amber-300 font-semibold' : ''}>
+                          {paypalError ? 'Pay directly via PayPal.Me:' : 'Alternative: Direct PayPal.Me Payment'}
+                        </span>
                         <span className="font-mono text-blue-300">paypal.me/ryanjstewart047</span>
                       </div>
 

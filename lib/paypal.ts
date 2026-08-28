@@ -1,11 +1,14 @@
-/**
- * Official PayPal REST API v2 Server Integration
- * Supports both Live and Sandbox environments
- */
+function cleanEnvValue(val: string | undefined): string {
+  if (!val) return '';
+  return val
+    .trim()
+    .replace(/^[\["'\s]+|[\]"'\s]+$/g, '')
+    .trim();
+}
 
-const PAYPAL_MODE = process.env.PAYPAL_MODE || 'live';
-const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID || '';
-const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET || '';
+const PAYPAL_MODE = (cleanEnvValue(process.env.PAYPAL_MODE) || 'live').toLowerCase();
+const PAYPAL_CLIENT_ID = cleanEnvValue(process.env.PAYPAL_CLIENT_ID);
+const PAYPAL_CLIENT_SECRET = cleanEnvValue(process.env.PAYPAL_CLIENT_SECRET);
 
 const PAYPAL_BASE_URL =
   PAYPAL_MODE === 'sandbox'
@@ -18,8 +21,8 @@ let cachedAccessToken: { token: string; expiresAt: number } | null = null;
  * Obtain an OAuth2 Access Token from PayPal REST API
  */
 export async function getPayPalAccessToken(): Promise<string> {
-  const clientId = PAYPAL_CLIENT_ID.trim();
-  const secret = PAYPAL_CLIENT_SECRET.trim();
+  const clientId = cleanEnvValue(PAYPAL_CLIENT_ID);
+  const secret = cleanEnvValue(PAYPAL_CLIENT_SECRET);
 
   if (!clientId || !secret) {
     throw new Error('PayPal API credentials are not configured. Please set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET.');
@@ -158,5 +161,5 @@ export async function capturePayPalOrder(orderId: string): Promise<{
  * Get public PayPal Client ID for frontend SDK initialization
  */
 export function getPublicPayPalClientId(): string {
-  return PAYPAL_CLIENT_ID.trim();
+  return cleanEnvValue(PAYPAL_CLIENT_ID);
 }
