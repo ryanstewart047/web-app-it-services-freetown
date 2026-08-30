@@ -12,13 +12,13 @@ const nextConfig = {
     // Temporarily ignore TypeScript errors during build
     ignoreBuildErrors: true,
   },
-  // Generate unique build ID to prevent cache issues
-  generateBuildId: async () => {
-    return `build-${Date.now()}-${Math.random().toString(36).substring(7)}`
-  },
+  // DO NOT use random generateBuildId — it forces Vercel to re-upload ALL static
+  // assets on every deploy, burning Fast Origin Transfer bandwidth.
+  // Next.js uses a git-based hash by default which is optimal.
+
   // Configure webpack to prevent infinite compilation and resolve modules properly
   webpack: (config, { isServer }) => {
-    // Prevent infinite compilation
+    // Prevent infinite compilation in watch mode
     config.watchOptions = {
       poll: 3000,
       aggregateTimeout: 300,
@@ -33,13 +33,14 @@ const nextConfig = {
       tls: false,
     }
     
-    // Disable caching that might cause chunk issues
-    config.cache = false
+    // DO NOT set config.cache = false — it forces webpack to recompile everything
+    // from scratch every build, making bundles larger and deploys slower.
+    // webpack's default filesystem cache is fine.
     
     return config
   },
   images: {
-    unoptimized: true, // Disable Vercel serverless image re-encoding to completely stop Fast Origin Transfer bandwidth consumption
+    unoptimized: true, // Avoids Vercel image lambda bandwidth on free tier
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
