@@ -27,7 +27,6 @@ import {
   Grid,
   Shield,
   Award,
-  IdCard,
   Briefcase,
   Sliders,
   Trash2,
@@ -1130,7 +1129,7 @@ export default function CardStudio() {
                 <div className="grid grid-cols-2 gap-2">
                   {[
                     { id: 'business', label: 'Business Card', icon: Briefcase },
-                    { id: 'id_badge', label: 'Corporate ID Badge', icon: IdCard },
+                    { id: 'id_badge', label: 'Corporate ID Badge', icon: Shield },
                     { id: 'complementary', label: 'Complement Slip', icon: FileText },
                     { id: 'vip_pass', label: 'VIP Pass / Badge', icon: Award },
                   ].map((cat) => (
