@@ -11,6 +11,7 @@ import DocumentConverter from '@/components/digital-tools/DocumentConverter';
 import FileMetadataInspector from '@/components/digital-tools/FileMetadataInspector';
 import ImageBackgroundRemover from '@/components/digital-tools/ImageBackgroundRemover';
 import SurpriseRevealStudio from '@/components/digital-tools/SurpriseRevealStudio';
+import CardStudio from '@/components/digital-tools/CardStudio';
 import { BRAND_AVATAR_TRANSPARENT_SRC, BRAND_NAME } from '@/lib/brand';
 
 type ToolCategory = 'all' | 'image' | 'pdf' | 'audio' | 'utilities';
@@ -29,6 +30,18 @@ interface ToolItem {
 }
 
 const ALL_TOOLS: ToolItem[] = [
+  {
+    id: 'card-studio',
+    title: 'Smart Business & ID Card Studio',
+    desc: 'Generate 300 DPI executive business cards, staff ID badges & VIP passes with live front/back preview, vCard QR codes & printable A4 sheets.',
+    category: 'utilities',
+    badge: '🔥 New • 300 DPI',
+    popular: true,
+    isNew: true,
+    icon: 'fas fa-id-card',
+    gradient: 'from-amber-500 via-orange-500 to-yellow-500',
+    tags: ['business card', 'id card', 'badge', 'card generator', 'complementary card', 'vcard', 'qr code', 'print', 'pdf', 'staff id', 'corporate badge'],
+  },
   {
     id: 'surprise-reveal',
     title: 'BridgeTec Surprise Studio',
@@ -596,7 +609,9 @@ export default function DigitalToolsPage() {
     const hash = window.location.hash.toLowerCase().replace('#', '');
     if (!hash) return;
 
-    if (hash.includes('surprise') || hash.includes('reveal') || hash.includes('celebrat') || hash.includes('quiz')) {
+    if (hash.includes('card') || hash.includes('id') || hash.includes('badge') || hash.includes('business')) {
+      setActiveToolId('card-studio');
+    } else if (hash.includes('surprise') || hash.includes('reveal') || hash.includes('celebrat') || hash.includes('quiz')) {
       setActiveToolId('surprise-reveal');
     } else if (hash.includes('bg') || hash.includes('background')) {
       setActiveToolId('bg-remover');
@@ -791,6 +806,7 @@ export default function DigitalToolsPage() {
             </div>
 
             {/* Render Selected Tool Component */}
+            {activeToolId === 'card-studio' && <CardStudio />}
             {activeToolId === 'surprise-reveal' && <SurpriseRevealStudio />}
             {activeToolId === 'bg-remover' && <ImageBackgroundRemover />}
             {activeToolId === 'forensics' && <FileMetadataInspector />}
