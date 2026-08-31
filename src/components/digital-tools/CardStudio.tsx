@@ -39,28 +39,59 @@ import {
   HeartPulse,
   Paintbrush,
   Sparkle,
+  Maximize2,
+  ExternalLink,
+  Search,
+  Filter,
+  Camera,
+  Scissors,
+  Utensils,
+  Home,
+  Scale,
+  Zap,
+  Wrench,
+  Trees,
+  Cake,
+  ShieldCheck,
+  Waves,
 } from 'lucide-react';
 
-export type CardCategory = 'business' | 'id_badge' | 'complementary' | 'vip_pass';
+export type CardCategory = 'all' | 'business' | 'id_badge' | 'complementary' | 'vip_pass';
 export type CardOrientation = 'landscape' | 'portrait';
 
-export type BgCategory =
-  | 'technology'
-  | 'construction'
-  | 'corporate'
-  | 'finance'
-  | 'automotive'
-  | 'medical'
-  | 'creative'
-  | 'minimal';
+export type TemplateStyleGroup =
+  | 'all'
+  | 'popular'
+  | '3d_luxury'
+  | 'modern_tech'
+  | 'corporate_legal'
+  | 'trades_construction'
+  | 'lifestyle_beauty'
+  | 'creative_colorful'
+  | 'minimal_simple';
 
-export interface BackgroundPreset {
+export interface CardTemplateConfig {
   id: string;
-  category: BgCategory;
   name: string;
-  desc: string;
-  theme: 'dark' | 'light';
-  draw: (ctx: CanvasRenderingContext2D, W: number, H: number, opacity: number, primary: string, secondary: string) => void;
+  category: TemplateStyleGroup;
+  industry: string;
+  tagline: string;
+  theme: 'dark' | 'light' | 'colorful';
+  defaultAccent: string;
+  defaultSecondary: string;
+  badgeIcon: string;
+  previewGradient: string;
+  drawCard: (
+    ctx: CanvasRenderingContext2D,
+    W: number,
+    H: number,
+    isPort: boolean,
+    isBack: boolean,
+    data: CardData,
+    qrImg: HTMLImageElement | null,
+    photoImg: HTMLImageElement | null,
+    logoImg: HTMLImageElement | null
+  ) => void;
 }
 
 export interface CardData {
@@ -98,329 +129,15 @@ export interface CardData {
   qrCustomText: string;
 
   // Visual Customization
-  category: CardCategory;
+  templateId: string;
   orientation: CardOrientation;
-  backgroundId: string;
-  bgCategory: BgCategory;
-  bgOpacity: number; // 0 to 1
   accentColor: string;
   secondaryColor: string;
-  isLightMode: boolean;
+  bgOpacity: number;
   showChip: boolean;
   showBarcode: boolean;
   showCutMarks: boolean;
 }
-
-// ── INDUSTRY BACKGROUND PRESETS (CANVAS PROCEDURAL ENGINES) ─────────────────────
-const BACKGROUND_PRESETS: BackgroundPreset[] = [
-  // 1. TECHNOLOGY & AI & CYBER
-  {
-    id: 'tech_circuit',
-    category: 'technology',
-    name: 'Cyber Circuit Grid',
-    desc: 'Integrated semiconductor traces with logic node junctions.',
-    theme: 'dark',
-    draw: (ctx, W, H, opacity, primary) => {
-      ctx.save();
-      ctx.strokeStyle = primary;
-      ctx.lineWidth = 1.5;
-      ctx.globalAlpha = opacity;
-
-      // Circuit grid lines
-      for (let x = 40; x < W; x += 60) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, H * 0.4);
-        ctx.lineTo(x + 30, H * 0.4 + 30);
-        ctx.lineTo(x + 30, H);
-        ctx.stroke();
-
-        // Node junction points
-        ctx.fillStyle = primary;
-        ctx.beginPath();
-        ctx.arc(x + 30, H * 0.4 + 30, 3.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.restore();
-    },
-  },
-  {
-    id: 'tech_matrix_grid',
-    category: 'technology',
-    name: 'Neural Matrix Grid',
-    desc: 'High-density computational coordinate mesh.',
-    theme: 'dark',
-    draw: (ctx, W, H, opacity, primary, secondary) => {
-      ctx.save();
-      ctx.globalAlpha = opacity;
-      ctx.strokeStyle = secondary;
-      ctx.lineWidth = 1;
-      const step = 32;
-      for (let x = 0; x < W; x += step) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
-      }
-      for (let y = 0; y < H; y += step) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-      }
-      // Glowing focal point
-      const rad = ctx.createRadialGradient(W * 0.8, H * 0.2, 10, W * 0.8, H * 0.2, 280);
-      rad.addColorStop(0, primary);
-      rad.addColorStop(1, 'transparent');
-      ctx.fillStyle = rad;
-      ctx.globalAlpha = opacity * 0.8;
-      ctx.fillRect(0, 0, W, H);
-      ctx.restore();
-    },
-  },
-
-  // 2. CONSTRUCTION & ENGINEERING & ARCHITECTURE
-  {
-    id: 'const_blueprint',
-    category: 'construction',
-    name: 'Architect Blueprint',
-    desc: 'Technical drafting grid with geometric construction lines.',
-    theme: 'dark',
-    draw: (ctx, W, H, opacity) => {
-      ctx.save();
-      ctx.globalAlpha = opacity;
-      ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 1;
-
-      // Small grid
-      for (let x = 0; x < W; x += 20) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
-      }
-      for (let y = 0; y < H; y += 20) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-      }
-
-      // Major structural diagonals
-      ctx.strokeStyle = '#93c5fd';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(0, 0); ctx.lineTo(W * 0.5, H);
-      ctx.moveTo(W * 0.5, 0); ctx.lineTo(W, H);
-      ctx.stroke();
-
-      // Blueprint measurement circle
-      ctx.beginPath();
-      ctx.arc(W * 0.85, H * 0.3, 70, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-    },
-  },
-  {
-    id: 'const_isometric_grid',
-    category: 'construction',
-    name: 'Structural Steel Beams',
-    desc: 'Heavy structural truss angles and dimensional framework.',
-    theme: 'dark',
-    draw: (ctx, W, H, opacity, primary) => {
-      ctx.save();
-      ctx.globalAlpha = opacity;
-      ctx.strokeStyle = primary;
-      ctx.lineWidth = 2;
-
-      for (let i = -W; i < W * 2; i += 70) {
-        ctx.beginPath();
-        ctx.moveTo(i, 0);
-        ctx.lineTo(i + H * 0.8, H);
-        ctx.stroke();
-      }
-      ctx.restore();
-    },
-  },
-
-  // 3. CORPORATE & EXECUTIVE & CONSULTING
-  {
-    id: 'corp_gold_guilloche',
-    category: 'corporate',
-    name: 'Executive Gold Guilloche',
-    desc: 'Prestige luxury metallic ornamental borders and security foil.',
-    theme: 'dark',
-    draw: (ctx, W, H, opacity, primary) => {
-      ctx.save();
-      ctx.globalAlpha = opacity;
-      ctx.strokeStyle = primary;
-      ctx.lineWidth = 1.5;
-
-      for (let r = 20; r <= 80; r += 15) {
-        ctx.strokeRect(r, r, W - r * 2, H - r * 2);
-      }
-
-      // Intersecting corner arcs
-      ctx.beginPath();
-      ctx.arc(0, 0, 160, 0, Math.PI / 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(W, H, 160, Math.PI, Math.PI * 1.5);
-      ctx.stroke();
-      ctx.restore();
-    },
-  },
-  {
-    id: 'corp_carbon_weave',
-    category: 'corporate',
-    name: 'Obsidian Carbon Weave',
-    desc: 'Micro-woven aerodynamic carbon fiber weave texture.',
-    theme: 'dark',
-    draw: (ctx, W, H, opacity) => {
-      ctx.save();
-      ctx.globalAlpha = opacity;
-      ctx.fillStyle = '#ffffff';
-      for (let x = 0; x < W; x += 12) {
-        for (let y = 0; y < H; y += 12) {
-          if ((x + y) % 24 === 0) ctx.fillRect(x, y, 6, 6);
-        }
-      }
-      ctx.restore();
-    },
-  },
-
-  // 4. FINANCE & BANKING & WEALTH
-  {
-    id: 'fin_security_waves',
-    category: 'finance',
-    name: 'Securities Guilloche Waves',
-    desc: 'Banknote security engraving waveforms and monetary geometry.',
-    theme: 'dark',
-    draw: (ctx, W, H, opacity, primary, secondary) => {
-      ctx.save();
-      ctx.globalAlpha = opacity;
-      ctx.lineWidth = 1.2;
-
-      for (let i = -50; i < H + 50; i += 18) {
-        ctx.strokeStyle = i % 36 === 0 ? primary : secondary;
-        ctx.beginPath();
-        ctx.moveTo(0, i);
-        ctx.bezierCurveTo(W * 0.25, i + 40, W * 0.75, i - 40, W, i);
-        ctx.stroke();
-      }
-      ctx.restore();
-    },
-  },
-  {
-    id: 'fin_emerald_currency',
-    category: 'finance',
-    name: 'Emerald Bullion Ribbon',
-    desc: 'Wealth management dual diagonal emerald banner.',
-    theme: 'dark',
-    draw: (ctx, W, H, opacity, primary) => {
-      ctx.save();
-      ctx.globalAlpha = opacity;
-      const grad = ctx.createLinearGradient(0, 0, W, H);
-      grad.addColorStop(0, primary);
-      grad.addColorStop(0.5, 'transparent');
-      grad.addColorStop(1, '#059669');
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.moveTo(W * 0.6, 0);
-      ctx.lineTo(W, 0);
-      ctx.lineTo(W * 0.4, H);
-      ctx.lineTo(0, H);
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
-    },
-  },
-
-  // 5. AUTOMOTIVE & TRANSPORT & LOGISTICS
-  {
-    id: 'auto_speed_velocity',
-    category: 'automotive',
-    name: 'Speed Velocity Lines',
-    desc: 'High-speed aerodynamic motion blur and carbon accents.',
-    theme: 'dark',
-    draw: (ctx, W, H, opacity, primary) => {
-      ctx.save();
-      ctx.globalAlpha = opacity;
-      ctx.strokeStyle = primary;
-      ctx.lineWidth = 3;
-
-      for (let y = 30; y < H; y += 45) {
-        const len = (y * 1.5) % W;
-        ctx.beginPath();
-        ctx.moveTo(W - len, y);
-        ctx.lineTo(W, y);
-        ctx.stroke();
-      }
-      ctx.restore();
-    },
-  },
-
-  // 6. HEALTHCARE & MEDICAL & SCIENCE
-  {
-    id: 'med_pulse_ecg',
-    category: 'medical',
-    name: 'Cardio Pulse & ECG Wave',
-    desc: 'Clean medical heart rhythm waveform with cross matrix.',
-    theme: 'dark',
-    draw: (ctx, W, H, opacity, primary) => {
-      ctx.save();
-      ctx.globalAlpha = opacity;
-      ctx.strokeStyle = primary;
-      ctx.lineWidth = 2.5;
-
-      const y = H * 0.68;
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(W * 0.35, y);
-      ctx.lineTo(W * 0.38, y - 40);
-      ctx.lineTo(W * 0.42, y + 50);
-      ctx.lineTo(W * 0.46, y - 70);
-      ctx.lineTo(W * 0.50, y + 30);
-      ctx.lineTo(W * 0.53, y);
-      ctx.lineTo(W, y);
-      ctx.stroke();
-      ctx.restore();
-    },
-  },
-
-  // 7. CREATIVE & AGENCY & MEDIA
-  {
-    id: 'art_sunset_aurora',
-    category: 'creative',
-    name: 'Creative Sunset Aurora',
-    desc: 'Vibrant violet-to-amber mesh light spheres.',
-    theme: 'dark',
-    draw: (ctx, W, H, opacity, primary, secondary) => {
-      ctx.save();
-      ctx.globalAlpha = opacity;
-      const g1 = ctx.createRadialGradient(W * 0.8, H * 0.2, 20, W * 0.8, H * 0.2, 340);
-      g1.addColorStop(0, primary);
-      g1.addColorStop(1, 'transparent');
-      ctx.fillStyle = g1;
-      ctx.fillRect(0, 0, W, H);
-
-      const g2 = ctx.createRadialGradient(W * 0.15, H * 0.85, 20, W * 0.15, H * 0.85, 300);
-      g2.addColorStop(0, secondary);
-      g2.addColorStop(1, 'transparent');
-      ctx.fillStyle = g2;
-      ctx.fillRect(0, 0, W, H);
-      ctx.restore();
-    },
-  },
-
-  // 8. MINIMALIST & PEARL
-  {
-    id: 'min_clean_slate',
-    category: 'minimal',
-    name: 'Minimalist Studio Border',
-    desc: 'Ultra clean geometric pinstripe frame with left accent blade.',
-    theme: 'light',
-    draw: (ctx, W, H, opacity, primary) => {
-      ctx.save();
-      ctx.globalAlpha = opacity;
-      ctx.fillStyle = primary;
-      ctx.fillRect(0, 0, 14, H);
-
-      ctx.strokeStyle = '#94a3b8';
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(24, 24, W - 48, H - 48);
-      ctx.restore();
-    },
-  },
-];
 
 // ── COLOR PRESETS PALETTE ───────────────────────────────────────────────────────
 const COLOR_PRESETS = [
@@ -431,12 +148,1015 @@ const COLOR_PRESETS = [
   { name: 'Crimson Ruby', hex: '#E11D48' },
   { name: 'Sunset Amber', hex: '#F97316' },
   { name: 'Cyber Violet', hex: '#8B5CF6' },
-  { name: 'Titanium Silver', hex: '#94A3B8' },
-  { name: 'Rose Quartz', hex: '#EC4899' },
+  { name: 'Rose Gold', hex: '#FB7185' },
   { name: 'Deep Teal', hex: '#0D9488' },
-  { name: 'Bronze Copper', hex: '#B45309' },
-  { name: 'Midnight Charcoal', hex: '#334155' },
+  { name: 'Platinum Slate', hex: '#94A3B8' },
+  { name: 'Bronze Ochre', hex: '#D97706' },
+  { name: 'Pure White', hex: '#FFFFFF' },
 ];
+
+// ── MASTER DESIGN TEMPLATES (DESIGN.COM GRADE) ──────────────────────────────────
+const MASTER_TEMPLATES: CardTemplateConfig[] = [
+  // 1. EXECUTIVE 3D OBSIDIAN & GOLD (3D / Luxury / Company)
+  {
+    id: 'executive_3d_gold',
+    name: 'Executive 3D Obsidian & Gold',
+    category: '3d_luxury',
+    industry: 'Executive / Corporate / VIP',
+    tagline: 'Deep carbon weave, 3D beveled gold ribbon, metallic crest',
+    theme: 'dark',
+    defaultAccent: '#F59E0B',
+    defaultSecondary: '#D97706',
+    badgeIcon: '👑',
+    previewGradient: 'from-amber-500/40 via-slate-900 to-black',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      // 1. Dark Carbon Base
+      const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+      bgGrad.addColorStop(0, '#0a0d14');
+      bgGrad.addColorStop(0.5, '#121824');
+      bgGrad.addColorStop(1, '#05070a');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      // Carbon Weave Pattern
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.025)';
+      for (let x = 0; x < W; x += 12) {
+        for (let y = 0; y < H; y += 12) {
+          if ((x + y) % 24 === 0) ctx.fillRect(x, y, 6, 6);
+        }
+      }
+
+      // 3D Beveled Diagonal Gold Ribbon
+      const primary = data.accentColor || '#F59E0B';
+      const goldRibbon = ctx.createLinearGradient(0, 0, W, H);
+      goldRibbon.addColorStop(0, primary);
+      goldRibbon.addColorStop(0.3, '#FDE68A');
+      goldRibbon.addColorStop(0.6, primary);
+      goldRibbon.addColorStop(1, '#92400E');
+
+      ctx.save();
+      ctx.fillStyle = goldRibbon;
+      ctx.beginPath();
+      if (isPort) {
+        ctx.moveTo(0, 0);
+        ctx.lineTo(W, 0);
+        ctx.lineTo(W, 18);
+        ctx.lineTo(0, 48);
+      } else {
+        ctx.moveTo(W * 0.72, 0);
+        ctx.lineTo(W, 0);
+        ctx.lineTo(W, H);
+        ctx.lineTo(W * 0.62, H);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      // Shadow behind ribbon
+      ctx.shadowColor = 'rgba(0,0,0,0.6)';
+      ctx.shadowBlur = 15;
+      ctx.restore();
+
+      // Luxury Outer Gold Border
+      ctx.strokeStyle = primary;
+      ctx.lineWidth = 3;
+      ctx.strokeRect(22, 22, W - 44, H - 44);
+      ctx.strokeStyle = 'rgba(245, 158, 11, 0.2)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(30, 30, W - 60, H - 60);
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', 'rgba(255,255,255,0.7)', photoImg, logoImg, '👑');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
+      }
+    },
+  },
+
+  // 2. MODERN REAL ESTATE & ARCHITECTURE (Real Estate / Modern)
+  {
+    id: 'real_estate_skyline',
+    name: 'Metropolitan Real Estate & Skyline',
+    category: 'corporate_legal',
+    industry: 'Real Estate / Property / Architecture',
+    tagline: 'Split geometry, modern architectural blueprint grid & golden key crest',
+    theme: 'dark',
+    defaultAccent: '#38BDF8',
+    defaultSecondary: '#F59E0B',
+    badgeIcon: '🏢',
+    previewGradient: 'from-sky-500/30 via-slate-900 to-slate-950',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const primary = data.accentColor || '#38BDF8';
+
+      // Deep Navy & Blueprint Grid
+      ctx.fillStyle = '#081021';
+      ctx.fillRect(0, 0, W, H);
+
+      // Subtle Architectural Grid
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < W; x += 28) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+      }
+      for (let y = 0; y < H; y += 28) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+      }
+
+      // Skyline Silhouette Graphic
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.05)';
+      const skyY = H * 0.75;
+      const bWidth = W / 14;
+      for (let i = 0; i < 14; i++) {
+        const bHeight = 40 + ((i * 37) % 90);
+        ctx.fillRect(i * bWidth, skyY - bHeight, bWidth - 4, bHeight + H * 0.25);
+      }
+
+      // Top Modern Slate Header Stripe
+      const stripe = ctx.createLinearGradient(0, 0, W, 0);
+      stripe.addColorStop(0, primary);
+      stripe.addColorStop(1, '#6366F1');
+      ctx.fillStyle = stripe;
+      ctx.fillRect(0, 0, W, 8);
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#94a3b8', photoImg, logoImg, '🏢');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
+      }
+    },
+  },
+
+  // 3. CYBER & AI TECHNOLOGY (Technology / Cool / 3D)
+  {
+    id: 'cyber_ai_neon',
+    name: 'Cybernetic AI & Quantum Grid',
+    category: 'modern_tech',
+    industry: 'Technology / Software / AI / Cyber',
+    tagline: 'Electric neon cyan & violet aura, data node streams & glassmorphism',
+    theme: 'dark',
+    defaultAccent: '#06B6D4',
+    defaultSecondary: '#8B5CF6',
+    badgeIcon: '⚡',
+    previewGradient: 'from-cyan-500/30 via-violet-950 to-black',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const primary = data.accentColor || '#06B6D4';
+      const secondary = data.secondaryColor || '#8B5CF6';
+
+      // Deep Black Void
+      ctx.fillStyle = '#030712';
+      ctx.fillRect(0, 0, W, H);
+
+      // Glowing Radial Orbs
+      const g1 = ctx.createRadialGradient(W * 0.85, H * 0.2, 10, W * 0.85, H * 0.2, 320);
+      g1.addColorStop(0, 'rgba(6, 182, 212, 0.25)');
+      g1.addColorStop(1, 'transparent');
+      ctx.fillStyle = g1;
+      ctx.fillRect(0, 0, W, H);
+
+      const g2 = ctx.createRadialGradient(W * 0.15, H * 0.85, 10, W * 0.15, H * 0.85, 280);
+      g2.addColorStop(0, 'rgba(139, 92, 246, 0.25)');
+      g2.addColorStop(1, 'transparent');
+      ctx.fillStyle = g2;
+      ctx.fillRect(0, 0, W, H);
+
+      // Circuit Trace Lines
+      ctx.strokeStyle = 'rgba(6, 182, 212, 0.2)';
+      ctx.lineWidth = 1.5;
+      for (let x = 60; x < W; x += 110) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, H * 0.45);
+        ctx.lineTo(x + 40, H * 0.45 + 40);
+        ctx.lineTo(x + 40, H);
+        ctx.stroke();
+
+        ctx.fillStyle = primary;
+        ctx.beginPath();
+        ctx.arc(x + 40, H * 0.45 + 40, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Neon Dual Border
+      ctx.strokeStyle = primary;
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(20, 20, W - 40, H - 40);
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#cbd5e1', photoImg, logoImg, '⚡');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
+      }
+    },
+  },
+
+  // 4. LAWYER, LEGAL & JUSTICE (Corporate / Professional / Elegant)
+  {
+    id: 'legal_justice_prestige',
+    name: 'Chambers Legal & Jurisprudence',
+    category: 'corporate_legal',
+    industry: 'Lawyers / Legal / Notary / Consulting',
+    tagline: 'Rich burgundy-navy, classical double pinstripes & scales of justice',
+    theme: 'dark',
+    defaultAccent: '#EAB308',
+    defaultSecondary: '#1E3A8A',
+    badgeIcon: '⚖️',
+    previewGradient: 'from-amber-600/30 via-slate-900 to-blue-950',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const primary = data.accentColor || '#EAB308';
+
+      // Deep Midnight Navy Base
+      ctx.fillStyle = '#060d1f';
+      ctx.fillRect(0, 0, W, H);
+
+      // Classical Double Frame
+      ctx.strokeStyle = primary;
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(24, 24, W - 48, H - 48);
+      ctx.strokeStyle = 'rgba(234, 179, 8, 0.25)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(32, 32, W - 64, H - 64);
+
+      // Greek Key corner accents
+      const c = 24;
+      ctx.fillStyle = primary;
+      ctx.fillRect(c, c, 18, 3);
+      ctx.fillRect(c, c, 3, 18);
+      ctx.fillRect(W - c - 18, c, 18, 3);
+      ctx.fillRect(W - c - 3, c, 3, 18);
+      ctx.fillRect(c, H - c - 3, 18, 3);
+      ctx.fillRect(c, H - c - 18, 3, 18);
+      ctx.fillRect(W - c - 18, H - c - 3, 18, 3);
+      ctx.fillRect(W - c - 3, H - c - 18, 3, 18);
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#cbd5e1', photoImg, logoImg, '⚖️');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
+      }
+    },
+  },
+
+  // 5. CONSTRUCTION, CONTRACTOR & HANDYMAN (Construction / Trades)
+  {
+    id: 'construction_heavy_duty',
+    name: 'Industrial Construction & Engineering',
+    category: 'trades_construction',
+    industry: 'Construction / Contractor / Handyman / Electrician',
+    tagline: 'Heavy matte graphite, safety amber hazard chevron & structural steel',
+    theme: 'dark',
+    defaultAccent: '#F59E0B',
+    defaultSecondary: '#EF4444',
+    badgeIcon: '🏗️',
+    previewGradient: 'from-amber-500/40 via-stone-900 to-black',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const primary = data.accentColor || '#F59E0B';
+
+      // Matte Slate Graphite
+      ctx.fillStyle = '#111317';
+      ctx.fillRect(0, 0, W, H);
+
+      // Industrial Steel Angle Mesh
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+      ctx.lineWidth = 3;
+      for (let i = -W; i < W * 2; i += 60) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i + H * 0.7, H);
+        ctx.stroke();
+      }
+
+      // Safety Hazard Diagonal Stripe Banner
+      const hazH = isPort ? 16 : 18;
+      const hazY = isPort ? H - 24 : H - 28;
+      ctx.fillStyle = primary;
+      ctx.fillRect(0, hazY, W, hazH);
+
+      ctx.fillStyle = '#000000';
+      for (let x = -40; x < W + 40; x += 32) {
+        ctx.beginPath();
+        ctx.moveTo(x, hazY);
+        ctx.lineTo(x + 14, hazY);
+        ctx.lineTo(x, hazY + hazH);
+        ctx.lineTo(x - 14, hazY + hazH);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#e2e8f0', photoImg, logoImg, '🏗️');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
+      }
+    },
+  },
+
+  // 6. BEAUTY, SALON & SPA (Beauty / Elegant / Cute)
+  {
+    id: 'beauty_spa_rosegold',
+    name: 'Velvet Rose Gold & Botanical Spa',
+    category: 'lifestyle_beauty',
+    industry: 'Beauty / Cosmetics / Hair Salon / Spa / Nails',
+    tagline: 'Soft rose blush marble, gold foil botanical wreath & haute couture type',
+    theme: 'dark',
+    defaultAccent: '#FB7185',
+    defaultSecondary: '#F59E0B',
+    badgeIcon: '✨',
+    previewGradient: 'from-rose-500/30 via-purple-950 to-slate-950',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const primary = data.accentColor || '#FB7185';
+
+      // Deep Velvet Noir
+      ctx.fillStyle = '#130a17';
+      ctx.fillRect(0, 0, W, H);
+
+      // Rose Gold Ambient Light
+      const rGrad = ctx.createRadialGradient(W * 0.5, H * 0.5, 30, W * 0.5, H * 0.5, W * 0.6);
+      rGrad.addColorStop(0, 'rgba(251, 113, 133, 0.18)');
+      rGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = rGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      // Delicate Floral Wave Lines
+      ctx.strokeStyle = 'rgba(251, 113, 133, 0.15)';
+      ctx.lineWidth = 1;
+      for (let y = 40; y < H; y += 45) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.bezierCurveTo(W * 0.3, y - 25, W * 0.7, y + 25, W, y);
+        ctx.stroke();
+      }
+
+      // Elegant Dual Thin Frame
+      ctx.strokeStyle = primary;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(22, 22, W - 44, H - 44);
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#f1f5f9', photoImg, logoImg, '🌸');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
+      }
+    },
+  },
+
+  // 7. VINTAGE BARBER & GROOMING (Barber / Cool / Retro)
+  {
+    id: 'barber_vintage_grooming',
+    name: 'Vintage Gentleman Barber & Shave',
+    category: 'lifestyle_beauty',
+    industry: 'Barbershop / Men Grooming / Tattoo Studio',
+    tagline: 'Aged mahogany leather texture, crossed straight razors & vintage badge',
+    theme: 'dark',
+    defaultAccent: '#D97706',
+    defaultSecondary: '#B91C1C',
+    badgeIcon: '✂️',
+    previewGradient: 'from-amber-700/40 via-stone-900 to-black',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const primary = data.accentColor || '#D97706';
+
+      // Rich Vintage Dark Walnut
+      ctx.fillStyle = '#140e0b';
+      ctx.fillRect(0, 0, W, H);
+
+      // Barber Pole Striped Accent Side Blade
+      const poleW = 12;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, poleW, H);
+      for (let y = -20; y < H + 20; y += 24) {
+        ctx.fillStyle = '#dc2626';
+        ctx.fillRect(0, y, poleW, 10);
+        ctx.fillStyle = '#2563eb';
+        ctx.fillRect(0, y + 12, poleW, 10);
+      }
+
+      // Ornate Vintage Woodcut Border
+      ctx.strokeStyle = primary;
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(26, 20, W - 46, H - 40);
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#d6d3d1', photoImg, logoImg, '✂️');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
+      }
+    },
+  },
+
+  // 8. RESTAURANT, CHEF & CULINARY (Restaurant / Bakery / Food)
+  {
+    id: 'culinary_gastronomy',
+    name: 'Artisan Culinary & Fine Dining',
+    category: 'lifestyle_beauty',
+    industry: 'Restaurant / Chef / Catering / Bakery / Cafe',
+    tagline: 'Warm terracotta & copper gold, bespoke culinary fork/knife crest',
+    theme: 'dark',
+    defaultAccent: '#F97316',
+    defaultSecondary: '#EAB308',
+    badgeIcon: '🍴',
+    previewGradient: 'from-orange-600/30 via-stone-950 to-black',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const primary = data.accentColor || '#F97316';
+
+      ctx.fillStyle = '#0f0c0a';
+      ctx.fillRect(0, 0, W, H);
+
+      // Copper Warmth Radial Glow
+      const rad = ctx.createRadialGradient(W * 0.5, H * 0.3, 10, W * 0.5, H * 0.3, 260);
+      rad.addColorStop(0, 'rgba(249, 115, 22, 0.15)');
+      rad.addColorStop(1, 'transparent');
+      ctx.fillStyle = rad;
+      ctx.fillRect(0, 0, W, H);
+
+      // Double Frame with Copper Trim
+      ctx.strokeStyle = primary;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(24, 24, W - 48, H - 48);
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#fed7aa', photoImg, logoImg, '🍴');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
+      }
+    },
+  },
+
+  // 9. PHOTOGRAPHY & STUDIO ARTS (Photography / Creative)
+  {
+    id: 'photography_aperture',
+    name: 'Luminous Aperture & Lens Studio',
+    category: 'creative_colorful',
+    industry: 'Photography / Videography / Film / Media',
+    tagline: 'Matte jet-black, multi-blade golden camera aperture lens graphic',
+    theme: 'dark',
+    defaultAccent: '#EAB308',
+    defaultSecondary: '#3B82F6',
+    badgeIcon: '📷',
+    previewGradient: 'from-yellow-500/30 via-slate-900 to-black',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const primary = data.accentColor || '#EAB308';
+
+      // Matte Pitch Black
+      ctx.fillStyle = '#050505';
+      ctx.fillRect(0, 0, W, H);
+
+      // Golden Aperture Ring in Background
+      const ax = isPort ? W * 0.5 : W * 0.78;
+      const ay = isPort ? H * 0.3 : H * 0.5;
+      const aRadius = isPort ? 110 : 130;
+
+      ctx.save();
+      ctx.strokeStyle = 'rgba(234, 179, 8, 0.15)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(ax, ay, aRadius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Aperture Blades
+      for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
+        ctx.beginPath();
+        ctx.moveTo(ax + Math.cos(angle) * aRadius, ay + Math.sin(angle) * aRadius);
+        ctx.lineTo(ax + Math.cos(angle + 0.8) * (aRadius * 0.45), ay + Math.sin(angle + 0.8) * (aRadius * 0.45));
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // Minimalist Clean Viewfinder Frame
+      ctx.strokeStyle = primary;
+      ctx.lineWidth = 2;
+      const cSize = 24;
+      // 4 Viewfinder Corners
+      ctx.beginPath(); ctx.moveTo(24, 24 + cSize); ctx.lineTo(24, 24); ctx.lineTo(24 + cSize, 24); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(W - 24 - cSize, 24); ctx.lineTo(W - 24, 24); ctx.lineTo(W - 24, 24 + cSize); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(24, H - 24 - cSize); ctx.lineTo(24, H - 24); ctx.lineTo(24 + cSize, H - 24); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(W - 24 - cSize, H - 24); ctx.lineTo(W - 24, H - 24); ctx.lineTo(W - 24, H - 24 - cSize); ctx.stroke();
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#e5e5e5', photoImg, logoImg, '📷');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
+      }
+    },
+  },
+
+  // 10. CLEANING SERVICES & SPARKLE (Cleaning / Simple)
+  {
+    id: 'cleaning_sparkle_fresh',
+    name: 'Crystal Clean & Sparkle Hygiene',
+    category: 'trades_construction',
+    industry: 'Cleaning Services / Janitorial / Hygiene / Laundry',
+    tagline: 'Fresh aqua mint, gleaming sparkle bubbles & shield emblem',
+    theme: 'dark',
+    defaultAccent: '#06B6D4',
+    defaultSecondary: '#3B82F6',
+    badgeIcon: '✨',
+    previewGradient: 'from-cyan-400/30 via-blue-950 to-slate-950',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const primary = data.accentColor || '#06B6D4';
+
+      ctx.fillStyle = '#06101e';
+      ctx.fillRect(0, 0, W, H);
+
+      // Fresh Aqua Bubbles
+      ctx.fillStyle = 'rgba(6, 182, 212, 0.08)';
+      for (let i = 0; i < 16; i++) {
+        const bx = ((i * 137) % W);
+        const by = ((i * 93) % H);
+        const br = 8 + (i % 18);
+        ctx.beginPath();
+        ctx.arc(bx, by, br, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.strokeStyle = primary;
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(20, 20, W - 40, H - 40);
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#e0f2fe', photoImg, logoImg, '🧹');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
+      }
+    },
+  },
+
+  // 11. ELECTRICIAN & POWER SURGE (Electrician / Trades)
+  {
+    id: 'electrician_power_surge',
+    name: 'High Voltage Electrical Engineering',
+    category: 'trades_construction',
+    industry: 'Electrician / Power / Solar / HVAC',
+    tagline: 'High-voltage lightning pulse chevron, carbon grid & surge lines',
+    theme: 'dark',
+    defaultAccent: '#FACC15',
+    defaultSecondary: '#F97316',
+    badgeIcon: '⚡',
+    previewGradient: 'from-yellow-400/30 via-amber-950 to-black',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const primary = data.accentColor || '#FACC15';
+
+      ctx.fillStyle = '#0b0c10';
+      ctx.fillRect(0, 0, W, H);
+
+      // High Voltage Surge Path
+      ctx.strokeStyle = 'rgba(250, 204, 21, 0.12)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, H * 0.85);
+      ctx.lineTo(W * 0.35, H * 0.85);
+      ctx.lineTo(W * 0.42, H * 0.75);
+      ctx.lineTo(W * 0.48, H * 0.92);
+      ctx.lineTo(W * 0.55, H * 0.82);
+      ctx.lineTo(W, H * 0.82);
+      ctx.stroke();
+
+      ctx.strokeStyle = primary;
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(20, 20, W - 40, H - 40);
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#fef08a', photoImg, logoImg, '⚡');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
+      }
+    },
+  },
+
+  // 12. MINIMALIST SWISS MONOCHROME (Minimal / Simple / Modern)
+  {
+    id: 'minimal_swiss_monochrome',
+    name: 'Minimalist Swiss Studio White',
+    category: 'minimal_simple',
+    industry: 'Design / Architecture / Fashion / Consulting',
+    tagline: 'Stark white & obsidian black, Swiss typographic grid, bold red dot',
+    theme: 'light',
+    defaultAccent: '#DC2626',
+    defaultSecondary: '#0F172A',
+    badgeIcon: '⚪',
+    previewGradient: 'from-white via-slate-100 to-slate-300',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const primary = data.accentColor || '#DC2626';
+
+      // Pure White Canvas
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, W, H);
+
+      // Swiss Left Accent Blade
+      ctx.fillStyle = '#0F172A';
+      ctx.fillRect(0, 0, 14, H);
+
+      // Red Swiss Signature Dot
+      ctx.fillStyle = primary;
+      ctx.beginPath();
+      ctx.arc(isPort ? W - 45 : W - 50, 45, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Subtle Border
+      ctx.strokeStyle = '#E2E8F0';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(20, 20, W - 40, H - 40);
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, '#0F172A', '#0F172A', '#475569', photoImg, logoImg, '▪️');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, '#0F172A', '#0F172A', qrImg);
+      }
+    },
+  },
+
+  // 13. CREATIVE VIBRANT AURORA (Colorful / Creative / Cool)
+  {
+    id: 'creative_vibrant_aurora',
+    name: 'Creative Aurora & Prism Mesh',
+    category: 'creative_colorful',
+    industry: 'Creative Agencies / Creators / Freelancers / Media',
+    tagline: 'Fluid multi-stop neon mesh gradient with frosted glass overlay',
+    theme: 'colorful',
+    defaultAccent: '#F43F5E',
+    defaultSecondary: '#8B5CF6',
+    badgeIcon: '🎨',
+    previewGradient: 'from-rose-500 via-purple-600 to-cyan-500',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const primary = data.accentColor || '#F43F5E';
+      const secondary = data.secondaryColor || '#8B5CF6';
+
+      // Multi-Stop Mesh Base
+      const mesh = ctx.createLinearGradient(0, 0, W, H);
+      mesh.addColorStop(0, '#1e1b4b');
+      mesh.addColorStop(0.4, '#311042');
+      mesh.addColorStop(1, '#0f172a');
+      ctx.fillStyle = mesh;
+      ctx.fillRect(0, 0, W, H);
+
+      // Aurora Light Orbs
+      const o1 = ctx.createRadialGradient(W * 0.2, H * 0.25, 20, W * 0.2, H * 0.25, 300);
+      o1.addColorStop(0, 'rgba(244, 63, 94, 0.4)');
+      o1.addColorStop(1, 'transparent');
+      ctx.fillStyle = o1;
+      ctx.fillRect(0, 0, W, H);
+
+      const o2 = ctx.createRadialGradient(W * 0.8, H * 0.8, 20, W * 0.8, H * 0.8, 300);
+      o2.addColorStop(0, 'rgba(6, 182, 212, 0.35)');
+      o2.addColorStop(1, 'transparent');
+      ctx.fillStyle = o2;
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(22, 22, W - 44, H - 44);
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#fed7aa', photoImg, logoImg, '🎨');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
+      }
+    },
+  },
+
+  // 14. INSURANCE & FIDUCIARY WEALTH (Insurance / Finance)
+  {
+    id: 'insurance_fiduciary_emerald',
+    name: 'Fiduciary Wealth & Security Shield',
+    category: 'corporate_legal',
+    industry: 'Insurance / Financial Advisors / Wealth Management',
+    tagline: 'Deep emerald forest, silver guilloche arcs & fiduciary crest',
+    theme: 'dark',
+    defaultAccent: '#10B981',
+    defaultSecondary: '#34D399',
+    badgeIcon: '🛡️',
+    previewGradient: 'from-emerald-500/30 via-slate-900 to-black',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const primary = data.accentColor || '#10B981';
+
+      ctx.fillStyle = '#022119';
+      ctx.fillRect(0, 0, W, H);
+
+      // Banknote security guilloche arcs
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.12)';
+      ctx.lineWidth = 1.2;
+      for (let r = 50; r < W; r += 35) {
+        ctx.beginPath();
+        ctx.arc(W * 0.5, H * 0.5, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = primary;
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(22, 22, W - 44, H - 44);
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#a7f3d0', photoImg, logoImg, '🛡️');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
+      }
+    },
+  },
+];
+
+// ── COMPOSITE CONTENT RENDERERS (LANDSCAPE & PORTRAIT) ─────────────────────────
+
+function renderStandardFrontContent(
+  ctx: CanvasRenderingContext2D,
+  W: number,
+  H: number,
+  isPort: boolean,
+  data: CardData,
+  accentColor: string,
+  textColor: string,
+  subTextColor: string,
+  photoImg: HTMLImageElement | null,
+  logoImg: HTMLImageElement | null,
+  defaultIcon: string
+) {
+  if (isPort) {
+    // ── BALANCED VERTICAL (PORTRAIT) CONTENT ──────────────────────────────────
+    // 1. Top Logo / Crest
+    const logoSize = 60;
+    const logoX = W / 2 - logoSize / 2;
+    const logoY = 46;
+
+    if (logoImg && logoImg.width > 0) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(logoX, logoY, logoSize, logoSize, 14);
+      ctx.clip();
+      ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
+      ctx.restore();
+    } else {
+      ctx.fillStyle = accentColor;
+      ctx.beginPath();
+      ctx.roundRect(logoX, logoY, logoSize, logoSize, 14);
+      ctx.fill();
+      ctx.fillStyle = '#000000';
+      ctx.font = 'bold 26px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(data.companyName.charAt(0) || defaultIcon, W / 2, logoY + logoSize / 2 + 1);
+    }
+
+    // Company Name & Tagline
+    ctx.textAlign = 'center';
+    ctx.fillStyle = textColor;
+    ctx.font = '900 20px Inter, sans-serif';
+    ctx.fillText(data.companyName.toUpperCase(), W / 2, 134);
+
+    if (data.tagline) {
+      ctx.fillStyle = subTextColor;
+      ctx.font = '500 11px Inter, sans-serif';
+      ctx.fillText(data.tagline, W / 2, 154);
+    }
+
+    // 2. Center ID / Portrait Photo
+    const pSize = 160;
+    const px = W / 2 - pSize / 2;
+    const py = 180;
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.beginPath();
+    ctx.roundRect(px, py, pSize, pSize, 22);
+    ctx.fill();
+    ctx.strokeStyle = accentColor;
+    ctx.lineWidth = 3.5;
+    ctx.stroke();
+
+    if (photoImg && photoImg.width > 0) {
+      ctx.beginPath();
+      ctx.roundRect(px + 4, py + 4, pSize - 8, pSize - 8, 18);
+      ctx.clip();
+      ctx.drawImage(photoImg, px + 4, py + 4, pSize - 8, pSize - 8);
+    } else {
+      ctx.fillStyle = subTextColor;
+      ctx.beginPath();
+      ctx.arc(W / 2, py + 62, 32, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(W / 2, py + pSize + 22, 58, Math.PI, 0);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // 3. Name & Job Title
+    ctx.textAlign = 'center';
+    ctx.fillStyle = textColor;
+    ctx.font = '900 28px Inter, sans-serif';
+    ctx.fillText(data.fullName, W / 2, 380);
+
+    ctx.fillStyle = accentColor;
+    ctx.font = 'bold 14px Inter, sans-serif';
+    ctx.fillText(data.jobTitle.toUpperCase(), W / 2, 404);
+
+    if (data.department) {
+      ctx.fillStyle = subTextColor;
+      ctx.font = '600 12px Inter, sans-serif';
+      ctx.fillText(`Dept: ${data.department}`, W / 2, 424);
+    }
+
+    // 4. Detail Grid
+    const blockY = 465;
+    const metrics = [
+      { label: 'ID NUMBER', val: data.idNumber, col: accentColor },
+      { label: 'BLOOD GROUP', val: data.bloodGroup, col: textColor },
+      { label: 'ISSUE DATE', val: data.issueDate, col: subTextColor },
+      { label: 'EXPIRY DATE', val: data.expiryDate, col: subTextColor },
+    ];
+
+    metrics.forEach((m, idx) => {
+      const col = idx % 2;
+      const row = Math.floor(idx / 2);
+      const mx = col === 0 ? W * 0.28 : W * 0.72;
+      const my = blockY + row * 58;
+
+      ctx.fillStyle = subTextColor;
+      ctx.font = 'bold 9.5px Inter, sans-serif';
+      ctx.fillText(m.label, mx, my);
+
+      ctx.fillStyle = m.col;
+      ctx.font = 'bold 14.5px Inter, sans-serif';
+      ctx.fillText(m.val, mx, my + 18);
+    });
+
+    // 5. Contact Phone & Email
+    const contactY = 600;
+    ctx.font = '13px Inter, sans-serif';
+    ctx.fillStyle = textColor;
+    ctx.fillText(`📞  ${data.phone}`, W / 2, contactY);
+    ctx.fillText(`✉️  ${data.email}`, W / 2, contactY + 26);
+    ctx.fillText(`🌐  ${data.website}`, W / 2, contactY + 52);
+
+    // 6. Barcode
+    if (data.showBarcode) {
+      const barY = H - 128;
+      ctx.fillStyle = textColor;
+      for (let b = 70; b < W - 70; b += 7) {
+        const bw = b % 14 === 0 ? 3.5 : 1.5;
+        ctx.fillRect(b, barY, bw, 34);
+      }
+      ctx.font = 'bold 11px monospace';
+      ctx.fillStyle = subTextColor;
+      ctx.fillText(data.idNumber, W / 2, barY + 48);
+    }
+  } else {
+    // ── LANDSCAPE CONTENT ─────────────────────────────────────────────────────
+    const logoSize = 64;
+    const logoX = 52;
+    const logoY = 48;
+
+    if (logoImg && logoImg.width > 0) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(logoX, logoY, logoSize, logoSize, 14);
+      ctx.clip();
+      ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
+      ctx.restore();
+    } else {
+      ctx.fillStyle = accentColor;
+      ctx.beginPath();
+      ctx.roundRect(logoX, logoY, logoSize, logoSize, 14);
+      ctx.fill();
+      ctx.fillStyle = '#000000';
+      ctx.font = 'bold 28px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(data.companyName.charAt(0) || defaultIcon, logoX + logoSize / 2, logoY + logoSize / 2 + 1);
+    }
+
+    ctx.textAlign = 'left';
+    ctx.fillStyle = textColor;
+    ctx.font = '900 24px Inter, sans-serif';
+    ctx.fillText(data.companyName.toUpperCase(), 132, 74);
+
+    if (data.tagline) {
+      ctx.fillStyle = subTextColor;
+      ctx.font = '500 13px Inter, sans-serif';
+      ctx.fillText(data.tagline, 132, 98);
+    }
+
+    // Name & Title
+    const nameY = 205;
+    ctx.fillStyle = textColor;
+    ctx.font = '900 38px Inter, sans-serif';
+    ctx.fillText(data.fullName, 52, nameY);
+
+    ctx.fillStyle = accentColor;
+    ctx.font = 'bold 17px Inter, sans-serif';
+    ctx.fillText(data.jobTitle.toUpperCase(), 52, nameY + 30);
+
+    if (data.department) {
+      ctx.fillStyle = subTextColor;
+      ctx.font = '600 13px Inter, sans-serif';
+      ctx.fillText(`Dept: ${data.department}`, 52, nameY + 54);
+    }
+
+    // Contact Details Grid (2 Columns)
+    const startY = 328;
+    const contacts = [
+      { icon: '📞', text: data.phone },
+      { icon: '✉️', text: data.email },
+      { icon: '🌐', text: data.website },
+      { icon: '📍', text: data.address },
+    ].filter((c) => c.text);
+
+    contacts.forEach((c, idx) => {
+      const col = idx < 2 ? 0 : 1;
+      const row = idx % 2;
+      const cx = 52 + col * 370;
+      const cy = startY + row * 38;
+
+      ctx.font = '14px Inter, sans-serif';
+      ctx.fillStyle = textColor;
+      ctx.fillText(`${c.icon}  ${c.text}`, cx, cy);
+    });
+  }
+
+  // Cut Marks
+  if (data.showCutMarks) {
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.lineWidth = 1;
+    const cl = 16;
+    ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(10, cl); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, 10); ctx.lineTo(cl, 10); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(W - 10, 0); ctx.lineTo(W - 10, cl); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(W, 10); ctx.lineTo(W - cl, 10); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(10, H); ctx.lineTo(10, H - cl); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, H - 10); ctx.lineTo(cl, H - 10); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(W - 10, H); ctx.lineTo(W - 10, H - cl); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(W, H - 10); ctx.lineTo(W - cl, H - 10); ctx.stroke();
+  }
+}
+
+function renderStandardBackContent(
+  ctx: CanvasRenderingContext2D,
+  W: number,
+  H: number,
+  isPort: boolean,
+  data: CardData,
+  accentColor: string,
+  textColor: string,
+  qrImg: HTMLImageElement | null
+) {
+  // Magnetic / Top Security Stripe
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.fillRect(0, 32, W, isPort ? 44 : 52);
+
+  // Scannable QR Code
+  if (qrImg && qrImg.width > 0) {
+    const qrSize = isPort ? 175 : 185;
+    const qx = isPort ? W / 2 - qrSize / 2 : 65;
+    const qy = isPort ? 135 : 140;
+
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.roundRect(qx - 8, qy - 8, qrSize + 16, qrSize + 16, 12);
+    ctx.fill();
+    ctx.drawImage(qrImg, qx, qy, qrSize, qrSize);
+  }
+
+  // Backside Copy
+  const tx = isPort ? W / 2 : 290;
+  const ty = isPort ? 355 : 160;
+
+  ctx.textAlign = isPort ? 'center' : 'left';
+  ctx.fillStyle = textColor;
+  ctx.font = '900 20px Inter, sans-serif';
+  ctx.fillText(data.backTitle, tx, ty);
+
+  ctx.fillStyle = accentColor;
+  ctx.font = 'bold 12.5px Inter, sans-serif';
+  ctx.fillText(data.backSubtitle, tx, ty + 24);
+
+  // Disclaimer
+  ctx.fillStyle = 'rgba(255,255,255,0.65)';
+  ctx.font = '11px Inter, sans-serif';
+
+  const words = data.disclaimer.split(' ');
+  let line = '';
+  let lineY = ty + 56;
+  const maxW = isPort ? W - 90 : W - 340;
+
+  for (let n = 0; n < words.length; n++) {
+    const testLine = line + words[n] + ' ';
+    const metrics = ctx.measureText(testLine);
+    if (metrics.width > maxW && n > 0) {
+      ctx.fillText(line, tx, lineY);
+      line = words[n] + ' ';
+      lineY += 18;
+    } else {
+      line = testLine;
+    }
+  }
+  ctx.fillText(line, tx, lineY);
+
+  if (data.emergencyContact) {
+    lineY += 26;
+    ctx.fillStyle = textColor;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText(`Emergency Security: ${data.emergencyContact}`, tx, lineY);
+  }
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.font = 'bold 11px Inter, sans-serif';
+  ctx.fillText(`${data.companyName.toUpperCase()} · ${data.website}`, W / 2, H - 40);
+}
 
 const DEFAULT_CARD_DATA: CardData = {
   fullName: 'Alexander R. Cole',
@@ -467,14 +1187,11 @@ const DEFAULT_CARD_DATA: CardData = {
   qrType: 'vcard',
   qrCustomText: 'https://www.itservicesfreetown.com',
 
-  category: 'business',
+  templateId: 'executive_3d_gold',
   orientation: 'landscape',
-  backgroundId: 'tech_circuit',
-  bgCategory: 'technology',
-  bgOpacity: 0.35,
   accentColor: '#F59E0B',
-  secondaryColor: '#06B6D4',
-  isLightMode: false,
+  secondaryColor: '#D97706',
+  bgOpacity: 0.4,
   showChip: true,
   showBarcode: true,
   showCutMarks: true,
@@ -483,16 +1200,44 @@ const DEFAULT_CARD_DATA: CardData = {
 export default function CardStudio() {
   const [data, setData] = useState<CardData>(DEFAULT_CARD_DATA);
   const [activeSide, setActiveSide] = useState<'both' | 'front' | 'back'>('both');
-  const [activeTab, setActiveTab] = useState<'background' | 'identity' | 'contacts' | 'media_qr' | 'export'>('background');
+  const [activeTab, setActiveTab] = useState<'templates' | 'identity' | 'contacts' | 'media_qr' | 'export'>('templates');
+  const [selectedCategory, setSelectedCategory] = useState<TemplateStyleGroup>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [isExporting, setIsExporting] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
 
   const frontCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const backCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // ── UNIVERSAL ISO/IEC 7810 (CR80) STANDARD 300 DPI RATIOS ───────────────────
-  // Landscape: 1050 x 600 px (3.5" x 2" / 85.6 x 54mm)
-  // Portrait:  600 x 1050 px (2" x 3.5" / 54 x 85.6mm) -> Perfectly balanced!
+  // Cached Image References
+  const photoImgRef = useRef<HTMLImageElement | null>(null);
+  const logoImgRef = useRef<HTMLImageElement | null>(null);
+  const qrImgRef = useRef<HTMLImageElement | null>(null);
+
+  // Load uploaded images into refs
+  useEffect(() => {
+    if (data.photoUrl) {
+      const img = new window.Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => { photoImgRef.current = img; drawCanvases(); };
+      img.src = data.photoUrl;
+    } else {
+      photoImgRef.current = null;
+    }
+  }, [data.photoUrl]);
+
+  useEffect(() => {
+    if (data.logoUrl) {
+      const img = new window.Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => { logoImgRef.current = img; drawCanvases(); };
+      img.src = data.logoUrl;
+    } else {
+      logoImgRef.current = null;
+    }
+  }, [data.logoUrl]);
+
+  // Standard Dimension Calculation
   const cardDim = useMemo(() => {
     if (data.orientation === 'portrait') {
       return {
@@ -510,7 +1255,7 @@ export default function CardStudio() {
     };
   }, [data.orientation]);
 
-  // Generate Scannable vCard or Link QR Code
+  // Generate vCard QR
   useEffect(() => {
     let text = data.website;
     if (data.qrType === 'vcard') {
@@ -537,11 +1282,55 @@ export default function CardStudio() {
       errorCorrectionLevel: 'H',
       color: { dark: '#0f172a', light: '#ffffff' },
     })
-      .then((url) => setQrDataUrl(url))
+      .then((url) => {
+        setQrDataUrl(url);
+        const img = new window.Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => { qrImgRef.current = img; drawCanvases(); };
+        img.src = url;
+      })
       .catch((err) => console.warn('QR error:', err));
   }, [data.qrType, data.qrCustomText, data.fullName, data.companyName, data.jobTitle, data.phone, data.whatsapp, data.email, data.website, data.address]);
 
-  // Handle Photo & Logo Uploads
+  // Active Template
+  const activeTemplate = useMemo(() => {
+    return MASTER_TEMPLATES.find((t) => t.id === data.templateId) || MASTER_TEMPLATES[0];
+  }, [data.templateId]);
+
+  // Main Canvas Draw Engine
+  const drawCanvases = useCallback(() => {
+    const W = cardDim.width;
+    const H = cardDim.height;
+    const isPort = data.orientation === 'portrait';
+
+    // Front
+    const frontCanvas = frontCanvasRef.current;
+    if (frontCanvas) {
+      frontCanvas.width = W;
+      frontCanvas.height = H;
+      const ctx = frontCanvas.getContext('2d');
+      if (ctx && activeTemplate) {
+        activeTemplate.drawCard(ctx, W, H, isPort, false, data, qrImgRef.current, photoImgRef.current, logoImgRef.current);
+      }
+    }
+
+    // Back
+    const backCanvas = backCanvasRef.current;
+    if (backCanvas) {
+      backCanvas.width = W;
+      backCanvas.height = H;
+      const ctx = backCanvas.getContext('2d');
+      if (ctx && activeTemplate) {
+        activeTemplate.drawCard(ctx, W, H, isPort, true, data, qrImgRef.current, photoImgRef.current, logoImgRef.current);
+      }
+    }
+  }, [cardDim, data, activeTemplate]);
+
+  useEffect(() => {
+    drawCanvases();
+  }, [drawCanvases]);
+
+  // Photo / Logo Upload Handler
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'photoUrl' | 'logoUrl') => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -552,409 +1341,53 @@ export default function CardStudio() {
     reader.readAsDataURL(file);
   };
 
-  // Find active background preset
-  const activeBgPreset = useMemo(() => {
-    return BACKGROUND_PRESETS.find((p) => p.id === data.backgroundId) || BACKGROUND_PRESETS[0];
-  }, [data.backgroundId]);
+  // Open Full Screen / Studio Window
+  const handleOpenStudioWindow = () => {
+    const frontCanvas = frontCanvasRef.current;
+    const backCanvas = backCanvasRef.current;
+    if (!frontCanvas || !backCanvas) return;
 
-  // ── DRAW FRONT SIDE CANVAS (300 DPI) ──────────────────────────────────────────
-  const drawFront = useCallback(async () => {
-    const canvas = frontCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const W = cardDim.width;
-    const H = cardDim.height;
-    canvas.width = W;
-    canvas.height = H;
-
-    const isPort = data.orientation === 'portrait';
-    const isLight = data.isLightMode;
-    const primary = data.accentColor || '#F59E0B';
-    const secondary = data.secondaryColor || '#06B6D4';
-
-    // 1. Base Gradient Fill
-    const baseGrad = ctx.createLinearGradient(0, 0, W, H);
-    if (isLight) {
-      baseGrad.addColorStop(0, '#ffffff');
-      baseGrad.addColorStop(0.6, '#f8fafc');
-      baseGrad.addColorStop(1, '#e2e8f0');
-    } else {
-      baseGrad.addColorStop(0, '#0a0d14');
-      baseGrad.addColorStop(0.5, '#0f1420');
-      baseGrad.addColorStop(1, '#05070a');
-    }
-    ctx.fillStyle = baseGrad;
-    ctx.fillRect(0, 0, W, H);
-
-    // 2. Procedural Industry Background Pattern with User Opacity
-    if (activeBgPreset) {
-      activeBgPreset.draw(ctx, W, H, data.bgOpacity, primary, secondary);
+    const w = window.open('', '_blank');
+    if (!w) {
+      alert('Please allow popups to open the full design studio window.');
+      return;
     }
 
-    // 3. Card Outer Foil Trim
-    ctx.strokeStyle = primary;
-    ctx.lineWidth = isPort ? 3 : 3.5;
-    ctx.strokeRect(20, 20, W - 40, H - 40);
+    w.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${data.fullName} - BridgeTec Studio</title>
+          <style>
+            body { margin: 0; background: #020617; color: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; box-sizing: border-box; }
+            h1 { font-size: 22px; font-weight: 900; margin-bottom: 8px; }
+            p { color: #94a3b8; font-size: 13px; margin-top: 0; margin-bottom: 24px; }
+            .grid { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; max-width: 1200px; }
+            .card { background: #0f172a; border: 1px solid #1e293b; border-radius: 20px; padding: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); text-align: center; }
+            img { width: 100%; max-width: 480px; border-radius: 12px; display: block; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+            .label { font-size: 12px; font-weight: bold; color: #f59e0b; margin-top: 12px; }
+          </style>
+        </head>
+        <body>
+          <h1>${data.fullName} — ${data.companyName}</h1>
+          <p>Universal 300 DPI High-Resolution Card Export Preview</p>
+          <div class="grid">
+            <div class="card">
+              <img src="${frontCanvas.toDataURL('image/png')}" />
+              <div class="label">FRONT SIDE (300 DPI)</div>
+            </div>
+            <div class="card">
+              <img src="${backCanvas.toDataURL('image/png')}" />
+              <div class="label">BACK SIDE (SCANNABLE VCARD)</div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `);
+    w.document.close();
+  };
 
-    // ── PORTRAIT (VERTICAL) LAYOUT ENGINE ─────────────────────────────────────
-    if (isPort) {
-      // 1. Top Emblem / Logo
-      let logoDrawn = false;
-      if (data.logoUrl) {
-        try {
-          const lImg = new window.Image();
-          lImg.crossOrigin = 'anonymous';
-          await new Promise((res) => { lImg.onload = res; lImg.onerror = res; lImg.src = data.logoUrl!; });
-          if (lImg.width > 0) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.roundRect(W / 2 - 32, 42, 64, 64, 14);
-            ctx.clip();
-            ctx.drawImage(lImg, W / 2 - 32, 42, 64, 64);
-            ctx.restore();
-            logoDrawn = true;
-          }
-        } catch {}
-      }
-
-      if (!logoDrawn) {
-        ctx.fillStyle = primary;
-        ctx.beginPath();
-        ctx.roundRect(W / 2 - 28, 42, 56, 56, 12);
-        ctx.fill();
-        ctx.fillStyle = '#000000';
-        ctx.font = 'bold 24px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(data.companyName.charAt(0) || 'B', W / 2, 70);
-      }
-
-      // Company Name & Tagline
-      ctx.textAlign = 'center';
-      ctx.fillStyle = isLight ? '#0f172a' : '#ffffff';
-      ctx.font = '900 20px Inter, sans-serif';
-      ctx.fillText(data.companyName.toUpperCase(), W / 2, 128);
-
-      if (data.tagline) {
-        ctx.fillStyle = isLight ? '#64748b' : 'rgba(255,255,255,0.6)';
-        ctx.font = '500 11px Inter, sans-serif';
-        ctx.fillText(data.tagline, W / 2, 146);
-      }
-
-      // 2. Center ID Photo (with balanced size and border)
-      const pSize = 160;
-      const px = W / 2 - pSize / 2;
-      const py = 175;
-
-      ctx.save();
-      ctx.fillStyle = isLight ? '#e2e8f0' : '#1e293b';
-      ctx.beginPath();
-      ctx.roundRect(px, py, pSize, pSize, 22);
-      ctx.fill();
-      ctx.strokeStyle = primary;
-      ctx.lineWidth = 4;
-      ctx.stroke();
-
-      if (data.photoUrl) {
-        try {
-          const photoImg = new window.Image();
-          photoImg.crossOrigin = 'anonymous';
-          await new Promise((res) => { photoImg.onload = res; photoImg.onerror = res; photoImg.src = data.photoUrl!; });
-          ctx.beginPath();
-          ctx.roundRect(px + 4, py + 4, pSize - 8, pSize - 8, 18);
-          ctx.clip();
-          ctx.drawImage(photoImg, px + 4, py + 4, pSize - 8, pSize - 8);
-        } catch {}
-      } else {
-        ctx.fillStyle = isLight ? '#94a3b8' : 'rgba(255,255,255,0.3)';
-        ctx.beginPath();
-        ctx.arc(W / 2, py + 62, 34, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(W / 2, py + pSize + 20, 60, Math.PI, 0);
-        ctx.fill();
-      }
-      ctx.restore();
-
-      // 3. Name & Job Title
-      ctx.textAlign = 'center';
-      ctx.fillStyle = isLight ? '#0f172a' : '#ffffff';
-      ctx.font = '900 28px Inter, sans-serif';
-      ctx.fillText(data.fullName, W / 2, 375);
-
-      ctx.fillStyle = primary;
-      ctx.font = 'bold 14px Inter, sans-serif';
-      ctx.fillText(data.jobTitle.toUpperCase(), W / 2, 400);
-
-      if (data.department) {
-        ctx.fillStyle = isLight ? '#64748b' : 'rgba(255,255,255,0.6)';
-        ctx.font = '600 12px Inter, sans-serif';
-        ctx.fillText(`Department: ${data.department}`, W / 2, 420);
-      }
-
-      // 4. Detail Metrics Block
-      const blockY = 460;
-      const metrics = [
-        { label: 'ID NUMBER', val: data.idNumber, col: primary },
-        { label: 'BLOOD GROUP', val: data.bloodGroup, col: isLight ? '#0f172a' : '#ffffff' },
-        { label: 'ISSUE DATE', val: data.issueDate, col: isLight ? '#475569' : 'rgba(255,255,255,0.8)' },
-        { label: 'EXPIRY DATE', val: data.expiryDate, col: isLight ? '#475569' : 'rgba(255,255,255,0.8)' },
-      ];
-
-      metrics.forEach((m, idx) => {
-        const col = idx % 2;
-        const row = Math.floor(idx / 2);
-        const mx = col === 0 ? W * 0.28 : W * 0.72;
-        const my = blockY + row * 60;
-
-        ctx.fillStyle = isLight ? '#94a3b8' : 'rgba(255,255,255,0.4)';
-        ctx.font = 'bold 10px Inter, sans-serif';
-        ctx.fillText(m.label, mx, my);
-
-        ctx.fillStyle = m.col;
-        ctx.font = 'bold 15px Inter, sans-serif';
-        ctx.fillText(m.val, mx, my + 20);
-      });
-
-      // 5. Contact Phone & Email
-      const contactY = 600;
-      ctx.font = '13px Inter, sans-serif';
-      ctx.fillStyle = isLight ? '#1e293b' : 'rgba(255,255,255,0.85)';
-      ctx.fillText(`📞  ${data.phone}`, W / 2, contactY);
-      ctx.fillText(`✉️  ${data.email}`, W / 2, contactY + 28);
-      ctx.fillText(`🌐  ${data.website}`, W / 2, contactY + 56);
-
-      // 6. Bottom Barcode
-      if (data.showBarcode) {
-        const barY = H - 130;
-        ctx.fillStyle = isLight ? '#0f172a' : '#ffffff';
-        for (let b = 70; b < W - 70; b += 7) {
-          const bw = b % 14 === 0 ? 3.5 : 1.5;
-          ctx.fillRect(b, barY, bw, 36);
-        }
-        ctx.font = 'bold 11px monospace';
-        ctx.fillStyle = isLight ? '#64748b' : 'rgba(255,255,255,0.5)';
-        ctx.fillText(data.idNumber, W / 2, barY + 52);
-      }
-    } else {
-      // ── LANDSCAPE (HORIZONTAL) LAYOUT ENGINE ─────────────────────────────────
-      let logoDrawn = false;
-      if (data.logoUrl) {
-        try {
-          const lImg = new window.Image();
-          lImg.crossOrigin = 'anonymous';
-          await new Promise((res) => { lImg.onload = res; lImg.onerror = res; lImg.src = data.logoUrl!; });
-          if (lImg.width > 0) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.roundRect(50, 45, 68, 68, 14);
-            ctx.clip();
-            ctx.drawImage(lImg, 50, 45, 68, 68);
-            ctx.restore();
-            logoDrawn = true;
-          }
-        } catch {}
-      }
-
-      if (!logoDrawn) {
-        ctx.fillStyle = primary;
-        ctx.beginPath();
-        ctx.roundRect(50, 45, 64, 64, 14);
-        ctx.fill();
-        ctx.fillStyle = '#000000';
-        ctx.font = 'bold 28px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(data.companyName.charAt(0) || 'B', 82, 77);
-      }
-
-      // Company Name
-      ctx.textAlign = 'left';
-      ctx.fillStyle = isLight ? '#0f172a' : '#ffffff';
-      ctx.font = '900 24px Inter, sans-serif';
-      ctx.fillText(data.companyName.toUpperCase(), 135, 72);
-
-      if (data.tagline) {
-        ctx.fillStyle = isLight ? '#64748b' : 'rgba(255,255,255,0.6)';
-        ctx.font = '500 13px Inter, sans-serif';
-        ctx.fillText(data.tagline, 135, 96);
-      }
-
-      // Smart Chip (ID badge)
-      if (data.showChip && data.category === 'id_badge') {
-        const cx = W - 130;
-        const cy = 48;
-        ctx.fillStyle = '#eab308';
-        ctx.beginPath();
-        ctx.roundRect(cx, cy, 64, 46, 8);
-        ctx.fill();
-        ctx.strokeStyle = '#ca8a04';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-      }
-
-      // Name & Title
-      const nameY = 205;
-      ctx.fillStyle = isLight ? '#0f172a' : '#ffffff';
-      ctx.font = '900 38px Inter, sans-serif';
-      ctx.fillText(data.fullName, 52, nameY);
-
-      ctx.fillStyle = primary;
-      ctx.font = 'bold 17px Inter, sans-serif';
-      ctx.fillText(data.jobTitle.toUpperCase(), 52, nameY + 30);
-
-      if (data.department) {
-        ctx.fillStyle = isLight ? '#64748b' : 'rgba(255,255,255,0.5)';
-        ctx.font = '600 13px Inter, sans-serif';
-        ctx.fillText(`Dept: ${data.department}`, 52, nameY + 54);
-      }
-
-      // Contact Details Grid (2 Columns)
-      const startY = 325;
-      const contacts = [
-        { icon: '📞', text: data.phone },
-        { icon: '✉️', text: data.email },
-        { icon: '🌐', text: data.website },
-        { icon: '📍', text: data.address },
-      ].filter((c) => c.text);
-
-      contacts.forEach((c, idx) => {
-        const col = idx < 2 ? 0 : 1;
-        const row = idx % 2;
-        const cx = 52 + col * 380;
-        const cy = startY + row * 38;
-
-        ctx.font = '14px Inter, sans-serif';
-        ctx.fillStyle = isLight ? '#1e293b' : 'rgba(255,255,255,0.85)';
-        ctx.fillText(`${c.icon}  ${c.text}`, cx, cy);
-      });
-    }
-
-    // Cut Marks
-    if (data.showCutMarks) {
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-      ctx.lineWidth = 1;
-      const cl = 16;
-      ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(10, cl); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(0, 10); ctx.lineTo(cl, 10); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(W - 10, 0); ctx.lineTo(W - 10, cl); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(W, 10); ctx.lineTo(W - cl, 10); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(10, H); ctx.lineTo(10, H - cl); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(0, H - 10); ctx.lineTo(cl, H - 10); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(W - 10, H); ctx.lineTo(W - 10, H - cl); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(W, H - 10); ctx.lineTo(W - cl, H - 10); ctx.stroke();
-    }
-  }, [cardDim, data, activeBgPreset]);
-
-  // ── DRAW BACK SIDE CANVAS (300 DPI) ───────────────────────────────────────────
-  const drawBack = useCallback(async () => {
-    const canvas = backCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const W = cardDim.width;
-    const H = cardDim.height;
-    canvas.width = W;
-    canvas.height = H;
-
-    const isPort = data.orientation === 'portrait';
-    const isLight = data.isLightMode;
-    const primary = data.accentColor || '#F59E0B';
-
-    // Base background
-    ctx.fillStyle = isLight ? '#f8fafc' : '#070a10';
-    ctx.fillRect(0, 0, W, H);
-
-    if (activeBgPreset) {
-      activeBgPreset.draw(ctx, W, H, data.bgOpacity * 0.6, primary, data.secondaryColor);
-    }
-
-    ctx.strokeStyle = primary;
-    ctx.lineWidth = isPort ? 2.5 : 3;
-    ctx.strokeRect(20, 20, W - 40, H - 40);
-
-    // Magnetic / Security Banner
-    ctx.fillStyle = isLight ? '#1e293b' : '#030508';
-    ctx.fillRect(0, 32, W, isPort ? 44 : 52);
-
-    // Draw High Res QR Code
-    if (qrDataUrl) {
-      try {
-        const qrImg = new window.Image();
-        qrImg.crossOrigin = 'anonymous';
-        await new Promise((res) => { qrImg.onload = res; qrImg.onerror = res; qrImg.src = qrDataUrl; });
-
-        const qrSize = isPort ? 175 : 185;
-        const qx = isPort ? W / 2 - qrSize / 2 : 65;
-        const qy = isPort ? 135 : 140;
-
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.roundRect(qx - 8, qy - 8, qrSize + 16, qrSize + 16, 12);
-        ctx.fill();
-
-        ctx.drawImage(qrImg, qx, qy, qrSize, qrSize);
-      } catch {}
-    }
-
-    // Backside Copy
-    const tx = isPort ? W / 2 : 290;
-    const ty = isPort ? 355 : 160;
-
-    ctx.textAlign = isPort ? 'center' : 'left';
-    ctx.fillStyle = isLight ? '#0f172a' : '#ffffff';
-    ctx.font = '900 20px Inter, sans-serif';
-    ctx.fillText(data.backTitle, tx, ty);
-
-    ctx.fillStyle = primary;
-    ctx.font = 'bold 12.5px Inter, sans-serif';
-    ctx.fillText(data.backSubtitle, tx, ty + 24);
-
-    // Disclaimer
-    ctx.fillStyle = isLight ? '#64748b' : 'rgba(255,255,255,0.6)';
-    ctx.font = '11px Inter, sans-serif';
-
-    const words = data.disclaimer.split(' ');
-    let line = '';
-    let lineY = ty + 56;
-    const maxW = isPort ? W - 90 : W - 340;
-
-    for (let n = 0; n < words.length; n++) {
-      const testLine = line + words[n] + ' ';
-      const metrics = ctx.measureText(testLine);
-      if (metrics.width > maxW && n > 0) {
-        ctx.fillText(line, tx, lineY);
-        line = words[n] + ' ';
-        lineY += 18;
-      } else {
-        line = testLine;
-      }
-    }
-    ctx.fillText(line, tx, lineY);
-
-    if (data.emergencyContact) {
-      lineY += 26;
-      ctx.fillStyle = isLight ? '#0f172a' : '#ffffff';
-      ctx.font = 'bold 12px Inter, sans-serif';
-      ctx.fillText(`Emergency Security Contact: ${data.emergencyContact}`, tx, lineY);
-    }
-
-    // Bottom Company Tag
-    ctx.textAlign = 'center';
-    ctx.fillStyle = isLight ? '#94a3b8' : 'rgba(255,255,255,0.4)';
-    ctx.font = 'bold 11px Inter, sans-serif';
-    ctx.fillText(`${data.companyName.toUpperCase()} · ${data.website}`, W / 2, H - 40);
-  }, [cardDim, data, activeBgPreset, qrDataUrl]);
-
-  useEffect(() => {
-    drawFront();
-    drawBack();
-  }, [drawFront, drawBack]);
-
-  // ── EXPORT ENGINE ─────────────────────────────────────────────────────────────
+  // PDF Export Engine
   const downloadSinglePdf = async () => {
     setIsExporting(true);
     try {
@@ -977,7 +1410,7 @@ export default function CardStudio() {
       pdf.addImage(backCanvas.toDataURL('image/png'), 'PNG', 0, 0, pdfW, pdfH, undefined, 'FAST');
 
       pdf.save(`${data.fullName.replace(/\s+/g, '_')}_Card_300DPI.pdf`);
-    } catch (err) {
+    } catch {
       alert('Failed to generate PDF.');
     } finally {
       setIsExporting(false);
@@ -1079,10 +1512,20 @@ export default function CardStudio() {
     doc.close();
   };
 
-  // Filter background presets by selected category
-  const filteredBgs = useMemo(() => {
-    return BACKGROUND_PRESETS.filter((b) => b.category === data.bgCategory);
-  }, [data.bgCategory]);
+  // Filter templates by category and search
+  const filteredTemplates = useMemo(() => {
+    return MASTER_TEMPLATES.filter((t) => {
+      const matchCat = selectedCategory === 'all' || t.category === selectedCategory;
+      if (!matchCat) return false;
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        t.name.toLowerCase().includes(q) ||
+        t.industry.toLowerCase().includes(q) ||
+        t.tagline.toLowerCase().includes(q)
+      );
+    });
+  }, [selectedCategory, searchQuery]);
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
@@ -1096,20 +1539,29 @@ export default function CardStudio() {
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-xs font-black uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
-                  ISO 7810 Standard • 300 DPI
+                  Design.com Standard • 300 DPI
                 </span>
-                <span className="text-xs font-bold text-slate-400">• Industry Backgrounds</span>
+                <span className="text-xs font-bold text-slate-400">• Top Industry Layouts</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                Universal Business &amp; ID Card Studio
+                Professional Business &amp; ID Card Studio
               </h2>
               <p className="text-slate-400 text-xs sm:text-sm mt-1">
-                Generate high-resolution printable business cards, staff badges &amp; VIP passes with industry backgrounds, editable color codes, and printable A4 duplex sheets.
+                Bespoke 3D luxury designs, corporate &amp; trade templates (Real Estate, Tech, Legal, Beauty, Barber, Construction) with scannable vCard QR codes.
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              onClick={handleOpenStudioWindow}
+              className="py-2.5 px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold text-xs flex items-center gap-1.5 transition-all border border-cyan-500/30 shadow-md"
+              title="Open full view in new window"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span>Open in New Window</span>
+            </button>
+
             <button
               onClick={downloadSinglePdf}
               disabled={isExporting}
@@ -1139,11 +1591,11 @@ export default function CardStudio() {
         </div>
       </div>
 
-      {/* ── MAIN STUDIO WORKSPACE ────────────────────────────────────────────── */}
+      {/* ── MAIN STUDIO GRID ─────────────────────────────────────────────────── */}
       <div className="grid lg:grid-cols-12 gap-8 items-start">
         {/* LEFT COLUMN: LIVE CANVASES PREVIEW (7 Cols) */}
         <div className="lg:col-span-7 space-y-5">
-          {/* Side Toggle & Standard Dimension Info */}
+          {/* Side Toggle & Dimension Pill */}
           <div className="flex items-center justify-between bg-slate-900 border border-slate-800 p-2 rounded-2xl">
             <div className="flex items-center gap-1">
               <button
@@ -1173,18 +1625,18 @@ export default function CardStudio() {
             </div>
 
             <div className="text-[11px] font-mono text-slate-400 pr-2">
-              {data.orientation === 'landscape' ? 'Universal 85.6 × 54 mm (3.5" × 2")' : 'Universal 54 × 85.6 mm (2" × 3.5")'}
+              {data.orientation === 'landscape' ? 'ISO Standard 85.6 × 54 mm (3.5" × 2")' : 'ISO Standard 54 × 85.6 mm (2" × 3.5")'}
             </div>
           </div>
 
-          {/* Canvas Render Containers */}
+          {/* Canvas Displays */}
           <div className="space-y-6">
             {(activeSide === 'both' || activeSide === 'front') && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-400 px-1">
                   <span className="flex items-center gap-1.5 text-amber-300">
                     <Eye className="w-3.5 h-3.5" />
-                    FRONT SIDE PREVIEW
+                    FRONT SIDE (300 DPI)
                   </span>
                   <button
                     onClick={() => downloadPng('front')}
@@ -1229,12 +1681,12 @@ export default function CardStudio() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: CONTROLS & INDUSTRY BACKGROUND SELECTOR (5 Cols) */}
+        {/* RIGHT COLUMN: DESIGN TEMPLATE BROWSER & CUSTOMIZATION (5 Cols) */}
         <div className="lg:col-span-5 bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl backdrop-blur space-y-6">
           {/* Sub-Tabs */}
           <div className="grid grid-cols-5 gap-1 bg-slate-950 p-1 rounded-2xl border border-slate-800">
             {[
-              { id: 'background', label: 'Theme & BGs', icon: Palette },
+              { id: 'templates', label: 'Designs', icon: Sparkles },
               { id: 'identity', label: 'Identity', icon: User },
               { id: 'contacts', label: 'Contacts', icon: Phone },
               { id: 'media_qr', label: 'Media & QR', icon: QrCode },
@@ -1258,10 +1710,10 @@ export default function CardStudio() {
             })}
           </div>
 
-          {/* TAB 1: BACKGROUND CATEGORIES, PRESETS & COLOR EDITING */}
-          {activeTab === 'background' && (
+          {/* TAB 1: DESIGN TEMPLATES (DESIGN.COM STYLE BROWSER) */}
+          {activeTab === 'templates' && (
             <div className="space-y-5">
-              {/* Orientation Selector */}
+              {/* Orientation Switcher */}
               <div>
                 <label className="text-xs font-bold text-slate-300 block mb-2">Card Orientation</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -1288,10 +1740,9 @@ export default function CardStudio() {
                 </div>
               </div>
 
-              {/* Editable Color Codes (Direct Hex Edit + Auto Apply) */}
+              {/* Editable Hex Colors */}
               <div className="space-y-3 pt-2 border-t border-slate-800">
-                <label className="text-xs font-bold text-slate-300 block">Accent Color (Editable Hex Code)</label>
-                
+                <label className="text-xs font-bold text-slate-300 block">Accent Colors (Editable Hex)</label>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <span className="text-[10px] font-bold text-slate-400 block mb-1">Primary Color</span>
@@ -1332,7 +1783,7 @@ export default function CardStudio() {
                   </div>
                 </div>
 
-                {/* Quick Color Presets */}
+                {/* Color Swatch Presets */}
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   {COLOR_PRESETS.map((p) => (
                     <button
@@ -1350,92 +1801,89 @@ export default function CardStudio() {
                 </div>
               </div>
 
-              {/* Background Industry Categories */}
+              {/* Style Category Filter Tabs */}
               <div className="space-y-3 pt-2 border-t border-slate-800">
-                <label className="text-xs font-bold text-slate-300 block">Industry Background Categories</label>
-                <div className="grid grid-cols-4 gap-1.5">
-                  {[
-                    { id: 'technology', label: 'Tech & AI', icon: Cpu },
-                    { id: 'construction', label: 'Construction', icon: HardHat },
-                    { id: 'corporate', label: 'Corporate', icon: Briefcase },
-                    { id: 'finance', label: 'Finance', icon: Landmark },
-                    { id: 'automotive', label: 'Car Rental', icon: Car },
-                    { id: 'medical', label: 'Medical', icon: HeartPulse },
-                    { id: 'creative', label: 'Creative', icon: Paintbrush },
-                    { id: 'minimal', label: 'Minimalist', icon: Sparkle },
-                  ].map((cat) => {
-                    const Icon = cat.icon;
-                    return (
-                      <button
-                        key={cat.id}
-                        onClick={() => {
-                          const firstInCat = BACKGROUND_PRESETS.find((b) => b.category === cat.id);
-                          setData({
-                            ...data,
-                            bgCategory: cat.id as BgCategory,
-                            backgroundId: firstInCat ? firstInCat.id : data.backgroundId,
-                            isLightMode: firstInCat?.theme === 'light',
-                          });
-                        }}
-                        className={`p-2 rounded-xl border text-center flex flex-col items-center gap-1 transition-all ${
-                          data.bgCategory === cat.id
-                            ? 'border-amber-500 bg-amber-500/10 text-white font-bold'
-                            : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700'
-                        }`}
-                      >
-                        <Icon className={`w-3.5 h-3.5 ${data.bgCategory === cat.id ? 'text-amber-400' : 'text-slate-500'}`} />
-                        <span className="text-[10px] leading-tight">{cat.label}</span>
-                      </button>
-                    );
-                  })}
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-300">Design Collections &amp; Industries</label>
+                  <span className="text-[10px] text-slate-500 font-mono">{filteredTemplates.length} designs</span>
                 </div>
-              </div>
 
-              {/* Background Presets List */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-300 block">Available Designs for {data.bgCategory.toUpperCase()}</label>
-                <div className="space-y-2">
-                  {filteredBgs.map((preset) => (
-                    <div
-                      key={preset.id}
-                      onClick={() =>
-                        setData({
-                          ...data,
-                          backgroundId: preset.id,
-                          isLightMode: preset.theme === 'light',
-                        })
-                      }
-                      className={`p-3 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
-                        data.backgroundId === preset.id
-                          ? 'border-amber-500 bg-amber-500/10 text-white ring-1 ring-amber-500/50'
-                          : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700'
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { id: 'all', label: 'All Designs' },
+                    { id: '3d_luxury', label: '👑 3D & Luxury' },
+                    { id: 'modern_tech', label: '⚡ Tech & AI' },
+                    { id: 'corporate_legal', label: '⚖️ Corporate & Legal' },
+                    { id: 'trades_construction', label: '🏗️ Trades & Industry' },
+                    { id: 'lifestyle_beauty', label: '✨ Beauty & Spa' },
+                    { id: 'creative_colorful', label: '🎨 Colorful & Creative' },
+                    { id: 'minimal_simple', label: '⚪ Minimal & Swiss' },
+                  ].map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setSelectedCategory(cat.id as TemplateStyleGroup)}
+                      className={`py-1.5 px-2.5 rounded-lg text-[11px] font-bold transition-all ${
+                        selectedCategory === cat.id
+                          ? 'bg-amber-500 text-black shadow'
+                          : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
                       }`}
                     >
-                      <div>
-                        <span className="text-xs font-bold text-white block">{preset.name}</span>
-                        <span className="text-[11px] text-slate-400 block line-clamp-1">{preset.desc}</span>
-                      </div>
-                      {data.backgroundId === preset.id && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
-                    </div>
+                      {cat.label}
+                    </button>
                   ))}
                 </div>
               </div>
 
-              {/* Background Opacity Slider */}
-              <div className="space-y-1.5 pt-2 border-t border-slate-800">
-                <div className="flex justify-between text-xs font-bold text-slate-300">
-                  <span>Background Pattern Opacity</span>
-                  <span className="text-amber-400 font-mono">{Math.round(data.bgOpacity * 100)}%</span>
-                </div>
+              {/* Search Bar for Templates */}
+              <div className="relative">
                 <input
-                  type="range"
-                  min={0.05}
-                  max={0.9}
-                  step={0.05}
-                  value={data.bgOpacity}
-                  onChange={(e) => setData({ ...data, bgOpacity: parseFloat(e.target.value) })}
-                  className="w-full accent-amber-500 cursor-pointer"
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search styles (e.g. real estate, barber, 3d, cleaning)..."
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
                 />
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              </div>
+
+              {/* Template Cards List */}
+              <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
+                {filteredTemplates.map((t) => (
+                  <div
+                    key={t.id}
+                    onClick={() =>
+                      setData({
+                        ...data,
+                        templateId: t.id,
+                        accentColor: t.defaultAccent,
+                        secondaryColor: t.defaultSecondary,
+                      })
+                    }
+                    className={`p-3 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
+                      data.templateId === t.id
+                        ? 'border-amber-500 bg-amber-500/10 text-white ring-1 ring-amber-500/50'
+                        : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${t.previewGradient} flex items-center justify-center text-base shrink-0 shadow-md`}
+                      >
+                        <span>{t.badgeIcon}</span>
+                      </div>
+                      <div>
+                        <div className="text-xs font-black text-white flex items-center gap-2">
+                          <span>{t.name}</span>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-black/40 text-amber-300 border border-white/10">
+                            {t.industry.split('/')[0]}
+                          </span>
+                        </div>
+                        <p className="text-[10.5px] text-slate-400 line-clamp-1 mt-0.5">{t.tagline}</p>
+                      </div>
+                    </div>
+                    {data.templateId === t.id && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -1617,7 +2065,6 @@ export default function CardStudio() {
                 </div>
               </div>
 
-              {/* QR Settings */}
               <div className="space-y-3 pt-3 border-t border-slate-800">
                 <label className="text-xs font-bold text-slate-300 block">Scannable QR Code Action</label>
                 <div className="grid grid-cols-2 gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
