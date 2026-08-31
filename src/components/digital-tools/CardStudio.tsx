@@ -54,6 +54,7 @@ import {
   Cake,
   ShieldCheck,
   Waves,
+  FlaskConical,
 } from 'lucide-react';
 
 export type CardCategory = 'all' | 'business' | 'id_badge' | 'complementary' | 'vip_pass';
@@ -155,7 +156,7 @@ const COLOR_PRESETS = [
   { name: 'Pure White', hex: '#FFFFFF' },
 ];
 
-// ── MASTER DESIGN TEMPLATES (DESIGN.COM GRADE) ──────────────────────────────────
+// ── MASTER DESIGN TEMPLATES ─────────────────────────────────────────────────────
 const MASTER_TEMPLATES: CardTemplateConfig[] = [
   // 1. EXECUTIVE 3D OBSIDIAN & GOLD (3D / Luxury / Company)
   {
@@ -170,7 +171,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     badgeIcon: '👑',
     previewGradient: 'from-amber-500/40 via-slate-900 to-black',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      // 1. Dark Carbon Base
       const bgGrad = ctx.createLinearGradient(0, 0, W, H);
       bgGrad.addColorStop(0, '#0a0d14');
       bgGrad.addColorStop(0.5, '#121824');
@@ -210,13 +210,8 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       }
       ctx.closePath();
       ctx.fill();
-
-      // Shadow behind ribbon
-      ctx.shadowColor = 'rgba(0,0,0,0.6)';
-      ctx.shadowBlur = 15;
       ctx.restore();
 
-      // Luxury Outer Gold Border
       ctx.strokeStyle = primary;
       ctx.lineWidth = 3;
       ctx.strokeRect(22, 22, W - 44, H - 44);
@@ -238,7 +233,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     name: 'Metropolitan Real Estate & Skyline',
     category: 'corporate_legal',
     industry: 'Real Estate / Property / Architecture',
-    tagline: 'Split geometry, modern architectural blueprint grid & golden key crest',
+    tagline: 'Split geometry, modern architectural blueprint grid & skyline',
     theme: 'dark',
     defaultAccent: '#38BDF8',
     defaultSecondary: '#F59E0B',
@@ -246,12 +241,9 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     previewGradient: 'from-sky-500/30 via-slate-900 to-slate-950',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
       const primary = data.accentColor || '#38BDF8';
-
-      // Deep Navy & Blueprint Grid
       ctx.fillStyle = '#081021';
       ctx.fillRect(0, 0, W, H);
 
-      // Subtle Architectural Grid
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
       ctx.lineWidth = 1;
       for (let x = 0; x < W; x += 28) {
@@ -261,7 +253,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
       }
 
-      // Skyline Silhouette Graphic
       ctx.fillStyle = 'rgba(56, 189, 248, 0.05)';
       const skyY = H * 0.75;
       const bWidth = W / 14;
@@ -270,7 +261,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
         ctx.fillRect(i * bWidth, skyY - bHeight, bWidth - 4, bHeight + H * 0.25);
       }
 
-      // Top Modern Slate Header Stripe
       const stripe = ctx.createLinearGradient(0, 0, W, 0);
       stripe.addColorStop(0, primary);
       stripe.addColorStop(1, '#6366F1');
@@ -299,13 +289,9 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     previewGradient: 'from-cyan-500/30 via-violet-950 to-black',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
       const primary = data.accentColor || '#06B6D4';
-      const secondary = data.secondaryColor || '#8B5CF6';
-
-      // Deep Black Void
       ctx.fillStyle = '#030712';
       ctx.fillRect(0, 0, W, H);
 
-      // Glowing Radial Orbs
       const g1 = ctx.createRadialGradient(W * 0.85, H * 0.2, 10, W * 0.85, H * 0.2, 320);
       g1.addColorStop(0, 'rgba(6, 182, 212, 0.25)');
       g1.addColorStop(1, 'transparent');
@@ -318,7 +304,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.fillStyle = g2;
       ctx.fillRect(0, 0, W, H);
 
-      // Circuit Trace Lines
       ctx.strokeStyle = 'rgba(6, 182, 212, 0.2)';
       ctx.lineWidth = 1.5;
       for (let x = 60; x < W; x += 110) {
@@ -335,7 +320,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
         ctx.fill();
       }
 
-      // Neon Dual Border
       ctx.strokeStyle = primary;
       ctx.lineWidth = 2.5;
       ctx.strokeRect(20, 20, W - 40, H - 40);
@@ -362,30 +346,15 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     previewGradient: 'from-amber-600/30 via-slate-900 to-blue-950',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
       const primary = data.accentColor || '#EAB308';
-
-      // Deep Midnight Navy Base
       ctx.fillStyle = '#060d1f';
       ctx.fillRect(0, 0, W, H);
 
-      // Classical Double Frame
       ctx.strokeStyle = primary;
       ctx.lineWidth = 2.5;
       ctx.strokeRect(24, 24, W - 48, H - 48);
       ctx.strokeStyle = 'rgba(234, 179, 8, 0.25)';
       ctx.lineWidth = 1;
       ctx.strokeRect(32, 32, W - 64, H - 64);
-
-      // Greek Key corner accents
-      const c = 24;
-      ctx.fillStyle = primary;
-      ctx.fillRect(c, c, 18, 3);
-      ctx.fillRect(c, c, 3, 18);
-      ctx.fillRect(W - c - 18, c, 18, 3);
-      ctx.fillRect(W - c - 3, c, 3, 18);
-      ctx.fillRect(c, H - c - 3, 18, 3);
-      ctx.fillRect(c, H - c - 18, 3, 18);
-      ctx.fillRect(W - c - 18, H - c - 3, 18, 3);
-      ctx.fillRect(W - c - 3, H - c - 18, 3, 18);
 
       if (!isBack) {
         renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#cbd5e1', photoImg, logoImg, '⚖️');
@@ -409,12 +378,9 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     previewGradient: 'from-amber-500/40 via-stone-900 to-black',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
       const primary = data.accentColor || '#F59E0B';
-
-      // Matte Slate Graphite
       ctx.fillStyle = '#111317';
       ctx.fillRect(0, 0, W, H);
 
-      // Industrial Steel Angle Mesh
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
       ctx.lineWidth = 3;
       for (let i = -W; i < W * 2; i += 60) {
@@ -424,7 +390,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
         ctx.stroke();
       }
 
-      // Safety Hazard Diagonal Stripe Banner
       const hazH = isPort ? 16 : 18;
       const hazY = isPort ? H - 24 : H - 28;
       ctx.fillStyle = primary;
@@ -463,29 +428,15 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     previewGradient: 'from-rose-500/30 via-purple-950 to-slate-950',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
       const primary = data.accentColor || '#FB7185';
-
-      // Deep Velvet Noir
       ctx.fillStyle = '#130a17';
       ctx.fillRect(0, 0, W, H);
 
-      // Rose Gold Ambient Light
       const rGrad = ctx.createRadialGradient(W * 0.5, H * 0.5, 30, W * 0.5, H * 0.5, W * 0.6);
       rGrad.addColorStop(0, 'rgba(251, 113, 133, 0.18)');
       rGrad.addColorStop(1, 'transparent');
       ctx.fillStyle = rGrad;
       ctx.fillRect(0, 0, W, H);
 
-      // Delicate Floral Wave Lines
-      ctx.strokeStyle = 'rgba(251, 113, 133, 0.15)';
-      ctx.lineWidth = 1;
-      for (let y = 40; y < H; y += 45) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.bezierCurveTo(W * 0.3, y - 25, W * 0.7, y + 25, W, y);
-        ctx.stroke();
-      }
-
-      // Elegant Dual Thin Frame
       ctx.strokeStyle = primary;
       ctx.lineWidth = 2;
       ctx.strokeRect(22, 22, W - 44, H - 44);
@@ -512,12 +463,9 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     previewGradient: 'from-amber-700/40 via-stone-900 to-black',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
       const primary = data.accentColor || '#D97706';
-
-      // Rich Vintage Dark Walnut
       ctx.fillStyle = '#140e0b';
       ctx.fillRect(0, 0, W, H);
 
-      // Barber Pole Striped Accent Side Blade
       const poleW = 12;
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, poleW, H);
@@ -528,7 +476,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
         ctx.fillRect(0, y + 12, poleW, 10);
       }
 
-      // Ornate Vintage Woodcut Border
       ctx.strokeStyle = primary;
       ctx.lineWidth = 2.5;
       ctx.strokeRect(26, 20, W - 46, H - 40);
@@ -555,18 +502,15 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     previewGradient: 'from-orange-600/30 via-stone-950 to-black',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
       const primary = data.accentColor || '#F97316';
-
       ctx.fillStyle = '#0f0c0a';
       ctx.fillRect(0, 0, W, H);
 
-      // Copper Warmth Radial Glow
       const rad = ctx.createRadialGradient(W * 0.5, H * 0.3, 10, W * 0.5, H * 0.3, 260);
       rad.addColorStop(0, 'rgba(249, 115, 22, 0.15)');
       rad.addColorStop(1, 'transparent');
       ctx.fillStyle = rad;
       ctx.fillRect(0, 0, W, H);
 
-      // Double Frame with Copper Trim
       ctx.strokeStyle = primary;
       ctx.lineWidth = 2;
       ctx.strokeRect(24, 24, W - 48, H - 48);
@@ -593,12 +537,9 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     previewGradient: 'from-yellow-500/30 via-slate-900 to-black',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
       const primary = data.accentColor || '#EAB308';
-
-      // Matte Pitch Black
       ctx.fillStyle = '#050505';
       ctx.fillRect(0, 0, W, H);
 
-      // Golden Aperture Ring in Background
       const ax = isPort ? W * 0.5 : W * 0.78;
       const ay = isPort ? H * 0.3 : H * 0.5;
       const aRadius = isPort ? 110 : 130;
@@ -609,25 +550,11 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.beginPath();
       ctx.arc(ax, ay, aRadius, 0, Math.PI * 2);
       ctx.stroke();
-
-      // Aperture Blades
-      for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
-        ctx.beginPath();
-        ctx.moveTo(ax + Math.cos(angle) * aRadius, ay + Math.sin(angle) * aRadius);
-        ctx.lineTo(ax + Math.cos(angle + 0.8) * (aRadius * 0.45), ay + Math.sin(angle + 0.8) * (aRadius * 0.45));
-        ctx.stroke();
-      }
       ctx.restore();
 
-      // Minimalist Clean Viewfinder Frame
       ctx.strokeStyle = primary;
       ctx.lineWidth = 2;
-      const cSize = 24;
-      // 4 Viewfinder Corners
-      ctx.beginPath(); ctx.moveTo(24, 24 + cSize); ctx.lineTo(24, 24); ctx.lineTo(24 + cSize, 24); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(W - 24 - cSize, 24); ctx.lineTo(W - 24, 24); ctx.lineTo(W - 24, 24 + cSize); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(24, H - 24 - cSize); ctx.lineTo(24, H - 24); ctx.lineTo(24 + cSize, H - 24); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(W - 24 - cSize, H - 24); ctx.lineTo(W - 24, H - 24); ctx.lineTo(W - 24, H - 24 - cSize); ctx.stroke();
+      ctx.strokeRect(22, 22, W - 44, H - 44);
 
       if (!isBack) {
         renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#e5e5e5', photoImg, logoImg, '📷');
@@ -651,20 +578,8 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     previewGradient: 'from-cyan-400/30 via-blue-950 to-slate-950',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
       const primary = data.accentColor || '#06B6D4';
-
       ctx.fillStyle = '#06101e';
       ctx.fillRect(0, 0, W, H);
-
-      // Fresh Aqua Bubbles
-      ctx.fillStyle = 'rgba(6, 182, 212, 0.08)';
-      for (let i = 0; i < 16; i++) {
-        const bx = ((i * 137) % W);
-        const by = ((i * 93) % H);
-        const br = 8 + (i % 18);
-        ctx.beginPath();
-        ctx.arc(bx, by, br, 0, Math.PI * 2);
-        ctx.fill();
-      }
 
       ctx.strokeStyle = primary;
       ctx.lineWidth = 2.5;
@@ -692,21 +607,8 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     previewGradient: 'from-yellow-400/30 via-amber-950 to-black',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
       const primary = data.accentColor || '#FACC15';
-
       ctx.fillStyle = '#0b0c10';
       ctx.fillRect(0, 0, W, H);
-
-      // High Voltage Surge Path
-      ctx.strokeStyle = 'rgba(250, 204, 21, 0.12)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(0, H * 0.85);
-      ctx.lineTo(W * 0.35, H * 0.85);
-      ctx.lineTo(W * 0.42, H * 0.75);
-      ctx.lineTo(W * 0.48, H * 0.92);
-      ctx.lineTo(W * 0.55, H * 0.82);
-      ctx.lineTo(W, H * 0.82);
-      ctx.stroke();
 
       ctx.strokeStyle = primary;
       ctx.lineWidth = 2.5;
@@ -734,22 +636,17 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     previewGradient: 'from-white via-slate-100 to-slate-300',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
       const primary = data.accentColor || '#DC2626';
-
-      // Pure White Canvas
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, W, H);
 
-      // Swiss Left Accent Blade
       ctx.fillStyle = '#0F172A';
       ctx.fillRect(0, 0, 14, H);
 
-      // Red Swiss Signature Dot
       ctx.fillStyle = primary;
       ctx.beginPath();
       ctx.arc(isPort ? W - 45 : W - 50, 45, 10, 0, Math.PI * 2);
       ctx.fill();
 
-      // Subtle Border
       ctx.strokeStyle = '#E2E8F0';
       ctx.lineWidth = 1.5;
       ctx.strokeRect(20, 20, W - 40, H - 40);
@@ -776,27 +673,11 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     previewGradient: 'from-rose-500 via-purple-600 to-cyan-500',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
       const primary = data.accentColor || '#F43F5E';
-      const secondary = data.secondaryColor || '#8B5CF6';
-
-      // Multi-Stop Mesh Base
       const mesh = ctx.createLinearGradient(0, 0, W, H);
       mesh.addColorStop(0, '#1e1b4b');
       mesh.addColorStop(0.4, '#311042');
       mesh.addColorStop(1, '#0f172a');
       ctx.fillStyle = mesh;
-      ctx.fillRect(0, 0, W, H);
-
-      // Aurora Light Orbs
-      const o1 = ctx.createRadialGradient(W * 0.2, H * 0.25, 20, W * 0.2, H * 0.25, 300);
-      o1.addColorStop(0, 'rgba(244, 63, 94, 0.4)');
-      o1.addColorStop(1, 'transparent');
-      ctx.fillStyle = o1;
-      ctx.fillRect(0, 0, W, H);
-
-      const o2 = ctx.createRadialGradient(W * 0.8, H * 0.8, 20, W * 0.8, H * 0.8, 300);
-      o2.addColorStop(0, 'rgba(6, 182, 212, 0.35)');
-      o2.addColorStop(1, 'transparent');
-      ctx.fillStyle = o2;
       ctx.fillRect(0, 0, W, H);
 
       ctx.strokeStyle = 'rgba(255,255,255,0.3)';
@@ -825,18 +706,8 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     previewGradient: 'from-emerald-500/30 via-slate-900 to-black',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
       const primary = data.accentColor || '#10B981';
-
       ctx.fillStyle = '#022119';
       ctx.fillRect(0, 0, W, H);
-
-      // Banknote security guilloche arcs
-      ctx.strokeStyle = 'rgba(16, 185, 129, 0.12)';
-      ctx.lineWidth = 1.2;
-      for (let r = 50; r < W; r += 35) {
-        ctx.beginPath();
-        ctx.arc(W * 0.5, H * 0.5, r, 0, Math.PI * 2);
-        ctx.stroke();
-      }
 
       ctx.strokeStyle = primary;
       ctx.lineWidth = 2.5;
@@ -851,8 +722,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
   },
 ];
 
-// ── COMPOSITE CONTENT RENDERERS (LANDSCAPE & PORTRAIT) ─────────────────────────
-
+// ── COMPOSITE CONTENT RENDERERS ────────────────────────────────────────────────
 function renderStandardFrontContent(
   ctx: CanvasRenderingContext2D,
   W: number,
@@ -867,8 +737,6 @@ function renderStandardFrontContent(
   defaultIcon: string
 ) {
   if (isPort) {
-    // ── BALANCED VERTICAL (PORTRAIT) CONTENT ──────────────────────────────────
-    // 1. Top Logo / Crest
     const logoSize = 60;
     const logoX = W / 2 - logoSize / 2;
     const logoY = 46;
@@ -892,7 +760,6 @@ function renderStandardFrontContent(
       ctx.fillText(data.companyName.charAt(0) || defaultIcon, W / 2, logoY + logoSize / 2 + 1);
     }
 
-    // Company Name & Tagline
     ctx.textAlign = 'center';
     ctx.fillStyle = textColor;
     ctx.font = '900 20px Inter, sans-serif';
@@ -904,7 +771,6 @@ function renderStandardFrontContent(
       ctx.fillText(data.tagline, W / 2, 154);
     }
 
-    // 2. Center ID / Portrait Photo
     const pSize = 160;
     const px = W / 2 - pSize / 2;
     const py = 180;
@@ -934,7 +800,6 @@ function renderStandardFrontContent(
     }
     ctx.restore();
 
-    // 3. Name & Job Title
     ctx.textAlign = 'center';
     ctx.fillStyle = textColor;
     ctx.font = '900 28px Inter, sans-serif';
@@ -950,7 +815,6 @@ function renderStandardFrontContent(
       ctx.fillText(`Dept: ${data.department}`, W / 2, 424);
     }
 
-    // 4. Detail Grid
     const blockY = 465;
     const metrics = [
       { label: 'ID NUMBER', val: data.idNumber, col: accentColor },
@@ -974,7 +838,6 @@ function renderStandardFrontContent(
       ctx.fillText(m.val, mx, my + 18);
     });
 
-    // 5. Contact Phone & Email
     const contactY = 600;
     ctx.font = '13px Inter, sans-serif';
     ctx.fillStyle = textColor;
@@ -982,7 +845,6 @@ function renderStandardFrontContent(
     ctx.fillText(`✉️  ${data.email}`, W / 2, contactY + 26);
     ctx.fillText(`🌐  ${data.website}`, W / 2, contactY + 52);
 
-    // 6. Barcode
     if (data.showBarcode) {
       const barY = H - 128;
       ctx.fillStyle = textColor;
@@ -995,7 +857,6 @@ function renderStandardFrontContent(
       ctx.fillText(data.idNumber, W / 2, barY + 48);
     }
   } else {
-    // ── LANDSCAPE CONTENT ─────────────────────────────────────────────────────
     const logoSize = 64;
     const logoX = 52;
     const logoY = 48;
@@ -1030,7 +891,6 @@ function renderStandardFrontContent(
       ctx.fillText(data.tagline, 132, 98);
     }
 
-    // Name & Title
     const nameY = 205;
     ctx.fillStyle = textColor;
     ctx.font = '900 38px Inter, sans-serif';
@@ -1046,7 +906,6 @@ function renderStandardFrontContent(
       ctx.fillText(`Dept: ${data.department}`, 52, nameY + 54);
     }
 
-    // Contact Details Grid (2 Columns)
     const startY = 328;
     const contacts = [
       { icon: '📞', text: data.phone },
@@ -1067,7 +926,6 @@ function renderStandardFrontContent(
     });
   }
 
-  // Cut Marks
   if (data.showCutMarks) {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
     ctx.lineWidth = 1;
@@ -1093,11 +951,9 @@ function renderStandardBackContent(
   textColor: string,
   qrImg: HTMLImageElement | null
 ) {
-  // Magnetic / Top Security Stripe
   ctx.fillStyle = 'rgba(0,0,0,0.5)';
   ctx.fillRect(0, 32, W, isPort ? 44 : 52);
 
-  // Scannable QR Code
   if (qrImg && qrImg.width > 0) {
     const qrSize = isPort ? 175 : 185;
     const qx = isPort ? W / 2 - qrSize / 2 : 65;
@@ -1110,7 +966,6 @@ function renderStandardBackContent(
     ctx.drawImage(qrImg, qx, qy, qrSize, qrSize);
   }
 
-  // Backside Copy
   const tx = isPort ? W / 2 : 290;
   const ty = isPort ? 355 : 160;
 
@@ -1123,7 +978,6 @@ function renderStandardBackContent(
   ctx.font = 'bold 12.5px Inter, sans-serif';
   ctx.fillText(data.backSubtitle, tx, ty + 24);
 
-  // Disclaimer
   ctx.fillStyle = 'rgba(255,255,255,0.65)';
   ctx.font = '11px Inter, sans-serif';
 
@@ -1209,12 +1063,10 @@ export default function CardStudio() {
   const frontCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const backCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Cached Image References
   const photoImgRef = useRef<HTMLImageElement | null>(null);
   const logoImgRef = useRef<HTMLImageElement | null>(null);
   const qrImgRef = useRef<HTMLImageElement | null>(null);
 
-  // Load uploaded images into refs
   useEffect(() => {
     if (data.photoUrl) {
       const img = new window.Image();
@@ -1237,7 +1089,6 @@ export default function CardStudio() {
     }
   }, [data.logoUrl]);
 
-  // Standard Dimension Calculation
   const cardDim = useMemo(() => {
     if (data.orientation === 'portrait') {
       return {
@@ -1255,7 +1106,6 @@ export default function CardStudio() {
     };
   }, [data.orientation]);
 
-  // Generate vCard QR
   useEffect(() => {
     let text = data.website;
     if (data.qrType === 'vcard') {
@@ -1292,18 +1142,15 @@ export default function CardStudio() {
       .catch((err) => console.warn('QR error:', err));
   }, [data.qrType, data.qrCustomText, data.fullName, data.companyName, data.jobTitle, data.phone, data.whatsapp, data.email, data.website, data.address]);
 
-  // Active Template
   const activeTemplate = useMemo(() => {
     return MASTER_TEMPLATES.find((t) => t.id === data.templateId) || MASTER_TEMPLATES[0];
   }, [data.templateId]);
 
-  // Main Canvas Draw Engine
   const drawCanvases = useCallback(() => {
     const W = cardDim.width;
     const H = cardDim.height;
     const isPort = data.orientation === 'portrait';
 
-    // Front
     const frontCanvas = frontCanvasRef.current;
     if (frontCanvas) {
       frontCanvas.width = W;
@@ -1314,7 +1161,6 @@ export default function CardStudio() {
       }
     }
 
-    // Back
     const backCanvas = backCanvasRef.current;
     if (backCanvas) {
       backCanvas.width = W;
@@ -1330,7 +1176,6 @@ export default function CardStudio() {
     drawCanvases();
   }, [drawCanvases]);
 
-  // Photo / Logo Upload Handler
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'photoUrl' | 'logoUrl') => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1341,7 +1186,6 @@ export default function CardStudio() {
     reader.readAsDataURL(file);
   };
 
-  // Open Full Screen / Studio Window
   const handleOpenStudioWindow = () => {
     const frontCanvas = frontCanvasRef.current;
     const backCanvas = backCanvasRef.current;
@@ -1357,10 +1201,11 @@ export default function CardStudio() {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>${data.fullName} - BridgeTec Studio</title>
+          <title>${data.fullName} - BridgeTec Studio (Dev Mode)</title>
           <style>
             body { margin: 0; background: #020617; color: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; box-sizing: border-box; }
-            h1 { font-size: 22px; font-weight: 900; margin-bottom: 8px; }
+            h1 { font-size: 22px; font-weight: 900; margin-bottom: 4px; }
+            .badge { display: inline-block; background: #f59e0b; color: #000; font-size: 11px; font-weight: 900; padding: 3px 8px; border-radius: 999px; margin-bottom: 12px; }
             p { color: #94a3b8; font-size: 13px; margin-top: 0; margin-bottom: 24px; }
             .grid { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; max-width: 1200px; }
             .card { background: #0f172a; border: 1px solid #1e293b; border-radius: 20px; padding: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); text-align: center; }
@@ -1369,8 +1214,9 @@ export default function CardStudio() {
           </style>
         </head>
         <body>
+          <div class="badge">DEVELOPMENT &amp; DESIGN LAB PREVIEW</div>
           <h1>${data.fullName} — ${data.companyName}</h1>
-          <p>Universal 300 DPI High-Resolution Card Export Preview</p>
+          <p>ISO Standard 300 DPI High-Resolution Card Export Preview</p>
           <div class="grid">
             <div class="card">
               <img src="${frontCanvas.toDataURL('image/png')}" />
@@ -1387,7 +1233,6 @@ export default function CardStudio() {
     w.document.close();
   };
 
-  // PDF Export Engine
   const downloadSinglePdf = async () => {
     setIsExporting(true);
     try {
@@ -1409,7 +1254,7 @@ export default function CardStudio() {
       pdf.addPage([pdfW, pdfH], isPort ? 'portrait' : 'landscape');
       pdf.addImage(backCanvas.toDataURL('image/png'), 'PNG', 0, 0, pdfW, pdfH, undefined, 'FAST');
 
-      pdf.save(`${data.fullName.replace(/\s+/g, '_')}_Card_300DPI.pdf`);
+      pdf.save(`${data.fullName.replace(/\s+/g, '_')}_Card_300DPI_Dev.pdf`);
     } catch {
       alert('Failed to generate PDF.');
     } finally {
@@ -1435,10 +1280,9 @@ export default function CardStudio() {
       const fImg = frontCanvas.toDataURL('image/png');
       const bImg = backCanvas.toDataURL('image/png');
 
-      // Page 1: 8 Fronts
       pdf.setFontSize(9);
       pdf.setTextColor(120);
-      pdf.text(`BridgeTec Card Studio — Front Sheet (${data.fullName})`, 14, 12);
+      pdf.text(`BridgeTec Card Studio [DEV MODE] — Front Sheet (${data.fullName})`, 14, 12);
 
       for (let r = 0; r < 4; r++) {
         for (let c = 0; c < 2; c++) {
@@ -1450,9 +1294,8 @@ export default function CardStudio() {
         }
       }
 
-      // Page 2: 8 Backs (Mirrored column for duplex alignment)
       pdf.addPage('a4', 'portrait');
-      pdf.text(`BridgeTec Card Studio — Back Sheet (${data.fullName})`, 14, 12);
+      pdf.text(`BridgeTec Card Studio [DEV MODE] — Back Sheet (${data.fullName})`, 14, 12);
 
       for (let r = 0; r < 4; r++) {
         for (let c = 0; c < 2; c++) {
@@ -1464,7 +1307,7 @@ export default function CardStudio() {
         }
       }
 
-      pdf.save(`${data.fullName.replace(/\s+/g, '_')}_A4_8Cards_Duplex.pdf`);
+      pdf.save(`${data.fullName.replace(/\s+/g, '_')}_A4_8Cards_Duplex_Dev.pdf`);
     } catch {
       alert('Failed to generate A4 print sheet.');
     } finally {
@@ -1476,7 +1319,7 @@ export default function CardStudio() {
     const canvas = side === 'front' ? frontCanvasRef.current : backCanvasRef.current;
     if (!canvas) return;
     const a = document.createElement('a');
-    a.download = `${data.fullName.replace(/\s+/g, '_')}_${side.toUpperCase()}_300DPI.png`;
+    a.download = `${data.fullName.replace(/\s+/g, '_')}_${side.toUpperCase()}_300DPI_Dev.png`;
     a.href = canvas.toDataURL('image/png', 1.0);
     a.click();
   };
@@ -1512,7 +1355,6 @@ export default function CardStudio() {
     doc.close();
   };
 
-  // Filter templates by category and search
   const filteredTemplates = useMemo(() => {
     return MASTER_TEMPLATES.filter((t) => {
       const matchCat = selectedCategory === 'all' || t.category === selectedCategory;
@@ -1528,7 +1370,33 @@ export default function CardStudio() {
   }, [selectedCategory, searchQuery]);
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* ── DEVELOPMENT MODE NOTICE BANNER ───────────────────────────────────── */}
+      <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-amber-500 text-black flex items-center justify-center font-bold text-sm shrink-0 shadow-md shadow-amber-500/20">
+            <FlaskConical className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-black text-amber-400 uppercase tracking-wide">Development &amp; Design Lab Mode</span>
+              <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-mono">INTERNAL TESTING</span>
+            </div>
+            <p className="text-slate-400 text-[11px] mt-0.5">
+              Card Studio is unlocked for local testing &amp; layout polishing. All real-time canvas rendering, hex editing, and PDF generators are fully functional.
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={handleOpenStudioWindow}
+          className="self-start sm:self-auto py-2 px-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs flex items-center gap-1.5 transition-all shadow shrink-0"
+        >
+          <ExternalLink className="w-3.5 h-3.5" />
+          <span>Open Full Dev Studio</span>
+        </button>
+      </div>
+
       {/* ── TOOL HEADER ──────────────────────────────────────────────────────── */}
       <div className="bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -1539,29 +1407,20 @@ export default function CardStudio() {
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-xs font-black uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
-                  Design.com Standard • 300 DPI
+                  Design Studio Lab • 300 DPI
                 </span>
                 <span className="text-xs font-bold text-slate-400">• Top Industry Layouts</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                Professional Business &amp; ID Card Studio
+                Business &amp; ID Card Studio (Design Lab)
               </h2>
               <p className="text-slate-400 text-xs sm:text-sm mt-1">
-                Bespoke 3D luxury designs, corporate &amp; trade templates (Real Estate, Tech, Legal, Beauty, Barber, Construction) with scannable vCard QR codes.
+                Testing sandbox for 3D luxury designs, corporate &amp; trade templates (Real Estate, Tech, Legal, Beauty, Barber, Construction) with scannable vCard QR codes.
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            <button
-              onClick={handleOpenStudioWindow}
-              className="py-2.5 px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold text-xs flex items-center gap-1.5 transition-all border border-cyan-500/30 shadow-md"
-              title="Open full view in new window"
-            >
-              <ExternalLink className="w-4 h-4" />
-              <span>Open in New Window</span>
-            </button>
-
             <button
               onClick={downloadSinglePdf}
               disabled={isExporting}
@@ -1710,7 +1569,7 @@ export default function CardStudio() {
             })}
           </div>
 
-          {/* TAB 1: DESIGN TEMPLATES (DESIGN.COM STYLE BROWSER) */}
+          {/* TAB 1: DESIGN TEMPLATES */}
           {activeTab === 'templates' && (
             <div className="space-y-5">
               {/* Orientation Switcher */}
@@ -1783,7 +1642,6 @@ export default function CardStudio() {
                   </div>
                 </div>
 
-                {/* Color Swatch Presets */}
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   {COLOR_PRESETS.map((p) => (
                     <button
@@ -1834,7 +1692,6 @@ export default function CardStudio() {
                 </div>
               </div>
 
-              {/* Search Bar for Templates */}
               <div className="relative">
                 <input
                   type="text"
@@ -1846,7 +1703,6 @@ export default function CardStudio() {
                 <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
               </div>
 
-              {/* Template Cards List */}
               <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
                 {filteredTemplates.map((t) => (
                   <div

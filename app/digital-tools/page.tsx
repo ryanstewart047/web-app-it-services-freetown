@@ -24,6 +24,7 @@ interface ToolItem {
   badge?: string;
   popular?: boolean;
   isNew?: boolean;
+  devOnly?: boolean;
   icon: string;
   gradient: string;
   tags: string[];
@@ -35,12 +36,13 @@ const ALL_TOOLS: ToolItem[] = [
     title: 'Smart Business & ID Card Studio',
     desc: 'Generate 300 DPI executive business cards, staff ID badges & VIP passes with live front/back preview, vCard QR codes & printable A4 sheets.',
     category: 'utilities',
-    badge: '🔥 New • 300 DPI',
-    popular: true,
+    badge: '🛠️ In Development (Beta)',
+    popular: false,
     isNew: true,
+    devOnly: true,
     icon: 'fas fa-id-card',
     gradient: 'from-amber-500 via-orange-500 to-yellow-500',
-    tags: ['business card', 'id card', 'badge', 'card generator', 'complementary card', 'vcard', 'qr code', 'print', 'pdf', 'staff id', 'corporate badge'],
+    tags: ['business card', 'id card', 'badge', 'card generator', 'complementary card', 'vcard', 'qr code', 'print', 'pdf', 'staff id', 'corporate badge', 'dev'],
   },
   {
     id: 'surprise-reveal',
@@ -657,7 +659,14 @@ export default function DigitalToolsPage() {
 
   // Filter tools based on category and search query
   const filteredTools = useMemo(() => {
+    const isDev = process.env.NODE_ENV === 'development' || (typeof window !== 'undefined' && window.location.search.includes('dev=true'));
+
     return ALL_TOOLS.filter((tool) => {
+      // Hide devOnly tools on production public grid unless searching or in dev mode
+      if (tool.devOnly && !isDev && !searchQuery.trim()) {
+        return false;
+      }
+
       const matchesCat = activeCategory === 'all' || tool.category === activeCategory;
       if (!matchesCat) return false;
 
