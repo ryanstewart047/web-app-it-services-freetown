@@ -33,16 +33,16 @@ interface ToolItem {
 const ALL_TOOLS: ToolItem[] = [
   {
     id: 'card-studio',
-    title: 'Smart Business & ID Card Studio',
-    desc: 'Generate 300 DPI executive business cards, staff ID badges & VIP passes with live front/back preview, vCard QR codes & printable A4 sheets.',
+    title: '3D Business & ID Card Studio',
+    desc: 'Design 300 DPI executive business cards, Guilloche security wave ribbons, staff ID badges & VIP passes with live 3D preview, vCard QR & print-ready A4 duplex PDF.',
     category: 'utilities',
-    badge: '🛠️ In Development (Beta)',
-    popular: false,
+    badge: '🔥 3D Luxury • 300 DPI',
+    popular: true,
     isNew: true,
-    devOnly: true,
+    devOnly: false,
     icon: 'fas fa-id-card',
     gradient: 'from-amber-500 via-orange-500 to-yellow-500',
-    tags: ['business card', 'id card', 'badge', 'card generator', 'complementary card', 'vcard', 'qr code', 'print', 'pdf', 'staff id', 'corporate badge', 'dev'],
+    tags: ['business card', 'id card', 'badge', 'card generator', 'complementary card', 'vcard', 'qr code', 'print', 'pdf', 'staff id', 'corporate badge', 'mastercard', 'guilloche'],
   },
   {
     id: 'surprise-reveal',
