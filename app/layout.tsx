@@ -1,6 +1,5 @@
 import './globals.css'
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
 import Script from 'next/script'
 import Navbar from '@/components/layout/Navbar'
@@ -24,13 +23,6 @@ import {
   BRAND_LOGO_URL,
   BRAND_SITE_URL,
 } from '@/lib/brand'
-
-
-const inter = Inter({ 
-  subsets: ['latin'],
-  display: 'swap', // Add font-display swap
-  preload: true,
-})
 
 export const metadata: Metadata = {
   metadataBase: new URL(BRAND_SITE_URL),
@@ -301,8 +293,15 @@ export default function RootLayout({
             }),
           }}
         />
+        {/* Google Fonts Preconnect & Inter Font Stylesheet */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+          rel="stylesheet"
+        />
       </head>
-      <body className={`${inter.className} bg-gray-50 min-h-screen`}>
+      <body className="font-sans bg-gray-50 min-h-screen">
         {/* Google Analytics - loaded after page is interactive for performance */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-2SS4WDYJRF"
