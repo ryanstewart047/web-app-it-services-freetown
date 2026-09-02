@@ -1,71 +1,111 @@
 'use client'
 
 import { useEffect } from 'react'
-import { shouldShowPWAInstall, isPWASupported, logDeviceInfo } from '@/utils/deviceDetection'
-import { BRAND_LOGO_SRC, BRAND_NAME } from '@/lib/brand'
+import { logDeviceInfo } from '@/utils/deviceDetection'
 
 export default function ServiceWorkerRegistration() {
   useEffect(() => {
-    // We want the Service Worker to register on ALL devices that support it
-    // so that features like Push Notifications work for technicians on desktop too.
-    if (!('serviceWorker' in navigator)) {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
       return
     }
 
-    // Register service worker
-    if ('serviceWorker' in navigator) {
-      // Clear legacy image/asset caches directly from client side to unstick mobile devices
+    // In local development (localhost / 127.0.0.1), service workers cause chunk 404s,
+    // HMR cache conflicts, and "Failed to update a ServiceWorker" errors.
+    // Cleanly unregister any active workers in development mode.
+    const isLocalhost =
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname === '[::1]'
+
+    if (process.env.NODE_ENV === 'development' && isLocalhost) {
+      navigator.serviceWorker
+        .getRegistrations()
+        .then((registrations) => {
+          for (const registration of registrations) {
+            registration.unregister().catch(() => {})
+          }
+        })
+        .catch(() => {})
+
       if ('caches' in window) {
-        caches.keys().then((keys) => {
+        caches
+          .keys()
+          .then((keys) => {
+            keys.forEach((key) => caches.delete(key))
+          })
+          .catch(() => {})
+      }
+      return
+    }
+
+    // Clear legacy image/asset caches directly from client side
+    if ('caches' in window) {
+      caches
+        .keys()
+        .then((keys) => {
           keys.forEach((key) => {
-            if (key.includes('it-services-freetown') || key.includes('v1') || key.includes('v2') || key.includes('v3') || key.includes('v4') || key.includes('v5')) {
-              console.log('[ServiceWorkerRegistration] Deleting legacy cache:', key)
+            if (
+              key.includes('it-services-freetown') ||
+              key.includes('v1') ||
+              key.includes('v2') ||
+              key.includes('v3') ||
+              key.includes('v4') ||
+              key.includes('v5')
+            ) {
               caches.delete(key)
             }
           })
         })
-      }
-
-      navigator.serviceWorker
-        .register('/sw.js')
-        .then((registration) => {
-          console.log('Service Worker registered successfully:', registration)
-
-          // Force update check on every page load
-          registration.update()
-
-          // Check for updates
-          registration.addEventListener('updatefound', () => {
-            const newWorker = registration.installing
-            if (newWorker) {
-              newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'installed') {
-                  if (navigator.serviceWorker.controller) {
-                    console.log('New content available, updating service worker...')
-                    // Post skip waiting to new worker
-                    newWorker.postMessage({ type: 'SKIP_WAITING' })
-                  }
-                }
-              })
-            }
-          })
-        })
-        .catch((error) => {
-          console.error('Service Worker registration failed:', error)
-        })
-
-      // Handle service worker messages
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data && event.data.type === 'FORM_SYNC_SUCCESS') {
-          console.log('Form synced successfully:', event.data.formId)
-          // You could show a toast notification here
-        }
-      })
+        .catch(() => {})
     }
+
+    // Register service worker with safe error handling
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((registration) => {
+        // Safe update check with catch handler to prevent unhandled rejections
+        if (registration && typeof registration.update === 'function') {
+          registration.update().catch((err) => {
+            console.debug('[ServiceWorker] Update check skipped or network unavailable:', err)
+          })
+        }
+
+        // Check for updates
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed') {
+                if (navigator.serviceWorker.controller) {
+                  // Post skip waiting to new worker
+                  newWorker.postMessage({ type: 'SKIP_WAITING' })
+                }
+              }
+            })
+          }
+        })
+      })
+      .catch((error) => {
+        console.warn('[ServiceWorker] Registration bypassed or failed:', error)
+      })
+
+    // Handle service worker messages
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'FORM_SYNC_SUCCESS') {
+        console.log('Form synced successfully:', event.data.formId)
+      }
+    }
+
+    navigator.serviceWorker.addEventListener('message', handleMessage)
 
     // Log device information for debugging
     logDeviceInfo()
+
+    return () => {
+      navigator.serviceWorker.removeEventListener('message', handleMessage)
+    }
   }, [])
 
-  return null // This component doesn't render anything
+  return null
 }
+
