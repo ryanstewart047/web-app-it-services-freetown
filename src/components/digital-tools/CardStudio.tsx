@@ -56,6 +56,7 @@ import {
   Waves,
   FlaskConical,
   Wifi,
+  Flame,
 } from 'lucide-react';
 
 export type CardCategory = 'all' | 'business' | 'id_badge' | 'complementary' | 'vip_pass';
@@ -63,7 +64,7 @@ export type CardOrientation = 'landscape' | 'portrait';
 
 export type TemplateStyleGroup =
   | 'all'
-  | 'popular'
+  | 'curved_artistic'
   | '3d_luxury'
   | 'modern_tech'
   | 'corporate_legal'
@@ -146,28 +147,26 @@ export interface CardData {
 // ── COLOR PRESETS PALETTE ───────────────────────────────────────────────────────
 const COLOR_PRESETS = [
   { name: 'Mastercard Gold', hex: '#F59E0B' },
-  { name: 'Cyber Cyan', hex: '#06B6D4' },
+  { name: 'Sunset Amber', hex: '#F97316' },
+  { name: 'Neon Magenta', hex: '#EC4899' },
+  { name: 'Electric Cyan', hex: '#06B6D4' },
   { name: 'Royal Sapphire', hex: '#2563EB' },
+  { name: 'Cyber Violet', hex: '#8B5CF6' },
   { name: 'Emerald Jade', hex: '#10B981' },
   { name: 'Crimson Ruby', hex: '#E11D48' },
-  { name: 'Sunset Amber', hex: '#F97316' },
-  { name: 'Cyber Violet', hex: '#8B5CF6' },
   { name: 'Rose Gold', hex: '#FB7185' },
   { name: 'Titanium Silver', hex: '#94A3B8' },
   { name: 'Deep Teal', hex: '#0D9488' },
-  { name: 'Bronze Copper', hex: '#D97706' },
   { name: 'Pure White', hex: '#FFFFFF' },
 ];
 
 // ── HELPER: DRAW REALISTIC 3D EMV CHIP & CONTACTLESS SYMBOL ─────────────────────
 function drawEmvChip(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, isGold: boolean = true) {
   ctx.save();
-  // Chip Base Shadow
   ctx.shadowColor = 'rgba(0,0,0,0.5)';
   ctx.shadowBlur = 8;
   ctx.shadowOffsetY = 3;
 
-  // Chip Outer Gold / Silver Metallic Gradient
   const chipGrad = ctx.createLinearGradient(x, y, x + w, y + h);
   if (isGold) {
     chipGrad.addColorStop(0, '#fef08a');
@@ -187,17 +186,14 @@ function drawEmvChip(ctx: CanvasRenderingContext2D, x: number, y: number, w: num
   ctx.roundRect(x, y, w, h, 8);
   ctx.fill();
 
-  // Chip Border & Inner Traces
   ctx.shadowColor = 'transparent';
   ctx.strokeStyle = isGold ? '#78350f' : '#334155';
   ctx.lineWidth = 1.2;
   ctx.stroke();
 
-  // Internal Microcircuit Circuit Patterns
   ctx.strokeStyle = isGold ? '#92400e' : '#475569';
   ctx.lineWidth = 1;
 
-  // Center division
   ctx.beginPath();
   ctx.moveTo(x + w * 0.35, y);
   ctx.lineTo(x + w * 0.35, y + h);
@@ -205,7 +201,6 @@ function drawEmvChip(ctx: CanvasRenderingContext2D, x: number, y: number, w: num
   ctx.lineTo(x + w * 0.65, y + h);
   ctx.stroke();
 
-  // Horizontal divisions
   ctx.beginPath();
   ctx.moveTo(x, y + h * 0.5);
   ctx.lineTo(x + w * 0.35, y + h * 0.5);
@@ -213,7 +208,6 @@ function drawEmvChip(ctx: CanvasRenderingContext2D, x: number, y: number, w: num
   ctx.lineTo(x + w, y + h * 0.5);
   ctx.stroke();
 
-  // Center chip square
   ctx.fillStyle = isGold ? '#b45309' : '#475569';
   ctx.beginPath();
   ctx.roundRect(x + w * 0.38, y + h * 0.3, w * 0.24, h * 0.4, 3);
@@ -241,19 +235,16 @@ function drawInterlockingCircles(ctx: CanvasRenderingContext2D, x: number, y: nu
   ctx.save();
   ctx.globalAlpha = 0.85;
 
-  // Left circle
   ctx.fillStyle = primary;
   ctx.beginPath();
   ctx.arc(x - r * 0.6, y, r, 0, Math.PI * 2);
   ctx.fill();
 
-  // Right circle
   ctx.fillStyle = secondary;
   ctx.beginPath();
   ctx.arc(x + r * 0.6, y, r, 0, Math.PI * 2);
   ctx.fill();
 
-  // Intersecting overlay highlight
   ctx.globalAlpha = 0.35;
   ctx.fillStyle = '#ffffff';
   ctx.beginPath();
@@ -267,7 +258,6 @@ function drawInterlockingCircles(ctx: CanvasRenderingContext2D, x: number, y: nu
 function apply3DCardLightingAndBevel(ctx: CanvasRenderingContext2D, W: number, H: number, isPort: boolean) {
   ctx.save();
 
-  // 1. Diagonal Specular Glass Sheen
   const sheen = ctx.createLinearGradient(0, 0, W, H);
   sheen.addColorStop(0, 'rgba(255, 255, 255, 0.18)');
   sheen.addColorStop(0.28, 'rgba(255, 255, 255, 0.05)');
@@ -277,17 +267,14 @@ function apply3DCardLightingAndBevel(ctx: CanvasRenderingContext2D, W: number, H
   ctx.fillStyle = sheen;
   ctx.fillRect(0, 0, W, H);
 
-  // 2. Realistic 3D Mastercard Beveled Outer Rim (36px rounded corners)
   const radius = isPort ? 34 : 38;
 
-  // Top/Left Specular Highlight
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.roundRect(1, 1, W - 2, H - 2, radius);
   ctx.stroke();
 
-  // Inner Edge Accent
   ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
   ctx.lineWidth = 1.5;
   ctx.beginPath();
@@ -297,15 +284,455 @@ function apply3DCardLightingAndBevel(ctx: CanvasRenderingContext2D, W: number, H
   ctx.restore();
 }
 
-// ── MASTER 3D TEMPLATES ─────────────────────────────────────────────────────────
+// ── MASTER TEMPLATES COLLECTION (INCLUDING ARTISTIC MODERN CURVED DESIGNS) ───────
 const MASTER_TEMPLATES: CardTemplateConfig[] = [
-  // 1. EXECUTIVE 3D OBSIDIAN & GOLD (Mastercard / VIP)
+  // ── 1. ARTISTIC CURVED: FLUID CHROMA WAVE (Sunset & Magenta Flame)
+  {
+    id: 'fluid_chroma_wave',
+    name: 'Fluid Chroma Wave & Sunset Flame',
+    category: 'curved_artistic',
+    industry: 'Modern Studio / Creative / Agency',
+    tagline: 'Multi-layered 3D Bezier curved waves in sunset amber, magenta & violet',
+    theme: 'colorful',
+    defaultAccent: '#F97316',
+    defaultSecondary: '#EC4899',
+    badgeIcon: '🌊',
+    previewGradient: 'from-orange-500 via-rose-500 to-purple-700',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = isPort ? 34 : 38;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
+      const primary = data.accentColor || '#F97316';
+      const secondary = data.secondaryColor || '#EC4899';
+
+      // Deep Cosmic Indigo Base
+      ctx.fillStyle = '#0a0914';
+      ctx.fillRect(0, 0, W, H);
+
+      // Layer 1: Back Purple Ambient Wave
+      const w1 = ctx.createLinearGradient(0, 0, W, H);
+      w1.addColorStop(0, '#3b0764');
+      w1.addColorStop(0.5, '#701a75');
+      w1.addColorStop(1, '#1e1b4b');
+      ctx.fillStyle = w1;
+      ctx.beginPath();
+      if (isPort) {
+        ctx.moveTo(0, H * 0.3);
+        ctx.bezierCurveTo(W * 0.5, H * 0.2, W * 0.5, H * 0.6, W, H * 0.45);
+        ctx.lineTo(W, H);
+        ctx.lineTo(0, H);
+      } else {
+        ctx.moveTo(0, H * 0.55);
+        ctx.bezierCurveTo(W * 0.35, H * 0.2, W * 0.65, H * 0.8, W, H * 0.35);
+        ctx.lineTo(W, H);
+        ctx.lineTo(0, H);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      // Layer 2: Middle Vibrant Magenta S-Wave with Shadow
+      ctx.shadowColor = 'rgba(0,0,0,0.5)';
+      ctx.shadowBlur = 20;
+      const w2 = ctx.createLinearGradient(0, 0, W, 0);
+      w2.addColorStop(0, secondary);
+      w2.addColorStop(1, '#8B5CF6');
+      ctx.fillStyle = w2;
+      ctx.beginPath();
+      if (isPort) {
+        ctx.moveTo(0, H * 0.48);
+        ctx.bezierCurveTo(W * 0.4, H * 0.38, W * 0.6, H * 0.75, W, H * 0.62);
+        ctx.lineTo(W, H);
+        ctx.lineTo(0, H);
+      } else {
+        ctx.moveTo(0, H * 0.72);
+        ctx.bezierCurveTo(W * 0.4, H * 0.45, W * 0.7, H * 0.95, W, H * 0.58);
+        ctx.lineTo(W, H);
+        ctx.lineTo(0, H);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      // Layer 3: Foreground Sunset Flame Ribbon Wave
+      const w3 = ctx.createLinearGradient(0, 0, W, H);
+      w3.addColorStop(0, primary);
+      w3.addColorStop(0.6, '#fb7185');
+      w3.addColorStop(1, '#facc15');
+      ctx.fillStyle = w3;
+      ctx.beginPath();
+      if (isPort) {
+        ctx.moveTo(0, H * 0.68);
+        ctx.bezierCurveTo(W * 0.45, H * 0.58, W * 0.55, H * 0.92, W, H * 0.82);
+        ctx.lineTo(W, H);
+        ctx.lineTo(0, H);
+      } else {
+        ctx.moveTo(0, H * 0.88);
+        ctx.bezierCurveTo(W * 0.45, H * 0.68, W * 0.65, H, W, H * 0.78);
+        ctx.lineTo(W, H);
+        ctx.lineTo(0, H);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.shadowColor = 'transparent';
+
+      // Wave Specular Contour Lines
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, '#ffffff', '#ffffff', '#fed7aa', photoImg, logoImg, '🌊');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
+      }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      ctx.restore();
+    },
+  },
+
+  // ── 2. ARTISTIC CURVED: COSMIC IRIDESCENT S-CURVE (Teal & Electric Violet)
+  {
+    id: 'cosmic_iridescent_curve',
+    name: 'Cosmic Iridescent S-Curve & Aurora',
+    category: 'curved_artistic',
+    industry: 'High-Tech / AI / FinTech / Modern',
+    tagline: 'Sweeping dual-tone curved wave splitting dark void and glowing neon teal',
+    theme: 'dark',
+    defaultAccent: '#06B6D4',
+    defaultSecondary: '#8B5CF6',
+    badgeIcon: '🌌',
+    previewGradient: 'from-cyan-500 via-teal-700 to-indigo-950',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = isPort ? 34 : 38;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
+      const primary = data.accentColor || '#06B6D4';
+      const secondary = data.secondaryColor || '#8B5CF6';
+
+      // Deep Void
+      ctx.fillStyle = '#050711';
+      ctx.fillRect(0, 0, W, H);
+
+      // Iridescent Sweeping Curved S-Field
+      const sGrad = ctx.createLinearGradient(0, 0, W, H);
+      sGrad.addColorStop(0, primary);
+      sGrad.addColorStop(0.5, '#0ea5e9');
+      sGrad.addColorStop(1, secondary);
+
+      ctx.fillStyle = sGrad;
+      ctx.beginPath();
+      if (isPort) {
+        ctx.moveTo(W * 0.4, 0);
+        ctx.bezierCurveTo(W * 1.1, H * 0.35, -W * 0.1, H * 0.65, W * 0.7, H);
+        ctx.lineTo(W, H);
+        ctx.lineTo(W, 0);
+      } else {
+        ctx.moveTo(W * 0.55, 0);
+        ctx.bezierCurveTo(W * 0.85, H * 0.3, W * 0.35, H * 0.7, W * 0.75, H);
+        ctx.lineTo(W, H);
+        ctx.lineTo(W, 0);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      // Translucent Overlapping Ripple Curves
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.lineWidth = 1.5;
+      for (let offset = -40; offset <= 40; offset += 20) {
+        ctx.beginPath();
+        if (isPort) {
+          ctx.moveTo(W * 0.4 + offset, 0);
+          ctx.bezierCurveTo(W * 1.1 + offset, H * 0.35, -W * 0.1 + offset, H * 0.65, W * 0.7 + offset, H);
+        } else {
+          ctx.moveTo(W * 0.55 + offset, 0);
+          ctx.bezierCurveTo(W * 0.85 + offset, H * 0.3, W * 0.35 + offset, H * 0.7, W * 0.75 + offset, H);
+        }
+        ctx.stroke();
+      }
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#e0f2fe', photoImg, logoImg, '🌌');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
+      }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      ctx.restore();
+    },
+  },
+
+  // ── 3. ARTISTIC CURVED: MOLTEN GOLD & CARBON WAVE (Liquid 3D Metal)
+  {
+    id: 'molten_gold_wave',
+    name: 'Liquid Molten Gold & Carbon Wave',
+    category: 'curved_artistic',
+    industry: 'Luxury / Executive / VIP / Metal',
+    tagline: 'Flowing 3D molten gold liquid ribbon across matte graphite carbon',
+    theme: 'dark',
+    defaultAccent: '#F59E0B',
+    defaultSecondary: '#D97706',
+    badgeIcon: '✨',
+    previewGradient: 'from-amber-400 via-amber-700 to-slate-950',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = isPort ? 34 : 38;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
+      const primary = data.accentColor || '#F59E0B';
+
+      // Matte Graphite Base
+      ctx.fillStyle = '#0e1118';
+      ctx.fillRect(0, 0, W, H);
+
+      // Carbon Texture
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.025)';
+      for (let x = 0; x < W; x += 12) {
+        for (let y = 0; y < H; y += 12) {
+          if ((x + y) % 24 === 0) ctx.fillRect(x, y, 6, 6);
+        }
+      }
+
+      // Sweeping 3D Liquid Gold Wave
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.7)';
+      ctx.shadowBlur = 24;
+
+      const goldRibbon = ctx.createLinearGradient(0, 0, W, H);
+      goldRibbon.addColorStop(0, '#92400e');
+      goldRibbon.addColorStop(0.2, '#fef08a');
+      goldRibbon.addColorStop(0.45, primary);
+      goldRibbon.addColorStop(0.7, '#fef9c3');
+      goldRibbon.addColorStop(1, '#78350f');
+
+      ctx.fillStyle = goldRibbon;
+      ctx.beginPath();
+      if (isPort) {
+        ctx.moveTo(0, H * 0.4);
+        ctx.bezierCurveTo(W * 0.7, H * 0.3, W * 0.3, H * 0.75, W, H * 0.65);
+        ctx.lineTo(W, H * 0.85);
+        ctx.bezierCurveTo(W * 0.3, H * 0.95, W * 0.7, H * 0.5, 0, H * 0.6);
+      } else {
+        ctx.moveTo(W * 0.45, 0);
+        ctx.bezierCurveTo(W * 0.85, H * 0.35, W * 0.35, H * 0.65, W * 0.8, H);
+        ctx.lineTo(W, H);
+        ctx.lineTo(W, 0);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      // Beveled Gold Contour Highlight
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#fef08a', photoImg, logoImg, '👑');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
+      }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      ctx.restore();
+    },
+  },
+
+  // ── 4. ARTISTIC CURVED: EMERALD BIO-FLOW WAVE (Jade & Mint Wave)
+  {
+    id: 'emerald_bio_flow',
+    name: 'Zenith Emerald & Mint Fluid Wave',
+    category: 'curved_artistic',
+    industry: 'Bio-Tech / Green Tech / Sustainability / Medical',
+    tagline: 'Organic flowing botanical curved ribbons in rich emerald, jade & mint glow',
+    theme: 'dark',
+    defaultAccent: '#10B981',
+    defaultSecondary: '#06B6D4',
+    badgeIcon: '🍃',
+    previewGradient: 'from-emerald-400 via-teal-600 to-emerald-950',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = isPort ? 34 : 38;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
+      const primary = data.accentColor || '#10B981';
+
+      ctx.fillStyle = '#021a14';
+      ctx.fillRect(0, 0, W, H);
+
+      // Deep Jade Ribbon Wave
+      const jGrad = ctx.createLinearGradient(0, 0, W, H);
+      jGrad.addColorStop(0, '#047857');
+      jGrad.addColorStop(0.5, primary);
+      jGrad.addColorStop(1, '#06B6D4');
+
+      ctx.fillStyle = jGrad;
+      ctx.beginPath();
+      if (isPort) {
+        ctx.moveTo(0, H * 0.55);
+        ctx.bezierCurveTo(W * 0.6, H * 0.45, W * 0.4, H * 0.85, W, H * 0.75);
+        ctx.lineTo(W, H);
+        ctx.lineTo(0, H);
+      } else {
+        ctx.moveTo(0, H * 0.65);
+        ctx.bezierCurveTo(W * 0.4, H * 0.35, W * 0.6, H * 0.85, W, H * 0.5);
+        ctx.lineTo(W, H);
+        ctx.lineTo(0, H);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      // Translucent Accent Spline
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#a7f3d0', photoImg, logoImg, '🍃');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
+      }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      ctx.restore();
+    },
+  },
+
+  // ── 5. ARTISTIC CURVED: ABSTRACT FLUID ACRYLIC SWIRL
+  {
+    id: 'abstract_acrylic_swirl',
+    name: 'Artisan Abstract Fluid Acrylic',
+    category: 'curved_artistic',
+    industry: 'Designers / Art Galleries / Fashion / Media',
+    tagline: 'Dynamic multi-color curved fluid acrylic swirl in coral, teal & violet',
+    theme: 'colorful',
+    defaultAccent: '#F43F5E',
+    defaultSecondary: '#3B82F6',
+    badgeIcon: '🎨',
+    previewGradient: 'from-rose-500 via-amber-400 to-indigo-600',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = isPort ? 34 : 38;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
+      const primary = data.accentColor || '#F43F5E';
+      const secondary = data.secondaryColor || '#3B82F6';
+
+      // Deep Plum Base
+      ctx.fillStyle = '#170c24';
+      ctx.fillRect(0, 0, W, H);
+
+      // Acrylic Blob 1 (Top Coral)
+      const b1 = ctx.createRadialGradient(W * 0.2, H * 0.2, 20, W * 0.2, H * 0.2, 340);
+      b1.addColorStop(0, primary);
+      b1.addColorStop(0.7, 'rgba(244, 63, 94, 0.3)');
+      b1.addColorStop(1, 'transparent');
+      ctx.fillStyle = b1;
+      ctx.fillRect(0, 0, W, H);
+
+      // Acrylic Blob 2 (Bottom Sapphire)
+      const b2 = ctx.createRadialGradient(W * 0.8, H * 0.8, 30, W * 0.8, H * 0.8, 320);
+      b2.addColorStop(0, secondary);
+      b2.addColorStop(0.7, 'rgba(59, 130, 246, 0.3)');
+      b2.addColorStop(1, 'transparent');
+      ctx.fillStyle = b2;
+      ctx.fillRect(0, 0, W, H);
+
+      // Flowing Concentric Topo Curves
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+      ctx.lineWidth = 1.5;
+      for (let r = 50; r < W * 0.9; r += 45) {
+        ctx.beginPath();
+        ctx.arc(W * 0.85, H * 0.15, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#fed7aa', photoImg, logoImg, '🎨');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
+      }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      ctx.restore();
+    },
+  },
+
+  // ── 6. ARTISTIC CURVED: MINIMALIST FLOWING RIBBON (Pearl White & Coral)
+  {
+    id: 'minimal_flowing_ribbon',
+    name: 'Minimalist Studio Pearl & Coral Ribbon',
+    category: 'curved_artistic',
+    industry: 'Architecture / Luxury Minimal / Executive',
+    tagline: 'Pure ivory pearl card with a single dramatic flowing curved ribbon',
+    theme: 'light',
+    defaultAccent: '#E11D48',
+    defaultSecondary: '#4F46E5',
+    badgeIcon: '⚪',
+    previewGradient: 'from-white via-rose-100 to-indigo-200',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = isPort ? 34 : 38;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
+      const primary = data.accentColor || '#E11D48';
+
+      // Pearl White Base
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, W, H);
+
+      // Flowing Coral-to-Indigo Ribbon
+      const rGrad = ctx.createLinearGradient(0, 0, W, H);
+      rGrad.addColorStop(0, primary);
+      rGrad.addColorStop(1, '#4F46E5');
+
+      ctx.fillStyle = rGrad;
+      ctx.beginPath();
+      if (isPort) {
+        ctx.moveTo(W * 0.6, 0);
+        ctx.bezierCurveTo(W * 1.1, H * 0.4, 0, H * 0.6, W * 0.4, H);
+        ctx.lineTo(W * 0.65, H);
+        ctx.bezierCurveTo(0.2, H * 0.6, W * 1.2, H * 0.4, W * 0.8, 0);
+      } else {
+        ctx.moveTo(W * 0.68, 0);
+        ctx.bezierCurveTo(W * 0.95, H * 0.35, W * 0.4, H * 0.65, W * 0.85, H);
+        ctx.lineTo(W, H);
+        ctx.lineTo(W, 0);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, '#0f172a', '#0f172a', '#475569', photoImg, logoImg, '▪️');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, '#0f172a', '#0f172a', qrImg);
+      }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      ctx.restore();
+    },
+  },
+
+  // ── 7. 3D LUXURY: EXECUTIVE 3D OBSIDIAN & GOLD
   {
     id: 'executive_3d_gold',
     name: 'Executive 3D Obsidian & Gold',
     category: '3d_luxury',
     industry: 'Executive / Corporate / VIP',
-    tagline: 'Metallic carbon weave, 3D beveled gold ribbon, EMV chip',
+    tagline: 'Deep carbon weave, 3D beveled gold ribbon, EMV chip',
     theme: 'dark',
     defaultAccent: '#F59E0B',
     defaultSecondary: '#D97706',
@@ -318,7 +745,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.roundRect(0, 0, W, H, radius);
       ctx.clip();
 
-      // Deep Metallic Carbon Gradient
       const bg = ctx.createLinearGradient(0, 0, W, H);
       bg.addColorStop(0, '#0c0f17');
       bg.addColorStop(0.45, '#161c2b');
@@ -326,7 +752,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, W, H);
 
-      // Micro Carbon Mesh Weave
       ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
       for (let x = 0; x < W; x += 14) {
         for (let y = 0; y < H; y += 14) {
@@ -334,7 +759,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
         }
       }
 
-      // 3D Beveled Diagonal Gold Banner
       const primary = data.accentColor || '#F59E0B';
       const goldGrad = ctx.createLinearGradient(0, 0, W, H);
       goldGrad.addColorStop(0, primary);
@@ -358,7 +782,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.closePath();
       ctx.fill();
 
-      // Gold Outer Foil Frame
       ctx.strokeStyle = primary;
       ctx.lineWidth = 2.5;
       ctx.strokeRect(22, 22, W - 44, H - 44);
@@ -374,7 +797,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     },
   },
 
-  // 2. MODERN REAL ESTATE & ARCHITECTURE (Real Estate / 3D Slate)
+  // ── 8. MODERN TECH: METROPOLITAN REAL ESTATE
   {
     id: 'real_estate_skyline',
     name: 'Metropolitan Real Estate & Skyline',
@@ -397,7 +820,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.fillStyle = '#060e1d';
       ctx.fillRect(0, 0, W, H);
 
-      // Blueprint Drafting Grid
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
       ctx.lineWidth = 1;
       for (let x = 0; x < W; x += 28) {
@@ -407,7 +829,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
       }
 
-      // Skyline Silhouette
       ctx.fillStyle = 'rgba(56, 189, 248, 0.06)';
       const skyY = H * 0.76;
       const bWidth = W / 14;
@@ -416,7 +837,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
         ctx.fillRect(i * bWidth, skyY - bHeight, bWidth - 4, bHeight + H * 0.25);
       }
 
-      // 3D Top Metallic Stripe
       const stripe = ctx.createLinearGradient(0, 0, W, 0);
       stripe.addColorStop(0, primary);
       stripe.addColorStop(1, '#6366F1');
@@ -434,7 +854,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     },
   },
 
-  // 3. CYBER & AI TECHNOLOGY (Technology / Cool / 3D)
+  // ── 9. MODERN TECH: CYBERNETIC AI & QUANTUM GRID
   {
     id: 'cyber_ai_neon',
     name: 'Cybernetic AI & Quantum Grid',
@@ -469,7 +889,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.fillStyle = g2;
       ctx.fillRect(0, 0, W, H);
 
-      // Circuit lines
       ctx.strokeStyle = 'rgba(6, 182, 212, 0.2)';
       ctx.lineWidth = 1.5;
       for (let x = 60; x < W; x += 110) {
@@ -497,45 +916,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     },
   },
 
-  // 4. LAWYER, LEGAL & JUSTICE (Corporate / Professional / Elegant)
-  {
-    id: 'legal_justice_prestige',
-    name: 'Chambers Legal & Jurisprudence',
-    category: 'corporate_legal',
-    industry: 'Lawyers / Legal / Notary / Consulting',
-    tagline: 'Rich burgundy-navy, classical double pinstripes & scales of justice',
-    theme: 'dark',
-    defaultAccent: '#EAB308',
-    defaultSecondary: '#1E3A8A',
-    badgeIcon: '⚖️',
-    previewGradient: 'from-amber-600/30 via-slate-900 to-blue-950',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      const radius = isPort ? 34 : 38;
-      ctx.save();
-      ctx.beginPath();
-      ctx.roundRect(0, 0, W, H, radius);
-      ctx.clip();
-
-      const primary = data.accentColor || '#EAB308';
-      ctx.fillStyle = '#060d1f';
-      ctx.fillRect(0, 0, W, H);
-
-      ctx.strokeStyle = primary;
-      ctx.lineWidth = 2.5;
-      ctx.strokeRect(24, 24, W - 48, H - 48);
-
-      if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#cbd5e1', photoImg, logoImg, '⚖️');
-      } else {
-        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
-      }
-
-      apply3DCardLightingAndBevel(ctx, W, H, isPort);
-      ctx.restore();
-    },
-  },
-
-  // 5. CONSTRUCTION, CONTRACTOR & HANDYMAN (Construction / Trades)
+  // ── 10. TRADES: INDUSTRIAL CONSTRUCTION & ENGINEERING
   {
     id: 'construction_heavy_duty',
     name: 'Industrial Construction & Engineering',
@@ -558,7 +939,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.fillStyle = '#111317';
       ctx.fillRect(0, 0, W, H);
 
-      // Industrial Steel Angle Mesh
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
       ctx.lineWidth = 3;
       for (let i = -W; i < W * 2; i += 60) {
@@ -568,7 +948,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
         ctx.stroke();
       }
 
-      // Safety Hazard Diagonal Stripe Banner
       const hazH = isPort ? 16 : 18;
       const hazY = isPort ? H - 24 : H - 28;
       ctx.fillStyle = primary;
@@ -596,7 +975,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     },
   },
 
-  // 6. BEAUTY, SALON & SPA (Beauty / Elegant / Cute)
+  // ── 11. BEAUTY: VELVET ROSE GOLD & SPA
   {
     id: 'beauty_spa_rosegold',
     name: 'Velvet Rose Gold & Botanical Spa',
@@ -640,7 +1019,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     },
   },
 
-  // 7. VINTAGE BARBER & GROOMING (Barber / Cool / Retro)
+  // ── 12. BARBER: VINTAGE GENTLEMAN BARBER
   {
     id: 'barber_vintage_grooming',
     name: 'Vintage Gentleman Barber & Shave',
@@ -688,7 +1067,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     },
   },
 
-  // 8. RESTAURANT, CHEF & CULINARY (Restaurant / Bakery / Food)
+  // ── 13. RESTAURANT: ARTISAN CULINARY
   {
     id: 'culinary_gastronomy',
     name: 'Artisan Culinary & Fine Dining',
@@ -732,7 +1111,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     },
   },
 
-  // 9. PHOTOGRAPHY & STUDIO ARTS (Photography / Creative)
+  // ── 14. PHOTOGRAPHY: LUMINOUS APERTURE
   {
     id: 'photography_aperture',
     name: 'Luminous Aperture & Lens Studio',
@@ -781,211 +1160,9 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.restore();
     },
   },
-
-  // 10. CLEANING SERVICES & SPARKLE (Cleaning / Simple)
-  {
-    id: 'cleaning_sparkle_fresh',
-    name: 'Crystal Clean & Sparkle Hygiene',
-    category: 'trades_construction',
-    industry: 'Cleaning Services / Janitorial / Hygiene / Laundry',
-    tagline: 'Fresh aqua mint, gleaming sparkle bubbles & shield emblem',
-    theme: 'dark',
-    defaultAccent: '#06B6D4',
-    defaultSecondary: '#3B82F6',
-    badgeIcon: '✨',
-    previewGradient: 'from-cyan-400/30 via-blue-950 to-slate-950',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      const radius = isPort ? 34 : 38;
-      ctx.save();
-      ctx.beginPath();
-      ctx.roundRect(0, 0, W, H, radius);
-      ctx.clip();
-
-      const primary = data.accentColor || '#06B6D4';
-      ctx.fillStyle = '#06101e';
-      ctx.fillRect(0, 0, W, H);
-
-      ctx.strokeStyle = primary;
-      ctx.lineWidth = 2.5;
-      ctx.strokeRect(20, 20, W - 40, H - 40);
-
-      if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#e0f2fe', photoImg, logoImg, '🧹');
-      } else {
-        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
-      }
-
-      apply3DCardLightingAndBevel(ctx, W, H, isPort);
-      ctx.restore();
-    },
-  },
-
-  // 11. ELECTRICIAN & POWER SURGE (Electrician / Trades)
-  {
-    id: 'electrician_power_surge',
-    name: 'High Voltage Electrical Engineering',
-    category: 'trades_construction',
-    industry: 'Electrician / Power / Solar / HVAC',
-    tagline: 'High-voltage lightning pulse chevron, carbon grid & surge lines',
-    theme: 'dark',
-    defaultAccent: '#FACC15',
-    defaultSecondary: '#F97316',
-    badgeIcon: '⚡',
-    previewGradient: 'from-yellow-400/30 via-amber-950 to-black',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      const radius = isPort ? 34 : 38;
-      ctx.save();
-      ctx.beginPath();
-      ctx.roundRect(0, 0, W, H, radius);
-      ctx.clip();
-
-      const primary = data.accentColor || '#FACC15';
-      ctx.fillStyle = '#0b0c10';
-      ctx.fillRect(0, 0, W, H);
-
-      ctx.strokeStyle = primary;
-      ctx.lineWidth = 2.5;
-      ctx.strokeRect(20, 20, W - 40, H - 40);
-
-      if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#fef08a', photoImg, logoImg, '⚡');
-      } else {
-        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
-      }
-
-      apply3DCardLightingAndBevel(ctx, W, H, isPort);
-      ctx.restore();
-    },
-  },
-
-  // 12. MINIMALIST SWISS MONOCHROME (Minimal / Simple / Modern)
-  {
-    id: 'minimal_swiss_monochrome',
-    name: 'Minimalist Swiss Studio White',
-    category: 'minimal_simple',
-    industry: 'Design / Architecture / Fashion / Consulting',
-    tagline: 'Stark white & obsidian black, Swiss typographic grid, bold red dot',
-    theme: 'light',
-    defaultAccent: '#DC2626',
-    defaultSecondary: '#0F172A',
-    badgeIcon: '⚪',
-    previewGradient: 'from-white via-slate-100 to-slate-300',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      const radius = isPort ? 34 : 38;
-      ctx.save();
-      ctx.beginPath();
-      ctx.roundRect(0, 0, W, H, radius);
-      ctx.clip();
-
-      const primary = data.accentColor || '#DC2626';
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, W, H);
-
-      ctx.fillStyle = '#0F172A';
-      ctx.fillRect(0, 0, 14, H);
-
-      ctx.fillStyle = primary;
-      ctx.beginPath();
-      ctx.arc(isPort ? W - 45 : W - 50, 45, 10, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.strokeStyle = '#E2E8F0';
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(20, 20, W - 40, H - 40);
-
-      if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, '#0F172A', '#0F172A', '#475569', photoImg, logoImg, '▪️');
-      } else {
-        renderStandardBackContent(ctx, W, H, isPort, data, '#0F172A', '#0F172A', qrImg);
-      }
-
-      apply3DCardLightingAndBevel(ctx, W, H, isPort);
-      ctx.restore();
-    },
-  },
-
-  // 13. CREATIVE VIBRANT AURORA (Colorful / Creative / Cool)
-  {
-    id: 'creative_vibrant_aurora',
-    name: 'Creative Aurora & Prism Mesh',
-    category: 'creative_colorful',
-    industry: 'Creative Agencies / Creators / Freelancers / Media',
-    tagline: 'Fluid multi-stop neon mesh gradient with frosted glass overlay',
-    theme: 'colorful',
-    defaultAccent: '#F43F5E',
-    defaultSecondary: '#8B5CF6',
-    badgeIcon: '🎨',
-    previewGradient: 'from-rose-500 via-purple-600 to-cyan-500',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      const radius = isPort ? 34 : 38;
-      ctx.save();
-      ctx.beginPath();
-      ctx.roundRect(0, 0, W, H, radius);
-      ctx.clip();
-
-      const primary = data.accentColor || '#F43F5E';
-      const mesh = ctx.createLinearGradient(0, 0, W, H);
-      mesh.addColorStop(0, '#1e1b4b');
-      mesh.addColorStop(0.4, '#311042');
-      mesh.addColorStop(1, '#0f172a');
-      ctx.fillStyle = mesh;
-      ctx.fillRect(0, 0, W, H);
-
-      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(22, 22, W - 44, H - 44);
-
-      if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#fed7aa', photoImg, logoImg, '🎨');
-      } else {
-        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
-      }
-
-      apply3DCardLightingAndBevel(ctx, W, H, isPort);
-      ctx.restore();
-    },
-  },
-
-  // 14. INSURANCE & FIDUCIARY WEALTH (Insurance / Finance)
-  {
-    id: 'insurance_fiduciary_emerald',
-    name: 'Fiduciary Wealth & Security Shield',
-    category: 'corporate_legal',
-    industry: 'Insurance / Financial Advisors / Wealth Management',
-    tagline: 'Deep emerald forest, silver guilloche arcs & fiduciary crest',
-    theme: 'dark',
-    defaultAccent: '#10B981',
-    defaultSecondary: '#34D399',
-    badgeIcon: '🛡️',
-    previewGradient: 'from-emerald-500/30 via-slate-900 to-black',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      const radius = isPort ? 34 : 38;
-      ctx.save();
-      ctx.beginPath();
-      ctx.roundRect(0, 0, W, H, radius);
-      ctx.clip();
-
-      const primary = data.accentColor || '#10B981';
-      ctx.fillStyle = '#022119';
-      ctx.fillRect(0, 0, W, H);
-
-      ctx.strokeStyle = primary;
-      ctx.lineWidth = 2.5;
-      ctx.strokeRect(22, 22, W - 44, H - 44);
-
-      if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#a7f3d0', photoImg, logoImg, '🛡️');
-      } else {
-        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
-      }
-
-      apply3DCardLightingAndBevel(ctx, W, H, isPort);
-      ctx.restore();
-    },
-  },
 ];
 
-// ── COMPOSITE CONTENT RENDERERS (BALANCED POSITIONING) ─────────────────────────
+// ── COMPOSITE CONTENT RENDERERS ────────────────────────────────────────────────
 function renderStandardFrontContent(
   ctx: CanvasRenderingContext2D,
   W: number,
@@ -1000,11 +1177,7 @@ function renderStandardFrontContent(
   defaultIcon: string
 ) {
   if (isPort) {
-    // ══════════════════════════════════════════════════════════════════════════
-    // ── BALANCED VERTICAL (PORTRAIT: 600 × 1050 px) ──────────────────────────
-    // ══════════════════════════════════════════════════════════════════════════
-
-    // 1. Top Lanyard / Badge Slot Graphic
+    // Top Lanyard Slot
     ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
     ctx.beginPath();
     ctx.roundRect(W / 2 - 32, 14, 64, 10, 5);
@@ -1013,7 +1186,7 @@ function renderStandardFrontContent(
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // 2. Company Logo / Emblem & Name
+    // Company Logo & Title
     const logoSize = 58;
     const logoX = W / 2 - logoSize / 2;
     const logoY = 38;
@@ -1042,7 +1215,6 @@ function renderStandardFrontContent(
       ctx.fillText(data.companyName.charAt(0) || defaultIcon, W / 2, logoY + logoSize / 2 + 1);
     }
 
-    // Company Name & Tagline
     ctx.textAlign = 'center';
     ctx.fillStyle = textColor;
     ctx.font = '900 21px Inter, sans-serif';
@@ -1054,7 +1226,7 @@ function renderStandardFrontContent(
       ctx.fillText(data.tagline, W / 2, 145);
     }
 
-    // 3. Centered ID Photo (Rounded 3D Frame)
+    // ID Photo Frame
     const pSize = 165;
     const px = W / 2 - pSize / 2;
     const py = 172;
@@ -1089,13 +1261,12 @@ function renderStandardFrontContent(
     }
     ctx.restore();
 
-    // 4. Full Name & Job Title
+    // Name & Title
     ctx.textAlign = 'center';
     ctx.fillStyle = textColor;
     ctx.font = '900 27px Inter, sans-serif';
     ctx.fillText(data.fullName, W / 2, 375);
 
-    // Job Title Capsule Pill
     const titleText = data.jobTitle.toUpperCase();
     ctx.font = 'bold 12.5px Inter, sans-serif';
     const titleMetrics = ctx.measureText(titleText);
@@ -1121,7 +1292,7 @@ function renderStandardFrontContent(
       ctx.fillText(`Department: ${data.department}`, W / 2, 436);
     }
 
-    // 5. Structured Data Metric Tiles (2 Columns x 2 Rows Glass Cards)
+    // 4 Glass Data Tiles
     const blockY = 462;
     const metrics = [
       { label: 'ID NUMBER', val: data.idNumber, col: accentColor },
@@ -1138,11 +1309,11 @@ function renderStandardFrontContent(
       const tx = col === 0 ? 55 : W - 55 - tileW;
       const ty = blockY + row * 58;
 
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
       ctx.beginPath();
       ctx.roundRect(tx, ty, tileW, tileH, 10);
       ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
       ctx.lineWidth = 1;
       ctx.stroke();
 
@@ -1156,7 +1327,7 @@ function renderStandardFrontContent(
       ctx.fillText(m.val, tx + 14, ty + 38);
     });
 
-    // 6. Contact Section
+    // Contact
     const contactY = 598;
     ctx.textAlign = 'center';
     ctx.font = '12.5px Inter, sans-serif';
@@ -1165,7 +1336,7 @@ function renderStandardFrontContent(
     ctx.fillText(`✉️  ${data.email}`, W / 2, contactY + 25);
     ctx.fillText(`🌐  ${data.website}`, W / 2, contactY + 50);
 
-    // 7. EMV Chip & Contactless on Badge
+    // EMV Chip & NFC
     if (data.showChip) {
       drawEmvChip(ctx, 55, H - 155, 52, 38, true);
     }
@@ -1173,7 +1344,7 @@ function renderStandardFrontContent(
       drawContactlessSymbol(ctx, W - 75, H - 135, accentColor);
     }
 
-    // 8. Vector Barcode
+    // Barcode
     if (data.showBarcode) {
       const barY = H - 95;
       ctx.fillStyle = textColor;
@@ -1186,11 +1357,7 @@ function renderStandardFrontContent(
       ctx.fillText(data.idNumber, W / 2, barY + 40);
     }
   } else {
-    // ══════════════════════════════════════════════════════════════════════════
-    // ── BALANCED HORIZONTAL (LANDSCAPE: 1050 × 600 px) ───────────────────────
-    // ══════════════════════════════════════════════════════════════════════════
-
-    // 1. Top Row: Company Logo & Brand Name
+    // Landscape Top Row
     const logoSize = 62;
     const logoX = 52;
     const logoY = 46;
@@ -1230,7 +1397,7 @@ function renderStandardFrontContent(
       ctx.fillText(data.tagline, 130, 96);
     }
 
-    // 2. Top Right: EMV Smart Chip & Contactless Symbol
+    // Top Right Chip & Wave
     if (data.showChip) {
       drawEmvChip(ctx, W - 140, 48, 64, 46, true);
     }
@@ -1238,7 +1405,7 @@ function renderStandardFrontContent(
       drawContactlessSymbol(ctx, W - 180, 70, accentColor);
     }
 
-    // 3. Middle: Name, Title & Formatted Card Number
+    // Middle Name & Title
     const nameY = 210;
     ctx.fillStyle = textColor;
     ctx.font = '900 38px Inter, sans-serif';
@@ -1254,12 +1421,11 @@ function renderStandardFrontContent(
       ctx.fillText(`Dept: ${data.department}`, 52, nameY + 54);
     }
 
-    // Formatted Card Serial Number (Mastercard style laser font)
     ctx.fillStyle = 'rgba(255,255,255,0.45)';
     ctx.font = 'bold 15px monospace';
     ctx.fillText(`${data.idNumber || 'BT-8842-SL'}  •  ${data.issueDate}  EXP: ${data.expiryDate}`, 52, nameY + 84);
 
-    // 4. Bottom: 2-Column Contact Grid
+    // Contacts
     const startY = 360;
     const contacts = [
       { icon: '📞', text: data.phone },
@@ -1279,13 +1445,11 @@ function renderStandardFrontContent(
       ctx.fillText(`${c.icon}  ${c.text}`, cx, cy);
     });
 
-    // 5. Interlocking Mastercard Style Dual Circles (Bottom Right)
     if (data.showMasterCircles) {
       drawInterlockingCircles(ctx, W - 85, H - 75, 26, accentColor, data.secondaryColor || '#EF4444');
     }
   }
 
-  // Optional Cut / Bleed Marks
   if (data.showCutMarks) {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
     ctx.lineWidth = 1;
@@ -1311,7 +1475,6 @@ function renderStandardBackContent(
   textColor: string,
   qrImg: HTMLImageElement | null
 ) {
-  // 1. Magnetic Stripe (Classic Mastercard Gloss Black Stripe)
   const stripeH = isPort ? 56 : 64;
   const stripeY = isPort ? 32 : 40;
 
@@ -1322,7 +1485,6 @@ function renderStandardBackContent(
   ctx.fillStyle = magGrad;
   ctx.fillRect(0, stripeY, W, stripeH);
 
-  // 2. White Signature Strip with Security Hatch Lines
   const sigX = isPort ? 45 : 55;
   const sigY = isPort ? 110 : 125;
   const sigW = isPort ? W - 90 : W * 0.46;
@@ -1333,7 +1495,6 @@ function renderStandardBackContent(
   ctx.roundRect(sigX, sigY, sigW, sigH, 6);
   ctx.fill();
 
-  // Signature hatched lines
   ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
   ctx.lineWidth = 1;
   for (let sx = sigX; sx < sigX + sigW; sx += 12) {
@@ -1343,7 +1504,6 @@ function renderStandardBackContent(
     ctx.stroke();
   }
 
-  // Authorized Signature Label & Security Hologram Text
   ctx.fillStyle = '#64748b';
   ctx.font = 'bold 9px Inter, sans-serif';
   ctx.textAlign = 'left';
@@ -1353,7 +1513,6 @@ function renderStandardBackContent(
   ctx.font = 'italic bold 16px "Brush Script MT", cursive, sans-serif';
   ctx.fillText(data.fullName, sigX + 24, sigY + 36);
 
-  // 3. Scannable QR Code (Framed in 3D White Tile)
   const qrSize = isPort ? 180 : 190;
   const qx = isPort ? W / 2 - qrSize / 2 : W - qrSize - 65;
   const qy = isPort ? 180 : 135;
@@ -1371,7 +1530,6 @@ function renderStandardBackContent(
   }
   ctx.restore();
 
-  // 4. Backside Copy & Security Policy
   const tx = isPort ? W / 2 : 55;
   const ty = isPort ? 415 : 205;
 
@@ -1412,7 +1570,6 @@ function renderStandardBackContent(
     ctx.fillText(`Emergency Security: ${data.emergencyContact}`, tx, lineY);
   }
 
-  // 5. Official Company Footer String
   ctx.textAlign = 'center';
   ctx.fillStyle = 'rgba(255,255,255,0.45)';
   ctx.font = 'bold 11px Inter, sans-serif';
@@ -1448,10 +1605,10 @@ const DEFAULT_CARD_DATA: CardData = {
   qrType: 'vcard',
   qrCustomText: 'https://www.itservicesfreetown.com',
 
-  templateId: 'executive_3d_gold',
+  templateId: 'fluid_chroma_wave',
   orientation: 'landscape',
-  accentColor: '#F59E0B',
-  secondaryColor: '#EF4444',
+  accentColor: '#F97316',
+  secondaryColor: '#EC4899',
   bgOpacity: 0.4,
   showChip: true,
   showContactless: true,
@@ -1469,7 +1626,6 @@ export default function CardStudio() {
   const [isExporting, setIsExporting] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
 
-  // 3D Tilt interaction state
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
   const frontCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -1800,22 +1956,22 @@ export default function CardStudio() {
       <div className="bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white flex items-center justify-center text-2xl shadow-xl shadow-amber-500/20">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-rose-600 text-white flex items-center justify-center text-2xl shadow-xl shadow-amber-500/20">
               <CreditCard className="w-7 h-7" />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-xs font-black uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 flex items-center gap-1">
                   <Sparkles className="w-3 h-3" />
-                  3D Mastercard Luxury • 300 DPI
+                  3D Modern Curved Luxury • 300 DPI
                 </span>
                 <span className="text-xs font-bold text-slate-400">• ISO 7810 Standard</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                3D Luxury Business &amp; ID Card Studio
+                3D Artistic Curved &amp; Business Card Studio
               </h2>
               <p className="text-slate-400 text-xs sm:text-sm mt-1">
-                Design realistic 3D metallic cards with rounded edges, EMV microchip, contactless NFC glyphs, and high-precision vertical &amp; horizontal content layouts.
+                Dynamic flowing Bezier curved colors, iridescent S-curves, liquid molten gold, 3D EMV microchip, and print-ready duplex PDFs.
               </p>
             </div>
           </div>
@@ -1833,7 +1989,7 @@ export default function CardStudio() {
             <button
               onClick={downloadSinglePdf}
               disabled={isExporting}
-              className="py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black text-xs flex items-center gap-2 shadow-lg shadow-amber-500/25 transition-all active:scale-95"
+              className="py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-black font-black text-xs flex items-center gap-2 shadow-lg shadow-amber-500/25 transition-all active:scale-95"
             >
               <Download className="w-4 h-4" />
               <span>{isExporting ? 'Exporting...' : 'Download Card PDF'}</span>
@@ -1905,7 +2061,7 @@ export default function CardStudio() {
                 <div className="flex items-center justify-between text-xs font-bold text-slate-400 px-1">
                   <span className="flex items-center gap-1.5 text-amber-300">
                     <Eye className="w-3.5 h-3.5" />
-                    3D FRONT SIDE (ROUNDED EDGES)
+                    3D FRONT SIDE (ARTISTIC CURVED)
                   </span>
                   <button
                     onClick={() => downloadPng('front')}
@@ -1916,7 +2072,6 @@ export default function CardStudio() {
                   </button>
                 </div>
 
-                {/* 3D Interactive Perspective Wrapper */}
                 <div
                   onMouseMove={handleMouseMove}
                   onMouseLeave={handleMouseLeave}
@@ -1930,7 +2085,6 @@ export default function CardStudio() {
                       transformStyle: 'preserve-3d',
                     }}
                   >
-                    {/* Multi-layered Drop Shadow */}
                     <div
                       className="absolute -inset-2 rounded-[32px] bg-black/60 blur-xl -z-10 pointer-events-none"
                       style={{ transform: 'translateZ(-20px)' }}
@@ -2019,7 +2173,7 @@ export default function CardStudio() {
             })}
           </div>
 
-          {/* TAB 1: DESIGN TEMPLATES & 3D HARDWARE TOGGLES */}
+          {/* TAB 1: DESIGN TEMPLATES */}
           {activeTab === 'templates' && (
             <div className="space-y-5">
               {/* Orientation Switcher */}
@@ -2049,7 +2203,7 @@ export default function CardStudio() {
                 </div>
               </div>
 
-              {/* 3D Hardware Elements Toggles (Mastercard features) */}
+              {/* 3D Hardware Elements Toggles */}
               <div className="space-y-2 pt-2 border-t border-slate-800">
                 <label className="text-xs font-bold text-slate-300 block">3D Hardware Badges &amp; Embellishments</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -2112,7 +2266,7 @@ export default function CardStudio() {
                         type="text"
                         value={data.accentColor}
                         onChange={(e) => setData({ ...data, accentColor: e.target.value })}
-                        placeholder="#F59E0B"
+                        placeholder="#F97316"
                         className="w-full bg-transparent font-mono text-xs text-white focus:outline-none uppercase"
                       />
                     </div>
@@ -2131,7 +2285,7 @@ export default function CardStudio() {
                         type="text"
                         value={data.secondaryColor}
                         onChange={(e) => setData({ ...data, secondaryColor: e.target.value })}
-                        placeholder="#EF4444"
+                        placeholder="#EC4899"
                         className="w-full bg-transparent font-mono text-xs text-white focus:outline-none uppercase"
                       />
                     </div>
@@ -2158,18 +2312,19 @@ export default function CardStudio() {
               {/* Style Category Filter Tabs */}
               <div className="space-y-3 pt-2 border-t border-slate-800">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-300">Design Collections &amp; Industries</label>
+                  <label className="text-xs font-bold text-slate-300">Design Collections</label>
                   <span className="text-[10px] text-slate-500 font-mono">{filteredTemplates.length} designs</span>
                 </div>
 
                 <div className="flex flex-wrap gap-1.5">
                   {[
                     { id: 'all', label: 'All Designs' },
+                    { id: 'curved_artistic', label: '🌊 Artistic Curved' },
                     { id: '3d_luxury', label: '👑 3D & Luxury' },
                     { id: 'modern_tech', label: '⚡ Tech & AI' },
                     { id: 'corporate_legal', label: '⚖️ Corporate & Legal' },
                     { id: 'trades_construction', label: '🏗️ Trades & Industry' },
-                    { id: 'lifestyle_beauty', label: '✨ Beauty & Spa' },
+                    { id: 'lifestyle_beauty', label: '🌸 Beauty & Spa' },
                     { id: 'creative_colorful', label: '🎨 Colorful & Creative' },
                     { id: 'minimal_simple', label: '⚪ Minimal & Swiss' },
                   ].map((cat) => (
@@ -2193,7 +2348,7 @@ export default function CardStudio() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search styles (e.g. real estate, barber, 3d, cleaning)..."
+                  placeholder="Search styles (e.g. wave, curved, sunset, real estate, 3d)..."
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
                 />
                 <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
@@ -2458,7 +2613,7 @@ export default function CardStudio() {
                 <button
                   onClick={downloadSinglePdf}
                   disabled={isExporting}
-                  className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 transition-all active:scale-98"
+                  className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-black font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 transition-all active:scale-98"
                 >
                   <Download className="w-4 h-4" />
                   <span>Download Multi-Page PDF (Front &amp; Back)</span>
