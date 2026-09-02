@@ -144,8 +144,38 @@ export interface CardData {
   showCutMarks: boolean;
 }
 
+// ── COLOR VALIDATION & SAFE COLOR HELPERS (PREVENTS addColorStop SYNTAX ERRORS) ─
+export function isValidHexColor(color: string): boolean {
+  if (!color || typeof color !== 'string') return false;
+  return /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/.test(color.trim());
+}
+
+export function safeColor(color: string | undefined | null, fallback: string = '#F59E0B'): string {
+  if (!color || typeof color !== 'string') return fallback;
+  const trimmed = color.trim();
+  if (isValidHexColor(trimmed)) return trimmed;
+  if (/^(rgb|hsl)a?\(.*\)$/i.test(trimmed)) return trimmed;
+  return fallback;
+}
+
+export function hexToRgba(hexColor: string, alpha: number = 1, fallback: string = '#F59E0B'): string {
+  const c = safeColor(hexColor, fallback);
+  let hex = c.replace('#', '');
+  if (hex.length === 3) {
+    hex = hex.split('').map((x) => x + x).join('');
+  }
+  if (hex.length >= 6) {
+    const r = parseInt(hex.substring(0, 2), 16) || 0;
+    const g = parseInt(hex.substring(2, 4), 16) || 0;
+    const b = parseInt(hex.substring(4, 6), 16) || 0;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  return `rgba(245, 158, 11, ${alpha})`;
+}
+
 // ── COLOR PRESETS PALETTE ───────────────────────────────────────────────────────
 const COLOR_PRESETS = [
+  { name: 'BridgeTech Blue', hex: '#040E40' },
   { name: 'Mastercard Gold', hex: '#F59E0B' },
   { name: 'Sunset Amber', hex: '#F97316' },
   { name: 'Neon Magenta', hex: '#EC4899' },
@@ -157,7 +187,6 @@ const COLOR_PRESETS = [
   { name: 'Rose Gold', hex: '#FB7185' },
   { name: 'Titanium Silver', hex: '#94A3B8' },
   { name: 'Deep Teal', hex: '#0D9488' },
-  { name: 'Pure White', hex: '#FFFFFF' },
 ];
 
 // ── HELPER: DRAW REALISTIC 3D EMV CHIP & CONTACTLESS SYMBOL ─────────────────────
@@ -218,7 +247,7 @@ function drawEmvChip(ctx: CanvasRenderingContext2D, x: number, y: number, w: num
 
 function drawContactlessSymbol(ctx: CanvasRenderingContext2D, x: number, y: number, color: string = 'rgba(255,255,255,0.7)') {
   ctx.save();
-  ctx.strokeStyle = color;
+  ctx.strokeStyle = safeColor(color, 'rgba(255,255,255,0.7)');
   ctx.lineWidth = 2.5;
   ctx.lineCap = 'round';
 
@@ -235,12 +264,12 @@ function drawInterlockingCircles(ctx: CanvasRenderingContext2D, x: number, y: nu
   ctx.save();
   ctx.globalAlpha = 0.85;
 
-  ctx.fillStyle = primary;
+  ctx.fillStyle = safeColor(primary, '#F59E0B');
   ctx.beginPath();
   ctx.arc(x - r * 0.6, y, r, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.fillStyle = secondary;
+  ctx.fillStyle = safeColor(secondary, '#EF4444');
   ctx.beginPath();
   ctx.arc(x + r * 0.6, y, r, 0, Math.PI * 2);
   ctx.fill();
@@ -284,7 +313,7 @@ function apply3DCardLightingAndBevel(ctx: CanvasRenderingContext2D, W: number, H
   ctx.restore();
 }
 
-// ── MASTER TEMPLATES COLLECTION (INCLUDING ARTISTIC MODERN CURVED DESIGNS) ───────
+// ── MASTER TEMPLATES COLLECTION ─────────────────────────────────────────────────
 const MASTER_TEMPLATES: CardTemplateConfig[] = [
   // ── 1. ARTISTIC CURVED: FLUID CHROMA WAVE (Sunset & Magenta Flame)
   {
@@ -305,14 +334,12 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.roundRect(0, 0, W, H, radius);
       ctx.clip();
 
-      const primary = data.accentColor || '#F97316';
-      const secondary = data.secondaryColor || '#EC4899';
+      const primary = safeColor(data.accentColor, '#F97316');
+      const secondary = safeColor(data.secondaryColor, '#EC4899');
 
-      // Deep Cosmic Indigo Base
       ctx.fillStyle = '#0a0914';
       ctx.fillRect(0, 0, W, H);
 
-      // Layer 1: Back Purple Ambient Wave
       const w1 = ctx.createLinearGradient(0, 0, W, H);
       w1.addColorStop(0, '#3b0764');
       w1.addColorStop(0.5, '#701a75');
@@ -333,7 +360,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.closePath();
       ctx.fill();
 
-      // Layer 2: Middle Vibrant Magenta S-Wave with Shadow
       ctx.shadowColor = 'rgba(0,0,0,0.5)';
       ctx.shadowBlur = 20;
       const w2 = ctx.createLinearGradient(0, 0, W, 0);
@@ -355,7 +381,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.closePath();
       ctx.fill();
 
-      // Layer 3: Foreground Sunset Flame Ribbon Wave
       const w3 = ctx.createLinearGradient(0, 0, W, H);
       w3.addColorStop(0, primary);
       w3.addColorStop(0.6, '#fb7185');
@@ -377,7 +402,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.fill();
       ctx.shadowColor = 'transparent';
 
-      // Wave Specular Contour Lines
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
       ctx.lineWidth = 2;
       ctx.stroke();
@@ -412,14 +436,12 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.roundRect(0, 0, W, H, radius);
       ctx.clip();
 
-      const primary = data.accentColor || '#06B6D4';
-      const secondary = data.secondaryColor || '#8B5CF6';
+      const primary = safeColor(data.accentColor, '#06B6D4');
+      const secondary = safeColor(data.secondaryColor, '#8B5CF6');
 
-      // Deep Void
       ctx.fillStyle = '#050711';
       ctx.fillRect(0, 0, W, H);
 
-      // Iridescent Sweeping Curved S-Field
       const sGrad = ctx.createLinearGradient(0, 0, W, H);
       sGrad.addColorStop(0, primary);
       sGrad.addColorStop(0.5, '#0ea5e9');
@@ -441,7 +463,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.closePath();
       ctx.fill();
 
-      // Translucent Overlapping Ripple Curves
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
       ctx.lineWidth = 1.5;
       for (let offset = -40; offset <= 40; offset += 20) {
@@ -467,7 +488,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     },
   },
 
-  // ── 3. ARTISTIC CURVED: MOLTEN GOLD & CARBON WAVE (Liquid 3D Metal)
+  // ── 3. ARTISTIC CURVED: MOLTEN GOLD & CARBON WAVE
   {
     id: 'molten_gold_wave',
     name: 'Liquid Molten Gold & Carbon Wave',
@@ -486,13 +507,11 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.roundRect(0, 0, W, H, radius);
       ctx.clip();
 
-      const primary = data.accentColor || '#F59E0B';
+      const primary = safeColor(data.accentColor, '#F59E0B');
 
-      // Matte Graphite Base
       ctx.fillStyle = '#0e1118';
       ctx.fillRect(0, 0, W, H);
 
-      // Carbon Texture
       ctx.fillStyle = 'rgba(255, 255, 255, 0.025)';
       for (let x = 0; x < W; x += 12) {
         for (let y = 0; y < H; y += 12) {
@@ -500,7 +519,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
         }
       }
 
-      // Sweeping 3D Liquid Gold Wave
       ctx.save();
       ctx.shadowColor = 'rgba(0,0,0,0.7)';
       ctx.shadowBlur = 24;
@@ -529,7 +547,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.fill();
       ctx.restore();
 
-      // Beveled Gold Contour Highlight
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
       ctx.lineWidth = 2;
       ctx.stroke();
@@ -545,7 +562,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     },
   },
 
-  // ── 4. ARTISTIC CURVED: EMERALD BIO-FLOW WAVE (Jade & Mint Wave)
+  // ── 4. ARTISTIC CURVED: EMERALD BIO-FLOW WAVE
   {
     id: 'emerald_bio_flow',
     name: 'Zenith Emerald & Mint Fluid Wave',
@@ -564,16 +581,16 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.roundRect(0, 0, W, H, radius);
       ctx.clip();
 
-      const primary = data.accentColor || '#10B981';
+      const primary = safeColor(data.accentColor, '#10B981');
+      const secondary = safeColor(data.secondaryColor, '#06B6D4');
 
       ctx.fillStyle = '#021a14';
       ctx.fillRect(0, 0, W, H);
 
-      // Deep Jade Ribbon Wave
       const jGrad = ctx.createLinearGradient(0, 0, W, H);
       jGrad.addColorStop(0, '#047857');
       jGrad.addColorStop(0.5, primary);
-      jGrad.addColorStop(1, '#06B6D4');
+      jGrad.addColorStop(1, secondary);
 
       ctx.fillStyle = jGrad;
       ctx.beginPath();
@@ -591,7 +608,6 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.closePath();
       ctx.fill();
 
-      // Translucent Accent Spline
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
       ctx.lineWidth = 2.5;
       ctx.stroke();
@@ -626,30 +642,26 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.roundRect(0, 0, W, H, radius);
       ctx.clip();
 
-      const primary = data.accentColor || '#F43F5E';
-      const secondary = data.secondaryColor || '#3B82F6';
+      const primary = safeColor(data.accentColor, '#F43F5E');
+      const secondary = safeColor(data.secondaryColor, '#3B82F6');
 
-      // Deep Plum Base
       ctx.fillStyle = '#170c24';
       ctx.fillRect(0, 0, W, H);
 
-      // Acrylic Blob 1 (Top Coral)
       const b1 = ctx.createRadialGradient(W * 0.2, H * 0.2, 20, W * 0.2, H * 0.2, 340);
       b1.addColorStop(0, primary);
-      b1.addColorStop(0.7, 'rgba(244, 63, 94, 0.3)');
+      b1.addColorStop(0.7, hexToRgba(primary, 0.3));
       b1.addColorStop(1, 'transparent');
       ctx.fillStyle = b1;
       ctx.fillRect(0, 0, W, H);
 
-      // Acrylic Blob 2 (Bottom Sapphire)
       const b2 = ctx.createRadialGradient(W * 0.8, H * 0.8, 30, W * 0.8, H * 0.8, 320);
       b2.addColorStop(0, secondary);
-      b2.addColorStop(0.7, 'rgba(59, 130, 246, 0.3)');
+      b2.addColorStop(0.7, hexToRgba(secondary, 0.3));
       b2.addColorStop(1, 'transparent');
       ctx.fillStyle = b2;
       ctx.fillRect(0, 0, W, H);
 
-      // Flowing Concentric Topo Curves
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
       ctx.lineWidth = 1.5;
       for (let r = 50; r < W * 0.9; r += 45) {
@@ -669,7 +681,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     },
   },
 
-  // ── 6. ARTISTIC CURVED: MINIMALIST FLOWING RIBBON (Pearl White & Coral)
+  // ── 6. ARTISTIC CURVED: MINIMALIST FLOWING RIBBON
   {
     id: 'minimal_flowing_ribbon',
     name: 'Minimalist Studio Pearl & Coral Ribbon',
@@ -688,16 +700,15 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.roundRect(0, 0, W, H, radius);
       ctx.clip();
 
-      const primary = data.accentColor || '#E11D48';
+      const primary = safeColor(data.accentColor, '#E11D48');
+      const secondary = safeColor(data.secondaryColor, '#4F46E5');
 
-      // Pearl White Base
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, W, H);
 
-      // Flowing Coral-to-Indigo Ribbon
       const rGrad = ctx.createLinearGradient(0, 0, W, H);
       rGrad.addColorStop(0, primary);
-      rGrad.addColorStop(1, '#4F46E5');
+      rGrad.addColorStop(1, secondary);
 
       ctx.fillStyle = rGrad;
       ctx.beginPath();
@@ -759,7 +770,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
         }
       }
 
-      const primary = data.accentColor || '#F59E0B';
+      const primary = safeColor(data.accentColor, '#F59E0B');
       const goldGrad = ctx.createLinearGradient(0, 0, W, H);
       goldGrad.addColorStop(0, primary);
       goldGrad.addColorStop(0.3, '#fef08a');
@@ -797,7 +808,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     },
   },
 
-  // ── 8. MODERN TECH: METROPOLITAN REAL ESTATE
+  // ── 8. CORPORATE: METROPOLITAN REAL ESTATE
   {
     id: 'real_estate_skyline',
     name: 'Metropolitan Real Estate & Skyline',
@@ -816,7 +827,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.roundRect(0, 0, W, H, radius);
       ctx.clip();
 
-      const primary = data.accentColor || '#38BDF8';
+      const primary = safeColor(data.accentColor, '#38BDF8');
       ctx.fillStyle = '#060e1d';
       ctx.fillRect(0, 0, W, H);
 
@@ -873,12 +884,12 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.roundRect(0, 0, W, H, radius);
       ctx.clip();
 
-      const primary = data.accentColor || '#06B6D4';
+      const primary = safeColor(data.accentColor, '#06B6D4');
       ctx.fillStyle = '#030712';
       ctx.fillRect(0, 0, W, H);
 
       const g1 = ctx.createRadialGradient(W * 0.85, H * 0.2, 10, W * 0.85, H * 0.2, 320);
-      g1.addColorStop(0, 'rgba(6, 182, 212, 0.28)');
+      g1.addColorStop(0, hexToRgba(primary, 0.28));
       g1.addColorStop(1, 'transparent');
       ctx.fillStyle = g1;
       ctx.fillRect(0, 0, W, H);
@@ -889,7 +900,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.fillStyle = g2;
       ctx.fillRect(0, 0, W, H);
 
-      ctx.strokeStyle = 'rgba(6, 182, 212, 0.2)';
+      ctx.strokeStyle = hexToRgba(primary, 0.2);
       ctx.lineWidth = 1.5;
       for (let x = 60; x < W; x += 110) {
         ctx.beginPath();
@@ -935,7 +946,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.roundRect(0, 0, W, H, radius);
       ctx.clip();
 
-      const primary = data.accentColor || '#F59E0B';
+      const primary = safeColor(data.accentColor, '#F59E0B');
       ctx.fillStyle = '#111317';
       ctx.fillRect(0, 0, W, H);
 
@@ -994,12 +1005,12 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.roundRect(0, 0, W, H, radius);
       ctx.clip();
 
-      const primary = data.accentColor || '#FB7185';
+      const primary = safeColor(data.accentColor, '#FB7185');
       ctx.fillStyle = '#130a17';
       ctx.fillRect(0, 0, W, H);
 
       const rGrad = ctx.createRadialGradient(W * 0.5, H * 0.5, 30, W * 0.5, H * 0.5, W * 0.6);
-      rGrad.addColorStop(0, 'rgba(251, 113, 133, 0.22)');
+      rGrad.addColorStop(0, hexToRgba(primary, 0.22));
       rGrad.addColorStop(1, 'transparent');
       ctx.fillStyle = rGrad;
       ctx.fillRect(0, 0, W, H);
@@ -1038,7 +1049,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.roundRect(0, 0, W, H, radius);
       ctx.clip();
 
-      const primary = data.accentColor || '#D97706';
+      const primary = safeColor(data.accentColor, '#D97706');
       ctx.fillStyle = '#140e0b';
       ctx.fillRect(0, 0, W, H);
 
@@ -1086,12 +1097,12 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.roundRect(0, 0, W, H, radius);
       ctx.clip();
 
-      const primary = data.accentColor || '#F97316';
+      const primary = safeColor(data.accentColor, '#F97316');
       ctx.fillStyle = '#0f0c0a';
       ctx.fillRect(0, 0, W, H);
 
       const rad = ctx.createRadialGradient(W * 0.5, H * 0.3, 10, W * 0.5, H * 0.3, 260);
-      rad.addColorStop(0, 'rgba(249, 115, 22, 0.18)');
+      rad.addColorStop(0, hexToRgba(primary, 0.18));
       rad.addColorStop(1, 'transparent');
       ctx.fillStyle = rad;
       ctx.fillRect(0, 0, W, H);
@@ -1130,7 +1141,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.roundRect(0, 0, W, H, radius);
       ctx.clip();
 
-      const primary = data.accentColor || '#EAB308';
+      const primary = safeColor(data.accentColor, '#EAB308');
       ctx.fillStyle = '#050505';
       ctx.fillRect(0, 0, W, H);
 
@@ -1176,6 +1187,10 @@ function renderStandardFrontContent(
   logoImg: HTMLImageElement | null,
   defaultIcon: string
 ) {
+  const accent = safeColor(accentColor, '#F59E0B');
+  const textCol = safeColor(textColor, '#FFFFFF');
+  const subTextCol = safeColor(subTextColor, '#cbd5e1');
+
   if (isPort) {
     // Top Lanyard Slot
     ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
@@ -1198,13 +1213,13 @@ function renderStandardFrontContent(
       ctx.clip();
       ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
       ctx.restore();
-      ctx.strokeStyle = accentColor;
+      ctx.strokeStyle = accent;
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.roundRect(logoX, logoY, logoSize, logoSize, 14);
       ctx.stroke();
     } else {
-      ctx.fillStyle = accentColor;
+      ctx.fillStyle = accent;
       ctx.beginPath();
       ctx.roundRect(logoX, logoY, logoSize, logoSize, 14);
       ctx.fill();
@@ -1216,12 +1231,12 @@ function renderStandardFrontContent(
     }
 
     ctx.textAlign = 'center';
-    ctx.fillStyle = textColor;
+    ctx.fillStyle = textCol;
     ctx.font = '900 21px Inter, sans-serif';
     ctx.fillText(data.companyName.toUpperCase(), W / 2, 126);
 
     if (data.tagline) {
-      ctx.fillStyle = subTextColor;
+      ctx.fillStyle = subTextCol;
       ctx.font = '500 11.5px Inter, sans-serif';
       ctx.fillText(data.tagline, W / 2, 145);
     }
@@ -1241,7 +1256,7 @@ function renderStandardFrontContent(
     ctx.fill();
 
     ctx.shadowColor = 'transparent';
-    ctx.strokeStyle = accentColor;
+    ctx.strokeStyle = accent;
     ctx.lineWidth = 3.5;
     ctx.stroke();
 
@@ -1251,7 +1266,7 @@ function renderStandardFrontContent(
       ctx.clip();
       ctx.drawImage(photoImg, px + 4, py + 4, pSize - 8, pSize - 8);
     } else {
-      ctx.fillStyle = subTextColor;
+      ctx.fillStyle = subTextCol;
       ctx.beginPath();
       ctx.arc(W / 2, py + 64, 34, 0, Math.PI * 2);
       ctx.fill();
@@ -1263,7 +1278,7 @@ function renderStandardFrontContent(
 
     // Name & Title
     ctx.textAlign = 'center';
-    ctx.fillStyle = textColor;
+    ctx.fillStyle = textCol;
     ctx.font = '900 27px Inter, sans-serif';
     ctx.fillText(data.fullName, W / 2, 375);
 
@@ -1275,19 +1290,19 @@ function renderStandardFrontContent(
     const pillX = W / 2 - pillW / 2;
     const pillY = 390;
 
-    ctx.fillStyle = `${accentColor}25`;
+    ctx.fillStyle = hexToRgba(accent, 0.2);
     ctx.beginPath();
     ctx.roundRect(pillX, pillY, pillW, pillH, 14);
     ctx.fill();
-    ctx.strokeStyle = accentColor;
+    ctx.strokeStyle = accent;
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    ctx.fillStyle = accentColor;
+    ctx.fillStyle = accent;
     ctx.fillText(titleText, W / 2, pillY + 18);
 
     if (data.department) {
-      ctx.fillStyle = subTextColor;
+      ctx.fillStyle = subTextCol;
       ctx.font = '600 12px Inter, sans-serif';
       ctx.fillText(`Department: ${data.department}`, W / 2, 436);
     }
@@ -1295,10 +1310,10 @@ function renderStandardFrontContent(
     // 4 Glass Data Tiles
     const blockY = 462;
     const metrics = [
-      { label: 'ID NUMBER', val: data.idNumber, col: accentColor },
-      { label: 'BLOOD GROUP', val: data.bloodGroup, col: textColor },
-      { label: 'ISSUE DATE', val: data.issueDate, col: subTextColor },
-      { label: 'EXPIRY DATE', val: data.expiryDate, col: subTextColor },
+      { label: 'ID NUMBER', val: data.idNumber, col: accent },
+      { label: 'BLOOD GROUP', val: data.bloodGroup, col: textCol },
+      { label: 'ISSUE DATE', val: data.issueDate, col: subTextCol },
+      { label: 'EXPIRY DATE', val: data.expiryDate, col: subTextCol },
     ];
 
     metrics.forEach((m, idx) => {
@@ -1318,7 +1333,7 @@ function renderStandardFrontContent(
       ctx.stroke();
 
       ctx.textAlign = 'left';
-      ctx.fillStyle = subTextColor;
+      ctx.fillStyle = subTextCol;
       ctx.font = 'bold 9px Inter, sans-serif';
       ctx.fillText(m.label, tx + 14, ty + 18);
 
@@ -1331,7 +1346,7 @@ function renderStandardFrontContent(
     const contactY = 598;
     ctx.textAlign = 'center';
     ctx.font = '12.5px Inter, sans-serif';
-    ctx.fillStyle = textColor;
+    ctx.fillStyle = textCol;
     ctx.fillText(`📞  ${data.phone}`, W / 2, contactY);
     ctx.fillText(`✉️  ${data.email}`, W / 2, contactY + 25);
     ctx.fillText(`🌐  ${data.website}`, W / 2, contactY + 50);
@@ -1341,19 +1356,19 @@ function renderStandardFrontContent(
       drawEmvChip(ctx, 55, H - 155, 52, 38, true);
     }
     if (data.showContactless) {
-      drawContactlessSymbol(ctx, W - 75, H - 135, accentColor);
+      drawContactlessSymbol(ctx, W - 75, H - 135, accent);
     }
 
     // Barcode
     if (data.showBarcode) {
       const barY = H - 95;
-      ctx.fillStyle = textColor;
+      ctx.fillStyle = textCol;
       for (let b = 80; b < W - 80; b += 7) {
         const bw = b % 14 === 0 ? 3.5 : 1.5;
         ctx.fillRect(b, barY, bw, 28);
       }
       ctx.font = 'bold 10.5px monospace';
-      ctx.fillStyle = subTextColor;
+      ctx.fillStyle = subTextCol;
       ctx.fillText(data.idNumber, W / 2, barY + 40);
     }
   } else {
@@ -1369,13 +1384,13 @@ function renderStandardFrontContent(
       ctx.clip();
       ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
       ctx.restore();
-      ctx.strokeStyle = accentColor;
+      ctx.strokeStyle = accent;
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.roundRect(logoX, logoY, logoSize, logoSize, 14);
       ctx.stroke();
     } else {
-      ctx.fillStyle = accentColor;
+      ctx.fillStyle = accent;
       ctx.beginPath();
       ctx.roundRect(logoX, logoY, logoSize, logoSize, 14);
       ctx.fill();
@@ -1387,12 +1402,12 @@ function renderStandardFrontContent(
     }
 
     ctx.textAlign = 'left';
-    ctx.fillStyle = textColor;
+    ctx.fillStyle = textCol;
     ctx.font = '900 24px Inter, sans-serif';
     ctx.fillText(data.companyName.toUpperCase(), 130, 72);
 
     if (data.tagline) {
-      ctx.fillStyle = subTextColor;
+      ctx.fillStyle = subTextCol;
       ctx.font = '500 13px Inter, sans-serif';
       ctx.fillText(data.tagline, 130, 96);
     }
@@ -1402,21 +1417,21 @@ function renderStandardFrontContent(
       drawEmvChip(ctx, W - 140, 48, 64, 46, true);
     }
     if (data.showContactless) {
-      drawContactlessSymbol(ctx, W - 180, 70, accentColor);
+      drawContactlessSymbol(ctx, W - 180, 70, accent);
     }
 
     // Middle Name & Title
     const nameY = 210;
-    ctx.fillStyle = textColor;
+    ctx.fillStyle = textCol;
     ctx.font = '900 38px Inter, sans-serif';
     ctx.fillText(data.fullName, 52, nameY);
 
-    ctx.fillStyle = accentColor;
+    ctx.fillStyle = accent;
     ctx.font = 'bold 17px Inter, sans-serif';
     ctx.fillText(data.jobTitle.toUpperCase(), 52, nameY + 30);
 
     if (data.department) {
-      ctx.fillStyle = subTextColor;
+      ctx.fillStyle = subTextCol;
       ctx.font = '600 13px Inter, sans-serif';
       ctx.fillText(`Dept: ${data.department}`, 52, nameY + 54);
     }
@@ -1441,12 +1456,12 @@ function renderStandardFrontContent(
       const cy = startY + row * 38;
 
       ctx.font = '14px Inter, sans-serif';
-      ctx.fillStyle = textColor;
+      ctx.fillStyle = textCol;
       ctx.fillText(`${c.icon}  ${c.text}`, cx, cy);
     });
 
     if (data.showMasterCircles) {
-      drawInterlockingCircles(ctx, W - 85, H - 75, 26, accentColor, data.secondaryColor || '#EF4444');
+      drawInterlockingCircles(ctx, W - 85, H - 75, 26, accent, data.secondaryColor || '#EF4444');
     }
   }
 
@@ -1475,6 +1490,9 @@ function renderStandardBackContent(
   textColor: string,
   qrImg: HTMLImageElement | null
 ) {
+  const accent = safeColor(accentColor, '#F59E0B');
+  const textCol = safeColor(textColor, '#FFFFFF');
+
   const stripeH = isPort ? 56 : 64;
   const stripeY = isPort ? 32 : 40;
 
@@ -1534,11 +1552,11 @@ function renderStandardBackContent(
   const ty = isPort ? 415 : 205;
 
   ctx.textAlign = isPort ? 'center' : 'left';
-  ctx.fillStyle = textColor;
+  ctx.fillStyle = textCol;
   ctx.font = '900 21px Inter, sans-serif';
   ctx.fillText(data.backTitle, tx, ty);
 
-  ctx.fillStyle = accentColor;
+  ctx.fillStyle = accent;
   ctx.font = 'bold 13px Inter, sans-serif';
   ctx.fillText(data.backSubtitle, tx, ty + 24);
 
@@ -1565,7 +1583,7 @@ function renderStandardBackContent(
 
   if (data.emergencyContact) {
     lineY += 28;
-    ctx.fillStyle = textColor;
+    ctx.fillStyle = textCol;
     ctx.font = 'bold 12.5px Inter, sans-serif';
     ctx.fillText(`Emergency Security: ${data.emergencyContact}`, tx, lineY);
   }
@@ -2258,15 +2276,18 @@ export default function CardStudio() {
                     <div className="flex items-center gap-2 bg-slate-950 p-2 rounded-xl border border-slate-800">
                       <input
                         type="color"
-                        value={data.accentColor}
+                        value={safeColor(data.accentColor, '#F97316')}
                         onChange={(e) => setData({ ...data, accentColor: e.target.value })}
                         className="w-7 h-7 rounded cursor-pointer bg-transparent border-0 shrink-0"
                       />
                       <input
                         type="text"
                         value={data.accentColor}
-                        onChange={(e) => setData({ ...data, accentColor: e.target.value })}
-                        placeholder="#F97316"
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setData({ ...data, accentColor: val.startsWith('#') ? val : `#${val}` });
+                        }}
+                        placeholder="#040E40"
                         className="w-full bg-transparent font-mono text-xs text-white focus:outline-none uppercase"
                       />
                     </div>
@@ -2277,14 +2298,17 @@ export default function CardStudio() {
                     <div className="flex items-center gap-2 bg-slate-950 p-2 rounded-xl border border-slate-800">
                       <input
                         type="color"
-                        value={data.secondaryColor}
+                        value={safeColor(data.secondaryColor, '#EC4899')}
                         onChange={(e) => setData({ ...data, secondaryColor: e.target.value })}
                         className="w-7 h-7 rounded cursor-pointer bg-transparent border-0 shrink-0"
                       />
                       <input
                         type="text"
                         value={data.secondaryColor}
-                        onChange={(e) => setData({ ...data, secondaryColor: e.target.value })}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setData({ ...data, secondaryColor: val.startsWith('#') ? val : `#${val}` });
+                        }}
                         placeholder="#EC4899"
                         className="w-full bg-transparent font-mono text-xs text-white focus:outline-none uppercase"
                       />
@@ -2302,7 +2326,7 @@ export default function CardStudio() {
                       style={{ backgroundColor: p.hex }}
                     >
                       {data.accentColor.toLowerCase() === p.hex.toLowerCase() && (
-                        <Check className="w-3 h-3 text-black drop-shadow" />
+                        <Check className="w-3 h-3 text-white drop-shadow" />
                       )}
                     </button>
                   ))}
