@@ -341,23 +341,19 @@ export default function MarketplacePage() {
       {/* Main content */}
       <div className="min-h-screen pt-24 sm:pt-28 bg-white">
       {/* Header - Search and Cart */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-[64px] sm:top-[72px] z-30 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold text-gray-900">
-              IT Services Store
-            </Link>
-            
+      <header className="bg-white/90 backdrop-blur-md border-b border-gray-100 sticky top-[64px] sm:top-[72px] z-30 shadow-sm">
+        <div className="container mx-auto px-4 py-3.5">
+          <div className="flex items-center justify-between gap-4">
             {/* Search Bar */}
-            <div className="hidden md:flex flex-1 max-w-2xl mx-8">
+            <div className="flex-1 max-w-3xl">
               <div className="relative w-full">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Search for products..."
+                  placeholder="Search products, computers, mobile phones, accessories..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-gray-50 text-gray-900 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
+                  className="w-full pl-12 pr-4 py-2.5 sm:py-3 bg-gray-50 text-gray-900 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all text-sm sm:text-base"
                 />
               </div>
             </div>
@@ -365,30 +361,16 @@ export default function MarketplacePage() {
             {/* Cart */}
             <Link
               href="/cart"
-              className="relative flex items-center gap-1 sm:gap-2 px-3 py-2 sm:px-6 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all text-sm sm:text-base z-10 cursor-pointer shadow-lg"
+              className="relative flex items-center gap-2 px-4 py-2.5 sm:px-6 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all text-sm sm:text-base z-10 cursor-pointer shadow-md font-medium shrink-0"
             >
               <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="hidden sm:inline">Cart</span>
+              <span className="hidden sm:inline font-semibold">Cart</span>
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center pointer-events-none">
+                <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center pointer-events-none shadow">
                   {cartCount}
                 </span>
               )}
             </Link>
-          </div>
-
-          {/* Mobile Search */}
-          <div className="md:hidden mt-4">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-gray-50 text-gray-900 rounded-lg border border-gray-200 focus:border-blue-500 focus:outline-none"
-              />
-            </div>
           </div>
         </div>
       </header>
