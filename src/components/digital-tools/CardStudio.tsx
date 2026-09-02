@@ -55,6 +55,7 @@ import {
   ShieldCheck,
   Waves,
   FlaskConical,
+  Wifi,
 } from 'lucide-react';
 
 export type CardCategory = 'all' | 'business' | 'id_badge' | 'complementary' | 'vip_pass';
@@ -136,72 +137,218 @@ export interface CardData {
   secondaryColor: string;
   bgOpacity: number;
   showChip: boolean;
+  showContactless: boolean;
   showBarcode: boolean;
+  showMasterCircles: boolean;
   showCutMarks: boolean;
 }
 
 // ── COLOR PRESETS PALETTE ───────────────────────────────────────────────────────
 const COLOR_PRESETS = [
-  { name: 'Imperial Gold', hex: '#F59E0B' },
-  { name: 'Electric Cyan', hex: '#06B6D4' },
+  { name: 'Mastercard Gold', hex: '#F59E0B' },
+  { name: 'Cyber Cyan', hex: '#06B6D4' },
   { name: 'Royal Sapphire', hex: '#2563EB' },
   { name: 'Emerald Jade', hex: '#10B981' },
   { name: 'Crimson Ruby', hex: '#E11D48' },
   { name: 'Sunset Amber', hex: '#F97316' },
   { name: 'Cyber Violet', hex: '#8B5CF6' },
   { name: 'Rose Gold', hex: '#FB7185' },
+  { name: 'Titanium Silver', hex: '#94A3B8' },
   { name: 'Deep Teal', hex: '#0D9488' },
-  { name: 'Platinum Slate', hex: '#94A3B8' },
-  { name: 'Bronze Ochre', hex: '#D97706' },
+  { name: 'Bronze Copper', hex: '#D97706' },
   { name: 'Pure White', hex: '#FFFFFF' },
 ];
 
-// ── MASTER DESIGN TEMPLATES ─────────────────────────────────────────────────────
+// ── HELPER: DRAW REALISTIC 3D EMV CHIP & CONTACTLESS SYMBOL ─────────────────────
+function drawEmvChip(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, isGold: boolean = true) {
+  ctx.save();
+  // Chip Base Shadow
+  ctx.shadowColor = 'rgba(0,0,0,0.5)';
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 3;
+
+  // Chip Outer Gold / Silver Metallic Gradient
+  const chipGrad = ctx.createLinearGradient(x, y, x + w, y + h);
+  if (isGold) {
+    chipGrad.addColorStop(0, '#fef08a');
+    chipGrad.addColorStop(0.25, '#d97706');
+    chipGrad.addColorStop(0.5, '#fef9c3');
+    chipGrad.addColorStop(0.75, '#b45309');
+    chipGrad.addColorStop(1, '#fef08a');
+  } else {
+    chipGrad.addColorStop(0, '#f1f5f9');
+    chipGrad.addColorStop(0.3, '#94a3b8');
+    chipGrad.addColorStop(0.6, '#ffffff');
+    chipGrad.addColorStop(1, '#64748b');
+  }
+
+  ctx.fillStyle = chipGrad;
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, 8);
+  ctx.fill();
+
+  // Chip Border & Inner Traces
+  ctx.shadowColor = 'transparent';
+  ctx.strokeStyle = isGold ? '#78350f' : '#334155';
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+
+  // Internal Microcircuit Circuit Patterns
+  ctx.strokeStyle = isGold ? '#92400e' : '#475569';
+  ctx.lineWidth = 1;
+
+  // Center division
+  ctx.beginPath();
+  ctx.moveTo(x + w * 0.35, y);
+  ctx.lineTo(x + w * 0.35, y + h);
+  ctx.moveTo(x + w * 0.65, y);
+  ctx.lineTo(x + w * 0.65, y + h);
+  ctx.stroke();
+
+  // Horizontal divisions
+  ctx.beginPath();
+  ctx.moveTo(x, y + h * 0.5);
+  ctx.lineTo(x + w * 0.35, y + h * 0.5);
+  ctx.moveTo(x + w * 0.65, y + h * 0.5);
+  ctx.lineTo(x + w, y + h * 0.5);
+  ctx.stroke();
+
+  // Center chip square
+  ctx.fillStyle = isGold ? '#b45309' : '#475569';
+  ctx.beginPath();
+  ctx.roundRect(x + w * 0.38, y + h * 0.3, w * 0.24, h * 0.4, 3);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawContactlessSymbol(ctx: CanvasRenderingContext2D, x: number, y: number, color: string = 'rgba(255,255,255,0.7)') {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+
+  const radii = [8, 15, 22, 29];
+  radii.forEach((r) => {
+    ctx.beginPath();
+    ctx.arc(x, y, r, -Math.PI * 0.35, Math.PI * 0.35);
+    ctx.stroke();
+  });
+  ctx.restore();
+}
+
+function drawInterlockingCircles(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, primary: string, secondary: string) {
+  ctx.save();
+  ctx.globalAlpha = 0.85;
+
+  // Left circle
+  ctx.fillStyle = primary;
+  ctx.beginPath();
+  ctx.arc(x - r * 0.6, y, r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Right circle
+  ctx.fillStyle = secondary;
+  ctx.beginPath();
+  ctx.arc(x + r * 0.6, y, r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Intersecting overlay highlight
+  ctx.globalAlpha = 0.35;
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(x, y, r * 0.8, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+// ── 3D SPECULAR SHEEN & CARD BEVEL ──────────────────────────────────────────────
+function apply3DCardLightingAndBevel(ctx: CanvasRenderingContext2D, W: number, H: number, isPort: boolean) {
+  ctx.save();
+
+  // 1. Diagonal Specular Glass Sheen
+  const sheen = ctx.createLinearGradient(0, 0, W, H);
+  sheen.addColorStop(0, 'rgba(255, 255, 255, 0.18)');
+  sheen.addColorStop(0.28, 'rgba(255, 255, 255, 0.05)');
+  sheen.addColorStop(0.48, 'transparent');
+  sheen.addColorStop(0.7, 'rgba(255, 255, 255, 0.03)');
+  sheen.addColorStop(1, 'rgba(0, 0, 0, 0.25)');
+  ctx.fillStyle = sheen;
+  ctx.fillRect(0, 0, W, H);
+
+  // 2. Realistic 3D Mastercard Beveled Outer Rim (36px rounded corners)
+  const radius = isPort ? 34 : 38;
+
+  // Top/Left Specular Highlight
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(1, 1, W - 2, H - 2, radius);
+  ctx.stroke();
+
+  // Inner Edge Accent
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect(3, 3, W - 6, H - 6, radius - 2);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+// ── MASTER 3D TEMPLATES ─────────────────────────────────────────────────────────
 const MASTER_TEMPLATES: CardTemplateConfig[] = [
-  // 1. EXECUTIVE 3D OBSIDIAN & GOLD (3D / Luxury / Company)
+  // 1. EXECUTIVE 3D OBSIDIAN & GOLD (Mastercard / VIP)
   {
     id: 'executive_3d_gold',
     name: 'Executive 3D Obsidian & Gold',
     category: '3d_luxury',
     industry: 'Executive / Corporate / VIP',
-    tagline: 'Deep carbon weave, 3D beveled gold ribbon, metallic crest',
+    tagline: 'Metallic carbon weave, 3D beveled gold ribbon, EMV chip',
     theme: 'dark',
     defaultAccent: '#F59E0B',
     defaultSecondary: '#D97706',
     badgeIcon: '👑',
     previewGradient: 'from-amber-500/40 via-slate-900 to-black',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      const bgGrad = ctx.createLinearGradient(0, 0, W, H);
-      bgGrad.addColorStop(0, '#0a0d14');
-      bgGrad.addColorStop(0.5, '#121824');
-      bgGrad.addColorStop(1, '#05070a');
-      ctx.fillStyle = bgGrad;
+      const radius = isPort ? 34 : 38;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
+      // Deep Metallic Carbon Gradient
+      const bg = ctx.createLinearGradient(0, 0, W, H);
+      bg.addColorStop(0, '#0c0f17');
+      bg.addColorStop(0.45, '#161c2b');
+      bg.addColorStop(1, '#05070a');
+      ctx.fillStyle = bg;
       ctx.fillRect(0, 0, W, H);
 
-      // Carbon Weave Pattern
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.025)';
-      for (let x = 0; x < W; x += 12) {
-        for (let y = 0; y < H; y += 12) {
-          if ((x + y) % 24 === 0) ctx.fillRect(x, y, 6, 6);
+      // Micro Carbon Mesh Weave
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+      for (let x = 0; x < W; x += 14) {
+        for (let y = 0; y < H; y += 14) {
+          if ((x + y) % 28 === 0) ctx.fillRect(x, y, 7, 7);
         }
       }
 
-      // 3D Beveled Diagonal Gold Ribbon
+      // 3D Beveled Diagonal Gold Banner
       const primary = data.accentColor || '#F59E0B';
-      const goldRibbon = ctx.createLinearGradient(0, 0, W, H);
-      goldRibbon.addColorStop(0, primary);
-      goldRibbon.addColorStop(0.3, '#FDE68A');
-      goldRibbon.addColorStop(0.6, primary);
-      goldRibbon.addColorStop(1, '#92400E');
+      const goldGrad = ctx.createLinearGradient(0, 0, W, H);
+      goldGrad.addColorStop(0, primary);
+      goldGrad.addColorStop(0.3, '#fef08a');
+      goldGrad.addColorStop(0.6, primary);
+      goldGrad.addColorStop(1, '#92400e');
 
-      ctx.save();
-      ctx.fillStyle = goldRibbon;
+      ctx.fillStyle = goldGrad;
       ctx.beginPath();
       if (isPort) {
         ctx.moveTo(0, 0);
         ctx.lineTo(W, 0);
-        ctx.lineTo(W, 18);
-        ctx.lineTo(0, 48);
+        ctx.lineTo(W, 24);
+        ctx.lineTo(0, 54);
       } else {
         ctx.moveTo(W * 0.72, 0);
         ctx.lineTo(W, 0);
@@ -210,40 +357,47 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       }
       ctx.closePath();
       ctx.fill();
-      ctx.restore();
 
+      // Gold Outer Foil Frame
       ctx.strokeStyle = primary;
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 2.5;
       ctx.strokeRect(22, 22, W - 44, H - 44);
-      ctx.strokeStyle = 'rgba(245, 158, 11, 0.2)';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(30, 30, W - 60, H - 60);
 
       if (!isBack) {
         renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', 'rgba(255,255,255,0.7)', photoImg, logoImg, '👑');
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      ctx.restore();
     },
   },
 
-  // 2. MODERN REAL ESTATE & ARCHITECTURE (Real Estate / Modern)
+  // 2. MODERN REAL ESTATE & ARCHITECTURE (Real Estate / 3D Slate)
   {
     id: 'real_estate_skyline',
     name: 'Metropolitan Real Estate & Skyline',
     category: 'corporate_legal',
     industry: 'Real Estate / Property / Architecture',
-    tagline: 'Split geometry, modern architectural blueprint grid & skyline',
+    tagline: 'Architectural blueprint grid, skyline silhouette & 3D metallic headers',
     theme: 'dark',
     defaultAccent: '#38BDF8',
     defaultSecondary: '#F59E0B',
     badgeIcon: '🏢',
     previewGradient: 'from-sky-500/30 via-slate-900 to-slate-950',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = isPort ? 34 : 38;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
       const primary = data.accentColor || '#38BDF8';
-      ctx.fillStyle = '#081021';
+      ctx.fillStyle = '#060e1d';
       ctx.fillRect(0, 0, W, H);
 
+      // Blueprint Drafting Grid
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
       ctx.lineWidth = 1;
       for (let x = 0; x < W; x += 28) {
@@ -253,25 +407,30 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
       }
 
-      ctx.fillStyle = 'rgba(56, 189, 248, 0.05)';
-      const skyY = H * 0.75;
+      // Skyline Silhouette
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.06)';
+      const skyY = H * 0.76;
       const bWidth = W / 14;
       for (let i = 0; i < 14; i++) {
-        const bHeight = 40 + ((i * 37) % 90);
+        const bHeight = 45 + ((i * 41) % 95);
         ctx.fillRect(i * bWidth, skyY - bHeight, bWidth - 4, bHeight + H * 0.25);
       }
 
+      // 3D Top Metallic Stripe
       const stripe = ctx.createLinearGradient(0, 0, W, 0);
       stripe.addColorStop(0, primary);
       stripe.addColorStop(1, '#6366F1');
       ctx.fillStyle = stripe;
-      ctx.fillRect(0, 0, W, 8);
+      ctx.fillRect(0, 0, W, 10);
 
       if (!isBack) {
         renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#94a3b8', photoImg, logoImg, '🏢');
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      ctx.restore();
     },
   },
 
@@ -288,22 +447,29 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     badgeIcon: '⚡',
     previewGradient: 'from-cyan-500/30 via-violet-950 to-black',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = isPort ? 34 : 38;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
       const primary = data.accentColor || '#06B6D4';
       ctx.fillStyle = '#030712';
       ctx.fillRect(0, 0, W, H);
 
       const g1 = ctx.createRadialGradient(W * 0.85, H * 0.2, 10, W * 0.85, H * 0.2, 320);
-      g1.addColorStop(0, 'rgba(6, 182, 212, 0.25)');
+      g1.addColorStop(0, 'rgba(6, 182, 212, 0.28)');
       g1.addColorStop(1, 'transparent');
       ctx.fillStyle = g1;
       ctx.fillRect(0, 0, W, H);
 
       const g2 = ctx.createRadialGradient(W * 0.15, H * 0.85, 10, W * 0.15, H * 0.85, 280);
-      g2.addColorStop(0, 'rgba(139, 92, 246, 0.25)');
+      g2.addColorStop(0, 'rgba(139, 92, 246, 0.28)');
       g2.addColorStop(1, 'transparent');
       ctx.fillStyle = g2;
       ctx.fillRect(0, 0, W, H);
 
+      // Circuit lines
       ctx.strokeStyle = 'rgba(6, 182, 212, 0.2)';
       ctx.lineWidth = 1.5;
       for (let x = 60; x < W; x += 110) {
@@ -316,19 +482,18 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
 
         ctx.fillStyle = primary;
         ctx.beginPath();
-        ctx.arc(x + 40, H * 0.45 + 40, 3, 0, Math.PI * 2);
+        ctx.arc(x + 40, H * 0.45 + 40, 3.5, 0, Math.PI * 2);
         ctx.fill();
       }
-
-      ctx.strokeStyle = primary;
-      ctx.lineWidth = 2.5;
-      ctx.strokeRect(20, 20, W - 40, H - 40);
 
       if (!isBack) {
         renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#cbd5e1', photoImg, logoImg, '⚡');
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      ctx.restore();
     },
   },
 
@@ -345,6 +510,12 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     badgeIcon: '⚖️',
     previewGradient: 'from-amber-600/30 via-slate-900 to-blue-950',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = isPort ? 34 : 38;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
       const primary = data.accentColor || '#EAB308';
       ctx.fillStyle = '#060d1f';
       ctx.fillRect(0, 0, W, H);
@@ -352,15 +523,15 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.strokeStyle = primary;
       ctx.lineWidth = 2.5;
       ctx.strokeRect(24, 24, W - 48, H - 48);
-      ctx.strokeStyle = 'rgba(234, 179, 8, 0.25)';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(32, 32, W - 64, H - 64);
 
       if (!isBack) {
         renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#cbd5e1', photoImg, logoImg, '⚖️');
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      ctx.restore();
     },
   },
 
@@ -377,10 +548,17 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     badgeIcon: '🏗️',
     previewGradient: 'from-amber-500/40 via-stone-900 to-black',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = isPort ? 34 : 38;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
       const primary = data.accentColor || '#F59E0B';
       ctx.fillStyle = '#111317';
       ctx.fillRect(0, 0, W, H);
 
+      // Industrial Steel Angle Mesh
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
       ctx.lineWidth = 3;
       for (let i = -W; i < W * 2; i += 60) {
@@ -390,6 +568,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
         ctx.stroke();
       }
 
+      // Safety Hazard Diagonal Stripe Banner
       const hazH = isPort ? 16 : 18;
       const hazY = isPort ? H - 24 : H - 28;
       ctx.fillStyle = primary;
@@ -411,6 +590,9 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      ctx.restore();
     },
   },
 
@@ -427,12 +609,18 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     badgeIcon: '✨',
     previewGradient: 'from-rose-500/30 via-purple-950 to-slate-950',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = isPort ? 34 : 38;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
       const primary = data.accentColor || '#FB7185';
       ctx.fillStyle = '#130a17';
       ctx.fillRect(0, 0, W, H);
 
       const rGrad = ctx.createRadialGradient(W * 0.5, H * 0.5, 30, W * 0.5, H * 0.5, W * 0.6);
-      rGrad.addColorStop(0, 'rgba(251, 113, 133, 0.18)');
+      rGrad.addColorStop(0, 'rgba(251, 113, 133, 0.22)');
       rGrad.addColorStop(1, 'transparent');
       ctx.fillStyle = rGrad;
       ctx.fillRect(0, 0, W, H);
@@ -446,6 +634,9 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      ctx.restore();
     },
   },
 
@@ -462,6 +653,12 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     badgeIcon: '✂️',
     previewGradient: 'from-amber-700/40 via-stone-900 to-black',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = isPort ? 34 : 38;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
       const primary = data.accentColor || '#D97706';
       ctx.fillStyle = '#140e0b';
       ctx.fillRect(0, 0, W, H);
@@ -485,6 +682,9 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      ctx.restore();
     },
   },
 
@@ -501,12 +701,18 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     badgeIcon: '🍴',
     previewGradient: 'from-orange-600/30 via-stone-950 to-black',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = isPort ? 34 : 38;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
       const primary = data.accentColor || '#F97316';
       ctx.fillStyle = '#0f0c0a';
       ctx.fillRect(0, 0, W, H);
 
       const rad = ctx.createRadialGradient(W * 0.5, H * 0.3, 10, W * 0.5, H * 0.3, 260);
-      rad.addColorStop(0, 'rgba(249, 115, 22, 0.15)');
+      rad.addColorStop(0, 'rgba(249, 115, 22, 0.18)');
       rad.addColorStop(1, 'transparent');
       ctx.fillStyle = rad;
       ctx.fillRect(0, 0, W, H);
@@ -520,6 +726,9 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      ctx.restore();
     },
   },
 
@@ -536,6 +745,12 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     badgeIcon: '📷',
     previewGradient: 'from-yellow-500/30 via-slate-900 to-black',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = isPort ? 34 : 38;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
       const primary = data.accentColor || '#EAB308';
       ctx.fillStyle = '#050505';
       ctx.fillRect(0, 0, W, H);
@@ -545,7 +760,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const aRadius = isPort ? 110 : 130;
 
       ctx.save();
-      ctx.strokeStyle = 'rgba(234, 179, 8, 0.15)';
+      ctx.strokeStyle = 'rgba(234, 179, 8, 0.18)';
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.arc(ax, ay, aRadius, 0, Math.PI * 2);
@@ -561,6 +776,9 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      ctx.restore();
     },
   },
 
@@ -577,6 +795,12 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     badgeIcon: '✨',
     previewGradient: 'from-cyan-400/30 via-blue-950 to-slate-950',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = isPort ? 34 : 38;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
       const primary = data.accentColor || '#06B6D4';
       ctx.fillStyle = '#06101e';
       ctx.fillRect(0, 0, W, H);
@@ -590,6 +814,9 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      ctx.restore();
     },
   },
 
@@ -606,6 +833,12 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     badgeIcon: '⚡',
     previewGradient: 'from-yellow-400/30 via-amber-950 to-black',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = isPort ? 34 : 38;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
       const primary = data.accentColor || '#FACC15';
       ctx.fillStyle = '#0b0c10';
       ctx.fillRect(0, 0, W, H);
@@ -619,6 +852,9 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      ctx.restore();
     },
   },
 
@@ -635,6 +871,12 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     badgeIcon: '⚪',
     previewGradient: 'from-white via-slate-100 to-slate-300',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = isPort ? 34 : 38;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
       const primary = data.accentColor || '#DC2626';
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, W, H);
@@ -656,6 +898,9 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, '#0F172A', '#0F172A', qrImg);
       }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      ctx.restore();
     },
   },
 
@@ -672,6 +917,12 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     badgeIcon: '🎨',
     previewGradient: 'from-rose-500 via-purple-600 to-cyan-500',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = isPort ? 34 : 38;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
       const primary = data.accentColor || '#F43F5E';
       const mesh = ctx.createLinearGradient(0, 0, W, H);
       mesh.addColorStop(0, '#1e1b4b');
@@ -689,6 +940,9 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      ctx.restore();
     },
   },
 
@@ -705,6 +959,12 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     badgeIcon: '🛡️',
     previewGradient: 'from-emerald-500/30 via-slate-900 to-black',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = isPort ? 34 : 38;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
       const primary = data.accentColor || '#10B981';
       ctx.fillStyle = '#022119';
       ctx.fillRect(0, 0, W, H);
@@ -718,11 +978,14 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      ctx.restore();
     },
   },
 ];
 
-// ── COMPOSITE CONTENT RENDERERS ────────────────────────────────────────────────
+// ── COMPOSITE CONTENT RENDERERS (BALANCED POSITIONING) ─────────────────────────
 function renderStandardFrontContent(
   ctx: CanvasRenderingContext2D,
   W: number,
@@ -737,9 +1000,23 @@ function renderStandardFrontContent(
   defaultIcon: string
 ) {
   if (isPort) {
-    const logoSize = 60;
+    // ══════════════════════════════════════════════════════════════════════════
+    // ── BALANCED VERTICAL (PORTRAIT: 600 × 1050 px) ──────────────────────────
+    // ══════════════════════════════════════════════════════════════════════════
+
+    // 1. Top Lanyard / Badge Slot Graphic
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    ctx.beginPath();
+    ctx.roundRect(W / 2 - 32, 14, 64, 10, 5);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // 2. Company Logo / Emblem & Name
+    const logoSize = 58;
     const logoX = W / 2 - logoSize / 2;
-    const logoY = 46;
+    const logoY = 38;
 
     if (logoImg && logoImg.width > 0) {
       ctx.save();
@@ -748,6 +1025,11 @@ function renderStandardFrontContent(
       ctx.clip();
       ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
       ctx.restore();
+      ctx.strokeStyle = accentColor;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(logoX, logoY, logoSize, logoSize, 14);
+      ctx.stroke();
     } else {
       ctx.fillStyle = accentColor;
       ctx.beginPath();
@@ -760,26 +1042,33 @@ function renderStandardFrontContent(
       ctx.fillText(data.companyName.charAt(0) || defaultIcon, W / 2, logoY + logoSize / 2 + 1);
     }
 
+    // Company Name & Tagline
     ctx.textAlign = 'center';
     ctx.fillStyle = textColor;
-    ctx.font = '900 20px Inter, sans-serif';
-    ctx.fillText(data.companyName.toUpperCase(), W / 2, 134);
+    ctx.font = '900 21px Inter, sans-serif';
+    ctx.fillText(data.companyName.toUpperCase(), W / 2, 126);
 
     if (data.tagline) {
       ctx.fillStyle = subTextColor;
-      ctx.font = '500 11px Inter, sans-serif';
-      ctx.fillText(data.tagline, W / 2, 154);
+      ctx.font = '500 11.5px Inter, sans-serif';
+      ctx.fillText(data.tagline, W / 2, 145);
     }
 
-    const pSize = 160;
+    // 3. Centered ID Photo (Rounded 3D Frame)
+    const pSize = 165;
     const px = W / 2 - pSize / 2;
-    const py = 180;
+    const py = 172;
 
     ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+    ctx.shadowBlur = 16;
+    ctx.shadowOffsetY = 6;
     ctx.fillStyle = 'rgba(255,255,255,0.06)';
     ctx.beginPath();
     ctx.roundRect(px, py, pSize, pSize, 22);
     ctx.fill();
+
+    ctx.shadowColor = 'transparent';
     ctx.strokeStyle = accentColor;
     ctx.lineWidth = 3.5;
     ctx.stroke();
@@ -792,30 +1081,48 @@ function renderStandardFrontContent(
     } else {
       ctx.fillStyle = subTextColor;
       ctx.beginPath();
-      ctx.arc(W / 2, py + 62, 32, 0, Math.PI * 2);
+      ctx.arc(W / 2, py + 64, 34, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
-      ctx.arc(W / 2, py + pSize + 22, 58, Math.PI, 0);
+      ctx.arc(W / 2, py + pSize + 22, 60, Math.PI, 0);
       ctx.fill();
     }
     ctx.restore();
 
+    // 4. Full Name & Job Title
     ctx.textAlign = 'center';
     ctx.fillStyle = textColor;
-    ctx.font = '900 28px Inter, sans-serif';
-    ctx.fillText(data.fullName, W / 2, 380);
+    ctx.font = '900 27px Inter, sans-serif';
+    ctx.fillText(data.fullName, W / 2, 375);
+
+    // Job Title Capsule Pill
+    const titleText = data.jobTitle.toUpperCase();
+    ctx.font = 'bold 12.5px Inter, sans-serif';
+    const titleMetrics = ctx.measureText(titleText);
+    const pillW = Math.min(W - 80, titleMetrics.width + 36);
+    const pillH = 28;
+    const pillX = W / 2 - pillW / 2;
+    const pillY = 390;
+
+    ctx.fillStyle = `${accentColor}25`;
+    ctx.beginPath();
+    ctx.roundRect(pillX, pillY, pillW, pillH, 14);
+    ctx.fill();
+    ctx.strokeStyle = accentColor;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
 
     ctx.fillStyle = accentColor;
-    ctx.font = 'bold 14px Inter, sans-serif';
-    ctx.fillText(data.jobTitle.toUpperCase(), W / 2, 404);
+    ctx.fillText(titleText, W / 2, pillY + 18);
 
     if (data.department) {
       ctx.fillStyle = subTextColor;
       ctx.font = '600 12px Inter, sans-serif';
-      ctx.fillText(`Dept: ${data.department}`, W / 2, 424);
+      ctx.fillText(`Department: ${data.department}`, W / 2, 436);
     }
 
-    const blockY = 465;
+    // 5. Structured Data Metric Tiles (2 Columns x 2 Rows Glass Cards)
+    const blockY = 462;
     const metrics = [
       { label: 'ID NUMBER', val: data.idNumber, col: accentColor },
       { label: 'BLOOD GROUP', val: data.bloodGroup, col: textColor },
@@ -826,40 +1133,67 @@ function renderStandardFrontContent(
     metrics.forEach((m, idx) => {
       const col = idx % 2;
       const row = Math.floor(idx / 2);
-      const mx = col === 0 ? W * 0.28 : W * 0.72;
-      const my = blockY + row * 58;
+      const tileW = 230;
+      const tileH = 50;
+      const tx = col === 0 ? 55 : W - 55 - tileW;
+      const ty = blockY + row * 58;
 
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+      ctx.beginPath();
+      ctx.roundRect(tx, ty, tileW, tileH, 10);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.textAlign = 'left';
       ctx.fillStyle = subTextColor;
-      ctx.font = 'bold 9.5px Inter, sans-serif';
-      ctx.fillText(m.label, mx, my);
+      ctx.font = 'bold 9px Inter, sans-serif';
+      ctx.fillText(m.label, tx + 14, ty + 18);
 
       ctx.fillStyle = m.col;
-      ctx.font = 'bold 14.5px Inter, sans-serif';
-      ctx.fillText(m.val, mx, my + 18);
+      ctx.font = 'bold 14px Inter, sans-serif';
+      ctx.fillText(m.val, tx + 14, ty + 38);
     });
 
-    const contactY = 600;
-    ctx.font = '13px Inter, sans-serif';
+    // 6. Contact Section
+    const contactY = 598;
+    ctx.textAlign = 'center';
+    ctx.font = '12.5px Inter, sans-serif';
     ctx.fillStyle = textColor;
     ctx.fillText(`📞  ${data.phone}`, W / 2, contactY);
-    ctx.fillText(`✉️  ${data.email}`, W / 2, contactY + 26);
-    ctx.fillText(`🌐  ${data.website}`, W / 2, contactY + 52);
+    ctx.fillText(`✉️  ${data.email}`, W / 2, contactY + 25);
+    ctx.fillText(`🌐  ${data.website}`, W / 2, contactY + 50);
 
+    // 7. EMV Chip & Contactless on Badge
+    if (data.showChip) {
+      drawEmvChip(ctx, 55, H - 155, 52, 38, true);
+    }
+    if (data.showContactless) {
+      drawContactlessSymbol(ctx, W - 75, H - 135, accentColor);
+    }
+
+    // 8. Vector Barcode
     if (data.showBarcode) {
-      const barY = H - 128;
+      const barY = H - 95;
       ctx.fillStyle = textColor;
-      for (let b = 70; b < W - 70; b += 7) {
+      for (let b = 80; b < W - 80; b += 7) {
         const bw = b % 14 === 0 ? 3.5 : 1.5;
-        ctx.fillRect(b, barY, bw, 34);
+        ctx.fillRect(b, barY, bw, 28);
       }
-      ctx.font = 'bold 11px monospace';
+      ctx.font = 'bold 10.5px monospace';
       ctx.fillStyle = subTextColor;
-      ctx.fillText(data.idNumber, W / 2, barY + 48);
+      ctx.fillText(data.idNumber, W / 2, barY + 40);
     }
   } else {
-    const logoSize = 64;
+    // ══════════════════════════════════════════════════════════════════════════
+    // ── BALANCED HORIZONTAL (LANDSCAPE: 1050 × 600 px) ───────────────────────
+    // ══════════════════════════════════════════════════════════════════════════
+
+    // 1. Top Row: Company Logo & Brand Name
+    const logoSize = 62;
     const logoX = 52;
-    const logoY = 48;
+    const logoY = 46;
 
     if (logoImg && logoImg.width > 0) {
       ctx.save();
@@ -868,6 +1202,11 @@ function renderStandardFrontContent(
       ctx.clip();
       ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
       ctx.restore();
+      ctx.strokeStyle = accentColor;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(logoX, logoY, logoSize, logoSize, 14);
+      ctx.stroke();
     } else {
       ctx.fillStyle = accentColor;
       ctx.beginPath();
@@ -883,15 +1222,24 @@ function renderStandardFrontContent(
     ctx.textAlign = 'left';
     ctx.fillStyle = textColor;
     ctx.font = '900 24px Inter, sans-serif';
-    ctx.fillText(data.companyName.toUpperCase(), 132, 74);
+    ctx.fillText(data.companyName.toUpperCase(), 130, 72);
 
     if (data.tagline) {
       ctx.fillStyle = subTextColor;
       ctx.font = '500 13px Inter, sans-serif';
-      ctx.fillText(data.tagline, 132, 98);
+      ctx.fillText(data.tagline, 130, 96);
     }
 
-    const nameY = 205;
+    // 2. Top Right: EMV Smart Chip & Contactless Symbol
+    if (data.showChip) {
+      drawEmvChip(ctx, W - 140, 48, 64, 46, true);
+    }
+    if (data.showContactless) {
+      drawContactlessSymbol(ctx, W - 180, 70, accentColor);
+    }
+
+    // 3. Middle: Name, Title & Formatted Card Number
+    const nameY = 210;
     ctx.fillStyle = textColor;
     ctx.font = '900 38px Inter, sans-serif';
     ctx.fillText(data.fullName, 52, nameY);
@@ -906,7 +1254,13 @@ function renderStandardFrontContent(
       ctx.fillText(`Dept: ${data.department}`, 52, nameY + 54);
     }
 
-    const startY = 328;
+    // Formatted Card Serial Number (Mastercard style laser font)
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.font = 'bold 15px monospace';
+    ctx.fillText(`${data.idNumber || 'BT-8842-SL'}  •  ${data.issueDate}  EXP: ${data.expiryDate}`, 52, nameY + 84);
+
+    // 4. Bottom: 2-Column Contact Grid
+    const startY = 360;
     const contacts = [
       { icon: '📞', text: data.phone },
       { icon: '✉️', text: data.email },
@@ -917,17 +1271,23 @@ function renderStandardFrontContent(
     contacts.forEach((c, idx) => {
       const col = idx < 2 ? 0 : 1;
       const row = idx % 2;
-      const cx = 52 + col * 370;
+      const cx = 52 + col * 380;
       const cy = startY + row * 38;
 
       ctx.font = '14px Inter, sans-serif';
       ctx.fillStyle = textColor;
       ctx.fillText(`${c.icon}  ${c.text}`, cx, cy);
     });
+
+    // 5. Interlocking Mastercard Style Dual Circles (Bottom Right)
+    if (data.showMasterCircles) {
+      drawInterlockingCircles(ctx, W - 85, H - 75, 26, accentColor, data.secondaryColor || '#EF4444');
+    }
   }
 
+  // Optional Cut / Bleed Marks
   if (data.showCutMarks) {
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
     ctx.lineWidth = 1;
     const cl = 16;
     ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(10, cl); ctx.stroke();
@@ -951,40 +1311,86 @@ function renderStandardBackContent(
   textColor: string,
   qrImg: HTMLImageElement | null
 ) {
-  ctx.fillStyle = 'rgba(0,0,0,0.5)';
-  ctx.fillRect(0, 32, W, isPort ? 44 : 52);
+  // 1. Magnetic Stripe (Classic Mastercard Gloss Black Stripe)
+  const stripeH = isPort ? 56 : 64;
+  const stripeY = isPort ? 32 : 40;
 
-  if (qrImg && qrImg.width > 0) {
-    const qrSize = isPort ? 175 : 185;
-    const qx = isPort ? W / 2 - qrSize / 2 : 65;
-    const qy = isPort ? 135 : 140;
+  const magGrad = ctx.createLinearGradient(0, stripeY, 0, stripeY + stripeH);
+  magGrad.addColorStop(0, '#030508');
+  magGrad.addColorStop(0.5, '#1e2533');
+  magGrad.addColorStop(1, '#030508');
+  ctx.fillStyle = magGrad;
+  ctx.fillRect(0, stripeY, W, stripeH);
 
-    ctx.fillStyle = '#ffffff';
+  // 2. White Signature Strip with Security Hatch Lines
+  const sigX = isPort ? 45 : 55;
+  const sigY = isPort ? 110 : 125;
+  const sigW = isPort ? W - 90 : W * 0.46;
+  const sigH = 46;
+
+  ctx.fillStyle = '#f8fafc';
+  ctx.beginPath();
+  ctx.roundRect(sigX, sigY, sigW, sigH, 6);
+  ctx.fill();
+
+  // Signature hatched lines
+  ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+  ctx.lineWidth = 1;
+  for (let sx = sigX; sx < sigX + sigW; sx += 12) {
     ctx.beginPath();
-    ctx.roundRect(qx - 8, qy - 8, qrSize + 16, qrSize + 16, 12);
-    ctx.fill();
-    ctx.drawImage(qrImg, qx, qy, qrSize, qrSize);
+    ctx.moveTo(sx, sigY);
+    ctx.lineTo(sx + sigH, sigY + sigH);
+    ctx.stroke();
   }
 
-  const tx = isPort ? W / 2 : 290;
-  const ty = isPort ? 355 : 160;
+  // Authorized Signature Label & Security Hologram Text
+  ctx.fillStyle = '#64748b';
+  ctx.font = 'bold 9px Inter, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('AUTHORIZED SIGNATURE — NOT VALID UNLESS SIGNED', sigX + 10, sigY + 16);
+
+  ctx.fillStyle = '#0f172a';
+  ctx.font = 'italic bold 16px "Brush Script MT", cursive, sans-serif';
+  ctx.fillText(data.fullName, sigX + 24, sigY + 36);
+
+  // 3. Scannable QR Code (Framed in 3D White Tile)
+  const qrSize = isPort ? 180 : 190;
+  const qx = isPort ? W / 2 - qrSize / 2 : W - qrSize - 65;
+  const qy = isPort ? 180 : 135;
+
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.5)';
+  ctx.shadowBlur = 12;
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.roundRect(qx - 8, qy - 8, qrSize + 16, qrSize + 16, 14);
+  ctx.fill();
+
+  if (qrImg && qrImg.width > 0) {
+    ctx.drawImage(qrImg, qx, qy, qrSize, qrSize);
+  }
+  ctx.restore();
+
+  // 4. Backside Copy & Security Policy
+  const tx = isPort ? W / 2 : 55;
+  const ty = isPort ? 415 : 205;
 
   ctx.textAlign = isPort ? 'center' : 'left';
   ctx.fillStyle = textColor;
-  ctx.font = '900 20px Inter, sans-serif';
+  ctx.font = '900 21px Inter, sans-serif';
   ctx.fillText(data.backTitle, tx, ty);
 
   ctx.fillStyle = accentColor;
-  ctx.font = 'bold 12.5px Inter, sans-serif';
+  ctx.font = 'bold 13px Inter, sans-serif';
   ctx.fillText(data.backSubtitle, tx, ty + 24);
 
   ctx.fillStyle = 'rgba(255,255,255,0.65)';
-  ctx.font = '11px Inter, sans-serif';
+  ctx.font = '11.5px Inter, sans-serif';
 
   const words = data.disclaimer.split(' ');
   let line = '';
   let lineY = ty + 56;
-  const maxW = isPort ? W - 90 : W - 340;
+  const maxW = isPort ? W - 90 : W * 0.46;
 
   for (let n = 0; n < words.length; n++) {
     const testLine = line + words[n] + ' ';
@@ -992,7 +1398,7 @@ function renderStandardBackContent(
     if (metrics.width > maxW && n > 0) {
       ctx.fillText(line, tx, lineY);
       line = words[n] + ' ';
-      lineY += 18;
+      lineY += 19;
     } else {
       line = testLine;
     }
@@ -1000,16 +1406,17 @@ function renderStandardBackContent(
   ctx.fillText(line, tx, lineY);
 
   if (data.emergencyContact) {
-    lineY += 26;
+    lineY += 28;
     ctx.fillStyle = textColor;
-    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.font = 'bold 12.5px Inter, sans-serif';
     ctx.fillText(`Emergency Security: ${data.emergencyContact}`, tx, lineY);
   }
 
+  // 5. Official Company Footer String
   ctx.textAlign = 'center';
   ctx.fillStyle = 'rgba(255,255,255,0.45)';
   ctx.font = 'bold 11px Inter, sans-serif';
-  ctx.fillText(`${data.companyName.toUpperCase()} · ${data.website}`, W / 2, H - 40);
+  ctx.fillText(`${data.companyName.toUpperCase()} · ${data.website}`, W / 2, H - 34);
 }
 
 const DEFAULT_CARD_DATA: CardData = {
@@ -1044,11 +1451,13 @@ const DEFAULT_CARD_DATA: CardData = {
   templateId: 'executive_3d_gold',
   orientation: 'landscape',
   accentColor: '#F59E0B',
-  secondaryColor: '#D97706',
+  secondaryColor: '#EF4444',
   bgOpacity: 0.4,
   showChip: true,
+  showContactless: true,
   showBarcode: true,
-  showCutMarks: true,
+  showMasterCircles: true,
+  showCutMarks: false,
 };
 
 export default function CardStudio() {
@@ -1059,6 +1468,9 @@ export default function CardStudio() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isExporting, setIsExporting] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
+
+  // 3D Tilt interaction state
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
   const frontCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const backCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -1176,6 +1588,19 @@ export default function CardStudio() {
     drawCanvases();
   }, [drawCanvases]);
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    const rotX = -(y / (rect.height / 2)) * 8;
+    const rotY = (x / (rect.width / 2)) * 8;
+    setTilt({ x: rotX, y: rotY });
+  };
+
+  const handleMouseLeave = () => {
+    setTilt({ x: 0, y: 0 });
+  };
+
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'photoUrl' | 'logoUrl') => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1201,22 +1626,22 @@ export default function CardStudio() {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>${data.fullName} - BridgeTec Studio (Dev Mode)</title>
+          <title>${data.fullName} - 3D Master Card Studio</title>
           <style>
             body { margin: 0; background: #020617; color: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; box-sizing: border-box; }
-            h1 { font-size: 22px; font-weight: 900; margin-bottom: 4px; }
-            .badge { display: inline-block; background: #f59e0b; color: #000; font-size: 11px; font-weight: 900; padding: 3px 8px; border-radius: 999px; margin-bottom: 12px; }
-            p { color: #94a3b8; font-size: 13px; margin-top: 0; margin-bottom: 24px; }
-            .grid { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; max-width: 1200px; }
-            .card { background: #0f172a; border: 1px solid #1e293b; border-radius: 20px; padding: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); text-align: center; }
-            img { width: 100%; max-width: 480px; border-radius: 12px; display: block; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-            .label { font-size: 12px; font-weight: bold; color: #f59e0b; margin-top: 12px; }
+            h1 { font-size: 24px; font-weight: 900; margin-bottom: 4px; }
+            .badge { display: inline-block; background: #f59e0b; color: #000; font-size: 11px; font-weight: 900; padding: 4px 10px; border-radius: 999px; margin-bottom: 12px; }
+            p { color: #94a3b8; font-size: 13px; margin-top: 0; margin-bottom: 28px; }
+            .grid { display: flex; flex-wrap: wrap; gap: 32px; justify-content: center; max-width: 1200px; perspective: 1200px; }
+            .card { background: #0a0f1d; border: 1px solid rgba(255,255,255,0.1); border-radius: 26px; padding: 18px; box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.2); text-align: center; }
+            img { width: 100%; max-width: 500px; border-radius: 18px; display: block; box-shadow: 0 15px 35px rgba(0,0,0,0.6); }
+            .label { font-size: 12px; font-weight: bold; color: #f59e0b; margin-top: 14px; letter-spacing: 0.05em; }
           </style>
         </head>
         <body>
-          <div class="badge">DEVELOPMENT &amp; DESIGN LAB PREVIEW</div>
+          <div class="badge">3D MASTERCARD LUXURY PREVIEW</div>
           <h1>${data.fullName} — ${data.companyName}</h1>
-          <p>ISO Standard 300 DPI High-Resolution Card Export Preview</p>
+          <p>ISO/IEC 7810 ID-1 Standard 300 DPI Export Clarity</p>
           <div class="grid">
             <div class="card">
               <img src="${frontCanvas.toDataURL('image/png')}" />
@@ -1254,7 +1679,7 @@ export default function CardStudio() {
       pdf.addPage([pdfW, pdfH], isPort ? 'portrait' : 'landscape');
       pdf.addImage(backCanvas.toDataURL('image/png'), 'PNG', 0, 0, pdfW, pdfH, undefined, 'FAST');
 
-      pdf.save(`${data.fullName.replace(/\s+/g, '_')}_Card_300DPI_Dev.pdf`);
+      pdf.save(`${data.fullName.replace(/\s+/g, '_')}_3D_Card_300DPI.pdf`);
     } catch {
       alert('Failed to generate PDF.');
     } finally {
@@ -1282,7 +1707,7 @@ export default function CardStudio() {
 
       pdf.setFontSize(9);
       pdf.setTextColor(120);
-      pdf.text(`BridgeTec Card Studio [DEV MODE] — Front Sheet (${data.fullName})`, 14, 12);
+      pdf.text(`BridgeTec 3D Card Studio — Front Sheet (${data.fullName})`, 14, 12);
 
       for (let r = 0; r < 4; r++) {
         for (let c = 0; c < 2; c++) {
@@ -1295,7 +1720,7 @@ export default function CardStudio() {
       }
 
       pdf.addPage('a4', 'portrait');
-      pdf.text(`BridgeTec Card Studio [DEV MODE] — Back Sheet (${data.fullName})`, 14, 12);
+      pdf.text(`BridgeTec 3D Card Studio — Back Sheet (${data.fullName})`, 14, 12);
 
       for (let r = 0; r < 4; r++) {
         for (let c = 0; c < 2; c++) {
@@ -1307,7 +1732,7 @@ export default function CardStudio() {
         }
       }
 
-      pdf.save(`${data.fullName.replace(/\s+/g, '_')}_A4_8Cards_Duplex_Dev.pdf`);
+      pdf.save(`${data.fullName.replace(/\s+/g, '_')}_A4_8Cards_Duplex.pdf`);
     } catch {
       alert('Failed to generate A4 print sheet.');
     } finally {
@@ -1319,7 +1744,7 @@ export default function CardStudio() {
     const canvas = side === 'front' ? frontCanvasRef.current : backCanvasRef.current;
     if (!canvas) return;
     const a = document.createElement('a');
-    a.download = `${data.fullName.replace(/\s+/g, '_')}_${side.toUpperCase()}_300DPI_Dev.png`;
+    a.download = `${data.fullName.replace(/\s+/g, '_')}_${side.toUpperCase()}_300DPI.png`;
     a.href = canvas.toDataURL('image/png', 1.0);
     a.click();
   };
@@ -1345,7 +1770,7 @@ export default function CardStudio() {
       <!DOCTYPE html><html><head><style>
         @page { size: auto; margin: 8mm; }
         body { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 20px; font-family: sans-serif; }
-        img { width: 85.6mm; height: 54mm; object-fit: contain; border-radius: 3mm; box-shadow: 0 0 1px #888; }
+        img { width: 85.6mm; height: 54mm; object-fit: contain; border-radius: 3.18mm; box-shadow: 0 0 1px #888; }
       </style></head><body>
         <div><img src="${frontCanvas.toDataURL('image/png')}" /></div>
         <div><img src="${backCanvas.toDataURL('image/png')}" /></div>
@@ -1371,32 +1796,6 @@ export default function CardStudio() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* ── DEVELOPMENT MODE NOTICE BANNER ───────────────────────────────────── */}
-      <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-amber-500 text-black flex items-center justify-center font-bold text-sm shrink-0 shadow-md shadow-amber-500/20">
-            <FlaskConical className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-black text-amber-400 uppercase tracking-wide">Development &amp; Design Lab Mode</span>
-              <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-mono">INTERNAL TESTING</span>
-            </div>
-            <p className="text-slate-400 text-[11px] mt-0.5">
-              Card Studio is unlocked for local testing &amp; layout polishing. All real-time canvas rendering, hex editing, and PDF generators are fully functional.
-            </p>
-          </div>
-        </div>
-
-        <button
-          onClick={handleOpenStudioWindow}
-          className="self-start sm:self-auto py-2 px-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs flex items-center gap-1.5 transition-all shadow shrink-0"
-        >
-          <ExternalLink className="w-3.5 h-3.5" />
-          <span>Open Full Dev Studio</span>
-        </button>
-      </div>
-
       {/* ── TOOL HEADER ──────────────────────────────────────────────────────── */}
       <div className="bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -1406,21 +1805,31 @@ export default function CardStudio() {
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs font-black uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
-                  Design Studio Lab • 300 DPI
+                <span className="text-xs font-black uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" />
+                  3D Mastercard Luxury • 300 DPI
                 </span>
-                <span className="text-xs font-bold text-slate-400">• Top Industry Layouts</span>
+                <span className="text-xs font-bold text-slate-400">• ISO 7810 Standard</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                Business &amp; ID Card Studio (Design Lab)
+                3D Luxury Business &amp; ID Card Studio
               </h2>
               <p className="text-slate-400 text-xs sm:text-sm mt-1">
-                Testing sandbox for 3D luxury designs, corporate &amp; trade templates (Real Estate, Tech, Legal, Beauty, Barber, Construction) with scannable vCard QR codes.
+                Design realistic 3D metallic cards with rounded edges, EMV microchip, contactless NFC glyphs, and high-precision vertical &amp; horizontal content layouts.
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              onClick={handleOpenStudioWindow}
+              className="py-2.5 px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold text-xs flex items-center gap-1.5 transition-all border border-cyan-500/30 shadow-md"
+              title="Open full view in new window"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span>3D New Window</span>
+            </button>
+
             <button
               onClick={downloadSinglePdf}
               disabled={isExporting}
@@ -1436,7 +1845,7 @@ export default function CardStudio() {
               className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center gap-2 transition-all border border-slate-700 shadow-md"
             >
               <Grid className="w-4 h-4 text-cyan-400" />
-              <span>8-Card A4 Print Sheet</span>
+              <span>8-Card A4 Sheet</span>
             </button>
 
             <button
@@ -1452,7 +1861,7 @@ export default function CardStudio() {
 
       {/* ── MAIN STUDIO GRID ─────────────────────────────────────────────────── */}
       <div className="grid lg:grid-cols-12 gap-8 items-start">
-        {/* LEFT COLUMN: LIVE CANVASES PREVIEW (7 Cols) */}
+        {/* LEFT COLUMN: LIVE 3D CANVASES PREVIEW (7 Cols) */}
         <div className="lg:col-span-7 space-y-5">
           {/* Side Toggle & Dimension Pill */}
           <div className="flex items-center justify-between bg-slate-900 border border-slate-800 p-2 rounded-2xl">
@@ -1483,33 +1892,55 @@ export default function CardStudio() {
               </button>
             </div>
 
-            <div className="text-[11px] font-mono text-slate-400 pr-2">
-              {data.orientation === 'landscape' ? 'ISO Standard 85.6 × 54 mm (3.5" × 2")' : 'ISO Standard 54 × 85.6 mm (2" × 3.5")'}
+            <div className="text-[11px] font-mono text-slate-400 pr-2 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              {data.orientation === 'landscape' ? 'Mastercard ISO 85.6 × 54 mm' : 'ID Badge ISO 54 × 85.6 mm'}
             </div>
           </div>
 
-          {/* Canvas Displays */}
+          {/* 3D Canvas Perspective Display Containers */}
           <div className="space-y-6">
             {(activeSide === 'both' || activeSide === 'front') && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-400 px-1">
                   <span className="flex items-center gap-1.5 text-amber-300">
                     <Eye className="w-3.5 h-3.5" />
-                    FRONT SIDE (300 DPI)
+                    3D FRONT SIDE (ROUNDED EDGES)
                   </span>
                   <button
                     onClick={() => downloadPng('front')}
-                    className="text-cyan-400 hover:text-cyan-300 text-[11px] flex items-center gap-1"
+                    className="text-cyan-400 hover:text-cyan-300 text-[11px] flex items-center gap-1 font-bold"
                   >
                     <Download className="w-3 h-3" />
                     <span>Download PNG</span>
                   </button>
                 </div>
-                <div className="relative rounded-3xl overflow-hidden border-2 border-slate-800 bg-slate-950 p-4 shadow-2xl flex items-center justify-center min-h-[280px]">
-                  <canvas
-                    ref={frontCanvasRef}
-                    className={`w-full ${cardDim.containerClass} ${cardDim.aspect} rounded-2xl shadow-2xl object-contain`}
-                  />
+
+                {/* 3D Interactive Perspective Wrapper */}
+                <div
+                  onMouseMove={handleMouseMove}
+                  onMouseLeave={handleMouseLeave}
+                  className="relative rounded-3xl overflow-hidden border border-slate-800 bg-slate-950 p-6 sm:p-8 shadow-2xl flex items-center justify-center min-h-[300px] transition-all"
+                  style={{ perspective: '1200px' }}
+                >
+                  <div
+                    className="relative transition-transform duration-150 ease-out"
+                    style={{
+                      transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+                      transformStyle: 'preserve-3d',
+                    }}
+                  >
+                    {/* Multi-layered Drop Shadow */}
+                    <div
+                      className="absolute -inset-2 rounded-[32px] bg-black/60 blur-xl -z-10 pointer-events-none"
+                      style={{ transform: 'translateZ(-20px)' }}
+                    />
+
+                    <canvas
+                      ref={frontCanvasRef}
+                      className={`w-full ${cardDim.containerClass} ${cardDim.aspect} rounded-[24px] shadow-2xl object-contain ring-1 ring-white/10`}
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -1519,21 +1950,40 @@ export default function CardStudio() {
                 <div className="flex items-center justify-between text-xs font-bold text-slate-400 px-1">
                   <span className="flex items-center gap-1.5 text-blue-300">
                     <QrCode className="w-3.5 h-3.5" />
-                    BACK SIDE (SCANNABLE VCARD QR)
+                    3D BACK SIDE (MAGNETIC STRIPE &amp; VCARD QR)
                   </span>
                   <button
                     onClick={() => downloadPng('back')}
-                    className="text-cyan-400 hover:text-cyan-300 text-[11px] flex items-center gap-1"
+                    className="text-cyan-400 hover:text-cyan-300 text-[11px] flex items-center gap-1 font-bold"
                   >
                     <Download className="w-3 h-3" />
                     <span>Download PNG</span>
                   </button>
                 </div>
-                <div className="relative rounded-3xl overflow-hidden border-2 border-slate-800 bg-slate-950 p-4 shadow-2xl flex items-center justify-center min-h-[280px]">
-                  <canvas
-                    ref={backCanvasRef}
-                    className={`w-full ${cardDim.containerClass} ${cardDim.aspect} rounded-2xl shadow-2xl object-contain`}
-                  />
+
+                <div
+                  onMouseMove={handleMouseMove}
+                  onMouseLeave={handleMouseLeave}
+                  className="relative rounded-3xl overflow-hidden border border-slate-800 bg-slate-950 p-6 sm:p-8 shadow-2xl flex items-center justify-center min-h-[300px] transition-all"
+                  style={{ perspective: '1200px' }}
+                >
+                  <div
+                    className="relative transition-transform duration-150 ease-out"
+                    style={{
+                      transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+                      transformStyle: 'preserve-3d',
+                    }}
+                  >
+                    <div
+                      className="absolute -inset-2 rounded-[32px] bg-black/60 blur-xl -z-10 pointer-events-none"
+                      style={{ transform: 'translateZ(-20px)' }}
+                    />
+
+                    <canvas
+                      ref={backCanvasRef}
+                      className={`w-full ${cardDim.containerClass} ${cardDim.aspect} rounded-[24px] shadow-2xl object-contain ring-1 ring-white/10`}
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -1569,7 +2019,7 @@ export default function CardStudio() {
             })}
           </div>
 
-          {/* TAB 1: DESIGN TEMPLATES */}
+          {/* TAB 1: DESIGN TEMPLATES & 3D HARDWARE TOGGLES */}
           {activeTab === 'templates' && (
             <div className="space-y-5">
               {/* Orientation Switcher */}
@@ -1595,6 +2045,52 @@ export default function CardStudio() {
                     }`}
                   >
                     <span>Portrait (2" × 3.5")</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 3D Hardware Elements Toggles (Mastercard features) */}
+              <div className="space-y-2 pt-2 border-t border-slate-800">
+                <label className="text-xs font-bold text-slate-300 block">3D Hardware Badges &amp; Embellishments</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setData({ ...data, showChip: !data.showChip })}
+                    className={`py-2 px-3 rounded-xl border text-[11px] font-bold flex items-center justify-between transition-all ${
+                      data.showChip ? 'border-amber-500 bg-amber-500/10 text-amber-300' : 'border-slate-800 bg-slate-950 text-slate-500'
+                    }`}
+                  >
+                    <span>EMV Smart Chip</span>
+                    {data.showChip && <Check className="w-3.5 h-3.5 text-amber-400" />}
+                  </button>
+
+                  <button
+                    onClick={() => setData({ ...data, showContactless: !data.showContactless })}
+                    className={`py-2 px-3 rounded-xl border text-[11px] font-bold flex items-center justify-between transition-all ${
+                      data.showContactless ? 'border-amber-500 bg-amber-500/10 text-amber-300' : 'border-slate-800 bg-slate-950 text-slate-500'
+                    }`}
+                  >
+                    <span>Contactless NFC</span>
+                    {data.showContactless && <Check className="w-3.5 h-3.5 text-amber-400" />}
+                  </button>
+
+                  <button
+                    onClick={() => setData({ ...data, showMasterCircles: !data.showMasterCircles })}
+                    className={`py-2 px-3 rounded-xl border text-[11px] font-bold flex items-center justify-between transition-all ${
+                      data.showMasterCircles ? 'border-amber-500 bg-amber-500/10 text-amber-300' : 'border-slate-800 bg-slate-950 text-slate-500'
+                    }`}
+                  >
+                    <span>Dual Circles Crest</span>
+                    {data.showMasterCircles && <Check className="w-3.5 h-3.5 text-amber-400" />}
+                  </button>
+
+                  <button
+                    onClick={() => setData({ ...data, showBarcode: !data.showBarcode })}
+                    className={`py-2 px-3 rounded-xl border text-[11px] font-bold flex items-center justify-between transition-all ${
+                      data.showBarcode ? 'border-amber-500 bg-amber-500/10 text-amber-300' : 'border-slate-800 bg-slate-950 text-slate-500'
+                    }`}
+                  >
+                    <span>Security Barcode</span>
+                    {data.showBarcode && <Check className="w-3.5 h-3.5 text-amber-400" />}
                   </button>
                 </div>
               </div>
@@ -1635,7 +2131,7 @@ export default function CardStudio() {
                         type="text"
                         value={data.secondaryColor}
                         onChange={(e) => setData({ ...data, secondaryColor: e.target.value })}
-                        placeholder="#06B6D4"
+                        placeholder="#EF4444"
                         className="w-full bg-transparent font-mono text-xs text-white focus:outline-none uppercase"
                       />
                     </div>
@@ -1703,7 +2199,7 @@ export default function CardStudio() {
                 <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
               </div>
 
-              <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
+              <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1">
                 {filteredTemplates.map((t) => (
                   <div
                     key={t.id}
@@ -1954,7 +2450,7 @@ export default function CardStudio() {
                   Commercial ISO 7810 Standard
                 </h4>
                 <p className="text-[11px] text-slate-300 leading-relaxed">
-                  Export in standard CR80 format (85.60 × 53.98 mm) at 300 DPI vector clarity with automatic duplex A4 cutting sheets.
+                  Export in standard CR80 format (85.60 × 53.98 mm) with 3.18mm rounded corners at 300 DPI vector clarity with automatic duplex A4 cutting sheets.
                 </p>
               </div>
 
