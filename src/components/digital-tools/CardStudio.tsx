@@ -57,6 +57,11 @@ import {
   FlaskConical,
   Wifi,
   Flame,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  ZoomIn,
+  Move,
 } from 'lucide-react';
 
 export type CardCategory = 'all' | 'business' | 'id_badge' | 'complementary' | 'vip_pass';
@@ -131,7 +136,7 @@ export interface CardData {
   qrType: 'vcard' | 'website' | 'custom_text';
   qrCustomText: string;
 
-  // Visual Customization
+  // Visual Customization & Sliders
   templateId: string;
   orientation: CardOrientation;
   accentColor: string;
@@ -142,9 +147,17 @@ export interface CardData {
   showBarcode: boolean;
   showMasterCircles: boolean;
   showCutMarks: boolean;
+
+  // Position & Size Bars
+  contentAlign: 'left' | 'center' | 'right';
+  logoPosition: 'left' | 'center' | 'right';
+  fontScale: number; // 0.8 to 1.3
+  curveIntensity: number; // 0.4 to 1.6
+  cornerRadius: number; // 20 to 50
+  previewZoom: number; // 75 to 125
 }
 
-// ── COLOR VALIDATION & SAFE COLOR HELPERS (PREVENTS addColorStop SYNTAX ERRORS) ─
+// ── COLOR VALIDATION & SAFE COLOR HELPERS ───────────────────────────────────────
 export function isValidHexColor(color: string): boolean {
   if (!color || typeof color !== 'string') return false;
   return /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/.test(color.trim());
@@ -284,7 +297,7 @@ function drawInterlockingCircles(ctx: CanvasRenderingContext2D, x: number, y: nu
 }
 
 // ── 3D SPECULAR SHEEN & CARD BEVEL ──────────────────────────────────────────────
-function apply3DCardLightingAndBevel(ctx: CanvasRenderingContext2D, W: number, H: number, isPort: boolean) {
+function apply3DCardLightingAndBevel(ctx: CanvasRenderingContext2D, W: number, H: number, isPort: boolean, cornerRadius: number = 38) {
   ctx.save();
 
   const sheen = ctx.createLinearGradient(0, 0, W, H);
@@ -296,7 +309,7 @@ function apply3DCardLightingAndBevel(ctx: CanvasRenderingContext2D, W: number, H
   ctx.fillStyle = sheen;
   ctx.fillRect(0, 0, W, H);
 
-  const radius = isPort ? 34 : 38;
+  const radius = Math.max(16, cornerRadius || (isPort ? 34 : 38));
 
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
   ctx.lineWidth = 2;
@@ -307,15 +320,15 @@ function apply3DCardLightingAndBevel(ctx: CanvasRenderingContext2D, W: number, H
   ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
   ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.roundRect(3, 3, W - 6, H - 6, radius - 2);
+  ctx.roundRect(3, 3, W - 6, H - 6, Math.max(12, radius - 2));
   ctx.stroke();
 
   ctx.restore();
 }
 
-// ── MASTER TEMPLATES COLLECTION ─────────────────────────────────────────────────
+// ── MASTER TEMPLATES COLLECTION (EXPANDED ARTISTIC CURVED DESIGNS) ──────────────
 const MASTER_TEMPLATES: CardTemplateConfig[] = [
-  // ── 1. ARTISTIC CURVED: FLUID CHROMA WAVE (Sunset & Magenta Flame)
+  // ── 1. ARTISTIC CURVED: FLUID CHROMA WAVE (Sunset Amber & Magenta)
   {
     id: 'fluid_chroma_wave',
     name: 'Fluid Chroma Wave & Sunset Flame',
@@ -328,7 +341,8 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     badgeIcon: '🌊',
     previewGradient: 'from-orange-500 via-rose-500 to-purple-700',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      const radius = isPort ? 34 : 38;
+      const radius = data.cornerRadius || (isPort ? 34 : 38);
+      const k = data.curveIntensity || 1.0;
       ctx.save();
       ctx.beginPath();
       ctx.roundRect(0, 0, W, H, radius);
@@ -340,6 +354,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.fillStyle = '#0a0914';
       ctx.fillRect(0, 0, W, H);
 
+      // Layer 1: Violet Deep Wave
       const w1 = ctx.createLinearGradient(0, 0, W, H);
       w1.addColorStop(0, '#3b0764');
       w1.addColorStop(0.5, '#701a75');
@@ -347,19 +362,18 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.fillStyle = w1;
       ctx.beginPath();
       if (isPort) {
-        ctx.moveTo(0, H * 0.3);
-        ctx.bezierCurveTo(W * 0.5, H * 0.2, W * 0.5, H * 0.6, W, H * 0.45);
-        ctx.lineTo(W, H);
-        ctx.lineTo(0, H);
+        ctx.moveTo(0, H * (0.35 - (k - 1) * 0.1));
+        ctx.bezierCurveTo(W * 0.5, H * (0.2 * k), W * 0.5, H * (0.6 * k), W, H * 0.45);
+        ctx.lineTo(W, H); ctx.lineTo(0, H);
       } else {
-        ctx.moveTo(0, H * 0.55);
-        ctx.bezierCurveTo(W * 0.35, H * 0.2, W * 0.65, H * 0.8, W, H * 0.35);
-        ctx.lineTo(W, H);
-        ctx.lineTo(0, H);
+        ctx.moveTo(0, H * (0.55 - (k - 1) * 0.15));
+        ctx.bezierCurveTo(W * 0.35, H * (0.2 * k), W * 0.65, H * (0.8 * k), W, H * 0.35);
+        ctx.lineTo(W, H); ctx.lineTo(0, H);
       }
       ctx.closePath();
       ctx.fill();
 
+      // Layer 2: Magenta S-Wave
       ctx.shadowColor = 'rgba(0,0,0,0.5)';
       ctx.shadowBlur = 20;
       const w2 = ctx.createLinearGradient(0, 0, W, 0);
@@ -368,19 +382,18 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.fillStyle = w2;
       ctx.beginPath();
       if (isPort) {
-        ctx.moveTo(0, H * 0.48);
-        ctx.bezierCurveTo(W * 0.4, H * 0.38, W * 0.6, H * 0.75, W, H * 0.62);
-        ctx.lineTo(W, H);
-        ctx.lineTo(0, H);
+        ctx.moveTo(0, H * (0.48 - (k - 1) * 0.1));
+        ctx.bezierCurveTo(W * 0.4, H * (0.38 * k), W * 0.6, H * (0.75 * k), W, H * 0.62);
+        ctx.lineTo(W, H); ctx.lineTo(0, H);
       } else {
-        ctx.moveTo(0, H * 0.72);
-        ctx.bezierCurveTo(W * 0.4, H * 0.45, W * 0.7, H * 0.95, W, H * 0.58);
-        ctx.lineTo(W, H);
-        ctx.lineTo(0, H);
+        ctx.moveTo(0, H * (0.72 - (k - 1) * 0.15));
+        ctx.bezierCurveTo(W * 0.4, H * (0.45 * k), W * 0.7, H * (0.95 * k), W, H * 0.58);
+        ctx.lineTo(W, H); ctx.lineTo(0, H);
       }
       ctx.closePath();
       ctx.fill();
 
+      // Layer 3: Sunset Ribbon
       const w3 = ctx.createLinearGradient(0, 0, W, H);
       w3.addColorStop(0, primary);
       w3.addColorStop(0.6, '#fb7185');
@@ -388,15 +401,13 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.fillStyle = w3;
       ctx.beginPath();
       if (isPort) {
-        ctx.moveTo(0, H * 0.68);
-        ctx.bezierCurveTo(W * 0.45, H * 0.58, W * 0.55, H * 0.92, W, H * 0.82);
-        ctx.lineTo(W, H);
-        ctx.lineTo(0, H);
+        ctx.moveTo(0, H * (0.68 - (k - 1) * 0.1));
+        ctx.bezierCurveTo(W * 0.45, H * (0.58 * k), W * 0.55, H * (0.92 * k), W, H * 0.82);
+        ctx.lineTo(W, H); ctx.lineTo(0, H);
       } else {
-        ctx.moveTo(0, H * 0.88);
-        ctx.bezierCurveTo(W * 0.45, H * 0.68, W * 0.65, H, W, H * 0.78);
-        ctx.lineTo(W, H);
-        ctx.lineTo(0, H);
+        ctx.moveTo(0, H * (0.88 - (k - 1) * 0.15));
+        ctx.bezierCurveTo(W * 0.45, H * (0.68 * k), W * 0.65, H * (1.1 * k), W, H * 0.78);
+        ctx.lineTo(W, H); ctx.lineTo(0, H);
       }
       ctx.closePath();
       ctx.fill();
@@ -412,12 +423,70 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
 
-      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      apply3DCardLightingAndBevel(ctx, W, H, isPort, radius);
       ctx.restore();
     },
   },
 
-  // ── 2. ARTISTIC CURVED: COSMIC IRIDESCENT S-CURVE (Teal & Electric Violet)
+  // ── 2. ARTISTIC CURVED: PRISM RAINBOW HOLOGRAPHIC WAVE (New!)
+  {
+    id: 'prism_rainbow_wave',
+    name: 'Prism Rainbow Hologram & Refraction',
+    category: 'curved_artistic',
+    industry: 'Creative / Fashion / Web3 / Design',
+    tagline: 'Luminous iridescent multi-spectral curved light ribbons shimmering across slate',
+    theme: 'colorful',
+    defaultAccent: '#EC4899',
+    defaultSecondary: '#06B6D4',
+    badgeIcon: '🌈',
+    previewGradient: 'from-pink-500 via-amber-400 to-cyan-400',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = data.cornerRadius || (isPort ? 34 : 38);
+      const k = data.curveIntensity || 1.0;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
+      const primary = safeColor(data.accentColor, '#EC4899');
+      const secondary = safeColor(data.secondaryColor, '#06B6D4');
+
+      ctx.fillStyle = '#070b19';
+      ctx.fillRect(0, 0, W, H);
+
+      // Multi-spectral Spectrum Ribbon Lines
+      const colors = ['#f43f5e', '#fb923c', '#facc15', '#4ade80', '#22d3ee', '#818cf8', '#c084fc'];
+      colors.forEach((c, idx) => {
+        const offset = (idx - 3) * (18 * k);
+        ctx.strokeStyle = c;
+        ctx.lineWidth = 14;
+        ctx.beginPath();
+        if (isPort) {
+          ctx.moveTo(-40, H * 0.4 + offset);
+          ctx.bezierCurveTo(W * 0.4, H * 0.15 + offset, W * 0.6, H * 0.85 + offset, W + 40, H * 0.6 + offset);
+        } else {
+          ctx.moveTo(-40, H * 0.75 + offset);
+          ctx.bezierCurveTo(W * 0.35, H * 0.2 + offset, W * 0.65, H * 0.95 + offset, W + 40, H * 0.4 + offset);
+        }
+        ctx.stroke();
+      });
+
+      // Translucent Frost Overlay
+      ctx.fillStyle = 'rgba(7, 11, 25, 0.45)';
+      ctx.fillRect(0, 0, W, H);
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#e0f2fe', photoImg, logoImg, '🌈');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
+      }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort, radius);
+      ctx.restore();
+    },
+  },
+
+  // ── 3. ARTISTIC CURVED: COSMIC IRIDESCENT S-CURVE
   {
     id: 'cosmic_iridescent_curve',
     name: 'Cosmic Iridescent S-Curve & Aurora',
@@ -430,7 +499,8 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     badgeIcon: '🌌',
     previewGradient: 'from-cyan-500 via-teal-700 to-indigo-950',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      const radius = isPort ? 34 : 38;
+      const radius = data.cornerRadius || (isPort ? 34 : 38);
+      const k = data.curveIntensity || 1.0;
       ctx.save();
       ctx.beginPath();
       ctx.roundRect(0, 0, W, H, radius);
@@ -451,14 +521,12 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.beginPath();
       if (isPort) {
         ctx.moveTo(W * 0.4, 0);
-        ctx.bezierCurveTo(W * 1.1, H * 0.35, -W * 0.1, H * 0.65, W * 0.7, H);
-        ctx.lineTo(W, H);
-        ctx.lineTo(W, 0);
+        ctx.bezierCurveTo(W * (1.1 * k), H * 0.35, -W * (0.1 * k), H * 0.65, W * 0.7, H);
+        ctx.lineTo(W, H); ctx.lineTo(W, 0);
       } else {
         ctx.moveTo(W * 0.55, 0);
-        ctx.bezierCurveTo(W * 0.85, H * 0.3, W * 0.35, H * 0.7, W * 0.75, H);
-        ctx.lineTo(W, H);
-        ctx.lineTo(W, 0);
+        ctx.bezierCurveTo(W * (0.85 * k), H * 0.3, W * (0.35 / k), H * 0.7, W * 0.75, H);
+        ctx.lineTo(W, H); ctx.lineTo(W, 0);
       }
       ctx.closePath();
       ctx.fill();
@@ -469,10 +537,10 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
         ctx.beginPath();
         if (isPort) {
           ctx.moveTo(W * 0.4 + offset, 0);
-          ctx.bezierCurveTo(W * 1.1 + offset, H * 0.35, -W * 0.1 + offset, H * 0.65, W * 0.7 + offset, H);
+          ctx.bezierCurveTo(W * (1.1 * k) + offset, H * 0.35, -W * (0.1 * k) + offset, H * 0.65, W * 0.7 + offset, H);
         } else {
           ctx.moveTo(W * 0.55 + offset, 0);
-          ctx.bezierCurveTo(W * 0.85 + offset, H * 0.3, W * 0.35 + offset, H * 0.7, W * 0.75 + offset, H);
+          ctx.bezierCurveTo(W * (0.85 * k) + offset, H * 0.3, W * (0.35 / k) + offset, H * 0.7, W * 0.75 + offset, H);
         }
         ctx.stroke();
       }
@@ -483,12 +551,70 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
 
-      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      apply3DCardLightingAndBevel(ctx, W, H, isPort, radius);
       ctx.restore();
     },
   },
 
-  // ── 3. ARTISTIC CURVED: MOLTEN GOLD & CARBON WAVE
+  // ── 4. ARTISTIC CURVED: SUNSET TROPIC DUAL ARCS (New!)
+  {
+    id: 'sunset_tropic_arcs',
+    name: 'Sunset Tropic & Coral Dual-Arc',
+    category: 'curved_artistic',
+    industry: 'Hospitality / Travel / Lifestyle / Beauty',
+    tagline: 'Sweeping dual-arc curved waves in peach nectar, coral & sunset purple',
+    theme: 'colorful',
+    defaultAccent: '#F97316',
+    defaultSecondary: '#FB7185',
+    badgeIcon: '🌺',
+    previewGradient: 'from-amber-400 via-rose-500 to-indigo-800',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = data.cornerRadius || (isPort ? 34 : 38);
+      const k = data.curveIntensity || 1.0;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
+      const primary = safeColor(data.accentColor, '#F97316');
+      const secondary = safeColor(data.secondaryColor, '#FB7185');
+
+      ctx.fillStyle = '#180a24';
+      ctx.fillRect(0, 0, W, H);
+
+      // Arc 1: Top Sunset Glow
+      const arc1 = ctx.createRadialGradient(0, 0, 20, 0, 0, W * (0.85 * k));
+      arc1.addColorStop(0, primary);
+      arc1.addColorStop(0.6, secondary);
+      arc1.addColorStop(1, 'transparent');
+      ctx.fillStyle = arc1;
+      ctx.fillRect(0, 0, W, H);
+
+      // Arc 2: Bottom Deep Purple Curved Wave
+      const arc2 = ctx.createLinearGradient(0, H, W, 0);
+      arc2.addColorStop(0, '#431407');
+      arc2.addColorStop(0.5, '#701a75');
+      arc2.addColorStop(1, 'transparent');
+      ctx.fillStyle = arc2;
+      ctx.beginPath();
+      ctx.moveTo(0, H);
+      ctx.bezierCurveTo(W * 0.5, H * (0.6 / k), W * 0.8, H, W, H * 0.4);
+      ctx.lineTo(W, H);
+      ctx.closePath();
+      ctx.fill();
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, '#ffffff', '#ffffff', '#fed7aa', photoImg, logoImg, '🌺');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
+      }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort, radius);
+      ctx.restore();
+    },
+  },
+
+  // ── 5. ARTISTIC CURVED: LIQUID MOLTEN GOLD & CARBON WAVE
   {
     id: 'molten_gold_wave',
     name: 'Liquid Molten Gold & Carbon Wave',
@@ -501,7 +627,8 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     badgeIcon: '✨',
     previewGradient: 'from-amber-400 via-amber-700 to-slate-950',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      const radius = isPort ? 34 : 38;
+      const radius = data.cornerRadius || (isPort ? 34 : 38);
+      const k = data.curveIntensity || 1.0;
       ctx.save();
       ctx.beginPath();
       ctx.roundRect(0, 0, W, H, radius);
@@ -534,14 +661,13 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.beginPath();
       if (isPort) {
         ctx.moveTo(0, H * 0.4);
-        ctx.bezierCurveTo(W * 0.7, H * 0.3, W * 0.3, H * 0.75, W, H * 0.65);
+        ctx.bezierCurveTo(W * (0.7 * k), H * 0.3, W * (0.3 / k), H * 0.75, W, H * 0.65);
         ctx.lineTo(W, H * 0.85);
         ctx.bezierCurveTo(W * 0.3, H * 0.95, W * 0.7, H * 0.5, 0, H * 0.6);
       } else {
-        ctx.moveTo(W * 0.45, 0);
-        ctx.bezierCurveTo(W * 0.85, H * 0.35, W * 0.35, H * 0.65, W * 0.8, H);
-        ctx.lineTo(W, H);
-        ctx.lineTo(W, 0);
+        ctx.moveTo(W * (0.45 / k), 0);
+        ctx.bezierCurveTo(W * (0.85 * k), H * 0.35, W * 0.35, H * 0.65, W * 0.8, H);
+        ctx.lineTo(W, H); ctx.lineTo(W, 0);
       }
       ctx.closePath();
       ctx.fill();
@@ -557,12 +683,65 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
 
-      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      apply3DCardLightingAndBevel(ctx, W, H, isPort, radius);
       ctx.restore();
     },
   },
 
-  // ── 4. ARTISTIC CURVED: EMERALD BIO-FLOW WAVE
+  // ── 6. ARTISTIC CURVED: ELECTRIC NEON SINE WAVE (New!)
+  {
+    id: 'electric_sine_wave',
+    name: 'Electric Cyber Sine & Pulse Wave',
+    category: 'curved_artistic',
+    industry: 'Music / Audio / Media / Cyber / Gaming',
+    tagline: 'High-voltage sine wave audio frequency curves pulsing in electric cyan & lime',
+    theme: 'dark',
+    defaultAccent: '#06B6D4',
+    defaultSecondary: '#10B981',
+    badgeIcon: '⚡',
+    previewGradient: 'from-cyan-400 via-emerald-500 to-slate-950',
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+      const radius = data.cornerRadius || (isPort ? 34 : 38);
+      const k = data.curveIntensity || 1.0;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, radius);
+      ctx.clip();
+
+      const primary = safeColor(data.accentColor, '#06B6D4');
+      const secondary = safeColor(data.secondaryColor, '#10B981');
+
+      ctx.fillStyle = '#030712';
+      ctx.fillRect(0, 0, W, H);
+
+      // Glowing Sine Waveform Curves
+      for (let s = 0; s < 4; s++) {
+        const opacity = 0.8 - s * 0.18;
+        ctx.strokeStyle = s % 2 === 0 ? hexToRgba(primary, opacity) : hexToRgba(secondary, opacity);
+        ctx.lineWidth = 3 - s * 0.5;
+        ctx.beginPath();
+        const baseAmp = (isPort ? 45 : 60) * k;
+        const midY = isPort ? H * 0.45 + s * 14 : H * 0.55 + s * 18;
+        for (let x = 0; x <= W; x += 10) {
+          const y = midY + Math.sin((x / W) * Math.PI * 3 + s) * baseAmp;
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+
+      if (!isBack) {
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#a7f3d0', photoImg, logoImg, '⚡');
+      } else {
+        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
+      }
+
+      apply3DCardLightingAndBevel(ctx, W, H, isPort, radius);
+      ctx.restore();
+    },
+  },
+
+  // ── 7. ARTISTIC CURVED: ZENITH EMERALD & MINT FLUID WAVE
   {
     id: 'emerald_bio_flow',
     name: 'Zenith Emerald & Mint Fluid Wave',
@@ -575,7 +754,8 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     badgeIcon: '🍃',
     previewGradient: 'from-emerald-400 via-teal-600 to-emerald-950',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      const radius = isPort ? 34 : 38;
+      const radius = data.cornerRadius || (isPort ? 34 : 38);
+      const k = data.curveIntensity || 1.0;
       ctx.save();
       ctx.beginPath();
       ctx.roundRect(0, 0, W, H, radius);
@@ -596,14 +776,12 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.beginPath();
       if (isPort) {
         ctx.moveTo(0, H * 0.55);
-        ctx.bezierCurveTo(W * 0.6, H * 0.45, W * 0.4, H * 0.85, W, H * 0.75);
-        ctx.lineTo(W, H);
-        ctx.lineTo(0, H);
+        ctx.bezierCurveTo(W * (0.6 * k), H * 0.45, W * 0.4, H * (0.85 * k), W, H * 0.75);
+        ctx.lineTo(W, H); ctx.lineTo(0, H);
       } else {
         ctx.moveTo(0, H * 0.65);
-        ctx.bezierCurveTo(W * 0.4, H * 0.35, W * 0.6, H * 0.85, W, H * 0.5);
-        ctx.lineTo(W, H);
-        ctx.lineTo(0, H);
+        ctx.bezierCurveTo(W * (0.4 / k), H * 0.35, W * (0.6 * k), H * 0.85, W, H * 0.5);
+        ctx.lineTo(W, H); ctx.lineTo(0, H);
       }
       ctx.closePath();
       ctx.fill();
@@ -618,12 +796,12 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
 
-      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      apply3DCardLightingAndBevel(ctx, W, H, isPort, radius);
       ctx.restore();
     },
   },
 
-  // ── 5. ARTISTIC CURVED: ABSTRACT FLUID ACRYLIC SWIRL
+  // ── 8. ARTISTIC CURVED: ABSTRACT FLUID ACRYLIC SWIRL
   {
     id: 'abstract_acrylic_swirl',
     name: 'Artisan Abstract Fluid Acrylic',
@@ -636,7 +814,8 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     badgeIcon: '🎨',
     previewGradient: 'from-rose-500 via-amber-400 to-indigo-600',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      const radius = isPort ? 34 : 38;
+      const radius = data.cornerRadius || (isPort ? 34 : 38);
+      const k = data.curveIntensity || 1.0;
       ctx.save();
       ctx.beginPath();
       ctx.roundRect(0, 0, W, H, radius);
@@ -648,14 +827,14 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.fillStyle = '#170c24';
       ctx.fillRect(0, 0, W, H);
 
-      const b1 = ctx.createRadialGradient(W * 0.2, H * 0.2, 20, W * 0.2, H * 0.2, 340);
+      const b1 = ctx.createRadialGradient(W * 0.2, H * 0.2, 20, W * 0.2, H * 0.2, 340 * k);
       b1.addColorStop(0, primary);
       b1.addColorStop(0.7, hexToRgba(primary, 0.3));
       b1.addColorStop(1, 'transparent');
       ctx.fillStyle = b1;
       ctx.fillRect(0, 0, W, H);
 
-      const b2 = ctx.createRadialGradient(W * 0.8, H * 0.8, 30, W * 0.8, H * 0.8, 320);
+      const b2 = ctx.createRadialGradient(W * 0.8, H * 0.8, 30, W * 0.8, H * 0.8, 320 * k);
       b2.addColorStop(0, secondary);
       b2.addColorStop(0.7, hexToRgba(secondary, 0.3));
       b2.addColorStop(1, 'transparent');
@@ -676,12 +855,12 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
 
-      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      apply3DCardLightingAndBevel(ctx, W, H, isPort, radius);
       ctx.restore();
     },
   },
 
-  // ── 6. ARTISTIC CURVED: MINIMALIST FLOWING RIBBON
+  // ── 9. ARTISTIC CURVED: MINIMALIST FLOWING RIBBON
   {
     id: 'minimal_flowing_ribbon',
     name: 'Minimalist Studio Pearl & Coral Ribbon',
@@ -694,7 +873,8 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     badgeIcon: '⚪',
     previewGradient: 'from-white via-rose-100 to-indigo-200',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      const radius = isPort ? 34 : 38;
+      const radius = data.cornerRadius || (isPort ? 34 : 38);
+      const k = data.curveIntensity || 1.0;
       ctx.save();
       ctx.beginPath();
       ctx.roundRect(0, 0, W, H, radius);
@@ -714,14 +894,13 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.beginPath();
       if (isPort) {
         ctx.moveTo(W * 0.6, 0);
-        ctx.bezierCurveTo(W * 1.1, H * 0.4, 0, H * 0.6, W * 0.4, H);
+        ctx.bezierCurveTo(W * (1.1 * k), H * 0.4, 0, H * 0.6, W * 0.4, H);
         ctx.lineTo(W * 0.65, H);
         ctx.bezierCurveTo(0.2, H * 0.6, W * 1.2, H * 0.4, W * 0.8, 0);
       } else {
         ctx.moveTo(W * 0.68, 0);
-        ctx.bezierCurveTo(W * 0.95, H * 0.35, W * 0.4, H * 0.65, W * 0.85, H);
-        ctx.lineTo(W, H);
-        ctx.lineTo(W, 0);
+        ctx.bezierCurveTo(W * (0.95 * k), H * 0.35, W * 0.4, H * 0.65, W * 0.85, H);
+        ctx.lineTo(W, H); ctx.lineTo(W, 0);
       }
       ctx.closePath();
       ctx.fill();
@@ -732,12 +911,12 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
         renderStandardBackContent(ctx, W, H, isPort, data, '#0f172a', '#0f172a', qrImg);
       }
 
-      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      apply3DCardLightingAndBevel(ctx, W, H, isPort, radius);
       ctx.restore();
     },
   },
 
-  // ── 7. 3D LUXURY: EXECUTIVE 3D OBSIDIAN & GOLD
+  // ── 10. 3D LUXURY: EXECUTIVE 3D OBSIDIAN & GOLD
   {
     id: 'executive_3d_gold',
     name: 'Executive 3D Obsidian & Gold',
@@ -750,7 +929,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     badgeIcon: '👑',
     previewGradient: 'from-amber-500/40 via-slate-900 to-black',
     drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      const radius = isPort ? 34 : 38;
+      const radius = data.cornerRadius || (isPort ? 34 : 38);
       ctx.save();
       ctx.beginPath();
       ctx.roundRect(0, 0, W, H, radius);
@@ -780,15 +959,9 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.fillStyle = goldGrad;
       ctx.beginPath();
       if (isPort) {
-        ctx.moveTo(0, 0);
-        ctx.lineTo(W, 0);
-        ctx.lineTo(W, 24);
-        ctx.lineTo(0, 54);
+        ctx.moveTo(0, 0); ctx.lineTo(W, 0); ctx.lineTo(W, 24); ctx.lineTo(0, 54);
       } else {
-        ctx.moveTo(W * 0.72, 0);
-        ctx.lineTo(W, 0);
-        ctx.lineTo(W, H);
-        ctx.lineTo(W * 0.62, H);
+        ctx.moveTo(W * 0.72, 0); ctx.lineTo(W, 0); ctx.lineTo(W, H); ctx.lineTo(W * 0.62, H);
       }
       ctx.closePath();
       ctx.fill();
@@ -803,377 +976,13 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
 
-      apply3DCardLightingAndBevel(ctx, W, H, isPort);
-      ctx.restore();
-    },
-  },
-
-  // ── 8. CORPORATE: METROPOLITAN REAL ESTATE
-  {
-    id: 'real_estate_skyline',
-    name: 'Metropolitan Real Estate & Skyline',
-    category: 'corporate_legal',
-    industry: 'Real Estate / Property / Architecture',
-    tagline: 'Architectural blueprint grid, skyline silhouette & 3D metallic headers',
-    theme: 'dark',
-    defaultAccent: '#38BDF8',
-    defaultSecondary: '#F59E0B',
-    badgeIcon: '🏢',
-    previewGradient: 'from-sky-500/30 via-slate-900 to-slate-950',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      const radius = isPort ? 34 : 38;
-      ctx.save();
-      ctx.beginPath();
-      ctx.roundRect(0, 0, W, H, radius);
-      ctx.clip();
-
-      const primary = safeColor(data.accentColor, '#38BDF8');
-      ctx.fillStyle = '#060e1d';
-      ctx.fillRect(0, 0, W, H);
-
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
-      ctx.lineWidth = 1;
-      for (let x = 0; x < W; x += 28) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
-      }
-      for (let y = 0; y < H; y += 28) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-      }
-
-      ctx.fillStyle = 'rgba(56, 189, 248, 0.06)';
-      const skyY = H * 0.76;
-      const bWidth = W / 14;
-      for (let i = 0; i < 14; i++) {
-        const bHeight = 45 + ((i * 41) % 95);
-        ctx.fillRect(i * bWidth, skyY - bHeight, bWidth - 4, bHeight + H * 0.25);
-      }
-
-      const stripe = ctx.createLinearGradient(0, 0, W, 0);
-      stripe.addColorStop(0, primary);
-      stripe.addColorStop(1, '#6366F1');
-      ctx.fillStyle = stripe;
-      ctx.fillRect(0, 0, W, 10);
-
-      if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#94a3b8', photoImg, logoImg, '🏢');
-      } else {
-        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
-      }
-
-      apply3DCardLightingAndBevel(ctx, W, H, isPort);
-      ctx.restore();
-    },
-  },
-
-  // ── 9. MODERN TECH: CYBERNETIC AI & QUANTUM GRID
-  {
-    id: 'cyber_ai_neon',
-    name: 'Cybernetic AI & Quantum Grid',
-    category: 'modern_tech',
-    industry: 'Technology / Software / AI / Cyber',
-    tagline: 'Electric neon cyan & violet aura, data node streams & glassmorphism',
-    theme: 'dark',
-    defaultAccent: '#06B6D4',
-    defaultSecondary: '#8B5CF6',
-    badgeIcon: '⚡',
-    previewGradient: 'from-cyan-500/30 via-violet-950 to-black',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      const radius = isPort ? 34 : 38;
-      ctx.save();
-      ctx.beginPath();
-      ctx.roundRect(0, 0, W, H, radius);
-      ctx.clip();
-
-      const primary = safeColor(data.accentColor, '#06B6D4');
-      ctx.fillStyle = '#030712';
-      ctx.fillRect(0, 0, W, H);
-
-      const g1 = ctx.createRadialGradient(W * 0.85, H * 0.2, 10, W * 0.85, H * 0.2, 320);
-      g1.addColorStop(0, hexToRgba(primary, 0.28));
-      g1.addColorStop(1, 'transparent');
-      ctx.fillStyle = g1;
-      ctx.fillRect(0, 0, W, H);
-
-      const g2 = ctx.createRadialGradient(W * 0.15, H * 0.85, 10, W * 0.15, H * 0.85, 280);
-      g2.addColorStop(0, 'rgba(139, 92, 246, 0.28)');
-      g2.addColorStop(1, 'transparent');
-      ctx.fillStyle = g2;
-      ctx.fillRect(0, 0, W, H);
-
-      ctx.strokeStyle = hexToRgba(primary, 0.2);
-      ctx.lineWidth = 1.5;
-      for (let x = 60; x < W; x += 110) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, H * 0.45);
-        ctx.lineTo(x + 40, H * 0.45 + 40);
-        ctx.lineTo(x + 40, H);
-        ctx.stroke();
-
-        ctx.fillStyle = primary;
-        ctx.beginPath();
-        ctx.arc(x + 40, H * 0.45 + 40, 3.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#cbd5e1', photoImg, logoImg, '⚡');
-      } else {
-        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
-      }
-
-      apply3DCardLightingAndBevel(ctx, W, H, isPort);
-      ctx.restore();
-    },
-  },
-
-  // ── 10. TRADES: INDUSTRIAL CONSTRUCTION & ENGINEERING
-  {
-    id: 'construction_heavy_duty',
-    name: 'Industrial Construction & Engineering',
-    category: 'trades_construction',
-    industry: 'Construction / Contractor / Handyman / Electrician',
-    tagline: 'Heavy matte graphite, safety amber hazard chevron & structural steel',
-    theme: 'dark',
-    defaultAccent: '#F59E0B',
-    defaultSecondary: '#EF4444',
-    badgeIcon: '🏗️',
-    previewGradient: 'from-amber-500/40 via-stone-900 to-black',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      const radius = isPort ? 34 : 38;
-      ctx.save();
-      ctx.beginPath();
-      ctx.roundRect(0, 0, W, H, radius);
-      ctx.clip();
-
-      const primary = safeColor(data.accentColor, '#F59E0B');
-      ctx.fillStyle = '#111317';
-      ctx.fillRect(0, 0, W, H);
-
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
-      ctx.lineWidth = 3;
-      for (let i = -W; i < W * 2; i += 60) {
-        ctx.beginPath();
-        ctx.moveTo(i, 0);
-        ctx.lineTo(i + H * 0.7, H);
-        ctx.stroke();
-      }
-
-      const hazH = isPort ? 16 : 18;
-      const hazY = isPort ? H - 24 : H - 28;
-      ctx.fillStyle = primary;
-      ctx.fillRect(0, hazY, W, hazH);
-
-      ctx.fillStyle = '#000000';
-      for (let x = -40; x < W + 40; x += 32) {
-        ctx.beginPath();
-        ctx.moveTo(x, hazY);
-        ctx.lineTo(x + 14, hazY);
-        ctx.lineTo(x, hazY + hazH);
-        ctx.lineTo(x - 14, hazY + hazH);
-        ctx.closePath();
-        ctx.fill();
-      }
-
-      if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#e2e8f0', photoImg, logoImg, '🏗️');
-      } else {
-        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
-      }
-
-      apply3DCardLightingAndBevel(ctx, W, H, isPort);
-      ctx.restore();
-    },
-  },
-
-  // ── 11. BEAUTY: VELVET ROSE GOLD & SPA
-  {
-    id: 'beauty_spa_rosegold',
-    name: 'Velvet Rose Gold & Botanical Spa',
-    category: 'lifestyle_beauty',
-    industry: 'Beauty / Cosmetics / Hair Salon / Spa / Nails',
-    tagline: 'Soft rose blush marble, gold foil botanical wreath & haute couture type',
-    theme: 'dark',
-    defaultAccent: '#FB7185',
-    defaultSecondary: '#F59E0B',
-    badgeIcon: '✨',
-    previewGradient: 'from-rose-500/30 via-purple-950 to-slate-950',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      const radius = isPort ? 34 : 38;
-      ctx.save();
-      ctx.beginPath();
-      ctx.roundRect(0, 0, W, H, radius);
-      ctx.clip();
-
-      const primary = safeColor(data.accentColor, '#FB7185');
-      ctx.fillStyle = '#130a17';
-      ctx.fillRect(0, 0, W, H);
-
-      const rGrad = ctx.createRadialGradient(W * 0.5, H * 0.5, 30, W * 0.5, H * 0.5, W * 0.6);
-      rGrad.addColorStop(0, hexToRgba(primary, 0.22));
-      rGrad.addColorStop(1, 'transparent');
-      ctx.fillStyle = rGrad;
-      ctx.fillRect(0, 0, W, H);
-
-      ctx.strokeStyle = primary;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(22, 22, W - 44, H - 44);
-
-      if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#f1f5f9', photoImg, logoImg, '🌸');
-      } else {
-        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
-      }
-
-      apply3DCardLightingAndBevel(ctx, W, H, isPort);
-      ctx.restore();
-    },
-  },
-
-  // ── 12. BARBER: VINTAGE GENTLEMAN BARBER
-  {
-    id: 'barber_vintage_grooming',
-    name: 'Vintage Gentleman Barber & Shave',
-    category: 'lifestyle_beauty',
-    industry: 'Barbershop / Men Grooming / Tattoo Studio',
-    tagline: 'Aged mahogany leather texture, crossed straight razors & vintage badge',
-    theme: 'dark',
-    defaultAccent: '#D97706',
-    defaultSecondary: '#B91C1C',
-    badgeIcon: '✂️',
-    previewGradient: 'from-amber-700/40 via-stone-900 to-black',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      const radius = isPort ? 34 : 38;
-      ctx.save();
-      ctx.beginPath();
-      ctx.roundRect(0, 0, W, H, radius);
-      ctx.clip();
-
-      const primary = safeColor(data.accentColor, '#D97706');
-      ctx.fillStyle = '#140e0b';
-      ctx.fillRect(0, 0, W, H);
-
-      const poleW = 12;
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, poleW, H);
-      for (let y = -20; y < H + 20; y += 24) {
-        ctx.fillStyle = '#dc2626';
-        ctx.fillRect(0, y, poleW, 10);
-        ctx.fillStyle = '#2563eb';
-        ctx.fillRect(0, y + 12, poleW, 10);
-      }
-
-      ctx.strokeStyle = primary;
-      ctx.lineWidth = 2.5;
-      ctx.strokeRect(26, 20, W - 46, H - 40);
-
-      if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#d6d3d1', photoImg, logoImg, '✂️');
-      } else {
-        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
-      }
-
-      apply3DCardLightingAndBevel(ctx, W, H, isPort);
-      ctx.restore();
-    },
-  },
-
-  // ── 13. RESTAURANT: ARTISAN CULINARY
-  {
-    id: 'culinary_gastronomy',
-    name: 'Artisan Culinary & Fine Dining',
-    category: 'lifestyle_beauty',
-    industry: 'Restaurant / Chef / Catering / Bakery / Cafe',
-    tagline: 'Warm terracotta & copper gold, bespoke culinary fork/knife crest',
-    theme: 'dark',
-    defaultAccent: '#F97316',
-    defaultSecondary: '#EAB308',
-    badgeIcon: '🍴',
-    previewGradient: 'from-orange-600/30 via-stone-950 to-black',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      const radius = isPort ? 34 : 38;
-      ctx.save();
-      ctx.beginPath();
-      ctx.roundRect(0, 0, W, H, radius);
-      ctx.clip();
-
-      const primary = safeColor(data.accentColor, '#F97316');
-      ctx.fillStyle = '#0f0c0a';
-      ctx.fillRect(0, 0, W, H);
-
-      const rad = ctx.createRadialGradient(W * 0.5, H * 0.3, 10, W * 0.5, H * 0.3, 260);
-      rad.addColorStop(0, hexToRgba(primary, 0.18));
-      rad.addColorStop(1, 'transparent');
-      ctx.fillStyle = rad;
-      ctx.fillRect(0, 0, W, H);
-
-      ctx.strokeStyle = primary;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(24, 24, W - 48, H - 48);
-
-      if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#fed7aa', photoImg, logoImg, '🍴');
-      } else {
-        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
-      }
-
-      apply3DCardLightingAndBevel(ctx, W, H, isPort);
-      ctx.restore();
-    },
-  },
-
-  // ── 14. PHOTOGRAPHY: LUMINOUS APERTURE
-  {
-    id: 'photography_aperture',
-    name: 'Luminous Aperture & Lens Studio',
-    category: 'creative_colorful',
-    industry: 'Photography / Videography / Film / Media',
-    tagline: 'Matte jet-black, multi-blade golden camera aperture lens graphic',
-    theme: 'dark',
-    defaultAccent: '#EAB308',
-    defaultSecondary: '#3B82F6',
-    badgeIcon: '📷',
-    previewGradient: 'from-yellow-500/30 via-slate-900 to-black',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
-      const radius = isPort ? 34 : 38;
-      ctx.save();
-      ctx.beginPath();
-      ctx.roundRect(0, 0, W, H, radius);
-      ctx.clip();
-
-      const primary = safeColor(data.accentColor, '#EAB308');
-      ctx.fillStyle = '#050505';
-      ctx.fillRect(0, 0, W, H);
-
-      const ax = isPort ? W * 0.5 : W * 0.78;
-      const ay = isPort ? H * 0.3 : H * 0.5;
-      const aRadius = isPort ? 110 : 130;
-
-      ctx.save();
-      ctx.strokeStyle = 'rgba(234, 179, 8, 0.18)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(ax, ay, aRadius, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-
-      ctx.strokeStyle = primary;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(22, 22, W - 44, H - 44);
-
-      if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#e5e5e5', photoImg, logoImg, '📷');
-      } else {
-        renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
-      }
-
-      apply3DCardLightingAndBevel(ctx, W, H, isPort);
+      apply3DCardLightingAndBevel(ctx, W, H, isPort, radius);
       ctx.restore();
     },
   },
 ];
 
-// ── COMPOSITE CONTENT RENDERERS ────────────────────────────────────────────────
+// ── COMPOSITE CONTENT RENDERERS WITH DYNAMIC POSITIONING & FONT SCALE ───────────
 function renderStandardFrontContent(
   ctx: CanvasRenderingContext2D,
   W: number,
@@ -1190,9 +999,11 @@ function renderStandardFrontContent(
   const accent = safeColor(accentColor, '#F59E0B');
   const textCol = safeColor(textColor, '#FFFFFF');
   const subTextCol = safeColor(subTextColor, '#cbd5e1');
+  const fScale = data.fontScale || 1.0;
+  const align = data.contentAlign || (isPort ? 'center' : 'left');
 
   if (isPort) {
-    // Top Lanyard Slot
+    // 1. Top Lanyard Badge Slot
     ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
     ctx.beginPath();
     ctx.roundRect(W / 2 - 32, 14, 64, 10, 5);
@@ -1201,9 +1012,11 @@ function renderStandardFrontContent(
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Company Logo & Title
+    // 2. Company Logo & Title (Position based on logoPosition)
     const logoSize = 58;
-    const logoX = W / 2 - logoSize / 2;
+    let logoX = W / 2 - logoSize / 2;
+    if (data.logoPosition === 'left') logoX = 55;
+    else if (data.logoPosition === 'right') logoX = W - 55 - logoSize;
     const logoY = 38;
 
     if (logoImg && logoImg.width > 0) {
@@ -1224,24 +1037,26 @@ function renderStandardFrontContent(
       ctx.roundRect(logoX, logoY, logoSize, logoSize, 14);
       ctx.fill();
       ctx.fillStyle = '#000000';
-      ctx.font = 'bold 26px Inter, sans-serif';
+      ctx.font = `bold ${Math.round(26 * fScale)}px Inter, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(data.companyName.charAt(0) || defaultIcon, W / 2, logoY + logoSize / 2 + 1);
+      ctx.fillText(data.companyName.charAt(0) || defaultIcon, logoX + logoSize / 2, logoY + logoSize / 2 + 1);
     }
 
-    ctx.textAlign = 'center';
+    // Company Name & Tagline
+    ctx.textAlign = align === 'left' ? 'left' : align === 'right' ? 'right' : 'center';
+    const textAnchorX = align === 'left' ? 55 : align === 'right' ? W - 55 : W / 2;
     ctx.fillStyle = textCol;
-    ctx.font = '900 21px Inter, sans-serif';
-    ctx.fillText(data.companyName.toUpperCase(), W / 2, 126);
+    ctx.font = `900 ${Math.round(21 * fScale)}px Inter, sans-serif`;
+    ctx.fillText(data.companyName.toUpperCase(), textAnchorX, 126);
 
     if (data.tagline) {
       ctx.fillStyle = subTextCol;
-      ctx.font = '500 11.5px Inter, sans-serif';
-      ctx.fillText(data.tagline, W / 2, 145);
+      ctx.font = `500 ${Math.round(11.5 * fScale)}px Inter, sans-serif`;
+      ctx.fillText(data.tagline, textAnchorX, 145);
     }
 
-    // ID Photo Frame
+    // 3. ID Photo Frame
     const pSize = 165;
     const px = W / 2 - pSize / 2;
     const py = 172;
@@ -1276,18 +1091,18 @@ function renderStandardFrontContent(
     }
     ctx.restore();
 
-    // Name & Title
-    ctx.textAlign = 'center';
+    // 4. Name & Job Title Pill
+    ctx.textAlign = align === 'left' ? 'left' : align === 'right' ? 'right' : 'center';
     ctx.fillStyle = textCol;
-    ctx.font = '900 27px Inter, sans-serif';
-    ctx.fillText(data.fullName, W / 2, 375);
+    ctx.font = `900 ${Math.round(27 * fScale)}px Inter, sans-serif`;
+    ctx.fillText(data.fullName, textAnchorX, 375);
 
     const titleText = data.jobTitle.toUpperCase();
-    ctx.font = 'bold 12.5px Inter, sans-serif';
+    ctx.font = `bold ${Math.round(12.5 * fScale)}px Inter, sans-serif`;
     const titleMetrics = ctx.measureText(titleText);
     const pillW = Math.min(W - 80, titleMetrics.width + 36);
     const pillH = 28;
-    const pillX = W / 2 - pillW / 2;
+    const pillX = align === 'left' ? 55 : align === 'right' ? W - 55 - pillW : W / 2 - pillW / 2;
     const pillY = 390;
 
     ctx.fillStyle = hexToRgba(accent, 0.2);
@@ -1299,15 +1114,17 @@ function renderStandardFrontContent(
     ctx.stroke();
 
     ctx.fillStyle = accent;
-    ctx.fillText(titleText, W / 2, pillY + 18);
+    ctx.textAlign = 'center';
+    ctx.fillText(titleText, pillX + pillW / 2, pillY + 18);
 
     if (data.department) {
+      ctx.textAlign = align === 'left' ? 'left' : align === 'right' ? 'right' : 'center';
       ctx.fillStyle = subTextCol;
-      ctx.font = '600 12px Inter, sans-serif';
-      ctx.fillText(`Department: ${data.department}`, W / 2, 436);
+      ctx.font = `600 ${Math.round(12 * fScale)}px Inter, sans-serif`;
+      ctx.fillText(`Department: ${data.department}`, textAnchorX, 436);
     }
 
-    // 4 Glass Data Tiles
+    // 5. 4 Glass Data Tiles
     const blockY = 462;
     const metrics = [
       { label: 'ID NUMBER', val: data.idNumber, col: accent },
@@ -1338,20 +1155,20 @@ function renderStandardFrontContent(
       ctx.fillText(m.label, tx + 14, ty + 18);
 
       ctx.fillStyle = m.col;
-      ctx.font = 'bold 14px Inter, sans-serif';
+      ctx.font = `bold ${Math.round(14 * fScale)}px Inter, sans-serif`;
       ctx.fillText(m.val, tx + 14, ty + 38);
     });
 
-    // Contact
+    // 6. Contact Section
     const contactY = 598;
-    ctx.textAlign = 'center';
-    ctx.font = '12.5px Inter, sans-serif';
+    ctx.textAlign = align === 'left' ? 'left' : align === 'right' ? 'right' : 'center';
+    ctx.font = `${Math.round(12.5 * fScale)}px Inter, sans-serif`;
     ctx.fillStyle = textCol;
-    ctx.fillText(`📞  ${data.phone}`, W / 2, contactY);
-    ctx.fillText(`✉️  ${data.email}`, W / 2, contactY + 25);
-    ctx.fillText(`🌐  ${data.website}`, W / 2, contactY + 50);
+    ctx.fillText(`📞  ${data.phone}`, textAnchorX, contactY);
+    ctx.fillText(`✉️  ${data.email}`, textAnchorX, contactY + 25);
+    ctx.fillText(`🌐  ${data.website}`, textAnchorX, contactY + 50);
 
-    // EMV Chip & NFC
+    // 7. EMV Chip & NFC
     if (data.showChip) {
       drawEmvChip(ctx, 55, H - 155, 52, 38, true);
     }
@@ -1359,7 +1176,7 @@ function renderStandardFrontContent(
       drawContactlessSymbol(ctx, W - 75, H - 135, accent);
     }
 
-    // Barcode
+    // 8. Barcode
     if (data.showBarcode) {
       const barY = H - 95;
       ctx.fillStyle = textCol;
@@ -1369,12 +1186,15 @@ function renderStandardFrontContent(
       }
       ctx.font = 'bold 10.5px monospace';
       ctx.fillStyle = subTextCol;
+      ctx.textAlign = 'center';
       ctx.fillText(data.idNumber, W / 2, barY + 40);
     }
   } else {
-    // Landscape Top Row
+    // Landscape Layout
     const logoSize = 62;
-    const logoX = 52;
+    let logoX = 52;
+    if (data.logoPosition === 'center') logoX = W / 2 - logoSize / 2;
+    else if (data.logoPosition === 'right') logoX = W - 140 - logoSize;
     const logoY = 46;
 
     if (logoImg && logoImg.width > 0) {
@@ -1395,7 +1215,7 @@ function renderStandardFrontContent(
       ctx.roundRect(logoX, logoY, logoSize, logoSize, 14);
       ctx.fill();
       ctx.fillStyle = '#000000';
-      ctx.font = 'bold 28px Inter, sans-serif';
+      ctx.font = `bold ${Math.round(28 * fScale)}px Inter, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(data.companyName.charAt(0) || defaultIcon, logoX + logoSize / 2, logoY + logoSize / 2 + 1);
@@ -1403,13 +1223,13 @@ function renderStandardFrontContent(
 
     ctx.textAlign = 'left';
     ctx.fillStyle = textCol;
-    ctx.font = '900 24px Inter, sans-serif';
-    ctx.fillText(data.companyName.toUpperCase(), 130, 72);
+    ctx.font = `900 ${Math.round(24 * fScale)}px Inter, sans-serif`;
+    ctx.fillText(data.companyName.toUpperCase(), logoX + logoSize + 16, 72);
 
     if (data.tagline) {
       ctx.fillStyle = subTextCol;
-      ctx.font = '500 13px Inter, sans-serif';
-      ctx.fillText(data.tagline, 130, 96);
+      ctx.font = `500 ${Math.round(13 * fScale)}px Inter, sans-serif`;
+      ctx.fillText(data.tagline, logoX + logoSize + 16, 96);
     }
 
     // Top Right Chip & Wave
@@ -1420,27 +1240,30 @@ function renderStandardFrontContent(
       drawContactlessSymbol(ctx, W - 180, 70, accent);
     }
 
-    // Middle Name & Title
+    // Middle Name & Title (Aligned based on contentAlign)
     const nameY = 210;
+    const nameX = align === 'center' ? W / 2 : align === 'right' ? W - 52 : 52;
+    ctx.textAlign = align;
+
     ctx.fillStyle = textCol;
-    ctx.font = '900 38px Inter, sans-serif';
-    ctx.fillText(data.fullName, 52, nameY);
+    ctx.font = `900 ${Math.round(38 * fScale)}px Inter, sans-serif`;
+    ctx.fillText(data.fullName, nameX, nameY);
 
     ctx.fillStyle = accent;
-    ctx.font = 'bold 17px Inter, sans-serif';
-    ctx.fillText(data.jobTitle.toUpperCase(), 52, nameY + 30);
+    ctx.font = `bold ${Math.round(17 * fScale)}px Inter, sans-serif`;
+    ctx.fillText(data.jobTitle.toUpperCase(), nameX, nameY + 30);
 
     if (data.department) {
       ctx.fillStyle = subTextCol;
-      ctx.font = '600 13px Inter, sans-serif';
-      ctx.fillText(`Dept: ${data.department}`, 52, nameY + 54);
+      ctx.font = `600 ${Math.round(13 * fScale)}px Inter, sans-serif`;
+      ctx.fillText(`Dept: ${data.department}`, nameX, nameY + 54);
     }
 
     ctx.fillStyle = 'rgba(255,255,255,0.45)';
     ctx.font = 'bold 15px monospace';
-    ctx.fillText(`${data.idNumber || 'BT-8842-SL'}  •  ${data.issueDate}  EXP: ${data.expiryDate}`, 52, nameY + 84);
+    ctx.fillText(`${data.idNumber || 'BT-8842-SL'}  •  ${data.issueDate}  EXP: ${data.expiryDate}`, nameX, nameY + 84);
 
-    // Contacts
+    // Contacts (2 Columns)
     const startY = 360;
     const contacts = [
       { icon: '📞', text: data.phone },
@@ -1455,7 +1278,8 @@ function renderStandardFrontContent(
       const cx = 52 + col * 380;
       const cy = startY + row * 38;
 
-      ctx.font = '14px Inter, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.font = `${Math.round(14 * fScale)}px Inter, sans-serif`;
       ctx.fillStyle = textCol;
       ctx.fillText(`${c.icon}  ${c.text}`, cx, cy);
     });
@@ -1633,12 +1457,19 @@ const DEFAULT_CARD_DATA: CardData = {
   showBarcode: true,
   showMasterCircles: true,
   showCutMarks: false,
+
+  contentAlign: 'left',
+  logoPosition: 'left',
+  fontScale: 1.0,
+  curveIntensity: 1.0,
+  cornerRadius: 38,
+  previewZoom: 100,
 };
 
 export default function CardStudio() {
   const [data, setData] = useState<CardData>(DEFAULT_CARD_DATA);
   const [activeSide, setActiveSide] = useState<'both' | 'front' | 'back'>('both');
-  const [activeTab, setActiveTab] = useState<'templates' | 'identity' | 'contacts' | 'media_qr' | 'export'>('templates');
+  const [activeTab, setActiveTab] = useState<'templates' | 'position_size' | 'identity' | 'contacts' | 'media_qr' | 'export'>('templates');
   const [selectedCategory, setSelectedCategory] = useState<TemplateStyleGroup>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isExporting, setIsExporting] = useState(false);
@@ -1968,6 +1799,8 @@ export default function CardStudio() {
     });
   }, [selectedCategory, searchQuery]);
 
+  const zoomFactor = (data.previewZoom || 100) / 100;
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* ── TOOL HEADER ──────────────────────────────────────────────────────── */}
@@ -1989,7 +1822,7 @@ export default function CardStudio() {
                 3D Artistic Curved &amp; Business Card Studio
               </h2>
               <p className="text-slate-400 text-xs sm:text-sm mt-1">
-                Dynamic flowing Bezier curved colors, iridescent S-curves, liquid molten gold, 3D EMV microchip, and print-ready duplex PDFs.
+                Dynamic flowing Bezier curved colors, iridescent S-curves, position alignments, adjustable size bars, 3D EMV microchip, and print-ready duplex PDFs.
               </p>
             </div>
           </div>
@@ -2037,7 +1870,7 @@ export default function CardStudio() {
       <div className="grid lg:grid-cols-12 gap-8 items-start">
         {/* LEFT COLUMN: LIVE 3D CANVASES PREVIEW (7 Cols) */}
         <div className="lg:col-span-7 space-y-5">
-          {/* Side Toggle & Dimension Pill */}
+          {/* Side Toggle & Zoom Pill */}
           <div className="flex items-center justify-between bg-slate-900 border border-slate-800 p-2 rounded-2xl">
             <div className="flex items-center gap-1">
               <button
@@ -2066,9 +1899,26 @@ export default function CardStudio() {
               </button>
             </div>
 
-            <div className="text-[11px] font-mono text-slate-400 pr-2 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              {data.orientation === 'landscape' ? 'Mastercard ISO 85.6 × 54 mm' : 'ID Badge ISO 54 × 85.6 mm'}
+            <div className="flex items-center gap-3 pr-2">
+              {/* Live Zoom Slider */}
+              <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400">
+                <ZoomIn className="w-3.5 h-3.5 text-amber-400" />
+                <input
+                  type="range"
+                  min="75"
+                  max="125"
+                  step="5"
+                  value={data.previewZoom || 100}
+                  onChange={(e) => setData({ ...data, previewZoom: parseInt(e.target.value) })}
+                  className="w-20 accent-amber-500 cursor-pointer"
+                />
+                <span className="font-mono text-[11px] text-amber-300 w-9 text-right">{data.previewZoom || 100}%</span>
+              </div>
+
+              <div className="text-[11px] font-mono text-slate-400 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                {data.orientation === 'landscape' ? '85.6 × 54 mm' : '54 × 85.6 mm'}
+              </div>
             </div>
           </div>
 
@@ -2099,7 +1949,7 @@ export default function CardStudio() {
                   <div
                     className="relative transition-transform duration-150 ease-out"
                     style={{
-                      transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+                      transform: `scale(${zoomFactor}) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
                       transformStyle: 'preserve-3d',
                     }}
                   >
@@ -2142,7 +1992,7 @@ export default function CardStudio() {
                   <div
                     className="relative transition-transform duration-150 ease-out"
                     style={{
-                      transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+                      transform: `scale(${zoomFactor}) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
                       transformStyle: 'preserve-3d',
                     }}
                   >
@@ -2162,12 +2012,13 @@ export default function CardStudio() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: DESIGN TEMPLATE BROWSER & CUSTOMIZATION (5 Cols) */}
+        {/* RIGHT COLUMN: DESIGN TEMPLATE BROWSER & CONTROLS (5 Cols) */}
         <div className="lg:col-span-5 bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl backdrop-blur space-y-6">
           {/* Sub-Tabs */}
-          <div className="grid grid-cols-5 gap-1 bg-slate-950 p-1 rounded-2xl border border-slate-800">
+          <div className="grid grid-cols-6 gap-1 bg-slate-950 p-1 rounded-2xl border border-slate-800">
             {[
               { id: 'templates', label: 'Designs', icon: Sparkles },
+              { id: 'position_size', label: 'Layout/Bars', icon: Sliders },
               { id: 'identity', label: 'Identity', icon: User },
               { id: 'contacts', label: 'Contacts', icon: Phone },
               { id: 'media_qr', label: 'Media & QR', icon: QrCode },
@@ -2178,7 +2029,7 @@ export default function CardStudio() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`py-2 px-1 rounded-xl text-[10px] font-bold flex flex-col items-center gap-1 transition-all ${
+                  className={`py-2 px-0.5 rounded-xl text-[9.5px] font-bold flex flex-col items-center gap-1 transition-all ${
                     activeTab === tab.id
                       ? 'bg-amber-500 text-black shadow-md'
                       : 'text-slate-400 hover:text-white hover:bg-slate-900'
@@ -2419,7 +2270,148 @@ export default function CardStudio() {
             </div>
           )}
 
-          {/* TAB 2: IDENTITY DATA */}
+          {/* TAB 2: POSITION SELECTION & ADJUSTABLE SIZE BARS */}
+          {activeTab === 'position_size' && (
+            <div className="space-y-5">
+              {/* Content Alignment Selector */}
+              <div>
+                <label className="text-xs font-bold text-slate-300 block mb-2">Desired Content Alignment</label>
+                <div className="grid grid-cols-3 gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
+                  <button
+                    onClick={() => setData({ ...data, contentAlign: 'left' })}
+                    className={`py-2 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                      data.contentAlign === 'left' ? 'bg-amber-500 text-black shadow' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <AlignLeft className="w-4 h-4" />
+                    <span>Left Align</span>
+                  </button>
+                  <button
+                    onClick={() => setData({ ...data, contentAlign: 'center' })}
+                    className={`py-2 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                      data.contentAlign === 'center' ? 'bg-amber-500 text-black shadow' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <AlignCenter className="w-4 h-4" />
+                    <span>Center</span>
+                  </button>
+                  <button
+                    onClick={() => setData({ ...data, contentAlign: 'right' })}
+                    className={`py-2 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                      data.contentAlign === 'right' ? 'bg-amber-500 text-black shadow' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <AlignRight className="w-4 h-4" />
+                    <span>Right Align</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Logo Position Selector */}
+              <div>
+                <label className="text-xs font-bold text-slate-300 block mb-2">Logo Placement Position</label>
+                <div className="grid grid-cols-3 gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
+                  <button
+                    onClick={() => setData({ ...data, logoPosition: 'left' })}
+                    className={`py-2 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-all ${
+                      data.logoPosition === 'left' ? 'bg-amber-500 text-black shadow' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <span>Top-Left</span>
+                  </button>
+                  <button
+                    onClick={() => setData({ ...data, logoPosition: 'center' })}
+                    className={`py-2 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-all ${
+                      data.logoPosition === 'center' ? 'bg-amber-500 text-black shadow' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <span>Top-Center</span>
+                  </button>
+                  <button
+                    onClick={() => setData({ ...data, logoPosition: 'right' })}
+                    className={`py-2 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-all ${
+                      data.logoPosition === 'right' ? 'bg-amber-500 text-black shadow' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <span>Top-Right</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Adjustable Size Bars / Sliders */}
+              <div className="space-y-4 pt-3 border-t border-slate-800">
+                <label className="text-xs font-bold text-slate-300 block">Adjustable Size &amp; Amplitude Bars</label>
+
+                {/* 1. Typography Font Size Bar */}
+                <div className="space-y-1 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                  <div className="flex justify-between text-xs font-bold">
+                    <span className="text-slate-300">Typography Scale Bar</span>
+                    <span className="text-amber-400 font-mono">{Math.round((data.fontScale || 1.0) * 100)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.8"
+                    max="1.3"
+                    step="0.05"
+                    value={data.fontScale || 1.0}
+                    onChange={(e) => setData({ ...data, fontScale: parseFloat(e.target.value) })}
+                    className="w-full accent-amber-500 cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-slate-500">
+                    <span>Compact (80%)</span>
+                    <span>Standard (100%)</span>
+                    <span>Large (130%)</span>
+                  </div>
+                </div>
+
+                {/* 2. Curve Wave Intensity Bar */}
+                <div className="space-y-1 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                  <div className="flex justify-between text-xs font-bold">
+                    <span className="text-slate-300">Curve Wave Amplitude Bar</span>
+                    <span className="text-amber-400 font-mono">{Math.round((data.curveIntensity || 1.0) * 100)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.4"
+                    max="1.6"
+                    step="0.1"
+                    value={data.curveIntensity || 1.0}
+                    onChange={(e) => setData({ ...data, curveIntensity: parseFloat(e.target.value) })}
+                    className="w-full accent-amber-500 cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-slate-500">
+                    <span>Subtle Waves (40%)</span>
+                    <span>Balanced (100%)</span>
+                    <span>Dramatic Arcs (160%)</span>
+                  </div>
+                </div>
+
+                {/* 3. Card Corner Radius Bar */}
+                <div className="space-y-1 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                  <div className="flex justify-between text-xs font-bold">
+                    <span className="text-slate-300">Card Corner Roundness Bar</span>
+                    <span className="text-amber-400 font-mono">{data.cornerRadius || 38}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="20"
+                    max="48"
+                    step="2"
+                    value={data.cornerRadius || 38}
+                    onChange={(e) => setData({ ...data, cornerRadius: parseInt(e.target.value) })}
+                    className="w-full accent-amber-500 cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-slate-500">
+                    <span>Slight (20px)</span>
+                    <span>ISO Standard (38px)</span>
+                    <span>Super Round (48px)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: IDENTITY DATA */}
           {activeTab === 'identity' && (
             <div className="space-y-4">
               <div>
@@ -2510,7 +2502,7 @@ export default function CardStudio() {
             </div>
           )}
 
-          {/* TAB 3: CONTACTS */}
+          {/* TAB 4: CONTACTS */}
           {activeTab === 'contacts' && (
             <div className="space-y-4">
               <div>
@@ -2559,7 +2551,7 @@ export default function CardStudio() {
             </div>
           )}
 
-          {/* TAB 4: MEDIA & QR */}
+          {/* TAB 5: MEDIA & QR */}
           {activeTab === 'media_qr' && (
             <div className="space-y-5">
               <div className="grid grid-cols-2 gap-3">
@@ -2620,7 +2612,7 @@ export default function CardStudio() {
             </div>
           )}
 
-          {/* TAB 5: PRINT & EXPORT */}
+          {/* TAB 6: PRINT & EXPORT */}
           {activeTab === 'export' && (
             <div className="space-y-4">
               <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-slate-950 to-blue-500/10 border border-amber-500/20 space-y-2">
