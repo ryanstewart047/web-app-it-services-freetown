@@ -98,7 +98,8 @@ export interface CardTemplateConfig {
     data: CardData,
     qrImg: HTMLImageElement | null,
     photoImg: HTMLImageElement | null,
-    logoImg: HTMLImageElement | null
+    logoImg: HTMLImageElement | null,
+    bgImg: HTMLImageElement | null
   ) => void;
 }
 
@@ -155,6 +156,16 @@ export interface CardData {
   curveIntensity: number; // 0.4 to 1.6
   cornerRadius: number; // 20 to 50
   previewZoom: number; // 75 to 125
+
+  // Background Image & Overlay
+  bgImageUrl: string | null;
+  bgImageOpacity: number; // 0.0 to 1.0
+  bgTintColor: string; // hex color overlaid on bg image
+  bgTintOpacity: number; // 0.0 to 0.9
+
+  // Wave Overlay Controls
+  waveOpacity: number; // 0.2 to 1.0 — opacity of the colored curved wave layer
+  wavePattern: 'bezier' | 'sine' | 'ripple' | 'diagonal_lines' | 'concentric' | 'chevron'; // wave decoration pattern
 }
 
 // ── COLOR VALIDATION & SAFE COLOR HELPERS ───────────────────────────────────────
@@ -326,6 +337,210 @@ function apply3DCardLightingAndBevel(ctx: CanvasRenderingContext2D, W: number, H
   ctx.restore();
 }
 
+// ── BACKGROUND IMAGE RENDERER ───────────────────────────────────────────────────
+function drawBackgroundImage(
+  ctx: CanvasRenderingContext2D,
+  W: number,
+  H: number,
+  bgImg: HTMLImageElement | null,
+  bgImageOpacity: number,
+  bgTintColor: string,
+  bgTintOpacity: number
+) {
+  if (!bgImg || bgImg.width === 0) return;
+  ctx.save();
+
+  // Draw background photo at given opacity
+  ctx.globalAlpha = Math.max(0, Math.min(1, bgImageOpacity));
+
+  // Cover-fit: scale to fill card while maintaining aspect ratio
+  const scaleW = W / bgImg.width;
+  const scaleH = H / bgImg.height;
+  const scale = Math.max(scaleW, scaleH);
+  const drawW = bgImg.width * scale;
+  const drawH = bgImg.height * scale;
+  const offsetX = (W - drawW) / 2;
+  const offsetY = (H - drawH) / 2;
+  ctx.drawImage(bgImg, offsetX, offsetY, drawW, drawH);
+
+  // Apply color tint overlay over the image
+  if (bgTintOpacity > 0.01) {
+    ctx.globalAlpha = Math.max(0, Math.min(0.92, bgTintOpacity));
+    ctx.fillStyle = safeColor(bgTintColor, '#000000');
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  ctx.restore();
+}
+
+// ── WAVE PATTERN DECORATOR ──────────────────────────────────────────────────────
+// Draws beautiful auxiliary wave-line patterns on top of base gradients
+function drawWavePatternDecorator(
+  ctx: CanvasRenderingContext2D,
+  W: number,
+  H: number,
+  isPort: boolean,
+  pattern: CardData['wavePattern'],
+  primaryColor: string,
+  secondaryColor: string,
+  waveOpacity: number,
+  curveIntensity: number
+) {
+  if (waveOpacity < 0.02) return;
+  const k = Math.max(0.4, Math.min(2.0, curveIntensity));
+  const primary = safeColor(primaryColor, '#F59E0B');
+  const secondary = safeColor(secondaryColor, '#EC4899');
+
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, Math.min(1, waveOpacity));
+
+  switch (pattern) {
+    case 'sine': {
+      // Multi-frequency sine waveforms rendered as smooth curves
+      const layers = [
+        { color: primary, amp: 55 * k, freq: 2.5, phase: 0, lw: 2.5 },
+        { color: secondary, amp: 40 * k, freq: 3.8, phase: 0.9, lw: 1.8 },
+        { color: '#ffffff', amp: 25 * k, freq: 6.2, phase: 1.7, lw: 1.0 },
+        { color: primary, amp: 70 * k, freq: 1.2, phase: 2.5, lw: 3.5, alpha: 0.3 },
+      ];
+      layers.forEach((l) => {
+        ctx.save();
+        if (l.alpha) ctx.globalAlpha *= l.alpha;
+        ctx.strokeStyle = l.color;
+        ctx.lineWidth = l.lw;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        const midY = isPort ? H * 0.4 : H * 0.5;
+        for (let x = 0; x <= W; x += 6) {
+          const y = midY + Math.sin((x / W) * Math.PI * l.freq + l.phase) * l.amp;
+          x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.restore();
+      });
+      break;
+    }
+
+    case 'ripple': {
+      // Expanding ripple rings emanating from two focal points
+      const foci = isPort
+        ? [{ x: W * 0.5, y: H * 0.28 }, { x: W * 0.5, y: H * 0.72 }]
+        : [{ x: W * 0.25, y: H * 0.5 }, { x: W * 0.75, y: H * 0.5 }];
+
+      foci.forEach((focus, fi) => {
+        const color = fi === 0 ? primary : secondary;
+        for (let r = 30; r < Math.max(W, H) * 0.85 * k; r += 38) {
+          const alpha = Math.max(0.04, 0.55 - (r / (Math.max(W, H) * 0.85 * k)) * 0.55);
+          ctx.save();
+          ctx.globalAlpha *= alpha;
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.arc(focus.x, focus.y, r, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+      });
+      break;
+    }
+
+    case 'diagonal_lines': {
+      // Fine diagonal hatching stripes — classic engineering/blueprint feel
+      const spacing = Math.round(24 / k);
+      const lw = 1.2;
+      const diagColors = [primary, secondary, '#ffffff'];
+      for (let i = -(H); i < W + H; i += spacing) {
+        const colorIdx = Math.floor(i / (spacing * 3)) % diagColors.length;
+        ctx.strokeStyle = diagColors[Math.abs(colorIdx) % diagColors.length];
+        ctx.lineWidth = lw;
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i + H, H);
+        ctx.stroke();
+      }
+      break;
+    }
+
+    case 'concentric': {
+      // Concentric rounded rectangles — card-within-card luxury glow
+      const steps = Math.round(7 * k);
+      for (let s = 1; s <= steps; s++) {
+        const progress = s / steps;
+        const inset = s * (Math.min(W, H) * 0.06);
+        const alpha = (1 - progress) * 0.65;
+        const color = s % 2 === 0 ? primary : secondary;
+        ctx.save();
+        ctx.globalAlpha *= alpha;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        const r = Math.max(8, 38 - inset * 0.5);
+        ctx.roundRect(inset, inset, W - inset * 2, H - inset * 2, r);
+        ctx.stroke();
+        ctx.restore();
+      }
+      break;
+    }
+
+    case 'chevron': {
+      // V-shaped chevron arrow wave stripes sweeping across the card
+      const chevH = Math.round(36 * k);
+      const steps = Math.ceil(H / chevH) + 2;
+      for (let s = -1; s < steps; s++) {
+        const baseY = s * chevH;
+        const color = s % 2 === 0 ? primary : secondary;
+        const alpha = 0.55 - (Math.abs(s - steps / 2) / (steps / 2)) * 0.3;
+        ctx.save();
+        ctx.globalAlpha *= Math.max(0.08, alpha);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(0, baseY + chevH * 0.5);
+        ctx.lineTo(W * 0.5, baseY);
+        ctx.lineTo(W, baseY + chevH * 0.5);
+        ctx.stroke();
+        ctx.restore();
+      }
+      break;
+    }
+
+    default: // 'bezier' — multiple sweeping Bezier curves
+    {
+      const bezierLayers = [
+        { color: primary, offY: 0, lw: 3.5, phase: 0 },
+        { color: secondary, offY: isPort ? 60 : 40, lw: 2.5, phase: Math.PI * 0.4 },
+        { color: '#ffffff', offY: isPort ? 120 : 80, lw: 1.5, phase: Math.PI * 0.8 },
+        { color: secondary, offY: isPort ? 180 : 120, lw: 1.0, phase: Math.PI * 1.2 },
+        { color: primary, offY: isPort ? -60 : -40, lw: 4.0, phase: Math.PI * 1.6, alpha: 0.4 },
+      ];
+      bezierLayers.forEach((l) => {
+        ctx.save();
+        if (l.alpha) ctx.globalAlpha *= l.alpha;
+        ctx.strokeStyle = l.color;
+        ctx.lineWidth = l.lw;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        if (isPort) {
+          const midY = H * 0.42 + l.offY;
+          ctx.moveTo(-40, midY);
+          ctx.bezierCurveTo(W * (0.38 * k), midY - 90 * k, W * (0.62 * k), midY + 90 * k, W + 40, midY + l.phase * 10);
+        } else {
+          const midY = H * 0.52 + l.offY;
+          ctx.moveTo(-40, midY);
+          ctx.bezierCurveTo(W * (0.32 * k), midY - 70 * k, W * (0.68 * k), midY + 70 * k, W + 40, midY + l.phase * 6);
+        }
+        ctx.stroke();
+        ctx.restore();
+      });
+      break;
+    }
+  }
+
+  ctx.restore();
+}
+
 // ── MASTER TEMPLATES COLLECTION (EXPANDED ARTISTIC CURVED DESIGNS) ──────────────
 const MASTER_TEMPLATES: CardTemplateConfig[] = [
   // ── 1. ARTISTIC CURVED: FLUID CHROMA WAVE (Sunset Amber & Magenta)
@@ -340,7 +555,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     defaultSecondary: '#EC4899',
     badgeIcon: '🌊',
     previewGradient: 'from-orange-500 via-rose-500 to-purple-700',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg, bgImg) => {
       const radius = data.cornerRadius || (isPort ? 34 : 38);
       const k = data.curveIntensity || 1.0;
       ctx.save();
@@ -418,7 +633,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.stroke();
 
       if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, '#ffffff', '#ffffff', '#fed7aa', photoImg, logoImg, '🌊');
+        renderStandardFrontContent(ctx, W, H, isPort, data, '#ffffff', '#ffffff', '#fed7aa', photoImg, logoImg, '🌊', bgImg);
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
@@ -440,7 +655,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     defaultSecondary: '#06B6D4',
     badgeIcon: '🌈',
     previewGradient: 'from-pink-500 via-amber-400 to-cyan-400',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg, bgImg) => {
       const radius = data.cornerRadius || (isPort ? 34 : 38);
       const k = data.curveIntensity || 1.0;
       ctx.save();
@@ -476,7 +691,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.fillRect(0, 0, W, H);
 
       if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#e0f2fe', photoImg, logoImg, '🌈');
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#e0f2fe', photoImg, logoImg, '🌈', bgImg);
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
@@ -498,7 +713,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     defaultSecondary: '#8B5CF6',
     badgeIcon: '🌌',
     previewGradient: 'from-cyan-500 via-teal-700 to-indigo-950',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg, bgImg) => {
       const radius = data.cornerRadius || (isPort ? 34 : 38);
       const k = data.curveIntensity || 1.0;
       ctx.save();
@@ -546,7 +761,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       }
 
       if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#e0f2fe', photoImg, logoImg, '🌌');
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#e0f2fe', photoImg, logoImg, '🌌', bgImg);
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
@@ -568,7 +783,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     defaultSecondary: '#FB7185',
     badgeIcon: '🌺',
     previewGradient: 'from-amber-400 via-rose-500 to-indigo-800',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg, bgImg) => {
       const radius = data.cornerRadius || (isPort ? 34 : 38);
       const k = data.curveIntensity || 1.0;
       ctx.save();
@@ -604,7 +819,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.fill();
 
       if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, '#ffffff', '#ffffff', '#fed7aa', photoImg, logoImg, '🌺');
+        renderStandardFrontContent(ctx, W, H, isPort, data, '#ffffff', '#ffffff', '#fed7aa', photoImg, logoImg, '🌺', bgImg);
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
@@ -626,7 +841,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     defaultSecondary: '#D97706',
     badgeIcon: '✨',
     previewGradient: 'from-amber-400 via-amber-700 to-slate-950',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg, bgImg) => {
       const radius = data.cornerRadius || (isPort ? 34 : 38);
       const k = data.curveIntensity || 1.0;
       ctx.save();
@@ -678,7 +893,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.stroke();
 
       if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#fef08a', photoImg, logoImg, '👑');
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#fef08a', photoImg, logoImg, '👑', bgImg);
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
@@ -700,7 +915,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     defaultSecondary: '#10B981',
     badgeIcon: '⚡',
     previewGradient: 'from-cyan-400 via-emerald-500 to-slate-950',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg, bgImg) => {
       const radius = data.cornerRadius || (isPort ? 34 : 38);
       const k = data.curveIntensity || 1.0;
       ctx.save();
@@ -731,7 +946,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       }
 
       if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#a7f3d0', photoImg, logoImg, '⚡');
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#a7f3d0', photoImg, logoImg, '⚡', bgImg);
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
@@ -753,7 +968,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     defaultSecondary: '#06B6D4',
     badgeIcon: '🍃',
     previewGradient: 'from-emerald-400 via-teal-600 to-emerald-950',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg, bgImg) => {
       const radius = data.cornerRadius || (isPort ? 34 : 38);
       const k = data.curveIntensity || 1.0;
       ctx.save();
@@ -791,7 +1006,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.stroke();
 
       if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#a7f3d0', photoImg, logoImg, '🍃');
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#a7f3d0', photoImg, logoImg, '🍃', bgImg);
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
@@ -813,7 +1028,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     defaultSecondary: '#3B82F6',
     badgeIcon: '🎨',
     previewGradient: 'from-rose-500 via-amber-400 to-indigo-600',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg, bgImg) => {
       const radius = data.cornerRadius || (isPort ? 34 : 38);
       const k = data.curveIntensity || 1.0;
       ctx.save();
@@ -850,7 +1065,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       }
 
       if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#fed7aa', photoImg, logoImg, '🎨');
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', '#fed7aa', photoImg, logoImg, '🎨', bgImg);
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
@@ -872,7 +1087,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     defaultSecondary: '#4F46E5',
     badgeIcon: '⚪',
     previewGradient: 'from-white via-rose-100 to-indigo-200',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg, bgImg) => {
       const radius = data.cornerRadius || (isPort ? 34 : 38);
       const k = data.curveIntensity || 1.0;
       ctx.save();
@@ -906,7 +1121,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.fill();
 
       if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, '#0f172a', '#0f172a', '#475569', photoImg, logoImg, '▪️');
+        renderStandardFrontContent(ctx, W, H, isPort, data, '#0f172a', '#0f172a', '#475569', photoImg, logoImg, '▪️', bgImg);
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, '#0f172a', '#0f172a', qrImg);
       }
@@ -928,7 +1143,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
     defaultSecondary: '#D97706',
     badgeIcon: '👑',
     previewGradient: 'from-amber-500/40 via-slate-900 to-black',
-    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg) => {
+    drawCard: (ctx, W, H, isPort, isBack, data, qrImg, photoImg, logoImg, bgImg) => {
       const radius = data.cornerRadius || (isPort ? 34 : 38);
       ctx.save();
       ctx.beginPath();
@@ -971,7 +1186,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.strokeRect(22, 22, W - 44, H - 44);
 
       if (!isBack) {
-        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', 'rgba(255,255,255,0.7)', photoImg, logoImg, '👑');
+        renderStandardFrontContent(ctx, W, H, isPort, data, primary, '#ffffff', 'rgba(255,255,255,0.7)', photoImg, logoImg, '👑', bgImg);
       } else {
         renderStandardBackContent(ctx, W, H, isPort, data, primary, '#ffffff', qrImg);
       }
@@ -994,13 +1209,31 @@ function renderStandardFrontContent(
   subTextColor: string,
   photoImg: HTMLImageElement | null,
   logoImg: HTMLImageElement | null,
-  defaultIcon: string
+  defaultIcon: string,
+  bgImg: HTMLImageElement | null = null
 ) {
   const accent = safeColor(accentColor, '#F59E0B');
   const textCol = safeColor(textColor, '#FFFFFF');
   const subTextCol = safeColor(subTextColor, '#cbd5e1');
   const fScale = data.fontScale || 1.0;
   const align = data.contentAlign || (isPort ? 'center' : 'left');
+
+  // ── Draw optional background image with opacity + tint overlay ──────────────
+  if (bgImg) {
+    drawBackgroundImage(ctx, W, H, bgImg, data.bgImageOpacity ?? 0.35, data.bgTintColor ?? '#000000', data.bgTintOpacity ?? 0.55);
+  }
+
+  // ── Draw wave pattern decorator layer ─────────────────────────────────────
+  if (data.wavePattern && data.waveOpacity > 0.02) {
+    drawWavePatternDecorator(
+      ctx, W, H, isPort,
+      data.wavePattern,
+      data.accentColor,
+      data.secondaryColor,
+      data.waveOpacity ?? 0.7,
+      data.curveIntensity ?? 1.0
+    );
+  }
 
   if (isPort) {
     // 1. Top Lanyard Badge Slot
@@ -1464,6 +1697,14 @@ const DEFAULT_CARD_DATA: CardData = {
   curveIntensity: 1.0,
   cornerRadius: 38,
   previewZoom: 100,
+
+  bgImageUrl: null,
+  bgImageOpacity: 0.35,
+  bgTintColor: '#000000',
+  bgTintOpacity: 0.55,
+
+  waveOpacity: 0.0,
+  wavePattern: 'bezier',
 };
 
 export default function CardStudio() {
@@ -1483,6 +1724,7 @@ export default function CardStudio() {
   const photoImgRef = useRef<HTMLImageElement | null>(null);
   const logoImgRef = useRef<HTMLImageElement | null>(null);
   const qrImgRef = useRef<HTMLImageElement | null>(null);
+  const bgImgRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
     if (data.photoUrl) {
@@ -1505,6 +1747,17 @@ export default function CardStudio() {
       logoImgRef.current = null;
     }
   }, [data.logoUrl]);
+
+  useEffect(() => {
+    if (data.bgImageUrl) {
+      const img = new window.Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => { bgImgRef.current = img; drawCanvases(); };
+      img.src = data.bgImageUrl;
+    } else {
+      bgImgRef.current = null;
+    }
+  }, [data.bgImageUrl]);
 
   const cardDim = useMemo(() => {
     if (data.orientation === 'portrait') {
@@ -1574,7 +1827,7 @@ export default function CardStudio() {
       frontCanvas.height = H;
       const ctx = frontCanvas.getContext('2d');
       if (ctx && activeTemplate) {
-        activeTemplate.drawCard(ctx, W, H, isPort, false, data, qrImgRef.current, photoImgRef.current, logoImgRef.current);
+        activeTemplate.drawCard(ctx, W, H, isPort, false, data, qrImgRef.current, photoImgRef.current, logoImgRef.current, bgImgRef.current);
       }
     }
 
@@ -1584,7 +1837,7 @@ export default function CardStudio() {
       backCanvas.height = H;
       const ctx = backCanvas.getContext('2d');
       if (ctx && activeTemplate) {
-        activeTemplate.drawCard(ctx, W, H, isPort, true, data, qrImgRef.current, photoImgRef.current, logoImgRef.current);
+        activeTemplate.drawCard(ctx, W, H, isPort, true, data, qrImgRef.current, photoImgRef.current, logoImgRef.current, bgImgRef.current);
       }
     }
   }, [cardDim, data, activeTemplate]);
@@ -1606,7 +1859,7 @@ export default function CardStudio() {
     setTilt({ x: 0, y: 0 });
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'photoUrl' | 'logoUrl') => {
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'photoUrl' | 'logoUrl' | 'bgImageUrl') => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
@@ -2407,6 +2660,78 @@ export default function CardStudio() {
                     <span>Super Round (48px)</span>
                   </div>
                 </div>
+
+                {/* 4. Wave Overlay Opacity Regulator */}
+                <div className="space-y-1 bg-slate-950 p-3 rounded-2xl border border-amber-500/20 ring-1 ring-amber-500/10">
+                  <div className="flex justify-between text-xs font-bold">
+                    <span className="text-amber-300 flex items-center gap-1.5">
+                      <Waves className="w-3.5 h-3.5" />
+                      Wave Overlay Opacity Regulator
+                    </span>
+                    <span className="text-amber-400 font-mono">
+                      {data.waveOpacity < 0.02 ? 'OFF' : `${Math.round((data.waveOpacity ?? 0) * 100)}%`}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={data.waveOpacity ?? 0}
+                    onChange={(e) => setData({ ...data, waveOpacity: parseFloat(e.target.value) })}
+                    className="w-full accent-amber-500 cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-slate-500">
+                    <span>Hidden (0%)</span>
+                    <span>Subtle (40%)</span>
+                    <span>Full (100%)</span>
+                  </div>
+                </div>
+
+                {/* 5. Wave Pattern Selector */}
+                {(data.waveOpacity ?? 0) > 0.02 && (
+                  <div className="space-y-2 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                    <label className="text-xs font-bold text-slate-300 block">
+                      Wave Pattern Style
+                    </label>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {[
+                        { id: 'bezier', label: '〜 Bezier', desc: 'Flowing S-curves' },
+                        { id: 'sine', label: '∿ Sine Freq', desc: 'Audio waveforms' },
+                        { id: 'ripple', label: '◎ Ripple', desc: 'Expanding rings' },
+                        { id: 'diagonal_lines', label: '╲ Diagonal', desc: 'Stripe hatching' },
+                        { id: 'concentric', label: '▢ Concentric', desc: 'Frame glow rings' },
+                        { id: 'chevron', label: '∧ Chevron', desc: 'Arrow sweeps' },
+                      ].map((p) => (
+                        <button
+                          key={p.id}
+                          onClick={() => setData({ ...data, wavePattern: p.id as CardData['wavePattern'] })}
+                          title={p.desc}
+                          className={`py-2 px-1 rounded-xl text-[10px] font-bold flex flex-col items-center gap-0.5 transition-all ${
+                            data.wavePattern === p.id
+                              ? 'bg-amber-500 text-black shadow ring-2 ring-amber-400'
+                              : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                          }`}
+                        >
+                          <span className="text-sm leading-none">{p.label.split(' ')[0]}</span>
+                          <span className="text-[9px] leading-tight">{p.label.split(' ').slice(1).join(' ')}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-slate-500 pt-1">
+                      {
+                        {
+                          bezier: 'Sweeping multi-layer Bezier S-curves in primary & secondary accent colors',
+                          sine: 'Multi-frequency audio sine waveforms crossing the card face',
+                          ripple: 'Expanding circular ripple rings emanating from focal points',
+                          diagonal_lines: 'Fine diagonal stripe hatching — engineering blueprint feel',
+                          concentric: 'Concentric rounded card-within-card luxury glow frames',
+                          chevron: 'Repeating V-shaped chevron arrow stripes sweeping the card',
+                        }[data.wavePattern ?? 'bezier']
+                      }
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -2586,6 +2911,128 @@ export default function CardStudio() {
                     </span>
                   </label>
                 </div>
+              </div>
+
+              {/* CARD BACKGROUND IMAGE UPLOAD */}
+              <div className="space-y-3 pt-3 border-t border-slate-800">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                    <Camera className="w-3.5 h-3.5" />
+                    Card Background Image
+                  </label>
+                  {data.bgImageUrl && (
+                    <button
+                      onClick={() => setData({ ...data, bgImageUrl: null })}
+                      className="text-[10px] font-bold text-rose-400 hover:text-rose-300 flex items-center gap-1"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Remove BG
+                    </button>
+                  )}
+                </div>
+
+                <label className="cursor-pointer block border-2 border-dashed border-amber-500/30 hover:border-amber-500 rounded-2xl p-4 text-center bg-slate-950 transition-colors relative overflow-hidden">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handlePhotoUpload(e, 'bgImageUrl')}
+                    className="hidden"
+                  />
+                  {data.bgImageUrl ? (
+                    <div className="flex items-center justify-center gap-3">
+                      <div
+                        className="w-14 h-10 rounded-lg bg-cover bg-center border border-amber-500/40"
+                        style={{ backgroundImage: `url(${data.bgImageUrl})` }}
+                      />
+                      <div className="text-left">
+                        <div className="text-[10px] text-amber-300 font-black">✓ Background Image Set</div>
+                        <div className="text-[9px] text-slate-400">Click to change the background image</div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <Camera className="w-6 h-6 text-amber-500/60 mx-auto mb-1.5" />
+                      <span className="text-[11px] text-amber-300 font-bold block">Upload Card Background Image</span>
+                      <span className="text-[9.5px] text-slate-500 block mt-0.5">JPG, PNG, WebP — Auto cover-fit to card</span>
+                    </div>
+                  )}
+                </label>
+
+                {/* Photo Opacity Slider */}
+                {data.bgImageUrl && (
+                  <div className="space-y-3 pt-2">
+                    <div className="space-y-1 bg-slate-900 p-3 rounded-2xl border border-slate-800">
+                      <div className="flex justify-between text-[11px] font-bold">
+                        <span className="text-slate-300">Background Image Opacity</span>
+                        <span className="text-amber-400 font-mono">{Math.round((data.bgImageOpacity ?? 0.35) * 100)}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.05"
+                        value={data.bgImageOpacity ?? 0.35}
+                        onChange={(e) => setData({ ...data, bgImageOpacity: parseFloat(e.target.value) })}
+                        className="w-full accent-amber-500 cursor-pointer"
+                      />
+                      <div className="flex justify-between text-[9px] text-slate-500">
+                        <span>Ghost (0%)</span>
+                        <span>Balanced (35%)</span>
+                        <span>Vivid (100%)</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1 bg-slate-900 p-3 rounded-2xl border border-slate-800">
+                      <div className="flex justify-between text-[11px] font-bold mb-1">
+                        <span className="text-slate-300">Color Tint Overlay</span>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={safeColor(data.bgTintColor, '#000000')}
+                            onChange={(e) => setData({ ...data, bgTintColor: e.target.value })}
+                            className="w-6 h-5 rounded cursor-pointer border-0 bg-transparent"
+                          />
+                          <span className="text-amber-400 font-mono text-[10px]">{Math.round((data.bgTintOpacity ?? 0.55) * 100)}%</span>
+                        </div>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="0.92"
+                        step="0.05"
+                        value={data.bgTintOpacity ?? 0.55}
+                        onChange={(e) => setData({ ...data, bgTintOpacity: parseFloat(e.target.value) })}
+                        className="w-full accent-amber-500 cursor-pointer"
+                      />
+                      <div className="flex justify-between text-[9px] text-slate-500">
+                        <span>No Tint (0%)</span>
+                        <span>Medium (55%)</span>
+                        <span>Max Tint (92%)</span>
+                      </div>
+
+                      {/* Quick Tint Presets */}
+                      <div className="flex flex-wrap gap-1.5 pt-2">
+                        {[
+                          { label: 'Dark', color: '#000000', opacity: 0.60 },
+                          { label: 'Navy', color: '#040E40', opacity: 0.65 },
+                          { label: 'Amber', color: '#F59E0B', opacity: 0.45 },
+                          { label: 'Crimson', color: '#E11D48', opacity: 0.50 },
+                          { label: 'Teal', color: '#0D9488', opacity: 0.55 },
+                          { label: 'Frost', color: '#f8fafc', opacity: 0.45 },
+                        ].map((preset) => (
+                          <button
+                            key={preset.label}
+                            onClick={() => setData({ ...data, bgTintColor: preset.color, bgTintOpacity: preset.opacity })}
+                            title={preset.label}
+                            className="w-6 h-6 rounded-full border-2 border-white/20 hover:scale-110 transition-transform"
+                            style={{ backgroundColor: preset.color }}
+                          />
+                        ))}
+                        <span className="text-[9px] text-slate-500 self-center ml-1">Quick tint presets</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-3 pt-3 border-t border-slate-800">
