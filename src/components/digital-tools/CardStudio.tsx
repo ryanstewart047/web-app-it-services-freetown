@@ -143,6 +143,13 @@ export interface CardData {
   orientation: CardOrientation;
   accentColor: string;
   secondaryColor: string;
+  tertiaryColor?: string; // 3rd wave/shimmer accent color
+  cardBgColor?: string; // Card canvas base background color
+  textColor?: string; // Full Name, Company Name & Main Headings
+  subTextColor?: string; // Job Title, Tagline, Contact Details & Labels
+  badgeColor?: string; // Microchip, NFC contactless waves & crest badges
+  qrColor?: string; // QR code foreground
+  qrBgColor?: string; // QR code background container
   bgOpacity: number;
   showChip: boolean;
   showContactless: boolean;
@@ -408,6 +415,7 @@ function drawWavePatternDecorator(
   pattern: CardData['wavePattern'],
   primaryColor: string,
   secondaryColor: string,
+  tertiaryColor: string,
   waveOpacity: number,
   curveIntensity: number,
   gradientPreset?: CardData['waveGradientPreset']
@@ -416,6 +424,7 @@ function drawWavePatternDecorator(
   const k = Math.max(0.4, Math.min(2.0, curveIntensity));
   const primary = safeColor(primaryColor, '#F59E0B');
   const secondary = safeColor(secondaryColor, '#EC4899');
+  const tertiary = safeColor(tertiaryColor, '#38BDF8');
 
   // Gradient Color Palette Resolver
   const getGradientColors = () => {
@@ -433,7 +442,7 @@ function drawWavePatternDecorator(
       case 'arctic_frost':
         return ['#38BDF8', '#818CF8', '#C084FC', '#E0F2FE', '#0284C7'];
       default: // 'card_colors'
-        return [primary, secondary, '#ffffff', primary, secondary];
+        return [primary, secondary, tertiary, '#ffffff', primary];
     }
   };
 
@@ -1073,7 +1082,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#F97316');
       const secondary = safeColor(data.secondaryColor, '#EC4899');
 
-      ctx.fillStyle = '#0a0914';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#0a0914');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -1178,7 +1187,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#EC4899');
       const secondary = safeColor(data.secondaryColor, '#06B6D4');
 
-      ctx.fillStyle = '#070b19';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#070b19');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -1200,7 +1209,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       });
       ctx.restore();
 
-      ctx.fillStyle = 'rgba(7, 11, 25, 0.45)';
+      ctx.fillStyle = safeColor(data.cardBgColor, 'rgba(7, 11, 25, 0.45)');
       ctx.fillRect(0, 0, W, H);
 
       if (!isBack) {
@@ -1238,7 +1247,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#06B6D4');
       const secondary = safeColor(data.secondaryColor, '#8B5CF6');
 
-      ctx.fillStyle = '#050711';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#050711');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -1298,7 +1307,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#F97316');
       const secondary = safeColor(data.secondaryColor, '#FB7185');
 
-      ctx.fillStyle = '#1c0a18';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#1c0a18');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -1366,7 +1375,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#F59E0B');
       const secondary = safeColor(data.secondaryColor, '#D97706');
 
-      ctx.fillStyle = '#0a0a0c';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#0a0a0c');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -1444,7 +1453,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#10B981');
       const secondary = safeColor(data.secondaryColor, '#06B6D4');
 
-      ctx.fillStyle = '#030d14';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#030d14');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -1508,7 +1517,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#059669');
       const secondary = safeColor(data.secondaryColor, '#34D399');
 
-      ctx.fillStyle = '#021814';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#021814');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -1582,7 +1591,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#EA580C');
       const secondary = safeColor(data.secondaryColor, '#3B82F6');
 
-      ctx.fillStyle = '#0f172a';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#0f172a');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -1640,7 +1649,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#F43F5E');
       const secondary = safeColor(data.secondaryColor, '#FB7185');
 
-      ctx.fillStyle = '#f8fafc';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#f8fafc');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -1701,7 +1710,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#10B981');
       const secondary = safeColor(data.secondaryColor, '#8B5CF6');
 
-      ctx.fillStyle = '#030814';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#030814');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -1772,7 +1781,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#F59E0B');
       const secondary = safeColor(data.secondaryColor, '#3B82F6');
 
-      ctx.fillStyle = '#0a101f';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#0a101f');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -1841,7 +1850,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#38BDF8');
       const secondary = safeColor(data.secondaryColor, '#EC4899');
 
-      ctx.fillStyle = '#060913';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#060913');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -1912,7 +1921,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.clip();
 
       const primary = safeColor(data.accentColor, '#F59E0B');
-      ctx.fillStyle = '#0d1a35';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#0d1a35');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -1981,7 +1990,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#10B981');
       const secondary = safeColor(data.secondaryColor, '#06B6D4');
 
-      ctx.fillStyle = '#030d14';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#030d14');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -2044,7 +2053,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.clip();
 
       const primary = safeColor(data.accentColor, '#F59E0B');
-      ctx.fillStyle = '#0a0800';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#0a0800');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -2106,7 +2115,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#0D9488');
       const secondary = safeColor(data.secondaryColor, '#F59E0B');
 
-      ctx.fillStyle = '#0d2020';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#0d2020');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -2168,7 +2177,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#16A34A');
       const secondary = safeColor(data.secondaryColor, '#84CC16');
 
-      ctx.fillStyle = '#f0fdf4';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#f0fdf4');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -2231,7 +2240,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#0284C7');
       const secondary = safeColor(data.secondaryColor, '#E0F2FE');
 
-      ctx.fillStyle = '#061325';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#061325');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -2288,7 +2297,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#A855F7');
       const secondary = safeColor(data.secondaryColor, '#EC4899');
 
-      ctx.fillStyle = '#090514';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#090514');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -2343,7 +2352,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.clip();
 
       const primary = safeColor(data.accentColor, '#D97706');
-      ctx.fillStyle = '#14120e';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#14120e');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -2404,7 +2413,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#06B6D4');
       const secondary = safeColor(data.secondaryColor, '#10B981');
 
-      ctx.fillStyle = '#040d1a';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#040d1a');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -2491,7 +2500,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#EA580C');
       const secondary = safeColor(data.secondaryColor, '#2563EB');
 
-      ctx.fillStyle = '#f8f6f0';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#f8f6f0');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -2558,7 +2567,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#F59E0B');
       const secondary = safeColor(data.secondaryColor, '#10B981');
 
-      ctx.fillStyle = '#080c10';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#080c10');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -2634,7 +2643,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#EC4899');
       const secondary = safeColor(data.secondaryColor, '#8B5CF6');
 
-      ctx.fillStyle = '#0c0717';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#0c0717');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -2699,7 +2708,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#EA580C');
       const secondary = safeColor(data.secondaryColor, '#0D9488');
 
-      ctx.fillStyle = '#faf7f2';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#faf7f2');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -2770,7 +2779,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#38BDF8');
       const secondary = safeColor(data.secondaryColor, '#EC4899');
 
-      ctx.fillStyle = '#050716';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#050716');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -2836,7 +2845,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#F59E0B');
       const secondary = safeColor(data.secondaryColor, '#3B82F6');
 
-      ctx.fillStyle = '#080d1a';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#080d1a');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -2914,7 +2923,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#38BDF8');
       const secondary = safeColor(data.secondaryColor, '#818CF8');
 
-      ctx.fillStyle = '#060a17';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#060a17');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -2985,7 +2994,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#F59E0B');
       const secondary = safeColor(data.secondaryColor, '#10B981');
 
-      ctx.fillStyle = '#03140f';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#03140f');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -3052,7 +3061,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#EC4899');
       const secondary = safeColor(data.secondaryColor, '#06B6D4');
 
-      ctx.fillStyle = '#0a0614';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#0a0614');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -3132,7 +3141,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#FB7185');
       const secondary = safeColor(data.secondaryColor, '#F59E0B');
 
-      ctx.fillStyle = '#14050d';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#14050d');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -3200,7 +3209,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#8B5CF6');
       const secondary = safeColor(data.secondaryColor, '#38BDF8');
 
-      ctx.fillStyle = '#080514';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#080514');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -3273,7 +3282,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#F59E0B');
       const secondary = safeColor(data.secondaryColor, '#D97706');
 
-      ctx.fillStyle = '#0c0a06';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#0c0a06');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -3353,7 +3362,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#06B6D4');
       const secondary = safeColor(data.secondaryColor, '#EC4899');
 
-      ctx.fillStyle = '#040b17';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#040b17');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -3427,7 +3436,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#F59E0B');
       const secondary = safeColor(data.secondaryColor, '#FEF08A');
 
-      ctx.fillStyle = '#0a0802';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#0a0802');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -3500,7 +3509,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#3B82F6');
       const secondary = safeColor(data.secondaryColor, '#D97706');
 
-      ctx.fillStyle = '#060a14';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#060a14');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -3754,7 +3763,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#06B6D4');
       const secondary = safeColor(data.secondaryColor, '#8B5CF6');
 
-      ctx.fillStyle = '#020b14';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#020b14');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -3821,7 +3830,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#F59E0B');
       const secondary = safeColor(data.secondaryColor, '#06B6D4');
 
-      ctx.fillStyle = '#0a0a12';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#0a0a12');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -3872,7 +3881,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#06B6D4');
       const secondary = safeColor(data.secondaryColor, '#10B981');
 
-      ctx.fillStyle = '#031220';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#031220');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -3938,7 +3947,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#8B5CF6');
       const secondary = safeColor(data.secondaryColor, '#EC4899');
 
-      ctx.fillStyle = '#06030d';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#06030d');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -4061,7 +4070,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.clip();
 
       const primary = safeColor(data.accentColor, '#1E3A5F');
-      ctx.fillStyle = '#f9f6f0';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#f9f6f0');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -4107,7 +4116,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.clip();
 
       const primary = safeColor(data.accentColor, '#F59E0B');
-      ctx.fillStyle = '#0a1526';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#0a1526');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -4154,7 +4163,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.clip();
 
       const primary = safeColor(data.accentColor, '#38BDF8');
-      ctx.fillStyle = '#0b0f19';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#0b0f19');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -4201,7 +4210,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.clip();
 
       const primary = safeColor(data.accentColor, '#FBBF24');
-      ctx.fillStyle = '#1c1f26';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#1c1f26');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -4267,7 +4276,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#16A34A');
       const secondary = safeColor(data.secondaryColor, '#84CC16');
 
-      ctx.fillStyle = '#0d2818';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#0d2818');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -4321,7 +4330,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.clip();
 
       const primary = safeColor(data.accentColor, '#EA580C');
-      ctx.fillStyle = '#141416';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#141416');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -4367,7 +4376,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.clip();
 
       const primary = safeColor(data.accentColor, '#38BDF8');
-      ctx.fillStyle = '#0f2744';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#0f2744');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -4547,7 +4556,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.clip();
 
       const primary = safeColor(data.accentColor, '#059669');
-      ctx.fillStyle = '#f2f8f5';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#f2f8f5');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -4646,7 +4655,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#F43F5E');
       const secondary = safeColor(data.secondaryColor, '#FBBF24');
 
-      ctx.fillStyle = '#fafafa';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#fafafa');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -4762,7 +4771,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#EC4899');
       const secondary = safeColor(data.secondaryColor, '#3B82F6');
 
-      ctx.fillStyle = '#fefce8';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#fefce8');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -4817,7 +4826,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       const primary = safeColor(data.accentColor, '#06B6D4');
       const secondary = safeColor(data.secondaryColor, '#F43F5E');
 
-      ctx.fillStyle = '#fffdfa';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#fffdfa');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -4867,7 +4876,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.clip();
 
       const primary = safeColor(data.accentColor, '#1E3A5F');
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#ffffff');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -4911,7 +4920,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.clip();
 
       const primary = safeColor(data.accentColor, '#ffffff');
-      ctx.fillStyle = '#111111';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#111111');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -4962,7 +4971,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.clip();
 
       const primary = safeColor(data.accentColor, '#B45309');
-      ctx.fillStyle = '#faf6f0';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#faf6f0');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -5008,7 +5017,7 @@ const MASTER_TEMPLATES: CardTemplateConfig[] = [
       ctx.clip();
 
       const primary = safeColor(data.accentColor, '#0284C7');
-      ctx.fillStyle = '#f8fafc';
+      ctx.fillStyle = safeColor(data.cardBgColor, '#f8fafc');
       ctx.fillRect(0, 0, W, H);
 
       ctx.save();
@@ -5045,9 +5054,12 @@ function renderStandardFrontContent(
   defaultIcon: string,
   bgImg: HTMLImageElement | null = null
 ) {
-  const accent = safeColor(accentColor, '#F59E0B');
-  const textCol = safeColor(textColor, '#FFFFFF');
-  const subTextCol = safeColor(subTextColor, '#cbd5e1');
+  const accent = safeColor(data.accentColor || accentColor, '#F59E0B');
+  const secondary = safeColor(data.secondaryColor, '#EC4899');
+  const tertiary = safeColor(data.tertiaryColor, '#38BDF8');
+  const textCol = safeColor(data.textColor || textColor, '#FFFFFF');
+  const subTextCol = safeColor(data.subTextColor || subTextColor, '#cbd5e1');
+  const badgeCol = safeColor(data.badgeColor || data.accentColor || accentColor, '#F59E0B');
   const fScale = data.fontScale || 1.0;
   const align = data.contentAlign || (isPort ? 'center' : 'left');
 
@@ -5064,6 +5076,7 @@ function renderStandardFrontContent(
       data.wavePattern,
       data.accentColor,
       data.secondaryColor,
+      data.tertiaryColor || '#38BDF8',
       curWaveOpacity,
       data.curveIntensity ?? 1.0,
       data.waveGradientPreset
@@ -5519,6 +5532,11 @@ const DEFAULT_CARD_DATA: CardData = {
   orientation: 'landscape',
   accentColor: '#F97316',
   secondaryColor: '#EC4899',
+  tertiaryColor: '#38BDF8',
+  cardBgColor: '#0a0914',
+  textColor: '#FFFFFF',
+  subTextColor: '#cbd5e1',
+  badgeColor: '#F59E0B',
   bgOpacity: 0.4,
   showChip: true,
   showContactless: true,
@@ -6214,18 +6232,77 @@ export default function CardStudio() {
                 </div>
               </div>
 
-              {/* Editable Hex Colors */}
-              <div className="space-y-3 pt-2 border-t border-slate-800">
-                <label className="text-xs font-bold text-slate-300 block">Accent Colors (Editable Hex)</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 block mb-1">Primary Color</span>
-                    <div className="flex items-center gap-2 bg-slate-950 p-2 rounded-xl border border-slate-800">
+              {/* ── COMPLETE CARD COLOR PALETTE STUDIO ────────────────────────────── */}
+              <div className="space-y-4 pt-3 border-t border-slate-800">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Palette className="w-4 h-4 text-amber-400" />
+                    <span className="text-xs font-black uppercase tracking-wider text-slate-200">
+                      Full Card Color Palette (Edit Every Color)
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                    Live 3D Customizer
+                  </span>
+                </div>
+
+                {/* 1-Click Master Palette Presets */}
+                <div className="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                  <span className="text-[10.5px] font-bold text-slate-400 block">
+                    ✨ One-Click Luxury Color Harmonies:
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                    {[
+                      { name: '👑 Gold & Obsidian', p: '#F59E0B', s: '#D97706', t: '#FEF08A', bg: '#0A0914', txt: '#FFFFFF', sub: '#CBD5E1', b: '#F59E0B' },
+                      { name: '⚡ Cyber Synth', p: '#EC4899', s: '#06B6D4', t: '#A855F7', bg: '#030712', txt: '#FFFFFF', sub: '#A5F3FC', b: '#06B6D4' },
+                      { name: '🍃 Royal Emerald', p: '#10B981', s: '#059669', t: '#34D399', bg: '#021814', txt: '#FFFFFF', sub: '#A7F3D0', b: '#10B981' },
+                      { name: '🌊 Deep Sapphire', p: '#38BDF8', s: '#3B82F6', t: '#818CF8', bg: '#040E40', txt: '#FFFFFF', sub: '#BAE6FD', b: '#38BDF8' },
+                      { name: '🌅 Sunset Flame', p: '#F43F5E', s: '#FB923C', t: '#FACC15', bg: '#14050D', txt: '#FFFFFF', sub: '#FED7AA', b: '#F43F5E' },
+                      { name: '🏛️ Sovereign Mint', p: '#F59E0B', s: '#3B82F6', t: '#FEF08A', bg: '#060A17', txt: '#FFFFFF', sub: '#FDE68A', b: '#F59E0B' },
+                      { name: '🌸 Rose Velvet', p: '#FB7185', s: '#F43F5E', t: '#FEF08A', bg: '#18040D', txt: '#FFFFFF', sub: '#FBCFE8', b: '#FB7185' },
+                      { name: '⚪ Minimal Swiss', p: '#0F172A', s: '#475569', t: '#2563EB', bg: '#FAFAFA', txt: '#0F172A', sub: '#475569', b: '#0F172A' },
+                    ].map((pal) => (
+                      <button
+                        key={pal.name}
+                        onClick={() =>
+                          setData({
+                            ...data,
+                            accentColor: pal.p,
+                            secondaryColor: pal.s,
+                            tertiaryColor: pal.t,
+                            cardBgColor: pal.bg,
+                            textColor: pal.txt,
+                            subTextColor: pal.sub,
+                            badgeColor: pal.b,
+                          })
+                        }
+                        className="p-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 flex items-center gap-1.5 text-[10px] font-bold transition-all"
+                      >
+                        <div className="flex -space-x-1 shrink-0">
+                          <span className="w-2.5 h-2.5 rounded-full ring-1 ring-black" style={{ backgroundColor: pal.p }} />
+                          <span className="w-2.5 h-2.5 rounded-full ring-1 ring-black" style={{ backgroundColor: pal.s }} />
+                          <span className="w-2.5 h-2.5 rounded-full ring-1 ring-black" style={{ backgroundColor: pal.bg }} />
+                        </div>
+                        <span className="truncate">{pal.name.split(' ')[1] || pal.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 7 Individual Color Pickers Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {/* 1. Primary Wave / Accent Color */}
+                  <div className="bg-slate-950 p-2.5 rounded-2xl border border-slate-800 space-y-1">
+                    <div className="flex items-center justify-between text-[11px] font-bold">
+                      <span className="text-amber-300">1. Primary Wave / Hero Color</span>
+                      <span className="font-mono text-slate-400 text-[10px]">{data.accentColor}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
                       <input
                         type="color"
                         value={safeColor(data.accentColor, '#F97316')}
                         onChange={(e) => setData({ ...data, accentColor: e.target.value })}
-                        className="w-7 h-7 rounded cursor-pointer bg-transparent border-0 shrink-0"
+                        className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border border-white/20 shrink-0"
                       />
                       <input
                         type="text"
@@ -6234,20 +6311,24 @@ export default function CardStudio() {
                           const val = e.target.value;
                           setData({ ...data, accentColor: val.startsWith('#') ? val : `#${val}` });
                         }}
-                        placeholder="#040E40"
-                        className="w-full bg-transparent font-mono text-xs text-white focus:outline-none uppercase"
+                        placeholder="#F97316"
+                        className="w-full bg-slate-900 px-2 py-1 rounded-lg font-mono text-xs text-white border border-slate-800 uppercase focus:outline-none focus:border-amber-500"
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 block mb-1">Secondary Color</span>
-                    <div className="flex items-center gap-2 bg-slate-950 p-2 rounded-xl border border-slate-800">
+                  {/* 2. Secondary Wave Color */}
+                  <div className="bg-slate-950 p-2.5 rounded-2xl border border-slate-800 space-y-1">
+                    <div className="flex items-center justify-between text-[11px] font-bold">
+                      <span className="text-rose-300">2. Secondary Wave Color</span>
+                      <span className="font-mono text-slate-400 text-[10px]">{data.secondaryColor}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
                       <input
                         type="color"
                         value={safeColor(data.secondaryColor, '#EC4899')}
                         onChange={(e) => setData({ ...data, secondaryColor: e.target.value })}
-                        className="w-7 h-7 rounded cursor-pointer bg-transparent border-0 shrink-0"
+                        className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border border-white/20 shrink-0"
                       />
                       <input
                         type="text"
@@ -6257,26 +6338,160 @@ export default function CardStudio() {
                           setData({ ...data, secondaryColor: val.startsWith('#') ? val : `#${val}` });
                         }}
                         placeholder="#EC4899"
-                        className="w-full bg-transparent font-mono text-xs text-white focus:outline-none uppercase"
+                        className="w-full bg-slate-900 px-2 py-1 rounded-lg font-mono text-xs text-white border border-slate-800 uppercase focus:outline-none focus:border-rose-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 3. Tertiary Shimmer / 3rd Wave Color */}
+                  <div className="bg-slate-950 p-2.5 rounded-2xl border border-slate-800 space-y-1">
+                    <div className="flex items-center justify-between text-[11px] font-bold">
+                      <span className="text-cyan-300">3. Tertiary Shimmer / Glow</span>
+                      <span className="font-mono text-slate-400 text-[10px]">{data.tertiaryColor || '#38BDF8'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={safeColor(data.tertiaryColor || '#38BDF8', '#38BDF8')}
+                        onChange={(e) => setData({ ...data, tertiaryColor: e.target.value })}
+                        className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border border-white/20 shrink-0"
+                      />
+                      <input
+                        type="text"
+                        value={data.tertiaryColor || '#38BDF8'}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setData({ ...data, tertiaryColor: val.startsWith('#') ? val : `#${val}` });
+                        }}
+                        placeholder="#38BDF8"
+                        className="w-full bg-slate-900 px-2 py-1 rounded-lg font-mono text-xs text-white border border-slate-800 uppercase focus:outline-none focus:border-cyan-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 4. Card Base Background Color */}
+                  <div className="bg-slate-950 p-2.5 rounded-2xl border border-slate-800 space-y-1">
+                    <div className="flex items-center justify-between text-[11px] font-bold">
+                      <span className="text-purple-300">4. Card Canvas Background</span>
+                      <span className="font-mono text-slate-400 text-[10px]">{data.cardBgColor || '#0A0914'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={safeColor(data.cardBgColor || '#0A0914', '#0A0914')}
+                        onChange={(e) => setData({ ...data, cardBgColor: e.target.value })}
+                        className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border border-white/20 shrink-0"
+                      />
+                      <input
+                        type="text"
+                        value={data.cardBgColor || '#0A0914'}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setData({ ...data, cardBgColor: val.startsWith('#') ? val : `#${val}` });
+                        }}
+                        placeholder="#0A0914"
+                        className="w-full bg-slate-900 px-2 py-1 rounded-lg font-mono text-xs text-white border border-slate-800 uppercase focus:outline-none focus:border-purple-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 5. Primary Text Color */}
+                  <div className="bg-slate-950 p-2.5 rounded-2xl border border-slate-800 space-y-1">
+                    <div className="flex items-center justify-between text-[11px] font-bold">
+                      <span className="text-emerald-300">5. Name &amp; Headings Text</span>
+                      <span className="font-mono text-slate-400 text-[10px]">{data.textColor || '#FFFFFF'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={safeColor(data.textColor || '#FFFFFF', '#FFFFFF')}
+                        onChange={(e) => setData({ ...data, textColor: e.target.value })}
+                        className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border border-white/20 shrink-0"
+                      />
+                      <input
+                        type="text"
+                        value={data.textColor || '#FFFFFF'}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setData({ ...data, textColor: val.startsWith('#') ? val : `#${val}` });
+                        }}
+                        placeholder="#FFFFFF"
+                        className="w-full bg-slate-900 px-2 py-1 rounded-lg font-mono text-xs text-white border border-slate-800 uppercase focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 6. Subtitle & Contact Text Color */}
+                  <div className="bg-slate-950 p-2.5 rounded-2xl border border-slate-800 space-y-1">
+                    <div className="flex items-center justify-between text-[11px] font-bold">
+                      <span className="text-sky-300">6. Subtitle &amp; Contact Text</span>
+                      <span className="font-mono text-slate-400 text-[10px]">{data.subTextColor || '#CBD5E1'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={safeColor(data.subTextColor || '#CBD5E1', '#CBD5E1')}
+                        onChange={(e) => setData({ ...data, subTextColor: e.target.value })}
+                        className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border border-white/20 shrink-0"
+                      />
+                      <input
+                        type="text"
+                        value={data.subTextColor || '#CBD5E1'}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setData({ ...data, subTextColor: val.startsWith('#') ? val : `#${val}` });
+                        }}
+                        placeholder="#CBD5E1"
+                        className="w-full bg-slate-900 px-2 py-1 rounded-lg font-mono text-xs text-white border border-slate-800 uppercase focus:outline-none focus:border-sky-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 7. Badges & Hardware Embellishment Tint */}
+                  <div className="bg-slate-950 p-2.5 rounded-2xl border border-slate-800 space-y-1 sm:col-span-2">
+                    <div className="flex items-center justify-between text-[11px] font-bold">
+                      <span className="text-amber-400">7. Microchip, Badges &amp; Icons Tint</span>
+                      <span className="font-mono text-slate-400 text-[10px]">{data.badgeColor || data.accentColor}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={safeColor(data.badgeColor || data.accentColor, '#F59E0B')}
+                        onChange={(e) => setData({ ...data, badgeColor: e.target.value })}
+                        className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border border-white/20 shrink-0"
+                      />
+                      <input
+                        type="text"
+                        value={data.badgeColor || data.accentColor}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setData({ ...data, badgeColor: val.startsWith('#') ? val : `#${val}` });
+                        }}
+                        placeholder="#F59E0B"
+                        className="w-full bg-slate-900 px-2 py-1 rounded-lg font-mono text-xs text-white border border-slate-800 uppercase focus:outline-none focus:border-amber-500"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {COLOR_PRESETS.map((p) => (
-                    <button
-                      key={p.name}
-                      onClick={() => setData({ ...data, accentColor: p.hex })}
-                      title={p.name}
-                      className="w-6 h-6 rounded-full border border-white/20 transition-transform hover:scale-110 active:scale-95 flex items-center justify-center"
-                      style={{ backgroundColor: p.hex }}
-                    >
-                      {data.accentColor.toLowerCase() === p.hex.toLowerCase() && (
-                        <Check className="w-3 h-3 text-white drop-shadow" />
-                      )}
-                    </button>
-                  ))}
+                {/* Quick Swatch Bar */}
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-[10px] font-bold text-slate-400">Quick Primary Swatches:</span>
+                  <div className="flex flex-wrap gap-1">
+                    {COLOR_PRESETS.map((p) => (
+                      <button
+                        key={p.name}
+                        onClick={() => setData({ ...data, accentColor: p.hex })}
+                        title={p.name}
+                        className="w-5 h-5 rounded-full border border-white/20 transition-transform hover:scale-110 active:scale-95 flex items-center justify-center"
+                        style={{ backgroundColor: p.hex }}
+                      >
+                        {data.accentColor.toLowerCase() === p.hex.toLowerCase() && (
+                          <Check className="w-2.5 h-2.5 text-white drop-shadow" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
