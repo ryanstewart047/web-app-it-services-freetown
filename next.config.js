@@ -18,11 +18,10 @@ const nextConfig = {
 
   // Configure webpack to prevent infinite compilation and resolve modules properly
   webpack: (config, { isServer }) => {
-    // Prevent infinite compilation in watch mode
-    config.watchOptions = {
-      poll: 3000,
-      aggregateTimeout: 300,
-      ignored: ['**/node_modules', '**/.next', '**/out']
+    // Configure watch options in dev mode without forced polling
+    if (config.watchOptions) {
+      config.watchOptions.ignored = ['**/node_modules', '**/.next', '**/out']
+      delete config.watchOptions.poll
     }
     
     // Fix for module resolution issues
