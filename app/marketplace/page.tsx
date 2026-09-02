@@ -393,21 +393,6 @@ export default function MarketplacePage() {
         </div>
       </header>
 
-      {/* SEO Content Section */}
-      <section className="bg-gray-50 border-b border-gray-100">
-        <div className="container mx-auto px-4 py-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Shop Quality IT Products & Electronics in Freetown
-          </h1>
-          <p className="text-gray-600 text-lg mb-2">
-            Browse our extensive collection of laptops, computers, mobile phones, and accessories. 
-            We offer genuine products, competitive prices, and reliable service in Sierra Leone.
-          </p>
-          <p className="text-gray-500">
-            📍 Located at #1 Regent Highway Jui Junction, Freetown | 📞 Call us: +232 33 399 391
-          </p>
-        </div>
-      </section>
 
       {/* Top Ad */}
       <div className="container mx-auto px-4 py-8">
