@@ -5808,7 +5808,7 @@ export default function CardStudio() {
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       const dist = Math.hypot(dx, dy);
       const scale = dist / cardPinchRef.current.startDist;
-      const newZoom = Math.round(Math.min(140, Math.max(60, cardPinchRef.current.startZoom * scale)));
+      const newZoom = Math.round(Math.min(140, Math.max(30, cardPinchRef.current.startZoom * scale)));
       setData((prev) => ({ ...prev, previewZoom: newZoom }));
     }
   };
@@ -6124,19 +6124,19 @@ export default function CardStudio() {
             </div>
 
             <div className="flex items-center gap-2">
-              {/* Live Zoom Controls — Visible on all mobile & desktop screens */}
+              {/* Live Zoom Controls — 30% to 140% Visible on all mobile & desktop screens */}
               <div className="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded-xl border border-slate-800 text-xs text-slate-400">
                 <button
                   type="button"
-                  onClick={() => setData((prev) => ({ ...prev, previewZoom: Math.max(60, (prev.previewZoom || 100) - 10) }))}
+                  onClick={() => setData((prev) => ({ ...prev, previewZoom: Math.max(30, (prev.previewZoom || 100) - 10) }))}
                   className="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-black flex items-center justify-center text-sm"
-                  title="Zoom Out"
+                  title="Zoom Out (Down to 30%)"
                 >
                   −
                 </button>
                 <input
                   type="range"
-                  min="60"
+                  min="30"
                   max="140"
                   step="5"
                   value={data.previewZoom || 100}
@@ -6147,7 +6147,7 @@ export default function CardStudio() {
                   type="button"
                   onClick={() => setData((prev) => ({ ...prev, previewZoom: Math.min(140, (prev.previewZoom || 100) + 10) }))}
                   className="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-black flex items-center justify-center text-sm"
-                  title="Zoom In"
+                  title="Zoom In (Up to 140%)"
                 >
                   +
                 </button>
@@ -6186,23 +6186,20 @@ export default function CardStudio() {
                 </div>
               </div>
 
-              {/* Scrollable Container on zoom up to 140% */}
+              {/* Scrollable Container on zoom up to 140% — both ends visible */}
               <div
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
                 onTouchStart={handleCardTouchStart}
                 onTouchMove={handleCardTouchMove}
                 onTouchEnd={handleCardTouchEnd}
-                className="relative rounded-3xl overflow-x-auto overflow-y-hidden border border-slate-800 bg-slate-950 p-3 sm:p-6 lg:p-8 shadow-2xl transition-all touch-pan-x overscroll-x-contain scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
+                className="relative rounded-3xl overflow-x-auto overflow-y-hidden border border-slate-800 bg-slate-950 p-2 sm:p-6 lg:p-8 shadow-2xl transition-all touch-pan-x overscroll-x-contain scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
                 style={{ perspective: '1200px' }}
               >
                 <div
-                  className="min-w-fit mx-auto flex items-center justify-center"
+                  className="w-full flex items-center"
                   style={{
-                    paddingLeft: zoomFactor > 1 ? `${Math.round((zoomFactor - 1) * 240)}px` : '0px',
-                    paddingRight: zoomFactor > 1 ? `${Math.round((zoomFactor - 1) * 240)}px` : '0px',
-                    paddingTop: zoomFactor > 1 ? `${Math.round((zoomFactor - 1) * 90)}px` : '0px',
-                    paddingBottom: zoomFactor > 1 ? `${Math.round((zoomFactor - 1) * 90)}px` : '0px',
+                    justifyContent: zoomFactor > 1 ? 'flex-start' : 'center',
                   }}
                 >
                   <div
@@ -6210,6 +6207,10 @@ export default function CardStudio() {
                     style={{
                       transform: `scale(${zoomFactor}) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
                       transformStyle: 'preserve-3d',
+                      marginLeft: zoomFactor > 1 ? `${Math.max(16, Math.round((zoomFactor - 1) * 280))}px` : 'auto',
+                      marginRight: zoomFactor > 1 ? `${Math.max(16, Math.round((zoomFactor - 1) * 280))}px` : 'auto',
+                      marginTop: zoomFactor > 1 ? `${Math.max(8, Math.round((zoomFactor - 1) * 90))}px` : '8px',
+                      marginBottom: zoomFactor > 1 ? `${Math.max(8, Math.round((zoomFactor - 1) * 90))}px` : '8px',
                     }}
                   >
                     <div
@@ -6249,23 +6250,20 @@ export default function CardStudio() {
                 </div>
               </div>
 
-              {/* Scrollable Container on zoom up to 140% */}
+              {/* Scrollable Container on zoom up to 140% — both ends visible */}
               <div
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
                 onTouchStart={handleCardTouchStart}
                 onTouchMove={handleCardTouchMove}
                 onTouchEnd={handleCardTouchEnd}
-                className="relative rounded-3xl overflow-x-auto overflow-y-hidden border border-slate-800 bg-slate-950 p-3 sm:p-6 lg:p-8 shadow-2xl transition-all touch-pan-x overscroll-x-contain scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
+                className="relative rounded-3xl overflow-x-auto overflow-y-hidden border border-slate-800 bg-slate-950 p-2 sm:p-6 lg:p-8 shadow-2xl transition-all touch-pan-x overscroll-x-contain scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
                 style={{ perspective: '1200px' }}
               >
                 <div
-                  className="min-w-fit mx-auto flex items-center justify-center"
+                  className="w-full flex items-center"
                   style={{
-                    paddingLeft: zoomFactor > 1 ? `${Math.round((zoomFactor - 1) * 240)}px` : '0px',
-                    paddingRight: zoomFactor > 1 ? `${Math.round((zoomFactor - 1) * 240)}px` : '0px',
-                    paddingTop: zoomFactor > 1 ? `${Math.round((zoomFactor - 1) * 90)}px` : '0px',
-                    paddingBottom: zoomFactor > 1 ? `${Math.round((zoomFactor - 1) * 90)}px` : '0px',
+                    justifyContent: zoomFactor > 1 ? 'flex-start' : 'center',
                   }}
                 >
                   <div
@@ -6273,6 +6271,10 @@ export default function CardStudio() {
                     style={{
                       transform: `scale(${zoomFactor}) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
                       transformStyle: 'preserve-3d',
+                      marginLeft: zoomFactor > 1 ? `${Math.max(16, Math.round((zoomFactor - 1) * 280))}px` : 'auto',
+                      marginRight: zoomFactor > 1 ? `${Math.max(16, Math.round((zoomFactor - 1) * 280))}px` : 'auto',
+                      marginTop: zoomFactor > 1 ? `${Math.max(8, Math.round((zoomFactor - 1) * 90))}px` : '8px',
+                      marginBottom: zoomFactor > 1 ? `${Math.max(8, Math.round((zoomFactor - 1) * 90))}px` : '8px',
                     }}
                   >
                     <div
