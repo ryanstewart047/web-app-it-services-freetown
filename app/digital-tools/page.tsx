@@ -899,12 +899,12 @@ export default function DigitalToolsPage() {
                 }`}
               >
                 {/* Badges */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white text-xl shadow-lg bg-gradient-to-tr ${tool.gradient} group-hover:scale-110 transition-transform`}>
+                <div className="flex items-start justify-between mb-4 gap-2">
+                  <div className={`w-12 h-12 shrink-0 aspect-square rounded-2xl flex items-center justify-center text-white text-xl shadow-lg bg-gradient-to-tr ${tool.gradient} group-hover:scale-110 transition-transform`}>
                     <i className={tool.icon}></i>
                   </div>
                   {tool.badge && (
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider leading-tight text-right max-w-[120px] ${
                       tool.isNew
                         ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 animate-pulse'
                         : 'bg-slate-800 text-slate-300 border border-slate-700'

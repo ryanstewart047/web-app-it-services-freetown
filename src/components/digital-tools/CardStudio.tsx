@@ -5581,6 +5581,12 @@ export default function CardStudio() {
   const qrImgRef = useRef<HTMLImageElement | null>(null);
   const bgImgRef = useRef<HTMLImageElement | null>(null);
 
+  // Mobile lightbox / pinch-to-zoom state
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxSide, setLightboxSide] = useState<'front' | 'back'>('front');
+  const [lightboxZoom, setLightboxZoom] = useState(1);
+  const lightboxPinchRef = useRef<{ startDist: number; startZoom: number } | null>(null);
+
   useEffect(() => {
     if (data.photoUrl) {
       const img = new window.Image();
@@ -5701,6 +5707,15 @@ export default function CardStudio() {
     drawCanvases();
   }, [drawCanvases]);
 
+  // Fix black screen on view switch: canvases re-mount when activeSide changes,
+  // so defer a redraw until after the new canvas elements are in the DOM.
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => {
+      drawCanvases();
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [activeSide, drawCanvases]);
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
@@ -5712,6 +5727,38 @@ export default function CardStudio() {
 
   const handleMouseLeave = () => {
     setTilt({ x: 0, y: 0 });
+  };
+
+  // Mobile: tap card to open lightbox; pinch with two fingers to zoom inside lightbox
+  const handleCardTap = (side: 'front' | 'back') => {
+    setLightboxSide(side);
+    setLightboxZoom(1);
+    setLightboxOpen(true);
+  };
+
+  const handleLightboxTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      lightboxPinchRef.current = { startDist: dist, startZoom: lightboxZoom };
+    }
+  };
+
+  const handleLightboxTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && lightboxPinchRef.current) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const scale = dist / lightboxPinchRef.current.startDist;
+      const newZoom = Math.min(5, Math.max(0.5, lightboxPinchRef.current.startZoom * scale));
+      setLightboxZoom(newZoom);
+    }
+  };
+
+  const handleLightboxTouchEnd = () => {
+    lightboxPinchRef.current = null;
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'photoUrl' | 'logoUrl' | 'bgImageUrl') => {
@@ -6071,6 +6118,15 @@ export default function CardStudio() {
                       className={`w-full ${cardDim.containerClass} ${cardDim.aspect} rounded-[24px] shadow-2xl object-contain ring-1 ring-white/10`}
                     />
                   </div>
+
+                  {/* Mobile tap-to-zoom hint overlay */}
+                  <button
+                    onClick={() => handleCardTap('front')}
+                    className="absolute bottom-3 right-3 sm:hidden flex items-center gap-1.5 bg-black/70 backdrop-blur text-white text-[10px] font-bold px-2.5 py-1.5 rounded-full border border-white/20 active:scale-95 transition-transform"
+                  >
+                    <ZoomIn className="w-3 h-3 text-amber-400" />
+                    Tap to zoom
+                  </button>
                 </div>
               </div>
             )}
@@ -6114,11 +6170,102 @@ export default function CardStudio() {
                       className={`w-full ${cardDim.containerClass} ${cardDim.aspect} rounded-[24px] shadow-2xl object-contain ring-1 ring-white/10`}
                     />
                   </div>
+
+                  {/* Mobile tap-to-zoom hint overlay */}
+                  <button
+                    onClick={() => handleCardTap('back')}
+                    className="absolute bottom-3 right-3 sm:hidden flex items-center gap-1.5 bg-black/70 backdrop-blur text-white text-[10px] font-bold px-2.5 py-1.5 rounded-full border border-white/20 active:scale-95 transition-transform"
+                  >
+                    <ZoomIn className="w-3 h-3 text-amber-400" />
+                    Tap to zoom
+                  </button>
                 </div>
               </div>
             )}
           </div>
         </div>
+
+        {/* ── MOBILE CARD LIGHTBOX MODAL (pinch-to-zoom) ──────────────────────── */}
+        {lightboxOpen && (
+          <div
+            className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur flex flex-col"
+            onClick={(e) => { if (e.target === e.currentTarget) setLightboxOpen(false); }}
+          >
+            {/* Lightbox Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
+              <span className="text-xs font-bold text-slate-300 flex items-center gap-2">
+                <ZoomIn className="w-3.5 h-3.5 text-amber-400" />
+                {lightboxSide === 'front' ? 'Front Side' : 'Back Side'} — Pinch to zoom
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setLightboxSide(lightboxSide === 'front' ? 'back' : 'front')}
+                  className="text-[11px] font-bold px-3 py-1.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 active:scale-95 transition-transform"
+                >
+                  Flip →
+                </button>
+                <button
+                  onClick={() => setLightboxOpen(false)}
+                  className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 text-white flex items-center justify-center text-base font-bold active:scale-95 transition-transform"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Pinch-to-zoom canvas area */}
+            <div
+              className="flex-1 overflow-hidden flex items-center justify-center touch-none select-none"
+              onTouchStart={handleLightboxTouchStart}
+              onTouchMove={handleLightboxTouchMove}
+              onTouchEnd={handleLightboxTouchEnd}
+            >
+              <div
+                style={{
+                  transform: `scale(${lightboxZoom})`,
+                  transformOrigin: 'center center',
+                  transition: 'transform 0.05s ease-out',
+                  willChange: 'transform',
+                }}
+              >
+                {lightboxSide === 'front' && frontCanvasRef.current && (
+                  <img
+                    src={frontCanvasRef.current.toDataURL('image/png')}
+                    alt="Front card preview"
+                    className={`${cardDim.containerClass} rounded-[20px] shadow-2xl ring-1 ring-white/10 object-contain`}
+                    style={{ maxWidth: '92vw', maxHeight: '75vh' }}
+                  />
+                )}
+                {lightboxSide === 'back' && backCanvasRef.current && (
+                  <img
+                    src={backCanvasRef.current.toDataURL('image/png')}
+                    alt="Back card preview"
+                    className={`${cardDim.containerClass} rounded-[20px] shadow-2xl ring-1 ring-white/10 object-contain`}
+                    style={{ maxWidth: '92vw', maxHeight: '75vh' }}
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Zoom controls row */}
+            <div className="flex items-center justify-center gap-4 px-4 py-3 border-t border-white/10 shrink-0">
+              <button
+                onClick={() => setLightboxZoom((z) => Math.max(0.5, z - 0.25))}
+                className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 text-white text-xl font-black flex items-center justify-center active:scale-95 transition-transform"
+              >−</button>
+              <span className="text-xs font-mono text-amber-300 w-14 text-center">{Math.round(lightboxZoom * 100)}%</span>
+              <button
+                onClick={() => setLightboxZoom((z) => Math.min(5, z + 0.25))}
+                className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 text-white text-xl font-black flex items-center justify-center active:scale-95 transition-transform"
+              >+</button>
+              <button
+                onClick={() => setLightboxZoom(1)}
+                className="text-[11px] font-bold px-3 py-2 rounded-full bg-amber-500 text-black active:scale-95 transition-transform"
+              >Reset</button>
+            </div>
+          </div>
+        )}
+
 
         {/* RIGHT COLUMN: DESIGN TEMPLATE BROWSER & CONTROLS (5 Cols) — scrollable while card is sticky */}
         <div className="lg:col-span-5 bg-slate-900/90 border border-slate-800 rounded-3xl shadow-2xl backdrop-blur">
