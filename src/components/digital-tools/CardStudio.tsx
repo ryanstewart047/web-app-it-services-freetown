@@ -5581,12 +5581,6 @@ export default function CardStudio() {
   const qrImgRef = useRef<HTMLImageElement | null>(null);
   const bgImgRef = useRef<HTMLImageElement | null>(null);
 
-  // Mobile lightbox / pinch-to-zoom state
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxSide, setLightboxSide] = useState<'front' | 'back'>('front');
-  const [lightboxZoom, setLightboxZoom] = useState(1);
-  const lightboxCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const lightboxPinchRef = useRef<{ startDist: number; startZoom: number } | null>(null);
   const cardPinchRef = useRef<{ startDist: number; startZoom: number } | null>(null);
 
   // ── Auto-Save & Navigation Guard State ──────────────────────────────────
@@ -5783,33 +5777,6 @@ export default function CardStudio() {
     return () => cancelAnimationFrame(raf);
   }, [activeSide, drawCanvases]);
 
-  // Dedicated direct 2D canvas drawing for the popout lightbox — ZERO toDataURL, ZERO black screen
-  useEffect(() => {
-    if (!lightboxOpen) return;
-    const canvas = lightboxCanvasRef.current;
-    if (!canvas) return;
-    const W = cardDim.width;
-    const H = cardDim.height;
-    const isPort = data.orientation === 'portrait';
-    canvas.width = W;
-    canvas.height = H;
-    const ctx = canvas.getContext('2d');
-    if (ctx && activeTemplate) {
-      activeTemplate.drawCard(
-        ctx,
-        W,
-        H,
-        isPort,
-        lightboxSide === 'back',
-        data,
-        qrImgRef.current,
-        photoImgRef.current,
-        logoImgRef.current,
-        bgImgRef.current
-      );
-    }
-  }, [lightboxOpen, lightboxSide, cardDim, data, activeTemplate]);
-
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
@@ -5841,45 +5808,13 @@ export default function CardStudio() {
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       const dist = Math.hypot(dx, dy);
       const scale = dist / cardPinchRef.current.startDist;
-      const newZoom = Math.round(Math.min(150, Math.max(50, cardPinchRef.current.startZoom * scale)));
+      const newZoom = Math.round(Math.min(140, Math.max(60, cardPinchRef.current.startZoom * scale)));
       setData((prev) => ({ ...prev, previewZoom: newZoom }));
     }
   };
 
   const handleCardTouchEnd = () => {
     cardPinchRef.current = null;
-  };
-
-  // Mobile: tap card to open popout lightbox
-  const handleCardTap = (side: 'front' | 'back') => {
-    setLightboxSide(side);
-    setLightboxZoom(1);
-    setLightboxOpen(true);
-  };
-
-  const handleLightboxTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      const dist = Math.hypot(dx, dy);
-      lightboxPinchRef.current = { startDist: dist, startZoom: lightboxZoom };
-    }
-  };
-
-  const handleLightboxTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length === 2 && lightboxPinchRef.current) {
-      e.preventDefault();
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      const dist = Math.hypot(dx, dy);
-      const scale = dist / lightboxPinchRef.current.startDist;
-      const newZoom = Math.min(4, Math.max(0.5, lightboxPinchRef.current.startZoom * scale));
-      setLightboxZoom(newZoom);
-    }
-  };
-
-  const handleLightboxTouchEnd = () => {
-    lightboxPinchRef.current = null;
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'photoUrl' | 'logoUrl' | 'bgImageUrl') => {
@@ -6219,17 +6154,6 @@ export default function CardStudio() {
                 <span className="font-mono text-[11px] text-amber-300 w-8 text-center">{data.previewZoom || 100}%</span>
               </div>
 
-              {/* Popout Full View Button */}
-              <button
-                type="button"
-                onClick={() => handleCardTap(activeSide === 'back' ? 'back' : 'front')}
-                className="py-1.5 px-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 text-xs font-bold flex items-center gap-1 transition-all active:scale-95"
-                title="Popout Full View (Pinch to Zoom)"
-              >
-                <Maximize2 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Popout</span>
-              </button>
-
               <div className="hidden lg:flex text-[11px] font-mono text-slate-400 items-center gap-1.5 pl-1">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 {data.orientation === 'landscape' ? '85.6 × 54 mm' : '54 × 85.6 mm'}
@@ -6239,219 +6163,133 @@ export default function CardStudio() {
 
           {/* 3D Canvas Perspective Display Containers — both kept mounted in DOM to prevent black screen */}
           <div className="space-y-6">
+            {/* Front Card Container */}
             <div className={`space-y-2 ${activeSide === 'both' || activeSide === 'front' ? 'block' : 'hidden'}`}>
               <div className="flex items-center justify-between text-xs font-bold text-slate-400 px-1">
                 <span className="flex items-center gap-1.5 text-amber-300">
                   <Eye className="w-3.5 h-3.5" />
                   3D FRONT SIDE (ARTISTIC CURVED)
                 </span>
-                <button
-                  onClick={() => downloadPng('front')}
-                  className="text-cyan-400 hover:text-cyan-300 text-[11px] flex items-center gap-1 font-bold"
-                >
-                  <Download className="w-3 h-3" />
-                  <span>Download PNG</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  {zoomFactor > 1.05 && (
+                    <span className="text-[10px] text-amber-400 font-bold bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      ↔ Scroll left/right
+                    </span>
+                  )}
+                  <button
+                    onClick={() => downloadPng('front')}
+                    className="text-cyan-400 hover:text-cyan-300 text-[11px] flex items-center gap-1 font-bold"
+                  >
+                    <Download className="w-3 h-3" />
+                    <span>Download PNG</span>
+                  </button>
+                </div>
               </div>
 
+              {/* Scrollable Container on zoom up to 140% */}
               <div
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
                 onTouchStart={handleCardTouchStart}
                 onTouchMove={handleCardTouchMove}
                 onTouchEnd={handleCardTouchEnd}
-                className="relative rounded-3xl overflow-hidden border border-slate-800 bg-slate-950 p-3 sm:p-6 lg:p-8 shadow-2xl flex items-center justify-center min-h-[220px] sm:min-h-[300px] transition-all"
+                className="relative rounded-3xl overflow-x-auto overflow-y-hidden border border-slate-800 bg-slate-950 p-3 sm:p-6 lg:p-8 shadow-2xl transition-all touch-pan-x overscroll-x-contain scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
                 style={{ perspective: '1200px' }}
               >
                 <div
-                  className="relative transition-transform duration-150 ease-out"
+                  className="min-w-fit mx-auto flex items-center justify-center"
                   style={{
-                    transform: `scale(${zoomFactor}) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-                    transformStyle: 'preserve-3d',
+                    paddingLeft: zoomFactor > 1 ? `${Math.round((zoomFactor - 1) * 240)}px` : '0px',
+                    paddingRight: zoomFactor > 1 ? `${Math.round((zoomFactor - 1) * 240)}px` : '0px',
+                    paddingTop: zoomFactor > 1 ? `${Math.round((zoomFactor - 1) * 90)}px` : '0px',
+                    paddingBottom: zoomFactor > 1 ? `${Math.round((zoomFactor - 1) * 90)}px` : '0px',
                   }}
                 >
                   <div
-                    className="absolute -inset-2 rounded-[32px] bg-black/60 blur-xl -z-10 pointer-events-none"
-                    style={{ transform: 'translateZ(-20px)' }}
-                  />
+                    className="relative transition-transform duration-150 ease-out origin-center shrink-0"
+                    style={{
+                      transform: `scale(${zoomFactor}) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+                      transformStyle: 'preserve-3d',
+                    }}
+                  >
+                    <div
+                      className="absolute -inset-2 rounded-[32px] bg-black/60 blur-xl -z-10 pointer-events-none"
+                      style={{ transform: 'translateZ(-20px)' }}
+                    />
 
-                  <canvas
-                    ref={frontCanvasRef}
-                    className={`w-full ${cardDim.containerClass} ${cardDim.aspect} rounded-[24px] shadow-2xl object-contain ring-1 ring-white/10`}
-                  />
+                    <canvas
+                      ref={frontCanvasRef}
+                      className={`w-full ${cardDim.containerClass} ${cardDim.aspect} rounded-[24px] shadow-2xl object-contain ring-1 ring-white/10`}
+                    />
+                  </div>
                 </div>
-
-                {/* Mobile tap-to-zoom popout overlay button */}
-                <button
-                  type="button"
-                  onClick={() => handleCardTap('front')}
-                  className="absolute bottom-3 right-3 sm:hidden flex items-center gap-1.5 bg-black/75 backdrop-blur text-white text-[10px] font-bold px-2.5 py-1.5 rounded-full border border-white/20 active:scale-95 transition-transform shadow-lg"
-                >
-                  <Maximize2 className="w-3 h-3 text-amber-400" />
-                  Tap to popout
-                </button>
               </div>
             </div>
 
+            {/* Back Card Container */}
             <div className={`space-y-2 ${activeSide === 'both' || activeSide === 'back' ? 'block' : 'hidden'}`}>
               <div className="flex items-center justify-between text-xs font-bold text-slate-400 px-1">
                 <span className="flex items-center gap-1.5 text-blue-300">
                   <QrCode className="w-3.5 h-3.5" />
                   3D BACK SIDE (MAGNETIC STRIPE &amp; VCARD QR)
                 </span>
-                <button
-                  onClick={() => downloadPng('back')}
-                  className="text-cyan-400 hover:text-cyan-300 text-[11px] flex items-center gap-1 font-bold"
-                >
-                  <Download className="w-3 h-3" />
-                  <span>Download PNG</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  {zoomFactor > 1.05 && (
+                    <span className="text-[10px] text-cyan-400 font-bold bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      ↔ Scroll left/right
+                    </span>
+                  )}
+                  <button
+                    onClick={() => downloadPng('back')}
+                    className="text-cyan-400 hover:text-cyan-300 text-[11px] flex items-center gap-1 font-bold"
+                  >
+                    <Download className="w-3 h-3" />
+                    <span>Download PNG</span>
+                  </button>
+                </div>
               </div>
 
+              {/* Scrollable Container on zoom up to 140% */}
               <div
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
                 onTouchStart={handleCardTouchStart}
                 onTouchMove={handleCardTouchMove}
                 onTouchEnd={handleCardTouchEnd}
-                className="relative rounded-3xl overflow-hidden border border-slate-800 bg-slate-950 p-3 sm:p-6 lg:p-8 shadow-2xl flex items-center justify-center min-h-[220px] sm:min-h-[300px] transition-all"
+                className="relative rounded-3xl overflow-x-auto overflow-y-hidden border border-slate-800 bg-slate-950 p-3 sm:p-6 lg:p-8 shadow-2xl transition-all touch-pan-x overscroll-x-contain scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
                 style={{ perspective: '1200px' }}
               >
                 <div
-                  className="relative transition-transform duration-150 ease-out"
+                  className="min-w-fit mx-auto flex items-center justify-center"
                   style={{
-                    transform: `scale(${zoomFactor}) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-                    transformStyle: 'preserve-3d',
+                    paddingLeft: zoomFactor > 1 ? `${Math.round((zoomFactor - 1) * 240)}px` : '0px',
+                    paddingRight: zoomFactor > 1 ? `${Math.round((zoomFactor - 1) * 240)}px` : '0px',
+                    paddingTop: zoomFactor > 1 ? `${Math.round((zoomFactor - 1) * 90)}px` : '0px',
+                    paddingBottom: zoomFactor > 1 ? `${Math.round((zoomFactor - 1) * 90)}px` : '0px',
                   }}
                 >
                   <div
-                    className="absolute -inset-2 rounded-[32px] bg-black/60 blur-xl -z-10 pointer-events-none"
-                    style={{ transform: 'translateZ(-20px)' }}
-                  />
+                    className="relative transition-transform duration-150 ease-out origin-center shrink-0"
+                    style={{
+                      transform: `scale(${zoomFactor}) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+                      transformStyle: 'preserve-3d',
+                    }}
+                  >
+                    <div
+                      className="absolute -inset-2 rounded-[32px] bg-black/60 blur-xl -z-10 pointer-events-none"
+                      style={{ transform: 'translateZ(-20px)' }}
+                    />
 
-                  <canvas
-                    ref={backCanvasRef}
-                    className={`w-full ${cardDim.containerClass} ${cardDim.aspect} rounded-[24px] shadow-2xl object-contain ring-1 ring-white/10`}
-                  />
+                    <canvas
+                      ref={backCanvasRef}
+                      className={`w-full ${cardDim.containerClass} ${cardDim.aspect} rounded-[24px] shadow-2xl object-contain ring-1 ring-white/10`}
+                    />
+                  </div>
                 </div>
-
-                {/* Mobile tap-to-zoom popout overlay button */}
-                <button
-                  type="button"
-                  onClick={() => handleCardTap('back')}
-                  className="absolute bottom-3 right-3 sm:hidden flex items-center gap-1.5 bg-black/75 backdrop-blur text-white text-[10px] font-bold px-2.5 py-1.5 rounded-full border border-white/20 active:scale-95 transition-transform shadow-lg"
-                >
-                  <Maximize2 className="w-3 h-3 text-amber-400" />
-                  Tap to popout
-                </button>
               </div>
             </div>
           </div>
         </div>
-
-        {/* ── CARD POPOUT FULLSCREEN MODAL (Live Canvas, Pinch to Zoom, No Scroll) ── */}
-        {lightboxOpen && (
-          <div
-            className="fixed inset-0 z-[9999] bg-slate-950/95 backdrop-blur-xl flex flex-col justify-between p-3 sm:p-5 select-none"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) setLightboxOpen(false);
-            }}
-          >
-            {/* Top Toolbar */}
-            <div className="flex items-center justify-between gap-2 max-w-2xl w-full mx-auto bg-slate-900/90 border border-slate-800 px-3 py-2 rounded-2xl shrink-0 shadow-lg">
-              {/* Side toggle */}
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => setLightboxSide('front')}
-                  className={`py-1 px-3 rounded-xl text-xs font-bold transition-all ${
-                    lightboxSide === 'front' ? 'bg-amber-500 text-black shadow' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  Front Side
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLightboxSide('back')}
-                  className={`py-1 px-3 rounded-xl text-xs font-bold transition-all ${
-                    lightboxSide === 'back' ? 'bg-amber-500 text-black shadow' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  Back Side
-                </button>
-              </div>
-
-              {/* Hint */}
-              <span className="text-[11px] font-bold text-slate-400 hidden sm:flex items-center gap-1">
-                <ZoomIn className="w-3.5 h-3.5 text-amber-400" />
-                Pinch with 2 fingers or use controls below
-              </span>
-
-              {/* Close Button */}
-              <button
-                type="button"
-                onClick={() => setLightboxOpen(false)}
-                className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-black flex items-center justify-center text-sm active:scale-95 border border-slate-700 transition-transform"
-                title="Close"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Center Live Canvas — Rendered directly with 2D context, 0 black screen */}
-            <div
-              className="flex-1 flex items-center justify-center overflow-hidden touch-none my-2"
-              onTouchStart={handleLightboxTouchStart}
-              onTouchMove={handleLightboxTouchMove}
-              onTouchEnd={handleLightboxTouchEnd}
-            >
-              <div
-                style={{
-                  transform: `scale(${lightboxZoom})`,
-                  transformOrigin: 'center center',
-                  transition: 'transform 0.05s ease-out',
-                }}
-              >
-                <canvas
-                  ref={lightboxCanvasRef}
-                  className={`rounded-2xl shadow-2xl ring-1 ring-white/10 ${cardDim.aspect}`}
-                  style={{
-                    width: data.orientation === 'portrait' ? 'min(78vw, 360px)' : 'min(90vw, 540px)',
-                    maxHeight: '68vh',
-                    objectFit: 'contain',
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Bottom Controls Pill — Always visible without scrolling */}
-            <div className="flex items-center justify-center gap-3 max-w-sm w-full mx-auto bg-slate-900/90 border border-slate-800 px-4 py-2 rounded-full shrink-0 shadow-2xl">
-              <button
-                type="button"
-                onClick={() => setLightboxZoom((z) => Math.max(0.5, Math.round((z - 0.2) * 10) / 10))}
-                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-white text-lg font-black flex items-center justify-center active:scale-90"
-              >
-                −
-              </button>
-              <span className="text-xs font-mono text-amber-300 w-12 text-center">{Math.round(lightboxZoom * 100)}%</span>
-              <button
-                type="button"
-                onClick={() => setLightboxZoom((z) => Math.min(3, Math.round((z + 0.2) * 10) / 10))}
-                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-white text-lg font-black flex items-center justify-center active:scale-90"
-              >
-                +
-              </button>
-              <div className="w-px h-4 bg-slate-700" />
-              <button
-                type="button"
-                onClick={() => setLightboxZoom(1)}
-                className="text-xs font-bold px-3 py-1 rounded-full bg-amber-500 hover:bg-amber-400 text-black active:scale-95"
-              >
-                Reset
-              </button>
-            </div>
-          </div>
-        )}
 
 
         {/* RIGHT COLUMN: DESIGN TEMPLATE BROWSER & CONTROLS (5 Cols) — scrollable while card is sticky */}
