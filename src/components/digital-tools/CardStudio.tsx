@@ -5589,6 +5589,72 @@ export default function CardStudio() {
   const lightboxPinchRef = useRef<{ startDist: number; startZoom: number } | null>(null);
   const cardPinchRef = useRef<{ startDist: number; startZoom: number } | null>(null);
 
+  // ── Auto-Save & Navigation Guard State ──────────────────────────────────
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
+  const isLoadedFromStorageRef = useRef(false);
+
+  // Auto-load previously customized card data from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('bridgetec_card_studio_data_v2');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          setData((prev) => ({ ...prev, ...parsed }));
+        }
+      }
+    } catch (e) {
+      console.warn('Auto-load card data warning:', e);
+    } finally {
+      isLoadedFromStorageRef.current = true;
+    }
+  }, []);
+
+  // Auto-save card data to localStorage on changes (debounced 350ms)
+  useEffect(() => {
+    if (!isLoadedFromStorageRef.current) return;
+    setSaveStatus('saving');
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem('bridgetec_card_studio_data_v2', JSON.stringify(data));
+        setSaveStatus('saved');
+      } catch (err) {
+        try {
+          // Quota fallback: persist configuration without large image data strings
+          const stripped = { ...data, photoUrl: null, logoUrl: null, bgImageUrl: null };
+          localStorage.setItem('bridgetec_card_studio_data_v2', JSON.stringify(stripped));
+          setSaveStatus('saved');
+        } catch {
+          console.warn('Auto-save error:', err);
+        }
+      }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [data]);
+
+  // Warning to confirm page refresh or page close
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
+  // Reset card back to pristine default settings
+  const handleResetToDefault = () => {
+    if (window.confirm('Reset this card to original default template settings? Your custom edits will be cleared.')) {
+      try {
+        localStorage.removeItem('bridgetec_card_studio_data_v2');
+      } catch {}
+      setData(DEFAULT_CARD_DATA);
+    }
+  };
+
   useEffect(() => {
     if (data.photoUrl) {
       const img = new window.Image();
@@ -6027,6 +6093,10 @@ export default function CardStudio() {
                   3D Modern Curved Luxury • 300 DPI
                 </span>
                 <span className="text-xs font-bold text-slate-400">• ISO 7810 Standard</span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  <span>{saveStatus === 'saving' ? 'Auto-saving...' : 'Auto-Saved'}</span>
+                </span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
                 3D Artistic Curved &amp; Business Card Studio
@@ -6038,6 +6108,15 @@ export default function CardStudio() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              onClick={handleResetToDefault}
+              className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-rose-400 font-bold text-xs flex items-center gap-1.5 transition-all border border-slate-700"
+              title="Reset card to default template settings"
+            >
+              <RotateCw className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Reset</span>
+            </button>
+
             <button
               onClick={handleOpenStudioWindow}
               className="py-2.5 px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold text-xs flex items-center gap-1.5 transition-all border border-cyan-500/30 shadow-md"
