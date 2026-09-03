@@ -62,6 +62,7 @@ import {
   AlignRight,
   ZoomIn,
   Move,
+  MoveVertical,
 } from 'lucide-react';
 
 export type CardCategory = 'all' | 'business' | 'id_badge' | 'complementary' | 'vip_pass';
@@ -174,6 +175,9 @@ export interface CardData {
   // Wave Overlay Controls
   showWavePattern?: boolean; // toggle wave pattern overlay on/off
   waveOpacity: number; // 0.0 to 1.0 — opacity of the colored curved wave layer
+  waveLineOpacity?: number; // 0.0 to 1.0 — specific opacity/transparency of the wave pattern lines
+  wavePositionOffset?: number; // -100 to 100 — position slide bar (backward to forward positional shift)
+  waveLayerOrder?: 'back' | 'backward' | 'forward'; // position depth: back (behind bg), backward (behind text), forward (over text)
   waveGradientPreset?: 'card_colors' | 'vivid_chroma' | 'sunset_flame' | 'emerald_jade' | 'cyber_neon' | 'liquid_gold' | 'arctic_frost';
   wavePattern:
     | 'bezier'
@@ -197,7 +201,17 @@ export interface CardData {
     | 'guilloche_braided_sinusoid'
     | 'lissajous_harmonics'
     | 'dna_helix'
-    | 'fluid_vortex'; // wave decoration pattern
+    | 'fluid_vortex'
+    | 'quantum_lattice'
+    | 'cyber_hex_mesh'
+    | 'fiber_optic_strands'
+    | 'holographic_hypersphere'
+    | 'sonic_soundwave_pulse'
+    | 'synthwave_perspective_grid'
+    | 'metropolitan_skyline_contour'
+    | 'geometric_fractal_prism'
+    | 'plasma_interference'
+    | 'constellation_star_map'; // wave decoration pattern
 }
 
 // ── COLOR VALIDATION & SAFE COLOR HELPERS ───────────────────────────────────────
@@ -418,9 +432,12 @@ function drawWavePatternDecorator(
   tertiaryColor: string,
   waveOpacity: number,
   curveIntensity: number,
-  gradientPreset?: CardData['waveGradientPreset']
+  gradientPreset?: CardData['waveGradientPreset'],
+  positionOffset: number = 0,
+  lineOpacity: number = 1.0
 ) {
-  if (waveOpacity < 0.02) return;
+  const effectiveOpacity = Math.max(0, Math.min(1, waveOpacity * lineOpacity));
+  if (effectiveOpacity < 0.01) return;
   const k = Math.max(0.4, Math.min(2.0, curveIntensity));
   const primary = safeColor(primaryColor, '#F59E0B');
   const secondary = safeColor(secondaryColor, '#EC4899');
@@ -458,7 +475,14 @@ function drawWavePatternDecorator(
   };
 
   ctx.save();
-  ctx.globalAlpha = Math.max(0, Math.min(1, waveOpacity));
+  ctx.globalAlpha = effectiveOpacity;
+
+  // Apply positional shift (backward/forward slide bar)
+  if (positionOffset !== 0) {
+    const shiftX = (positionOffset / 100) * (isPort ? W * 0.35 : W * 0.4);
+    const shiftY = (positionOffset / 100) * (isPort ? H * 0.4 : H * 0.35);
+    ctx.translate(shiftX, shiftY);
+  }
 
   switch (pattern) {
     case 'gradient_ribbon_mesh': {
@@ -1013,6 +1037,296 @@ function drawWavePatternDecorator(
           ctx.fillStyle = palette[i % palette.length];
           ctx.beginPath(); ctx.arc(pts[i], pts[i + 1], 4.5, 0, Math.PI * 2); ctx.fill();
         }
+      });
+      break;
+    }
+
+    case 'quantum_lattice': {
+      // Futuristic diagonal isometric quantum grid with energetic flare rings
+      const spacing = Math.round((isPort ? 48 : 56) / k);
+      ctx.lineWidth = 1.2;
+      for (let x = -W; x < W * 2; x += spacing) {
+        ctx.strokeStyle = createCanvasGrad(x, 0, x + H, H);
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x + H, H);
+        ctx.stroke();
+
+        ctx.strokeStyle = createCanvasGrad(x + H, 0, x, H);
+        ctx.beginPath();
+        ctx.moveTo(x + H, 0);
+        ctx.lineTo(x, H);
+        ctx.stroke();
+      }
+      // Nodal intersection flare rings
+      const nodeStep = spacing * 2;
+      for (let nx = spacing; nx < W; nx += nodeStep) {
+        for (let ny = spacing; ny < H; ny += nodeStep) {
+          ctx.strokeStyle = hexToRgba(secondary, 0.7);
+          ctx.fillStyle = hexToRgba(primary, 0.4);
+          ctx.beginPath();
+          ctx.arc(nx, ny, 3.5 * k, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
+      break;
+    }
+
+    case 'cyber_hex_mesh': {
+      // High-tech interlocking honeycomb hexagonal wireframe wave
+      const r = Math.round(36 * k);
+      const h = r * Math.sqrt(3);
+      ctx.lineWidth = 1.3;
+      for (let row = -1; row * (h * 0.5) < H + h; row++) {
+        const y = row * (h * 0.5);
+        const offsetX = (row % 2) * (r * 1.5);
+        for (let x = -r * 2 + offsetX; x < W + r * 2; x += r * 3) {
+          ctx.strokeStyle = createCanvasGrad(x - r, y - h / 2, x + r, y + h / 2);
+          ctx.beginPath();
+          for (let i = 0; i < 6; i++) {
+            const angle = (Math.PI / 3) * i;
+            const px = x + r * Math.cos(angle);
+            const py = y + r * Math.sin(angle);
+            i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+          ctx.stroke();
+        }
+      }
+      break;
+    }
+
+    case 'fiber_optic_strands': {
+      // Dense flowing luminous fiber-optic filaments converging in smooth gradients
+      const numStrands = Math.round(26 * k);
+      const startX = isPort ? W * 0.1 : 0;
+      const startY = isPort ? 0 : H * 0.1;
+      for (let i = 0; i < numStrands; i++) {
+        const t = i / numStrands;
+        ctx.strokeStyle = createCanvasGrad(startX, startY, W, H);
+        ctx.lineWidth = 1.0 + (1 - t) * 2.2;
+        ctx.save();
+        ctx.globalAlpha = effectiveOpacity * (0.35 + t * 0.65);
+        ctx.beginPath();
+        ctx.moveTo(startX, startY + (isPort ? 0 : i * 14));
+        ctx.bezierCurveTo(
+          W * 0.45 + Math.sin(t * Math.PI * 3) * 60 * k,
+          H * 0.35 + (i * 8),
+          W * 0.65 + Math.cos(t * Math.PI * 2) * 80 * k,
+          H * 0.75 - (i * 6),
+          W + 20,
+          H * (0.2 + t * 0.75)
+        );
+        ctx.stroke();
+        ctx.restore();
+      }
+      break;
+    }
+
+    case 'holographic_hypersphere': {
+      // 3D mathematical wireframe sphere slices resembling holographic security foil
+      const cx = isPort ? W * 0.5 : W * 0.75;
+      const cy = isPort ? H * 0.38 : H * 0.5;
+      const R = (isPort ? W * 0.4 : H * 0.44) * k;
+      const rings = 14;
+      ctx.lineWidth = 1.2;
+      for (let i = 1; i <= rings; i++) {
+        const radY = R * (i / rings);
+        ctx.strokeStyle = createCanvasGrad(cx - R, cy - radY, cx + R, cy + radY);
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, R, radY, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        const radX = R * (i / rings);
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, radX, R, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      // Outer equator ring
+      ctx.lineWidth = 2.4;
+      ctx.strokeStyle = createCanvasGrad(cx - R, cy, cx + R, cy);
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.stroke();
+      break;
+    }
+
+    case 'sonic_soundwave_pulse': {
+      // Dynamic audio frequency spectrum wave / digital biometric voice pulse
+      const centerY = isPort ? H * 0.45 : H * 0.5;
+      const bars = Math.round(48 * k);
+      const barW = Math.max(2, (W - 40) / bars - 3);
+      for (let i = 0; i < bars; i++) {
+        const x = 20 + i * ((W - 40) / bars);
+        const norm = i / bars;
+        const envelope = Math.sin(norm * Math.PI);
+        const freq1 = Math.sin(norm * Math.PI * 6);
+        const freq2 = Math.cos(norm * Math.PI * 14);
+        const barH = Math.max(6, Math.abs(freq1 * 0.6 + freq2 * 0.4) * envelope * (isPort ? 160 : 130) * k);
+        const grad = ctx.createLinearGradient(x, centerY - barH, x, centerY + barH);
+        grad.addColorStop(0, hexToRgba(primary, 0.2));
+        grad.addColorStop(0.5, tertiary);
+        grad.addColorStop(1, hexToRgba(secondary, 0.2));
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.roundRect(x, centerY - barH, barW, barH * 2, barW / 2);
+        ctx.fill();
+      }
+      // Center pulsating laser line
+      ctx.strokeStyle = createCanvasGrad(0, centerY, W, centerY);
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(0, centerY);
+      ctx.lineTo(W, centerY);
+      ctx.stroke();
+      break;
+    }
+
+    case 'synthwave_perspective_grid': {
+      // 80s futuristic perspective horizon grid with vanishing point
+      const horizonY = isPort ? H * 0.35 : H * 0.42;
+      const vpX = W * 0.5;
+      ctx.lineWidth = 1.3;
+      // Vanishing radiating perspective lines
+      const numRadials = 16;
+      for (let i = 0; i <= numRadials; i++) {
+        const bottomX = -W * 0.2 + (i / numRadials) * (W * 1.4);
+        ctx.strokeStyle = createCanvasGrad(vpX, horizonY, bottomX, H);
+        ctx.beginPath();
+        ctx.moveTo(vpX, horizonY);
+        ctx.lineTo(bottomX, H);
+        ctx.stroke();
+      }
+      // Horizontal logarithmic perspective rungs
+      const numRungs = 12;
+      for (let r = 1; r <= numRungs; r++) {
+        const t = Math.pow(r / numRungs, 2.2);
+        const y = horizonY + t * (H - horizonY);
+        ctx.strokeStyle = createCanvasGrad(0, y, W, y);
+        ctx.lineWidth = 0.8 + t * 2.2;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(W, y);
+        ctx.stroke();
+      }
+      break;
+    }
+
+    case 'metropolitan_skyline_contour': {
+      // Parametric architectural elevation flow lines
+      const tiers = Math.round(18 * k);
+      for (let t = 0; t < tiers; t++) {
+        const norm = t / tiers;
+        const baseY = isPort ? H * (0.2 + norm * 0.75) : H * (0.25 + norm * 0.7);
+        ctx.strokeStyle = createCanvasGrad(0, baseY, W, baseY);
+        ctx.lineWidth = t % 3 === 0 ? 2.5 : 1.2;
+        ctx.save();
+        ctx.globalAlpha = effectiveOpacity * (0.35 + norm * 0.65);
+        ctx.beginPath();
+        ctx.moveTo(0, baseY);
+        const step = W / 6;
+        ctx.bezierCurveTo(
+          step * 1.5, baseY - (isPort ? 70 : 85) * Math.sin(norm * Math.PI * 2),
+          step * 3.5, baseY + (isPort ? 70 : 85) * Math.cos(norm * Math.PI * 2),
+          step * 5, baseY - (isPort ? 40 : 55) * Math.sin(norm * Math.PI * 3)
+        );
+        ctx.lineTo(W, baseY);
+        ctx.stroke();
+        ctx.restore();
+      }
+      break;
+    }
+
+    case 'geometric_fractal_prism': {
+      // Prismatic luxury geometric folding facet rays emanating from card vertex
+      const originX = isPort ? W * 0.1 : 0;
+      const originY = 0;
+      const rays = Math.round(22 * k);
+      for (let i = 0; i < rays; i++) {
+        const angle = (Math.PI * 0.65) * (i / rays);
+        const targetX = originX + Math.cos(angle) * (W * 1.5);
+        const targetY = originY + Math.sin(angle) * (H * 1.5);
+        ctx.strokeStyle = createCanvasGrad(originX, originY, targetX, targetY);
+        ctx.lineWidth = i % 2 === 0 ? 2.2 : 1.1;
+        ctx.beginPath();
+        ctx.moveTo(originX, originY);
+        ctx.lineTo(targetX, targetY);
+        ctx.stroke();
+
+        // Cross-facet diamond connecting lines
+        if (i > 0 && i % 3 === 0) {
+          const prevAngle = (Math.PI * 0.65) * ((i - 3) / rays);
+          ctx.strokeStyle = hexToRgba(tertiary, 0.4);
+          ctx.beginPath();
+          ctx.moveTo(originX + Math.cos(prevAngle) * (W * 0.6), originY + Math.sin(prevAngle) * (H * 0.6));
+          ctx.lineTo(originX + Math.cos(angle) * (W * 0.6), originY + Math.sin(angle) * (H * 0.6));
+          ctx.stroke();
+        }
+      }
+      break;
+    }
+
+    case 'plasma_interference': {
+      // Superimposed dual-source harmonic wave interference ripples
+      const numWaves = Math.round(18 * k);
+      const c1x = W * 0.25; const c1y = H * 0.3;
+      const c2x = W * 0.75; const c2y = H * 0.7;
+      ctx.lineWidth = 1.3;
+      for (let i = 1; i <= numWaves; i++) {
+        const r1 = i * (Math.max(W, H) / numWaves);
+        ctx.strokeStyle = hexToRgba(primary, 0.5);
+        ctx.beginPath();
+        ctx.arc(c1x, c1y, r1, 0, Math.PI * 2);
+        ctx.stroke();
+
+        const r2 = i * (Math.max(W, H) / numWaves);
+        ctx.strokeStyle = hexToRgba(secondary, 0.5);
+        ctx.beginPath();
+        ctx.arc(c2x, c2y, r2, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      break;
+    }
+
+    case 'constellation_star_map': {
+      // Celestial astronomical star nodes with delicate geodesic line vectors
+      const stars = [
+        { x: 0.12, y: 0.22, r: 4.0 }, { x: 0.28, y: 0.35, r: 3.0 },
+        { x: 0.42, y: 0.18, r: 5.0 }, { x: 0.58, y: 0.32, r: 3.5 },
+        { x: 0.74, y: 0.15, r: 4.5 }, { x: 0.88, y: 0.28, r: 3.0 },
+        { x: 0.22, y: 0.65, r: 4.0 }, { x: 0.38, y: 0.80, r: 3.5 },
+        { x: 0.55, y: 0.68, r: 5.5 }, { x: 0.70, y: 0.85, r: 3.0 },
+        { x: 0.85, y: 0.62, r: 4.2 }, { x: 0.92, y: 0.88, r: 3.2 },
+      ];
+      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = createCanvasGrad(0, 0, W, H);
+      // Connect constellations
+      ctx.beginPath();
+      for (let i = 0; i < stars.length - 1; i++) {
+        const s1 = stars[i];
+        const s2 = stars[i + 1];
+        ctx.moveTo(s1.x * W, s1.y * H);
+        ctx.lineTo(s2.x * W, s2.y * H);
+      }
+      // Extra triangle cross links
+      ctx.moveTo(stars[0].x * W, stars[0].y * H);
+      ctx.lineTo(stars[2].x * W, stars[2].y * H);
+      ctx.moveTo(stars[6].x * W, stars[6].y * H);
+      ctx.lineTo(stars[8].x * W, stars[8].y * H);
+      ctx.stroke();
+
+      // Render glowing star nodes
+      stars.forEach((s) => {
+        ctx.fillStyle = tertiary;
+        ctx.beginPath();
+        ctx.arc(s.x * W, s.y * H, s.r * k, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = hexToRgba(primary, 0.6);
+        ctx.beginPath();
+        ctx.arc(s.x * W, s.y * H, (s.r + 4) * k, 0, Math.PI * 2);
+        ctx.stroke();
       });
       break;
     }
@@ -5063,24 +5377,41 @@ function renderStandardFrontContent(
   const fScale = data.fontScale || 1.0;
   const align = data.contentAlign || (isPort ? 'center' : 'left');
 
+  // ── Wave Pattern Decorator Layer Function with Position & Opacity Controls ────
+  const curWaveOpacity = typeof data.waveOpacity === 'number' ? data.waveOpacity : 1.0;
+  const curLineOpacity = typeof data.waveLineOpacity === 'number' ? data.waveLineOpacity : 1.0;
+  const layerOrder = data.waveLayerOrder || 'backward';
+
+  const renderWaveOverlay = () => {
+    if (data.showWavePattern !== false && data.wavePattern && curWaveOpacity > 0.01 && curLineOpacity > 0.01) {
+      drawWavePatternDecorator(
+        ctx, W, H, isPort,
+        data.wavePattern,
+        data.accentColor,
+        data.secondaryColor,
+        data.tertiaryColor || '#38BDF8',
+        curWaveOpacity,
+        data.curveIntensity ?? 1.0,
+        data.waveGradientPreset,
+        data.wavePositionOffset ?? 0,
+        curLineOpacity
+      );
+    }
+  };
+
+  // 1. Layer Order 'back': Draw behind background image & textures
+  if (layerOrder === 'back') {
+    renderWaveOverlay();
+  }
+
   // ── Draw optional background image with opacity + tint overlay ──────────────
   if (bgImg) {
     drawBackgroundImage(ctx, W, H, bgImg, data.bgImageOpacity ?? 0.35, data.bgTintColor ?? '#000000', data.bgTintOpacity ?? 0.55);
   }
 
-  // ── Draw wave pattern decorator layer ─────────────────────────────────────
-  const curWaveOpacity = typeof data.waveOpacity === 'number' ? data.waveOpacity : 1.0;
-  if (data.showWavePattern !== false && data.wavePattern && curWaveOpacity > 0.01) {
-    drawWavePatternDecorator(
-      ctx, W, H, isPort,
-      data.wavePattern,
-      data.accentColor,
-      data.secondaryColor,
-      data.tertiaryColor || '#38BDF8',
-      curWaveOpacity,
-      data.curveIntensity ?? 1.0,
-      data.waveGradientPreset
-    );
+  // 2. Layer Order 'backward' (Standard): Draw after background image, before text & content
+  if (layerOrder === 'backward') {
+    renderWaveOverlay();
   }
 
   if (isPort) {
@@ -5370,6 +5701,11 @@ function renderStandardFrontContent(
     }
   }
 
+  // 3. Layer Order 'forward': Draw in front of card content as modern overlay
+  if (layerOrder === 'forward') {
+    renderWaveOverlay();
+  }
+
   if (data.showCutMarks) {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
     ctx.lineWidth = 1;
@@ -5558,6 +5894,9 @@ const DEFAULT_CARD_DATA: CardData = {
 
   showWavePattern: true,
   waveOpacity: 1.0,
+  waveLineOpacity: 1.0,
+  wavePositionOffset: 0,
+  waveLayerOrder: 'backward',
   waveGradientPreset: 'card_colors',
   wavePattern: 'bezier',
 };
@@ -6948,7 +7287,7 @@ export default function CardStudio() {
                   </div>
 
                   {data.showWavePattern !== false ? (
-                    <div className="space-y-3 pt-1 border-t border-slate-900">
+                    <div className="space-y-3.5 pt-1 border-t border-slate-900">
                       {/* Gradient Wave Color Presets */}
                       <div>
                         <label className="text-[11px] font-bold text-amber-300 block mb-1.5 flex items-center justify-between">
@@ -6981,13 +7320,176 @@ export default function CardStudio() {
                         </div>
                       </div>
 
-                      {/* 16 Pattern Style Selection Grid */}
-                      <div>
-                        <label className="text-[11px] font-bold text-slate-300 block mb-1.5">
-                          Pattern Wave Lines Style (16 Available)
-                        </label>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 max-h-[260px] overflow-y-auto pr-1">
+                      {/* Pattern Wave Lines Opacity & Transparency Slide Bar */}
+                      <div className="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-bold text-amber-300 flex items-center gap-1.5">
+                            <Layers className="w-3.5 h-3.5" />
+                            Pattern Lines Opacity &amp; Transparency
+                          </span>
+                          <span className="text-[11px] font-mono text-amber-400 font-bold">
+                            {Math.round((data.waveLineOpacity ?? 1.0) * 100)}% Opacity{' '}
+                            <span className="text-slate-400 font-normal">
+                              ({Math.round((1 - (data.waveLineOpacity ?? 1.0)) * 100)}% Transparent)
+                            </span>
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.02"
+                          value={data.waveLineOpacity ?? 1.0}
+                          onChange={(e) => setData({ ...data, waveLineOpacity: parseFloat(e.target.value) })}
+                          className="w-full accent-amber-500 cursor-pointer"
+                        />
+                        <div className="flex items-center justify-between gap-1 pt-0.5">
                           {[
+                            { label: 'Ghost (15%)', val: 0.15 },
+                            { label: 'Subtle (40%)', val: 0.4 },
+                            { label: 'Medium (70%)', val: 0.7 },
+                            { label: 'Solid (100%)', val: 1.0 },
+                          ].map((preset) => (
+                            <button
+                              key={preset.val}
+                              type="button"
+                              onClick={() => setData({ ...data, waveLineOpacity: preset.val })}
+                              className={`text-[9.5px] px-2 py-0.5 rounded-md font-semibold transition-all ${
+                                Math.abs((data.waveLineOpacity ?? 1.0) - preset.val) < 0.05
+                                  ? 'bg-amber-500 text-black font-bold'
+                                  : 'bg-slate-800 text-slate-400 hover:text-white'
+                              }`}
+                            >
+                              {preset.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Wave Position & Layer Depth Controls (Back, Backward, Forward) */}
+                      <div className="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 space-y-2.5">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-bold text-slate-200 flex items-center gap-1.5">
+                            <MoveVertical className="w-3.5 h-3.5 text-cyan-400" />
+                            Wave Layer Depth &amp; Position
+                          </span>
+                          <span className="text-[10px] font-mono text-cyan-300 font-bold uppercase">
+                            {data.waveLayerOrder === 'back'
+                              ? 'Layer: Behind Background'
+                              : data.waveLayerOrder === 'forward'
+                              ? 'Layer: Forward (Over Text)'
+                              : 'Layer: Backward (Behind Text)'}
+                          </span>
+                        </div>
+
+                        {/* Layer Stacking Buttons: Back | Backward | Forward */}
+                        <div className="grid grid-cols-3 gap-1.5">
+                          {[
+                            {
+                              id: 'back',
+                              title: 'Back',
+                              sub: 'Behind Background',
+                              color: 'border-slate-700 hover:border-slate-500',
+                            },
+                            {
+                              id: 'backward',
+                              title: 'Backward',
+                              sub: 'Behind Text (Default)',
+                              color: 'border-slate-700 hover:border-slate-500',
+                            },
+                            {
+                              id: 'forward',
+                              title: 'Forward',
+                              sub: 'Over Text Overlay',
+                              color: 'border-slate-700 hover:border-slate-500',
+                            },
+                          ].map((l) => (
+                            <button
+                              key={l.id}
+                              type="button"
+                              onClick={() => setData({ ...data, waveLayerOrder: l.id as CardData['waveLayerOrder'] })}
+                              className={`py-1.5 px-1.5 rounded-xl text-center flex flex-col items-center justify-center transition-all ${
+                                (data.waveLayerOrder || 'backward') === l.id
+                                  ? 'bg-cyan-500 text-black shadow ring-2 ring-cyan-400 font-bold'
+                                  : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                              }`}
+                            >
+                              <span className="text-[10.5px] font-extrabold">{l.title}</span>
+                              <span className="text-[8.5px] opacity-80 leading-none truncate">{l.sub}</span>
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Position Shift Slide Bar (Backward ↔ Forward) */}
+                        <div className="pt-1.5 border-t border-slate-800/80 space-y-1.5">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="text-slate-400 font-medium">Position Offset Slide Bar:</span>
+                            <span className="font-mono text-cyan-400 font-bold text-[10px]">
+                              {(data.wavePositionOffset ?? 0) === 0
+                                ? 'Centered (0%)'
+                                : (data.wavePositionOffset ?? 0) > 0
+                                ? `Forward (+${data.wavePositionOffset}%)`
+                                : `Backward (${data.wavePositionOffset}%)`}
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="-100"
+                            max="100"
+                            step="5"
+                            value={data.wavePositionOffset ?? 0}
+                            onChange={(e) => setData({ ...data, wavePositionOffset: parseInt(e.target.value) })}
+                            className="w-full accent-cyan-400 cursor-pointer"
+                          />
+                          <div className="flex items-center justify-between text-[9px] text-slate-500">
+                            <button
+                              type="button"
+                              onClick={() => setData({ ...data, wavePositionOffset: -50 })}
+                              className="hover:text-cyan-300"
+                            >
+                              ◀ Shift Back (-50%)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setData({ ...data, wavePositionOffset: 0 })}
+                              className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:text-white font-bold"
+                            >
+                              ◎ Center (0%)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setData({ ...data, wavePositionOffset: 50 })}
+                              className="hover:text-cyan-300"
+                            >
+                              Shift Forward (+50%) ▶
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 32 Pattern Style Selection Grid (Expanded Modern Collection) */}
+                      <div>
+                        <label className="text-[11px] font-bold text-slate-300 block mb-1.5 flex items-center justify-between">
+                          <span>Modern Pattern Wave Lines Style (32 Available)</span>
+                          <span className="text-[9.5px] font-mono text-amber-400 capitalize">
+                            {(data.wavePattern ?? 'bezier').replace(/_/g, ' ')}
+                          </span>
+                        </label>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 max-h-[290px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-700">
+                          {[
+                            // Brand New Modern Futuristic Styles
+                            { id: 'quantum_lattice', label: '💠 Quantum Lattice', desc: 'Futuristic isometric quantum grid with energetic flare rings' },
+                            { id: 'cyber_hex_mesh', label: '⬢ Cyber Hex', desc: 'High-tech interlocking honeycomb hexagonal wireframe wave' },
+                            { id: 'fiber_optic_strands', label: '✨ Fiber Optics', desc: 'Dense flowing luminous fiber-optic filaments with gradient tips' },
+                            { id: 'holographic_hypersphere', label: '🌐 3D Hypersphere', desc: '3D wireframe spherical slices resembling security holographic foil' },
+                            { id: 'sonic_soundwave_pulse', label: '📊 Audio Pulse', desc: 'Dynamic audio frequency spectrum wave / digital biometric voice pulse' },
+                            { id: 'synthwave_perspective_grid', label: '📐 3D Horizon Grid', desc: '80s futuristic perspective horizon grid with vanishing point' },
+                            { id: 'metropolitan_skyline_contour', label: '🏙️ Skyline Contours', desc: 'Parametric architectural elevation flow lines' },
+                            { id: 'geometric_fractal_prism', label: '💎 Fractal Prism', desc: 'Prismatic luxury geometric folding facet rays' },
+                            { id: 'plasma_interference', label: '〰️ Interference', desc: 'Superimposed dual-source harmonic wave interference ripples' },
+                            { id: 'constellation_star_map', label: '✨ Constellation', desc: 'Celestial astronomical star nodes with delicate geodesic line vectors' },
+
+                            // Security Guilloche & Banknote Currency Styles
                             { id: 'guilloche_spiro', label: '🌀 Guilloche Spiro', desc: 'Banknote currency security rosette loops' },
                             { id: 'guilloche_rosette_medallion', label: '🏛️ Bank Medallion', desc: 'Multi-lobed central banknote security seal' },
                             { id: 'guilloche_fluted_waves', label: '⌚ Swiss Fluted', desc: 'Watchmaker fluted wave lathe tapisserie' },
@@ -6995,6 +7497,8 @@ export default function CardStudio() {
                             { id: 'guilloche_rhodonea_rose', label: '🌹 Rhodonea Rose', desc: 'Mathematical polar rose curve petals' },
                             { id: 'guilloche_infinity_lemniscate', label: '♾️ Lemniscate', desc: 'Infinity figure-8 orbital wave ribbons' },
                             { id: 'guilloche_braided_sinusoid', label: '🧬 Braided Waves', desc: 'Tri-axial interwoven sinusoidal braids' },
+
+                            // 3D Ribbons & Shimmering Waves
                             { id: 'gradient_ribbon_mesh', label: '〰️ 3D Ribbons', desc: 'Undulating 3D gradient mesh ribbons' },
                             { id: 'aurora_curtain', label: '🌌 Aurora', desc: 'Vertical shimmering aurora curtain rays' },
                             { id: 'topographic_streamlines', label: '🗺️ Streamlines', desc: 'Fluid aerodynamic contour flow lines' },
@@ -7032,6 +7536,16 @@ export default function CardStudio() {
                         <span className="truncate pr-2">
                           {
                             {
+                              quantum_lattice: 'Futuristic diagonal isometric quantum grid with energetic flare rings',
+                              cyber_hex_mesh: 'High-tech interlocking honeycomb hexagonal wireframe wave',
+                              fiber_optic_strands: 'Dense flowing luminous fiber-optic filaments with gradient tips',
+                              holographic_hypersphere: '3D wireframe spherical slices resembling security holographic foil',
+                              sonic_soundwave_pulse: 'Dynamic audio frequency spectrum wave / digital biometric voice pulse',
+                              synthwave_perspective_grid: '80s futuristic perspective horizon grid with vanishing point',
+                              metropolitan_skyline_contour: 'Parametric architectural elevation flow lines',
+                              geometric_fractal_prism: 'Prismatic luxury geometric folding facet rays',
+                              plasma_interference: 'Superimposed dual-source harmonic wave interference ripples',
+                              constellation_star_map: 'Celestial astronomical star nodes with delicate geodesic line vectors',
                               guilloche_spiro: 'Intricate banknote currency security guilloche spirograph waves',
                               guilloche_rosette_medallion: 'Multi-lobed central banknote security seal medallion rosette',
                               guilloche_fluted_waves: 'Swiss watchmaker fluted wave lathe tapisserie in dense oscillating sine bundles',
