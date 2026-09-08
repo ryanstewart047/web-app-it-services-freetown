@@ -471,7 +471,12 @@ export default function Footer() {
                 <div className="w-8 h-8 rounded-lg bg-primary-600/20 flex items-center justify-center">
                   <i className="fas fa-envelope text-primary-400 text-sm"></i>
                 </div>
-                <span className="text-gray-300 text-sm">support@itservicesfreetown.com</span>
+                <a
+                  href="mailto:support@itservicesfreetown.com"
+                  className="text-gray-300 text-sm hover:text-primary-400 transition-colors"
+                >
+                  support@itservicesfreetown.com
+                </a>
               </div>
               <div className="flex items-start space-x-3">
                 <div className="w-8 h-8 rounded-lg bg-primary-600/20 flex items-center justify-center mt-0.5">
