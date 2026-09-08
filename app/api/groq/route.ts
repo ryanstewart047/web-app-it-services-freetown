@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
     // ── 2. Try Google Gemini with robust conversation formatting ─────────────
     const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY;
     if (geminiKey) {
-      const geminiModels = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-2.0-flash', 'gemini-1.5-pro'];
+      const geminiModels = ['gemini-2.5-flash-lite', 'gemini-flash-latest', 'gemini-2.5-pro', 'gemini-1.5-flash'];
 
       // Format messages for Gemini (must strictly alternate user/model and start with user)
       const rawContents = body.messages
