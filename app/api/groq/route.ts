@@ -5,14 +5,13 @@ const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 // Default list of modern Groq models in prioritized fallback order
 const DEFAULT_GROQ_MODELS = [
-  process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
-  'llama-3.1-8b-instant',
-  'gemma2-9b-it',
-  'deepseek-r1-distill-llama-70b',
-  'qwen-2.5-32b',
-  'llama-3.3-70b-specdec',
-  'llama3-70b-8192',
-  'llama3-8b-8192',
+  process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
+  'openai/gpt-oss-20b',
+  'qwen/qwen3.8-27b',
+  'qwen/qwen3.6-27b',
+  'groq/compound',
+  'groq/compound-mini',
+  'allam-2-7b',
 ];
 
 /**
@@ -36,8 +35,14 @@ async function fetchActiveGroqModels(apiKey: string): Promise<string[]> {
             !id.includes('embedding')
         );
         if (chatModels.length > 0) {
-          // Put preferred 70b or 8b at the front
-          const preferred = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'gemma2-9b-it'];
+          const preferred = [
+            'openai/gpt-oss-120b',
+            'openai/gpt-oss-20b',
+            'qwen/qwen3.8-27b',
+            'qwen/qwen3.6-27b',
+            'groq/compound',
+            'groq/compound-mini',
+          ];
           const sorted = [
             ...preferred.filter((p) => chatModels.includes(p)),
             ...chatModels.filter((c) => !preferred.includes(c)),
@@ -430,7 +435,8 @@ export async function GET(request: NextRequest) {
           modelsJson = JSON.parse(modelsText);
         } catch {}
 
-        // Test a 1-token completion
+        // Test a 1-token completion using first available active model
+        const testModel = modelsJson?.data?.[0]?.id || 'openai/gpt-oss-120b';
         const testComp = await fetch(GROQ_API_URL, {
           method: 'POST',
           headers: {
@@ -438,7 +444,7 @@ export async function GET(request: NextRequest) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'llama-3.3-70b-versatile',
+            model: testModel,
             messages: [{ role: 'user', content: 'Say OK' }],
             max_tokens: 5,
           }),
@@ -451,6 +457,7 @@ export async function GET(request: NextRequest) {
 
         groqDiagnosis = {
           modelsEndpointStatus: modelsRes.status,
+          testedModel: testModel,
           availableChatModels: modelsJson?.data
             ? modelsJson.data
                 .map((m: any) => m.id)
@@ -473,8 +480,19 @@ export async function GET(request: NextRequest) {
     const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY;
     if (geminiKey) {
       try {
+        const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${geminiKey}`);
+        const listJson = await listRes.json();
+        const availableGeminiModels = listJson?.models
+          ? listJson.models
+              .map((m: any) => m.name.replace('models/', ''))
+              .filter((n: string) => n.includes('gemini') || n.includes('flash') || n.includes('pro'))
+              .slice(0, 8)
+          : null;
+
+        const chosenGeminiModel = availableGeminiModels?.[0] || 'gemini-1.5-flash';
+
         const gRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/${chosenGeminiModel}:generateContent?key=${geminiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -491,7 +509,10 @@ export async function GET(request: NextRequest) {
         } catch {}
 
         geminiDiagnosis = {
-          status: gRes.status,
+          listStatus: listRes.status,
+          availableGeminiModels,
+          testedModel: chosenGeminiModel,
+          completionStatus: gRes.status,
           response: gJson?.candidates?.[0]?.content?.parts?.[0]?.text || null,
           error: gJson?.error || (!gRes.ok ? gText.slice(0, 300) : null),
         };

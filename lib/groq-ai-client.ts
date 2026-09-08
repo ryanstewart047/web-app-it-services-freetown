@@ -173,7 +173,7 @@ YOUR BEHAVIOUR:
     ]
     
     const requestBody = {
-      model: 'llama-3.3-70b-versatile',
+      model: 'openai/gpt-oss-120b',
       messages: messages,
       temperature: 0.6,
       max_tokens: 1000,
@@ -289,7 +289,7 @@ Provide 3 to 5 steps only. Make every step count.`
     ]
     
     const requestBody = {
-      model: 'llama-3.1-8b-instant',  // Handled by backend proxy
+      model: 'openai/gpt-oss-20b',  // Handled by backend proxy
       messages: messages,
       temperature: 0.5,
       max_tokens: 1000,
@@ -301,7 +301,7 @@ Provide 3 to 5 steps only. Make every step count.`
     console.log('📤 [CLIENT-SIDE] Request body preview:', {
       deviceType: context.deviceType,
       issue: context.issueDescription,
-      model: 'llama-3.1-8b-instant'
+      model: 'openai/gpt-oss-20b'
     })
     
     // Call our secure backend proxy instead of Groq directly
