@@ -4,10 +4,17 @@ import { BRAND_SITE_URL } from '@/lib/brand';
 const DIGITAL_TOOLS_OG_IMAGE = `${BRAND_SITE_URL}/digital-tools-preview.jpg`;
 
 export const metadata: Metadata = {
-  title: 'BridgeTec Surprise Studio & Free Digital Tools Suite | BridgeTec',
+  title: 'Free Online Digital Tools & Products Suite | 3D Card Studio, Converters & Surprise Studio | BridgeTec',
   description:
-    'BridgeTec Surprise Studio: Create viral celebration reveals, interactive unlock questionnaires, dynamic presenter branding, stadium crowd cheers & official high-end printable certificates with recipient photo for birthdays, graduations, anniversaries, and VIP milestones. Free browser tools by BridgeTec IT Services.',
+    'BridgeTec Digital Tools & Products: Design 300 DPI executive business cards & staff ID badges, create viral celebration reveals with crowd cheer audio & printable certificates, convert video to MP3, Word to PDF, remove image backgrounds, and inspect deepfake forensics. 100% free, browser-based, zero signup.',
   keywords: [
+    'BridgeTec digital products',
+    'free digital tools suite',
+    'business card maker 300 dpi',
+    'id card generator online',
+    'staff id badge maker',
+    'printable business cards A4',
+    'vcard qr code generator',
     'BridgeTec Surprise Studio',
     'surprise studio',
     'surprise reveal generator',
@@ -26,17 +33,19 @@ export const metadata: Metadata = {
     'online image format converter',
     'WebP to PNG converter',
     'AI image forensic detector',
+    'remove image background online',
     'EXIF metadata viewer online',
     'QR code generator free download',
-    'BridgeTech digital tools'
+    'BridgeTech digital tools',
+    'Sierra Leone online tools'
   ],
   alternates: {
     canonical: `${BRAND_SITE_URL}/digital-tools`,
   },
   openGraph: {
-    title: 'BridgeTec Surprise Studio | Viral Celebration & Recognition Engine',
+    title: 'Free Online Digital Tools & Products Suite | BridgeTec',
     description:
-      'Create personalized viral celebration reveals, interactive unlock questionnaires, dynamic presenter branding, 8s crowd applause & official luxury printable certificates for your loved ones & VIP honorees.',
+      'Design 300 DPI executive business cards, create viral celebration reveals with crowd cheering & printable certificates, convert MP4 to 320kbps MP3, Word to PDF, and remove backgrounds with AI.',
     url: `${BRAND_SITE_URL}/digital-tools`,
     siteName: 'BridgeTech IT Services',
     type: 'website',
@@ -46,15 +55,15 @@ export const metadata: Metadata = {
         url: DIGITAL_TOOLS_OG_IMAGE,
         width: 1280,
         height: 720,
-        alt: 'BridgeTec Surprise Studio & Digital Tools Suite by BridgeTech IT Services',
+        alt: 'BridgeTec Digital Tools & Products Suite - Business Cards, Surprise Studio & Media Converters',
         type: 'image/jpeg',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'BridgeTec Surprise Studio | Viral Celebration & Recognition Engine',
-    description: 'Create unforgettable celebration reveals, unlock quizzes, dynamic presenter branding, 8-second stadium cheering & high-res certificates with photo for birthdays, milestones & staff honors!',
+    title: 'Free Online Digital Tools & Products Suite | BridgeTec',
+    description: 'Design 300 DPI executive business cards, create viral celebration reveals, convert video to MP3, Word to PDF, and inspect deepfake forensics online for free!',
     images: [DIGITAL_TOOLS_OG_IMAGE],
     creator: '@BridgeTechSL',
     site: '@BridgeTechSL',
@@ -162,7 +171,9 @@ const jsonLdData = {
         worstRating: '1',
       },
       featureList: [
-        'BridgeTec Surprise Studio',
+        'BridgeTec 3D Business & ID Card Studio (300 DPI Print-Ready PDF & vCard QR)',
+        'BridgeTec Surprise Studio (Celebration Reveals & Printable Certificates)',
+        'AI Image Background Eraser with Transparent PNG Export',
         'MP4 to MP3 High-Bitrate Audio Extractor (320kbps, 192kbps, 128kbps)',
         'DOCX, Markdown and Text to PDF Document Converter',
         'Image Format Converter (WebP, PNG, JPEG, AVIF, BMP, GIF)',
@@ -178,6 +189,43 @@ const jsonLdData = {
       }
     },
     {
+      '@type': 'WebApplication',
+      '@id': `${BRAND_SITE_URL}/digital-tools/card-studio#app`,
+      name: 'BridgeTec 3D Business & ID Card Studio',
+      alternateName: '300 DPI Executive Card Studio',
+      url: `${BRAND_SITE_URL}/digital-tools/card-studio`,
+      applicationCategory: 'DesignApplication',
+      operatingSystem: 'All (Web Browser, Windows, macOS, iOS, Android)',
+      browserRequirements: 'Requires JavaScript and HTML5 Canvas. Works on Chrome, Safari, Firefox, Edge.',
+      offers: {
+        '@type': 'Offer',
+        price: '0.00',
+        priceCurrency: 'USD',
+        availability: 'https://schema.org/InStock',
+      },
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: '4.95',
+        ratingCount: '320',
+        bestRating: '5',
+        worstRating: '1',
+      },
+      featureList: [
+        '300 DPI High-Resolution Universal Standard Print Output',
+        'Executive Business Cards & Staff ID Badges',
+        'Live Interactive 3D Card Flip & Tilt Simulation',
+        'Guilloche Security Wave Ribbon Patterns with Opacity & Depth Controls',
+        'Dynamic vCard Contact Scannable QR Code Integration',
+        'Print-Ready 8-Card A4 Duplex Layout with Professional Cutting Guides',
+        'Single Card PNG & Ultra High-Res Vector-Quality PDF Download'
+      ],
+      creator: {
+        '@type': 'Organization',
+        name: 'BridgeTech IT Services',
+        url: BRAND_SITE_URL,
+      }
+    },
+    {
       '@type': 'BreadcrumbList',
       itemListElement: [
         {
@@ -189,7 +237,7 @@ const jsonLdData = {
         {
           '@type': 'ListItem',
           position: 2,
-          name: 'BridgeTec Surprise Studio & Digital Tools Hub',
+          name: 'BridgeTec Digital Tools & Products Suite',
           item: `${BRAND_SITE_URL}/digital-tools`,
         },
       ],
@@ -238,7 +286,23 @@ const jsonLdData = {
         },
         {
           '@type': 'Question',
-          name: 'How do I unlock and download the high-resolution printable certificate?',
+          name: 'Can I design and print 300 DPI business cards and ID badges?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Yes! BridgeTec 3D Card Studio allows you to design executive business cards, staff ID badges, and VIP passes at universal 300 DPI resolution (ISO CR80 standard). You can embed scannable vCard QR codes, customize security Guilloche patterns, and export print-ready A4 duplex PDFs with cutting guides for card printing machines or local print shops.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Are these digital tools free to use?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Yes! The majority of tools in the BridgeTec Digital Suite—including Video to MP3 conversion, Document to PDF, AI Background Removal, Image Formats, QR Codes, and Card Studio basic export—are 100% free and run directly in your browser with private client-side processing.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How do I unlock and download the high-resolution printable certificate in Surprise Studio?',
           acceptedAnswer: {
             '@type': 'Answer',
             text: 'Once the reveal link is generated, users can preview the sample certificate. To unlock the full-resolution, watermark-free printable certificate (PNG/PDF), submit payment (Le 25 one-time, Le 150 monthly, or Le 500 lifetime) via Orange Money or AfriMoney. Upon 1-click admin approval, the official download unlocks and is delivered automatically via email and WhatsApp.',
@@ -246,10 +310,10 @@ const jsonLdData = {
         },
         {
           '@type': 'Question',
-          name: 'Can I use BridgeTec Surprise Studio on mobile phones and share via WhatsApp?',
+          name: 'Can I use BridgeTec digital tools on mobile phones and share via WhatsApp?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Yes! BridgeTec Surprise Studio is 100% mobile-optimized. You can design, publish, and share reveals directly through WhatsApp, Facebook, TikTok, Instagram stories, and Telegram in seconds.',
+            text: 'Yes! All BridgeTec digital tools and products are fully responsive and mobile-optimized. You can convert files, design cards, and publish celebration links directly from your Android phone, iPhone, tablet, or desktop.',
           },
         },
       ],

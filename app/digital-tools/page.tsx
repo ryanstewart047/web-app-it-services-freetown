@@ -715,11 +715,11 @@ export default function DigitalToolsPage() {
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white mb-4">
-            Free Digital Tools <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400">For Everyone</span>
+            Free Digital Tools &amp; Products <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400">Suite</span>
           </h1>
 
           <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-6">
-            Remove image backgrounds, convert video to MP3, inspect AI &amp; EXIF metadata, convert documents to PDF, generate QR codes, and run everyday utilities with zero limits.
+            Design print-ready 300 DPI executive business cards &amp; staff ID badges, create viral celebration reveals with crowd cheer audio &amp; printable certificates, convert video to MP3, Word to PDF, erase backgrounds with AI, and run everyday utilities with zero limits.
           </p>
 
           {/* Trust Value Badges */}

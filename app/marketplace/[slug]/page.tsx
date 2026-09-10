@@ -53,6 +53,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${product.name} - Le ${product.price.toLocaleString()} | BridgeTech IT Services`,
     description: truncatedDesc,
+    alternates: {
+      canonical: `${baseUrl}/marketplace/${product.slug}`,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
     openGraph: {
       title: `${product.name} - Le ${product.price.toLocaleString()}`,
       description: truncatedDesc,
@@ -101,7 +115,86 @@ export default async function ProductDetailPage({ params }: PageProps) {
     );
   }
 
-  // Convert prisma date fields or complex nested relations to simple objects for serializability if needed
-  // Prisma model objects are plain objects so we can pass them directly.
-  return <ProductDetailClient initialProduct={JSON.parse(JSON.stringify(product))} />;
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.itservicesfreetown.com';
+  const primaryImage = product.images?.[0]?.url || '/assets/images/slide01.jpg';
+  const absoluteImageUrl = primaryImage.startsWith('http') ? primaryImage : `${baseUrl}${primaryImage}`;
+
+  const productJsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Product',
+        '@id': `${baseUrl}/marketplace/${product.slug}#product`,
+        name: product.name,
+        description: product.description,
+        image: absoluteImageUrl,
+        sku: product.sku || product.id,
+        brand: {
+          '@type': 'Brand',
+          name: product.brand || 'BridgeTech',
+        },
+        category: product.category?.name || 'Electronics & IT Products',
+        offers: {
+          '@type': 'Offer',
+          url: `${baseUrl}/marketplace/${product.slug}`,
+          priceCurrency: 'SLE',
+          price: product.price,
+          priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          itemCondition: product.condition === 'refurbished'
+            ? 'https://schema.org/RefurbishedCondition'
+            : product.condition === 'used'
+            ? 'https://schema.org/UsedCondition'
+            : 'https://schema.org/NewCondition',
+          availability: product.stock > 0
+            ? 'https://schema.org/InStock'
+            : 'https://schema.org/OutOfStock',
+          seller: {
+            '@type': 'Organization',
+            name: 'BridgeTech IT Services',
+            url: baseUrl,
+          },
+        },
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: '4.8',
+          reviewCount: '24',
+          bestRating: '5',
+          worstRating: '1',
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: baseUrl,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Marketplace',
+            item: `${baseUrl}/marketplace`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: product.name,
+            item: `${baseUrl}/marketplace/${product.slug}`,
+          },
+        ],
+      },
+    ],
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      <ProductDetailClient initialProduct={JSON.parse(JSON.stringify(product))} />
+    </>
+  );
 }

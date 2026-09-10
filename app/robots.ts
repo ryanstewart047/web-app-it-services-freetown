@@ -56,6 +56,16 @@ export default function robots(): MetadataRoute.Robots {
         disallow: blockedPaths,
       },
       {
+        userAgent: 'Bingbot',
+        allow: ['/', '/ads.txt'],
+        disallow: blockedPaths,
+      },
+      {
+        userAgent: 'DuckDuckBot',
+        allow: ['/'],
+        disallow: blockedPaths,
+      },
+      {
         userAgent: 'Google-adstxt',
         allow: ['/ads.txt'],
       },
