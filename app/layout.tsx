@@ -15,6 +15,7 @@ import { AnalyticsProvider } from '../src/components/AnalyticsTracker'
 import ConditionalLayout from '@/components/ConditionalLayout'
 import ForumPromoCard from '@/components/ForumPromoCard'
 import WhatsAppGroupCard from '../src/components/WhatsAppGroupCard'
+import HostingerSlideUp from '../src/components/HostingerSlideUp'
 import { CartProvider } from '@/contexts/CartContext'
 import {
   BRAND_APPLE_TOUCH_ICON_SRC,
@@ -330,6 +331,7 @@ export default function RootLayout({
             </ConditionalLayout>
             <ForumPromoCard />
             <WhatsAppGroupCard />
+            <HostingerSlideUp />
             <Toaster position="top-right" />
           </AnalyticsProvider>
         </CartProvider>
