@@ -217,7 +217,7 @@ async function generateTopicDescription(topic: string): Promise<string> {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: process.env.GROQ_MODEL || 'llama-3.1-8b-instant',
+          model: process.env.GROQ_MODEL || 'openai/gpt-oss-20b',
           messages: [
             {
               role: 'system',
