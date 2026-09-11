@@ -1,10 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { 
-  shouldShowPWAInstall, 
-  isPWASupported, 
-  isPWAInstalled,
+import { X, Download, Share } from 'lucide-react'
+import {
   markPWAInstalled,
   shouldShowInstallBanner,
   getInstallInstructions,
@@ -12,103 +10,81 @@ import {
   logDeviceInfo,
   monitorInstallationState
 } from '@/utils/deviceDetection'
-import { BRAND_LOGO_SRC, BRAND_LOGO_FALLBACK_SRC, BRAND_NAME } from '@/lib/brand'
+import { BRAND_LOGO_TRANSPARENT_SRC, BRAND_NAME } from '@/lib/brand'
+
+const AVATAR_SRC = '/assets/bridgetech-avatar-transparent.png'
 
 export default function PWAInstallBanner() {
   const [showBanner, setShowBanner] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
-  // Also store in a ref so handleInstall always reads the latest value
-  // (avoids stale closure bugs with state in event handlers)
   const deferredPromptRef = useRef<any>(null)
   const [deviceInfo, setDeviceInfo] = useState({ isMobile: false, isIOS: false, isAndroid: false })
-  const [installInstructions, setInstallInstructions] = useState('')
+  const [visible, setVisible] = useState(false) // controls CSS animation
 
   useEffect(() => {
-    // Get device information
     const device = detectDevice()
     setDeviceInfo(device)
-    setInstallInstructions(getInstallInstructions())
-    
-    // Log device info for debugging
     logDeviceInfo()
-    
+
+    // ── Desktop guard: do not show on non-mobile devices ──
+    if (!device.isMobile && !device.isIOS && !device.isAndroid) return
+
     const handleBeforeInstallPrompt = (e: any) => {
-      console.log('PWA Install Banner: beforeinstallprompt event fired')
-      
-      // If this event fires, the browser guarantees the app is NOT installed.
-      // So if our local storage thinks it IS installed, they must have uninstalled it!
+      console.log('PWA Banner: beforeinstallprompt fired')
       try {
         if (localStorage.getItem('pwa-was-installed') === 'true') {
-          console.log('PWA Install Banner: Detected app uninstall, clearing local storage flags.')
           localStorage.removeItem('pwa-was-installed')
         }
-      } catch (err) {}
+      } catch {}
 
       e.preventDefault()
       deferredPromptRef.current = e
       setDeferredPrompt(e)
-      
+
       if (shouldShowInstallBanner()) {
-        setShowBanner(true)
+        triggerShow()
       }
     }
 
-    // Monitor installation state changes
     const cleanupMonitor = monitorInstallationState((isInstalled) => {
       if (isInstalled) {
-        console.log('PWA Install Banner: App was installed, hiding banner')
         setShowBanner(false)
+        setVisible(false)
       } else {
-        console.log('PWA Install Banner: App was uninstalled, allowing fresh install')
-        // Re-check if we should show banner after uninstall
-        if (shouldShowInstallBanner()) {
-          setShowBanner(true)
-        }
+        if (shouldShowInstallBanner()) triggerShow()
       }
     })
 
-    // Listen for the appinstalled event to persistently mark the app as installed
     const handleAppInstalled = () => {
-      console.log('PWA Install Banner: appinstalled event fired')
+      console.log('PWA Banner: appinstalled fired')
       markPWAInstalled()
       setShowBanner(false)
+      setVisible(false)
     }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
     window.addEventListener('appinstalled', handleAppInstalled)
 
-    // For iOS devices, show banner after a short delay since beforeinstallprompt doesn't fire
+    // iOS: beforeinstallprompt never fires — show manually after delay
     if (device.isIOS && shouldShowInstallBanner()) {
-      console.log('PWA Install Banner: Setting timer for iOS device')
-      const timer = setTimeout(() => {
-        if (shouldShowInstallBanner()) {
-          console.log('PWA Install Banner: Showing banner for iOS')
-          setShowBanner(true)
-        }
-      }, 3000)
-      
+      const t = setTimeout(() => { if (shouldShowInstallBanner()) triggerShow() }, 3000)
       return () => {
         window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
         window.removeEventListener('appinstalled', handleAppInstalled)
-        clearTimeout(timer)
+        clearTimeout(t)
         cleanupMonitor()
       }
     }
 
-    // For Android devices, also show after delay if beforeinstallprompt doesn't fire
+    // Android fallback: if prompt hasn't fired after 5 s, show guidance banner
     if (device.isAndroid && shouldShowInstallBanner()) {
-      console.log('PWA Install Banner: Setting fallback timer for Android device')
-      const fallbackTimer = setTimeout(() => {
-        if (!deferredPrompt && shouldShowInstallBanner()) {
-          console.log('PWA Install Banner: Showing fallback banner for Android')
-          setShowBanner(true)
-        }
+      const t = setTimeout(() => {
+        if (!deferredPromptRef.current && shouldShowInstallBanner()) triggerShow()
       }, 5000)
-      
       return () => {
         window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
         window.removeEventListener('appinstalled', handleAppInstalled)
-        clearTimeout(fallbackTimer)
+        clearTimeout(t)
         cleanupMonitor()
       }
     }
@@ -118,110 +94,141 @@ export default function PWAInstallBanner() {
       window.removeEventListener('appinstalled', handleAppInstalled)
       cleanupMonitor()
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const handleInstall = async () => {
-    // Read from ref to avoid stale closure. This is the most reliable approach.
-    const prompt = deferredPromptRef.current
-
-    if (prompt) {
-      // Android or Desktop Chrome — trigger the native browser install dialog
-      try {
-        prompt.prompt()
-        const choiceResult = await prompt.userChoice
-        console.log('PWA Install result:', choiceResult.outcome)
-        if (choiceResult.outcome === 'accepted') {
-          console.log('User accepted the install prompt')
-          markPWAInstalled()
-        }
-      } catch (err) {
-        console.error('PWA prompt error:', err)
-      } finally {
-        deferredPromptRef.current = null
-        setDeferredPrompt(null)
-        setShowBanner(false)
-      }
-    } else {
-      // Fallback if browser hasn't triggered beforeinstallprompt yet or iOS
-      if (deviceInfo.isIOS) {
-        alert("To install BridgeTech IT Services app on iOS:\n1. Tap the Share button below\n2. Scroll down and tap 'Add to Home Screen'\n3. Tap 'Add'")
-      } else {
-        alert("To install BridgeTech IT Services app:\n1. Tap your browser menu (⋮ or ⋯)\n2. Select 'Add to Home screen' or 'Install app'")
-      }
-      setShowBanner(false)
-    }
+  // Animate in after mount
+  const triggerShow = () => {
+    setShowBanner(true)
+    // Small delay so the translate transition actually plays
+    requestAnimationFrame(() => setTimeout(() => setVisible(true), 30))
   }
 
-  const handleClose = () => {
-    try {
-      sessionStorage.setItem('pwa-banner-closed', 'true')
-    } catch (e) {}
-    setShowBanner(false)
-  }
-
-  // Check session storage on render directly as a backup
+  // Check sessionStorage on mount so closed state is respected between renders
   useEffect(() => {
     try {
       if (sessionStorage.getItem('pwa-banner-closed') === 'true') {
         setShowBanner(false)
       }
-    } catch (e) {}
+    } catch {}
   }, [])
 
-  // Don't show banner if conditions are not met
-  if (!showBanner || !shouldShowInstallBanner()) {
-    return null
+  const handleInstall = async () => {
+    const prompt = deferredPromptRef.current
+
+    if (prompt) {
+      try {
+        prompt.prompt()
+        const { outcome } = await prompt.userChoice
+        console.log('PWA install outcome:', outcome)
+        if (outcome === 'accepted') markPWAInstalled()
+      } catch (err) {
+        console.error('PWA prompt error:', err)
+      } finally {
+        deferredPromptRef.current = null
+        setDeferredPrompt(null)
+        dismissBanner()
+      }
+    } else {
+      // Fallback guidance (iOS or very late Android)
+      if (deviceInfo.isIOS) {
+        alert(
+          `To install ${BRAND_NAME} on iOS:\n` +
+          `1. Tap the Share button (⎙) at the bottom of Safari\n` +
+          `2. Scroll down and tap "Add to Home Screen"\n` +
+          `3. Tap "Add"`
+        )
+      } else {
+        alert(
+          `To install ${BRAND_NAME}:\n` +
+          `1. Tap your browser menu (⋮ or ⋯)\n` +
+          `2. Select "Add to Home screen" or "Install app"`
+        )
+      }
+      dismissBanner()
+    }
   }
 
-  console.log('PWA Install Banner: Rendering banner for device:', deviceInfo)
+  const dismissBanner = () => {
+    setVisible(false)
+    setTimeout(() => setShowBanner(false), 350) // wait for slide-down animation
+    try { sessionStorage.setItem('pwa-banner-closed', 'true') } catch {}
+  }
+
+  if (!showBanner || !shouldShowInstallBanner()) return null
 
   return (
-    <div className="pwa-install-banner fixed top-0 left-0 right-0 bg-gradient-to-r from-[#040e40] via-red-800 to-red-600 text-white p-4 z-50 shadow-2xl border-b-4 border-white/20">
-      <div className="pwa-banner-content flex items-center justify-between max-w-6xl mx-auto">
-        <div className="flex items-center space-x-4">
-          {/* Site Logo */}
-          <div className="pwa-banner-icon bg-white/10 p-2 md:p-3 rounded-xl backdrop-blur-sm flex items-center justify-center">
-            <img 
-              src={BRAND_LOGO_SRC}
-              alt={BRAND_NAME}
-              className="w-auto h-10 sm:h-12 max-w-[130px] object-contain drop-shadow-md"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = BRAND_LOGO_FALLBACK_SRC
-              }}
-            />
-          </div>
-          
-          <div className="pwa-banner-text">
-            <div className="pwa-banner-title font-bold text-lg">
-              {BRAND_NAME}
-            </div>
-            <div className="pwa-banner-subtitle text-sm opacity-90 font-medium">
-              {deviceInfo.isIOS 
-                ? 'Add to Home Screen for quick access to our services' 
-                : 'Install our app for faster access and offline capabilities'
-              }
-            </div>
-            {deviceInfo.isIOS && (
-              <div className="text-xs opacity-75 mt-1">
-                Tap <span className="font-semibold">Share</span> → <span className="font-semibold">Add to Home Screen</span>
-              </div>
-            )}
-          </div>
+    <div
+      className={`
+        fixed bottom-0 left-0 right-0 z-[9990]
+        transition-transform duration-350 ease-out
+        ${visible ? 'translate-y-0' : 'translate-y-full'}
+      `}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Install ${BRAND_NAME} app`}
+    >
+      {/* Bottom-sheet card */}
+      <div className="mx-3 mb-3 rounded-2xl overflow-hidden shadow-[0_-8px_40px_rgba(0,0,0,0.45)] border border-white/10 bg-gradient-to-br from-[#040e40] via-[#1a0630] to-[#7b0000]">
+
+        {/* Top drag handle — visual affordance */}
+        <div className="flex justify-center pt-2.5 pb-1">
+          <div className="w-10 h-1 rounded-full bg-white/25" />
         </div>
-        
-        <div className="pwa-banner-buttons flex items-center space-x-3">
-          <button 
+
+        <div className="px-4 pb-4 pt-1">
+          {/* Header row: icon + text + close */}
+          <div className="flex items-center gap-3">
+
+            {/* App icon */}
+            <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0 shadow-lg overflow-hidden">
+              <img
+                src={AVATAR_SRC}
+                alt={BRAND_NAME}
+                className="w-12 h-12 object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = BRAND_LOGO_TRANSPARENT_SRC
+                }}
+              />
+            </div>
+
+            {/* Text */}
+            <div className="flex-1 min-w-0">
+              <p className="font-black text-white text-[15px] leading-tight truncate">
+                {BRAND_NAME}
+              </p>
+              <p className="text-white/70 text-[12px] leading-snug mt-0.5">
+                {deviceInfo.isIOS
+                  ? 'Add to Home Screen for quick access'
+                  : 'Install for faster access & offline use'}
+              </p>
+              {deviceInfo.isIOS && (
+                <p className="text-white/50 text-[11px] mt-0.5">
+                  Tap <span className="font-semibold text-white/70">Share</span> → <span className="font-semibold text-white/70">Add to Home Screen</span>
+                </p>
+              )}
+            </div>
+
+            {/* Close button — large tap target */}
+            <button
+              onClick={dismissBanner}
+              className="w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 active:bg-white/30 flex items-center justify-center shrink-0 transition-colors"
+              aria-label="Dismiss install banner"
+            >
+              <X className="w-5 h-5 text-white" strokeWidth={2.5} />
+            </button>
+          </div>
+
+          {/* Install button — full width, prominent */}
+          <button
             onClick={handleInstall}
-            className="pwa-install-btn bg-white text-red-600 px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-2 whitespace-nowrap"
+            className="mt-3.5 w-full flex items-center justify-center gap-2 bg-white text-[#040e40] font-black text-sm py-3 rounded-xl shadow-lg hover:bg-gray-100 active:scale-[0.98] transition-all duration-200"
           >
-            <i className="fas fa-download text-sm"></i>
-            <span>Install App</span>
-          </button>
-          <button 
-            onClick={handleClose}
-            className="pwa-close-btn text-white/80 hover:text-white hover:bg-white/10 text-xl p-2 rounded-lg transition-all duration-300"
-          >
-            <i className="fas fa-times"></i>
+            {deviceInfo.isIOS
+              ? <Share className="w-4 h-4" />
+              : <Download className="w-4 h-4" />
+            }
+            {deviceInfo.isIOS ? 'Add to Home Screen' : 'Install App'}
           </button>
         </div>
       </div>
