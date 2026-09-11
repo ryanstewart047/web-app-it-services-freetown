@@ -160,18 +160,18 @@ export default function PWAInstallBanner() {
   return (
     <div
       className={`
-        fixed bottom-0 left-0 right-0 z-[9990]
+        fixed top-0 left-0 right-0 z-[9990]
         transition-transform duration-350 ease-out
-        ${visible ? 'translate-y-0' : 'translate-y-full'}
+        ${visible ? 'translate-y-0' : '-translate-y-full'}
       `}
       role="dialog"
       aria-modal="true"
       aria-label={`Install ${BRAND_NAME} app`}
     >
-      {/* Bottom-sheet card */}
-      <div className="mx-3 mb-3 rounded-2xl overflow-hidden shadow-[0_-8px_40px_rgba(0,0,0,0.45)] border border-white/10 bg-gradient-to-br from-[#040e40] via-[#1a0630] to-[#7b0000]">
+      {/* Top-sheet card */}
+      <div className="mx-3 mt-3 mb-0 rounded-2xl overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.45)] border border-white/10 bg-gradient-to-br from-[#040e40] via-[#1a0630] to-[#7b0000]" style={{ marginTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
 
-        {/* Top drag handle — visual affordance */}
+        {/* Bottom drag handle — visual affordance (flipped for top position) */}
         <div className="flex justify-center pt-2.5 pb-1">
           <div className="w-10 h-1 rounded-full bg-white/25" />
         </div>
