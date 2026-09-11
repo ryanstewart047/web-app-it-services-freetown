@@ -96,6 +96,15 @@ const ADMIN_PANELS: AdminPanelItem[] = [
     color: 'text-orange-400',
     url: '/banner-admin',
   },
+  {
+    id: 'track-record',
+    name: 'Track Record & Stats',
+    category: 'overview',
+    description: 'Offline repairs, live counters & stats',
+    icon: 'fas fa-chart-line',
+    color: 'text-emerald-400',
+    url: '/admin/track-record',
+  },
   // E-Commerce & Inventory
   {
     id: 'products',
