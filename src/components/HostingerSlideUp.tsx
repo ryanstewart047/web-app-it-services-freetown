@@ -85,11 +85,11 @@ export default function HostingerSlideUp() {
       <button
         onClick={handleExpand}
         className="fixed bottom-4 sm:bottom-6 left-4 sm:left-6 z-[85] group flex items-center gap-2 px-3 py-1.5 bg-[#673de6] hover:bg-[#5025d1] text-white rounded-full shadow-lg border border-purple-400/30 hover:scale-105 transition-all duration-300 backdrop-blur-md"
-        title="Hostinger Partner Deal: Extra 20% Off Web Hosting"
+        title="Hostinger Partner Deal: Special Offer • 83% Off Web Hosting"
         aria-label="Open Hostinger Web Hosting Discount Deal"
       >
         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-        <span className="text-[11px] font-bold tracking-tight">Hostinger 20% Off</span>
+        <span className="text-[11px] font-bold tracking-tight">Hostinger • 83% Off</span>
       </button>
     );
   }
@@ -99,7 +99,7 @@ export default function HostingerSlideUp() {
   return (
     <aside
       aria-label="Hostinger Web Hosting Partner Offer"
-      className={`fixed bottom-4 sm:bottom-6 left-4 sm:left-6 z-[85] w-[calc(100vw-2rem)] sm:w-[320px] max-w-sm transition-all duration-500 transform ${
+      className={`fixed bottom-4 sm:bottom-6 left-4 sm:left-6 z-[85] w-[calc(100vw-2rem)] sm:w-[330px] max-w-sm transition-all duration-500 transform ${
         visible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0 pointer-events-none'
       }`}
     >
@@ -128,21 +128,21 @@ export default function HostingerSlideUp() {
 
           <div>
             <div className="flex items-center gap-1">
-              <span className="text-[10px] font-black uppercase tracking-widest text-purple-300">
-                Official Partner
+              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">
+                Special Offer • 83% OFF
               </span>
               <Sparkles className="w-2.5 h-2.5 text-amber-300" />
             </div>
-            <p className="text-xs font-bold text-white leading-none">Hostinger Web Hosting</p>
+            <p className="text-xs font-bold text-white leading-none">Hostinger Official Partner</p>
           </div>
         </div>
 
         {/* Value Pitch */}
         <h4 className="text-sm font-black text-white tracking-tight leading-snug mb-1">
-          Need a Fast Website? Save an <span className="text-emerald-400">Extra 20%</span>
+          Unlimited Websites &amp; Mailboxes
         </h4>
         <p className="text-[11px] text-slate-300 leading-relaxed mb-3">
-          Get up to 75% off hosting + an extra 20% discount with a <strong>free custom domain</strong> and SSL certificate.
+          Plus built-in AI website tools, free domain &amp; SSL, and priority 24/7 support for maximum flexibility.
         </p>
 
         {/* Promo Code Copy Pill */}
@@ -180,7 +180,7 @@ export default function HostingerSlideUp() {
             rel="noopener noreferrer nofollow"
             className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-[#673de6] to-[#7f54fc] hover:from-[#582fd4] hover:to-[#6c40e8] text-white font-black text-xs rounded-xl shadow-md hover:shadow-purple-500/25 transition-all transform hover:scale-[1.02] text-center"
           >
-            <span>Claim 20% Off Deal</span>
+            <span>Claim 83% Off Deal</span>
             <ExternalLink className="w-3 h-3" />
           </a>
 
