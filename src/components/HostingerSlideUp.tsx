@@ -83,7 +83,7 @@ export default function HostingerSlideUp() {
       {minimized && !visible && (
         <button
           onClick={handleExpand}
-          className="fixed bottom-4 sm:bottom-6 left-4 sm:left-6 z-[95] group flex items-center gap-2 px-3.5 py-2 bg-[#673de6] hover:bg-[#5025d1] text-white rounded-full shadow-2xl border border-purple-400/40 hover:scale-105 active:scale-95 transition-all duration-300 backdrop-blur-md"
+          className="fixed bottom-[5.5rem] left-4 z-[95] group flex items-center gap-2 px-3.5 py-2 bg-[#673de6] hover:bg-[#5025d1] text-white rounded-full shadow-2xl border border-purple-400/40 hover:scale-105 active:scale-95 transition-all duration-300 backdrop-blur-md"
           title="Hostinger Deal: Special Offer • 83% Off Web Hosting"
           aria-label="Open Hostinger Web Hosting Discount Deal"
         >

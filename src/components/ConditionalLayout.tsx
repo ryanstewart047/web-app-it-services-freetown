@@ -108,7 +108,7 @@ function ConditionalLayoutInner({ children }: ConditionalLayoutProps) {
       <OfferPopup delay={5000} />
       <NewsletterPopup delay={8000} />
       <StaticChatFloat />
-      <FloatingScrollToTop />
+      {/* <FloatingScrollToTop /> */}
       <PWAInstallBanner />
       <NetworkMonitor />
       <ServiceWorkerRegistration />

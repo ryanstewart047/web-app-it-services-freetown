@@ -58,7 +58,7 @@ export default function WhatsAppGroupCard() {
     return (
       <button
         onClick={handleExpand}
-        className="fixed bottom-24 right-4 sm:right-6 z-[95] flex items-center gap-2 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-xl border border-emerald-400/40 hover:scale-105 transition-all duration-300"
+        className="fixed bottom-40 right-4 sm:right-6 z-[95] flex items-center gap-2 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-xl border border-emerald-400/40 hover:scale-105 transition-all duration-300"
         title="Join Group"
       >
         <i className="fab fa-whatsapp text-sm text-white" aria-hidden="true" />
@@ -69,7 +69,7 @@ export default function WhatsAppGroupCard() {
 
   return (
     <div
-      className={`fixed bottom-24 right-4 sm:right-6 z-[95] transition-all duration-500 ease-out transform ${
+      className={`fixed bottom-40 right-4 sm:right-6 z-[95] transition-all duration-500 ease-out transform ${
         visible ? 'opacity-100 translate-x-0 scale-100 pointer-events-auto' : 'opacity-0 translate-x-[120%] scale-95 pointer-events-none'
       }`}
     >
