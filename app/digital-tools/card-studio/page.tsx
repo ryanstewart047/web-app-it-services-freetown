@@ -21,9 +21,11 @@ const CardStudio = dynamicImport(
 );
 
 export const metadata: Metadata = {
-  title: 'Free Business & ID Card Maker (300 DPI Print-Ready) | BridgeTec Card Studio',
+  title: {
+    absolute: 'Free Business & ID Card Maker (300 DPI) | BridgeTech',
+  },
   description:
-    'Design and download high-resolution 300 DPI executive business cards, staff ID badges, complementary cards & VIP event passes. Live 3D preview, scannable vCard QR codes, Guilloche security wave patterns, and print-ready A4 duplex PDF export for professional card printing machines.',
+    'Create print-ready 300 DPI business cards & staff ID badges with live 3D preview, scannable vCard QR codes, and duplex A4 PDF export. Free online card maker.',
   keywords: [
     'business card maker online',
     'free business card generator',
@@ -45,9 +47,9 @@ export const metadata: Metadata = {
     canonical: `${BRAND_SITE_URL}/digital-tools/card-studio`,
   },
   openGraph: {
-    title: 'Free 300 DPI Business & ID Card Maker | BridgeTec Studio',
+    title: 'Free Business & ID Card Maker (300 DPI) | BridgeTech',
     description:
-      'Design luxury executive business cards & corporate staff ID badges with scannable vCard QR codes and security Guilloche waves. Download print-ready 300 DPI PDFs with cutting guides.',
+      'Create print-ready 300 DPI business cards & staff ID badges with live 3D preview, scannable vCard QR codes, and duplex A4 PDF export. Free online card maker.',
     url: `${BRAND_SITE_URL}/digital-tools/card-studio`,
     siteName: 'BridgeTech IT Services',
     type: 'website',
@@ -64,9 +66,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Free 300 DPI Business & ID Card Maker | BridgeTec Studio',
+    title: 'Free Business & ID Card Maker (300 DPI) | BridgeTech',
     description:
-      'Create print-ready 300 DPI executive business cards & staff ID badges with live 3D preview, vCard QR codes, and duplex A4 PDF export.',
+      'Create print-ready 300 DPI business cards & staff ID badges with live 3D preview, scannable vCard QR codes, and duplex A4 PDF export. Free online card maker.',
     images: [`${BRAND_SITE_URL}/digital-tools-preview.jpg`],
     creator: '@BridgeTechSL',
     site: '@BridgeTechSL',

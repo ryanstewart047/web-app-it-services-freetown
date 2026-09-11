@@ -4,9 +4,11 @@ import { BRAND_SITE_URL } from '@/lib/brand';
 const DIGITAL_TOOLS_OG_IMAGE = `${BRAND_SITE_URL}/digital-tools-preview.jpg`;
 
 export const metadata: Metadata = {
-  title: 'Free Online Digital Tools & Products Suite | 3D Card Studio, Converters & Surprise Studio | BridgeTec',
+  title: {
+    absolute: 'Free Online Digital Tools & Products Suite | BridgeTech',
+  },
   description:
-    'BridgeTec Digital Tools & Products: Design 300 DPI executive business cards & staff ID badges, create viral celebration reveals with crowd cheer audio & printable certificates, convert video to MP3, Word to PDF, remove image backgrounds, and inspect deepfake forensics. 100% free, browser-based, zero signup.',
+    'Free browser tools by BridgeTech: 300 DPI business card maker, viral celebration reveals, video to MP3, Word to PDF, and AI image background removal.',
   keywords: [
     'BridgeTec digital products',
     'free digital tools suite',

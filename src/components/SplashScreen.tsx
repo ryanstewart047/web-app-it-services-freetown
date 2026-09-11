@@ -84,11 +84,11 @@ export default function SplashScreen() {
 
         {/* Text Content */}
         <div className="text-center">
-          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter mb-2 overflow-hidden">
+          <div role="heading" aria-level={2} className="text-3xl md:text-5xl font-black text-white tracking-tighter mb-2 overflow-hidden">
             <span className="block animate-slideUp">
               BRIDGETECH <span className="text-red-600">IT SERVICES</span>
             </span>
-          </h1>
+          </div>
           <p className="text-gray-400 text-sm md:text-base tracking-[0.3em] font-light uppercase opacity-0 animate-fadeIn" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
             Sierra Leone&apos;s #1 Tech Partner
           </p>
