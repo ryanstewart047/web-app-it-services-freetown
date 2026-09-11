@@ -7,7 +7,44 @@ import Image from 'next/image'
 export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [counters, setCounters] = useState({ customers: 0, hours: 0, success: 0 })
+  const [targets, setTargets] = useState({
+    customers: 300,
+    hours: 24,
+    success: 98,
+    devices: 450,
+  })
   const [isRefreshing, setIsRefreshing] = useState(false)
+
+  // Fetch real-time track record data
+  useEffect(() => {
+    let isMounted = true
+
+    async function fetchTrackRecord() {
+      try {
+        const res = await fetch(`/api/track-record?t=${Date.now()}`, {
+          cache: 'no-store',
+          headers: { Pragma: 'no-cache' }
+        })
+        if (!res.ok) return
+        const data = await res.json()
+        if (isMounted && data) {
+          setTargets(prev => ({
+            ...prev,
+            customers: Number(data.customers) || prev.customers,
+            devices: Number(data.devices) || prev.devices,
+            success: Number(data.successRate) || prev.success,
+          }))
+        }
+      } catch (err) {
+        console.warn('[Hero] Failed to fetch track record data:', err)
+      }
+    }
+
+    fetchTrackRecord()
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   // Real BridgeTech IT Services workshop photos
   const slides = [
@@ -31,57 +68,42 @@ export default function Hero() {
 
   // Auto-advance slides every 5 seconds
   useEffect(() => {
-    console.log('Setting up auto-advance interval')
     const interval = setInterval(() => {
       setCurrentSlide((prev) => {
         const next = prev + 1
-        const newSlide = next >= slides.length ? 0 : next
-        console.log('Auto-advancing slide from', prev, 'to', newSlide)
-        return newSlide
+        return next >= slides.length ? 0 : next
       })
-    }, 5000) // 5 seconds
-    return () => {
-      console.log('Cleaning up interval')
-      clearInterval(interval)
-    }
-  }, [])
-
-  // Log current slide changes
-  useEffect(() => {
-    console.log('Current slide is now:', currentSlide)
-  }, [currentSlide])
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [slides.length])
 
   // Counter animation
   useEffect(() => {
-    const animateCounters = () => {
-      const targets = { customers: 1000, hours: 24, success: 98 }
-      const duration = 2000
-      const steps = 60
-      const increment = {
-        customers: targets.customers / steps,
-        hours: targets.hours / steps,
-        success: targets.success / steps
-      }
-
-      let step = 0
-      const timer = setInterval(() => {
-        step++
-        setCounters({
-          customers: Math.min(Math.floor(increment.customers * step), targets.customers),
-          hours: Math.min(Math.floor(increment.hours * step), targets.hours),
-          success: Math.min(Math.floor(increment.success * step), targets.success)
-        })
-
-        if (step >= steps) {
-          clearInterval(timer)
-          setCounters(targets)
-        }
-      }, duration / steps)
+    const duration = 2000
+    const steps = 60
+    const increment = {
+      customers: targets.customers / steps,
+      hours: targets.hours / steps,
+      success: targets.success / steps
     }
 
-    const timer = setTimeout(animateCounters, 500)
-    return () => clearTimeout(timer)
-  }, [])
+    let step = 0
+    const timer = setInterval(() => {
+      step++
+      setCounters({
+        customers: Math.min(Math.floor(increment.customers * step), targets.customers),
+        hours: Math.min(Math.floor(increment.hours * step), targets.hours),
+        success: Math.min(Math.floor(increment.success * step), targets.success)
+      })
+
+      if (step >= steps) {
+        clearInterval(timer)
+        setCounters(targets)
+      }
+    }, duration / steps)
+
+    return () => clearInterval(timer)
+  }, [targets])
 
   const nextSlide = () => {
     console.log('Next slide clicked')
@@ -118,14 +140,14 @@ export default function Hero() {
               Freetown&apos;s #1 Computer & Mobile Repair | iPhone Repair | iCloud Removal | FRP Unlock
             </h1>
             <p className="hero-subtitle">
-              🏆 Expert mobile technician with 1000+ devices repaired. Professional iPhone repair, iCloud removal, FRP unlock, and computer repair in Freetown - Same-day service with warranty.
+              🏆 Expert mobile technician with {targets.devices}+ devices repaired. Professional iPhone repair, iCloud removal, FRP unlock, and computer repair in Freetown - Same-day service with warranty.
             </p>
             
             {/* Enhanced Value Propositions */}
             <div className="flex flex-wrap gap-3 my-6">
               <span className="bg-white/20 text-white px-3 py-1 rounded-full text-sm">✅ Same Day Service</span>
               <span className="bg-white/20 text-white px-3 py-1 rounded-full text-sm">🛡️ 1-Month Warranty</span>
-              <span className="bg-white/20 text-white px-3 py-1 rounded-full text-sm">� iCloud & FRP Unlock</span>
+              <span className="bg-white/20 text-white px-3 py-1 rounded-full text-sm">🔓 iCloud &amp; FRP Unlock</span>
               <span className="bg-white/20 text-white px-3 py-1 rounded-full text-sm">⚡ Expert Technicians</span>
             </div>
             
