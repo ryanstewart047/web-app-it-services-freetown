@@ -47,7 +47,7 @@ function getStoragePaths(): string[] {
   ];
 }
 
-export function loadTrackRecordSettings(): TrackRecordSettings {
+function loadFromFileFallback(): TrackRecordSettings {
   for (const filePath of getStoragePaths()) {
     try {
       if (fs.existsSync(filePath)) {
@@ -65,23 +65,88 @@ export function loadTrackRecordSettings(): TrackRecordSettings {
   return { ...DEFAULT_TRACK_RECORD_SETTINGS };
 }
 
-export function saveTrackRecordSettings(settings: Partial<TrackRecordSettings>): TrackRecordSettings {
-  const current = loadTrackRecordSettings();
-  const updated: TrackRecordSettings = {
-    ...current,
-    ...settings,
-    updatedAt: new Date().toISOString(),
-  };
-
+function saveToFileFallback(settings: TrackRecordSettings): void {
   for (const filePath of getStoragePaths()) {
     try {
       const dir = path.dirname(filePath);
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
       }
-      fs.writeFileSync(filePath, JSON.stringify(updated, null, 2), 'utf8');
+      fs.writeFileSync(filePath, JSON.stringify(settings, null, 2), 'utf8');
     } catch (_) {}
   }
+}
+
+/**
+ * Loads track record settings with Database -> File -> Defaults fallback.
+ */
+export async function loadTrackRecordSettings(): Promise<TrackRecordSettings> {
+  try {
+    const row = await prisma.trackRecordSettings.findUnique({
+      where: { id: 'active' },
+    });
+
+    if (row) {
+      return {
+        baselineDevices: row.baselineDevices,
+        offlineDevices: row.offlineDevices,
+        baselineCustomers: row.baselineCustomers,
+        offlineCustomers: row.offlineCustomers,
+        successRate: row.successRate,
+        responseTimeHours: row.responseTimeHours,
+        updatedAt: row.updatedAt.toISOString(),
+      };
+    }
+  } catch (err) {
+    console.warn('[TrackRecordStore] DB read failed, trying file fallback:', err);
+  }
+
+  return loadFromFileFallback();
+}
+
+/**
+ * Saves track record settings to PostgreSQL database (and file backup).
+ */
+export async function saveTrackRecordSettings(
+  settings: Partial<TrackRecordSettings>
+): Promise<TrackRecordSettings> {
+  const current = await loadTrackRecordSettings();
+  const updated: TrackRecordSettings = {
+    ...current,
+    ...settings,
+    updatedAt: new Date().toISOString(),
+  };
+
+  // 1. Primary: Save to PostgreSQL Database
+  try {
+    const row = await prisma.trackRecordSettings.upsert({
+      where: { id: 'active' },
+      update: {
+        baselineDevices: updated.baselineDevices,
+        offlineDevices: updated.offlineDevices,
+        baselineCustomers: updated.baselineCustomers,
+        offlineCustomers: updated.offlineCustomers,
+        successRate: updated.successRate,
+        responseTimeHours: updated.responseTimeHours,
+      },
+      create: {
+        id: 'active',
+        baselineDevices: updated.baselineDevices,
+        offlineDevices: updated.offlineDevices,
+        baselineCustomers: updated.baselineCustomers,
+        offlineCustomers: updated.offlineCustomers,
+        successRate: updated.successRate,
+        responseTimeHours: updated.responseTimeHours,
+      },
+    });
+
+    updated.updatedAt = row.updatedAt.toISOString();
+  } catch (err) {
+    console.error('[TrackRecordStore] DB upsert failed, saving to file backup:', err);
+  }
+
+  // 2. Secondary: File backup
+  saveToFileFallback(updated);
 
   return updated;
 }
@@ -93,7 +158,7 @@ export function saveTrackRecordSettings(settings: Partial<TrackRecordSettings>):
  * - Every customer and booking is counted as a happy customer, even if cancelled.
  */
 export async function getTrackRecordData(): Promise<TrackRecordTotals> {
-  const settings = loadTrackRecordSettings();
+  const settings = await loadTrackRecordSettings();
 
   let totalOnlineRepairs = 0;
   let totalOnlineAppointments = 0;
@@ -114,8 +179,6 @@ export async function getTrackRecordData(): Promise<TrackRecordTotals> {
   }
 
   // Count live devices: All online repairs logged + any standalone appointments
-  // (In practice, some appointments may link to a repair. To be comprehensive and conservative,
-  // we count total online repairs plus any additional appointments).
   const liveDevices = Math.max(totalOnlineRepairs, totalOnlineAppointments) || (totalOnlineRepairs + totalOnlineAppointments);
 
   // Count live customers: Every customer and booking counts

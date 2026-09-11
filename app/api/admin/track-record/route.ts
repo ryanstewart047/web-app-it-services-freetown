@@ -14,13 +14,20 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
 
   try {
-    const settings = loadTrackRecordSettings();
+    const settings = await loadTrackRecordSettings();
     const liveData = await getTrackRecordData();
 
-    return NextResponse.json({
-      settings,
-      liveData,
-    });
+    return NextResponse.json(
+      {
+        settings,
+        liveData,
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        },
+      }
+    );
   } catch (error) {
     console.error('[AdminTrackRecord API] GET error:', error);
     return NextResponse.json(
@@ -58,15 +65,22 @@ export async function POST(request: NextRequest) {
       patch.responseTimeHours = Math.max(0, Number(body.responseTimeHours));
     }
 
-    const updatedSettings = saveTrackRecordSettings(patch);
+    const updatedSettings = await saveTrackRecordSettings(patch);
     const updatedLiveData = await getTrackRecordData();
 
-    return NextResponse.json({
-      success: true,
-      message: 'Track record settings updated successfully',
-      settings: updatedSettings,
-      liveData: updatedLiveData,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Track record settings updated successfully',
+        settings: updatedSettings,
+        liveData: updatedLiveData,
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        },
+      }
+    );
   } catch (error) {
     console.error('[AdminTrackRecord API] POST error:', error);
     return NextResponse.json(

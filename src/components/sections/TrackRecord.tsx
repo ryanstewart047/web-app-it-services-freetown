@@ -33,7 +33,10 @@ export default function TrackRecord() {
 
     async function fetchLiveStats() {
       try {
-        const res = await fetch('/api/track-record')
+        const res = await fetch(`/api/track-record?t=${Date.now()}`, {
+          cache: 'no-store',
+          headers: { 'Pragma': 'no-cache' }
+        })
         if (!res.ok) return
         const data = await res.json()
 

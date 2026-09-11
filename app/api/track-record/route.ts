@@ -2,12 +2,17 @@ import { NextResponse } from 'next/server';
 import { getTrackRecordData } from '@/lib/server/track-record-store';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 60; // Cache for 60 seconds
 
 export async function GET() {
   try {
     const data = await getTrackRecordData();
-    return NextResponse.json(data);
+    return NextResponse.json(data, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'CDN-Cache-Control': 'no-store',
+        'Vercel-CDN-Cache-Control': 'no-store',
+      },
+    });
   } catch (error) {
     console.error('[TrackRecord API] Failed to fetch track record:', error);
     return NextResponse.json(
@@ -18,7 +23,12 @@ export async function GET() {
         responseTime: 2,
         error: 'Fallback to default baseline',
       },
-      { status: 200 }
+      {
+        status: 200,
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        },
+      }
     );
   }
 }

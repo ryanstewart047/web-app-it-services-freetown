@@ -408,6 +408,17 @@ model NewsletterSettings {
   updatedAt    DateTime @updatedAt
 }
 
+model TrackRecordSettings {
+  id                 String   @id @default("active")
+  baselineDevices    Int      @default(450)
+  offlineDevices     Int      @default(0)
+  baselineCustomers  Int      @default(300)
+  offlineCustomers   Int      @default(0)
+  successRate        Int      @default(98)
+  responseTimeHours  Int      @default(2)
+  updatedAt          DateTime @updatedAt
+}
+
 model FacebookAutoPostSettings {
   id              String    @id @default("active")
   enabled         Boolean   @default(false)
