@@ -59,10 +59,10 @@ export default function WhatsAppGroupCard() {
       <button
         onClick={handleExpand}
         className="fixed bottom-24 right-4 sm:right-6 z-[95] flex items-center gap-2 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-xl border border-emerald-400/40 hover:scale-105 transition-all duration-300"
-        title="Join Our WhatsApp Group"
+        title="Join Group"
       >
         <i className="fab fa-whatsapp text-sm text-white" aria-hidden="true" />
-        <span className="text-xs font-bold">Join Our WhatsApp Group</span>
+        <span className="text-xs font-bold">Join Group</span>
       </button>
     );
   }
@@ -97,7 +97,7 @@ export default function WhatsAppGroupCard() {
 
           <div className="flex-1 pr-4">
             <h4 className="font-bold text-sm text-white group-hover:text-emerald-300 transition-colors leading-snug">
-              Join Our WhatsApp Group
+              Join Group
             </h4>
             <span className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1 mt-0.5">
               Click to join <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
