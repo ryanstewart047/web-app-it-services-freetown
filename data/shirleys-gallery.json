@@ -53,7 +53,25 @@
       "fileName": "1786090302901-screenshot_20260805_224813_com.pinterest.jpg",
       "createdAt": "2026-08-07T08:11:44.225Z",
       "updatedAt": "2026-08-07T08:11:44.225Z"
+    },
+    {
+      "id": "094347af-5c56-4a4d-8965-9eda6fbc11b9",
+      "title": "School Outfit",
+      "caption": "Get your uniform with pro design",
+      "type": "image",
+      "url": "https://raw.githubusercontent.com/ryanstewart047/web-app-it-services-freetown/main/public/shirleys-gallery/1789122494937-1000535941.jpg",
+      "source": "upload",
+      "active": true,
+      "order": 4,
+      "isAvailableProduct": true,
+      "price": "300",
+      "orderButtonText": "Order This Item",
+      "orderUrl": "",
+      "showWatermark": true,
+      "fileName": "1789122494937-1000535941.jpg",
+      "createdAt": "2026-09-11T10:28:16.470Z",
+      "updatedAt": "2026-09-11T10:28:16.470Z"
     }
   ],
-  "updatedAt": "2026-08-07T08:11:44.226Z"
+  "updatedAt": "2026-09-11T10:28:16.471Z"
 }
