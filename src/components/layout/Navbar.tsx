@@ -117,10 +117,10 @@ export default function Navbar() {
 
   return (
     <nav className="bg-white shadow-lg w-full">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center gap-2 sm:gap-2.5 group py-1">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 gap-4 sm:gap-6 lg:gap-8">
+          <div className="flex items-center flex-shrink-0 mr-6 sm:mr-8 lg:mr-10 xl:mr-12">
+            <Link href="/" className="flex items-center gap-2 sm:gap-2.5 group py-1 flex-shrink-0">
               <Image 
                 src={BRAND_AVATAR_TRANSPARENT_SRC}
                 alt={`${BRAND_NAME} Avatar`}
@@ -139,8 +139,8 @@ export default function Navbar() {
               </div>
             </Link>
           </div>
-          <div className="hidden md:flex items-center space-x-8">
-            <Link href="/" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Home</Link>
+          <div className="hidden lg:flex items-center gap-1.5 xl:gap-2.5 2xl:gap-4 flex-shrink-0">
+            <Link href="/" className={`px-3 py-2 text-xs xl:text-sm font-medium rounded-md whitespace-nowrap flex-shrink-0 transition-all duration-200 ${pathname === '/' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Home</Link>
             
             {/* Special Shop Button with Badge and Animation */}
             <Link 
@@ -256,17 +256,17 @@ export default function Navbar() {
               </div>
             </div>
 
-            <Link href="/digital-tools" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname?.startsWith('/digital-tools') ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>
+            <Link href="/digital-tools" className={`px-2.5 xl:px-3 py-1.5 xl:py-2 text-xs xl:text-sm font-medium rounded-md whitespace-nowrap flex-shrink-0 transition-all duration-200 ${pathname?.startsWith('/digital-tools') ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>
               <i className="fas fa-wand-magic-sparkles text-red-500 mr-1"></i> Digital Tools
             </Link>
 
-            <Link href="/forum" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname?.startsWith('/forum') ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>
+            <Link href="/forum" className={`px-2.5 xl:px-3 py-1.5 xl:py-2 text-xs xl:text-sm font-medium rounded-md whitespace-nowrap flex-shrink-0 transition-all duration-200 ${pathname?.startsWith('/forum') ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>
               <i className="fas fa-users mr-1"></i> Tech Forum
             </Link>
 
-            <Link href="/book-appointment" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/book-appointment' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Book Appointment</Link>
-            <Link href="/track-repair" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/track-repair' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Track Repair</Link>
-            <Link href="/troubleshoot" className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${pathname === '/troubleshoot' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Troubleshoot</Link>
+            <Link href="/book-appointment" className={`hidden 2xl:inline-block px-2.5 xl:px-3 py-1.5 xl:py-2 text-xs xl:text-sm font-medium rounded-md whitespace-nowrap flex-shrink-0 transition-all duration-200 ${pathname === '/book-appointment' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Book Appointment</Link>
+            <Link href="/track-repair" className={`px-2.5 xl:px-3 py-1.5 xl:py-2 text-xs xl:text-sm font-medium rounded-md whitespace-nowrap flex-shrink-0 transition-all duration-200 ${pathname === '/track-repair' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Track Repair</Link>
+            <Link href="/troubleshoot" className={`px-2.5 xl:px-3 py-1.5 xl:py-2 text-xs xl:text-sm font-medium rounded-md whitespace-nowrap flex-shrink-0 transition-all duration-200 ${pathname === '/troubleshoot' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Troubleshoot</Link>
             
             {/* Get Support Mega Menu (Desktop) */}
             <div 
@@ -409,10 +409,10 @@ export default function Navbar() {
               </div>
             </div>
             
-            <Link href="/book-appointment" className="btn-primary text-sm px-4 py-2">Book Now</Link>
+            <Link href="/book-appointment" className="btn-primary text-xs xl:text-sm px-3.5 xl:px-4 py-2 whitespace-nowrap flex-shrink-0">Book Now</Link>
           </div>
           {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
+          <div className="lg:hidden flex items-center">
             <button 
               onClick={toggleMobileMenu}
               className="text-gray-700 hover:text-primary-950 focus:outline-none focus:text-primary-950"
@@ -424,7 +424,7 @@ export default function Navbar() {
       </div>
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
-        <div className="md:hidden relative z-50 bg-white border-t shadow-lg">
+        <div className="lg:hidden relative z-50 bg-white border-t shadow-lg">
           <div className="px-2 pt-2 pb-3 space-y-1">
             <Link href="/" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
               <i className="fas fa-home w-5 mr-3 text-[#040e40]"></i>Home
