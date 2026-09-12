@@ -21,6 +21,7 @@ export default function BannerAdminPage() {
     enabled: false,
     message: '',
     link: '',
+    buttonText: 'Learn More',
     color: 'bg-red-600',
   });
 
@@ -97,19 +98,21 @@ export default function BannerAdminPage() {
 
       {/* Live Preview */}
       <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Live Preview</p>
-        <div className={`${settings.color} rounded-xl px-4 py-3 flex items-center justify-between gap-3 shadow-inner transition-all duration-300`}>
-          <div className="flex items-center gap-3 overflow-hidden">
-            <svg className="h-5 w-5 shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Live Preview (Compact &amp; Marquee)</p>
+        <div className={`${settings.color} rounded-xl px-3.5 py-2 flex items-center justify-between gap-3 shadow-inner transition-all duration-300 text-white overflow-hidden`}>
+          <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
+            <svg className="h-4 w-4 shrink-0 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
             </svg>
-            <p className="truncate text-sm font-medium text-white">
-              {settings.message || 'Your announcement message will appear here...'}
-            </p>
+            <div className="flex-1 overflow-hidden relative">
+              <p className="text-xs sm:text-sm font-medium whitespace-nowrap animate-pulse">
+                {settings.message || 'Your announcement message will scroll here...'}
+              </p>
+            </div>
           </div>
           {settings.link && (
-            <span className="shrink-0 rounded-full border border-white/40 px-3 py-1 text-xs font-semibold text-white">
-              Learn More →
+            <span className="shrink-0 rounded-full border border-white/40 bg-white/15 px-3 py-1 text-xs font-semibold text-white">
+              {settings.buttonText || 'Learn More'} →
             </span>
           )}
         </div>
@@ -169,7 +172,20 @@ export default function BannerAdminPage() {
             placeholder="https://wa.me/23233399391 or /repairs"
             className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 shadow-sm transition focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
           />
-          <p className="text-xs text-gray-400">Adds a &quot;Learn More&quot; button that links here when the banner is clicked.</p>
+          <p className="text-xs text-gray-400">Destination URL when visitors click the action button.</p>
+        </div>
+
+        {/* Button Label */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Button Label <span className="text-gray-400 font-normal">(Optional)</span></label>
+          <input
+            type="text"
+            value={settings.buttonText || ''}
+            onChange={e => setSettings(prev => ({ ...prev, buttonText: e.target.value }))}
+            placeholder="e.g. Learn More, Book Now, Claim Deal"
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 shadow-sm transition focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+          />
+          <p className="text-xs text-gray-400">Change &quot;Learn More&quot; to whatever text you want.</p>
         </div>
 
         {/* Theme */}

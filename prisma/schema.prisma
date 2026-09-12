@@ -394,6 +394,7 @@ model BannerSettings {
   enabled     Boolean  @default(false)
   message     String   @default("Welcome to BridgeTech IT Services!")
   link        String?
+  buttonText  String?  @default("Learn More")
   color       String   @default("bg-red-600")
   updatedAt   DateTime @updatedAt
 }

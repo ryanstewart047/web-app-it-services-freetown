@@ -4,6 +4,7 @@ export interface BannerSettings {
   enabled: boolean;
   message: string;
   link?: string | null;
+  buttonText?: string | null;
   color: string;
   lastUpdated: string;
 }
@@ -11,6 +12,8 @@ export interface BannerSettings {
 const DEFAULT_BANNER: BannerSettings = {
   enabled: false,
   message: 'Welcome to BridgeTech IT Services!',
+  link: '',
+  buttonText: 'Learn More',
   color: 'bg-red-600',
   lastUpdated: new Date().toISOString()
 };
@@ -27,6 +30,7 @@ export async function getBannerSettings(): Promise<BannerSettings> {
       enabled: banner.enabled,
       message: banner.message,
       link: banner.link,
+      buttonText: (banner as any).buttonText || 'Learn More',
       color: banner.color,
       lastUpdated: banner.updatedAt.toISOString()
     };
@@ -38,12 +42,15 @@ export async function getBannerSettings(): Promise<BannerSettings> {
 
 export async function updateBannerSettings(settings: Partial<BannerSettings>): Promise<BannerSettings> {
   try {
+    const buttonText = settings.buttonText !== undefined ? settings.buttonText : 'Learn More';
+
     const updated = await prisma.bannerSettings.upsert({
       where: { id: 'active' },
       update: {
         enabled: settings.enabled,
         message: settings.message,
         link: settings.link,
+        buttonText: buttonText,
         color: settings.color,
       },
       create: {
@@ -51,6 +58,7 @@ export async function updateBannerSettings(settings: Partial<BannerSettings>): P
         enabled: settings.enabled ?? false,
         message: settings.message ?? 'Welcome to BridgeTech IT Services!',
         link: settings.link,
+        buttonText: buttonText,
         color: settings.color ?? 'bg-red-600',
       }
     });
@@ -59,6 +67,7 @@ export async function updateBannerSettings(settings: Partial<BannerSettings>): P
       enabled: updated.enabled,
       message: updated.message,
       link: updated.link,
+      buttonText: (updated as any).buttonText || 'Learn More',
       color: updated.color,
       lastUpdated: updated.updatedAt.toISOString()
     };

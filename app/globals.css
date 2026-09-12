@@ -121,20 +121,25 @@ nav {
   50% { transform: translateY(-20px) rotate(180deg); }
 }
 
-/* Seamless infinite marquee for notification banner */
-@keyframes marquee {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+/* Continuous slow right-to-left marquee for global notification banner */
+@keyframes bannerMarqueeSlow {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
 }
 
-.marquee-track {
-  display: flex;
-  width: max-content;
-  animation: marquee 18s linear infinite;
+.banner-marquee-text {
+  display: inline-block;
+  white-space: nowrap;
+  padding-left: 100%;
+  animation: bannerMarqueeSlow 28s linear infinite;
   will-change: transform;
 }
 
-.marquee-track:hover {
+.banner-marquee-text:hover {
   animation-play-state: paused;
 }
 

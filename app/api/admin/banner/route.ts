@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
       enabled: data.enabled,
       message: data.message,
       link: data.link,
+      buttonText: data.buttonText,
       color: data.color
     });
     
