@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
+import { BRAND_AVATAR_TRANSPARENT_SRC } from '@/lib/brand';
 
 // Helper: add ?iframe=1 to a URL (handles existing query strings)
 function iframeUrl(url: string): string {
@@ -706,15 +708,30 @@ export default function AdminPage() {
   // If not authenticated, render Login / 2FA Screen
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
-        {/* Subtle background grid */}
-        <div className="absolute inset-0 bg-slate-950/80 pointer-events-none" />
+      <div className="min-h-screen relative flex flex-col items-center justify-center p-4 overflow-hidden">
+        {/* Real tech photo background */}
+        <Image
+          src="/assets/images/slider/slide-4-expert-diagnostics-lab.jpg"
+          alt=""
+          fill
+          className="object-cover object-center"
+          priority
+          aria-hidden="true"
+        />
+        {/* Dark overlay for readability */}
+        <div className="absolute inset-0 bg-slate-950/75 backdrop-blur-sm pointer-events-none" />
 
         <div className="relative w-full max-w-md bg-slate-900/90 border border-slate-700/60 rounded-3xl p-8 shadow-2xl backdrop-blur">
           {/* Brand header */}
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-gradient-to-br from-red-600 to-red-800 border border-red-500/40 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-red-900/30">
-              <i className={`fas ${requires2FA ? 'fa-lock-keyhole' : 'fa-shield-halved'} text-white text-3xl`}></i>
+            <div className="w-24 h-24 mx-auto mb-4 relative drop-shadow-[0_0_24px_rgba(255,255,255,0.25)]">
+              <Image
+                src={BRAND_AVATAR_TRANSPARENT_SRC}
+                alt="BridgeTech IT Services"
+                fill
+                className="object-contain"
+                priority
+              />
             </div>
             <h1 className="text-2xl font-bold text-white tracking-wide">BridgeTech <span className="text-red-400">IT Services</span></h1>
             <p className="text-red-400 font-medium text-sm mt-1">Master Admin Operations Portal</p>
