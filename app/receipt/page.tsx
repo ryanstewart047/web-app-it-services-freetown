@@ -1345,7 +1345,7 @@ www.itservicesfreetown.com
             </div>
           )}
 
-          {/* Terms and Conditions - Only for Repair Receipts */}
+          {/* Terms and Conditions - Repair Receipts */}
           {receiptType === 'repair' && (
             <div className="mb-3 p-3 bg-yellow-50 rounded border border-yellow-200">
               <h3 className="font-bold text-gray-900 mb-2" style={{ fontSize: '11px' }}>REPAIR TERMS & CONDITIONS:</h3>
@@ -1357,6 +1357,39 @@ www.itservicesfreetown.com
                 <li>• LCD/Screen repairs: 24-hour warranty (excludes damage from drops or pressure).</li>
                 <li>• Other repairs (batteries, charging, computer): 72-hour warranty from date of repair.</li>
                 <li>• Customer accepts all risks associated with the inherent fragility of electronic components, especially display screens.</li>
+              </ul>
+            </div>
+          )}
+
+          {/* Terms and Conditions - Purchase Receipts */}
+          {receiptType === 'purchase' && (
+            <div className="mb-3 p-3 bg-yellow-50 rounded border border-yellow-200">
+              <h3 className="font-bold text-gray-900 mb-2" style={{ fontSize: '11px' }}>PURCHASE TERMS & CONDITIONS:</h3>
+              <ul className="text-gray-700 space-y-1" style={{ fontSize: '9px', lineHeight: '1.3' }}>
+                <li>• All items must be inspected, tested, and confirmed in good working order before leaving the shop.</li>
+                <li>• Goods once sold are not eligible for cash refunds. Exchanges or store credit are accepted within 48 hours in original condition with intact packaging.</li>
+                <li>• Warranty strictly covers factory manufacturing defects only. Physical damage, liquid contact, cracks, and misuse are not covered.</li>
+                <li>• Power surges, lightning damage, or fluctuations from unstable electricity/generators are not covered. Use of quality surge protectors is advised.</li>
+                <li>• Accessories, chargers, cables, and batteries carry a 48-hour testing warranty from the date of purchase.</li>
+                <li>• Any unauthorized opening, repair by a third party, or tampering with warranty seals immediately voids all warranties.</li>
+                <li>• Original receipt must be presented for all warranty claims, replacements, or customer inquiries.</li>
+              </ul>
+            </div>
+          )}
+
+          {/* Terms and Conditions - Loan Receipts */}
+          {receiptType === 'loan' && (
+            <div className="mb-3 p-3 bg-yellow-50 rounded border border-yellow-200">
+              <h3 className="font-bold text-gray-900 mb-2" style={{ fontSize: '11px' }}>LOAN TERMS & CONDITIONS:</h3>
+              <ul className="text-gray-700 space-y-1" style={{ fontSize: '9px', lineHeight: '1.3' }}>
+                <li>• All loaned equipment or borrowed funds must be returned or repaid in full on or before the agreed due date.</li>
+                <li>• The borrower is solely responsible for the safekeeping, physical integrity, and security of all loaned assets.</li>
+                <li>• Any physical damage, liquid contact, loss, theft, or component failure will be billed at full replacement market value.</li>
+                <li>• Deposited collateral or security remains in BridgeTech custody until all obligations and balances are settled in full.</li>
+                <li>• Failure to repay or return on time empowers BridgeTech IT Services to forfeit and liquidate deposited collateral to recover debts.</li>
+                <li>• System alterations, device locking (iCloud, Google Account, BIOS, or passcodes), and unauthorized modifications are strictly prohibited.</li>
+                <li>• Delayed returns or late settlements may incur daily penalty fees until the account is completely reconciled.</li>
+                <li>• This receipt serves as official legal acknowledgment and binding acceptance of all loan conditions.</li>
               </ul>
             </div>
           )}
