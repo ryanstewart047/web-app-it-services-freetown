@@ -1367,10 +1367,10 @@ www.itservicesfreetown.com
               <h3 className="font-bold text-gray-900 mb-2" style={{ fontSize: '11px' }}>PURCHASE TERMS & CONDITIONS:</h3>
               <ul className="text-gray-700 space-y-1" style={{ fontSize: '9px', lineHeight: '1.3' }}>
                 <li>• All items must be inspected, tested, and confirmed in good working order before leaving the shop.</li>
-                <li>• Goods once sold are not eligible for cash refunds. Exchanges or store credit are accepted within 48 hours in original condition with intact packaging.</li>
+                <li>• Goods once sold are not eligible for cash refunds. Exchanges or store credit are accepted within 72 hours in original condition with intact packaging.</li>
                 <li>• Warranty strictly covers factory manufacturing defects only. Physical damage, liquid contact, cracks, and misuse are not covered.</li>
                 <li>• Power surges, lightning damage, or fluctuations from unstable electricity/generators are not covered. Use of quality surge protectors is advised.</li>
-                <li>• Accessories, chargers, cables, and batteries carry a 48-hour testing warranty from the date of purchase.</li>
+                <li>• Purchased items (devices, accessories, and parts) carry a 72-hour warranty from the date of purchase.</li>
                 <li>• Any unauthorized opening, repair by a third party, or tampering with warranty seals immediately voids all warranties.</li>
                 <li>• Original receipt must be presented for all warranty claims, replacements, or customer inquiries.</li>
               </ul>
