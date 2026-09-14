@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Lock, Printer, Download, Plus, Trash2, Save, FileText, Search, History } from 'lucide-react'
+import { Lock, Printer, Download, Plus, Trash2, Save, FileText, Search, History, Eye, X } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import { useAdminSession } from '../../src/hooks/useAdminSession'
@@ -71,6 +71,7 @@ export default function ReceiptGenerator() {
   const [searchResults, setSearchResults] = useState<SavedReceipt[]>([])
   const [allReceipts, setAllReceipts] = useState<SavedReceipt[]>([])
   const [showHistory, setShowHistory] = useState(false)
+  const [previewReceipt, setPreviewReceipt] = useState<SavedReceipt | null>(null)
 
   // Check session and load receipts on mount
   useEffect(() => {
@@ -439,6 +440,28 @@ www.itservicesfreetown.com
     }
   }
 
+  const shareReceiptWhatsApp = (receipt: SavedReceipt) => {
+    const receiptTypeLabel = receipt.receiptType === 'purchase' ? 'PURCHASE' : receipt.receiptType === 'repair' ? 'REPAIR' : 'LOAN'
+    const message = `*${receiptTypeLabel} RECEIPT*
+
+*BridgeTech IT Services*
+Receipt #: ${receipt.receiptNumber}
+Date: ${new Date(receipt.receiptDate).toLocaleDateString()}
+Customer: ${receipt.customerName}
+
+Total: SLE ${receipt.subtotal.toFixed(2)}
+Paid: SLE ${receipt.amountPaid.toFixed(2)}
+Change: SLE ${receipt.change.toFixed(2)}
+
+Thank you for your business!
+www.itservicesfreetown.com
+#1 Regent Highway Jui Junction
++232 33 399 391`
+
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer')
+  }
+
   const handleShareEmail = () => {
     const receiptTypeLabel = receiptType === 'purchase' ? 'PURCHASE' : receiptType === 'repair' ? 'REPAIR' : 'LOAN'
     const subject = `Receipt ${receiptNumber} - BridgeTech IT Services`
@@ -651,10 +674,13 @@ www.itservicesfreetown.com
             visibility: hidden;
           }
           #receipt-print-area,
-          #receipt-print-area * {
+          #receipt-print-area *,
+          #modal-receipt-print-area,
+          #modal-receipt-print-area * {
             visibility: visible;
           }
-          #receipt-print-area {
+          #receipt-print-area,
+          #modal-receipt-print-area {
             position: absolute;
             left: 0;
             top: 0;
@@ -662,12 +688,13 @@ www.itservicesfreetown.com
             padding: 0;
             margin: 0;
           }
-          .no-print {
+          .no-print, .no-print-bg {
             display: none !important;
           }
           
           /* Optimize for single page */
-          #receipt-print-area .bg-white {
+          #receipt-print-area .bg-white,
+          #modal-receipt-print-area {
             box-shadow: none !important;
             border: none !important;
             padding: 0.5cm !important;
@@ -839,11 +866,18 @@ www.itservicesfreetown.com
               </div>
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {(showHistory ? allReceipts : searchResults).map((receipt) => (
-                  <div key={receipt.receiptNumber} className="border-2 border-gray-200 rounded-lg p-4 hover:border-blue-400 transition-all">
+                  <div key={receipt.receiptNumber} className="border-2 border-gray-200 rounded-lg p-4 hover:border-indigo-400 hover:shadow-md transition-all bg-white">
                     <div className="flex justify-between items-start gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <span className="font-bold text-lg text-blue-600">{receipt.receiptNumber}</span>
+                      <div 
+                        className="flex-1 cursor-pointer"
+                        onClick={() => setPreviewReceipt(receipt)}
+                        title="Click to preview receipt"
+                      >
+                        <div className="flex items-center gap-3 mb-2 flex-wrap">
+                          <span className="font-bold text-lg text-indigo-600 hover:underline flex items-center gap-1.5">
+                            <Eye className="w-4 h-4 text-indigo-500" />
+                            {receipt.receiptNumber}
+                          </span>
                           <span className={`px-2 py-1 rounded text-xs font-semibold ${
                             receipt.receiptType === 'purchase' 
                               ? 'bg-green-100 text-green-700' 
@@ -871,16 +905,26 @@ www.itservicesfreetown.com
                         <p className="text-gray-700 font-semibold mt-2">Total: SLE {receipt.subtotal.toFixed(2)}</p>
                         <p className="text-gray-500 text-xs mt-1">Created: {new Date(receipt.createdAt).toLocaleString()}</p>
                       </div>
-                      <div className="flex flex-col gap-2">
+                      <div className="flex flex-col gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => setPreviewReceipt(receipt)}
+                          className="px-3 py-1.5 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700 transition-all flex items-center justify-center gap-1.5 font-medium shadow-sm"
+                          title="Preview full receipt"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          Preview
+                        </button>
                         <button
                           onClick={() => loadReceipt(receipt)}
-                          className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-all"
+                          className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-all font-medium"
+                          title="Load receipt into editor form"
                         >
                           Load
                         </button>
                         <button
                           onClick={() => deleteReceipt(receipt.receiptNumber)}
-                          className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition-all"
+                          className="px-3 py-1.5 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition-all font-medium"
+                          title="Delete receipt"
                         >
                           Delete
                         </button>
@@ -1403,6 +1447,238 @@ www.itservicesfreetown.com
           </div>
         </div>
       </div>
+
+      {/* Receipt Preview Modal */}
+      {previewReceipt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto no-print-bg">
+          <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl my-6 overflow-hidden flex flex-col max-h-[92vh]">
+            {/* Modal Control Bar (Excluded from Print) */}
+            <div className="no-print bg-slate-900 text-white px-4 sm:px-6 py-3.5 flex items-center justify-between border-b border-slate-800 flex-shrink-0 flex-wrap gap-2">
+              <div className="flex items-center gap-2.5">
+                <span className="font-bold text-base sm:text-lg text-white">Receipt Preview</span>
+                <span className="text-xs sm:text-sm text-slate-400">({previewReceipt.receiptNumber})</span>
+                <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                  previewReceipt.receiptType === 'purchase'
+                    ? 'bg-green-600 text-white'
+                    : previewReceipt.receiptType === 'repair'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-blue-600 text-white'
+                }`}>
+                  {previewReceipt.receiptType.toUpperCase()}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => window.print()}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-all shadow-sm"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  Print
+                </button>
+                <button
+                  onClick={() => shareReceiptWhatsApp(previewReceipt)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition-all shadow-sm"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                  </svg>
+                  WhatsApp
+                </button>
+                <button
+                  onClick={() => {
+                    loadReceipt(previewReceipt)
+                    setPreviewReceipt(null)
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg transition-all shadow-sm"
+                  title="Load into editor form"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  Load into Editor
+                </button>
+                <button
+                  onClick={() => setPreviewReceipt(null)}
+                  className="p-1.5 text-slate-400 hover:text-white rounded-lg transition-all ml-1"
+                  title="Close preview"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Scrollable Receipt Preview Area */}
+            <div className="overflow-y-auto p-4 sm:p-6 flex-1 bg-gray-100">
+              <div id="modal-receipt-print-area" className="bg-white rounded-lg shadow-md p-6 border border-gray-200 max-w-2xl mx-auto" style={{ fontFamily: "'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" }}>
+                {/* Header with Logo */}
+                <div className="text-center mb-4 pb-4 border-b-2 border-gray-300">
+                  <div className="flex justify-center mb-3">
+                    <img 
+                      src={BRAND_LOGO_SRC}
+                      alt={BRAND_NAME}
+                      className="h-24 w-auto object-contain"
+                      style={{ maxHeight: '95px' }}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = BRAND_LOGO_FALLBACK_SRC
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-0.5 text-gray-700" style={{ fontSize: '13px', lineHeight: '1.5' }}>
+                    <p className="font-bold text-base">#1 Regent Highway Jui Junction, Freetown</p>
+                    <p>Tel: +232 33 399 391 | Email: support@itservicesfreetown.com</p>
+                  </div>
+                </div>
+
+                {/* Receipt Type Banner */}
+                <div className="text-center mb-3">
+                  <h2 className="inline-block px-4 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-base font-bold rounded" style={{ letterSpacing: '1px' }}>
+                    {previewReceipt.receiptType === 'purchase' ? 'PURCHASE RECEIPT' : previewReceipt.receiptType === 'repair' ? 'REPAIR RECEIPT' : 'LOAN RECEIPT'}
+                  </h2>
+                </div>
+
+                {/* Receipt Info */}
+                <div className="grid grid-cols-2 gap-4 mb-4" style={{ fontSize: '12px' }}>
+                  <div>
+                    <h3 className="font-bold text-gray-700 mb-1">Customer Information:</h3>
+                    <div className="space-y-0.5 text-gray-600">
+                      <p><span className="font-semibold">Name:</span> {previewReceipt.customerName || 'N/A'}</p>
+                      <p><span className="font-semibold">Phone:</span> {previewReceipt.customerPhone || 'N/A'}</p>
+                      {previewReceipt.customerEmail && <p><span className="font-semibold">Email:</span> {previewReceipt.customerEmail}</p>}
+                      {previewReceipt.customerAddress && <p><span className="font-semibold">Address:</span> {previewReceipt.customerAddress}</p>}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <h3 className="font-bold text-gray-700 mb-1">Receipt Details:</h3>
+                    <div className="space-y-0.5 text-gray-600">
+                      <p><span className="font-semibold">Receipt #:</span> {previewReceipt.receiptNumber}</p>
+                      <p><span className="font-semibold">Date:</span> {new Date(previewReceipt.receiptDate).toLocaleDateString()}</p>
+                      <p><span className="font-semibold">Payment:</span> {previewReceipt.paymentMethod} ({(previewReceipt.paymentStatus || 'paid').replace('_', ' ').toUpperCase()})</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Items Table */}
+                <div className="mb-4">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-gray-100 border-b-2 border-gray-300">
+                        <th className="px-3 py-2 text-left font-bold text-gray-700">Description</th>
+                        <th className="px-3 py-2 text-center font-bold text-gray-700">Qty</th>
+                        <th className="px-3 py-2 text-right font-bold text-gray-700">Unit Price</th>
+                        <th className="px-3 py-2 text-right font-bold text-gray-700">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {previewReceipt.items.filter(item => item.description).map((item) => (
+                        <tr key={item.id} className="border-b border-gray-200">
+                          <td className="px-3 py-2 text-gray-700">{item.description}</td>
+                          <td className="px-3 py-2 text-center text-gray-700">{item.quantity}</td>
+                          <td className="px-3 py-2 text-right text-gray-700">SLE {item.unitPrice.toFixed(2)}</td>
+                          <td className="px-3 py-2 text-right font-semibold text-gray-900">SLE {item.total.toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Totals */}
+                <div className="flex justify-end mb-4">
+                  <div className="w-full sm:w-1/2 space-y-1.5 text-xs">
+                    <div className="flex justify-between items-center pb-1.5 border-b border-gray-300">
+                      <span className="font-semibold text-gray-700">Subtotal:</span>
+                      <span className="font-bold text-gray-900">SLE {previewReceipt.subtotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center pb-1.5 border-b border-gray-300">
+                      <span className="font-semibold text-gray-700">Amount Paid:</span>
+                      <span className="font-bold text-green-600">SLE {previewReceipt.amountPaid.toFixed(2)}</span>
+                    </div>
+                    {previewReceipt.subtotal > previewReceipt.amountPaid && (
+                      <div className="flex justify-between items-center pb-1.5 border-b border-gray-300">
+                        <span className="font-semibold text-gray-700">Balance to be Paid:</span>
+                        <span className="font-bold text-red-600">SLE {(previewReceipt.subtotal - previewReceipt.amountPaid).toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center pt-1.5 bg-gradient-to-r from-blue-50 to-purple-50 p-2.5 rounded text-sm">
+                      <span className="font-bold text-gray-900">Change:</span>
+                      <span className="font-bold text-blue-600">SLE {previewReceipt.change.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center mt-2 border-t border-gray-300 pt-1.5 text-sm">
+                      <span className="font-bold text-gray-900">Payment Status:</span>
+                      <span className={`font-bold ${
+                        previewReceipt.paymentStatus === 'paid' ? 'text-green-600' :
+                        previewReceipt.paymentStatus === 'half_payment' ? 'text-orange-500' : 'text-red-600'
+                      }`}>
+                        {(previewReceipt.paymentStatus || 'paid').replace('_', ' ').toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notes */}
+                {previewReceipt.notes && (
+                  <div className="mb-3 p-3 bg-gray-50 rounded border border-gray-200">
+                    <h3 className="font-bold text-gray-700 mb-1 text-xs">Notes:</h3>
+                    <p className="text-gray-600 whitespace-pre-wrap text-xs">{previewReceipt.notes}</p>
+                  </div>
+                )}
+
+                {/* Terms and Conditions */}
+                {previewReceipt.receiptType === 'repair' && (
+                  <div className="mb-3 p-3 bg-yellow-50 rounded border border-yellow-200">
+                    <h3 className="font-bold text-gray-900 mb-2" style={{ fontSize: '11px' }}>REPAIR TERMS & CONDITIONS:</h3>
+                    <ul className="text-gray-700 space-y-1" style={{ fontSize: '9px', lineHeight: '1.3' }}>
+                      <li>• LCD screens are fragile components. We cannot guarantee against future damage or defects that may appear after repair.</li>
+                      <li>• All repairs are tested before collection. Any issues must be reported within 1 hour of collection.</li>
+                      <li>• We are not responsible for data loss. Please backup your data before submitting devices for repair.</li>
+                      <li>• Warranty does not cover physical damage, water damage, or damage from misuse after repair.</li>
+                      <li>• LCD/Screen repairs: 24-hour warranty (excludes damage from drops or pressure).</li>
+                      <li>• Other repairs (batteries, charging, computer): 72-hour warranty from date of repair.</li>
+                      <li>• Customer accepts all risks associated with the inherent fragility of electronic components, especially display screens.</li>
+                    </ul>
+                  </div>
+                )}
+
+                {previewReceipt.receiptType === 'purchase' && (
+                  <div className="mb-3 p-3 bg-yellow-50 rounded border border-yellow-200">
+                    <h3 className="font-bold text-gray-900 mb-2" style={{ fontSize: '11px' }}>PURCHASE TERMS & CONDITIONS:</h3>
+                    <ul className="text-gray-700 space-y-1" style={{ fontSize: '9px', lineHeight: '1.3' }}>
+                      <li>• All items must be inspected, tested, and confirmed in good working order before leaving the shop.</li>
+                      <li>• Goods once sold are not eligible for cash refunds. Exchanges or store credit are accepted within 72 hours in original condition with intact packaging.</li>
+                      <li>• Warranty strictly covers factory manufacturing defects only. Physical damage, liquid contact, cracks, and misuse are not covered.</li>
+                      <li>• Power surges, lightning damage, or fluctuations from unstable electricity/generators are not covered. Use of quality surge protectors is advised.</li>
+                      <li>• Purchased items (devices, accessories, and parts) carry a 72-hour warranty from the date of purchase.</li>
+                      <li>• Any unauthorized opening, repair by a third party, or tampering with warranty seals immediately voids all warranties.</li>
+                      <li>• Original receipt must be presented for all warranty claims, replacements, or customer inquiries.</li>
+                    </ul>
+                  </div>
+                )}
+
+                {previewReceipt.receiptType === 'loan' && (
+                  <div className="mb-3 p-3 bg-yellow-50 rounded border border-yellow-200">
+                    <h3 className="font-bold text-gray-900 mb-2" style={{ fontSize: '11px' }}>LOAN TERMS & CONDITIONS:</h3>
+                    <ul className="text-gray-700 space-y-1" style={{ fontSize: '9px', lineHeight: '1.3' }}>
+                      <li>• All loaned equipment or borrowed funds must be returned or repaid in full on or before the agreed due date.</li>
+                      <li>• The borrower is solely responsible for the safekeeping, physical integrity, and security of all loaned assets.</li>
+                      <li>• Any physical damage, liquid contact, loss, theft, or component failure will be billed at full replacement market value.</li>
+                      <li>• Deposited collateral or security remains in BridgeTech custody until all obligations and balances are settled in full.</li>
+                      <li>• Failure to repay or return on time empowers BridgeTech IT Services to forfeit and liquidate deposited collateral to recover debts.</li>
+                      <li>• System alterations, device locking (iCloud, Google Account, BIOS, or passcodes), and unauthorized modifications are strictly prohibited.</li>
+                      <li>• Delayed returns or late settlements may incur daily penalty fees until the account is completely reconciled.</li>
+                      <li>• This receipt serves as official legal acknowledgment and binding acceptance of all loan conditions.</li>
+                    </ul>
+                  </div>
+                )}
+
+                {/* Footer */}
+                <div className="text-center pt-3 border-t-2 border-gray-300 space-y-1 text-xs">
+                  <p className="text-gray-600 font-semibold">Thank you for your business!</p>
+                  <p className="text-gray-700 font-bold">www.itservicesfreetown.com</p>
+                  <p className="text-gray-500 text-[10px]">This is a computer-generated receipt</p>
+                  <p className="text-gray-500 text-[10px]">For support, call +232 33 399 391 or visit #1 Regent Highway Jui Junction</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
