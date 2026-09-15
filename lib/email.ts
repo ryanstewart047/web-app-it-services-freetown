@@ -451,7 +451,7 @@ BridgeTech IT Services - Auto-generated notification`
             </div>
 
             <div class="disclaimer">
-              ⚠️ <strong>Please collect your device promptly.</strong> BridgeTech IT Services is not responsible for any device left uncollected for more than 30 days after completion. After 90 days, uncollected devices may be treated as abandoned under our storage policy.
+              ⚠️ <strong>Please collect your device promptly.</strong> Repaired devices must be collected within <strong>48 hours</strong> of completion. BridgeTech IT Services is not responsible for any device left uncollected beyond 48 hours, and uncollected devices may be treated as abandoned under our storage policy.
             </div>
 
             <p style="margin-top:20px; font-size:14px; color:#6b7280;">To collect your device, visit our shop at <strong>#1 Regent Highway, Jui Junction, Freetown</strong>. Please bring a valid ID. We're open Monday–Saturday, 9am–6pm.</p>
@@ -464,7 +464,7 @@ BridgeTech IT Services - Auto-generated notification`
       </body>
       </html>
     `,
-    text: `✅ REPAIR COMPLETED – ${data.repairId}\n\nDear ${data.customerName},\n\nYour ${data.deviceType}${data.deviceModel ? ` (${data.deviceModel})` : ''} repair is complete and ready for collection!\n\nRepair ID: ${data.repairId}\nTotal Cost: Le ${data.totalCost}\n${data.notes ? `Notes: ${data.notes}\n` : ''}\nPlease collect your device at:\n#1 Regent Highway, Jui Junction, Freetown\nMon–Sat, 9am–6pm | +232 33 399 391\n\nIMPORTANT: Devices left uncollected for more than 30 days may be treated as abandoned.\n\nThank you for choosing BridgeTech IT Services!`
+    text: `✅ REPAIR COMPLETED – ${data.repairId}\n\nDear ${data.customerName},\n\nYour ${data.deviceType}${data.deviceModel ? ` (${data.deviceModel})` : ''} repair is complete and ready for collection!\n\nRepair ID: ${data.repairId}\nTotal Cost: Le ${data.totalCost}\n${data.notes ? `Notes: ${data.notes}\n` : ''}\nPlease collect your device at:\n#1 Regent Highway, Jui Junction, Freetown\nMon–Sat, 9am–6pm | +232 33 399 391\n\nIMPORTANT: Devices must be collected within 48 hours. Devices left uncollected beyond 48 hours may be treated as abandoned.\n\nThank you for choosing BridgeTech IT Services!`
   }),
 
   repairCancelled: (data: {
@@ -518,7 +518,7 @@ BridgeTech IT Services - Auto-generated notification`
             </div>
 
             <div class="disclaimer">
-              ⚠️ <strong>Please collect your device promptly.</strong> BridgeTech IT Services is not responsible for any device left uncollected for more than 30 days after cancellation. After 90 days, uncollected devices may be treated as abandoned under our storage policy. We strongly advise you to collect your device as soon as possible.
+              ⚠️ <strong>Please collect your device promptly.</strong> Your device must be collected within <strong>48 hours</strong> of cancellation. BridgeTech IT Services is not responsible for any device left uncollected beyond 48 hours, and uncollected devices may be treated as abandoned under our storage policy. Please collect your device immediately.
             </div>
 
             <p style="margin-top:20px; font-size:14px; color:#6b7280;">Visit us at <strong>#1 Regent Highway, Jui Junction, Freetown</strong>. Please bring a valid ID. We're open Monday–Saturday, 9am–6pm. If you have questions, call us at <a href="tel:+23233399391" style="color:#dc2626;">+232 33 399 391</a>.</p>
@@ -531,7 +531,7 @@ BridgeTech IT Services - Auto-generated notification`
       </body>
       </html>
     `,
-    text: `❌ REPAIR CANCELLED – ${data.repairId}\n\nDear ${data.customerName},\n\nYour repair for the ${data.deviceType}${data.deviceModel ? ` (${data.deviceModel})` : ''} has been cancelled.\n\nRepair ID: ${data.repairId}\n${data.cancellationReason ? `Reason: ${data.cancellationReason}\n` : ''}\nYour device is ready for collection at:\n#1 Regent Highway, Jui Junction, Freetown\nMon–Sat, 9am–6pm | +232 33 399 391\n\nIMPORTANT DISCLAIMER: BridgeTech IT Services is not responsible for devices left uncollected for more than 30 days. After 90 days, uncollected devices may be treated as abandoned. Please collect your device immediately.\n\nBridgeTech IT Services`
+    text: `❌ REPAIR CANCELLED – ${data.repairId}\n\nDear ${data.customerName},\n\nYour repair for the ${data.deviceType}${data.deviceModel ? ` (${data.deviceModel})` : ''} has been cancelled.\n\nRepair ID: ${data.repairId}\n${data.cancellationReason ? `Reason: ${data.cancellationReason}\n` : ''}\nYour device is ready for collection at:\n#1 Regent Highway, Jui Junction, Freetown\nMon–Sat, 9am–6pm | +232 33 399 391\n\nIMPORTANT DISCLAIMER: Devices must be collected within 48 hours of cancellation. BridgeTech IT Services is not responsible for devices left uncollected beyond 48 hours, after which devices may be treated as abandoned. Please collect your device immediately.\n\nBridgeTech IT Services`
   }),
 
   repairCollectionReminder: (data: {
@@ -543,7 +543,7 @@ BridgeTech IT Services - Auto-generated notification`
     daysSinceUpdate?: number
     customMessage?: string
   }) => ({
-    subject: `🔔 URGENT: Collect Your Device – ${data.repairId}`,
+    subject: `🔔 URGENT: Collect Your Device Within 48 Hours – ${data.repairId}`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -571,7 +571,7 @@ BridgeTech IT Services - Auto-generated notification`
           </div>
           <div class="content">
             <p>Dear <strong>${data.customerName}</strong>,</p>
-            <p>This is an important reminder that your <strong>${data.deviceType}${data.deviceModel ? ` (${data.deviceModel})` : ''}</strong> is ready and waiting to be collected from our shop. Please arrange collection at your earliest convenience.</p>
+            <p>This is an urgent reminder that your <strong>${data.deviceType}${data.deviceModel ? ` (${data.deviceModel})` : ''}</strong> is ready for collection at our shop. Please collect your device within <strong>48 hours</strong>.</p>
 
             ${data.customMessage ? `<div style="background:#f8fafc; border-left:4px solid #3b82f6; padding:14px; margin:15px 0; border-radius:4px; font-size:14px; color:#1e293b;"><strong>Message from BridgeTech:</strong><br>${data.customMessage}</div>` : ''}
 
@@ -588,12 +588,12 @@ BridgeTech IT Services - Auto-generated notification`
             </div>
 
             <div class="disclaimer">
-              <strong>⚠️ LEGAL DISCLAIMER – PLEASE READ CAREFULLY</strong><br><br>
+              <strong>⚠️ LEGAL DISCLAIMER – 48-HOUR COLLECTION POLICY</strong><br><br>
               BridgeTech IT Services has fulfilled its obligation to notify you that your device is ready for collection. Please be advised:<br><br>
-              • <strong>Devices must be collected within 30 days</strong> of reaching terminal status (completed, cancelled, or ready-for-pickup).<br>
-              • <strong>After 30 days</strong>, a storage fee may be applied at management's discretion.<br>
-              • <strong>After 90 days of non-collection</strong>, BridgeTech IT Services reserves the right to treat the device as abandoned property, with no further liability to the owner.<br>
-              • BridgeTech IT Services accepts no responsibility for any damage, loss, or deterioration of devices left in our custody beyond the collection period.<br><br>
+              • <strong>Devices must be collected within 48 hours</strong> of reaching terminal status (completed, cancelled, or ready-for-pickup).<br>
+              • <strong>After 48 hours</strong>, storage fees may be applied at management's discretion.<br>
+              • <strong>After 48 hours of non-collection</strong>, BridgeTech IT Services reserves the right to treat the device as abandoned property, with no further liability to the owner.<br>
+              • BridgeTech IT Services accepts no responsibility for any damage, loss, or deterioration of devices left in our custody beyond 48 hours.<br><br>
               By engaging our repair services, you agreed to collect your device in a timely manner as outlined in our Terms & Conditions.
             </div>
 
@@ -607,7 +607,7 @@ BridgeTech IT Services - Auto-generated notification`
       </body>
       </html>
     `,
-    text: `🔔 URGENT: COLLECT YOUR DEVICE – ${data.repairId}\n\nDear ${data.customerName},\n\nThis is an important reminder to collect your ${data.deviceType}${data.deviceModel ? ` (${data.deviceModel})` : ''}.\n\nRepair ID: ${data.repairId}\nStatus: ${data.status}\n${data.daysSinceUpdate ? `Waiting: ${data.daysSinceUpdate} day(s) since last update\n` : ''}${data.customMessage ? `Message: ${data.customMessage}\n` : ''}\nCollect at:\n#1 Regent Highway, Jui Junction, Freetown\nMon–Sat, 9am–6pm | +232 33 399 391\n\nLEGAL DISCLAIMER:\nDevices must be collected within 30 days of reaching terminal status. After 30 days, storage fees may apply. After 90 days, uncollected devices may be treated as abandoned property, with no further liability on BridgeTech IT Services. BridgeTech IT Services accepts no responsibility for damage or loss of devices left beyond the collection period.\n\nBridgeTech IT Services`
+    text: `🔔 URGENT: COLLECT YOUR DEVICE WITHIN 48 HOURS – ${data.repairId}\n\nDear ${data.customerName},\n\nThis is an important reminder to collect your ${data.deviceType}${data.deviceModel ? ` (${data.deviceModel})` : ''}.\n\nRepair ID: ${data.repairId}\nStatus: ${data.status}\n${data.daysSinceUpdate ? `Waiting: ${data.daysSinceUpdate} day(s) since last update\n` : ''}${data.customMessage ? `Message: ${data.customMessage}\n` : ''}\nCollect at:\n#1 Regent Highway, Jui Junction, Freetown\nMon–Sat, 9am–6pm | +232 33 399 391\n\nLEGAL DISCLAIMER:\nDevices must be collected within 48 hours of reaching terminal status. After 48 hours, storage fees may apply and uncollected devices may be treated as abandoned property, with no further liability on BridgeTech IT Services. BridgeTech IT Services accepts no responsibility for damage or loss of devices left beyond 48 hours.\n\nBridgeTech IT Services`
   }),
 
   repairCustomNotification: (data: {
@@ -664,7 +664,7 @@ BridgeTech IT Services - Auto-generated notification`
             </div>
 
             <div class="disclaimer">
-              ℹ️ <strong>Collection Policy:</strong> Repaired or terminal devices must be collected within 30 days. BridgeTech IT Services is not responsible for devices left uncollected past the collection period.
+              ℹ️ <strong>Collection Policy:</strong> Repaired or terminal devices must be collected within 48 hours. BridgeTech IT Services is not responsible for devices left uncollected past 48 hours.
             </div>
 
             <p style="margin-top:20px; font-size:13px; color:#6b7280;">If you have any questions or need further assistance, please contact us at <a href="tel:+23233399391" style="color:#2563eb;">+232 33 399 391</a> or visit us at #1 Regent Highway, Jui Junction, Freetown.</p>

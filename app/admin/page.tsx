@@ -2592,7 +2592,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                       <span>Urgent Collection Reminder</span>
                     </div>
                     <p className="text-[10px] opacity-80 leading-relaxed">
-                      Reminds customer to collect device immediately with 30-day storage &amp; 90-day abandonment disclaimer.
+                      Reminds customer to collect device immediately with strict 48-hour collection &amp; abandonment disclaimer.
                     </p>
                   </div>
 
@@ -2694,7 +2694,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                   <span>Automated Disclaimer Included</span>
                 </div>
                 <p className="text-[10px] opacity-80">
-                  All collection notices automatically include BridgeTech&apos;s legal collection policy stating that devices left uncollected after 30 days are subject to storage fees and after 90 days may be deemed abandoned.
+                  All collection notices automatically include BridgeTech&apos;s legal collection policy stating that devices must be collected within 48 hours. After 48 hours, uncollected devices are subject to storage fees and may be treated as abandoned property.
                 </p>
               </div>
 
