@@ -35,7 +35,10 @@ interface FormSnapshot {
 interface RepairRecord {
   trackingId: string;
   deviceType?: string;
+  deviceModel?: string;
   customerName?: string;
+  email?: string;
+  phone?: string;
   status?: string;
   paymentStatus?: string;
   lastUpdated?: string;
@@ -44,6 +47,7 @@ interface RepairRecord {
   diagnosticNotes?: string;
   diagnosticImages?: any[];
   estimatedCompletion?: string;
+  notes?: string;
 }
 
 interface RepairSnapshot {
@@ -1684,6 +1688,21 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
   const [newItem, setNewItem] = useState({ description: '', cost: '' });
   const [waiveConsultationFee, setWaiveConsultationFee] = useState<boolean>(false);
 
+  // Email Notification Modal & Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState<boolean>(false);
+  const [emailModalRepairs, setEmailModalRepairs] = useState<RepairRecord[]>([]);
+  const [emailTemplateType, setEmailTemplateType] = useState<'collection_reminder' | 'completed' | 'cancelled' | 'custom'>('collection_reminder');
+  const [emailCustomSubject, setEmailCustomSubject] = useState<string>('');
+  const [emailCustomMessage, setEmailCustomMessage] = useState<string>('');
+  const [isSendingEmail, setIsSendingEmail] = useState<boolean>(false);
+  const [emailSendResult, setEmailSendResult] = useState<{
+    total: number;
+    sentCount: number;
+    failedCount: number;
+    results: Array<{ trackingId: string; email: string; customerName: string; success: boolean; error?: string }>;
+  } | null>(null);
+
   // Track whether the user has manually edited the form — prevents background
   // data reloads from stomping over in-progress changes.
   const formDirty = useRef(false);
@@ -1950,6 +1969,86 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
     } catch (err) { console.error(err); }
   };
 
+  const toggleSelectRepair = (trackingId: string, e?: React.SyntheticEvent) => {
+    if (e) e.stopPropagation();
+    setSelectedIds(prev =>
+      prev.includes(trackingId) ? prev.filter(id => id !== trackingId) : [...prev, trackingId]
+    );
+  };
+
+  const toggleSelectAllOnPage = () => {
+    const pageIds = paginatedRepairs.map(r => r.trackingId);
+    const allSelected = pageIds.length > 0 && pageIds.every(id => selectedIds.includes(id));
+    if (allSelected) {
+      setSelectedIds(prev => prev.filter(id => !pageIds.includes(id)));
+    } else {
+      setSelectedIds(prev => Array.from(new Set([...prev, ...pageIds])));
+    }
+  };
+
+  const openEmailModalForSelected = () => {
+    if (!repairs.allRepairs) return;
+    const targets = repairs.allRepairs.filter(r => selectedIds.includes(r.trackingId));
+    if (targets.length === 0) return;
+    setEmailModalRepairs(targets);
+    setEmailTemplateType('collection_reminder');
+    setEmailCustomSubject('');
+    setEmailCustomMessage('');
+    setEmailSendResult(null);
+    setIsEmailModalOpen(true);
+  };
+
+  const openEmailModalForSingle = (repair: RepairRecord, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setEmailModalRepairs([repair]);
+    if (repair.status === 'completed') {
+      setEmailTemplateType('completed');
+    } else if (repair.status === 'cancelled') {
+      setEmailTemplateType('cancelled');
+    } else {
+      setEmailTemplateType('collection_reminder');
+    }
+    setEmailCustomSubject('');
+    setEmailCustomMessage('');
+    setEmailSendResult(null);
+    setIsEmailModalOpen(true);
+  };
+
+  const handleSendEmails = async () => {
+    if (emailModalRepairs.length === 0) return;
+    setIsSendingEmail(true);
+    setEmailSendResult(null);
+
+    try {
+      const res = await fetch('/api/admin/repairs/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trackingIds: emailModalRepairs.map(r => r.trackingId),
+          templateType: emailTemplateType,
+          customSubject: emailCustomSubject || undefined,
+          customMessage: emailCustomMessage || undefined
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setEmailSendResult(data);
+        if (data.sentCount > 0) {
+          const sentTrackingIds = (data.results || []).filter((r: any) => r.success).map((r: any) => r.trackingId);
+          setSelectedIds(prev => prev.filter(id => !sentTrackingIds.includes(id)));
+        }
+      } else {
+        alert(`Failed to send emails: ${data.error || 'Unknown error'}`);
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert('Network or server error while sending email.');
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
   const filteredRepairs = useMemo(() => {
     if (!repairs.allRepairs) return [];
     return repairs.allRepairs.filter(r => {
@@ -2035,7 +2134,42 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
         {/* Repairs List */}
-        <div className="lg:col-span-2 space-y-2">
+        <div className="lg:col-span-2 space-y-3">
+
+          {/* Bulk Selection & Action Toolbar */}
+          <div className="flex flex-wrap items-center justify-between gap-2.5 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5">
+            <label className="flex items-center gap-2 cursor-pointer text-slate-300 select-none hover:text-white transition-colors">
+              <input
+                type="checkbox"
+                checked={paginatedRepairs.length > 0 && paginatedRepairs.every(r => selectedIds.includes(r.trackingId))}
+                onChange={toggleSelectAllOnPage}
+                className="w-4 h-4 rounded text-red-600 bg-slate-900 border-slate-700 cursor-pointer focus:ring-0"
+              />
+              <span className="font-semibold text-[11px]">Select All on Page ({paginatedRepairs.length})</span>
+            </label>
+
+            {selectedIds.length > 0 && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="bg-red-500/20 text-red-300 border border-red-500/30 px-2.5 py-0.5 rounded-full text-[10px] font-bold">
+                  {selectedIds.length} Selected
+                </span>
+                <button
+                  onClick={openEmailModalForSelected}
+                  className="px-3 py-1.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold text-[11px] rounded-lg shadow-sm flex items-center gap-1.5 transition-all"
+                >
+                  <i className="fas fa-envelope text-[10px]" />
+                  Send Email to {selectedIds.length} Client{selectedIds.length > 1 ? 's' : ''}
+                </button>
+                <button
+                  onClick={() => setSelectedIds([])}
+                  className="text-slate-400 hover:text-slate-200 text-[10px] underline ml-1"
+                >
+                  Clear
+                </button>
+              </div>
+            )}
+          </div>
+
           {paginatedRepairs.length > 0 ? paginatedRepairs.map(repair => (
             <div
               key={repair.trackingId}
@@ -2047,7 +2181,15 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
               }`}
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="font-bold text-white text-sm">{repair.trackingId}</span>
+                <div className="flex items-center gap-2.5">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(repair.trackingId)}
+                    onChange={e => toggleSelectRepair(repair.trackingId, e)}
+                    className="w-4 h-4 rounded text-red-600 bg-slate-900 border-slate-700 cursor-pointer focus:ring-0"
+                  />
+                  <span className="font-bold text-white text-sm">{repair.trackingId}</span>
+                </div>
                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                   repair.status === 'terminal' ? 'bg-red-950 text-red-100 border-2 border-red-600 font-black shadow-sm'
                   : repair.status === 'collected' ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40'
@@ -2068,6 +2210,13 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
               <div className="mt-3 flex items-center justify-between pt-2 border-t border-slate-900 text-[11px] text-slate-500">
                 <span className="truncate max-w-xs">{repair.issueSummary || 'No description'}</span>
                 <div className="flex items-center gap-2 shrink-0 ml-2">
+                  <button
+                    onClick={e => openEmailModalForSingle(repair, e)}
+                    className="text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-1 hover:underline"
+                  >
+                    <i className="fas fa-paper-plane text-[9px]" /> Email
+                  </button>
+                  <span>&bull;</span>
                   <button onClick={e => handleCancelRepair(repair.trackingId, e)} className="text-amber-400 hover:underline">Cancel</button>
                   <span>&bull;</span>
                   <button onClick={e => handleDeleteRepair(repair.trackingId, e)} className="text-rose-400 hover:underline">Delete</button>
@@ -2099,7 +2248,16 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
               {selectedRepair ? `Edit · ${selectedRepair.trackingId}` : 'Select a Repair'}
             </h3>
             {selectedRepair && (
-              <button onClick={() => setSelectedRepair(null)} className="text-xs text-rose-400 hover:underline">Clear</button>
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => openEmailModalForSingle(selectedRepair)}
+                  className="px-2.5 py-1 bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition-colors"
+                >
+                  <i className="fas fa-paper-plane text-[9px]" />
+                  Email Client
+                </button>
+                <button onClick={() => setSelectedRepair(null)} className="text-xs text-rose-400 hover:underline">Clear</button>
+              </div>
             )}
           </div>
 
@@ -2364,6 +2522,245 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
           )}
         </div>
       </div>
+
+      {/* ── Email Notification Modal ── */}
+      {isEmailModalOpen && (
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl text-xs">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 bg-slate-950">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-red-600/20 text-red-400 border border-red-500/30 flex items-center justify-center text-sm">
+                  <i className="fas fa-paper-plane" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-sm">Send Repair Email Notification</h3>
+                  <p className="text-[11px] text-slate-400">
+                    {emailModalRepairs.length} client{emailModalRepairs.length > 1 ? 's' : ''} selected
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsEmailModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+              >
+                <i className="fas fa-times text-sm" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 space-y-4 overflow-y-auto flex-1">
+
+              {/* Recipients Pills */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                  Recipients ({emailModalRepairs.length})
+                </label>
+                <div className="flex flex-wrap gap-2 max-h-28 overflow-y-auto p-2 bg-slate-950 border border-slate-800 rounded-xl">
+                  {emailModalRepairs.map(r => (
+                    <div
+                      key={r.trackingId}
+                      className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 flex items-center gap-2 text-[11px]"
+                    >
+                      <span className="font-mono font-bold text-red-400">{r.trackingId}</span>
+                      <span className="text-slate-300 font-medium">{r.customerName || 'Customer'}</span>
+                      <span className="text-slate-500 text-[10px]">({r.email || 'No email'})</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Template Selector */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                  Select Email Template
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+
+                  {/* 1. Collection Reminder */}
+                  <div
+                    onClick={() => setEmailTemplateType('collection_reminder')}
+                    className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                      emailTemplateType === 'collection_reminder'
+                        ? 'bg-amber-950/40 border-amber-500/70 text-amber-200 ring-1 ring-amber-500/50'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 font-bold text-xs mb-1">
+                      <i className="fas fa-bell text-amber-400" />
+                      <span>Urgent Collection Reminder</span>
+                    </div>
+                    <p className="text-[10px] opacity-80 leading-relaxed">
+                      Reminds customer to collect device immediately with 30-day storage &amp; 90-day abandonment disclaimer.
+                    </p>
+                  </div>
+
+                  {/* 2. Repair Completed */}
+                  <div
+                    onClick={() => setEmailTemplateType('completed')}
+                    className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                      emailTemplateType === 'completed'
+                        ? 'bg-emerald-950/40 border-emerald-500/70 text-emerald-200 ring-1 ring-emerald-500/50'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 font-bold text-xs mb-1">
+                      <i className="fas fa-check-circle text-emerald-400" />
+                      <span>Repair Completed</span>
+                    </div>
+                    <p className="text-[10px] opacity-80 leading-relaxed">
+                      Notifies customer that repair is 100% complete and ready for pickup with cost summary.
+                    </p>
+                  </div>
+
+                  {/* 3. Repair Cancelled */}
+                  <div
+                    onClick={() => setEmailTemplateType('cancelled')}
+                    className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                      emailTemplateType === 'cancelled'
+                        ? 'bg-rose-950/40 border-rose-500/70 text-rose-200 ring-1 ring-rose-500/50'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 font-bold text-xs mb-1">
+                      <i className="fas fa-ban text-rose-400" />
+                      <span>Repair Cancelled (Diagnosed)</span>
+                    </div>
+                    <p className="text-[10px] opacity-80 leading-relaxed">
+                      Notice of cancellation following diagnosis, instructing immediate device collection with disclaimer.
+                    </p>
+                  </div>
+
+                  {/* 4. Custom Message */}
+                  <div
+                    onClick={() => setEmailTemplateType('custom')}
+                    className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                      emailTemplateType === 'custom'
+                        ? 'bg-sky-950/40 border-sky-500/70 text-sky-200 ring-1 ring-sky-500/50'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 font-bold text-xs mb-1">
+                      <i className="fas fa-comment-alt text-sky-400" />
+                      <span>Custom Message</span>
+                    </div>
+                    <p className="text-[10px] opacity-80 leading-relaxed">
+                      Write your own subject and message with official BridgeTech branding and online tracking link.
+                    </p>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Custom Subject (optional or custom) */}
+              {emailTemplateType === 'custom' && (
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    Email Subject
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Important update regarding your device repair"
+                    value={emailCustomSubject}
+                    onChange={e => setEmailCustomSubject(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-red-500"
+                  />
+                </div>
+              )}
+
+              {/* Message / Additional Notes */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                  {emailTemplateType === 'custom' ? 'Message Body' : 'Additional Notes / Message (Optional)'}
+                </label>
+                <textarea
+                  rows={4}
+                  placeholder={
+                    emailTemplateType === 'custom'
+                      ? 'Type the message you would like to send to the client...'
+                      : 'Add any specific notes or instructions to include in this notification...'
+                  }
+                  value={emailCustomMessage}
+                  onChange={e => setEmailCustomMessage(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white focus:outline-none focus:border-red-500"
+                />
+              </div>
+
+              {/* Legal Disclaimer Note */}
+              <div className="p-3 bg-amber-950/20 border border-amber-700/30 rounded-xl text-amber-200/90 text-[11px] space-y-1">
+                <div className="font-bold flex items-center gap-1.5 text-amber-300">
+                  <i className="fas fa-shield-alt text-amber-400" />
+                  <span>Automated Disclaimer Included</span>
+                </div>
+                <p className="text-[10px] opacity-80">
+                  All collection notices automatically include BridgeTech&apos;s legal collection policy stating that devices left uncollected after 30 days are subject to storage fees and after 90 days may be deemed abandoned.
+                </p>
+              </div>
+
+              {/* Send Results Display */}
+              {emailSendResult && (
+                <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-white text-xs">Sending Summary:</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-emerald-400 font-bold text-[11px]">
+                        ✓ {emailSendResult.sentCount} Sent
+                      </span>
+                      {emailSendResult.failedCount > 0 && (
+                        <span className="text-rose-400 font-bold text-[11px]">
+                          ✗ {emailSendResult.failedCount} Failed
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-1 max-h-32 overflow-y-auto pt-2 border-t border-slate-800">
+                    {emailSendResult.results.map(r => (
+                      <div key={r.trackingId} className="flex items-center justify-between text-[11px]">
+                        <span className="font-mono text-slate-400">{r.trackingId} ({r.customerName})</span>
+                        {r.success ? (
+                          <span className="text-emerald-400 font-medium">Sent to {r.email}</span>
+                        ) : (
+                          <span className="text-rose-400 font-medium">{r.error || 'Failed'}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-between px-5 py-3.5 border-t border-slate-800 bg-slate-950">
+              <button
+                onClick={() => setIsEmailModalOpen(false)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={handleSendEmails}
+                disabled={isSendingEmail || emailModalRepairs.length === 0}
+                className="px-5 py-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 disabled:opacity-50 text-white font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-red-900/30 transition-all"
+              >
+                {isSendingEmail ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin" />
+                    Sending Emails...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-paper-plane" />
+                    Send to {emailModalRepairs.length} Client{emailModalRepairs.length > 1 ? 's' : ''}
+                  </>
+                )}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 }

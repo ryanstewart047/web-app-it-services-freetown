@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { handleRepairStatusAutoEmail } from '@/lib/server/repair-notifications';
 
 // ──────────────────────────────────────────────
 // Types (unchanged – consumed by API routes)
@@ -357,7 +358,10 @@ export interface UpdateRepairInput {
 
 export async function updateRepair(input: UpdateRepairInput): Promise<RepairBooking | null> {
 	try {
-		const existing = await prisma.repair.findUnique({ where: { trackingId: input.trackingId } });
+		const existing = await prisma.repair.findUnique({
+			where: { trackingId: input.trackingId },
+			include: { customer: true, timeline: true }
+		});
 		if (!existing) return null;
 
 		const updateData: any = {};
@@ -381,6 +385,16 @@ export async function updateRepair(input: UpdateRepairInput): Promise<RepairBook
 			data: updateData,
 			include: { customer: true },
 		});
+
+		// Trigger auto-email notification asynchronously if status changed
+		if (input.status && existing.status !== input.status) {
+			handleRepairStatusAutoEmail({
+				existingRepair: existing,
+				newStatus: input.status,
+				newNotes: input.notes,
+				newTotalCost: input.totalCost
+			}).catch(err => console.error('[AnalyticsStore] Auto-email trigger error:', err));
+		}
 
 		return mapRepairRow(updated);
 	} catch (error) {

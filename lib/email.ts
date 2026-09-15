@@ -404,29 +404,280 @@ BridgeTech IT Services - Auto-generated notification`
     customerName: string
     repairId: string
     deviceType: string
-    totalCost: number
-    pickupInstructions: string
+    deviceModel?: string
+    totalCost: number | string
+    notes?: string
   }) => ({
-    subject: `Repair Completed - ${data.repairId}`,
+    subject: `✅ Repair Completed – ${data.repairId} | Collect Your Device`,
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background-color: #22c55e; color: white; padding: 20px; text-align: center;">
-          <h1>Repair Completed!</h1>
-        </div>
-        <div style="padding: 20px;">
-          <p>Dear ${data.customerName},</p>
-          <p>Great news! Your ${data.deviceType} repair has been completed successfully.</p>
-          <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
-            <p><strong>Repair ID:</strong> ${data.repairId}</p>
-            <p><strong>Total Cost:</strong> $${data.totalCost}</p>
-            <p><strong>Pickup Instructions:</strong> ${data.pickupInstructions}</p>
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+          .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+          .header { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); color: white; padding: 32px 24px; text-align: center; }
+          .badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 50px; padding: 6px 18px; font-size: 13px; margin-bottom: 10px; letter-spacing: 1px; }
+          .content { padding: 30px 28px; }
+          .info-box { background: #f0fdf4; border-left: 4px solid #16a34a; padding: 18px; margin: 20px 0; border-radius: 0 10px 10px 0; }
+          .label { font-weight: bold; color: #374151; display: inline-block; min-width: 130px; }
+          .value { color: #1f2937; }
+          .action-btn { display: inline-block; background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); color: white !important; padding: 14px 28px; text-decoration: none; border-radius: 8px; margin: 20px auto; font-weight: bold; font-size: 15px; }
+          .disclaimer { background: #fefce8; border: 1px solid #fde047; padding: 14px; border-radius: 8px; font-size: 12px; color: #713f12; margin-top: 20px; }
+          .footer { background: #1f2937; color: #9ca3af; padding: 18px; text-align: center; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="badge">✅ REPAIR COMPLETE</div>
+            <h1 style="margin:10px 0 4px; font-size: 26px;">Your Device is Ready!</h1>
+            <p style="margin:0; opacity:0.85;">Repair ID: ${data.repairId}</p>
           </div>
-          <p>Your device is ready for pickup. Please bring a valid ID and your repair receipt.</p>
-          <p>Thank you for choosing BridgeTech IT Services!</p>
+          <div class="content">
+            <p>Dear <strong>${data.customerName}</strong>,</p>
+            <p>Great news! Your <strong>${data.deviceType}${data.deviceModel ? ` (${data.deviceModel})` : ''}</strong> has been fully repaired and is ready for collection. 🎉</p>
+
+            <div class="info-box">
+              <h3 style="margin-top:0; color:#15803d;">📋 Repair Summary</h3>
+              <p><span class="label">Repair ID:</span> <span class="value"><strong>${data.repairId}</strong></span></p>
+              <p><span class="label">Device:</span> <span class="value">${data.deviceType}${data.deviceModel ? ` – ${data.deviceModel}` : ''}</span></p>
+              <p style="margin-bottom:0;"><span class="label">Total Cost:</span> <span class="value" style="font-size:17px; font-weight:bold; color:#15803d;">Le ${typeof data.totalCost === 'number' ? data.totalCost.toLocaleString() : data.totalCost}</span></p>
+              ${data.notes ? `<p style="margin-top:10px; font-size:13px; color:#374151;"><span class="label">Notes:</span> <span class="value">${data.notes}</span></p>` : ''}
+            </div>
+
+            <div style="text-align:center;">
+              <a href="https://itservicesfreetown.com/track" class="action-btn">📍 Track Your Repair</a>
+            </div>
+
+            <div class="disclaimer">
+              ⚠️ <strong>Please collect your device promptly.</strong> BridgeTech IT Services is not responsible for any device left uncollected for more than 30 days after completion. After 90 days, uncollected devices may be treated as abandoned under our storage policy.
+            </div>
+
+            <p style="margin-top:20px; font-size:14px; color:#6b7280;">To collect your device, visit our shop at <strong>#1 Regent Highway, Jui Junction, Freetown</strong>. Please bring a valid ID. We're open Monday–Saturday, 9am–6pm.</p>
+          </div>
+          <div class="footer">
+            <p style="margin:0;"><strong>BridgeTech IT Services</strong></p>
+            <p style="margin:5px 0 0;">#1 Regent Highway, Jui Junction, Freetown &nbsp;|&nbsp; <a href="tel:+23233399391" style="color:#dc2626; text-decoration:none;">+232 33 399 391</a></p>
+          </div>
         </div>
-      </div>
+      </body>
+      </html>
     `,
-    text: `Repair Completed - ${data.repairId}\n\nDear ${data.customerName},\n\nYour ${data.deviceType} repair is complete!\n\nTotal Cost: $${data.totalCost}\nPickup Instructions: ${data.pickupInstructions}\n\nThank you for choosing BridgeTech IT Services!`
+    text: `✅ REPAIR COMPLETED – ${data.repairId}\n\nDear ${data.customerName},\n\nYour ${data.deviceType}${data.deviceModel ? ` (${data.deviceModel})` : ''} repair is complete and ready for collection!\n\nRepair ID: ${data.repairId}\nTotal Cost: Le ${data.totalCost}\n${data.notes ? `Notes: ${data.notes}\n` : ''}\nPlease collect your device at:\n#1 Regent Highway, Jui Junction, Freetown\nMon–Sat, 9am–6pm | +232 33 399 391\n\nIMPORTANT: Devices left uncollected for more than 30 days may be treated as abandoned.\n\nThank you for choosing BridgeTech IT Services!`
+  }),
+
+  repairCancelled: (data: {
+    customerName: string
+    repairId: string
+    deviceType: string
+    deviceModel?: string
+    cancellationReason?: string
+  }) => ({
+    subject: `❌ Repair Cancelled – ${data.repairId} | Collect Your Device`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+          .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+          .header { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; padding: 32px 24px; text-align: center; }
+          .badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 50px; padding: 6px 18px; font-size: 13px; margin-bottom: 10px; letter-spacing: 1px; }
+          .content { padding: 30px 28px; }
+          .info-box { background: #fef2f2; border-left: 4px solid #dc2626; padding: 18px; margin: 20px 0; border-radius: 0 10px 10px 0; }
+          .label { font-weight: bold; color: #374151; display: inline-block; min-width: 130px; }
+          .value { color: #1f2937; }
+          .action-btn { display: inline-block; background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white !important; padding: 14px 28px; text-decoration: none; border-radius: 8px; margin: 20px auto; font-weight: bold; font-size: 15px; }
+          .disclaimer { background: #fef9c3; border: 1px solid #fde047; padding: 14px; border-radius: 8px; font-size: 12px; color: #713f12; margin-top: 20px; }
+          .footer { background: #1f2937; color: #9ca3af; padding: 18px; text-align: center; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="badge">❌ REPAIR CANCELLED</div>
+            <h1 style="margin:10px 0 4px; font-size: 26px;">Repair Has Been Cancelled</h1>
+            <p style="margin:0; opacity:0.85;">Repair ID: ${data.repairId}</p>
+          </div>
+          <div class="content">
+            <p>Dear <strong>${data.customerName}</strong>,</p>
+            <p>We regret to inform you that your repair for the <strong>${data.deviceType}${data.deviceModel ? ` (${data.deviceModel})` : ''}</strong> has been cancelled after the diagnostic phase.</p>
+
+            <div class="info-box">
+              <h3 style="margin-top:0; color:#b91c1c;">📋 Repair Details</h3>
+              <p><span class="label">Repair ID:</span> <span class="value"><strong>${data.repairId}</strong></span></p>
+              <p><span class="label">Device:</span> <span class="value">${data.deviceType}${data.deviceModel ? ` – ${data.deviceModel}` : ''}</span></p>
+              ${data.cancellationReason ? `<p style="margin-bottom:0;"><span class="label">Reason:</span> <span class="value">${data.cancellationReason}</span></p>` : ''}
+            </div>
+
+            <p style="color:#374151;">Your device has been secured and is ready for you to collect at your earliest convenience.</p>
+
+            <div style="text-align:center;">
+              <a href="https://itservicesfreetown.com/track" class="action-btn">📍 Track Your Repair</a>
+            </div>
+
+            <div class="disclaimer">
+              ⚠️ <strong>Please collect your device promptly.</strong> BridgeTech IT Services is not responsible for any device left uncollected for more than 30 days after cancellation. After 90 days, uncollected devices may be treated as abandoned under our storage policy. We strongly advise you to collect your device as soon as possible.
+            </div>
+
+            <p style="margin-top:20px; font-size:14px; color:#6b7280;">Visit us at <strong>#1 Regent Highway, Jui Junction, Freetown</strong>. Please bring a valid ID. We're open Monday–Saturday, 9am–6pm. If you have questions, call us at <a href="tel:+23233399391" style="color:#dc2626;">+232 33 399 391</a>.</p>
+          </div>
+          <div class="footer">
+            <p style="margin:0;"><strong>BridgeTech IT Services</strong></p>
+            <p style="margin:5px 0 0;">#1 Regent Highway, Jui Junction, Freetown &nbsp;|&nbsp; <a href="tel:+23233399391" style="color:#dc2626; text-decoration:none;">+232 33 399 391</a></p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `❌ REPAIR CANCELLED – ${data.repairId}\n\nDear ${data.customerName},\n\nYour repair for the ${data.deviceType}${data.deviceModel ? ` (${data.deviceModel})` : ''} has been cancelled.\n\nRepair ID: ${data.repairId}\n${data.cancellationReason ? `Reason: ${data.cancellationReason}\n` : ''}\nYour device is ready for collection at:\n#1 Regent Highway, Jui Junction, Freetown\nMon–Sat, 9am–6pm | +232 33 399 391\n\nIMPORTANT DISCLAIMER: BridgeTech IT Services is not responsible for devices left uncollected for more than 30 days. After 90 days, uncollected devices may be treated as abandoned. Please collect your device immediately.\n\nBridgeTech IT Services`
+  }),
+
+  repairCollectionReminder: (data: {
+    customerName: string
+    repairId: string
+    deviceType: string
+    deviceModel?: string
+    status: string
+    daysSinceUpdate?: number
+    customMessage?: string
+  }) => ({
+    subject: `🔔 URGENT: Collect Your Device – ${data.repairId}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+          .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+          .header { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); color: white; padding: 32px 24px; text-align: center; }
+          .badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 50px; padding: 6px 18px; font-size: 13px; margin-bottom: 10px; letter-spacing: 1px; }
+          .content { padding: 30px 28px; }
+          .info-box { background: #fffbeb; border-left: 4px solid #d97706; padding: 18px; margin: 20px 0; border-radius: 0 10px 10px 0; }
+          .label { font-weight: bold; color: #374151; display: inline-block; min-width: 130px; }
+          .value { color: #1f2937; }
+          .action-btn { display: inline-block; background: linear-gradient(135deg, #d97706 0%, #b45309 100%); color: white !important; padding: 14px 28px; text-decoration: none; border-radius: 8px; margin: 20px auto; font-weight: bold; font-size: 15px; }
+          .disclaimer { background: #fef2f2; border: 1px solid #fca5a5; padding: 14px; border-radius: 8px; font-size: 12px; color: #7f1d1d; margin-top: 20px; line-height: 1.6; }
+          .footer { background: #1f2937; color: #9ca3af; padding: 18px; text-align: center; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="badge">🔔 COLLECTION REMINDER</div>
+            <h1 style="margin:10px 0 4px; font-size: 26px;">Please Collect Your Device!</h1>
+            <p style="margin:0; opacity:0.85;">Repair ID: ${data.repairId}</p>
+          </div>
+          <div class="content">
+            <p>Dear <strong>${data.customerName}</strong>,</p>
+            <p>This is an important reminder that your <strong>${data.deviceType}${data.deviceModel ? ` (${data.deviceModel})` : ''}</strong> is ready and waiting to be collected from our shop. Please arrange collection at your earliest convenience.</p>
+
+            ${data.customMessage ? `<div style="background:#f8fafc; border-left:4px solid #3b82f6; padding:14px; margin:15px 0; border-radius:4px; font-size:14px; color:#1e293b;"><strong>Message from BridgeTech:</strong><br>${data.customMessage}</div>` : ''}
+
+            <div class="info-box">
+              <h3 style="margin-top:0; color:#b45309;">📋 Device Details</h3>
+              <p><span class="label">Repair ID:</span> <span class="value"><strong>${data.repairId}</strong></span></p>
+              <p><span class="label">Device:</span> <span class="value">${data.deviceType}${data.deviceModel ? ` – ${data.deviceModel}` : ''}</span></p>
+              <p style="margin-bottom:0;"><span class="label">Status:</span> <span class="value" style="font-weight:bold; text-transform:capitalize;">${data.status.replace(/-/g, ' ')}</span></p>
+              ${data.daysSinceUpdate ? `<p style="margin-top:8px; font-size:12px; color:#92400e;">⏳ Your device has been waiting for <strong>${data.daysSinceUpdate} day(s)</strong> since the last update.</p>` : ''}
+            </div>
+
+            <div style="text-align:center;">
+              <a href="https://itservicesfreetown.com/track" class="action-btn">📍 Track Your Repair</a>
+            </div>
+
+            <div class="disclaimer">
+              <strong>⚠️ LEGAL DISCLAIMER – PLEASE READ CAREFULLY</strong><br><br>
+              BridgeTech IT Services has fulfilled its obligation to notify you that your device is ready for collection. Please be advised:<br><br>
+              • <strong>Devices must be collected within 30 days</strong> of reaching terminal status (completed, cancelled, or ready-for-pickup).<br>
+              • <strong>After 30 days</strong>, a storage fee may be applied at management's discretion.<br>
+              • <strong>After 90 days of non-collection</strong>, BridgeTech IT Services reserves the right to treat the device as abandoned property, with no further liability to the owner.<br>
+              • BridgeTech IT Services accepts no responsibility for any damage, loss, or deterioration of devices left in our custody beyond the collection period.<br><br>
+              By engaging our repair services, you agreed to collect your device in a timely manner as outlined in our Terms & Conditions.
+            </div>
+
+            <p style="margin-top:20px; font-size:14px; color:#6b7280;">Visit us at <strong>#1 Regent Highway, Jui Junction, Freetown</strong>. Please bring a valid ID. We're open Monday–Saturday, 9am–6pm. Questions? Call us: <a href="tel:+23233399391" style="color:#d97706;">+232 33 399 391</a>.</p>
+          </div>
+          <div class="footer">
+            <p style="margin:0;"><strong>BridgeTech IT Services</strong></p>
+            <p style="margin:5px 0 0;">#1 Regent Highway, Jui Junction, Freetown &nbsp;|&nbsp; <a href="tel:+23233399391" style="color:#dc2626; text-decoration:none;">+232 33 399 391</a></p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `🔔 URGENT: COLLECT YOUR DEVICE – ${data.repairId}\n\nDear ${data.customerName},\n\nThis is an important reminder to collect your ${data.deviceType}${data.deviceModel ? ` (${data.deviceModel})` : ''}.\n\nRepair ID: ${data.repairId}\nStatus: ${data.status}\n${data.daysSinceUpdate ? `Waiting: ${data.daysSinceUpdate} day(s) since last update\n` : ''}${data.customMessage ? `Message: ${data.customMessage}\n` : ''}\nCollect at:\n#1 Regent Highway, Jui Junction, Freetown\nMon–Sat, 9am–6pm | +232 33 399 391\n\nLEGAL DISCLAIMER:\nDevices must be collected within 30 days of reaching terminal status. After 30 days, storage fees may apply. After 90 days, uncollected devices may be treated as abandoned property, with no further liability on BridgeTech IT Services. BridgeTech IT Services accepts no responsibility for damage or loss of devices left beyond the collection period.\n\nBridgeTech IT Services`
+  }),
+
+  repairCustomNotification: (data: {
+    customerName: string
+    repairId: string
+    deviceType: string
+    deviceModel?: string
+    status: string
+    subject?: string
+    message: string
+  }) => ({
+    subject: data.subject || `Update regarding your repair – ${data.repairId}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+          .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+          .header { background: linear-gradient(135deg, #040e40 0%, #1e3a8a 100%); color: white; padding: 32px 24px; text-align: center; }
+          .badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 50px; padding: 6px 18px; font-size: 13px; margin-bottom: 10px; letter-spacing: 1px; }
+          .content { padding: 30px 28px; }
+          .message-box { background: #f8fafc; border-left: 4px solid #2563eb; padding: 18px; margin: 20px 0; border-radius: 0 10px 10px 0; font-size: 14px; color: #1e293b; line-height: 1.6; }
+          .info-box { background: #f1f5f9; padding: 14px 18px; border-radius: 8px; margin: 15px 0; font-size: 13px; }
+          .label { font-weight: bold; color: #475569; display: inline-block; min-width: 120px; }
+          .action-btn { display: inline-block; background: #040e40; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 20px auto; font-weight: bold; font-size: 14px; }
+          .disclaimer { background: #fefce8; border: 1px solid #fde047; padding: 12px; border-radius: 8px; font-size: 11px; color: #713f12; margin-top: 20px; }
+          .footer { background: #1f2937; color: #9ca3af; padding: 18px; text-align: center; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="badge">📢 SERVICE UPDATE</div>
+            <h1 style="margin:10px 0 4px; font-size: 24px;">Message from BridgeTech</h1>
+            <p style="margin:0; opacity:0.85;">Repair ID: ${data.repairId}</p>
+          </div>
+          <div class="content">
+            <p>Dear <strong>${data.customerName}</strong>,</p>
+            <p>We are reaching out to you regarding your repair for the <strong>${data.deviceType}${data.deviceModel ? ` (${data.deviceModel})` : ''}</strong>.</p>
+
+            <div class="message-box">
+              ${data.message.replace(/\n/g, '<br>')}
+            </div>
+
+            <div class="info-box">
+              <p style="margin:4px 0;"><span class="label">Repair ID:</span> <strong>${data.repairId}</strong></p>
+              <p style="margin:4px 0;"><span class="label">Device:</span> ${data.deviceType}${data.deviceModel ? ` – ${data.deviceModel}` : ''}</p>
+              <p style="margin:4px 0;"><span class="label">Current Status:</span> <strong style="text-transform:capitalize;">${data.status.replace(/-/g, ' ')}</strong></p>
+            </div>
+
+            <div style="text-align:center;">
+              <a href="https://itservicesfreetown.com/track" class="action-btn">📍 Track Your Repair Online</a>
+            </div>
+
+            <div class="disclaimer">
+              ℹ️ <strong>Collection Policy:</strong> Repaired or terminal devices must be collected within 30 days. BridgeTech IT Services is not responsible for devices left uncollected past the collection period.
+            </div>
+
+            <p style="margin-top:20px; font-size:13px; color:#6b7280;">If you have any questions or need further assistance, please contact us at <a href="tel:+23233399391" style="color:#2563eb;">+232 33 399 391</a> or visit us at #1 Regent Highway, Jui Junction, Freetown.</p>
+          </div>
+          <div class="footer">
+            <p style="margin:0;"><strong>BridgeTech IT Services</strong></p>
+            <p style="margin:5px 0 0;">#1 Regent Highway, Jui Junction, Freetown &nbsp;|&nbsp; <a href="tel:+23233399391" style="color:#dc2626; text-decoration:none;">+232 33 399 391</a></p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `📢 UPDATE REGARDING REPAIR ${data.repairId}\n\nDear ${data.customerName},\n\nDevice: ${data.deviceType}${data.deviceModel ? ` (${data.deviceModel})` : ''}\nStatus: ${data.status}\n\nMessage:\n${data.message}\n\nTrack repair: https://itservicesfreetown.com/track\nContact: +232 33 399 391 | #1 Regent Highway, Jui Junction, Freetown\n\nBridgeTech IT Services`
   }),
   orderConfirmation: (data: {
     orderNumber: string;
