@@ -88,12 +88,12 @@ const nextConfig = {
       },
       {
         source: '/services.html',
-        destination: '/services',
+        destination: '/repair-showcase',
         permanent: true,
       },
       {
         source: '/repair.html',
-        destination: '/repair',
+        destination: '/repair-showcase',
         permanent: true,
       },
       {
@@ -104,6 +104,11 @@ const nextConfig = {
       {
         source: '/about.html',
         destination: '/about',
+        permanent: true,
+      },
+      {
+        source: '/track',
+        destination: '/track-repair',
         permanent: true,
       },
     ];
@@ -172,13 +177,38 @@ const nextConfig = {
           { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
+      // Internal & API paths: explicit noindex
+      {
+        source: '/api/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
+      {
+        source: '/admin/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
+      {
+        source: '/admin-panel/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
+      {
+        source: '/receipt/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
+      {
+        source: '/cart/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
+      {
+        source: '/checkout/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
+      {
+        source: '/order-confirmation/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
       {
         source: '/:path*',
         headers: [
-          {
-            key: 'X-Robots-Tag',
-            value: 'index, follow',
-          },
           // Security headers
           {
             key: 'X-Frame-Options',

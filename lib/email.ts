@@ -447,7 +447,7 @@ BridgeTech IT Services - Auto-generated notification`
             </div>
 
             <div style="text-align:center;">
-              <a href="https://itservicesfreetown.com/track" class="action-btn">📍 Track Your Repair</a>
+              <a href="https://www.itservicesfreetown.com/track-repair" class="action-btn">📍 Track Your Repair</a>
             </div>
 
             <div class="disclaimer">
@@ -514,7 +514,7 @@ BridgeTech IT Services - Auto-generated notification`
             <p style="color:#374151;">Your device has been secured and is ready for you to collect at your earliest convenience.</p>
 
             <div style="text-align:center;">
-              <a href="https://itservicesfreetown.com/track" class="action-btn">📍 Track Your Repair</a>
+              <a href="https://www.itservicesfreetown.com/track-repair" class="action-btn">📍 Track Your Repair</a>
             </div>
 
             <div class="disclaimer">
@@ -584,7 +584,7 @@ BridgeTech IT Services - Auto-generated notification`
             </div>
 
             <div style="text-align:center;">
-              <a href="https://itservicesfreetown.com/track" class="action-btn">📍 Track Your Repair</a>
+              <a href="https://www.itservicesfreetown.com/track-repair" class="action-btn">📍 Track Your Repair</a>
             </div>
 
             <div class="disclaimer">
@@ -660,7 +660,7 @@ BridgeTech IT Services - Auto-generated notification`
             </div>
 
             <div style="text-align:center;">
-              <a href="https://itservicesfreetown.com/track" class="action-btn">📍 Track Your Repair Online</a>
+              <a href="https://www.itservicesfreetown.com/track-repair" class="action-btn">📍 Track Your Repair Online</a>
             </div>
 
             <div class="disclaimer">
@@ -677,7 +677,7 @@ BridgeTech IT Services - Auto-generated notification`
       </body>
       </html>
     `,
-    text: `📢 UPDATE REGARDING REPAIR ${data.repairId}\n\nDear ${data.customerName},\n\nDevice: ${data.deviceType}${data.deviceModel ? ` (${data.deviceModel})` : ''}\nStatus: ${data.status}\n\nMessage:\n${data.message}\n\nTrack repair: https://itservicesfreetown.com/track\nContact: +232 33 399 391 | #1 Regent Highway, Jui Junction, Freetown\n\nBridgeTech IT Services`
+    text: `📢 UPDATE REGARDING REPAIR ${data.repairId}\n\nDear ${data.customerName},\n\nDevice: ${data.deviceType}${data.deviceModel ? ` (${data.deviceModel})` : ''}\nStatus: ${data.status}\n\nMessage:\n${data.message}\n\nTrack repair: https://www.itservicesfreetown.com/track-repair\nContact: +232 33 399 391 | #1 Regent Highway, Jui Junction, Freetown\n\nBridgeTech IT Services`
   }),
   orderConfirmation: (data: {
     orderNumber: string;

@@ -119,6 +119,9 @@ export const metadata: Metadata = {
     description: 'Professional computer and mobile repair services in Freetown. Same-day service, 1-month warranty, 95% success rate.',
     images: ['/assets/images/slide01.jpg'],
   },
+  alternates: {
+    canonical: '/',
+  },
   robots: {
     index: true,
     follow: true,

@@ -22,7 +22,6 @@ export default function robots(): MetadataRoute.Robots {
     '/receipt',
     '/unsubscribe',
     '/offline',
-    '/s/',
     '/loading-demo',
     '/loading-status',
     '/network-test',
@@ -39,7 +38,6 @@ export default function robots(): MetadataRoute.Robots {
     '/articles-viewer',
     '/connect-agent',
     '/test-',
-    '/*-test$',
     '/*debug*',
   ];
 

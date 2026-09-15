@@ -41,30 +41,13 @@ async function getProducts() {
   }
 }
 
-async function getCategories() {
-  try {
-    // Direct database query instead of API call
-    const categories = await prisma.category.findMany({
-      select: {
-        slug: true,
-      },
-    });
-    return categories;
-  } catch (error) {
-    console.error('Error fetching categories for sitemap:', error);
-    return [];
-  }
-}
-
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://www.itservicesfreetown.com';
   
   let products: any[] = [];
-  let categories: any[] = [];
   
   try {
     products = await getProducts();
-    categories = await getCategories();
   } catch (error) {
     console.error('Error generating sitemap:', error);
     // Continue with empty arrays if database fails
@@ -214,13 +197,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  // Category pages (if you have them)
-  const categoryPages: MetadataRoute.Sitemap = categories.map((category: any) => ({
-    url: `${baseUrl}/marketplace?category=${category.slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.6,
-  }));
-
-  return [...staticPages, ...productPages, ...categoryPages];
+  return [...staticPages, ...productPages];
 }
