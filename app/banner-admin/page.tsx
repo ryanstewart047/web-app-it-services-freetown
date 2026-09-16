@@ -8,6 +8,7 @@ const THEMES = [
   { label: 'Deep Blue', value: 'bg-blue-700', hex: '#1d4ed8' },
   { label: 'Emerald Green', value: 'bg-emerald-600', hex: '#059669' },
   { label: 'Orange Alert', value: 'bg-orange-600', hex: '#ea580c' },
+  { label: 'Royal Purple', value: 'bg-purple-600', hex: '#9333ea' },
   { label: 'Dark Charcoal', value: 'bg-gray-900', hex: '#111827' },
 ];
 
