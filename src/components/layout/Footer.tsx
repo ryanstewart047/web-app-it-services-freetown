@@ -394,6 +394,11 @@ export default function Footer() {
                       <h4 className="text-white font-semibold text-sm">Global Banner</h4>
                       <p className="text-gray-400 text-xs mt-1">Site announcements</p>
                     </Link>
+                    <Link href="/admin?tab=partners-admin" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fas fa-handshake text-cyan-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">Partners & Logos</h4>
+                      <p className="text-gray-400 text-xs mt-1">Pre-footer brand showcase</p>
+                    </Link>
                     <Link href="/admin?tab=email-leads" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
                       <i className="fas fa-envelope-open-text text-blue-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
                       <h4 className="text-white font-semibold text-sm">Email Leads</h4>

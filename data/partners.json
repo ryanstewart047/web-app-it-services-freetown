@@ -1,0 +1,73 @@
+{
+  "settings": {
+    "enabled": true,
+    "title": "Trusted Brands & Technology Partners",
+    "subtitle": "We service, support, and collaborate with leading global technology brands",
+    "colorMode": "grayscale-hover-color",
+    "layout": "grid",
+    "backgroundStyle": "light",
+    "updatedAt": "2026-09-17T22:30:00.000Z"
+  },
+  "partners": [
+    {
+      "id": "partner-apple",
+      "name": "Apple",
+      "logoUrl": "/images/brands/iphone.png",
+      "websiteUrl": "https://www.apple.com",
+      "active": true,
+      "order": 0,
+      "createdAt": "2026-09-17T22:30:00.000Z",
+      "updatedAt": "2026-09-17T22:30:00.000Z"
+    },
+    {
+      "id": "partner-samsung",
+      "name": "Samsung",
+      "logoUrl": "/images/brands/samsung.png",
+      "websiteUrl": "https://www.samsung.com",
+      "active": true,
+      "order": 1,
+      "createdAt": "2026-09-17T22:30:00.000Z",
+      "updatedAt": "2026-09-17T22:30:00.000Z"
+    },
+    {
+      "id": "partner-huawei",
+      "name": "Huawei",
+      "logoUrl": "/images/brands/huawei.png",
+      "websiteUrl": "https://consumer.huawei.com",
+      "active": true,
+      "order": 2,
+      "createdAt": "2026-09-17T22:30:00.000Z",
+      "updatedAt": "2026-09-17T22:30:00.000Z"
+    },
+    {
+      "id": "partner-xiaomi",
+      "name": "Xiaomi / Redmi",
+      "logoUrl": "/images/brands/redmi.png",
+      "websiteUrl": "https://www.mi.com",
+      "active": true,
+      "order": 3,
+      "createdAt": "2026-09-17T22:30:00.000Z",
+      "updatedAt": "2026-09-17T22:30:00.000Z"
+    },
+    {
+      "id": "partner-oppo",
+      "name": "OPPO",
+      "logoUrl": "/images/brands/oppo.png",
+      "websiteUrl": "https://www.oppo.com",
+      "active": true,
+      "order": 4,
+      "createdAt": "2026-09-17T22:30:00.000Z",
+      "updatedAt": "2026-09-17T22:30:00.000Z"
+    },
+    {
+      "id": "partner-motorola",
+      "name": "Motorola",
+      "logoUrl": "/images/brands/motorola.png",
+      "websiteUrl": "https://www.motorola.com",
+      "active": true,
+      "order": 5,
+      "createdAt": "2026-09-17T22:30:00.000Z",
+      "updatedAt": "2026-09-17T22:30:00.000Z"
+    }
+  ]
+}

@@ -103,6 +103,15 @@ const ADMIN_PANELS: AdminPanelItem[] = [
     url: '/banner-admin',
   },
   {
+    id: 'partners-admin',
+    name: 'Partners & Logos',
+    category: 'overview',
+    description: 'Pre-footer brand logos & styling',
+    icon: 'fas fa-handshake',
+    color: 'text-cyan-400',
+    url: '/partners-admin',
+  },
+  {
     id: 'track-record',
     name: 'Track Record & Stats',
     category: 'overview',

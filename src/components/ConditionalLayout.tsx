@@ -13,6 +13,7 @@ import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration';
 import OfferPopup from '@/components/OfferPopup';
 import NewsletterPopup from '@/components/NewsletterPopup';
 import GlobalBanner from '@/components/GlobalBanner';
+import PartnersSection from '@/components/PartnersSection';
 import MobileBottomNav from '@/components/layout/MobileBottomNav';
 import SplashScreen from '@/components/SplashScreen';
 
@@ -28,6 +29,7 @@ function ConditionalLayoutInner({ children }: ConditionalLayoutProps) {
   // Paths that are "admin-adjacent" but not under /admin — suppress chrome when in iframe
   const isAdminAdjacentPage =
     pathname?.startsWith('/banner-admin') ||
+    pathname?.startsWith('/partners-admin') ||
     pathname?.startsWith('/offer-admin') ||
     pathname?.startsWith('/ads-admin') ||
     pathname?.startsWith('/receipt') ||
@@ -102,6 +104,7 @@ function ConditionalLayoutInner({ children }: ConditionalLayoutProps) {
         <main className="flex-1 w-full main-content pb-16 md:pb-0">
           {children}
         </main>
+        <PartnersSection />
         <Footer />
       </div>
       <CookiePopup />
