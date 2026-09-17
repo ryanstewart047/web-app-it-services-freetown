@@ -55,6 +55,15 @@ const nextConfig = {
   // Experimental features
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion'],
+    outputFileTracingExcludes: {
+      '*': [
+        'desktop-app/**',
+        'node_modules/@swc/**',
+        'node_modules/@esbuild/**',
+        'node_modules/webpack/**',
+        'node_modules/prisma/**',
+      ],
+    },
   },
   // Enable compression
   compress: true,

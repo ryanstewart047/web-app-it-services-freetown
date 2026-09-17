@@ -67,3 +67,13 @@ dist/
 # Logs
 logs
 *.log
+
+# Desktop Electron app & installer binaries (hosted on GitHub Releases, not needed on Vercel)
+desktop-app/
+desktop-app/**
+*.AppImage
+*.deb
+*.exe
+*.dmg
+*.zip
+*.tar.gz
