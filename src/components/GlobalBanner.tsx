@@ -66,6 +66,8 @@ export default function GlobalBanner() {
             {banner.link && (
               <a
                 href={banner.link}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border border-white/30 bg-white/15 hover:bg-white/25 active:scale-95 text-[11px] sm:text-xs font-semibold text-white transition-all shadow-sm whitespace-nowrap"
               >
                 <span>{banner.buttonText || 'Learn More'}</span>
