@@ -1,6 +1,4 @@
-import fs from 'fs';
-import path from 'path';
-import { randomUUID } from 'crypto';
+import { prisma } from '@/lib/prisma';
 
 export type PartnerColorMode =
   | 'grayscale-hover-color' // Black & White with full color on hover
@@ -49,7 +47,7 @@ export const INITIAL_DEFAULT_PARTNERS: PartnerItem[] = [
   {
     id: 'partner-apple',
     name: 'Apple',
-    logoUrl: '/images/brands/iphone.png',
+    logoUrl: '/images/brands/apple.svg',
     websiteUrl: 'https://www.apple.com',
     active: true,
     order: 0,
@@ -59,7 +57,7 @@ export const INITIAL_DEFAULT_PARTNERS: PartnerItem[] = [
   {
     id: 'partner-samsung',
     name: 'Samsung',
-    logoUrl: '/images/brands/samsung.png',
+    logoUrl: '/images/brands/samsung.svg',
     websiteUrl: 'https://www.samsung.com',
     active: true,
     order: 1,
@@ -69,7 +67,7 @@ export const INITIAL_DEFAULT_PARTNERS: PartnerItem[] = [
   {
     id: 'partner-huawei',
     name: 'Huawei',
-    logoUrl: '/images/brands/huawei.png',
+    logoUrl: '/images/brands/huawei.svg',
     websiteUrl: 'https://consumer.huawei.com',
     active: true,
     order: 2,
@@ -79,7 +77,7 @@ export const INITIAL_DEFAULT_PARTNERS: PartnerItem[] = [
   {
     id: 'partner-xiaomi',
     name: 'Xiaomi / Redmi',
-    logoUrl: '/images/brands/redmi.png',
+    logoUrl: '/images/brands/xiaomi.svg',
     websiteUrl: 'https://www.mi.com',
     active: true,
     order: 3,
@@ -89,7 +87,7 @@ export const INITIAL_DEFAULT_PARTNERS: PartnerItem[] = [
   {
     id: 'partner-oppo',
     name: 'OPPO',
-    logoUrl: '/images/brands/oppo.png',
+    logoUrl: '/images/brands/oppo.svg',
     websiteUrl: 'https://www.oppo.com',
     active: true,
     order: 4,
@@ -99,7 +97,7 @@ export const INITIAL_DEFAULT_PARTNERS: PartnerItem[] = [
   {
     id: 'partner-motorola',
     name: 'Motorola',
-    logoUrl: '/images/brands/motorola.png',
+    logoUrl: '/images/brands/motorola.svg',
     websiteUrl: 'https://www.motorola.com',
     active: true,
     order: 5,
@@ -108,70 +106,110 @@ export const INITIAL_DEFAULT_PARTNERS: PartnerItem[] = [
   },
 ];
 
-function getFilePaths(): string[] {
-  return [
-    path.join(process.cwd(), 'data', 'partners.json'),
-    path.join('/tmp', 'partners.json'),
-  ];
-}
-
-export function loadPartnersFromFile(): PartnersData {
-  for (const filePath of getFilePaths()) {
-    try {
-      if (fs.existsSync(filePath)) {
-        const raw = fs.readFileSync(filePath, 'utf8');
-        const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === 'object') {
-          return {
-            settings: {
-              ...DEFAULT_PARTNERS_SETTINGS,
-              ...(parsed.settings || {}),
-            },
-            partners: Array.isArray(parsed.partners) ? parsed.partners : INITIAL_DEFAULT_PARTNERS,
-          };
-        }
-      }
-    } catch (_) {}
-  }
-
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper: map Prisma DB record → PartnerItem
+// ─────────────────────────────────────────────────────────────────────────────
+function mapDbPartner(p: {
+  id: string;
+  name: string;
+  logoUrl: string;
+  websiteUrl?: string | null;
+  colorMode?: string | null;
+  active: boolean;
+  order: number;
+  createdAt: Date;
+  updatedAt: Date;
+}): PartnerItem {
   return {
-    settings: { ...DEFAULT_PARTNERS_SETTINGS },
-    partners: [...INITIAL_DEFAULT_PARTNERS],
+    id: p.id,
+    name: p.name,
+    logoUrl: p.logoUrl,
+    websiteUrl: p.websiteUrl ?? undefined,
+    colorMode: (p.colorMode as PartnerColorMode) ?? undefined,
+    active: p.active,
+    order: p.order,
+    createdAt: p.createdAt.toISOString(),
+    updatedAt: p.updatedAt.toISOString(),
   };
 }
 
-export function savePartnersToFile(data: PartnersData): void {
-  for (const filePath of getFilePaths()) {
-    try {
-      const dir = path.dirname(filePath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-      fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
-    } catch (_) {}
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper: map Prisma DB record → PartnersSectionSettings
+// ─────────────────────────────────────────────────────────────────────────────
+function mapDbSettings(s: {
+  id: string;
+  enabled: boolean;
+  title: string;
+  subtitle?: string | null;
+  colorMode: string;
+  layout: string;
+  backgroundStyle: string;
+  updatedAt: Date;
+}): PartnersSectionSettings {
+  return {
+    enabled: s.enabled,
+    title: s.title,
+    subtitle: s.subtitle ?? undefined,
+    colorMode: s.colorMode as PartnerColorMode,
+    layout: s.layout as 'grid' | 'marquee',
+    backgroundStyle: s.backgroundStyle as 'light' | 'gray' | 'dark' | 'transparent',
+    updatedAt: s.updatedAt.toISOString(),
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Ensure default partners are seeded once when DB is empty
+// ─────────────────────────────────────────────────────────────────────────────
+async function seedDefaultsIfEmpty(): Promise<void> {
+  const count = await prisma.partnerLogo.count();
+  if (count === 0) {
+    await prisma.partnerLogo.createMany({
+      data: INITIAL_DEFAULT_PARTNERS.map((p) => ({
+        id: p.id,
+        name: p.name,
+        logoUrl: p.logoUrl,
+        websiteUrl: p.websiteUrl,
+        colorMode: p.colorMode ?? null,
+        active: p.active,
+        order: p.order,
+      })),
+      skipDuplicates: true,
+    });
   }
 }
 
-/**
- * Fetch all partners data (settings + list)
- */
+// ─────────────────────────────────────────────────────────────────────────────
+// Fetch all partners data (settings + list)
+// ─────────────────────────────────────────────────────────────────────────────
 export async function getPartnersData(): Promise<PartnersData> {
-  const fileData = loadPartnersFromFile();
-  
-  const sortedPartners = [...fileData.partners].sort((a, b) => {
-    if (a.order !== b.order) return a.order - b.order;
-    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-  });
+  try {
+    await seedDefaultsIfEmpty();
 
-  return {
-    settings: fileData.settings,
-    partners: sortedPartners,
-  };
+    const [dbSettings, dbPartners] = await Promise.all([
+      prisma.partnersSectionSettings.findUnique({ where: { id: 'active' } }),
+      prisma.partnerLogo.findMany({ orderBy: [{ order: 'asc' }, { createdAt: 'asc' }] }),
+    ]);
+
+    const settings: PartnersSectionSettings = dbSettings
+      ? mapDbSettings(dbSettings)
+      : { ...DEFAULT_PARTNERS_SETTINGS };
+
+    return {
+      settings,
+      partners: dbPartners.map(mapDbPartner),
+    };
+  } catch (error) {
+    console.error('[PartnersStore] getPartnersData error:', error);
+    return {
+      settings: { ...DEFAULT_PARTNERS_SETTINGS },
+      partners: [...INITIAL_DEFAULT_PARTNERS],
+    };
+  }
 }
 
-/**
- * Public function to get only active partners and current settings
- */
+// ─────────────────────────────────────────────────────────────────────────────
+// Public function: only active partners + settings
+// ─────────────────────────────────────────────────────────────────────────────
 export async function getPublicPartnersData(): Promise<{
   settings: PartnersSectionSettings;
   partners: PartnerItem[];
@@ -183,31 +221,38 @@ export async function getPublicPartnersData(): Promise<{
   };
 }
 
-/**
- * Update global section settings
- */
+// ─────────────────────────────────────────────────────────────────────────────
+// Update global section settings (including enabled toggle)
+// ─────────────────────────────────────────────────────────────────────────────
 export async function updatePartnersSettings(
-  settings: Partial<PartnersSectionSettings>
+  updates: Partial<PartnersSectionSettings>
 ): Promise<PartnersSectionSettings> {
-  const current = await getPartnersData();
-  const updatedSettings: PartnersSectionSettings = {
-    ...current.settings,
-    ...settings,
-    updatedAt: new Date().toISOString(),
-  };
-
-  const updatedData: PartnersData = {
-    settings: updatedSettings,
-    partners: current.partners,
-  };
-
-  savePartnersToFile(updatedData);
-  return updatedSettings;
+  const updated = await prisma.partnersSectionSettings.upsert({
+    where: { id: 'active' },
+    update: {
+      ...(updates.enabled !== undefined && { enabled: updates.enabled }),
+      ...(updates.title !== undefined && { title: updates.title }),
+      ...(updates.subtitle !== undefined && { subtitle: updates.subtitle }),
+      ...(updates.colorMode !== undefined && { colorMode: updates.colorMode }),
+      ...(updates.layout !== undefined && { layout: updates.layout }),
+      ...(updates.backgroundStyle !== undefined && { backgroundStyle: updates.backgroundStyle }),
+    },
+    create: {
+      id: 'active',
+      enabled: updates.enabled ?? DEFAULT_PARTNERS_SETTINGS.enabled,
+      title: updates.title ?? DEFAULT_PARTNERS_SETTINGS.title,
+      subtitle: updates.subtitle ?? DEFAULT_PARTNERS_SETTINGS.subtitle,
+      colorMode: updates.colorMode ?? DEFAULT_PARTNERS_SETTINGS.colorMode,
+      layout: updates.layout ?? DEFAULT_PARTNERS_SETTINGS.layout,
+      backgroundStyle: updates.backgroundStyle ?? DEFAULT_PARTNERS_SETTINGS.backgroundStyle,
+    },
+  });
+  return mapDbSettings(updated);
 }
 
-/**
- * Add a new partner
- */
+// ─────────────────────────────────────────────────────────────────────────────
+// Add a new partner logo
+// ─────────────────────────────────────────────────────────────────────────────
 export async function addPartner(item: {
   name: string;
   logoUrl: string;
@@ -215,109 +260,77 @@ export async function addPartner(item: {
   colorMode?: PartnerColorMode;
   active?: boolean;
 }): Promise<PartnerItem> {
-  const current = await getPartnersData();
-  const highestOrder = current.partners.reduce((max, p) => Math.max(max, p.order), -1);
-  const now = new Date().toISOString();
+  const highest = await prisma.partnerLogo.aggregate({ _max: { order: true } });
+  const nextOrder = (highest._max.order ?? -1) + 1;
 
-  const newPartner: PartnerItem = {
-    id: `partner-${randomUUID()}`,
-    name: item.name.trim(),
-    logoUrl: item.logoUrl.trim(),
-    websiteUrl: item.websiteUrl ? item.websiteUrl.trim() : '',
-    colorMode: item.colorMode,
-    active: item.active !== false,
-    order: highestOrder + 1,
-    createdAt: now,
-    updatedAt: now,
-  };
-
-  const updatedPartners = [...current.partners, newPartner];
-  savePartnersToFile({
-    settings: current.settings,
-    partners: updatedPartners,
+  const created = await prisma.partnerLogo.create({
+    data: {
+      name: item.name.trim(),
+      logoUrl: item.logoUrl.trim(),
+      websiteUrl: item.websiteUrl?.trim() || null,
+      colorMode: item.colorMode ?? null,
+      active: item.active !== false,
+      order: nextOrder,
+    },
   });
-
-  return newPartner;
+  return mapDbPartner(created);
 }
 
-/**
- * Update an existing partner
- */
+// ─────────────────────────────────────────────────────────────────────────────
+// Update an existing partner logo (including active toggle)
+// ─────────────────────────────────────────────────────────────────────────────
 export async function updatePartner(
   id: string,
   updates: Partial<Omit<PartnerItem, 'id' | 'createdAt'>>
 ): Promise<PartnerItem | null> {
-  const current = await getPartnersData();
-  const partnerIndex = current.partners.findIndex((p) => p.id === id);
-
-  if (partnerIndex === -1) {
-    return null;
-  }
-
-  const existing = current.partners[partnerIndex];
-  const updated: PartnerItem = {
-    ...existing,
-    ...updates,
-    updatedAt: new Date().toISOString(),
-  };
-
-  current.partners[partnerIndex] = updated;
-  savePartnersToFile(current);
-
-  return updated;
-}
-
-/**
- * Delete a partner by id
- */
-export async function deletePartner(id: string): Promise<boolean> {
-  const current = await getPartnersData();
-  const filtered = current.partners.filter((p) => p.id !== id);
-
-  if (filtered.length === current.partners.length) {
-    return false;
-  }
-
-  savePartnersToFile({
-    settings: current.settings,
-    partners: filtered,
-  });
-
-  return true;
-}
-
-/**
- * Reorder partners
- */
-export async function reorderPartners(orderedIds: string[]): Promise<PartnerItem[]> {
-  const current = await getPartnersData();
-  const partnerMap = new Map(current.partners.map((p) => [p.id, p]));
-
-  const reordered: PartnerItem[] = [];
-  orderedIds.forEach((id, index) => {
-    const partner = partnerMap.get(id);
-    if (partner) {
-      reordered.push({
-        ...partner,
-        order: index,
-        updatedAt: new Date().toISOString(),
-      });
-      partnerMap.delete(id);
-    }
-  });
-
-  // Append any remaining items
-  partnerMap.forEach((partner) => {
-    reordered.push({
-      ...partner,
-      order: reordered.length,
+  try {
+    const updated = await prisma.partnerLogo.update({
+      where: { id },
+      data: {
+        ...(updates.name !== undefined && { name: updates.name }),
+        ...(updates.logoUrl !== undefined && { logoUrl: updates.logoUrl }),
+        ...(updates.websiteUrl !== undefined && { websiteUrl: updates.websiteUrl || null }),
+        ...(updates.colorMode !== undefined && { colorMode: updates.colorMode ?? null }),
+        ...(updates.active !== undefined && { active: updates.active }),
+        ...(updates.order !== undefined && { order: updates.order }),
+      },
     });
-  });
-
-  savePartnersToFile({
-    settings: current.settings,
-    partners: reordered,
-  });
-
-  return reordered;
+    return mapDbPartner(updated);
+  } catch (error: any) {
+    if (error?.code === 'P2025') return null; // Record not found
+    throw error;
+  }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Delete a partner logo
+// ─────────────────────────────────────────────────────────────────────────────
+export async function deletePartner(id: string): Promise<boolean> {
+  try {
+    await prisma.partnerLogo.delete({ where: { id } });
+    return true;
+  } catch (error: any) {
+    if (error?.code === 'P2025') return false;
+    throw error;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Reorder partners by providing an ordered list of IDs
+// ─────────────────────────────────────────────────────────────────────────────
+export async function reorderPartners(orderedIds: string[]): Promise<PartnerItem[]> {
+  await prisma.$transaction(
+    orderedIds.map((id, index) =>
+      prisma.partnerLogo.update({
+        where: { id },
+        data: { order: index },
+      })
+    )
+  );
+
+  const reordered = await prisma.partnerLogo.findMany({
+    orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
+  });
+  return reordered.map(mapDbPartner);
+}
+

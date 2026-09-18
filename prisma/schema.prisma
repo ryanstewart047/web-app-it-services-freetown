@@ -551,3 +551,30 @@ model AnalyticsSession {
   
   @@index([pageViews])
 }
+
+model PartnersSectionSettings {
+  id              String   @id @default("active")
+  enabled         Boolean  @default(true)
+  title           String   @default("Trusted Brands & Technology Partners")
+  subtitle        String?
+  colorMode       String   @default("grayscale-hover-color")
+  layout          String   @default("grid")
+  backgroundStyle String   @default("light")
+  updatedAt       DateTime @updatedAt
+}
+
+model PartnerLogo {
+  id         String   @id @default(cuid())
+  name       String
+  logoUrl    String   @db.Text
+  websiteUrl String?
+  colorMode  String?
+  active     Boolean  @default(true)
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([active])
+  @@index([order])
+}
+
