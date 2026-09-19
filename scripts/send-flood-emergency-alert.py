@@ -22,7 +22,7 @@ import urllib.parse
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-REVEAL_URL = "https://www.itservicesfreetown.com/surprise/freetown-safety-alert"
+REVEAL_URL = "https://www.itservicesfreetown.com/flood-safety-guide"
 BRAND_NAME = "BridgeTech IT Services"
 BRAND_PHONE = "+232 33 399391"
 EMERGENCY_HOTLINE = "117"
@@ -239,20 +239,20 @@ Website: https://www.itservicesfreetown.com
             </td>
           </tr>
 
-          <!-- Interactive Safety Reveal Call-To-Action -->
+          <!-- Step-by-Step Flood Safety Guide Call-To-Action -->
           <tr>
             <td align="center" style="padding:10px 24px 28px 24px;">
               <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                 <tr>
                   <td align="center" style="border-radius:12px; background:linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);">
                     <a href="{REVEAL_URL}" target="_blank" rel="noopener noreferrer" style="display:inline-block; padding:16px 32px; color:#ffffff; font-size:16px; font-weight:800; text-decoration:none; border-radius:12px; letter-spacing:0.3px; box-shadow:0 4px 14px rgba(220,38,38,0.4);">
-                      🚨 Open Interactive Flood Safety Reveal &rarr;
+                      🚨 Open Step-by-Step Flood Safety Guide &rarr;
                     </a>
                   </td>
                 </tr>
               </table>
               <p style="margin:10px 0 0 0; color:#64748b; font-size:12px;">
-                Interactive safety quiz, emergency checklist, and shareable community alert link.
+                Complete life safety protocols, 117 emergency details, and community WhatsApp share.
               </p>
             </td>
           </tr>

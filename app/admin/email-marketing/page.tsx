@@ -276,8 +276,8 @@ export default function EmailMarketingPage() {
 </ul>
 
 <div style="text-align:center; margin:24px 0;">
-  <a href="https://www.itservicesfreetown.com/surprise/freetown-safety-alert" class="email-button" style="background-color:#dc2626; color:#ffffff !important; padding:14px 28px; text-decoration:none; border-radius:10px; font-weight:bold; display:inline-block;">
-    🚨 Open Interactive Flood Safety Reveal &rarr;
+  <a href="https://www.itservicesfreetown.com/flood-safety-guide" class="email-button" style="background-color:#dc2626; color:#ffffff !important; padding:14px 28px; text-decoration:none; border-radius:10px; font-weight:bold; display:inline-block;">
+    🚨 Open Step-by-Step Flood Safety Guide &rarr;
   </a>
 </div>
 
@@ -632,13 +632,13 @@ export default function EmailMarketingPage() {
                   National Hotline: 117
                 </span>
                 <a
-                  href="/surprise/freetown-safety-alert"
+                  href="/flood-safety-guide"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 rounded-full bg-slate-800 border border-slate-700 px-3 py-1 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-700 transition"
                 >
                   <Eye className="h-3 w-3" />
-                  Preview 117 Safety Reveal
+                  Preview Flood Safety Guide
                   <ExternalLink className="h-3 w-3 ml-0.5" />
                 </a>
               </div>

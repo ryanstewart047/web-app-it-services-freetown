@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import SurpriseRevealExperience from './SurpriseRevealExperience';
 import { getSurpriseReveal } from '@/lib/surprise-reveal-storage';
+import FloodSafetyGuidePage from '@/app/flood-safety-guide/page';
 
 interface SurpriseRevealPageProps {
   params: { code: string };
@@ -29,6 +30,13 @@ function getOgImageUrl(baseUrl: string, code: string) {
 }
 
 export async function generateMetadata({ params }: SurpriseRevealPageProps): Promise<Metadata> {
+  if (params.code === 'freetown-safety-alert') {
+    return {
+      title: '🚨 Freetown Emergency Flood & Heavy Rain Safety Guide | BridgeTech IT Services',
+      description: 'Step-by-step community safety guide for heavy rainfall in Freetown. Emergency hotline 117, life safety steps, and electronics protection.',
+    };
+  }
+
   const reveal = await getSurpriseReveal(params.code);
   if (!reveal) return { title: 'BridgeTec Surprise Studio — Celebration Reveal' };
 
@@ -70,6 +78,10 @@ export async function generateMetadata({ params }: SurpriseRevealPageProps): Pro
 }
 
 export default async function SurpriseRevealPage({ params }: SurpriseRevealPageProps) {
+  if (params.code === 'freetown-safety-alert') {
+    return <FloodSafetyGuidePage />;
+  }
+
   const reveal = await getSurpriseReveal(params.code);
   if (!reveal) notFound();
 
