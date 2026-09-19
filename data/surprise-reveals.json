@@ -1,0 +1,30 @@
+{
+  "items": [
+    {
+      "code": "freetown-safety-alert",
+      "recipientName": "Freetown Residents & Valued Customers",
+      "achievement": "URGENT FREETOWN FLOOD & HEAVY RAIN SAFETY ADVISORY",
+      "message": "Due to persistent torrential rainfall across Freetown, severe flooding and mudslide hazards have increased across vulnerable low-lying and hillside communities.\n\n\ud83d\udea8 EMERGENCY HOTLINE: Dial 117 immediately (toll-free across Africell, Orange, and QCell) to report flood dangers, trapped persons, or structural risks to the National Disaster Management Agency (NDMA).\n\n\u26a0\ufe0f CRITICAL SAFETY PROTOCOLS:\n1. STAY SAFE & ELEVATED: Never walk, swim, or drive through moving water. Just 15 cm of rapid floodwater can sweep away an adult; 30 cm can float a vehicle.\n2. ELECTRICAL & TECH PROTECTION: Unplug laptops, desktop PCs, TVs, routers, and extension power strips immediately from wall sockets. Elevate all electronics and essential paperwork to upper tables or shelves.\n3. MAIN BREAKER: If water begins entering your home or office, turn off your main electrical power breaker switch immediately.\n4. HILLSIDE & SLOPES: If you reside near steep slopes prone to mudslides, move proactively to designated community shelters or higher ground.\n5. COMMUNITY CARE: Check on elderly relatives, children, and neighbors who may need assistance moving to safe ground.\n\nBridgeTech IT Services stands with all residents of Freetown. Your life is irreplaceable. Stay safe, stay dry, and dial 117 for emergencies.",
+      "imageUrl": "/assets/social-media/bridgetech-social-dark-bg-1080.png",
+      "soundEffect": "spotlight-chime",
+      "presenterName": "BridgeTech IT Services Community Care",
+      "quiz": [
+        {
+          "question": "\ud83d\udea8 Emergency Safety Check: What toll-free emergency number must you dial in Sierra Leone to report floods, mudslides, or life-threatening dangers?",
+          "options": [
+            "117 (National Emergency Toll-Free Line)",
+            "Wait until rain stops",
+            "Post on social media only",
+            "999 (UK only)"
+          ],
+          "correctIndex": 0,
+          "hint": "Dial 117 free on Africell, Orange, or QCell for immediate disaster response and rescue reporting."
+        }
+      ],
+      "isVip": true,
+      "paymentStatus": "approved",
+      "createdAt": "2026-09-19T12:00:00.000Z",
+      "updatedAt": "2026-09-19T12:00:00.000Z"
+    }
+  ]
+}

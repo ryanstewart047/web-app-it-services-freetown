@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import dynamicImport from 'next/dynamic'
-import { Send, Users, Image as ImageIcon, Link as LinkIcon, CheckSquare, Square, Trash2, RefreshCw, Mail, ArrowLeft, Sparkles, Wand2, Calendar, ToggleLeft, ToggleRight, Plus, X, FlaskConical, History, ChevronDown, ChevronUp } from 'lucide-react'
+import { Send, Users, Image as ImageIcon, Link as LinkIcon, CheckSquare, Square, Trash2, RefreshCw, Mail, ArrowLeft, Sparkles, Wand2, Calendar, ToggleLeft, ToggleRight, Plus, X, FlaskConical, History, ChevronDown, ChevronUp, Eye, ExternalLink, Megaphone, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import 'react-quill/dist/quill.snow.css'
 
@@ -96,6 +96,11 @@ export default function EmailMarketingPage() {
   const [sendingTest, setSendingTest] = useState(false)
   const [newTopic, setNewTopic] = useState('')
   const [showLogs, setShowLogs] = useState(false)
+
+  // --- Emergency Flood Advisory State ---
+  const [emergencySending, setEmergencySending] = useState(false)
+  const [emergencySuccess, setEmergencySuccess] = useState('')
+  const [emergencyBannerActive, setEmergencyBannerActive] = useState(false)
 
   useEffect(() => {
     fetchLeads()
@@ -240,6 +245,99 @@ export default function EmailMarketingPage() {
       ...prev,
       topics: prev.topics.filter((_, i) => i !== index)
     } : prev)
+  }
+
+  // --- Flood Emergency Functions ---
+  const handleLoadFloodEmergencyTemplate = () => {
+    const floodSubject = '⚠️ URGENT: Freetown Heavy Rain & Flood Safety Advisory — Dial 117 for Emergency Help'
+    setSubject(floodSubject)
+    const floodHtml = `<div style="padding:16px; background-color:#fef2f2; border:2px solid #ef4444; border-radius:12px; text-align:center; margin-bottom:20px;">
+  <p style="margin:0; font-size:12px; font-weight:800; color:#991b1b; text-transform:uppercase; letter-spacing:1.5px;">National Emergency Toll-Free Hotline</p>
+  <p style="margin:4px 0; font-size:34px; font-weight:900; color:#dc2626;">DIAL 117</p>
+  <p style="margin:0; font-size:12px; color:#7f1d1d;">Free from Africell, Orange, QCell across Sierra Leone to report floods, mudslides, or rescue needs.</p>
+</div>
+
+<p><strong>Dear Valued Customer and Freetown Resident,</strong></p>
+<p>Due to hours of persistent heavy rainfall across Freetown, severe flooding and landslide hazards have rapidly increased across vulnerable low-lying and hillside communities.</p>
+
+<p><strong>🛑 CRITICAL FLOOD SAFETY RULES:</strong></p>
+<ul>
+  <li><strong>Never walk or drive through moving water:</strong> 15 cm of swift current can sweep an adult off their feet; 30 cm can carry vehicles.</li>
+  <li><strong>Stay away from overflowing gutters and drainages:</strong> Culverts in Kroo Bay, Culvert, Dwarzark, Susan's Bay, and Congo Market conceal dangerous suction.</li>
+  <li><strong>Move to higher ground early:</strong> Do not wait until escape routes are underwater.</li>
+</ul>
+
+<p><strong>🔌 TECH &amp; ELECTRICAL PROTECTION:</strong></p>
+<ul>
+  <li><strong>Unplug electronics immediately:</strong> Disconnect laptops, desktop PCs, TVs, routers, and extension power strips to prevent surge damage.</li>
+  <li><strong>Elevate devices:</strong> Move computers, phones, and essential paperwork off the floor onto high tables.</li>
+  <li><strong>Turn off main breaker:</strong> If floodwater begins entering your home, shut off your main breaker switch immediately.</li>
+  <li><strong>Never power on wet electronics:</strong> If a phone or laptop got wet, keep it turned off! Never connect a charger.</li>
+</ul>
+
+<div style="text-align:center; margin:24px 0;">
+  <a href="https://www.itservicesfreetown.com/surprise/freetown-safety-alert" class="email-button" style="background-color:#dc2626; color:#ffffff !important; padding:14px 28px; text-decoration:none; border-radius:10px; font-weight:bold; display:inline-block;">
+    🚨 Open Interactive Flood Safety Reveal &rarr;
+  </a>
+</div>
+
+<p>Stay safe, stay dry, and call <strong>117</strong> in case of any danger or emergency.</p>
+<p><em>With deep care and solidarity,<br>The Team at BridgeTech IT Services (#1 Regent Highway, Jui Junction)</em></p>`
+
+    setContent(floodHtml)
+    if (quillRef.current) {
+      quillRef.current.getEditor().clipboard.dangerouslyPasteHTML(floodHtml)
+    }
+    setSelectedEmails(new Set(leads.map(l => l.email)))
+    alert('✅ Flood Emergency Advisory template loaded into editor and all customer recipients selected!')
+  }
+
+  const handleActivateEmergencyBanner = async () => {
+    try {
+      const res = await fetch('/api/admin/emergency-broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update-banner-only' }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setEmergencyBannerActive(true)
+        alert('🚨 Website Global Banner updated to Red Flood Emergency Alert with link to 117 Safety Reveal!')
+      } else {
+        alert('Failed to update banner: ' + (data.error || 'Unknown error'))
+      }
+    } catch (e) {
+      alert('Error updating banner.')
+    }
+  }
+
+  const handleQuickEmergencyBroadcast = async () => {
+    if (!confirm('🚨 Are you sure you want to broadcast the Freetown Flood Emergency Safety Warning to all customers? This will send emails with the 117 emergency hotline and the interactive safety reveal link.')) {
+      return
+    }
+    setEmergencySending(true)
+    setEmergencySuccess('')
+    try {
+      const res = await fetch('/api/admin/emergency-broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send-broadcast',
+          updateGlobalBanner: true,
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setEmergencySuccess(`✅ Emergency Broadcast Complete! Successfully sent to ${data.sentCount} customers (${data.failedCount} failed). Global banner activated.`)
+        alert(`✅ Emergency Broadcast Sent!\n\nDelivered: ${data.sentCount} customers\nFailed: ${data.failedCount}\nWebsite Top Banner: Activated\nSafety Reveal URL: ${data.revealUrl}`)
+      } else {
+        alert('❌ Broadcast failed: ' + (data.error || 'Unknown error'))
+      }
+    } catch (e) {
+      alert('❌ Network error sending emergency broadcast.')
+    } finally {
+      setEmergencySending(false)
+    }
   }
 
   const clearNewsletterLogs = async () => {
@@ -518,6 +616,86 @@ export default function EmailMarketingPage() {
               {sending ? <RefreshCw className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
               {sending ? 'Sending Campaign...' : 'Blast Campaign'}
             </button>
+          </div>
+        </div>
+
+        {/* Urgent Flood Emergency Safety Advisory Card */}
+        <div className="mb-8 overflow-hidden rounded-3xl border-2 border-red-500 bg-gradient-to-br from-red-950/40 via-slate-900 to-red-900/30 p-6 sm:p-8 shadow-2xl shadow-red-950/50">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="space-y-3 max-w-2xl">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-3.5 py-1 text-xs font-black uppercase tracking-wider text-white shadow-md shadow-red-600/50 animate-pulse">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  🚨 Freetown Emergency Broadcast
+                </span>
+                <span className="rounded-full bg-red-950 border border-red-500/30 px-3 py-1 text-xs font-bold text-red-200">
+                  National Hotline: 117
+                </span>
+                <a
+                  href="/surprise/freetown-safety-alert"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-full bg-slate-800 border border-slate-700 px-3 py-1 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-700 transition"
+                >
+                  <Eye className="h-3 w-3" />
+                  Preview 117 Safety Reveal
+                  <ExternalLink className="h-3 w-3 ml-0.5" />
+                </a>
+              </div>
+              
+              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                Freetown Heavy Rainfall &amp; Flood Safety Advisory
+              </h2>
+              
+              <p className="text-sm text-slate-300 leading-relaxed">
+                Send an immediate caring flood safety warning to all <strong>{leads.length} verified customers</strong>. Warns residents to dial <strong>117</strong> for emergency disaster response, provides practical flood rules, tech protection steps (unplugging devices), and links to the interactive Safety Reveal.
+              </p>
+
+              {emergencySuccess && (
+                <div className="rounded-xl bg-emerald-900/40 border border-emerald-500/50 p-3 text-xs font-bold text-emerald-300">
+                  {emergencySuccess}
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={handleLoadFloodEmergencyTemplate}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 px-5 py-3.5 text-xs font-black shadow-sm transition hover:scale-105"
+              >
+                <Sparkles className="h-4 w-4 text-amber-400" />
+                Load Template in Editor &amp; Select All
+              </button>
+
+              <button
+                type="button"
+                onClick={handleActivateEmergencyBanner}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-5 py-3.5 text-xs shadow-md transition hover:scale-105"
+              >
+                <Megaphone className="h-4 w-4 text-slate-950" />
+                Activate Red Banner on Website
+              </button>
+
+              <button
+                type="button"
+                onClick={handleQuickEmergencyBroadcast}
+                disabled={emergencySending}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white font-black px-6 py-4 text-sm shadow-xl shadow-red-900/60 transition hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+              >
+                {emergencySending ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    Broadcasting to All Customers...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4" />
+                    ⚡ Broadcast Alert to All Customers
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
