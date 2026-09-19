@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import SurpriseRevealExperience from './SurpriseRevealExperience';
 import { getSurpriseReveal } from '@/lib/surprise-reveal-storage';
-import FloodSafetyGuidePage from '@/app/flood-safety-guide/page';
 
 interface SurpriseRevealPageProps {
   params: { code: string };
@@ -79,7 +78,7 @@ export async function generateMetadata({ params }: SurpriseRevealPageProps): Pro
 
 export default async function SurpriseRevealPage({ params }: SurpriseRevealPageProps) {
   if (params.code === 'freetown-safety-alert') {
-    return <FloodSafetyGuidePage />;
+    redirect('/flood-safety-guide');
   }
 
   const reveal = await getSurpriseReveal(params.code);
