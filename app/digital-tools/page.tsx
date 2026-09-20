@@ -12,6 +12,7 @@ import FileMetadataInspector from '@/components/digital-tools/FileMetadataInspec
 import ImageBackgroundRemover from '@/components/digital-tools/ImageBackgroundRemover';
 import SurpriseRevealStudio from '@/components/digital-tools/SurpriseRevealStudio';
 import CardStudio from '@/components/digital-tools/CardStudio';
+import DigitalToolsHeader from '@/components/digital-tools/DigitalToolsHeader';
 import { BRAND_AVATAR_TRANSPARENT_SRC, BRAND_NAME } from '@/lib/brand';
 
 type ToolCategory = 'all' | 'image' | 'pdf' | 'audio' | 'utilities';
@@ -593,6 +594,20 @@ export default function DigitalToolsPage() {
   const [activeToolId, setActiveToolId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
+  // Handle direct tool selection with smooth auto-scroll
+  const handleSelectTool = useCallback((toolId: string) => {
+    setActiveToolId(toolId);
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', `#${toolId}`);
+      setTimeout(() => {
+        const workspaceEl = document.getElementById('active-tool-workspace');
+        if (workspaceEl) {
+          workspaceEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 60);
+    }
+  }, []);
+
   // QR Code generator state
   const [qrText, setQrText] = useState('https://www.itservicesfreetown.com/digital-tools');
   const [qrDataUrl, setQrDataUrl] = useState('');
@@ -689,56 +704,12 @@ export default function DigitalToolsPage() {
 
       {/* Main Container */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-        {/* Navigation Breadcrumb */}
-        <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-800/80">
-          <Link
-            href="/"
-            className="flex items-center gap-2 text-slate-400 hover:text-cyan-400 text-xs font-semibold tracking-wide transition-colors"
-          >
-            <i className="fas fa-arrow-left"></i>
-            <span>Back to BridgeTech Main Site</span>
-          </Link>
-
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold rounded-full flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-              100% Free Tools Hub
-            </span>
-          </div>
-        </div>
-
-        {/* Hero Section (TinyWow Style) */}
-        <div className="text-center max-w-3xl mx-auto mb-10">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-slate-900/90 border border-slate-800 rounded-full text-xs font-bold text-slate-300 mb-4 shadow-xl">
-            <i className="fas fa-wand-magic-sparkles text-cyan-400"></i>
-            <span>All-in-One Online Media &amp; File Toolkit</span>
-          </div>
-
-          <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white mb-4">
-            Free Digital Tools &amp; Products <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400">Suite</span>
-          </h1>
-
-          <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-6">
-            Design print-ready 300 DPI executive business cards &amp; staff ID badges, create viral celebration reveals with crowd cheer audio &amp; printable certificates, convert video to MP3, Word to PDF, erase backgrounds with AI, and run everyday utilities with zero limits.
-          </p>
-
-          {/* Trust Value Badges */}
-          <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-bold text-slate-400">
-            <div className="flex items-center gap-1.5">
-              <i className="fas fa-circle-check text-emerald-400"></i>
-              <span>100% Free Forever</span>
-            </div>
-            <span>•</span>
-            <div className="flex items-center gap-1.5">
-              <i className="fas fa-lock text-cyan-400"></i>
-              <span>No Sign-Up Required</span>
-            </div>
-            <span>•</span>
-            <div className="flex items-center gap-1.5">
-              <i className="fas fa-shield-halved text-purple-400"></i>
-              <span>Private On-Device Execution</span>
-            </div>
-          </div>
+        {/* Animated 3D ID Card & Digital Tools Suite Header Section */}
+        <div className="mb-10">
+          <DigitalToolsHeader
+            onSelectTool={handleSelectTool}
+            activeToolId={activeToolId}
+          />
         </div>
 
         {/* Global Live Search Bar */}
@@ -794,7 +765,7 @@ export default function DigitalToolsPage() {
 
         {/* ── ACTIVE FOCUSED WORKSPACE (When a tool is opened) ── */}
         {activeToolId && (
-          <div className="mb-14 space-y-4 animate-fade-in">
+          <div id="active-tool-workspace" className="mb-14 space-y-4 animate-fade-in scroll-mt-6">
             <div className="flex items-center justify-between bg-slate-900/90 border border-slate-800 p-4 rounded-2xl">
               <div className="flex items-center gap-3">
                 <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm bg-gradient-to-tr ${activeToolObj?.gradient}`}>
@@ -870,7 +841,7 @@ export default function DigitalToolsPage() {
         )}
 
         {/* ── THE ICONIC TINYWOW TOOL DIRECTORY GRID ── */}
-        <div className="space-y-6">
+        <div id="tools-directory-grid" className="space-y-6 scroll-mt-8">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
               <i className="fas fa-grid-2 text-cyan-400"></i>
