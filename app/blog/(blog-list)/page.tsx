@@ -473,7 +473,7 @@ function BlogPageContent() {
           <div className={newsStyles.networkBarInner}>
             <div className={newsStyles.networkBrand}>
               <Tv2 className="h-5 w-5" />
-              <span className={newsStyles.networkName}>IT<span className={newsStyles.networkAccent}>SL</span> NEWS</span>
+              <span className={newsStyles.networkName}>Bridge<span className={newsStyles.networkAccent}>Tech</span> News</span>
               <span className={newsStyles.networkTagline}>Sierra Leone's Tech Channel</span>
             </div>
             <div className={newsStyles.networkRight}>
