@@ -1,0 +1,32 @@
+[
+  {
+    "id": "announcement-default-1",
+    "title": "General Welcome",
+    "message": "Welcome to BridgeTech IT Services — Sierra Leone's #1 Trusted Tech Repair & Digital Studio!",
+    "link": "/repair-showcase",
+    "buttonText": "Book Repair",
+    "color": "bg-blue-700",
+    "createdAt": "2026-09-22T08:00:00.000Z",
+    "updatedAt": "2026-09-22T08:00:00.000Z"
+  },
+  {
+    "id": "announcement-default-2",
+    "title": "Special Discount Promo",
+    "message": "🚨 Special Discount: 20% off all iPhone, Samsung & MacBook screen repairs this week!",
+    "link": "/#book-repair",
+    "buttonText": "Claim Deal",
+    "color": "bg-red-600",
+    "createdAt": "2026-09-22T08:00:00.000Z",
+    "updatedAt": "2026-09-22T08:00:00.000Z"
+  },
+  {
+    "id": "announcement-default-3",
+    "title": "3D Digital Tools Studio",
+    "message": "🎉 New Feature: Design print-ready 300 DPI business cards, staff ID badges & VIP passes in our 3D Card Studio!",
+    "link": "/digital-tools",
+    "buttonText": "Try Studio Free",
+    "color": "bg-purple-600",
+    "createdAt": "2026-09-22T08:00:00.000Z",
+    "updatedAt": "2026-09-22T08:00:00.000Z"
+  }
+]
