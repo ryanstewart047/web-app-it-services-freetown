@@ -24,8 +24,72 @@ export interface MusicTrack {
 type DownloadFormat = 'mp3' | 'mp4' | 'cover';
 type RepeatMode = 'off' | 'all' | 'one';
 
-// 100% Clean Royalty-Free MP3 Streams from Pixabay (No Watermark • No Voiceover • Full Length • CORS-OK)
+// 100% Clean Royalty-Free MP3 Streams (Afrobeat, Amapiano, Lo-Fi, Piano, Synthwave • No Watermarks • No Voiceovers)
 const DEFAULT_ROYALTY_PLAYLIST: MusicTrack[] = [
+  {
+    id: 'rf_afrobeat_1',
+    title: 'E Go Better (Afrobeats Instrumental Groove)',
+    artist: 'Orfvr',
+    album: 'Freetown & West Africa Royalty Grooves',
+    genre: 'Afrobeat / West African Groove',
+    durationMs: 190000,
+    durationFormatted: '3:10',
+    previewUrl: '/assets/audio/afrobeat/e-go-better.mp3',
+    downloadUrl: '/assets/audio/afrobeat/e-go-better.mp3',
+    artworkUrlSmall: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=300&auto=format&fit=crop&q=80',
+    artworkUrlHD: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&auto=format&fit=crop&q=80',
+    isFullTrack: true,
+    source: 'BridgeTech Afrobeat Studio (Full Track)',
+    isExplicit: false,
+  },
+  {
+    id: 'rf_afrobeat_2',
+    title: 'Real Vibes (Afrobeats & Dancehall Swing)',
+    artist: 'LA EQUIS',
+    album: 'Freetown & West Africa Royalty Grooves',
+    genre: 'Afrobeats / Afroswing',
+    durationMs: 210000,
+    durationFormatted: '3:30',
+    previewUrl: '/assets/audio/afrobeat/real-afrobeats.mp3',
+    downloadUrl: '/assets/audio/afrobeat/real-afrobeats.mp3',
+    artworkUrlSmall: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&auto=format&fit=crop&q=80',
+    artworkUrlHD: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=800&auto=format&fit=crop&q=80',
+    isFullTrack: true,
+    source: 'BridgeTech Afrobeat Studio (Full Track)',
+    isExplicit: false,
+  },
+  {
+    id: 'rf_afrobeat_3',
+    title: 'Afro Pop & Afro Swing (Lagos to Freetown)',
+    artist: 'STARK MADE THIS',
+    album: 'Freetown & West Africa Royalty Grooves',
+    genre: 'Afro Pop / Afro Swing',
+    durationMs: 206000,
+    durationFormatted: '3:26',
+    previewUrl: '/assets/audio/afrobeat/afro-pop-2025.mp3',
+    downloadUrl: '/assets/audio/afrobeat/afro-pop-2025.mp3',
+    artworkUrlSmall: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=300&auto=format&fit=crop&q=80',
+    artworkUrlHD: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&auto=format&fit=crop&q=80',
+    isFullTrack: true,
+    source: 'BridgeTech Afrobeat Studio (Full Track)',
+    isExplicit: false,
+  },
+  {
+    id: 'rf_afrobeat_4',
+    title: 'Do U Remember (Amapiano & Afro House)',
+    artist: 'Uezurii',
+    album: 'Freetown & West Africa Royalty Grooves',
+    genre: 'Amapiano / Afro House',
+    durationMs: 311000,
+    durationFormatted: '5:11',
+    previewUrl: '/assets/audio/afrobeat/amapiano-groove.mp3',
+    downloadUrl: '/assets/audio/afrobeat/amapiano-groove.mp3',
+    artworkUrlSmall: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80',
+    artworkUrlHD: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=80',
+    isFullTrack: true,
+    source: 'BridgeTech Afrobeat Studio (Full Track)',
+    isExplicit: false,
+  },
   {
     id: 'rf_lofi_chill_1',
     title: 'Good Night (Lo-Fi Chill)',
@@ -754,15 +818,23 @@ export default function MusicFinder() {
         {/* Quick Genre Chips */}
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs text-slate-500 font-bold uppercase mr-1">Quick Play:</span>
-          {['Lo-Fi Chill', 'Acoustic Guitar', 'Synthwave', 'Ambient Piano', 'Deep Focus', 'Afrobeats', 'Gospel', 'Jazz'].map((genre) => (
-            <button
-              key={genre}
-              onClick={() => handleChipClick(genre)}
-              className="py-1 px-3 bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white rounded-lg text-xs font-medium transition-all"
-            >
-              {genre}
-            </button>
-          ))}
+          {['Afrobeats', 'Amapiano', 'West African', 'Lo-Fi Chill', 'Acoustic Guitar', 'Synthwave', 'Ambient Piano', 'Deep Focus', 'Gospel', 'Jazz'].map((genre) => {
+            const isAfrican = genre === 'Afrobeats' || genre === 'Amapiano' || genre === 'West African';
+            return (
+              <button
+                key={genre}
+                onClick={() => handleChipClick(genre)}
+                className={`py-1 px-3 rounded-lg text-xs font-semibold transition-all border ${
+                  isAfrican
+                    ? 'bg-amber-500/15 hover:bg-amber-500/25 border-amber-500/40 text-amber-300 hover:text-amber-200'
+                    : 'bg-slate-950 hover:bg-slate-800 border-slate-800 text-slate-300 hover:text-white'
+                }`}
+              >
+                {isAfrican && <i className="fas fa-fire mr-1 text-amber-400 text-[10px]"></i>}
+                {genre}
+              </button>
+            );
+          })}
         </div>
       </div>
 
