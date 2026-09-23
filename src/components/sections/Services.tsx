@@ -7,58 +7,62 @@ export default function Services() {
     {
       icon: 'fas fa-laptop',
       title: 'Computer Repair in Freetown',
-      description: 'Expert laptop and desktop repair services for all major brands in Freetown, Sierra Leone',
+      description: 'Expert laptop, desktop, and motherboard repair services for all major brands in Freetown, Sierra Leone',
       features: [
+        'Motherboard micro-soldering',
         'Hardware diagnostics',
-        'Software troubleshooting', 
-        'Virus removal',
-        'Performance optimization'
+        'Virus & malware removal',
+        'OS & performance upgrade'
       ],
       gradientColors: 'from-[#040e40] to-[#0a1a5c]',
       accentColor: 'blue',
-      href: undefined
+      href: '/repair-showcase',
+      ctaText: 'Explore Repairs'
     },
     {
-      icon: 'fas fa-mobile-alt', 
+      icon: 'fas fa-mobile-alt',
       title: 'Mobile Repair & Unlocking',
-      description: 'iPhone repair, mobile unlock, iCloud removal, FRP bypass. Professional mobile technician in Freetown',
+      description: 'iPhone repair, screen replacement, iCloud removal, and FRP Google bypass with warranty in Freetown',
       features: [
-        'Screen replacement',
-        'iCloud removal',
-        'FRP unlock & removal', 
-        'Network unlocking'
+        'Same-day screen replacement',
+        'Battery & charging port fix',
+        'iCloud removal & unlock',
+        'FRP & network unlocking'
       ],
       gradientColors: 'from-red-600 to-red-700',
       accentColor: 'red',
-      href: undefined
+      href: '/repairs/iphone-screen-replacement-freetown',
+      ctaText: 'View Phone Repairs'
     },
     {
-      icon: 'fas fa-network-wired',
-      title: 'Home Repair Services', 
-      description: 'Professional home repair and network installation services in Freetown',
+      icon: 'fas fa-wand-magic-sparkles',
+      title: '3D Card & Digital Tools',
+      description: 'Design 300 DPI executive business cards, staff ID badges, erase backgrounds with AI, and convert media free',
       features: [
-        'Wi-Fi setup',
-        'Network security',
-        'Cable installation',
-        'System integration'
+        '300 DPI business & ID studio',
+        'AI background eraser',
+        'Video & audio to MP3',
+        'Word DOCX to PDF converter'
       ],
-      gradientColors: 'from-[#040e40] to-[#0a1a5c]',
-      accentColor: 'blue',
-      href: undefined
+      gradientColors: 'from-amber-500 to-orange-600',
+      accentColor: 'amber',
+      href: '/digital-tools',
+      ctaText: 'Open Free Studio'
     },
     {
       icon: 'fas fa-usb',
-      title: 'Device Detection', 
-      description: 'Advanced USB device diagnostics for Android smartphones and tablets',
+      title: 'USB Device Diagnostics',
+      description: 'Advanced real-time browser-based USB device diagnostics and hardware detection for Android & PC',
       features: [
         'Real-time device info',
-        'Support 15+ brands',
-        'USB diagnostics',
-        'Browser-based tool'
+        'Support for 15+ brands',
+        'Hardware telemetry scan',
+        '100% private browser tool'
       ],
       gradientColors: 'from-green-600 to-green-700',
       accentColor: 'green',
-      href: '/device-detection'
+      href: '/device-detection',
+      ctaText: 'Run Diagnostic'
     }
   ]
 
@@ -114,13 +118,38 @@ export default function Services() {
                 
                 <Link 
                   href={service.href || "/learn-more"}
-                  className="rounded-full px-5 py-2.5 bg-white shadow-md font-medium transition-all duration-300 flex items-center justify-center group-hover:shadow-lg border-2 border-[#040e40] text-[#040e40] hover:bg-[#040e40] hover:text-white"
+                  className="rounded-full px-5 py-2.5 bg-white shadow-md font-bold text-xs sm:text-sm transition-all duration-300 flex items-center justify-center group-hover:shadow-lg border-2 border-[#040e40] text-[#040e40] hover:bg-[#040e40] hover:text-white"
                 >
-                  {service.href ? 'Try Now' : 'Learn More'} <i className="fas fa-arrow-right ml-2 transition-transform duration-300 group-hover:translate-x-1"></i>
+                  {service.ctaText || 'Learn More'} <i className="fas fa-arrow-right ml-2 transition-transform duration-300 group-hover:translate-x-1"></i>
                 </Link>
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Internal Discovery Strip (Boosts Page Views & Internal Linking) */}
+        <div className="mt-12 p-4 sm:p-6 bg-white/90 rounded-2xl shadow-sm border border-gray-200/80 flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-gray-600">
+          <span className="flex items-center gap-2 text-gray-800 font-bold">
+            <i className="fas fa-compass text-red-600 text-sm"></i>
+            <span>Looking for more solutions?</span>
+          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link href="/digital-tools" className="hover:text-red-600 transition flex items-center gap-1">
+              <span>🛠️ 13+ Free Digital Tools</span>
+            </Link>
+            <span className="text-gray-300">•</span>
+            <Link href="/repair-cost-checker-freetown" className="hover:text-red-600 transition flex items-center gap-1">
+              <span>💰 Check Repair Costs</span>
+            </Link>
+            <span className="text-gray-300">•</span>
+            <Link href="/blog" className="hover:text-red-600 transition flex items-center gap-1">
+              <span>📖 Read DIY Tech Guides</span>
+            </Link>
+            <span className="text-gray-300">•</span>
+            <Link href="/book-appointment" className="text-red-600 hover:text-red-700 font-bold transition flex items-center gap-1">
+              <span>📅 Book Free Diagnosis →</span>
+            </Link>
+          </div>
         </div>
       </div>
     </section>

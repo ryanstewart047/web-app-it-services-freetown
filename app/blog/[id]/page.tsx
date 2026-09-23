@@ -2,9 +2,11 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import {
   ArrowLeft,
+  ArrowRight,
   BookOpenText,
   Calendar,
   Clock3,
+  Sparkles,
   ThumbsDown,
   ThumbsUp,
   User,
@@ -160,6 +162,15 @@ export default async function BlogPostPage({ params }: Props) {
     (item, index) => item.url !== heroImage || index !== 0
   )
 
+  // Find related articles (same category first, then other recent articles) to boost internal linking & session stickiness
+  const sameCategoryPosts = posts.filter(
+    (p) => p.id !== post.id && getPostCategory(p) === category
+  )
+  const otherPosts = posts.filter(
+    (p) => p.id !== post.id && getPostCategory(p) !== category
+  )
+  const relatedPosts = [...sameCategoryPosts, ...otherPosts].slice(0, 3)
+
   return (
     <div className={styles.pageShell}>
       <div className={styles.meshOrbOne} />
@@ -281,25 +292,37 @@ export default async function BlogPostPage({ params }: Props) {
                 </div>
               </div>
 
-              <div className="mt-6 rounded-2xl bg-primary-950 p-5 text-white">
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-red-100">
-                  Need help with this issue?
+              <div className="mt-6 rounded-2xl bg-primary-950 p-5 text-white shadow-lg">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-400">
+                  Direct Expert Support
                 </p>
-                <p className="mt-3 text-sm leading-7 text-blue-50/90">
-                  Use this article as context, then book a repair or message the team for direct support.
+                <h4 className="mt-1.5 text-base font-extrabold text-white">
+                  Need Help Fixing This?
+                </h4>
+                <p className="mt-2 text-xs leading-5 text-blue-100/90">
+                  Our certified technicians in Freetown can diagnose and repair your device today with warranty.
                 </p>
-                <div className="mt-5 flex flex-col gap-3">
+                <div className="mt-4 flex flex-col gap-2.5">
+                  <a
+                    href="https://wa.me/23233399391?text=Hello%20BridgeTech,%20I%20am%20reading%20your%20article%20and%20need%20help%20with%20my%20device"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-full bg-emerald-600 px-4 py-2.5 text-center text-xs font-extrabold text-white transition hover:bg-emerald-500 shadow-md flex items-center justify-center gap-2"
+                  >
+                    <i className="fab fa-whatsapp text-base"></i>
+                    <span>Chat on WhatsApp</span>
+                  </a>
                   <Link
                     href="/book-appointment"
-                    className="rounded-full bg-white px-4 py-2 text-center text-sm font-semibold text-primary-950 transition hover:bg-red-50"
+                    className="rounded-full bg-white px-4 py-2 text-center text-xs font-bold text-primary-950 transition hover:bg-slate-100 shadow-sm"
                   >
-                    Book appointment
+                    📅 Book Repair Appointment
                   </Link>
                   <Link
-                    href="/contact"
-                    className="rounded-full border border-white/20 px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-white/10"
+                    href="/digital-tools"
+                    className="rounded-full border border-white/25 px-4 py-2 text-center text-xs font-semibold text-white transition hover:bg-white/10"
                   >
-                    Contact support
+                    ✨ Free 3D Card &amp; Digital Tools
                   </Link>
                 </div>
               </div>
@@ -423,32 +446,140 @@ export default async function BlogPostPage({ params }: Props) {
           <MultiplexAd />
         </div>
 
-        <section className={`${styles.ctaPanel} mt-12 p-6 sm:p-8`}>
-          <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Keep reading or get help
-              </p>
-              <h2 className="mt-3 text-3xl font-black text-slate-900 sm:text-4xl">
-                Continue exploring the library, or let our team solve the problem for you.
-              </h2>
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
-                The redesigned article view is built for careful reading, but it also keeps the next
-                action close when you are ready for real support.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3 lg:justify-end">
+        {/* ── Related Articles (Improves Page Stickiness & Internal Linking) ── */}
+        {relatedPosts.length > 0 && (
+          <section className="mt-12 rounded-3xl border border-slate-200 bg-white/90 p-6 sm:p-8 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 pb-4 border-b border-slate-100">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-600">
+                  Recommended Reading
+                </p>
+                <h2 className="text-2xl font-black text-slate-900 mt-1">
+                  Related Tech Guides &amp; Solutions
+                </h2>
+              </div>
               <Link
                 href="/blog"
-                className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 self-start sm:self-auto"
               >
-                Back to articles
+                <span>View Full Knowledge Library</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
+            </div>
+
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {relatedPosts.map((related) => {
+                const relImg = getPrimaryImage(related)
+                const relCategory = getPostCategory(related)
+                const relReadingTime = getReadingTime(related.content)
+                const relExcerpt = getExcerpt(related.content, 110)
+
+                return (
+                  <Link
+                    key={related.id}
+                    href={`/blog/${related.id}`}
+                    className="group flex flex-col rounded-2xl border border-slate-100 bg-slate-50/60 p-4 transition-all duration-300 hover:bg-white hover:border-blue-400 hover:shadow-lg overflow-hidden"
+                  >
+                    <div className="relative h-40 w-full rounded-xl overflow-hidden bg-slate-200 mb-3.5">
+                      {relImg ? (
+                        <img
+                          src={relImg}
+                          alt={related.title}
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center bg-slate-100 text-slate-400">
+                          <BookOpenText className="w-8 h-8" />
+                        </div>
+                      )}
+                      <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/70 text-white backdrop-blur-sm">
+                        {relCategory}
+                      </span>
+                    </div>
+
+                    <h3 className="text-sm font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
+                      {related.title}
+                    </h3>
+                    <p className="mt-2 text-xs text-slate-500 line-clamp-2 leading-relaxed flex-1">
+                      {relExcerpt}
+                    </p>
+
+                    <div className="mt-4 pt-3 border-t border-slate-200/70 flex items-center justify-between text-[11px] font-semibold text-slate-400">
+                      <span className="flex items-center gap-1">
+                        <Clock3 className="w-3 h-3 text-slate-400" />
+                        {relReadingTime} min read
+                      </span>
+                      <span className="text-blue-600 font-bold group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                        <span>Read</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </span>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* ── Internal Cross-Link: Free Digital Tools Studio ── */}
+        <section className="mt-8 rounded-3xl bg-gradient-to-r from-blue-900 via-indigo-900 to-[#040e40] p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="max-w-xl space-y-2">
+              <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-white/20 text-amber-300 border border-white/20 inline-flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                100% Free Online Studio
+              </span>
+              <h3 className="text-2xl font-black text-white tracking-tight">
+                Try Our 3D Business Card &amp; ID Studio + AI Tools
+              </h3>
+              <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed">
+                Design print-ready 300 DPI executive business cards, staff ID badges, erase image backgrounds, or convert audio/video directly in your browser.
+              </p>
+            </div>
+            <Link
+              href="/digital-tools"
+              className="shrink-0 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 px-6 py-3.5 text-sm font-black text-slate-900 shadow-lg shadow-orange-500/30 transition-all hover:scale-105 text-center"
+            >
+              Launch Free Tools Studio →
+            </Link>
+          </div>
+        </section>
+
+        {/* ── Main Bottom CTA ── */}
+        <section className={`${styles.ctaPanel} mt-8 p-6 sm:p-8`}>
+          <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-600">
+                Direct Support &amp; Bookings
+              </p>
+              <h2 className="mt-2 text-2xl sm:text-3xl font-black text-slate-900">
+                Ready to resolve your device problem in Freetown?
+              </h2>
+              <p className="mt-2 max-w-2xl text-xs sm:text-sm leading-6 text-slate-600">
+                Reach out to our certified technicians for same-day repairs, original screen replacements, and verified unlocks with a 1-month warranty.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2.5 lg:justify-end">
+              <a
+                href="https://wa.me/23233399391?text=Hello%20BridgeTech,%20I%20need%20assistance%20with%20a%20device%20repair"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full bg-emerald-600 hover:bg-emerald-500 px-5 py-3 text-xs sm:text-sm font-bold text-white transition shadow-md flex items-center gap-2"
+              >
+                <i className="fab fa-whatsapp text-base"></i>
+                <span>WhatsApp Chat</span>
+              </a>
               <Link
                 href="/book-appointment"
-                className="rounded-full bg-primary-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-900"
+                className="rounded-full bg-primary-950 px-5 py-3 text-xs sm:text-sm font-semibold text-white transition hover:bg-primary-900 shadow-md"
               >
-                Book support
+                Book Appointment
+              </Link>
+              <Link
+                href="/blog"
+                className="rounded-full border border-slate-200 bg-white px-4 py-3 text-xs sm:text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                All Articles
               </Link>
             </div>
           </div>

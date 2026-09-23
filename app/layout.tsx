@@ -79,7 +79,16 @@ export const metadata: Metadata = {
     'motherboard repair',
     'virus removal Freetown',
     'same day repair Freetown',
-    'tech support Sierra Leone'
+    'tech support Sierra Leone',
+    'computer repair near me Freetown',
+    'best phone repair in Freetown',
+    'Samsung screen replacement Freetown',
+    'Tecno phone repair Freetown',
+    'Infinix screen replacement Freetown',
+    'HP Dell Lenovo laptop repair Sierra Leone',
+    '3D business card design Freetown',
+    'staff ID card maker Sierra Leone',
+    'free online digital tools Sierra Leone'
   ],
   authors: [{ name: 'BridgeTech IT Services' }],
   creator: 'BridgeTech IT Services',
@@ -251,24 +260,48 @@ export default function RootLayout({
                     '@type': 'Offer',
                     itemOffered: {
                       '@type': 'Service',
-                      name: 'Computer Repair',
-                      description: 'Professional computer and laptop repair services',
+                      name: 'Computer & Laptop Repair',
+                      description: 'Expert motherboard micro-soldering, virus removal, hardware diagnostics, and laptop repair for HP, Dell, Lenovo, and Apple in Freetown.',
                     },
                   },
                   {
                     '@type': 'Offer',
                     itemOffered: {
                       '@type': 'Service',
-                      name: 'Mobile Phone Repair',
-                      description: 'Expert mobile phone and smartphone repair',
+                      name: 'iPhone & Android Mobile Phone Repair',
+                      description: 'Professional iPhone screen replacement, Samsung Galaxy repair, battery replacement, and charging port repair with warranty.',
                     },
                   },
                   {
                     '@type': 'Offer',
                     itemOffered: {
                       '@type': 'Service',
-                      name: 'Data Recovery',
-                      description: 'Professional data recovery services',
+                      name: 'iCloud Removal & FRP Unlock',
+                      description: 'Factory network unlocking, Google FRP bypass, and verified device account unlock services in Freetown.',
+                    },
+                  },
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'Data Recovery & Storage Solutions',
+                      description: 'Hard drive, SSD, USB flash drive, and phone water-damage data recovery services in Sierra Leone.',
+                    },
+                  },
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: '3D Business Card & Staff ID Badge Studio',
+                      description: 'Design print-ready 300 DPI executive business cards, Guilloche security ID badges, and VIP passes online.',
+                    },
+                  },
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'Free Digital Tools Suite',
+                      description: 'AI background eraser, deepfake forensics inspector, audio/video to MP3 converter, and Word to PDF utilities.',
                     },
                   },
                 ],
