@@ -262,7 +262,23 @@ export default function MusicFinder() {
   const playerRef = useRef<HTMLDivElement | null>(null);
   const dragStartRef = useRef<{ startX: number; startY: number; initialLeft: number; initialTop: number } | null>(null);
 
-  // Resize listener to prevent player from ever falling out of screen viewport
+  // Helper to dynamically calculate navbar bottom threshold so floating player never passes or covers navbar
+  const getNavBottom = useCallback((): number => {
+    if (typeof window === 'undefined') return 72;
+    const header = document.getElementById('site-sticky-header') || document.querySelector('.sticky-header-container');
+    if (header) {
+      const rect = header.getBoundingClientRect();
+      return Math.max(0, rect.bottom) + 8;
+    }
+    const nav = document.querySelector('nav');
+    if (nav) {
+      const rect = nav.getBoundingClientRect();
+      return Math.max(0, rect.bottom) + 8;
+    }
+    return (window.innerWidth < 640 ? 68 : 76) + 8;
+  }, []);
+
+  // Resize listener to prevent player from ever falling out of screen viewport or passing navbar
   useEffect(() => {
     const handleResize = () => {
       setPlayerPosition((prev) => {
@@ -270,8 +286,8 @@ export default function MusicFinder() {
         const rect = playerRef.current.getBoundingClientRect();
         const minX = 8;
         const maxX = Math.max(8, window.innerWidth - rect.width - 8);
-        const minY = 8;
-        const maxY = Math.max(8, window.innerHeight - rect.height - 8);
+        const minY = getNavBottom();
+        const maxY = Math.max(minY, window.innerHeight - rect.height - 8);
         return {
           x: Math.min(Math.max(prev.x, minX), maxX),
           y: Math.min(Math.max(prev.y, minY), maxY),
@@ -280,7 +296,23 @@ export default function MusicFinder() {
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [getNavBottom]);
+
+  // Scroll listener: keep floating player sticky below the navbar even when scrolling
+  useEffect(() => {
+    const handleScroll = () => {
+      setPlayerPosition((prev) => {
+        if (!prev) return prev;
+        const minY = getNavBottom();
+        if (prev.y < minY) {
+          return { ...prev, y: minY };
+        }
+        return prev;
+      });
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [getNavBottom]);
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0 && e.pointerType === 'mouse') return;
@@ -310,8 +342,8 @@ export default function MusicFinder() {
 
     const minX = 8;
     const maxX = Math.max(8, window.innerWidth - rect.width - 8);
-    const minY = 8;
-    const maxY = Math.max(8, window.innerHeight - rect.height - 8);
+    const minY = getNavBottom(); // Sticky top constraint: CANNOT pass the navbar on desktop or mobile!
+    const maxY = Math.max(minY, window.innerHeight - rect.height - 8);
 
     const newLeft = Math.min(Math.max(dragStartRef.current.initialLeft + deltaX, minX), maxX);
     const newTop = Math.min(Math.max(dragStartRef.current.initialTop + deltaY, minY), maxY);
@@ -1104,7 +1136,7 @@ export default function MusicFinder() {
               ? {
                   position: 'fixed',
                   left: `${playerPosition.x}px`,
-                  top: `${playerPosition.y}px`,
+                  top: `${Math.max(getNavBottom(), playerPosition.y)}px`,
                   margin: 0,
                   width: isPlayerMinimized ? 'auto' : 'min(94vw, 56rem)',
                   maxWidth: isPlayerMinimized ? '360px' : '56rem',

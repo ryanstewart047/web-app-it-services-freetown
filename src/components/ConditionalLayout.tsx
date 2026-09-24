@@ -97,7 +97,7 @@ function ConditionalLayoutInner({ children }: ConditionalLayoutProps) {
     <>
       <SplashScreen />
       <div className="min-h-screen w-full flex flex-col">
-        <div className="sticky top-0 z-50 w-full sticky-header-container">
+        <div id="site-sticky-header" className="sticky top-0 z-[10001] w-full sticky-header-container">
           <GlobalBanner />
           <Navbar />
         </div>
