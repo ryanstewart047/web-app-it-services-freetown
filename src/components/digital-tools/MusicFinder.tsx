@@ -570,7 +570,7 @@ export default function MusicFinder() {
         }
       });
     }
-  }, [activeTrack, isMuted, volume, playNextTrack, playPrevTrack]);
+  }, [activeTrack, playNextTrack, playPrevTrack]);
 
   // Sync volume/mute without reloading track
   useEffect(() => {
