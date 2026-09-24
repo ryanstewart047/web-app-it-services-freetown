@@ -298,21 +298,7 @@ export default function MusicFinder() {
     return () => window.removeEventListener('resize', handleResize);
   }, [getNavBottom]);
 
-  // Scroll listener: keep floating player sticky below the navbar even when scrolling
-  useEffect(() => {
-    const handleScroll = () => {
-      setPlayerPosition((prev) => {
-        if (!prev) return prev;
-        const minY = getNavBottom();
-        if (prev.y < minY) {
-          return { ...prev, y: minY };
-        }
-        return prev;
-      });
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [getNavBottom]);
+
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0 && e.pointerType === 'mouse') return;
