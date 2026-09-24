@@ -255,6 +255,84 @@ export default function MusicFinder() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [error, setError] = useState('');
 
+  // ── Moveable Floating Player Drag & Dock State ─────────────────────────────
+  const [playerPosition, setPlayerPosition] = useState<{ x: number; y: number } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isPlayerMinimized, setIsPlayerMinimized] = useState(false);
+  const playerRef = useRef<HTMLDivElement | null>(null);
+  const dragStartRef = useRef<{ startX: number; startY: number; initialLeft: number; initialTop: number } | null>(null);
+
+  // Resize listener to prevent player from ever falling out of screen viewport
+  useEffect(() => {
+    const handleResize = () => {
+      setPlayerPosition((prev) => {
+        if (!prev || !playerRef.current) return prev;
+        const rect = playerRef.current.getBoundingClientRect();
+        const minX = 8;
+        const maxX = Math.max(8, window.innerWidth - rect.width - 8);
+        const minY = 8;
+        const maxY = Math.max(8, window.innerHeight - rect.height - 8);
+        return {
+          x: Math.min(Math.max(prev.x, minX), maxX),
+          y: Math.min(Math.max(prev.y, minY), maxY),
+        };
+      });
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    const target = e.target as HTMLElement;
+    if (target.closest('button, input, a, select, textarea')) {
+      return;
+    }
+    if (!playerRef.current) return;
+    const rect = playerRef.current.getBoundingClientRect();
+    dragStartRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      initialLeft: rect.left,
+      initialTop: rect.top,
+    };
+    setIsDragging(true);
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch (_) {}
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDragging || !dragStartRef.current || !playerRef.current) return;
+    const deltaX = e.clientX - dragStartRef.current.startX;
+    const deltaY = e.clientY - dragStartRef.current.startY;
+    const rect = playerRef.current.getBoundingClientRect();
+
+    const minX = 8;
+    const maxX = Math.max(8, window.innerWidth - rect.width - 8);
+    const minY = 8;
+    const maxY = Math.max(8, window.innerHeight - rect.height - 8);
+
+    const newLeft = Math.min(Math.max(dragStartRef.current.initialLeft + deltaX, minX), maxX);
+    const newTop = Math.min(Math.max(dragStartRef.current.initialTop + deltaY, minY), maxY);
+
+    setPlayerPosition({ x: newLeft, y: newTop });
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (isDragging) {
+      setIsDragging(false);
+      dragStartRef.current = null;
+      try {
+        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch (_) {}
+    }
+  };
+
+  const dockPlayerToBottom = () => {
+    setPlayerPosition(null);
+  };
+
   // Audio element reference for continuous background screen-off playback
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -1013,154 +1091,272 @@ export default function MusicFinder() {
         )}
       </div>
 
-      {/* ── PERSISTENT FLOATING / POPUP MP3 PLAYER BAR (Always Pops Up on Any Song Click) ── */}
+      {/* ── PERSISTENT MOVEABLE & DRAGGABLE FLOATING MP3 PLAYER BAR ── */}
       {showPopupPlayer && (
-        <div className="fixed bottom-0 left-0 right-0 sm:bottom-4 sm:left-4 sm:right-4 max-w-5xl mx-auto z-[9999] bg-slate-900/98 border-t-2 sm:border-2 border-cyan-500/60 backdrop-blur-2xl sm:rounded-3xl rounded-t-2xl shadow-2xl shadow-black/90 animate-slide-up ring-1 ring-cyan-500/20">
-          {/* Progress Scrubber Bar */}
-          <div className="px-4 pt-3 flex items-center gap-3 text-[11px] text-slate-400 font-mono">
-            <span>{formatTime(currentTime)}</span>
-            <input
-              type="range"
-              min={0}
-              max={duration || (activeTrack.durationMs ? activeTrack.durationMs / 1000 : 100)}
-              value={currentTime}
-              onChange={(e) => {
-                const newTime = Number(e.target.value);
-                setCurrentTime(newTime);
-                if (audioRef.current && !activeTrack.youtubeId) {
-                  audioRef.current.currentTime = newTime;
+        <div
+          ref={playerRef}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          style={
+            playerPosition
+              ? {
+                  position: 'fixed',
+                  left: `${playerPosition.x}px`,
+                  top: `${playerPosition.y}px`,
+                  margin: 0,
+                  width: isPlayerMinimized ? 'auto' : 'min(94vw, 56rem)',
+                  maxWidth: isPlayerMinimized ? '360px' : '56rem',
                 }
-              }}
-              className="flex-1 accent-cyan-400 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
-            />
-            <span>{formatTime(duration || (activeTrack.durationMs ? activeTrack.durationMs / 1000 : 0))}</span>
-          </div>
-
-          <div className="px-4 pb-3 pt-2 flex items-center justify-between gap-2 sm:gap-4">
-            {/* Song Meta & Animated Spinning Artwork */}
-            <div className="flex items-center gap-2.5 min-w-0 max-w-[32%] sm:max-w-[38%]">
-              <div className={`relative w-10 h-10 rounded-full overflow-hidden border-2 border-cyan-400/80 flex-shrink-0 shadow-lg ${isPlaying ? 'animate-spin [animation-duration:8s]' : ''}`}>
-                <img
-                  src={activeTrack.artworkUrlSmall || activeTrack.artworkUrlHD}
-                  alt={activeTrack.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="min-w-0">
-                <h4 className="text-xs font-bold text-white truncate leading-tight">{activeTrack.title}</h4>
-                <p className="text-[10px] text-cyan-400 font-semibold truncate">{activeTrack.artist}</p>
-              </div>
+              : undefined
+          }
+          className={`${
+            playerPosition
+              ? 'fixed z-[9999]'
+              : 'fixed bottom-0 left-0 right-0 sm:bottom-4 sm:left-4 sm:right-4 max-w-5xl mx-auto z-[9999]'
+          } bg-slate-900/98 border-2 border-cyan-500/60 backdrop-blur-2xl ${
+            playerPosition || isPlayerMinimized ? 'rounded-2xl sm:rounded-3xl' : 'sm:rounded-3xl rounded-t-2xl'
+          } shadow-2xl shadow-black/90 ring-1 ring-cyan-500/20 transition-all duration-100 ${
+            isDragging ? 'ring-2 ring-cyan-400 shadow-cyan-500/40 cursor-grabbing select-none scale-[1.01]' : ''
+          }`}
+        >
+          {/* Top Drag Handle Gripper Bar */}
+          <div
+            className={`w-full px-3 py-1.5 flex items-center justify-between border-b border-slate-800/80 cursor-grab active:cursor-grabbing select-none touch-none bg-slate-950/40 ${
+              playerPosition || isPlayerMinimized ? 'rounded-t-2xl sm:rounded-t-3xl' : 'sm:rounded-t-3xl rounded-t-2xl'
+            }`}
+            title="Click & Drag to move player anywhere on your screen"
+          >
+            {/* Left: Drag Handle Indicator */}
+            <div className="flex items-center gap-1.5 text-slate-400 hover:text-cyan-300 transition-colors">
+              <i className="fas fa-arrows-up-down-left-right text-cyan-400 text-xs"></i>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                {isDragging ? 'Dragging...' : 'Drag To Move'}
+              </span>
             </div>
 
-            {/* Central Controls (Shuffle, Prev, Play/Pause, Next, Repeat) */}
-            <div className="flex items-center gap-1.5 sm:gap-2.5">
-              {/* Shuffle */}
-              <button
-                onClick={() => setIsShuffle(!isShuffle)}
-                className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-colors ${
-                  isShuffle ? 'text-cyan-400 bg-cyan-950/70 border border-cyan-500/40' : 'text-slate-500 hover:text-slate-300'
-                }`}
-                title="Shuffle Queue"
-              >
-                <i className="fas fa-shuffle"></i>
-              </button>
+            {/* Center: Gripper Pill Visual */}
+            <div className="w-12 h-1 bg-slate-700/80 rounded-full hover:bg-cyan-400 transition-colors"></div>
 
-              {/* Prev Track */}
-              <button
-                onClick={playPrevTrack}
-                className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center text-xs transition-transform active:scale-95 shadow-sm"
-                title="Previous Track"
-              >
-                <i className="fas fa-backward-step"></i>
-              </button>
-
-              {/* Main Play / Pause Button */}
-              <button
-                onClick={togglePlayPause}
-                className="w-10 h-10 rounded-2xl bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-black font-black flex items-center justify-center text-base shadow-lg shadow-cyan-500/40 transition-transform active:scale-95"
-                title={isPlaying ? 'Pause' : 'Play'}
-              >
-                <i className={`fas ${isPlaying ? 'fa-pause' : 'fa-play ml-0.5'}`}></i>
-              </button>
-
-              {/* Next Track */}
-              <button
-                onClick={playNextTrack}
-                className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center text-xs transition-transform active:scale-95 shadow-sm"
-                title="Next Track"
-              >
-                <i className="fas fa-forward-step"></i>
-              </button>
-
-              {/* Repeat Button */}
-              <button
-                onClick={() => {
-                  if (repeatMode === 'all') setRepeatMode('one');
-                  else if (repeatMode === 'one') setRepeatMode('off');
-                  else setRepeatMode('all');
-                }}
-                className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-colors ${
-                  repeatMode !== 'off' ? 'text-cyan-400 bg-cyan-950/70 border border-cyan-500/40' : 'text-slate-500 hover:text-slate-300'
-                }`}
-                title={`Repeat: ${repeatMode.toUpperCase()}`}
-              >
-                <i className={`fas ${repeatMode === 'one' ? 'fa-repeat text-amber-400' : 'fa-repeat'}`}></i>
-                {repeatMode === 'one' && <span className="text-[8px] font-bold ml-0.5">1</span>}
-              </button>
-            </div>
-
-            {/* Volume, Save/Download, and ✕ Close Player */}
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              {/* Volume Slider (Hidden on small mobile) */}
-              <div className="hidden sm:flex items-center gap-1.5">
+            {/* Right: Dock & Minimize & Close Controls */}
+            <div className="flex items-center gap-1.5" onPointerDown={(e) => e.stopPropagation()}>
+              {playerPosition && (
                 <button
-                  onClick={() => {
-                    const nextMute = !isMuted;
-                    setIsMuted(nextMute);
-                    if (audioRef.current) audioRef.current.muted = nextMute;
-                  }}
-                  className="text-slate-400 hover:text-white text-xs"
+                  type="button"
+                  onClick={dockPlayerToBottom}
+                  className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-800 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300 border border-slate-700/70 flex items-center gap-1 transition-all shadow-sm"
+                  title="Dock player back to bottom screen edge"
                 >
-                  <i className={`fas ${isMuted || volume === 0 ? 'fa-volume-xmark text-red-400' : 'fa-volume-high'}`}></i>
+                  <i className="fas fa-arrow-down text-[9px] text-cyan-400"></i>
+                  <span>Dock</span>
                 </button>
-                <input
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  value={isMuted ? 0 : volume}
-                  onChange={(e) => {
-                    const v = Number(e.target.value);
-                    setVolume(v);
-                    setIsMuted(false);
-                    if (audioRef.current) {
-                      audioRef.current.volume = v;
-                      audioRef.current.muted = false;
-                    }
-                  }}
-                  className="w-14 accent-cyan-400 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Download Modal Trigger */}
+              )}
               <button
-                onClick={() => openDownloadModal(activeTrack, 'mp3')}
-                className="py-1.5 px-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1 transition-colors shadow-md"
+                type="button"
+                onClick={() => setIsPlayerMinimized(!isPlayerMinimized)}
+                className="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition-colors"
+                title={isPlayerMinimized ? 'Expand full player controls' : 'Minimize to compact floating bar'}
               >
-                <i className="fas fa-download"></i>
-                <span className="hidden sm:inline">Save</span>
+                <i className={`fas ${isPlayerMinimized ? 'fa-chevron-up text-cyan-400' : 'fa-chevron-down'}`}></i>
               </button>
-
-              {/* Close Button */}
               <button
+                type="button"
                 onClick={dismissPlayer}
-                className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-rose-600 text-slate-400 hover:text-white flex items-center justify-center text-xs transition-colors shadow-sm"
+                className="w-6 h-6 rounded-lg bg-slate-800 hover:bg-rose-600 text-slate-400 hover:text-white flex items-center justify-center text-xs transition-colors"
                 title="Close Player"
               >
                 <i className="fas fa-xmark"></i>
               </button>
             </div>
           </div>
+
+          {/* Player Body: Minimized Pill Mode OR Full Controls Mode */}
+          {isPlayerMinimized ? (
+            /* ── Compact Floating Pill View ── */
+            <div className="px-3.5 py-2.5 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className={`relative w-8 h-8 rounded-full overflow-hidden border border-cyan-400/80 flex-shrink-0 shadow-md ${isPlaying ? 'animate-spin [animation-duration:8s]' : ''}`}>
+                  <img
+                    src={activeTrack.artworkUrlSmall || activeTrack.artworkUrlHD}
+                    alt={activeTrack.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="min-w-0 max-w-[130px] sm:max-w-[190px]">
+                  <h4 className="text-xs font-bold text-white truncate leading-tight">{activeTrack.title}</h4>
+                  <p className="text-[10px] text-cyan-400 font-semibold truncate">{activeTrack.artist}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 shrink-0" onPointerDown={(e) => e.stopPropagation()}>
+                <button
+                  type="button"
+                  onClick={togglePlayPause}
+                  className="w-8 h-8 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 text-black flex items-center justify-center text-xs font-black shadow-md hover:scale-105 active:scale-95 transition-transform"
+                  title={isPlaying ? 'Pause' : 'Play'}
+                >
+                  <i className={`fas ${isPlaying ? 'fa-pause' : 'fa-play ml-0.5'}`}></i>
+                </button>
+                <button
+                  type="button"
+                  onClick={playNextTrack}
+                  className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center text-xs transition-colors"
+                  title="Next Track"
+                >
+                  <i className="fas fa-forward-step"></i>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsPlayerMinimized(false)}
+                  className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center text-xs transition-colors"
+                  title="Expand Full Controls"
+                >
+                  <i className="fas fa-up-right-and-down-left-from-center text-[10px]"></i>
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* ── Full Controls View ── */
+            <>
+              {/* Progress Scrubber Bar */}
+              <div className="px-4 pt-2.5 flex items-center gap-3 text-[11px] text-slate-400 font-mono" onPointerDown={(e) => e.stopPropagation()}>
+                <span>{formatTime(currentTime)}</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={duration || (activeTrack.durationMs ? activeTrack.durationMs / 1000 : 100)}
+                  value={currentTime}
+                  onChange={(e) => {
+                    const newTime = Number(e.target.value);
+                    setCurrentTime(newTime);
+                    if (audioRef.current && !activeTrack.youtubeId) {
+                      audioRef.current.currentTime = newTime;
+                    }
+                  }}
+                  className="flex-1 accent-cyan-400 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <span>{formatTime(duration || (activeTrack.durationMs ? activeTrack.durationMs / 1000 : 0))}</span>
+              </div>
+
+              <div className="px-4 pb-3 pt-2 flex items-center justify-between gap-2 sm:gap-4">
+                {/* Song Meta & Animated Spinning Artwork */}
+                <div className="flex items-center gap-2.5 min-w-0 max-w-[32%] sm:max-w-[38%]">
+                  <div className={`relative w-10 h-10 rounded-full overflow-hidden border-2 border-cyan-400/80 flex-shrink-0 shadow-lg ${isPlaying ? 'animate-spin [animation-duration:8s]' : ''}`}>
+                    <img
+                      src={activeTrack.artworkUrlSmall || activeTrack.artworkUrlHD}
+                      alt={activeTrack.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-xs font-bold text-white truncate leading-tight">{activeTrack.title}</h4>
+                    <p className="text-[10px] text-cyan-400 font-semibold truncate">{activeTrack.artist}</p>
+                  </div>
+                </div>
+
+                {/* Central Controls (Shuffle, Prev, Play/Pause, Next, Repeat) */}
+                <div className="flex items-center gap-1.5 sm:gap-2.5" onPointerDown={(e) => e.stopPropagation()}>
+                  {/* Shuffle */}
+                  <button
+                    onClick={() => setIsShuffle(!isShuffle)}
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-colors ${
+                      isShuffle ? 'text-cyan-400 bg-cyan-950/70 border border-cyan-500/40' : 'text-slate-500 hover:text-slate-300'
+                    }`}
+                    title="Shuffle Queue"
+                  >
+                    <i className="fas fa-shuffle"></i>
+                  </button>
+
+                  {/* Prev Track */}
+                  <button
+                    onClick={playPrevTrack}
+                    className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center text-xs transition-transform active:scale-95 shadow-sm"
+                    title="Previous Track"
+                  >
+                    <i className="fas fa-backward-step"></i>
+                  </button>
+
+                  {/* Main Play / Pause Button */}
+                  <button
+                    onClick={togglePlayPause}
+                    className="w-10 h-10 rounded-2xl bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-black font-black flex items-center justify-center text-base shadow-lg shadow-cyan-500/40 transition-transform active:scale-95"
+                    title={isPlaying ? 'Pause' : 'Play'}
+                  >
+                    <i className={`fas ${isPlaying ? 'fa-pause' : 'fa-play ml-0.5'}`}></i>
+                  </button>
+
+                  {/* Next Track */}
+                  <button
+                    onClick={playNextTrack}
+                    className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center text-xs transition-transform active:scale-95 shadow-sm"
+                    title="Next Track"
+                  >
+                    <i className="fas fa-forward-step"></i>
+                  </button>
+
+                  {/* Repeat Button */}
+                  <button
+                    onClick={() => {
+                      if (repeatMode === 'all') setRepeatMode('one');
+                      else if (repeatMode === 'one') setRepeatMode('off');
+                      else setRepeatMode('all');
+                    }}
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-colors ${
+                      repeatMode !== 'off' ? 'text-cyan-400 bg-cyan-950/70 border border-cyan-500/40' : 'text-slate-500 hover:text-slate-300'
+                    }`}
+                    title={`Repeat: ${repeatMode.toUpperCase()}`}
+                  >
+                    <i className={`fas ${repeatMode === 'one' ? 'fa-repeat text-amber-400' : 'fa-repeat'}`}></i>
+                    {repeatMode === 'one' && <span className="text-[8px] font-bold ml-0.5">1</span>}
+                  </button>
+                </div>
+
+                {/* Volume, Save/Download */}
+                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0" onPointerDown={(e) => e.stopPropagation()}>
+                  {/* Volume Slider (Hidden on small mobile) */}
+                  <div className="hidden sm:flex items-center gap-1.5">
+                    <button
+                      onClick={() => {
+                        const nextMute = !isMuted;
+                        setIsMuted(nextMute);
+                        if (audioRef.current) audioRef.current.muted = nextMute;
+                      }}
+                      className="text-slate-400 hover:text-white text-xs"
+                    >
+                      <i className={`fas ${isMuted || volume === 0 ? 'fa-volume-xmark text-red-400' : 'fa-volume-high'}`}></i>
+                    </button>
+                    <input
+                      type="range"
+                      min={0}
+                      max={1}
+                      step={0.05}
+                      value={isMuted ? 0 : volume}
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        setVolume(v);
+                        setIsMuted(false);
+                        if (audioRef.current) {
+                          audioRef.current.volume = v;
+                          audioRef.current.muted = false;
+                        }
+                      }}
+                      className="w-14 accent-cyan-400 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Download Modal Trigger */}
+                  <button
+                    onClick={() => openDownloadModal(activeTrack, 'mp3')}
+                    className="py-1.5 px-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1 transition-colors shadow-md"
+                  >
+                    <i className="fas fa-download"></i>
+                    <span className="hidden sm:inline">Save</span>
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
 
