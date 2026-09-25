@@ -211,6 +211,30 @@ export default function EmailLeadsPage() {
     }
   }
 
+  const handleRestoreBounced = async (email?: string) => {
+    const isAll = !email
+    const msg = isAll
+      ? 'Are you sure you want to restore all bounced emails back to active status?'
+      : `Restore ${email} back to active status?`
+    if (!confirm(msg)) return
+    try {
+      const res = await fetch('/api/admin/email-leads', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(isAll ? { resetAll: true } : { email })
+      })
+      const data = await res.json()
+      if (data.success) {
+        alert(isAll ? `Successfully restored ${data.updated} emails!` : `Successfully restored ${email}!`)
+        fetchLeads(activeSource, search)
+      } else {
+        alert('Failed to restore: ' + (data.error || 'Unknown error'))
+      }
+    } catch {
+      alert('Error during restore operation')
+    }
+  }
+
   const fetchLeads = async (src = activeSource, q = search) => {
     setLoading(true)
     try {
@@ -363,14 +387,23 @@ export default function EmailLeadsPage() {
               Upload File
             </button>
             {leads.some(l => l.deliveryFailed) && (
-              <button
-                onClick={handleCleanBounced}
-                disabled={cleaning}
-                className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 shadow-sm transition hover:bg-red-100 disabled:opacity-50"
-              >
-                <Trash2 className="h-4 w-4" />
-                {cleaning ? 'Cleaning...' : 'Clean Bounced'}
-              </button>
+              <>
+                <button
+                  onClick={() => handleRestoreBounced()}
+                  className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-100"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Restore All Bounced
+                </button>
+                <button
+                  onClick={handleCleanBounced}
+                  disabled={cleaning}
+                  className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 shadow-sm transition hover:bg-red-100 disabled:opacity-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {cleaning ? 'Cleaning...' : 'Clean Bounced'}
+                </button>
+              </>
             )}
             <button
               onClick={handleSync}
@@ -553,7 +586,17 @@ export default function EmailLeadsPage() {
                           })}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 text-right">
+                      <td className="px-5 py-3.5 text-right space-x-2">
+                        {lead.deliveryFailed && (
+                          <button
+                            onClick={() => handleRestoreBounced(lead.email)}
+                            title="Restore this email to active status"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100"
+                          >
+                            <RefreshCw className="h-3.5 w-3.5" />
+                            Restore
+                          </button>
+                        )}
                         <button
                           onClick={() => handleDelete(lead)}
                           disabled={deleting === lead.id}

@@ -175,3 +175,44 @@ export async function DELETE(request: NextRequest) {
   const result = await prisma.emailLead.deleteMany({ where: { email: normalizedEmail } })
   return NextResponse.json({ success: true, deleted: result.count })
 }
+
+// PATCH /api/admin/email-leads - Reset deliveryFailed status (unbounce)
+export async function PATCH(request: NextRequest) {
+  if (!checkAuth(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  try {
+    const body = await request.json()
+    const { email, id, resetAll } = body
+
+    if (resetAll) {
+      const result = await prisma.emailLead.updateMany({
+        where: { deliveryFailed: true },
+        data: { deliveryFailed: false },
+      })
+      return NextResponse.json({ success: true, updated: result.count })
+    }
+
+    if (id) {
+      const result = await prisma.emailLead.update({
+        where: { id },
+        data: { deliveryFailed: false },
+      })
+      return NextResponse.json({ success: true, updated: 1 })
+    }
+
+    if (email) {
+      const normalizedEmail = email.toLowerCase().trim()
+      const result = await prisma.emailLead.updateMany({
+        where: { email: normalizedEmail },
+        data: { deliveryFailed: false },
+      })
+      return NextResponse.json({ success: true, updated: result.count })
+    }
+
+    return NextResponse.json({ error: 'email, id, or resetAll=true required' }, { status: 400 })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || 'Failed to update lead' }, { status: 500 })
+  }
+}

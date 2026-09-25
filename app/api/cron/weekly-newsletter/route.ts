@@ -135,72 +135,80 @@ async function handleNewsletterCron(request: NextRequest) {
 
     console.log(`[Weekly Newsletter] Blasting to ${subscribers.length} subscribers...`)
 
-    // 7. Batch send emails
-    const sendResults = await Promise.all(
-      subscribers.map(async (sub) => {
-        try {
-          const result = await sendEmail({
-            to: sub.email,
-            subject: `${settings?.subjectPrefix || ''}${subject}`,
-            html: `
-              <!DOCTYPE html>
-              <html>
-              <head>
-                <style>
-                  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f5; }
-                  .container { max-width: 600px; margin: 20px auto; padding: 30px; background-color: #ffffff; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-                  .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e4e4e7; font-size: 11px; color: #71717a; text-align: center; line-height: 1.5; }
-                  .footer a { color: #2563eb; text-decoration: none; font-weight: bold; }
-                  .footer a:hover { text-decoration: underline; }
-                  h1 { color: #0f172a; font-size: 24px; font-weight: 800; margin-bottom: 20px; }
-                  p { margin-bottom: 16px; font-size: 15px; color: #334155; }
-                  ul, ol { margin-bottom: 20px; padding-left: 20px; color: #334155; }
-                  li { margin-bottom: 8px; font-size: 15px; }
-                </style>
-              </head>
-              <body>
-                <div class="container">
-                  <div class="main-content">
-                    ${finalContent}
-                  </div>
-                  <div class="footer">
-                    <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e4e4e7;">
-                      <p style="font-size: 14px; margin-bottom: 10px; font-weight: bold; color: #0f172a;">Quick Links:</p>
-                      <p style="font-size: 13px;">
-                        <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}" style="margin: 0 10px;">Homepage</a> |
-                        <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/marketplace" style="margin: 0 10px;">Shop Products</a> |
-                        <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/book-appointment" style="margin: 0 10px;">Book a Repair</a> |
-                        <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/chat" style="margin: 0 10px;">Live Chat</a> |
-                        <a href="https://wa.me/23233399391" style="margin: 0 10px;">WhatsApp Support</a>
-                      </p>
-                    </div>
-                    <p><strong><a href="https://www.itservicesfreetown.com" style="color: #333;">BridgeTech IT Services</a></strong><br>#1 Regent Highway, Jui Junction | Freetown, Sierra Leone</p>
-                    <p style="font-size: 10px; color: #9ca3af; margin-top: 15px;">You received this email because you subscribed to our weekly newsletter.</p>
-                    <p style="font-size: 10px; color: #9ca3af;">
-                      <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/unsubscribe?email=${encodeURIComponent(sub.email)}" style="color: #9ca3af; font-weight: normal; text-decoration: underline;">Unsubscribe</a> | 
-                      <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/privacy" style="color: #9ca3af; font-weight: normal; text-decoration: underline;">Privacy Policy</a>
+    // 7. Sequential send emails with small delay to avoid SMTP rate limits
+    const sendResults: boolean[] = []
+    const prefix = settings?.subjectPrefix || ''
+
+    for (let i = 0; i < subscribers.length; i++) {
+      const sub = subscribers[i]
+      try {
+        const result = await sendEmail({
+          to: sub.email,
+          subject: `${prefix}${subject}`,
+          html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f5; }
+                .container { max-width: 600px; margin: 20px auto; padding: 30px; background-color: #ffffff; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+                .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e4e4e7; font-size: 11px; color: #71717a; text-align: center; line-height: 1.5; }
+                .footer a { color: #2563eb; text-decoration: none; font-weight: bold; }
+                .footer a:hover { text-decoration: underline; }
+                h1 { color: #0f172a; font-size: 24px; font-weight: 800; margin-bottom: 20px; }
+                p { margin-bottom: 16px; font-size: 15px; color: #334155; }
+                ul, ol { margin-bottom: 20px; padding-left: 20px; color: #334155; }
+                li { margin-bottom: 8px; font-size: 15px; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="main-content">
+                  ${finalContent}
+                </div>
+                <div class="footer">
+                  <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e4e4e7;">
+                    <p style="font-size: 14px; margin-bottom: 10px; font-weight: bold; color: #0f172a;">Quick Links:</p>
+                    <p style="font-size: 13px;">
+                      <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}" style="margin: 0 10px;">Homepage</a> |
+                      <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/marketplace" style="margin: 0 10px;">Shop Products</a> |
+                      <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/book-appointment" style="margin: 0 10px;">Book a Repair</a> |
+                      <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/chat" style="margin: 0 10px;">Live Chat</a> |
+                      <a href="https://wa.me/23233399391" style="margin: 0 10px;">WhatsApp Support</a>
                     </p>
                   </div>
+                  <p><strong><a href="https://www.itservicesfreetown.com" style="color: #333;">BridgeTech IT Services</a></strong><br>#1 Regent Highway, Jui Junction | Freetown, Sierra Leone</p>
+                  <p style="font-size: 10px; color: #9ca3af; margin-top: 15px;">You received this email because you subscribed to our weekly newsletter.</p>
+                  <p style="font-size: 10px; color: #9ca3af;">
+                    <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/unsubscribe?email=${encodeURIComponent(sub.email)}" style="color: #9ca3af; font-weight: normal; text-decoration: underline;">Unsubscribe</a> | 
+                    <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.itservicesfreetown.com'}/privacy" style="color: #9ca3af; font-weight: normal; text-decoration: underline;">Privacy Policy</a>
+                  </p>
                 </div>
-              </body>
-              </html>
-            `
-          })
+              </div>
+            </body>
+            </html>
+          `
+        })
 
-          if (!result.success) {
-            // Mark bounced emails
-            await prisma.emailLead.update({
-              where: { id: sub.id },
-              data: { deliveryFailed: true }
-            }).catch(() => {})
-          }
-
-          return result.success
-        } catch {
-          return false
+        if (!result.success && result.isHardBounce) {
+          // Only mark true permanent bounces in database
+          console.warn(`[Weekly Newsletter] Hard bounce for ${sub.email}. Marking deliveryFailed.`)
+          await prisma.emailLead.update({
+            where: { id: sub.id },
+            data: { deliveryFailed: true }
+          }).catch(() => {})
         }
-      })
-    )
+
+        sendResults.push(result.success)
+      } catch {
+        sendResults.push(false)
+      }
+
+      // 600ms delay between consecutive emails to prevent rate-limiting
+      if (i < subscribers.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 600))
+      }
+    }
 
     const successCount = sendResults.filter(Boolean).length
 

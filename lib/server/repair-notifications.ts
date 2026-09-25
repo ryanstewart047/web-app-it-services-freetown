@@ -198,7 +198,8 @@ export async function sendManualRepairEmails({
   let sentCount = 0
   let failedCount = 0
 
-  for (const repair of repairs) {
+  for (let i = 0; i < repairs.length; i++) {
+    const repair = repairs[i]
     const email = repair.customer?.email?.trim()
     const customerName = repair.customer?.name || 'Customer'
     const deviceType = repair.deviceType || 'Device'
@@ -336,6 +337,11 @@ export async function sendManualRepairEmails({
         success: false,
         error: err.message || 'Error occurred while sending'
       })
+    }
+
+    // Small delay between consecutive emails to prevent SMTP bursting
+    if (i < repairs.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 500))
     }
   }
 

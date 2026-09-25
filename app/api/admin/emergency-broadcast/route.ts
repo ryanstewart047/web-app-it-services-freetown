@@ -328,7 +328,8 @@ export async function POST(request: NextRequest) {
       let sentCount = 0;
       let failedCount = 0;
 
-      for (const email of recipients) {
+      for (let i = 0; i < recipients.length; i++) {
+        const email = recipients[i];
         try {
           const result = await sendEmail({
             to: email,
@@ -340,13 +341,20 @@ export async function POST(request: NextRequest) {
             sentCount++;
           } else {
             failedCount++;
-            await prisma.emailLead.updateMany({
-              where: { email: email.toLowerCase() },
-              data: { deliveryFailed: true },
-            }).catch(() => null);
+            if (result.isHardBounce) {
+              await prisma.emailLead.updateMany({
+                where: { email: email.toLowerCase() },
+                data: { deliveryFailed: true },
+              }).catch(() => null);
+            }
           }
         } catch (err) {
           failedCount++;
+        }
+
+        // Delay between sends to prevent SMTP throttling
+        if (i < recipients.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 600));
         }
       }
 

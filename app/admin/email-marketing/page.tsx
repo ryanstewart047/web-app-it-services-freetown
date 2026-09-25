@@ -527,6 +527,32 @@ export default function EmailMarketingPage() {
     }
   }
 
+  const handleRestoreBounced = async () => {
+    const count = leads.filter(l => l.deliveryFailed).length
+    if (count === 0) {
+      alert('No bounced emails to restore.')
+      return
+    }
+    if (!confirm(`Restore all ${count} bounced emails back to active status?`)) return
+    try {
+      const res = await fetch('/api/admin/email-leads', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resetAll: true })
+      })
+      const data = await res.json()
+      if (data.success) {
+        alert(`Successfully restored ${data.updated} emails!`)
+        // Update local state
+        setLeads(prev => prev.map(l => ({ ...l, deliveryFailed: false })))
+      } else {
+        alert('Failed to restore bounced emails: ' + (data.error || 'Unknown error'))
+      }
+    } catch {
+      alert('Error restoring bounced emails')
+    }
+  }
+
   const handleSend = async () => {
     // Basic validation
     if (!subject) {
@@ -953,13 +979,21 @@ export default function EmailMarketingPage() {
                       </button>
                     )}
                     {leads.some(l => l.deliveryFailed) && (
-                      <button 
-                        onClick={handleCleanBounced}
-                        disabled={cleaning}
-                        className="text-xs font-bold text-amber-600 hover:underline border-l border-slate-200 pl-2"
-                      >
-                        {cleaning ? 'Cleaning…' : 'Clean Bounced'}
-                      </button>
+                      <>
+                        <button 
+                          onClick={handleRestoreBounced}
+                          className="text-xs font-bold text-emerald-600 hover:underline border-l border-slate-200 pl-2"
+                        >
+                          Restore Bounced
+                        </button>
+                        <button 
+                          onClick={handleCleanBounced}
+                          disabled={cleaning}
+                          className="text-xs font-bold text-amber-600 hover:underline border-l border-slate-200 pl-2"
+                        >
+                          {cleaning ? 'Cleaning…' : 'Clean Bounced'}
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>

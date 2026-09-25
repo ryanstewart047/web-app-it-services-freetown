@@ -13,6 +13,65 @@ export interface SendEmailResult {
   error?: string
   note?: string
   notConfigured?: boolean
+  isHardBounce?: boolean
+}
+
+export function isPermanentBounce(error: any): boolean {
+  if (!error) return false
+  const msg = (error.message || '').toLowerCase()
+  const response = (error.response || '').toLowerCase()
+  const code = error.responseCode
+
+  // Sender rate limits, quota, connection issues are NOT recipient bounces
+  if (
+    msg.includes('daily user sending limit') ||
+    response.includes('daily user sending limit') ||
+    msg.includes('too many login attempts') ||
+    msg.includes('quota') ||
+    msg.includes('rate limit') ||
+    msg.includes('try again later') ||
+    response.includes('try again later') ||
+    code === 421 || code === 450 || code === 451 || code === 452
+  ) {
+    return false
+  }
+
+  // Network/socket errors are NOT bounces
+  if (
+    error.code === 'ETIMEDOUT' ||
+    error.code === 'ECONNRESET' ||
+    error.code === 'ECONNREFUSED' ||
+    error.code === 'EAI_AGAIN' ||
+    error.code === 'ENOTFOUND'
+  ) {
+    return false
+  }
+
+  // Resend sandbox testing limitation is NOT a recipient bounce
+  if (msg.includes('only send testing emails') || response.includes('only send testing emails')) {
+    return false
+  }
+
+  // 550 / 551 / 553 / 554 permanent rejection because recipient does not exist
+  if (code === 550 || code === 551 || code === 553 || code === 554) {
+    if (
+      msg.includes('user unknown') ||
+      msg.includes('does not exist') ||
+      msg.includes('invalid recipient') ||
+      msg.includes('recipient address rejected') ||
+      msg.includes('no such user') ||
+      msg.includes('mailbox unavailable') ||
+      msg.includes('address rejected') ||
+      response.includes('5.1.1') ||
+      response.includes('does not exist') ||
+      response.includes('invalid recipient') ||
+      response.includes('user unknown')
+    ) {
+      return true
+    }
+  }
+
+  return false
 }
 
 function getTransporter() {
@@ -61,6 +120,13 @@ export async function sendEmail({ to, subject, html, text }: EmailData): Promise
           if (resendRes.ok) {
             const data = await resendRes.json()
             return { success: true, messageId: data.id }
+          } else {
+            const errorData = await resendRes.json().catch(() => ({}))
+            return { 
+              success: false, 
+              error: errorData.message || `Resend error (${resendRes.status})`,
+              isHardBounce: isPermanentBounce(errorData)
+            }
           }
         } catch (resendErr) {
           console.warn('[Email] Resend attempt failed:', resendErr)
@@ -71,6 +137,7 @@ export async function sendEmail({ to, subject, html, text }: EmailData): Promise
       return { 
         success: false, 
         notConfigured: true, 
+        isHardBounce: false,
         error: 'Email service is not configured. Please add SMTP_USER and SMTP_PASS to environment variables.' 
       }
     }
@@ -87,9 +154,13 @@ export async function sendEmail({ to, subject, html, text }: EmailData): Promise
     })
     console.log('[Email] Sent successfully to', to, 'Message ID:', result.messageId)
     return { success: true, messageId: result.messageId }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[Email] Sending failed to', to, ':', error)
-    return { success: false, error: (error as Error).message }
+    return { 
+      success: false, 
+      error: error.message || 'Sending failed',
+      isHardBounce: isPermanentBounce(error)
+    }
   }
 }
 
