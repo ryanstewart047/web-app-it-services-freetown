@@ -19,9 +19,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!templateType || !['completed', 'cancelled', 'collection_reminder', 'custom'].includes(templateType)) {
+    if (!templateType || !['completed', 'cancelled', 'collection_reminder', 'custom', 'no_show_followup'].includes(templateType)) {
       return NextResponse.json(
-        { error: 'Invalid templateType. Must be one of: completed, cancelled, collection_reminder, custom' },
+        { error: 'Invalid templateType. Must be one of: completed, cancelled, collection_reminder, custom, no_show_followup' },
         { status: 400 }
       )
     }

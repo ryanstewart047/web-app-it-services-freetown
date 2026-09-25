@@ -679,6 +679,87 @@ BridgeTech IT Services - Auto-generated notification`
     `,
     text: `📢 UPDATE REGARDING REPAIR ${data.repairId}\n\nDear ${data.customerName},\n\nDevice: ${data.deviceType}${data.deviceModel ? ` (${data.deviceModel})` : ''}\nStatus: ${data.status}\n\nMessage:\n${data.message}\n\nTrack repair: https://www.itservicesfreetown.com/track-repair\nContact: +232 33 399 391 | #1 Regent Highway, Jui Junction, Freetown\n\nBridgeTech IT Services`
   }),
+
+  noShowFollowUp: (data: {
+    customerName: string
+    repairId: string
+    deviceType: string
+    deviceModel?: string
+    appointmentDate?: string
+    customMessage?: string
+  }) => ({
+    subject: `👋 We Missed You! – Still Need Help with Your ${data.deviceType}? | ${data.repairId}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+          .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+          .header { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; padding: 32px 24px; text-align: center; }
+          .badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 50px; padding: 6px 18px; font-size: 13px; margin-bottom: 10px; letter-spacing: 1px; }
+          .content { padding: 30px 28px; }
+          .info-box { background: #f5f3ff; border-left: 4px solid #7c3aed; padding: 18px; margin: 20px 0; border-radius: 0 10px 10px 0; }
+          .label { font-weight: bold; color: #374151; display: inline-block; min-width: 130px; }
+          .value { color: #1f2937; }
+          .action-btn { display: inline-block; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white !important; padding: 14px 28px; text-decoration: none; border-radius: 8px; margin: 10px 6px; font-weight: bold; font-size: 14px; }
+          .action-btn-green { display: inline-block; background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); color: white !important; padding: 14px 28px; text-decoration: none; border-radius: 8px; margin: 10px 6px; font-weight: bold; font-size: 14px; }
+          .note-box { background: #eff6ff; border: 1px solid #bfdbfe; padding: 14px; border-radius: 8px; font-size: 13px; color: #1e40af; margin-top: 20px; line-height: 1.6; }
+          .footer { background: #1f2937; color: #9ca3af; padding: 18px; text-align: center; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="badge">👋 WE MISSED YOU</div>
+            <h1 style="margin:10px 0 4px; font-size: 26px;">Do You Still Need Our Help?</h1>
+            <p style="margin:0; opacity:0.85;">Booking Reference: ${data.repairId}</p>
+          </div>
+          <div class="content">
+            <p>Dear <strong>${data.customerName}</strong>,</p>
+            <p>We noticed that you had a booking with us${data.appointmentDate ? ` on <strong>${data.appointmentDate}</strong>` : ''} for your <strong>${data.deviceType}${data.deviceModel ? ` (${data.deviceModel})` : ''}</strong>, but we didn't get to see you. We hope everything is okay on your end! 😊</p>
+
+            <div class="info-box">
+              <h3 style="margin-top:0; color:#6d28d9;">📋 Booking Details</h3>
+              <p><span class="label">Booking Ref:</span> <span class="value"><strong>${data.repairId}</strong></span></p>
+              <p><span class="label">Device:</span> <span class="value">${data.deviceType}${data.deviceModel ? ` – ${data.deviceModel}` : ''}</span></p>
+              ${data.appointmentDate ? `<p style="margin-bottom:0;"><span class="label">Scheduled Date:</span> <span class="value">${data.appointmentDate}</span></p>` : ''}
+            </div>
+
+            ${data.customMessage ? `<div style="background:#f8fafc; border-left:4px solid #4f46e5; padding:14px; margin:15px 0; border-radius:4px; font-size:14px; color:#1e293b;"><strong>Message from BridgeTech:</strong><br>${data.customMessage}</div>` : ''}
+
+            <p style="color:#374151;">If you still need help fixing your device, we're ready to assist you! You can:</p>
+            <ul style="color:#374151; line-height:2;">
+              <li>Walk into our shop — no appointment needed</li>
+              <li>Book a new appointment online</li>
+              <li>Call or WhatsApp us directly</li>
+            </ul>
+
+            <div style="text-align:center; margin:25px 0;">
+              <a href="https://www.itservicesfreetown.com/book-appointment" class="action-btn">📅 Book New Appointment</a>
+              <a href="https://wa.me/23233399391" class="action-btn-green">💬 WhatsApp Us</a>
+            </div>
+
+            <div class="note-box">
+              ℹ️ <strong>No pressure at all!</strong> If you've already had the device fixed elsewhere or no longer need the service, no worries — we totally understand. We just wanted to check in and let you know we're still here whenever you need us. 🙌
+            </div>
+
+            <p style="margin-top:24px; font-size:13px; color:#6b7280;">
+              Visit us at <strong>#1 Regent Highway, Jui Junction, Freetown</strong> — Mon–Sat, 9am–6pm.<br>
+              Call or WhatsApp: <a href="tel:+23233399391" style="color:#4f46e5;">+232 33 399 391</a>
+            </p>
+          </div>
+          <div class="footer">
+            <p style="margin:0;"><strong>BridgeTech IT Services</strong></p>
+            <p style="margin:5px 0 0;">#1 Regent Highway, Jui Junction, Freetown &nbsp;|&nbsp; <a href="tel:+23233399391" style="color:#dc2626; text-decoration:none;">+232 33 399 391</a></p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `👋 WE MISSED YOU – ${data.repairId}\n\nDear ${data.customerName},\n\nWe noticed you had a booking${data.appointmentDate ? ` on ${data.appointmentDate}` : ''} for your ${data.deviceType}${data.deviceModel ? ` (${data.deviceModel})` : ''} but we didn't get to see you. We hope all is well!\n\nBooking Ref: ${data.repairId}\nDevice: ${data.deviceType}${data.deviceModel ? ` – ${data.deviceModel}` : ''}${data.appointmentDate ? `\nScheduled: ${data.appointmentDate}` : ''}${data.customMessage ? `\n\nMessage: ${data.customMessage}` : ''}\n\nIf you still need help, we're here for you:\n• Walk in anytime — no appointment needed\n• Book online: https://www.itservicesfreetown.com/book-appointment\n• WhatsApp: https://wa.me/23233399391\n• Call: +232 33 399 391\n\nNo pressure if you've sorted it out — we just wanted to check in!\n\n#1 Regent Highway, Jui Junction, Freetown\nMon–Sat, 9am–6pm\n\nBridgeTech IT Services`
+  }),
+
   orderConfirmation: (data: {
     orderNumber: string;
     customerName: string;

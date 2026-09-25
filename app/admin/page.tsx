@@ -1701,7 +1701,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState<boolean>(false);
   const [emailModalRepairs, setEmailModalRepairs] = useState<RepairRecord[]>([]);
-  const [emailTemplateType, setEmailTemplateType] = useState<'collection_reminder' | 'completed' | 'cancelled' | 'custom'>('collection_reminder');
+  const [emailTemplateType, setEmailTemplateType] = useState<'collection_reminder' | 'completed' | 'cancelled' | 'no_show_followup' | 'custom'>('collection_reminder');
   const [emailCustomSubject, setEmailCustomSubject] = useState<string>('');
   const [emailCustomMessage, setEmailCustomMessage] = useState<string>('');
   const [isSendingEmail, setIsSendingEmail] = useState<boolean>(false);
@@ -2641,7 +2641,25 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                     </p>
                   </div>
 
-                  {/* 4. Custom Message */}
+                  {/* 4. Follow-Up (Missed Booking / No-Show) */}
+                  <div
+                    onClick={() => setEmailTemplateType('no_show_followup')}
+                    className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                      emailTemplateType === 'no_show_followup'
+                        ? 'bg-purple-950/40 border-purple-500/70 text-purple-200 ring-1 ring-purple-500/50'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 font-bold text-xs mb-1">
+                      <i className="fas fa-calendar-times text-purple-400" />
+                      <span>Missed Booking Follow-Up</span>
+                    </div>
+                    <p className="text-[10px] opacity-80 leading-relaxed">
+                      Follow up with bookings that did not show up and have passed their scheduled date to check if they still need device repair support.
+                    </p>
+                  </div>
+
+                  {/* 5. Custom Message */}
                   <div
                     onClick={() => setEmailTemplateType('custom')}
                     className={`p-3 rounded-xl border cursor-pointer transition-all ${

@@ -152,7 +152,7 @@ export async function handleRepairStatusAutoEmail({
 
 export interface ManualEmailPayload {
   trackingIds: string[]
-  templateType: 'completed' | 'cancelled' | 'collection_reminder' | 'custom'
+  templateType: 'completed' | 'cancelled' | 'collection_reminder' | 'custom' | 'no_show_followup'
   customSubject?: string
   customMessage?: string
 }
@@ -189,7 +189,8 @@ export async function sendManualRepairEmails({
     },
     include: {
       customer: true,
-      timeline: true
+      timeline: true,
+      appointment: true
     }
   })
 
@@ -255,6 +256,24 @@ export async function sendManualRepairEmails({
             customMessage: customMessage || undefined
           })
           break
+
+        case 'no_show_followup': {
+          const rawDate = repair.appointment?.preferredDate || (repair as any).preferredDate
+          let formattedDate: string | undefined
+          if (rawDate) {
+            const parsed = new Date(rawDate)
+            formattedDate = isNaN(parsed.getTime()) ? rawDate : parsed.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+          }
+          emailContent = emailTemplates.noShowFollowUp({
+            customerName,
+            repairId: repair.trackingId,
+            deviceType,
+            deviceModel,
+            appointmentDate: formattedDate,
+            customMessage: customMessage || undefined
+          })
+          break
+        }
 
         case 'custom':
         default:
