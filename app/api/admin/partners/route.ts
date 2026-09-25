@@ -144,10 +144,10 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true, partner: newPartner }, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error('[Admin/Partners API] POST error:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to create partner.' },
+      { success: false, error: error?.message || 'Failed to create partner.' },
       { status: 500 }
     );
   }
@@ -252,10 +252,10 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, partner: updatedPartner });
-  } catch (error) {
+  } catch (error: any) {
     console.error('[Admin/Partners API] PUT error:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to update partner data.' },
+      { success: false, error: error?.message || 'Failed to update partner data.' },
       { status: 500 }
     );
   }
@@ -296,10 +296,10 @@ export async function DELETE(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, message: 'Partner logo deleted.' });
-  } catch (error) {
+  } catch (error: any) {
     console.error('[Admin/Partners API] DELETE error:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to delete partner.' },
+      { success: false, error: error?.message || 'Failed to delete partner.' },
       { status: 500 }
     );
   }
