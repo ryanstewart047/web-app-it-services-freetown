@@ -394,7 +394,7 @@ export default function DigitalToolsHeader({ onSelectTool, activeToolId }: Digit
         <div className="lg:col-span-5 flex flex-col items-center justify-center">
           {/* 3D Stage Container */}
           <div
-            className="relative w-full max-w-[300px] sm:max-w-[320px] flex flex-col items-center select-none"
+            className="relative w-full max-w-[260px] sm:max-w-[280px] flex flex-col items-center select-none"
             style={{ perspective: '1200px' }}
           >
             {/* Lanyard Top Attachment Simulation */}
@@ -419,7 +419,7 @@ export default function DigitalToolsHeader({ onSelectTool, activeToolId }: Digit
               onMouseMove={handleMouseMove}
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
-              className="relative w-[260px] sm:w-[280px] h-[390px] sm:h-[410px] rounded-3xl cursor-grab active:cursor-grabbing transition-transform duration-200 ease-out"
+              className="relative w-[220px] sm:w-[240px] h-[330px] sm:h-[350px] rounded-3xl cursor-grab active:cursor-grabbing transition-transform duration-200 ease-out"
               style={{
                 transformStyle: 'preserve-3d',
                 transform: isFlipped
