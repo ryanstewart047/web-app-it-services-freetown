@@ -79,42 +79,60 @@ export default function PartnersSection() {
         {/* Logos Container */}
         {settings.layout === 'marquee' ? (
           <div className="relative overflow-hidden w-full py-2">
-            <div className="flex gap-6 sm:gap-8 items-center animate-marquee whitespace-nowrap">
-              {[...partners, ...partners].map((partner, idx) => {
-                const effectiveColorMode = partner.colorMode || settings.colorMode;
-                const colorClasses = getLogoColorClasses(effectiveColorMode);
+            {/* Fade edges */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-16 z-10 bg-gradient-to-r from-gray-50/80 via-gray-50/30 to-transparent dark:from-gray-900/80 dark:via-gray-900/30 dark:to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-16 z-10 bg-gradient-to-l from-gray-50/80 via-gray-50/30 to-transparent dark:from-gray-900/80 dark:via-gray-900/30 dark:to-transparent" />
 
-                return (
-                  <div
-                    key={`${partner.id}-${idx}`}
-                    className="inline-flex shrink-0 items-center justify-center h-16 w-36 sm:h-20 sm:w-44 px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-gray-800/70 border border-gray-200/60 dark:border-gray-700/60 shadow-xs hover:shadow-md transition-all duration-300"
-                  >
-                    {partner.websiteUrl ? (
-                      <a
-                        href={partner.websiteUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center w-full h-full"
-                        title={partner.name}
-                      >
-                        <img
-                          src={partner.logoUrl}
-                          alt={partner.name}
-                          loading="lazy"
-                          className={`max-h-9 sm:max-h-11 max-w-[110px] sm:max-w-[130px] w-auto h-auto object-contain transition-all duration-300 ${colorClasses}`}
-                        />
-                      </a>
-                    ) : (
-                      <img
-                        src={partner.logoUrl}
-                        alt={partner.name}
-                        loading="lazy"
-                        className={`max-h-9 sm:max-h-11 max-w-[110px] sm:max-w-[130px] w-auto h-auto object-contain transition-all duration-300 ${colorClasses}`}
-                      />
-                    )}
-                  </div>
-                );
-              })}
+            {/* Animated track — two identical sets side-by-side; translateX(-50%) = seamless loop */}
+            <div className="animate-marquee flex items-center w-max">
+              {/* Set 1 */}
+              <div className="flex items-center gap-5 sm:gap-7 pr-5 sm:pr-7">
+                {partners.map((partner) => {
+                  const effectiveColorMode = partner.colorMode || settings.colorMode;
+                  const colorClasses = getLogoColorClasses(effectiveColorMode);
+                  return (
+                    <div
+                      key={`a-${partner.id}`}
+                      className="shrink-0 flex items-center justify-center h-16 w-36 sm:h-20 sm:w-44 px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-gray-800/70 border border-gray-200/60 dark:border-gray-700/60 shadow-sm hover:shadow-md transition-all duration-300"
+                    >
+                      {partner.websiteUrl ? (
+                        <a href={partner.websiteUrl} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center justify-center w-full h-full" title={partner.name}>
+                          <img src={partner.logoUrl} alt={partner.name} loading="lazy"
+                            className={`max-h-9 sm:max-h-11 max-w-[110px] sm:max-w-[130px] w-auto h-auto object-contain transition-all duration-300 ${colorClasses}`} />
+                        </a>
+                      ) : (
+                        <img src={partner.logoUrl} alt={partner.name} loading="lazy"
+                          className={`max-h-9 sm:max-h-11 max-w-[110px] sm:max-w-[130px] w-auto h-auto object-contain transition-all duration-300 ${colorClasses}`} />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Set 2 — exact duplicate for seamless wrap */}
+              <div className="flex items-center gap-5 sm:gap-7 pr-5 sm:pr-7" aria-hidden="true">
+                {partners.map((partner) => {
+                  const effectiveColorMode = partner.colorMode || settings.colorMode;
+                  const colorClasses = getLogoColorClasses(effectiveColorMode);
+                  return (
+                    <div
+                      key={`b-${partner.id}`}
+                      className="shrink-0 flex items-center justify-center h-16 w-36 sm:h-20 sm:w-44 px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-gray-800/70 border border-gray-200/60 dark:border-gray-700/60 shadow-sm hover:shadow-md transition-all duration-300"
+                    >
+                      {partner.websiteUrl ? (
+                        <a href={partner.websiteUrl} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center justify-center w-full h-full" title={partner.name}>
+                          <img src={partner.logoUrl} alt={partner.name} loading="lazy"
+                            className={`max-h-9 sm:max-h-11 max-w-[110px] sm:max-w-[130px] w-auto h-auto object-contain transition-all duration-300 ${colorClasses}`} />
+                        </a>
+                      ) : (
+                        <img src={partner.logoUrl} alt={partner.name} loading="lazy"
+                          className={`max-h-9 sm:max-h-11 max-w-[110px] sm:max-w-[130px] w-auto h-auto object-contain transition-all duration-300 ${colorClasses}`} />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         ) : (
