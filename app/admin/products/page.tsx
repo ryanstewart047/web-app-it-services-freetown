@@ -21,6 +21,7 @@ interface Product {
   sku?: string;
   brand?: string;
   featured: boolean;
+  repairRecommended: boolean;
   createdAt: string;
 }
 
@@ -73,7 +74,8 @@ export default function AdminProductsPage() {
     status: 'active',
     condition: 'new',
     videoUrl: '',
-    featured: false
+    featured: false,
+    repairRecommended: false
   });
 
   // Modal Auto-Save State
@@ -147,7 +149,8 @@ export default function AdminProductsPage() {
       status: 'active',
       condition: 'new',
       videoUrl: '',
-      featured: false
+      featured: false,
+      repairRecommended: false
     });
     setImageUrls(['']);
   };
@@ -625,7 +628,8 @@ export default function AdminProductsPage() {
                                 status: product.status,
                                 condition: product.condition || 'new',
                                 videoUrl: product.videoUrl || '',
-                                featured: product.featured
+                                featured: product.featured,
+                                repairRecommended: product.repairRecommended
                               });
                               // Populate image URLs from the product
                               const productImages = product.images?.map(img => img.url) || [''];
@@ -716,7 +720,8 @@ export default function AdminProductsPage() {
                     status: 'active',
                     condition: 'new',
                     videoUrl: '',
-                    featured: false
+                    featured: false,
+                    repairRecommended: false
                   });
                 }}
                 className="text-gray-400 hover:text-white"
@@ -853,6 +858,7 @@ export default function AdminProductsPage() {
                   condition: formData.condition,
                   videoUrl: uploadedVideoUrl,
                   featured: formData.featured,
+                  repairRecommended: formData.repairRecommended,
                   images: images.length > 0 ? images : []
                 };
 
@@ -1207,8 +1213,8 @@ export default function AdminProductsPage() {
                   </div>
                 </div>
 
-                {/* Status, Condition and Featured */}
-                <div className="grid grid-cols-3 gap-4">
+                {/* Status, condition, and homepage placement */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
                     <label className="block text-white mb-2">Status *</label>
                     <select
@@ -1245,6 +1251,20 @@ export default function AdminProductsPage() {
                         className="mr-2 w-5 h-5"
                       />
                       Featured Product
+                    </label>
+                  </div>
+                  <div>
+                    <label className="flex items-center text-white mt-8 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.repairRecommended}
+                        onChange={(e) => setFormData({ ...formData, repairRecommended: e.target.checked })}
+                        className="mr-2 w-5 h-5"
+                      />
+                      <span>
+                        Recommended for Repairs
+                        <span className="block text-xs font-normal text-gray-400 mt-0.5">Show on repair-service pages</span>
+                      </span>
                     </label>
                   </div>
                 </div>

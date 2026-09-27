@@ -8,12 +8,14 @@ export async function GET(request: NextRequest) {
     const categoryId = searchParams.get('categoryId');
     const status = searchParams.get('status');
     const featured = searchParams.get('featured');
+    const repairRecommended = searchParams.get('repairRecommended');
     
     const where: any = {};
     
     if (categoryId) where.categoryId = categoryId;
     if (status) where.status = status;
     if (featured) where.featured = featured === 'true';
+    if (repairRecommended) where.repairRecommended = repairRecommended === 'true';
 
     const products = await prisma.product.findMany({
       where,
@@ -59,7 +61,8 @@ export async function POST(request: NextRequest) {
       sku,
       brand,
       tags,
-      featured
+      featured,
+      repairRecommended
     } = body;
 
     // Validation
@@ -99,6 +102,7 @@ export async function POST(request: NextRequest) {
         brand: brand || null,
         tags: tags || [],
         featured: featured || false,
+        repairRecommended: repairRecommended || false,
         images: {
           create: images?.map((img: any, index: number) => ({
             url: img.url,

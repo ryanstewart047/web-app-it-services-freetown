@@ -4,10 +4,11 @@ import Link from 'next/link'
 import { CheckCircle2, Clock, MapPin, MessageCircle, Phone, ArrowRight, ShieldCheck, HelpCircle } from 'lucide-react'
 import { seoServices } from '@/data/seo-services'
 import { DisplayAd, MultiplexAd } from '@/components/AdSense'
-import { AffiliateProductCard } from '@/components/ui/AffiliateProductCard'
-import Image from 'next/image'
+import { prisma } from '@/lib/prisma'
 
 export const dynamicParams = false
+// Product recommendations are managed in the admin and should update without a rebuild.
+export const dynamic = 'force-dynamic'
 
 export async function generateStaticParams() {
   return seoServices.map((service) => ({
@@ -38,12 +39,32 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 }
 
-export default function RepairServicePage({ params }: { params: { slug: string } }) {
+export default async function RepairServicePage({ params }: { params: { slug: string } }) {
   const service = seoServices.find((s) => s.slug === params.slug)
 
   if (!service) {
     notFound()
   }
+
+  // These products are selected by an administrator in Product Management.
+  // A database issue should never prevent the repair guide itself from loading.
+  const recommendedProducts = await prisma.product.findMany({
+    where: {
+      repairRecommended: true,
+      status: 'active',
+    },
+    include: {
+      images: {
+        orderBy: { order: 'asc' },
+        take: 1,
+      },
+    },
+    orderBy: [{ featured: 'desc' }, { updatedAt: 'desc' }],
+    take: 3,
+  }).catch((error) => {
+    console.error('Unable to load recommended repair products:', error)
+    return []
+  })
 
   const structuredData = {
     '@context': 'https://schema.org',
@@ -173,39 +194,54 @@ export default function RepairServicePage({ params }: { params: { slug: string }
         </div>
       </section>
 
-      {/* Recommended Accessories (Affiliate) */}
-      <section className="py-12 px-4 bg-slate-50 border-t border-slate-200">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-8 text-center">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">Recommended Repair Accessories</h2>
-            <p className="text-slate-600">Top-rated tools and accessories recommended by our expert technicians.</p>
+      {recommendedProducts.length > 0 && (
+        <section className="py-12 px-4 bg-slate-50 border-t border-slate-200">
+          <div className="max-w-4xl mx-auto">
+            <div className="mb-8 text-center">
+              <h2 className="text-3xl font-bold text-slate-900 mb-4">Recommended Repair Accessories</h2>
+              <p className="text-slate-600">Top-rated tools and accessories recommended by our expert technicians.</p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {recommendedProducts.map((product) => {
+                const image = product.images[0]
+                return (
+                  <Link
+                    key={product.id}
+                    href={`/marketplace/${product.slug}`}
+                    className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                  >
+                    <div className="relative aspect-square overflow-hidden bg-slate-100">
+                      {image ? (
+                        <img
+                          src={image.url}
+                          alt={image.alt || product.name}
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-800 to-[#040e40] px-6 text-center text-sm font-semibold text-white">
+                          {product.name}
+                        </div>
+                      )}
+                      {product.featured && (
+                        <span className="absolute left-3 top-3 rounded-full bg-red-600 px-2.5 py-1 text-xs font-bold text-white shadow">Featured</span>
+                      )}
+                    </div>
+                    <div className="flex flex-1 flex-col p-5">
+                      <h3 className="mb-2 text-lg font-bold leading-tight text-[#040e40] group-hover:text-red-600">{product.name}</h3>
+                      <p className="mb-4 flex-1 text-sm leading-relaxed text-slate-500 line-clamp-3">{product.description}</p>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="font-black text-[#040e40]">Le {product.price.toLocaleString()}</span>
+                        <span className="text-sm font-bold text-red-600">View product →</span>
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
           </div>
-          
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-            <AffiliateProductCard
-              title="Professional Repair Tool Kit"
-              description="A complete precision screwdriver set, perfect for opening phones, laptops, and tablets safely."
-              affiliateLink="https://amzn.to/4p3vuFx"
-              iconName="wrench"
-              badge="Best Seller"
-            />
-            <AffiliateProductCard
-              title="Premium Device Cleaning Kit"
-              description="Keep your newly repaired device spotless with this safe, anti-static cleaning kit."
-              affiliateLink="https://amzn.to/4auoL1A"
-              iconName="sparkles"
-              badge="Top Rated"
-            />
-            <AffiliateProductCard
-              title="High-Quality Screen Protector"
-              description="Protect your screen from future drops and scratches with industry-leading tempered glass."
-              affiliateLink="https://amzn.to/44IIoiU"
-              iconName="smartphone"
-              badge="#1 Pick"
-            />
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Bottom Ad */}
       <div className="max-w-4xl mx-auto px-4 py-8">

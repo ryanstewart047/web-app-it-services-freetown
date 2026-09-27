@@ -36,6 +36,7 @@ export default function AddProductPage() {
     brand: '',
     condition: 'new',
     featured: false,
+    repairRecommended: false,
     status: 'active'
   });
 
@@ -103,6 +104,7 @@ export default function AddProductPage() {
       brand: '',
       condition: 'new',
       featured: false,
+      repairRecommended: false,
       status: 'active'
     });
     setImages([{ url: '', alt: '' }]);
@@ -507,8 +509,8 @@ export default function AddProductPage() {
               </div>
             </div>
 
-            {/* Status, Condition, and Featured */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Status, condition, and homepage placement */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div>
                 <label className="block text-white font-medium mb-2">Status *</label>
                 <select
@@ -546,6 +548,17 @@ export default function AddProductPage() {
                     className="w-5 h-5 rounded"
                   />
                   Featured Product
+                </label>
+              </div>
+              <div className="flex items-end">
+                <label className="flex items-center gap-2 text-white cursor-pointer pb-3">
+                  <input
+                    type="checkbox"
+                    checked={formData.repairRecommended}
+                    onChange={(e) => setFormData({ ...formData, repairRecommended: e.target.checked })}
+                    className="w-5 h-5 rounded"
+                  />
+                  <span>Recommended for Repairs</span>
                 </label>
               </div>
             </div>
