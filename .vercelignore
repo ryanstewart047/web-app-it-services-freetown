@@ -32,8 +32,7 @@ railway.toml
 .env.test.local
 .env.production.local
 
-# Database
-prisma/migrations
+# Database credentials
 .env
 
 # Backup files
