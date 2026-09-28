@@ -157,6 +157,7 @@ model RemoteSupportRequest {
   deviceModel       String?
   service           String
   issueDescription  String
+  preferredDate     String?
   preferredTime     String?
   paymentMethod     String?
   consentAccepted   Boolean  @default(false)

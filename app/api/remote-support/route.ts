@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
       data: {
         customerName, email, phone, deviceType, service, issueDescription,
         deviceModel: sanitizeText(body.deviceModel) || null,
+        preferredDate: sanitizeText(body.preferredDate) || null,
         preferredTime: sanitizeText(body.preferredTime) || null,
         paymentMethod: sanitizeText(body.paymentMethod) || null,
         consentAccepted: true,
