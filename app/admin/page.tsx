@@ -231,6 +231,15 @@ const ADMIN_PANELS: AdminPanelItem[] = [
     url: '/admin/bookings',
   },
   {
+    id: 'remote-support',
+    name: 'Remote Support Requests',
+    category: 'services',
+    description: 'Remote IT service enquiries',
+    icon: 'fas fa-headset',
+    color: 'text-cyan-300',
+    url: '/admin/remote-support',
+  },
+  {
     id: 'forum-admin',
     name: 'Forum Admin',
     category: 'services',

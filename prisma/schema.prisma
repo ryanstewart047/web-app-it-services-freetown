@@ -148,6 +148,28 @@ model AITroubleshooting {
   createdAt        DateTime @default(now())
 }
 
+model RemoteSupportRequest {
+  id                String   @id @default(cuid())
+  customerName      String
+  email             String
+  phone             String
+  deviceType        String
+  deviceModel       String?
+  service           String
+  issueDescription  String
+  preferredTime     String?
+  paymentMethod     String?
+  consentAccepted   Boolean  @default(false)
+  status            String   @default("new")
+  technicianNotes   String?
+  sessionReference  String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
 model Category {
   id          String    @id @default(cuid())
   name        String    @unique

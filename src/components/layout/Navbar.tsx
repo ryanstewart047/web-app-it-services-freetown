@@ -330,6 +330,14 @@ export default function Navbar() {
                         color="text-emerald-600"
                         bg="bg-emerald-50"
                       />
+                      <MegaMenuLink
+                        href="/remote-support"
+                        icon="fas fa-headset"
+                        title="Remote Support"
+                        description="Secure help for your device, anywhere"
+                        color="text-red-600"
+                        bg="bg-red-50"
+                      />
                       <MegaMenuLink 
                         href="/faq" 
                         icon="fas fa-question-circle" 
@@ -463,6 +471,9 @@ export default function Navbar() {
             </Link>
             <Link href="/troubleshoot" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
               <i className="fas fa-tools w-5 mr-3 text-[#040e40]"></i>Troubleshoot
+            </Link>
+            <Link href="/remote-support" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
+              <i className="fas fa-headset w-5 mr-3 text-red-600"></i>Remote Support
             </Link>
             
             {/* Get Support Dropdown for Mobile - Brand Colors */}
