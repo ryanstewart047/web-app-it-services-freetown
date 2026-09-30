@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import PageBanner from '@/components/PageBanner';
+import { Download, FileText } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Device Repair Guides | BridgeTech IT Services',
@@ -107,6 +108,27 @@ export default function RepairGuidesPage() {
       />
 
       <section className="max-w-6xl mx-auto px-4 py-12">
+        <div className="mb-10 overflow-hidden rounded-2xl bg-[#040e40] p-6 text-white shadow-lg md:flex md:items-center md:justify-between md:gap-8 md:p-8">
+          <div className="flex items-start gap-4">
+            <div className="rounded-xl bg-white/10 p-3">
+              <FileText className="h-7 w-7 text-cyan-200" />
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-cyan-200">Free downloadable guide</p>
+              <h2 className="mt-1 text-2xl font-black">Device Care &amp; Remote Support Guide</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-blue-100">A practical 10-page handbook covering device protection, repair decisions, data safety, water damage, and secure AnyDesk support.</p>
+            </div>
+          </div>
+          <a
+            href="/downloads/bridgetech-device-care-guide.pdf"
+            download
+            className="mt-5 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-red-700 md:mt-0"
+          >
+            <Download className="h-4 w-4" />
+            Download the PDF
+          </a>
+        </div>
+
         <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-sm mb-10">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">How These Guides Help</h2>
           <p className="text-gray-700 leading-7 mb-4">
