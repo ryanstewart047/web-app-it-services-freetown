@@ -4,27 +4,30 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, KeepTogether, HRFlowable
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
 )
 from reportlab.pdfgen import canvas
-from PIL import Image
 
-# Output path
-OUTPUT_PDF = "/Users/user/Desktop/web-app-it-services-freetown-main/public/downloads/bridgetech-device-care-guide.pdf"
-WORKSPACE = "/Users/user/Desktop/web-app-it-services-freetown-main"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if not os.path.exists(os.path.join(BASE_DIR, "public")):
+    BASE_DIR = "/Users/user/Desktop/web-app-it-services-freetown-main"
+
+OUTPUT_PDF = os.path.join(BASE_DIR, "public/downloads/bridgetech-device-care-guide.pdf")
 
 # Professional Color Palette
-NAVY_DEEP = colors.HexColor("#060D24")
+NAVY_DEEP = colors.HexColor("#050B1E")
+NAVY_HEADER = colors.HexColor("#020612")
+NAVY_CARD = colors.HexColor("#0B1944")
 NAVY_PRIMARY = colors.HexColor("#0A194C")
 NAVY_LIGHT = colors.HexColor("#1A2D6D")
 CYAN_ACCENT = colors.HexColor("#00B4D8")
 CYAN_BRIGHT = colors.HexColor("#38BDF8")
 CYAN_BG = colors.HexColor("#E0F2FE")
-RED_ACCENT = colors.HexColor("#DC2626")
+RED_ACCENT = colors.HexColor("#EF4444")
 RED_LIGHT = colors.HexColor("#FEE2E2")
-GREEN_ACCENT = colors.HexColor("#059669")
+GREEN_ACCENT = colors.HexColor("#10B981")
 GREEN_BG = colors.HexColor("#ECFDF5")
-AMBER_ACCENT = colors.HexColor("#D97706")
+AMBER_ACCENT = colors.HexColor("#F59E0B")
 AMBER_BG = colors.HexColor("#FFFBEB")
 GRAY_DARK = colors.HexColor("#0F172A")
 GRAY_BODY = colors.HexColor("#334155")
@@ -56,8 +59,7 @@ class NumberedCanvas(canvas.Canvas):
     def draw_page_decorations(self, total_pages):
         page_num = self._pageNumber
         if page_num == 1:
-            # Cover page - custom drawn in draw_cover
-            return
+            return  # Cover page handled separately
 
         self.saveState()
 
@@ -104,211 +106,270 @@ class NumberedCanvas(canvas.Canvas):
 
 
 def draw_cover(canvas_obj, doc):
-    """Draws a premium, high-impact executive cover page."""
+    """Draws a premium, high-impact executive cover page without overlapping lines or cramped cards."""
     c = canvas_obj
     c.saveState()
 
     w, h = PAGE_WIDTH, PAGE_HEIGHT
+    margin_x = 36
+    usable_w = w - (margin_x * 2)  # 523.28 pt
 
-    # Deep midnight background
+    # 1. Full Page Background
     c.setFillColor(NAVY_DEEP)
     c.rect(0, 0, w, h, fill=1, stroke=0)
 
-    # Decorative geometric dark navy accents
-    c.setFillColor(NAVY_PRIMARY)
-    p = c.beginPath()
-    p.moveTo(0, h)
-    p.lineTo(w, h)
-    p.lineTo(w, h * 0.70)
-    p.lineTo(0, h * 0.82)
-    p.close()
-    c.drawPath(p, fill=1, stroke=0)
+    # 2. Top Header Bar (y = 755 to 842)
+    c.setFillColor(NAVY_HEADER)
+    c.rect(0, 755, w, 87, fill=1, stroke=0)
 
-    # Subtle cyan accent line separating geometry
+    # Clean horizontal accent rule below header
     c.setStrokeColor(CYAN_ACCENT)
-    c.setLineWidth(2.5)
-    c.line(0, h * 0.82, w, h * 0.70)
+    c.setLineWidth(1.5)
+    c.line(margin_x, 755, w - margin_x, 755)
 
-    # Sleek bottom corner accent
-    c.setFillColor(NAVY_LIGHT)
-    p2 = c.beginPath()
-    p2.moveTo(0, 0)
-    p2.lineTo(w * 0.45, 0)
-    p2.lineTo(0, h * 0.16)
-    p2.close()
-    c.drawPath(p2, fill=1, stroke=0)
-
-    # Crimson accent pin line at bottom
-    c.setStrokeColor(RED_ACCENT)
-    c.setLineWidth(3)
-    c.line(0, h * 0.16, w * 0.45, 0)
-
-    # Brand Logo & Tag at Top
-    logo_path = os.path.join(WORKSPACE, "public/assets/social-media/bridgetech-avatar-shield-transparent-1080.png")
+    # Brand Logo & Tag in Header
+    logo_path = os.path.join(BASE_DIR, "public/assets/social-media/bridgetech-avatar-shield-transparent-1080.png")
     if os.path.exists(logo_path):
-        c.drawImage(logo_path, 40, h - 85, width=46, height=46, mask="auto")
+        c.drawImage(logo_path, margin_x, 770, width=46, height=46, mask="auto")
 
     c.setFont("Helvetica-Bold", 14)
     c.setFillColor(WHITE)
-    c.drawString(98, h - 56, "BRIDGETECH IT SERVICES")
+    c.drawString(margin_x + 56, 799, "BRIDGETECH IT SERVICES")
 
-    c.setFont("Helvetica-Bold", 7.5)
+    c.setFont("Helvetica-Bold", 7.2)
     c.setFillColor(CYAN_BRIGHT)
-    c.drawString(98, h - 70, "ENGINEERING & COMPONENT-LEVEL REPAIR LABORATORY")
+    c.drawString(margin_x + 56, 784, "ENGINEERING & COMPONENT-LEVEL REPAIR LABORATORY")
 
-    # Edition Pill Badge
-    pill_text = "OFFICIAL 2026/2027 TECHNICAL FIELD GUIDE"
+    c.setFont("Helvetica", 6.8)
+    c.setFillColor(colors.HexColor("#94A3B8"))
+    c.drawString(margin_x + 56, 772, "Freetown, Sierra Leone   •   Certified Diagnostics & Micro-Soldering Hub")
+
+    # Edition Badge (Top Right)
+    badge_text = "OFFICIAL 2026/2027 FIELD MANUAL"
     c.setFont("Helvetica-Bold", 7.5)
-    badge_w = c.stringWidth(pill_text, "Helvetica-Bold", 7.5) + 16
-    badge_x = w - 40 - badge_w
-    badge_y = h - 68
-    c.setFillColor(colors.HexColor("#0E2A72"))
-    c.roundRect(badge_x, badge_y, badge_w, 20, 10, fill=1, stroke=0)
+    badge_w = c.stringWidth(badge_text, "Helvetica-Bold", 7.5) + 18
+    badge_x = w - margin_x - badge_w
+    badge_y = 780
+    c.setFillColor(colors.HexColor("#0B1B4A"))
+    c.roundRect(badge_x, badge_y, badge_w, 24, 12, fill=1, stroke=0)
     c.setStrokeColor(CYAN_BRIGHT)
-    c.setLineWidth(0.8)
-    c.roundRect(badge_x, badge_y, badge_w, 20, 10, fill=0, stroke=1)
+    c.setLineWidth(1)
+    c.roundRect(badge_x, badge_y, badge_w, 24, 12, fill=0, stroke=1)
     c.setFillColor(WHITE)
-    c.drawString(badge_x + 8, badge_y + 6, pill_text)
+    c.drawString(badge_x + 9, badge_y + 8, badge_text)
 
-    # Main Title Block
-    title_top = h - 130
-    c.setFont("Helvetica-Bold", 27)
+    # 3. Main Title & Subtitle Block (y = 635 to 745)
+    c.setFont("Helvetica-Bold", 8)
+    c.setFillColor(RED_ACCENT)
+    c.drawString(margin_x, 735, "TECHNICAL FIELD REFERENCE & EMERGENCY RESPONSE")
+
+    c.setFont("Helvetica-Bold", 24)
     c.setFillColor(WHITE)
-    c.drawString(40, title_top, "THE COMPLETE DEVICE CARE")
-    
-    c.setFont("Helvetica-Bold", 27)
+    c.drawString(margin_x, 707, "THE COMPLETE DEVICE CARE")
+
+    c.setFont("Helvetica-Bold", 24)
     c.setFillColor(CYAN_BRIGHT)
-    c.drawString(40, title_top - 34, "& REMOTE SUPPORT HANDBOOK")
+    c.drawString(margin_x, 680, "& REMOTE SUPPORT HANDBOOK")
 
-    c.setFont("Helvetica", 10.5)
+    c.setFont("Helvetica", 9.2)
     c.setFillColor(colors.HexColor("#CBD5E1"))
     c.drawString(
-        40,
-        title_top - 62,
+        margin_x,
+        657,
         "Practical Hardware Protection, Fast Diagnostics, Data Recovery, Liquid Triage & Secure Remote Desk"
     )
 
-    c.setFont("Helvetica-Oblique", 9)
+    c.setFont("Helvetica-Oblique", 8)
     c.setFillColor(colors.HexColor("#94A3B8"))
     c.drawString(
-        40,
-        title_top - 78,
+        margin_x,
+        642,
         "Engineered specifically for computer and smartphone owners, businesses, and technicians in Sierra Leone."
     )
 
-    # Center Image Frame (Bench Photo)
-    bench_path = os.path.join(WORKSPACE, "public/assets/images/slider/slide-2-technician-repair-bench.jpg")
-    img_card_x = 40
-    img_card_y = h * 0.355
-    img_card_w = w - 80
-    img_card_h = 240
-
+    # 4. Center Featured Lab Showcase (y = 445 to 625)
+    bench_path = os.path.join(BASE_DIR, "public/assets/images/slider/slide-2-technician-repair-bench.jpg")
+    card_y = 445
+    card_h = 180
     if os.path.exists(bench_path):
-        # Outer card container
-        c.setFillColor(colors.HexColor("#0F172A"))
-        c.roundRect(img_card_x - 3, img_card_y - 24, img_card_w + 6, img_card_h + 28, 8, fill=1, stroke=0)
-        c.setStrokeColor(colors.HexColor("#334155"))
+        # Card outer container
+        c.setFillColor(colors.HexColor("#09112A"))
+        c.roundRect(margin_x, card_y, usable_w, card_h, 8, fill=1, stroke=0)
+        c.setStrokeColor(colors.HexColor("#1E3A8A"))
         c.setLineWidth(1)
-        c.roundRect(img_card_x - 3, img_card_y - 24, img_card_w + 6, img_card_h + 28, 8, fill=0, stroke=1)
+        c.roundRect(margin_x, card_y, usable_w, card_h, 8, fill=0, stroke=1)
 
-        # Draw the image
-        c.drawImage(bench_path, img_card_x, img_card_y, width=img_card_w, height=img_card_h, preserveAspectRatio=True)
+        # Image inside container
+        img_y = card_y + 26
+        img_h = card_h - 28
+        c.drawImage(bench_path, margin_x + 1, img_y, width=usable_w - 2, height=img_h, preserveAspectRatio=True)
 
-        # Image caption ribbon at bottom of card
-        c.setFillColor(colors.HexColor("#070E22"))
-        c.rect(img_card_x, img_card_y - 22, img_card_w, 22, fill=1, stroke=0)
-        c.setFont("Helvetica-Bold", 8)
+        # Bottom caption ribbon
+        c.setFillColor(colors.HexColor("#050C22"))
+        c.rect(margin_x + 1, card_y + 1, usable_w - 2, 25, fill=1, stroke=0)
+        
+        c.setFont("Helvetica-Bold", 7.8)
         c.setFillColor(CYAN_BRIGHT)
-        c.drawString(img_card_x + 12, img_card_y - 14, "BRIDGETECH REPAIR LAB:")
-        c.setFont("Helvetica", 8)
+        c.drawString(margin_x + 12, card_y + 9, "BRIDGETECH ENGINEERING LAB:")
+        
+        c.setFont("Helvetica", 7.8)
         c.setFillColor(WHITE)
-        c.drawString(img_card_x + 130, img_card_y - 14, "Advanced Micro-Soldering Bench • Jui Junction, Freetown • Certified Diagnostic Suite")
+        c.drawString(margin_x + 152, card_y + 9, "Advanced Micro-Soldering Bench • Jui Junction, Freetown • Diagnostic Suite")
 
-    # 6 Topic Badges / Quick Highlights Grid
-    pills_y = img_card_y - 60
+    # 5. Section Divider for Cards (y = 422 to 435)
+    c.setFont("Helvetica-Bold", 7.5)
+    c.setFillColor(colors.HexColor("#94A3B8"))
+    c.drawString(margin_x, 427, "CORE TECHNICAL MODULES IN THIS EDITION")
+    c.setStrokeColor(colors.HexColor("#1E293B"))
+    c.setLineWidth(1)
+    c.line(margin_x + 195, 430, w - margin_x, 430)
+
+    # 6. Six Highlight Cards Grid (y = 265 to 415)
+    gap_x = 10
+    col_w = (usable_w - (gap_x * 2)) / 3  # ~167.7 pt
+    card_h = 68
+    row1_y = 345
+    row2_y = 267
+
     pills = [
-        ("Power & Surge Protection", "EDSA & generator spike defense"),
-        ("Screen & Battery Care", "OLED, ports & thermal health"),
-        ("Laptop Speed & Recovery", "NVMe SSD upgrades & BSOD fix"),
-        ("60-Minute Water Protocol", "Immediate liquid triage steps"),
-        ("Data Rescue & Privacy", "Recovering dead storage drives"),
-        ("AnyDesk Secure Remote", "Verified remote assistance desk"),
+        ("Power & Surge Safety", "EDSA surges, generators & AVRs", "1,000+ Joule rating, UPS backup"),
+        ("Smartphone Hardware", "OLED screens, ports & batteries", "Safe cleaning, 20-80% charge rule"),
+        ("Laptop Performance", "Startup triage, NVMe SSD speed", "BSOD fix, RAM & thermal paste"),
+        ("60-Min Liquid Protocol", "Immediate liquid triage steps", "Why rice destroys logic boards"),
+        ("Data Rescue & Privacy", "Recovering failing hard drives", "SSD TRIM caution, client NDA"),
+        ("AnyDesk Remote Desk", "Supervised online PC support", "Zero-Trust: bank credentials safe"),
     ]
 
-    col_w = (img_card_w - 16) / 3
-    card_h = 42
-
-    for i, (p_title, p_desc) in enumerate(pills):
+    for i, (title, sub1, sub2) in enumerate(pills):
         row = i // 3
         col = i % 3
-        bx = img_card_x + col * (col_w + 8)
-        by = pills_y - row * (card_h + 8)
+        bx = margin_x + col * (col_w + gap_x)
+        by = row1_y if row == 0 else row2_y
 
-        # Mini card
-        c.setFillColor(colors.HexColor("#0B1944"))
-        c.roundRect(bx, by, col_w, card_h, 5, fill=1, stroke=0)
+        c.setFillColor(NAVY_CARD)
+        c.roundRect(bx, by, col_w, card_h, 6, fill=1, stroke=0)
         c.setStrokeColor(colors.HexColor("#1E3A8A"))
         c.setLineWidth(0.8)
-        c.roundRect(bx, by, col_w, card_h, 5, fill=0, stroke=1)
+        c.roundRect(bx, by, col_w, card_h, 6, fill=0, stroke=1)
 
-        # Little accent dot
         c.setFillColor(CYAN_BRIGHT)
-        c.circle(bx + 11, by + card_h - 13, 2.5, stroke=0, fill=1)
+        c.circle(bx + 11, by + card_h - 15, 2.5, stroke=0, fill=1)
 
-        c.setFont("Helvetica-Bold", 8)
+        c.setFont("Helvetica-Bold", 8.2)
         c.setFillColor(WHITE)
-        c.drawString(bx + 18, by + card_h - 16, p_title)
+        c.drawString(bx + 19, by + card_h - 18, title)
 
         c.setFont("Helvetica", 7.2)
         c.setFillColor(colors.HexColor("#CBD5E1"))
-        c.drawString(bx + 18, by + card_h - 29, p_desc)
+        c.drawString(bx + 11, by + card_h - 35, sub1)
 
-    # Bottom Contact & Verification Footer Card
-    foot_y = 26
-    foot_h = 70
-    c.setFillColor(colors.HexColor("#0B1430"))
-    c.roundRect(40, foot_y, w - 80, foot_h, 6, fill=1, stroke=0)
+        c.setFont("Helvetica", 6.8)
+        c.setFillColor(colors.HexColor("#94A3B8"))
+        c.drawString(bx + 11, by + card_h - 50, sub2)
+
+    # 7. Bottom Verification & Contact Card (y = 65 to 245)
+    info_y = 65
+    info_h = 180
+    c.setFillColor(colors.HexColor("#070F2B"))
+    c.roundRect(margin_x, info_y, usable_w, info_h, 8, fill=1, stroke=0)
     c.setStrokeColor(colors.HexColor("#2563EB"))
     c.setLineWidth(1)
-    c.roundRect(40, foot_y, w - 80, foot_h, 6, fill=0, stroke=1)
+    c.roundRect(margin_x, info_y, usable_w, info_h, 8, fill=0, stroke=1)
 
-    # Left column: Physical Address
-    c.setFont("Helvetica-Bold", 8)
-    c.setFillColor(CYAN_BRIGHT)
-    c.drawString(56, foot_y + foot_h - 18, "PHYSICAL WORKSHOP")
-    c.setFont("Helvetica", 8)
+    ribbon_h = 28
+    c.setFillColor(colors.HexColor("#0D1D4E"))
+    c.roundRect(margin_x + 1, info_y + info_h - ribbon_h - 1, usable_w - 2, ribbon_h, 7, fill=1, stroke=0)
+    
+    c.setFont("Helvetica-Bold", 8.2)
     c.setFillColor(WHITE)
-    c.drawString(56, foot_y + foot_h - 32, "#1 Regent Highway, Jui Junction")
-    c.drawString(56, foot_y + foot_h - 45, "Freetown, Sierra Leone")
+    c.drawString(margin_x + 14, info_y + info_h - 19, "BRIDGETECH IT SERVICES   •   WORKSHOP & REMOTE DESK")
+    
     c.setFont("Helvetica-Bold", 7.5)
-    c.setFillColor(colors.HexColor("#10B981"))
-    c.drawString(56, foot_y + foot_h - 58, "● Open Mon - Sat (8:30 AM - 6:30 PM)")
+    c.setFillColor(AMBER_ACCENT)
+    c.drawRightString(w - margin_x - 14, info_y + info_h - 19, "★ CERTIFIED LABORATORY  •  90-DAY WARRANTY")
 
-    # Middle column: Direct Hotline
-    c.setFont("Helvetica-Bold", 8)
-    c.setFillColor(CYAN_BRIGHT)
-    c.drawString(225, foot_y + foot_h - 18, "DIRECT HOTLINE & WHATSAPP")
-    c.setFont("Helvetica-Bold", 11)
-    c.setFillColor(WHITE)
-    c.drawString(225, foot_y + foot_h - 34, "+232 33 399391")
-    c.setFont("Helvetica", 7.5)
-    c.setFillColor(colors.HexColor("#CBD5E1"))
-    c.drawString(225, foot_y + foot_h - 48, "Emergency triage & repair quotes")
-    c.drawString(225, foot_y + foot_h - 58, "Email: itservicesfreetown@gmail.com")
+    col1_x = margin_x + 14
+    col2_x = margin_x + 180
+    col3_x = margin_x + 355
+    base_text_y = info_y + info_h - 48
 
-    # Right column: Web & Warranty
-    c.setFont("Helvetica-Bold", 8)
+    # Col 1: Physical Workshop
+    c.setFont("Helvetica-Bold", 7.8)
     c.setFillColor(CYAN_BRIGHT)
-    c.drawString(410, foot_y + foot_h - 18, "ONLINE PORTAL & WARRANTY")
+    c.drawString(col1_x, base_text_y, "PHYSICAL WORKSHOP")
+    
     c.setFont("Helvetica-Bold", 8.5)
     c.setFillColor(WHITE)
-    c.drawString(410, foot_y + foot_h - 32, "itservicesfreetown.com")
-    c.setFont("Helvetica", 7.5)
+    c.drawString(col1_x, base_text_y - 18, "#1 Regent Highway")
+    c.drawString(col1_x, base_text_y - 32, "Jui Junction, Freetown")
+    
+    c.setFont("Helvetica", 7.2)
     c.setFillColor(colors.HexColor("#CBD5E1"))
-    c.drawString(410, foot_y + foot_h - 45, "Remote: itservicesfreetown.com/remote-support")
+    c.drawString(col1_x, base_text_y - 48, "Accessible from Waterloo,")
+    c.drawString(col1_x, base_text_y - 60, "Grafton, Hastings & Central.")
+    
     c.setFont("Helvetica-Bold", 7.5)
-    c.setFillColor(colors.HexColor("#F59E0B"))
-    c.drawString(410, foot_y + foot_h - 58, "★ 90-Day Repair Warranty Guarantee")
+    c.setFillColor(GREEN_ACCENT)
+    c.drawString(col1_x, base_text_y - 78, "● Mon - Sat: 8:30 AM - 6:30 PM")
+
+    c.setFont("Helvetica", 7)
+    c.setFillColor(colors.HexColor("#94A3B8"))
+    c.drawString(col1_x, base_text_y - 92, "Sunday emergency on-call")
+
+    # Col 2: Direct Hotline & Emergency
+    c.setFont("Helvetica-Bold", 7.8)
+    c.setFillColor(CYAN_BRIGHT)
+    c.drawString(col2_x, base_text_y, "HOTLINE & WHATSAPP")
+
+    c.setFont("Helvetica-Bold", 12)
+    c.setFillColor(WHITE)
+    c.drawString(col2_x, base_text_y - 20, "+232 33 399391")
+
+    c.setFont("Helvetica", 7.2)
+    c.setFillColor(colors.HexColor("#CBD5E1"))
+    c.drawString(col2_x, base_text_y - 36, "Direct WhatsApp technical desk")
+    c.drawString(col2_x, base_text_y - 49, "Email: support@itservicesfreetown.com")
+
+    c.setFont("Helvetica-Bold", 7.8)
+    c.setFillColor(RED_ACCENT)
+    c.drawString(col2_x, base_text_y - 70, "🚨 National Emergency: Dial 117")
+
+    c.setFont("Helvetica", 7)
+    c.setFillColor(colors.HexColor("#94A3B8"))
+    c.drawString(col2_x, base_text_y - 84, "Toll-free flood & disaster hotline")
+    c.drawString(col2_x, base_text_y - 96, "Triage response in < 15 mins")
+
+    # Col 3: Online Portal & Remote Desk
+    c.setFont("Helvetica-Bold", 7.8)
+    c.setFillColor(CYAN_BRIGHT)
+    c.drawString(col3_x, base_text_y, "ONLINE PORTAL & SUPPORT")
+
+    c.setFont("Helvetica-Bold", 8.8)
+    c.setFillColor(WHITE)
+    c.drawString(col3_x, base_text_y - 18, "itservicesfreetown.com")
+
+    c.setFont("Helvetica", 7.2)
+    c.setFillColor(colors.HexColor("#CBD5E1"))
+    c.drawString(col3_x, base_text_y - 34, "Remote Desk: /remote-support")
+    c.drawString(col3_x, base_text_y - 47, "Bookings: /book-appointment")
+    c.drawString(col3_x, base_text_y - 60, "Guides: /repair-guides")
+
+    c.setFont("Helvetica-Bold", 7.5)
+    c.setFillColor(AMBER_ACCENT)
+    c.drawString(col3_x, base_text_y - 78, "★ 90-Day Repair Guarantee")
+
+    c.setFont("Helvetica", 7)
+    c.setFillColor(colors.HexColor("#94A3B8"))
+    c.drawString(col3_x, base_text_y - 92, "Transparent written estimates")
+
+    # 8. Bottom Footnote Strip (y = 22 to 45)
+    c.setFont("Helvetica", 7)
+    c.setFillColor(colors.HexColor("#64748B"))
+    c.drawCentredString(w / 2.0, 38, "Official Technical Field Publication   •   BridgeTech IT Services   •   Sierra Leone   •   All Rights Reserved")
+    
+    c.setFont("Helvetica", 6.5)
+    c.setFillColor(colors.HexColor("#475569"))
+    c.drawCentredString(w / 2.0, 26, "Free to distribute for public education and technology safety. Download updates at itservicesfreetown.com/repair-guides")
 
     c.restoreState()
 
@@ -316,7 +377,6 @@ def draw_cover(canvas_obj, doc):
 def build_styles():
     styles = getSampleStyleSheet()
     
-    # Custom styles
     styles.add(ParagraphStyle(
         'ChapterBadge',
         fontName='Helvetica-Bold',
@@ -412,7 +472,6 @@ def build_styles():
 
 
 def make_callout(title, text, bg_color=GRAY_LIGHT, border_color=GRAY_BORDER, title_color=NAVY_PRIMARY):
-    """Creates a beautifully styled rounded callout card."""
     content = [
         Paragraph(f"<b><font color='{title_color.hexval()}'>{title}</font></b>", ParagraphStyle('CTitle', fontName='Helvetica-Bold', fontSize=8.5, leading=11, textColor=title_color, spaceAfter=2)),
         Paragraph(text, ParagraphStyle('CText', fontName='Helvetica', fontSize=8.2, leading=11.5, textColor=GRAY_DARK))
@@ -454,15 +513,11 @@ def build_guide_pdf():
     styles = build_styles()
     story = []
 
-    # ==========================================
-    # PAGE 1: COVER PAGE
-    # ==========================================
+    # PAGE 1: COVER
     story.append(Spacer(1, 10))
     story.append(PageBreak())
 
-    # ==========================================
-    # PAGE 2: WELCOME, EXECUTIVE SUMMARY & TOC
-    # ==========================================
+    # PAGE 2: WELCOME & TOC
     story.append(Paragraph("ABOUT THIS PUBLICATION", styles['ChapterBadge']))
     story.append(Paragraph("Welcome to the BridgeTech Engineering Handbook", styles['ChapterTitle']))
     story.append(Paragraph("Practical diagnostics, preventive care protocols, and remote assistance guidelines designed for Sierra Leone's digital ecosystem.", styles['ChapterSubtitle']))
@@ -564,9 +619,7 @@ def build_guide_pdf():
     ))
     story.append(PageBreak())
 
-    # ==========================================
-    # PAGE 3: CHAPTER 1 - PROTECTING DEVICES IN FREETOWN
-    # ==========================================
+    # PAGE 3: CHAPTER 1
     story.append(Paragraph("CHAPTER 01   •   ENVIRONMENTAL & ELECTRICAL DEFENSE", styles['ChapterBadge']))
     story.append(Paragraph("Protecting Your Electronics in Freetown", styles['ChapterTitle']))
     story.append(Paragraph("Overcoming severe electrical voltage fluctuations, salt humidity, tropical heat, and harmful dust.", styles['ChapterSubtitle']))
@@ -613,9 +666,7 @@ def build_guide_pdf():
     ))
     story.append(PageBreak())
 
-    # ==========================================
-    # PAGE 4: CHAPTER 2 - SMARTPHONE HARDWARE ESSENTIALS
-    # ==========================================
+    # PAGE 4: CHAPTER 2
     story.append(Paragraph("CHAPTER 02   •   SMARTPHONE TRIAGE & MAINTENANCE", styles['ChapterBadge']))
     story.append(Paragraph("Smartphone Care: Screens, Ports & Batteries", styles['ChapterTitle']))
     story.append(Paragraph("Preventing catastrophic display fractures, port contact burnout, and hazardous lithium battery swelling.", styles['ChapterSubtitle']))
@@ -658,9 +709,7 @@ def build_guide_pdf():
     ))
     story.append(PageBreak())
 
-    # ==========================================
-    # PAGE 5: CHAPTER 3 - LAPTOP DIAGNOSTICS & UPGRADES
-    # ==========================================
+    # PAGE 5: CHAPTER 3
     story.append(Paragraph("CHAPTER 03   •   COMPUTER RECOVERY & HARDWARE UPGRADES", styles['ChapterBadge']))
     story.append(Paragraph("Laptop & Computer Diagnostics & Performance", styles['ChapterTitle']))
     story.append(Paragraph("Diagnosing the 4 main startup failure modes, stopping thermal throttling, and massive SSD speedups.", styles['ChapterSubtitle']))
@@ -733,9 +782,7 @@ def build_guide_pdf():
     ))
     story.append(PageBreak())
 
-    # ==========================================
-    # PAGE 6: CHAPTER 4 - 60-MINUTE LIQUID PROTOCOL
-    # ==========================================
+    # PAGE 6: CHAPTER 4
     story.append(Paragraph("CHAPTER 04   •   EMERGENCY DISASTER RECOVERY", styles['ChapterBadge']))
     story.append(Paragraph("Water & Liquid Damage: The First 60 Minutes", styles['ChapterTitle']))
     story.append(Paragraph("Why liquid destroys circuits, the four fatal mistakes to avoid, and the step-by-step survival checklist.", styles['ChapterSubtitle']))
@@ -779,9 +826,7 @@ def build_guide_pdf():
     ))
     story.append(PageBreak())
 
-    # ==========================================
-    # PAGE 7: CHAPTER 5 - DATA SAFETY & RECOVERY
-    # ==========================================
+    # PAGE 7: CHAPTER 5
     story.append(Paragraph("CHAPTER 05   •   STORAGE HEALTH & CONFIDENTIAL RESCUE", styles['ChapterBadge']))
     story.append(Paragraph("Data Safety, Storage Health & Recovery Protocols", styles['ChapterTitle']))
     story.append(Paragraph("Recognizing failing storage drives, solid-state TRIM risks, and our strict customer privacy guarantee.", styles['ChapterSubtitle']))
@@ -843,9 +888,7 @@ def build_guide_pdf():
     ))
     story.append(PageBreak())
 
-    # ==========================================
-    # PAGE 8: CHAPTER 6 - REPAIR, UPGRADE, OR REPLACE
-    # ==========================================
+    # PAGE 8: CHAPTER 6
     story.append(Paragraph("CHAPTER 06   •   COST-BENEFIT & INVESTMENT ANALYSIS", styles['ChapterBadge']))
     story.append(Paragraph("Repair, Upgrade, or Replace? The Honest Matrix", styles['ChapterTitle']))
     story.append(Paragraph("How to evaluate repair costs versus equipment lifespan, part quality tiers, and when to walk away.", styles['ChapterSubtitle']))
@@ -916,9 +959,7 @@ def build_guide_pdf():
     ))
     story.append(PageBreak())
 
-    # ==========================================
-    # PAGE 9: CHAPTER 7 - ANYDESK REMOTE SUPPORT
-    # ==========================================
+    # PAGE 9: CHAPTER 7
     story.append(Paragraph("CHAPTER 07   •   ZERO-COMMUTE TECHNICAL DESK", styles['ChapterBadge']))
     story.append(Paragraph("Remote Support: Secure Help from Anywhere", styles['ChapterTitle']))
     story.append(Paragraph("How verified AnyDesk remote sessions work, common solvable issues, and our Zero-Trust privacy rules.", styles['ChapterSubtitle']))
@@ -991,9 +1032,7 @@ def build_guide_pdf():
     ))
     story.append(PageBreak())
 
-    # ==========================================
-    # PAGE 10: CHAPTER 8 - INTAKE CHECKLIST & DIRECTORY
-    # ==========================================
+    # PAGE 10: CHAPTER 8
     story.append(Paragraph("CHAPTER 08   •   SERVICE PROTOCOL & CONTACT DIRECTORY", styles['ChapterBadge']))
     story.append(Paragraph("Service Intake Checklist & Workshop Center", styles['ChapterTitle']))
     story.append(Paragraph("Everything to prepare before your repair, complete workshop directions, and our service warranties.", styles['ChapterSubtitle']))
@@ -1024,7 +1063,7 @@ def build_guide_pdf():
     hub_info = [
         [
             Paragraph("<b>Workshop Location</b><br/>#1 Regent Highway, Jui Junction<br/>Freetown, Sierra Leone<br/><i>(Easily accessible from Waterloo, Grafton, Hastings, Lumley & Central Freetown via Regent Highway)</i>", styles['TableCell']),
-            Paragraph("<b>Hotline & WhatsApp</b><br/><b>+232 33 399391</b><br/>Email: itservicesfreetown@gmail.com<br/>Web: <b>itservicesfreetown.com</b><br/>Remote Desk: itservicesfreetown.com/remote-support", styles['TableCell']),
+            Paragraph("<b>Hotline & WhatsApp</b><br/><b>+232 33 399391</b><br/>Email: support@itservicesfreetown.com<br/>Web: <b>itservicesfreetown.com</b><br/>Remote Desk: itservicesfreetown.com/remote-support", styles['TableCell']),
             Paragraph("<b>Operating Hours</b><br/>Monday – Friday: 8:30 AM – 6:30 PM<br/>Saturday: 9:00 AM – 5:00 PM<br/>Sunday: Emergency Intake by Call<br/><b>National Emergency Hotline: 117</b>", styles['TableCell'])
         ]
     ]
@@ -1053,7 +1092,6 @@ def build_guide_pdf():
         "This handbook provides educational maintenance and triage recommendations based on real-world engineering experience. It is not a substitute for professional laboratory diagnostics when equipment exhibits acute electrical faults, burning odors, lithium battery swelling, or severe liquid ingress. BridgeTech IT Services is an independent technology service enterprise operating in Sierra Leone."
     ))
 
-    # Build PDF with custom NumberedCanvas and cover drawer
     doc.build(story, canvasmaker=NumberedCanvas, onFirstPage=draw_cover)
     print("PDF generation complete:", OUTPUT_PDF)
 

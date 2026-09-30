@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import PageBanner from '@/components/PageBanner';
 import { Download, FileText } from 'lucide-react';
+import ShareDeviceGuideButton from './ShareDeviceGuideButton';
 
 export const metadata: Metadata = {
   title: 'Device Repair Guides | BridgeTech IT Services',
@@ -119,14 +120,17 @@ export default function RepairGuidesPage() {
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-blue-100">A practical 10-page handbook covering device protection, repair decisions, data safety, water damage, and secure AnyDesk support.</p>
             </div>
           </div>
-          <a
-            href="/downloads/bridgetech-device-care-guide.pdf"
-            download
-            className="mt-5 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-red-700 md:mt-0"
-          >
-            <Download className="h-4 w-4" />
-            Download the PDF
-          </a>
+          <div className="mt-5 flex flex-wrap items-center gap-3 md:mt-0 md:shrink-0">
+            <a
+              href="/downloads/bridgetech-device-care-guide.pdf"
+              download
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-red-700 shadow-md"
+            >
+              <Download className="h-4 w-4" />
+              Download the PDF
+            </a>
+            <ShareDeviceGuideButton />
+          </div>
         </div>
 
         <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-sm mb-10">
