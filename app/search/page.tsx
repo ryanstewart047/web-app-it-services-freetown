@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { ArrowRight, CalendarDays, Package, Search, Wrench } from 'lucide-react'
@@ -54,7 +54,7 @@ const typeStyle: Record<SearchItem['type'], string> = {
   Page: 'bg-slate-100 text-slate-700', Product: 'bg-emerald-100 text-emerald-700', Article: 'bg-amber-100 text-amber-700',
 }
 
-export default function SearchPage() {
+function SearchPageContent() {
   const searchParams = useSearchParams()
   const [query, setQuery] = useState(searchParams.get('q') || '')
   const [dynamicItems, setDynamicItems] = useState<SearchItem[]>([])
@@ -117,5 +117,13 @@ export default function SearchPage() {
         {results.length ? <div className="grid gap-4 md:grid-cols-2">{results.map((item) => <Link key={`${item.type}-${item.href}-${item.title}`} href={item.href} className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"><div className="flex items-start gap-3"><div className="rounded-xl bg-slate-100 p-2.5 text-[#040e40]">{item.type === 'Product' ? <Package className="h-5 w-5" /> : <Wrench className="h-5 w-5" />}</div><div className="min-w-0 flex-1"><div className="mb-2 flex items-center justify-between gap-3"><span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${typeStyle[item.type]}`}>{item.type}</span><ArrowRight className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-1 group-hover:text-red-600" /></div><h3 className="font-bold text-slate-900">{item.title}</h3><p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{item.description}</p></div></div></Link>)}</div> : <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center"><Search className="mx-auto h-10 w-10 text-slate-300" /><h2 className="mt-4 text-xl font-bold text-slate-900">No matching results yet</h2><p className="mx-auto mt-2 max-w-md text-sm text-slate-600">Try a simpler term, such as “screen”, “battery”, “laptop”, “AnyDesk”, or “backup”.</p><Link href="/contact" className="mt-6 inline-flex rounded-lg bg-[#040e40] px-4 py-2 text-sm font-bold text-white">Ask a technician</Link></div>}
       </section>
     </main>
+  )
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<main className="min-h-screen bg-slate-50" aria-busy="true" />}>
+      <SearchPageContent />
+    </Suspense>
   )
 }
