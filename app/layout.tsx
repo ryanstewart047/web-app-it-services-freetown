@@ -194,8 +194,8 @@ export default function RootLayout({
         <meta name="msapplication-tap-highlight" content="no" />
         
         {/* Favicon - Using Site Logo */}
-        <link rel="icon" type="image/svg+xml" href={`${BRAND_FAVICON_SVG_SRC}?v=2`} />
-        <link rel="icon" type="image/x-icon" href={`${BRAND_FAVICON_ICO_SRC}?v=2`} />
+        <link rel="icon" type="image/svg+xml" href={`${BRAND_FAVICON_SVG_SRC}?v=3`} />
+        <link rel="icon" type="image/x-icon" href={`${BRAND_FAVICON_ICO_SRC}?v=3`} />
         
         {/* Apple Touch Icons - PNG format required for Apple devices */}
         <link rel="apple-touch-icon" href={BRAND_APPLE_TOUCH_ICON_SRC} />
