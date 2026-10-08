@@ -1,12 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { BRAND_LOGO_SRC, BRAND_LOGO_FALLBACK_SRC, BRAND_NAME } from '@/lib/brand'
 
 interface NetworkStatus {
   isOnline: boolean
   wasOffline: boolean
 }
+
+// How often to re-check real connectivity while offline
+const OFFLINE_RECHECK_INTERVAL_MS = 30_000
 
 export default function NetworkMonitor() {
   const [networkStatus, setNetworkStatus] = useState<NetworkStatus>({
@@ -16,10 +19,60 @@ export default function NetworkMonitor() {
   const [showPopup, setShowPopup] = useState(false)
   const [popupType, setPopupType] = useState<'offline' | 'online'>('offline')
   const [isClient, setIsClient] = useState(false)
+  const recheckTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Handle client-side rendering
   useEffect(() => {
     setIsClient(true)
+  }, [])
+
+  const handleOnline = useCallback(() => {
+    console.log('Network: Connected')
+    setNetworkStatus(prev => {
+      // Only show "back online" popup if we were previously offline
+      if (!prev.isOnline || prev.wasOffline) {
+        setPopupType('online')
+        setShowPopup(true)
+
+        // Auto-hide online popup after 3 seconds
+        setTimeout(() => {
+          setShowPopup(false)
+        }, 3000)
+      }
+
+      return {
+        isOnline: true,
+        wasOffline: false
+      }
+    })
+  }, [])
+
+  const handleOffline = useCallback(() => {
+    console.log('Network: Disconnected')
+    setNetworkStatus({
+      isOnline: false,
+      wasOffline: true
+    })
+    setPopupType('offline')
+    setShowPopup(true)
+    // Don't auto-hide offline popup - user should be aware they're offline
+  }, [])
+
+  // Real connectivity probe — navigator.onLine / the browser's online/offline
+  // events only reflect the state of the network interface, so a device can
+  // report "online" while still having no actual internet access (e.g. on a
+  // Wi-Fi network with no uplink). Hitting the server confirms real
+  // connectivity rather than trusting the browser's own signal.
+  const probeConnectivity = useCallback(async (): Promise<boolean> => {
+    try {
+      const res = await fetch(`/api/ping?t=${Date.now()}`, {
+        method: 'HEAD',
+        cache: 'no-store',
+      })
+      return res.ok || res.status < 500
+    } catch {
+      return false
+    }
   }, [])
 
   useEffect(() => {
@@ -35,38 +88,6 @@ export default function NetworkMonitor() {
 
     console.log('NetworkMonitor: Initializing with status:', initialStatus)
 
-    const handleOnline = () => {
-      console.log('Network: Connected')
-      setNetworkStatus(prev => {
-        // Only show "back online" popup if we were previously offline
-        if (!prev.isOnline || prev.wasOffline) {
-          setPopupType('online')
-          setShowPopup(true)
-          
-          // Auto-hide online popup after 3 seconds
-          setTimeout(() => {
-            setShowPopup(false)
-          }, 3000)
-        }
-        
-        return {
-          isOnline: true,
-          wasOffline: false
-        }
-      })
-    }
-
-    const handleOffline = () => {
-      console.log('Network: Disconnected')
-      setNetworkStatus({
-        isOnline: false,
-        wasOffline: true
-      })
-      setPopupType('offline')
-      setShowPopup(true)
-      // Don't auto-hide offline popup - user should be aware they're offline
-    }
-
     // Add event listeners
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
@@ -75,7 +96,38 @@ export default function NetworkMonitor() {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
     }
-  }, [isClient])
+  }, [isClient, handleOnline, handleOffline])
+
+  // While offline, re-check real connectivity every 30 seconds and come
+  // back online automatically as soon as a connection is confirmed —
+  // instead of waiting on the browser's 'online' event, which doesn't
+  // always fire reliably.
+  useEffect(() => {
+    if (!isClient) return
+
+    if (networkStatus.isOnline) {
+      if (recheckTimerRef.current) {
+        clearInterval(recheckTimerRef.current)
+        recheckTimerRef.current = null
+      }
+      return
+    }
+
+    recheckTimerRef.current = setInterval(async () => {
+      console.log('NetworkMonitor: Re-checking connectivity…')
+      const isConnected = await probeConnectivity()
+      if (isConnected) {
+        handleOnline()
+      }
+    }, OFFLINE_RECHECK_INTERVAL_MS)
+
+    return () => {
+      if (recheckTimerRef.current) {
+        clearInterval(recheckTimerRef.current)
+        recheckTimerRef.current = null
+      }
+    }
+  }, [isClient, networkStatus.isOnline, probeConnectivity, handleOnline])
 
   // Debug functions for testing
   const forceOffline = () => {
