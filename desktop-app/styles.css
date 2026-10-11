@@ -149,6 +149,15 @@ body {
   font-weight: 600;
 }
 
+.device-picker-wrap select {
+  min-width: 220px;
+  border: 1px solid var(--border-color);
+  border-radius: 0.4rem;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  padding: 0.35rem 0.5rem;
+}
+
 /* Warning Box */
 .warning-box {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);

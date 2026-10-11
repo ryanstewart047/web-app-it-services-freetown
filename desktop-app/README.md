@@ -1,6 +1,6 @@
 # IT Services Device Detector - Desktop Application
 
-Professional Android device detection tool with full ADB integration. Get complete device information including IMEI, hardware specs, battery stats, and more!
+Professional Android device diagnostics tool with full ADB integration. Read device information locally, select from multiple connected devices, and export technician-ready reports.
 
 ## 🚀 Features
 
@@ -19,7 +19,9 @@ Professional Android device detection tool with full ADB integration. Get comple
 ### Professional Features
 - 🖥️ **Desktop Application**: Full system access, no browser limitations
 - 🔄 **Real-time Detection**: Instant device recognition
-- 💾 **Export Options**: Save as JSON or TXT file
+- 💾 **Export Options**: Save as JSON, TXT, or CSV files
+- 📲 **Multiple Devices**: Choose the authorized device to inspect when more than one phone is connected
+- 🧭 **Connection Guidance**: Clear status for authorized, unauthorized, and offline ADB devices
 - 🎨 **Beautiful UI**: Dark mode interface with smooth animations
 - ⚡ **Fast**: Gathers 50+ device properties in seconds
 - 🔒 **Secure**: Runs locally, no data sent to servers
@@ -100,9 +102,9 @@ sudo pacman -S android-tools
 #### For Users (Pre-built Binaries)
 Download the installer for your operating system:
 
-- **Windows**: `IT-Services-Device-Detector-Setup-1.0.0.exe` or `IT-Services-Device-Detector-1.0.0-portable.exe`
-- **macOS**: `IT-Services-Device-Detector-1.0.0.dmg`
-- **Linux**: `IT-Services-Device-Detector-1.0.0.AppImage` or `it-services-device-detector_1.0.0_amd64.deb`
+- **Windows**: `IT Services Device Detector Setup 1.2.0.exe` or `IT Services Device Detector 1.2.0.exe`
+- **macOS (Apple Silicon)**: `IT Services Device Detector-1.2.0-arm64.dmg`
+- **Linux**: `IT Services Device Detector-1.2.0.AppImage` or `it-services-device-detector_1.2.0_amd64.deb`
 
 Run the installer and follow the on-screen instructions.
 
@@ -244,3 +246,7 @@ Professional IT solutions and device diagnostics
 ---
 
 **Note**: This application requires ADB to function. Make sure Android Debug Bridge is properly installed and your device has USB Debugging enabled.
+
+### macOS first launch
+
+The current macOS package is not notarized. After confirming that you downloaded it from BridgeTech's official release, open it from Finder with **Control-click → Open** to approve the first launch.

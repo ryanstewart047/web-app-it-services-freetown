@@ -60,12 +60,12 @@ npm run build:all
 After building, installers will be in `desktop-app/dist/`:
 
 **Windows:**
-- `IT Services Device Detector Setup 1.0.0.exe` (Installer)
-- `IT Services Device Detector 1.0.0.exe` (Portable)
+- `IT Services Device Detector Setup 1.2.0.exe` (Installer)
+- `IT Services Device Detector 1.2.0.exe` (Portable)
 
-**macOS:**
-- `IT Services Device Detector-1.0.0.dmg`
-- `IT Services Device Detector-1.0.0-mac.zip`
+**macOS (Apple Silicon):**
+- `IT Services Device Detector-1.2.0-arm64.dmg`
+- `IT Services Device Detector-1.2.0-arm64-mac.zip`
 
 **Linux:**
 - `IT Services Device Detector-1.0.0.AppImage`
@@ -83,11 +83,11 @@ After building, installers will be in `desktop-app/dist/`:
 2. **Click "Draft a new release"**
 
 3. **Fill in Release Details:**
-   - **Tag version:** `v1.0.0`
-   - **Release title:** `IT Services Device Detector v1.0.0`
+   - **Tag version:** `device-detector-v1.2.0`
+   - **Release title:** `IT Services Device Detector v1.2.0`
    - **Description:**
      ```markdown
-     # IT Services Device Detector - Desktop Application
+     # IT Services Device Detector v1.2.0
      
      Professional Android device detection with full ADB integration.
      
@@ -95,7 +95,9 @@ After building, installers will be in `desktop-app/dist/`:
      - Get complete device information including IMEI
      - 50+ device properties in seconds
      - Battery, RAM, storage, network details
-     - Export as JSON or TXT
+     - Select the correct device when several are connected
+     - Clear unauthorized/offline device guidance
+     - Export as JSON, TXT, or CSV and copy a technician summary
      - 100% offline and private
      
      ## 📥 Downloads

@@ -40,6 +40,10 @@
         <span class="status-label">Device:</span>
         <span class="status-value" id="deviceStatus">No device connected</span>
       </div>
+      <div class="status-item device-picker-wrap" id="devicePickerWrap" hidden>
+        <label class="status-label" for="devicePicker">Selected device:</label>
+        <select id="devicePicker" aria-label="Choose connected Android device"></select>
+      </div>
     </div>
 
     <!-- ADB Not Installed Warning -->
@@ -86,7 +90,7 @@
       <div class="warning-icon">📱</div>
       <div class="warning-content">
         <h3>No Device Detected</h3>
-        <p>Please connect your Android device via USB and enable USB Debugging.</p>
+        <p id="noDeviceMessage">Please connect your Android device via USB and enable USB Debugging.</p>
         <details class="install-guide">
           <summary>How to Enable USB Debugging</summary>
           <div class="install-steps">
@@ -132,6 +136,8 @@
           </svg>
           Export TXT
         </button>
+        <button id="exportCsvBtn" class="btn btn-secondary">Export CSV</button>
+        <button id="copySummaryBtn" class="btn btn-secondary">Copy Summary</button>
       </div>
 
       <!-- Information Sections -->

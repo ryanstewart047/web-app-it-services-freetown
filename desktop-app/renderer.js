@@ -1,5 +1,6 @@
 // Global state
 let deviceData = null;
+let selectedSerial = null;
 
 // DOM Elements
 const statusBar = {
@@ -21,7 +22,12 @@ const buttons = {
   refresh: document.getElementById('refreshBtn'),
   recheckAdb: document.getElementById('recheckAdbBtn'),
   exportJson: document.getElementById('exportJsonBtn'),
-  exportTxt: document.getElementById('exportTxtBtn')
+  exportTxt: document.getElementById('exportTxtBtn'),
+  exportCsv: document.getElementById('exportCsvBtn'),
+  copySummary: document.getElementById('copySummaryBtn'),
+  devicePicker: document.getElementById('devicePicker'),
+  devicePickerWrap: document.getElementById('devicePickerWrap'),
+  noDeviceMessage: document.getElementById('noDeviceMessage')
 };
 
 // Initialize app
@@ -53,23 +59,30 @@ async function checkDevices() {
   }
   
   // Parse device list
-  const lines = deviceList.output.split('\n');
-  const devices = lines.filter(line => 
-    line.includes('device') && 
-    !line.includes('List of devices') &&
-    !line.trim().endsWith('offline') &&
-    !line.trim().endsWith('unauthorized')
-  );
+  const devices = deviceList.devices || [];
+  const authorizedDevices = devices.filter((device) => device.state === 'device');
+  const unauthorizedDevices = devices.filter((device) => device.state === 'unauthorized');
   
-  if (devices.length === 0) {
+  if (authorizedDevices.length === 0) {
+    buttons.devicePickerWrap.hidden = true;
+    if (unauthorizedDevices.length > 0) {
+      warnings.noDeviceMessage.textContent = 'Your phone is connected but has not authorized this computer. Unlock the phone and tap “Allow” on the USB debugging prompt, then refresh.';
+    } else if (devices.some((device) => device.state === 'offline')) {
+      warnings.noDeviceMessage.textContent = 'A device is offline. Reconnect the cable, unlock the device, then refresh.';
+    } else {
+      warnings.noDeviceMessage.textContent = 'Please connect your Android device via USB and enable USB Debugging.';
+    }
     showNoDeviceWarning();
     return;
   }
   
   // Device found!
   warnings.noDevice.style.display = 'none';
-  const deviceInfo = devices[0].split(/\s+/)[0];
-  updateDeviceStatus(`Connected (${deviceInfo})`, 'success');
+  buttons.devicePickerWrap.hidden = false;
+  buttons.devicePicker.innerHTML = authorizedDevices.map((device) => `<option value="${device.serial}">${device.serial}${device.details ? ` — ${device.details}` : ''}</option>`).join('');
+  selectedSerial = authorizedDevices.some((device) => device.serial === selectedSerial) ? selectedSerial : authorizedDevices[0].serial;
+  buttons.devicePicker.value = selectedSerial;
+  updateDeviceStatus(`${authorizedDevices.length} connected`, 'success');
   
   // Gather device information
   await gatherDeviceInfo();
@@ -81,10 +94,10 @@ async function gatherDeviceInfo() {
   states.deviceInfo.style.display = 'none';
   
   try {
-    const result = await window.electronAPI.getAllDeviceInfo();
+  const result = await window.electronAPI.getAllDeviceInfo(selectedSerial);
     
     if (result.success) {
-      deviceData = result.data;
+      deviceData = { ...result.data, selectedSerial: result.serial, collectedAt: result.collectedAt };
       displayDeviceInfo(result.data);
       states.loading.style.display = 'none';
       states.deviceInfo.style.display = 'block';
@@ -162,6 +175,11 @@ function displayDeviceInfo(data) {
     }
     return batteryStr;
   };
+
+  const batteryValue = (key) => {
+    const match = (data.battery || '').match(new RegExp(`^\\s*${key}:\\s*(.+)$`, 'm'));
+    return match ? `${key}: ${match[1]}` : 'N/A';
+  };
   
   const parseIMEI = (imeiStr) => {
     if (!imeiStr || imeiStr === 'N/A') return '-';
@@ -228,12 +246,12 @@ function displayDeviceInfo(data) {
   document.getElementById('storageSdcard').textContent = formatStorage(data.storageSdcard);
   
   // Battery Information
-  document.getElementById('batteryLevel').textContent = formatBattery(data.batteryLevel, 'batteryLevel');
-  document.getElementById('batteryHealth').textContent = formatBattery(data.batteryHealth, 'batteryHealth');
-  document.getElementById('batteryStatus').textContent = formatBattery(data.batteryStatus, 'batteryStatus');
-  document.getElementById('batteryTemp').textContent = formatBattery(data.batteryTemp, 'batteryTemp');
-  document.getElementById('batteryVoltage').textContent = formatBattery(data.batteryVoltage, 'batteryVoltage');
-  document.getElementById('batteryTech').textContent = formatBattery(data.batteryTech, 'batteryTech');
+  document.getElementById('batteryLevel').textContent = formatBattery(batteryValue('level'), 'batteryLevel');
+  document.getElementById('batteryHealth').textContent = formatBattery(batteryValue('health'), 'batteryHealth');
+  document.getElementById('batteryStatus').textContent = formatBattery(batteryValue('status'), 'batteryStatus');
+  document.getElementById('batteryTemp').textContent = formatBattery(batteryValue('temperature'), 'batteryTemp');
+  document.getElementById('batteryVoltage').textContent = formatBattery(batteryValue('voltage'), 'batteryVoltage');
+  document.getElementById('batteryTech').textContent = formatBattery(batteryValue('technology'), 'batteryTech');
   
   // Network Information
   const formatIpAddress = (ipStr) => {
@@ -312,6 +330,19 @@ buttons.recheckAdb.addEventListener('click', () => {
 
 buttons.exportJson.addEventListener('click', exportAsJSON);
 buttons.exportTxt.addEventListener('click', exportAsTXT);
+buttons.exportCsv.addEventListener('click', async () => {
+  if (!deviceData) return;
+  const result = await window.electronAPI.exportDeviceInfo(deviceData, 'csv');
+  if (result.success) alert(`Device information exported successfully to:\n${result.path}`);
+});
+buttons.copySummary.addEventListener('click', async () => {
+  if (!deviceData) return;
+  const summary = [`Device: ${deviceData.manufacturer || '-'} ${deviceData.model || '-'}`, `Serial: ${deviceData.selectedSerial || '-'}`, `Android: ${deviceData.androidVersion || '-'}`, `Battery: ${document.getElementById('batteryLevel').textContent}`, `Collected: ${deviceData.collectedAt || new Date().toISOString()}`].join('\n');
+  await navigator.clipboard.writeText(summary);
+  buttons.copySummary.textContent = 'Copied!';
+  setTimeout(() => { buttons.copySummary.textContent = 'Copy Summary'; }, 1800);
+});
+buttons.devicePicker.addEventListener('change', () => { selectedSerial = buttons.devicePicker.value; gatherDeviceInfo(); });
 
 // Initialize on load
 window.addEventListener('DOMContentLoaded', () => {
