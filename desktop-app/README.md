@@ -1,4 +1,4 @@
-# IT Services Device Detector - Desktop Application
+# BridgeTech Device Detector - Desktop Application
 
 Professional Android device diagnostics tool with full ADB integration. Read device information locally, select from multiple connected devices, and export technician-ready reports.
 

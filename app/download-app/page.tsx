@@ -68,9 +68,9 @@ export default function DownloadAppPage() {
 
       {/* Hero Section */}
       <PageBanner
-        title="IT Services Device Detector"
+        title="BridgeTech Device Detector"
         subtitle="Professional desktop application for complete Android device diagnostics. Get IMEI, hardware specs, battery stats, and 50+ device properties!"
-        icon="fas fa-desktop"
+        logoSrc="/assets/bridgetech-avatar-transparent.png"
       />
 
       <div className="container mx-auto px-4 py-16">
@@ -160,10 +160,10 @@ export default function DownloadAppPage() {
                 <div className="text-2xl">✅</div>
                 <div className="flex-1">
                   <p className="text-green-200 font-bold mb-2">
-                    Windows Download Available
+                    Official BridgeTech Device Detector Downloads
                   </p>
                   <p className="text-green-200 text-sm mb-2">
-                    Download the latest Windows version of BridgeTech IT Device Detector from our official GitHub release.
+                    Download the correct installer for your operating system from our official GitHub releases.
                   </p>
                   <p className="mb-2 inline-flex rounded-full bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-200">
                     {formatTotalDownloadCount(downloadStats?.totalDownloads, isLoadingStats)}

@@ -1,13 +1,13 @@
 !macro customInstall
-  DetailPrint "Starting installation of IT Services Device Detector..."
+  DetailPrint "Starting installation of BridgeTech Device Detector..."
 !macroend
 
 !macro customInstallStep
-  DetailPrint "Copying application binaries..."
+  DetailPrint "Installing BridgeTech Device Detector and shield avatar branding..."
 !macroend
 
 Function .onInstSuccess
-  MessageBox MB_OK|MB_ICONINFORMATION "IT Services Device Detector has been installed successfully. Thank you for using BridgeTech IT Services."
+  MessageBox MB_OK|MB_ICONINFORMATION "BridgeTech Device Detector has been installed successfully. Next: install Android Platform Tools, enable USB Debugging, then accept the authorization prompt on your device."
 FunctionEnd
 
 Function .onInstFailed

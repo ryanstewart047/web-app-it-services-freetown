@@ -12,6 +12,7 @@ interface PageBannerProps {
   title: string
   subtitle?: string
   icon?: string                // FontAwesome class e.g. "fas fa-info-circle"
+  logoSrc?: string             // Brand logo displayed instead of the generic icon
   imageIndex?: number          // Force a specific image (0-2) instead of random
   compact?: boolean            // Shorter height for legal / utility pages
 }
@@ -20,6 +21,7 @@ export default function PageBanner({
   title,
   subtitle,
   icon,
+  logoSrc,
   imageIndex,
   compact = false,
 }: PageBannerProps) {
@@ -53,9 +55,9 @@ export default function PageBanner({
           compact ? 'py-12 sm:py-16' : 'py-16 sm:py-20'
         }`}
       >
-        {icon && (
+        {(icon || logoSrc) && (
           <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full mb-5 border border-white/20">
-            <i className={`${icon} text-2xl text-white`} />
+            {logoSrc ? <img src={logoSrc} alt="" className="h-12 w-12 object-contain" /> : <i className={`${icon} text-2xl text-white`} />}
           </div>
         )}
 

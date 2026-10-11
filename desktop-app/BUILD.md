@@ -1,4 +1,4 @@
-# Desktop App - Quick Build Guide
+# BridgeTech Device Detector - Quick Build Guide
 
 ## Quick Start (For Testing)
 
@@ -47,8 +47,8 @@ npm run build:all
 Built installers will be in `desktop-app/dist/`:
 
 **Windows:**
-- `IT Services Device Detector Setup 1.0.0.exe` (Installer)
-- `IT Services Device Detector 1.0.0.exe` (Portable)
+- `BridgeTech Device Detector Setup 1.3.0.exe` (Installer)
+- `BridgeTech Device Detector 1.3.0.exe` (Portable)
 
 **macOS:**
 - `IT Services Device Detector-1.0.0.dmg` (Installer)
