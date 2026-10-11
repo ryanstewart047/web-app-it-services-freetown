@@ -46,6 +46,30 @@
       </div>
     </div>
 
+    <div class="diagnostic-tabs" role="tablist" aria-label="Diagnostic modes">
+      <button class="diagnostic-tab active" type="button" role="tab" aria-selected="true" aria-controls="adbPanel" id="adbTab" data-panel="adbPanel">ADB Diagnostics</button>
+      <button class="diagnostic-tab" type="button" role="tab" aria-selected="false" aria-controls="samsungPanel" id="samsungTab" data-panel="samsungPanel">Samsung USB Check</button>
+      <button class="diagnostic-tab" type="button" role="tab" aria-selected="false" aria-controls="mtkPanel" id="mtkTab" data-panel="mtkPanel">MediaTek USB Check</button>
+    </div>
+
+    <section id="samsungPanel" class="usb-panel" role="tabpanel" aria-labelledby="samsungTab" hidden>
+      <div class="panel-brand"><img src="assets/icon.png" alt="" /><div><p class="eyebrow">SAMSUNG DEVICE CHECK</p><h2>Safe USB mode identification</h2></div></div>
+      <p>This check reads only the USB vendor and product identifiers the connected device exposes. It does not retrieve protected data or bypass USB debugging, FRP, carrier, or screen locks.</p>
+      <button id="scanSamsungUsbBtn" class="btn btn-primary">Select and identify Samsung USB device</button>
+      <div id="samsungUsbResult" class="usb-result" aria-live="polite">Connect a Samsung device, then select it from the system USB prompt.</div>
+      <p class="panel-note">For model, Android, IMEI, battery, storage, and other device information, use the ADB Diagnostics tab after the owner authorizes USB Debugging.</p>
+    </section>
+
+    <section id="mtkPanel" class="usb-panel" role="tabpanel" aria-labelledby="mtkTab" hidden>
+      <div class="panel-brand"><img src="assets/icon.png" alt="" /><div><p class="eyebrow">MEDIATEK USB CHECK</p><h2>Safe processor-mode identification</h2></div></div>
+      <p>This check identifies a connected MediaTek USB interface from its public USB identifiers. It does not read protected phone data and cannot unlock, flash, erase, or bypass security controls.</p>
+      <button id="scanMtkUsbBtn" class="btn btn-primary">Select and identify MediaTek USB device</button>
+      <div id="mtkUsbResult" class="usb-result" aria-live="polite">Connect the device in its normal USB mode, then select it from the system USB prompt.</div>
+      <p class="panel-note">MediaTek devices can expose different IDs in normal, preloader, and bootloader modes. An ID is a connection clue only—not proof of a particular model or security state.</p>
+    </section>
+
+    <div id="adbPanel" role="tabpanel" aria-labelledby="adbTab">
+
     <!-- ADB Not Installed Warning -->
     <div id="adbWarning" class="warning-box" style="display: none;">
       <div class="warning-icon">⚠️</div>
@@ -456,6 +480,7 @@
           </div>
         </section>
       </div>
+    </div>
     </div>
   </main>
 

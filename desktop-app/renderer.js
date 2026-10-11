@@ -30,6 +30,40 @@ const buttons = {
   noDeviceMessage: document.getElementById('noDeviceMessage')
 };
 
+const diagnosticTabs = [...document.querySelectorAll('.diagnostic-tab')];
+
+function selectDiagnosticTab(panelId) {
+  diagnosticTabs.forEach((tab) => {
+    const selected = tab.dataset.panel === panelId;
+    tab.classList.toggle('active', selected);
+    tab.setAttribute('aria-selected', String(selected));
+  });
+  ['adbPanel', 'samsungPanel', 'mtkPanel'].forEach((id) => {
+    document.getElementById(id).hidden = id !== panelId;
+  });
+}
+
+async function scanUsbDevice(vendorId, resultId, label) {
+  const result = document.getElementById(resultId);
+  if (!navigator.usb) {
+    result.textContent = 'USB identification is unavailable in this desktop runtime. Use ADB Diagnostics after authorizing the device.';
+    return;
+  }
+  try {
+    result.textContent = 'Choose the connected device in the system USB prompt…';
+    const device = await navigator.usb.requestDevice({ filters: [{ vendorId }] });
+    const product = `0x${device.productId.toString(16).padStart(4, '0')}`;
+    const vendor = `0x${device.vendorId.toString(16).padStart(4, '0')}`;
+    result.textContent = `${label} USB interface identified\nVendor ID: ${vendor}\nProduct ID: ${product}\nProduct name: ${device.productName || 'Not provided by device'}\nManufacturer: ${device.manufacturerName || 'Not provided by device'}\n\nThis is USB-level identification only; it does not access protected device data.`;
+  } catch (error) {
+    if (error && error.name === 'NotFoundError') {
+      result.textContent = 'No device was selected. Connect the device and choose it in the USB prompt to retry.';
+      return;
+    }
+    result.textContent = `USB identification could not be completed: ${error instanceof Error ? error.message : 'Unknown error'}`;
+  }
+}
+
 // Initialize app
 async function initialize() {
   console.log('Initializing app...');
@@ -343,6 +377,9 @@ buttons.copySummary.addEventListener('click', async () => {
   setTimeout(() => { buttons.copySummary.textContent = 'Copy Summary'; }, 1800);
 });
 buttons.devicePicker.addEventListener('change', () => { selectedSerial = buttons.devicePicker.value; gatherDeviceInfo(); });
+diagnosticTabs.forEach((tab) => tab.addEventListener('click', () => selectDiagnosticTab(tab.dataset.panel)));
+document.getElementById('scanSamsungUsbBtn').addEventListener('click', () => scanUsbDevice(0x04e8, 'samsungUsbResult', 'Samsung'));
+document.getElementById('scanMtkUsbBtn').addEventListener('click', () => scanUsbDevice(0x0e8d, 'mtkUsbResult', 'MediaTek'));
 
 // Initialize on load
 window.addEventListener('DOMContentLoaded', () => {
