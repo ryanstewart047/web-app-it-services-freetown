@@ -1,6 +1,6 @@
 {
   "name": "it-services-device-detector",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Professional Android device diagnostics with safer multi-device ADB detection and local exports",
   "main": "main.js",
   "homepage": "https://github.com/ryanstewart047/web-app-it-services-freetown",

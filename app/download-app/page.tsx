@@ -96,16 +96,18 @@ export default function DownloadAppPage() {
                 <div className="text-sm text-gray-400">10, 11 (64-bit)</div>
               </button>
               <button
-                disabled
-                aria-disabled="true"
-                title="macOS download is not available yet"
-                className="cursor-not-allowed rounded-xl border-2 border-gray-700 bg-gray-700/20 p-6 opacity-60 transition-all"
+                onClick={() => setOS('mac')}
+                className={`p-6 rounded-xl border-2 transition-all ${
+                  os === 'mac'
+                    ? 'border-blue-500 bg-blue-500/20'
+                    : 'border-gray-600 bg-gray-700/30 hover:border-gray-500'
+                }`}
               >
                 <div className="mb-3 flex justify-center">
-                  <AppleLogo className="h-10 w-10 text-gray-200" />
+                  <AppleLogo className="h-10 w-10 text-white" />
                 </div>
                 <div className="text-lg font-semibold text-white">macOS</div>
-                <div className="text-sm text-gray-400">Coming soon</div>
+                <div className="text-sm text-gray-400">Apple Silicon (M-series)</div>
               </button>
               <button
                 disabled
