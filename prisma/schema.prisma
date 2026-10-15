@@ -490,20 +490,36 @@ model EmailLead {
 }
 
 model CustomAd {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  imageUrl    String   // Link to the banner image
-  targetUrl   String   // Where the ad leads to
-  size        String   @default("rectangle") // "rectangle" | "square" | "leaderboard" | "skyscraper"
-  active      Boolean  @default(true)
-  impressions Int      @default(0)
-  clicks      Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String   @id @default(cuid())
+  title            String
+  description      String?
+  imageUrl         String   // Link to the banner image
+  targetUrl        String   // Where the ad leads to
+  size             String   @default("rectangle") // "rectangle" | "square" | "leaderboard" | "skyscraper"
+  active           Boolean  @default(true)
+  disabledWebsites String?  @default("[]") // JSON array of blocked domains, e.g. ["siteA.com"]
+  impressions      Int      @default(0)
+  clicks           Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   @@index([active])
   @@index([createdAt])
+}
+
+model AdWebsitePlacement {
+  id          String   @id @default(cuid())
+  domain      String   // Normalized domain: "example.com"
+  adId        String?  // If null, represents global setting for the website. If set, represents setting for this ad on this website.
+  enabled     Boolean  @default(true) // Whether ads (or this specific ad) are enabled on this domain
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  lastSeenAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([domain])
+  @@index([adId])
 }
 
 model DiscountCode {

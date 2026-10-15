@@ -1,10 +1,10 @@
+import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { PrismaClient } from '@prisma/client';
+
 import { verifySession } from '@/lib/auth-utils';
 import { createForumTopic } from '@/lib/github-forum-storage';
 
-const prisma = new PrismaClient();
 
 async function requireAdmin() {
   const adminToken = cookies().get('forum_admin_session')?.value;

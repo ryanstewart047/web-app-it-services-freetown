@@ -1,7 +1,7 @@
+import { prisma } from '@/lib/prisma';
 import webpush from 'web-push';
-import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+
 
 // Configuration
 const vapidPublicKey = process.env.VAPID_PUBLIC_KEY || '';

@@ -1,9 +1,9 @@
+import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+
 import { verifySession } from '@/lib/auth-utils';
 import { cookies } from 'next/headers';
 
-const prisma = new PrismaClient();
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {

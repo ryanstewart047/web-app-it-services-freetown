@@ -1,9 +1,9 @@
+import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { PrismaClient } from '@prisma/client';
+
 import { verifySession } from '@/lib/auth-utils';
 
-const prisma = new PrismaClient();
 
 // Only the dedicated forum_admin_session cookie grants admin access.
 // The forum_session fallback has been intentionally removed to prevent

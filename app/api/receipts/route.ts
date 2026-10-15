@@ -1,8 +1,8 @@
+import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import { captureEmailLead } from '@/lib/email-leads'
 
-const prisma = new PrismaClient()
 
 // GET all receipts
 export async function GET(request: NextRequest) {

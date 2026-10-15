@@ -1,16 +1,9 @@
 (function() {
   // BridgeTech IT Services - Ad Network Client
-  // This script fetches and displays internal promotions.
+  // This script fetches and displays internal promotions across partner websites.
   const CANONICAL_API_BASE = 'https://www.itservicesfreetown.com';
-  const DEFAULT_AD = {
-    title: 'Free Mobile & PC Diagnostic From Top Technicians in Freetown',
-    description: 'Visit BridgeTech IT Services for computer and mobile repair support at Jui Junction.',
-    imageUrl: 'https://github.com/ryanstewart047/freetown-website-images/blob/main/images/Get%20It%20Fixed.png?raw=true',
-    targetUrl: 'https://www.itservicesfreetown.com/book-appointment',
-    size: 'leaderboard'
-  };
   
-  // Try to find the script tag that loaded this script to determine the base URL
+  // Try to find the script tag that loaded this script to determine configuration
   const scriptTag = document.currentScript || (function() {
     const scripts = document.getElementsByTagName('script');
     for (let i = scripts.length - 1; i >= 0; i--) {
@@ -43,7 +36,7 @@
   }
 
   function canonicalizeApiBase(value) {
-    const scriptOrigin = value.replace(/\/+$/, '');
+    const scriptOrigin = (value || '').replace(/\/+$/, '');
 
     try {
       const url = new URL(scriptOrigin);
@@ -86,7 +79,7 @@
         return url.href;
       }
     } catch (error) {
-      // Ignore malformed URLs and use the fallback below.
+      // Ignore malformed URLs and use fallback
     }
 
     return fallback || '';
@@ -97,11 +90,29 @@
     return allowedSizes.includes(size) ? size : 'rectangle';
   }
 
-  function renderIntoContainers(containers, ad, baseUrl) {
+  function getCurrentDomain() {
+    try {
+      const host = window.location.hostname || window.location.host || '';
+      return host.toLowerCase().replace(/^www\./, '');
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function collapseContainers(containers) {
     containers.forEach(container => {
-      if (!container.getAttribute('data-its-loaded')) {
-        renderAd(container, ad, baseUrl);
+      container.innerHTML = '';
+      container.style.display = 'none';
+      container.setAttribute('data-its-loaded', 'empty');
+    });
+  }
+
+  function renderIntoContainers(containers, ad, baseUrl, site) {
+    containers.forEach(container => {
+      if (container.getAttribute('data-its-loaded') !== 'true') {
+        renderAd(container, ad, baseUrl, site);
         container.setAttribute('data-its-loaded', 'true');
+        container.style.display = '';
       }
     });
   }
@@ -109,18 +120,16 @@
   const CONFIG = {
     apiBase: resolveApiBase(),
     containerClass: 'its-ad-unit',
-    fallbackColor: '#040e40'
   };
 
   async function init() {
-    console.log('ITS Ad Network: Initializing...');
+    const currentDomain = getCurrentDomain();
     
     const findAndRender = async () => {
-      let containers = document.querySelectorAll(`.${CONFIG.containerClass}`);
+      let containers = Array.from(document.querySelectorAll(`.${CONFIG.containerClass}`));
       
       // If no containers found and we have a script tag, create one at the script tag's location
       if (containers.length === 0 && scriptTag && !scriptTag.getAttribute('data-its-injected')) {
-        console.log('ITS Ad Network: No containers found, injecting fallback at script location.');
         const fallbackContainer = document.createElement('div');
         fallbackContainer.className = CONFIG.containerClass;
         scriptTag.parentNode.insertBefore(fallbackContainer, scriptTag.nextSibling);
@@ -129,31 +138,44 @@
       }
 
       if (containers.length > 0) {
-        console.log(`ITS Ad Network: Found ${containers.length} container(s).`);
         const baseUrl = CONFIG.apiBase;
         
+        // Check attributes from script tag or container
+        const requestedAdId = scriptTag?.getAttribute('data-ad-id') || containers[0]?.getAttribute('data-ad-id');
+        const requestedSize = scriptTag?.getAttribute('data-size') || containers[0]?.getAttribute('data-size');
+
+        const params = new URLSearchParams();
+        if (currentDomain) params.set('site', currentDomain);
+        if (requestedAdId) params.set('adId', requestedAdId);
+        if (requestedSize) params.set('size', requestedSize);
+        params.set('_t', String(Date.now())); // prevent caching
+
         try {
-          const response = await fetch(`${baseUrl}/api/ads/serve`, {
+          const response = await fetch(`${baseUrl}/api/ads/serve?${params.toString()}`, {
             mode: 'cors',
             credentials: 'omit',
             cache: 'no-store',
             headers: { 'Accept': 'application/json' }
           });
           
-          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+          if (!response.ok) {
+            collapseContainers(containers);
+            return true;
+          }
           
           const data = await response.json();
-          console.log('ITS Ad Network: API Response received', data);
 
+          // CRITICAL: When ad is disabled or null, DO NOT show default ad!
+          // Collapse and clear the container as requested by user.
           if (data && data.ad) {
-            renderIntoContainers(containers, data.ad, baseUrl);
+            renderIntoContainers(containers, data.ad, baseUrl, currentDomain);
           } else {
-            console.warn('ITS Ad Network: No active ads found.');
-            renderIntoContainers(containers, DEFAULT_AD, baseUrl);
+            console.log('ITS Ad Network: Ad is disabled or no active ads for this site.');
+            collapseContainers(containers);
           }
         } catch (error) {
-          console.error('ITS Ad Network API Error:', error);
-          renderIntoContainers(containers, DEFAULT_AD, baseUrl);
+          console.warn('ITS Ad Network: Unable to load ad.', error);
+          collapseContainers(containers);
         }
         return true;
       }
@@ -170,10 +192,12 @@
         if (nowFound) obs.disconnect();
       });
 
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true
-      });
+      if (document.body) {
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+      }
 
       // Periodic check as a fallback for slow loading sites
       let attempts = 0;
@@ -185,21 +209,21 @@
     }
   }
 
-  function renderAd(container, ad, baseUrl) {
-    const targetUrl = normalizeUrl(ad.targetUrl, baseUrl, DEFAULT_AD.targetUrl);
+  function renderAd(container, ad, baseUrl, site) {
+    const targetUrl = normalizeUrl(ad.targetUrl, baseUrl, 'https://www.itservicesfreetown.com');
+    const siteParam = site ? `&site=${encodeURIComponent(site)}` : '';
     const clickUrl = ad.id
-      ? `${baseUrl}/api/ads/click?id=${encodeURIComponent(ad.id)}`
+      ? `${baseUrl}/api/ads/click?id=${encodeURIComponent(ad.id)}${siteParam}`
       : targetUrl;
     
-    // Make image URL absolute if it's relative
-    const imageUrl = normalizeUrl(ad.imageUrl, baseUrl, DEFAULT_AD.imageUrl);
-    const adSize = normalizeSize(ad.size || DEFAULT_AD.size);
-    const title = escapeHtml(ad.title || DEFAULT_AD.title);
-    const description = escapeHtml(ad.description || DEFAULT_AD.description);
+    const imageUrl = normalizeUrl(ad.imageUrl, baseUrl, '');
+    const adSize = normalizeSize(ad.size || 'rectangle');
+    const title = escapeHtml(ad.title || '');
+    const description = escapeHtml(ad.description || '');
     const escapedImageUrl = escapeHtml(imageUrl);
     const escapedClickUrl = escapeHtml(clickUrl);
     
-    // Inject Styles
+    // Inject Styles once
     if (!document.getElementById('its-ad-styles')) {
       const style = document.createElement('style');
       style.id = 'its-ad-styles';
@@ -330,7 +354,7 @@
           color: #040e40;
         }
 
-        /* Specific Layouts based on data-size attribute */
+        /* Layouts based on data-size attribute */
         .its-ad-card[data-size="square"] {
           max-width: 320px;
           margin: 10px auto;

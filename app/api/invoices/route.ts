@@ -1,10 +1,10 @@
+import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import fs from 'fs'
 import path from 'path'
 import { captureEmailLead } from '@/lib/email-leads'
 
-const prisma = new PrismaClient()
 const FALLBACK_FILE = path.join(process.cwd(), 'data', 'invoices_fallback.json')
 const TMP_FALLBACK_FILE = path.join('/tmp', 'invoices_fallback.json')
 

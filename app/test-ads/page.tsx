@@ -40,7 +40,7 @@ export default function TestAdsPage() {
       </div>
 
       {/* The BridgeTech IT Services Ad Network Script */}
-      <Script src="/js/its-ads.js?v=3" strategy="afterInteractive" />
+      <Script src="/js/its-ads.js?v=4" strategy="afterInteractive" />
     </div>
   );
 }

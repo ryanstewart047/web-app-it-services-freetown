@@ -1,12 +1,12 @@
+import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { PrismaClient } from '@prisma/client';
+
 import { verifySession } from '@/lib/auth-utils';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
 
 async function requireAdmin() {
   const adminToken = cookies().get('forum_admin_session')?.value;

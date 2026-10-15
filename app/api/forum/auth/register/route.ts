@@ -1,5 +1,6 @@
+import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
@@ -8,7 +9,6 @@ import { checkRateLimit } from '@/lib/rate-limit';
 import { getClientIp } from '@/lib/auth-utils';
 import { validateEmail } from '@/lib/email-validation';
 
-const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   try {

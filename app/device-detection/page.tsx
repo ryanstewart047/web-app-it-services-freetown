@@ -63,6 +63,8 @@ interface ADBDeviceInfo {
   usbMode?: string;
 }
 
+type UsbCheckMode = 'general' | 'samsung' | 'mediatek';
+
 // Command Copy Box Component
 function CommandCopyBox({ label, command, description }: { label: string; command: string; description?: string }) {
   const [copied, setCopied] = useState(false);
@@ -123,6 +125,7 @@ export default function DeviceDetectionPage() {
   const [adbInfo, setAdbInfo] = useState<ADBDeviceInfo | null>(null);
   const [isReadingADB, setIsReadingADB] = useState(false);
   const [showSupportedDevices, setShowSupportedDevices] = useState(false);
+  const [usbCheckMode, setUsbCheckMode] = useState<UsbCheckMode>('general');
 
   useEffect(() => {
     // Check if device is mobile
@@ -236,9 +239,11 @@ export default function DeviceDetectionPage() {
         return;
       }
       
-      // Request access to USB device
-      const device = await navigator.usb.requestDevice({
-        filters: [
+      const vendorFilters = usbCheckMode === 'samsung'
+        ? [{ vendorId: 0x04E8 }]
+        : usbCheckMode === 'mediatek'
+          ? [{ vendorId: 0x0E8D }]
+          : [
           // Android devices (common vendor IDs)
           { vendorId: 0x18D1 }, // Google
           { vendorId: 0x04E8 }, // Samsung
@@ -262,14 +267,16 @@ export default function DeviceDetectionPage() {
           { vendorId: 0x2207 }, // Tecno
           { vendorId: 0x19D1 }, // Tecno Mobile (alternative)
           { vendorId: 0x04C5 }, // iTel
-          { vendorId: 0x04E8 }, // Infinix (may use Samsung VID)
           { vendorId: 0x201E }, // Infinix
-          // Add more vendor IDs as needed
-        ]
+        ];
+
+      // The device picker is always shown so the user explicitly selects which USB device to inspect.
+      const device = await navigator.usb.requestDevice({
+        filters: vendorFilters,
       });
 
-      // Open the device
-      await device.open();
+      // Samsung/MediaTek modes only display USB descriptors; they do not open interfaces or read phone data.
+      if (usbCheckMode === 'general') await device.open();
       
       // Try to get more detailed information
       const detailedInfo = await getDetailedDeviceInfo(device);
@@ -305,12 +312,18 @@ export default function DeviceDetectionPage() {
 
       setSelectedDevice(newDevice);
       
-      // Try to read ADB device info
-      await readADBDeviceInfo(device);
+      if (usbCheckMode === 'general') {
+        await readADBDeviceInfo(device);
+      } else {
+        setAdbInfo(null);
+        setIsReadingADB(false);
+      }
 
     } catch (err: any) {
       console.error('Error requesting device:', err);
-      setError(err.message || 'Failed to connect to device. Make sure USB debugging is enabled on your Android device.');
+      setError(err.message || (usbCheckMode === 'general'
+        ? 'Failed to connect to device. Make sure USB debugging is enabled and authorized on your Android device.'
+        : 'USB identification could not be completed. Connect the device in a supported USB mode and try again.'));
     } finally {
       setIsConnecting(false);
     }
@@ -531,12 +544,53 @@ export default function DeviceDetectionPage() {
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">USB Device Detection</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-2">
-            Connect your Android device via USB to get detailed hardware and system information
+            Choose a diagnostic mode to identify a connected device using the information exposed over USB
           </p>
           <p className="text-sm text-orange-600 font-semibold">
             ⚠️ Desktop/Laptop Only - Physical USB Connection Required
           </p>
         </div>
+
+        <section className="mb-8 rounded-xl border border-gray-200 bg-white p-5 shadow-sm" aria-label="USB diagnostic mode">
+          <div className="mb-4 flex flex-wrap gap-2" role="tablist" aria-label="USB diagnostic modes">
+            {([
+              ['general', 'General USB Check'],
+              ['samsung', 'Samsung USB Check'],
+              ['mediatek', 'MediaTek USB Check'],
+            ] as const).map(([mode, label]) => (
+              <button
+                key={mode}
+                type="button"
+                role="tab"
+                aria-selected={usbCheckMode === mode}
+                onClick={() => {
+                  setUsbCheckMode(mode);
+                  setError(null);
+                }}
+                className={`rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors ${
+                  usbCheckMode === mode
+                    ? 'border-blue-600 bg-blue-600 text-white'
+                    : 'border-gray-300 bg-white text-gray-700 hover:border-blue-400 hover:text-blue-700'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {usbCheckMode === 'general' ? (
+            <p className="text-sm text-gray-600">
+              General USB mode lists devices by supported USB vendor IDs and reads the USB descriptors they expose. The browser cannot run ADB commands or retrieve protected phone data.
+            </p>
+          ) : usbCheckMode === 'samsung' ? (
+            <p className="text-sm text-gray-600">
+              Samsung USB Check filters for Samsung&apos;s common USB vendor ID (0x04E8) and displays available USB identifiers only. It does not access protected data or bypass device authorization, FRP, or locks.
+            </p>
+          ) : (
+            <p className="text-sm text-gray-600">
+              MediaTek USB Check filters for the MediaTek USB vendor ID (0x0E8D), which may appear in some device modes. Many MediaTek phones use their phone maker&apos;s ID, so this check cannot reliably identify the processor in every device. It does not access protected data or alter the phone.
+            </p>
+          )}
+        </section>
 
         {/* Desktop App Promotion */}
         <div className="bg-gradient-to-br from-purple-900 via-blue-900 to-purple-900 border-2 border-purple-500 rounded-xl p-6 mb-8 shadow-lg shadow-purple-900/50">
@@ -547,7 +601,7 @@ export default function DeviceDetectionPage() {
                 Want Full Device Details Including IMEI?
               </h3>
               <p className="text-purple-100 mb-3">
-                Download our <strong>FREE Desktop Application</strong> to get complete device information:
+                Download our <strong>FREE Desktop Application</strong> for ADB-based diagnostics on devices whose owner has authorized USB Debugging:
               </p>
               <ul className="text-purple-200 text-sm space-y-1 ml-4">
                 <li>✨ Full IMEI (both SIM slots)</li>
@@ -571,36 +625,27 @@ export default function DeviceDetectionPage() {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
           <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
             <Info className="w-5 h-5" />
-            Browser Detection (Limited) - Setup Instructions
+            {usbCheckMode === 'general' ? 'General USB Check - Setup Instructions' : `${usbCheckMode === 'samsung' ? 'Samsung' : 'MediaTek'} USB Check - Setup Instructions`}
           </h3>
           <ol className="list-decimal list-inside space-y-2 text-blue-800">
             <li><strong>Use a Desktop/Laptop Computer</strong> (this feature does not work on mobile devices)</li>
-            <li>Enable <strong>Developer Options</strong> on your Android device (tap Build Number 7 times in Settings → About Phone)</li>
-            <li>Enable <strong>USB Debugging</strong> in Developer Options</li>
-            <li>Connect your device via USB cable <strong>to your computer</strong></li>
-            <li>Click the "Connect Device" button below</li>
-            <li>Select your device from the popup</li>
-            <li>Allow USB debugging when prompted on your device</li>
+            <li>Connect the device via USB and choose the matching USB mode above</li>
+            <li>Click the device button below and select the device in the browser prompt</li>
+            {usbCheckMode === 'general' && <li>USB Debugging authorization is only needed for the separate desktop app&apos;s ADB diagnostics</li>}
           </ol>
           
           <div className="mt-4 p-4 bg-white rounded-lg">
-            <h4 className="font-semibold text-gray-800 mb-2">📊 Information Available:</h4>
+            <h4 className="font-semibold text-gray-800 mb-2">📊 USB Information Available:</h4>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm text-gray-700">
-              <div>✓ Model & Manufacturer</div>
-              <div>✓ Serial Number</div>
-              <div>✓ USB IDs (Vendor/Product)</div>
-              <div>✓ IMEI (with auth)</div>
-              <div>✓ Android Version (with auth)</div>
-              <div>✓ Build Info (with auth)</div>
-              <div>✓ Battery Status (with auth)</div>
-              <div>✓ Network Info (with auth)</div>
-              <div>✓ Storage Info (with auth)</div>
-              <div>✓ Screen Resolution (with auth)</div>
-              <div>✓ CPU Architecture (with auth)</div>
-              <div>✓ FRP Status (with auth)</div>
+              <div>✓ USB Vendor ID</div>
+              <div>✓ USB Product ID</div>
+              <div>✓ Product / manufacturer labels, when exposed</div>
+              <div>✓ USB and device version</div>
+              <div>✓ USB class and interface descriptors</div>
+              <div>✓ Serial descriptor, when exposed</div>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              * "with auth" = Requires USB debugging authorization on device
+              IMEI, Android settings, battery, network, storage, and FRP data are not available through this browser USB check.
             </p>
           </div>
         </div>
@@ -664,8 +709,7 @@ export default function DeviceDetectionPage() {
               <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <p className="text-sm text-blue-800">
                   <strong>💡 Tip:</strong> If your device brand is not listed, it may still work! 
-                  The tool supports any Android device with USB debugging enabled. 
-                  Click "Connect USB Device" to try.
+                  The browser can identify USB devices that match one of the listed vendor IDs. This does not mean the browser can access phone data.
                 </p>
               </div>
             </div>
@@ -691,7 +735,7 @@ export default function DeviceDetectionPage() {
             className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             <Smartphone className="w-6 h-6" />
-            {isConnecting ? 'Connecting...' : 'Connect USB Device'}
+            {isConnecting ? 'Connecting...' : usbCheckMode === 'samsung' ? 'Select Samsung USB Device' : usbCheckMode === 'mediatek' ? 'Select MediaTek USB Device' : 'Connect USB Device'}
           </button>
           
           <div className="mt-4 text-sm text-gray-600">
