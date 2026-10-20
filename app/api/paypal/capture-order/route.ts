@@ -54,9 +54,10 @@ export async function POST(request: NextRequest) {
           const recipientName = existingReveal?.recipientName || 'Celebrant';
           const achievement = existingReveal?.achievement || 'Recognition Award';
 
-          const template = emailTemplates.surprisePaymentApproved({
+          const template = emailTemplates.surpriseCertificateApproved({
             recipientName,
             achievement,
+            certificateUrl: `${revealUrl}?download=1`,
             code,
             revealUrl,
           });

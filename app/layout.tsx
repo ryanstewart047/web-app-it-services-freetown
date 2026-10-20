@@ -130,6 +130,9 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: '/',
+    types: {
+      'application/rss+xml': 'https://www.itservicesfreetown.com/rss.xml',
+    },
   },
   robots: {
     index: true,
