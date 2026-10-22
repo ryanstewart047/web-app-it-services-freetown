@@ -1,16 +1,26 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { WifiOff, Phone, MapPin, RefreshCcw, CheckCircle, XCircle } from 'lucide-react';
+
+// How often to automatically re-check for a connection while this page is shown
+const AUTO_RETRY_INTERVAL_MS = 30_000;
 
 export default function OfflinePage() {
   const [checking, setChecking] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'failed'>('idle');
+  const isCheckingRef = useRef(false);
 
-  const handleRetry = async () => {
-    setChecking(true);
-    setStatus('idle');
+  const handleRetry = useCallback(async (opts: { silent?: boolean } = {}) => {
+    // Avoid overlapping checks (e.g. auto-retry firing while a manual retry is in flight)
+    if (isCheckingRef.current) return;
+    isCheckingRef.current = true;
+
+    if (!opts.silent) {
+      setChecking(true);
+      setStatus('idle');
+    }
 
     try {
       // Ping a fast, cache-busted endpoint to confirm real connectivity
@@ -25,18 +35,33 @@ export default function OfflinePage() {
         setTimeout(() => {
           window.location.reload();
         }, 400);
-      } else {
+      } else if (!opts.silent) {
         setStatus('failed');
       }
     } catch {
       // Still offline
-      setStatus('failed');
+      if (!opts.silent) {
+        setStatus('failed');
+      }
     } finally {
-      setChecking(false);
-      // Reset failed status after 3s so user can try again
-      setTimeout(() => setStatus('idle'), 3000);
+      isCheckingRef.current = false;
+      if (!opts.silent) {
+        setChecking(false);
+        // Reset failed status after 3s so user can try again
+        setTimeout(() => setStatus('idle'), 3000);
+      }
     }
-  };
+  }, []);
+
+  // Automatically re-check for a connection every 30 seconds and come back
+  // online on its own — the user shouldn't have to keep clicking the button.
+  useEffect(() => {
+    const timer = setInterval(() => {
+      handleRetry({ silent: true });
+    }, AUTO_RETRY_INTERVAL_MS);
+
+    return () => clearInterval(timer);
+  }, [handleRetry]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-slate-900 to-black flex items-center justify-center p-6 text-white">
@@ -82,8 +107,8 @@ export default function OfflinePage() {
             </div>
           </div>
 
-          <button 
-            onClick={handleRetry}
+          <button
+            onClick={() => handleRetry()}
             disabled={checking || status === 'success'}
             className={`w-full py-4 font-bold rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 group active:scale-95 disabled:cursor-not-allowed
               ${status === 'failed'  ? 'bg-red-600 hover:bg-red-700 shadow-red-900/40' :
@@ -119,6 +144,9 @@ export default function OfflinePage() {
 
           <p className="mt-8 text-[11px] text-white/30 font-medium">
             Some features may be limited until you are back online.
+          </p>
+          <p className="mt-1 text-[11px] text-white/30 font-medium">
+            We'll also keep checking automatically every 30 seconds.
           </p>
         </div>
       </div>
