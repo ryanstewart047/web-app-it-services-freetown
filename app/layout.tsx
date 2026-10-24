@@ -25,6 +25,9 @@ import {
   BRAND_SITE_URL,
 } from '@/lib/brand'
 
+// Set to true to re-enable the Hostinger promotional popup site-wide.
+const HOSTINGER_POPUP_ENABLED = false
+
 export const metadata: Metadata = {
   metadataBase: new URL(BRAND_SITE_URL),
   title: {
@@ -370,7 +373,7 @@ export default function RootLayout({
             </ConditionalLayout>
             <ForumPromoCard />
             <WhatsAppGroupCard />
-            <HostingerSlideUp />
+            {HOSTINGER_POPUP_ENABLED && <HostingerSlideUp />}
             <Toaster position="top-right" />
           </AnalyticsProvider>
         </CartProvider>
