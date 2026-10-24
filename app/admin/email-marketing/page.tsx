@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import dynamicImport from 'next/dynamic'
-import { Send, Users, Image as ImageIcon, Link as LinkIcon, CheckSquare, Square, Trash2, RefreshCw, Mail, ArrowLeft, Sparkles, Wand2, Calendar, ToggleLeft, ToggleRight, Plus, X, FlaskConical, History, ChevronDown, ChevronUp, Eye, ExternalLink, Megaphone, AlertTriangle } from 'lucide-react'
+import { Send, Users, Image as ImageIcon, Link as LinkIcon, CheckSquare, Square, Trash2, RefreshCw, Mail, ArrowLeft, Sparkles, Wand2, Calendar, ToggleLeft, ToggleRight, Plus, X, FlaskConical, History, ChevronDown, ChevronUp, Eye, ExternalLink, Megaphone, AlertTriangle, UserPlus } from 'lucide-react'
 import Link from 'next/link'
 import 'react-quill/dist/quill.snow.css'
 
@@ -79,6 +79,13 @@ export default function EmailMarketingPage() {
   const [isConfigured, setIsConfigured] = useState<boolean | null>(null)
   const [recipientPage, setRecipientPage] = useState(1)
   const RECIPIENTS_PER_PAGE = 20
+
+  // --- Manual Add Emails State ---
+  const [showAddEmails, setShowAddEmails] = useState(false)
+  const [manualEmailsInput, setManualEmailsInput] = useState('')
+  const [autoSelectNewEmails, setAutoSelectNewEmails] = useState(true)
+  const [addingEmails, setAddingEmails] = useState(false)
+  const [addEmailsError, setAddEmailsError] = useState<string | null>(null)
 
   useEffect(() => {
     setRecipientPage(1)
@@ -493,6 +500,95 @@ export default function EmailMarketingPage() {
       }
     } catch (e) {
       console.error('Delete error:', e)
+    }
+  }
+
+  const handleAddManualEmails = async () => {
+    if (!manualEmailsInput.trim()) {
+      setAddEmailsError('Please enter at least one email address.')
+      return
+    }
+
+    // Split by commas, semicolons, newlines, or whitespace
+    const rawTokens = manualEmailsInput
+      .split(/[\s,;]+/)
+      .map(item => item.trim())
+      .filter(item => item.length > 0)
+
+    if (rawTokens.length === 0) {
+      setAddEmailsError('No valid email addresses found.')
+      return
+    }
+
+    // Deduplicate case-insensitively
+    const uniqueMap = new Map<string, string>()
+    for (const token of rawTokens) {
+      const lower = token.toLowerCase()
+      if (!uniqueMap.has(lower)) {
+        uniqueMap.set(lower, lower)
+      }
+    }
+    const uniqueEmails = Array.from(uniqueMap.values())
+
+    // Standard email regex
+    const EMAIL_REGEX = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/
+    const validEmails = uniqueEmails.filter(e => EMAIL_REGEX.test(e))
+    const invalidEmails = uniqueEmails.filter(e => !EMAIL_REGEX.test(e))
+
+    if (validEmails.length === 0) {
+      setAddEmailsError(`Invalid email format: ${invalidEmails.slice(0, 3).join(', ')}${invalidEmails.length > 3 ? '...' : ''}`)
+      return
+    }
+
+    setAddingEmails(true)
+    setAddEmailsError(null)
+
+    try {
+      const payload = validEmails.map(email => ({
+        email,
+        source: 'manual',
+      }))
+
+      const res = await fetch('/api/admin/email-leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      const data = await res.json()
+
+      if (res.ok && data.success) {
+        // Refresh leads list
+        await fetchLeads()
+
+        // Auto-select valid newly added emails if option is checked
+        if (autoSelectNewEmails) {
+          setSelectedEmails(prev => {
+            const next = new Set(prev)
+            validEmails.forEach(email => next.add(email))
+            return next
+          })
+        }
+
+        let feedback = `✅ Added ${data.added} email(s) to the marketing list!`
+        if (invalidEmails.length > 0) {
+          feedback += `\n\n⚠️ Skipped ${invalidEmails.length} invalid entry/entries: ${invalidEmails.slice(0, 3).join(', ')}`
+        }
+        if (data.skipped > 0 && data.errors?.length > 0) {
+          feedback += `\n\n⚠️ Notice: ${data.errors.slice(0, 3).join('\n')}`
+        }
+
+        alert(feedback)
+        setManualEmailsInput('')
+        setShowAddEmails(false)
+      } else {
+        setAddEmailsError(data.error || data.message || 'Failed to add emails.')
+      }
+    } catch (err) {
+      console.error('Error adding emails:', err)
+      setAddEmailsError('Network error while saving emails. Please try again.')
+    } finally {
+      setAddingEmails(false)
     }
   }
 
@@ -955,12 +1051,39 @@ export default function EmailMarketingPage() {
           <div className="space-y-6">
             <div className="flex h-[800px] flex-col rounded-3xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-100 p-6">
-                <div className="mb-4 flex items-center justify-between">
+                <div className="mb-4 flex items-center justify-between gap-2">
                   <h2 className="flex items-center gap-2 font-black text-slate-900">
                     <Users className="h-5 w-5 text-blue-500" />
                     Recipient List
                   </h2>
-                  <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setShowAddEmails(!showAddEmails)
+                      setAddEmailsError(null)
+                    }}
+                    className={`flex items-center gap-1 rounded-xl px-2.5 py-1 text-xs font-bold transition shadow-sm ${
+                      showAddEmails
+                        ? 'bg-slate-200 text-slate-800 hover:bg-slate-300'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                    title="Add email addresses separated by comma"
+                  >
+                    {showAddEmails ? (
+                      <>
+                        <X className="h-3.5 w-3.5" />
+                        Close
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="h-3.5 w-3.5" />
+                        Add Emails
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-1">
+                  <div className="flex flex-wrap items-center gap-2">
                     <button 
                       onClick={toggleSelectAll}
                       className="text-xs font-bold text-blue-600 hover:underline"
@@ -997,6 +1120,82 @@ export default function EmailMarketingPage() {
                     )}
                   </div>
                 </div>
+
+                {/* Manual Add Emails Panel */}
+                {showAddEmails && (
+                  <div className="mb-4 rounded-2xl border-2 border-blue-200 bg-blue-50/70 p-4 shadow-sm animate-in zoom-in-95 duration-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-1.5">
+                        <UserPlus className="h-4 w-4 text-blue-600" />
+                        <h3 className="text-xs font-black uppercase tracking-wider text-blue-900">
+                          Add Emails (Comma-Separated)
+                        </h3>
+                      </div>
+                      <button
+                        onClick={() => { setShowAddEmails(false); setManualEmailsInput(''); setAddEmailsError(null); }}
+                        className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-blue-100/50"
+                        title="Close"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+
+                    <p className="text-[11px] text-slate-600 mb-2 leading-relaxed">
+                      Paste or type multiple email addresses separated by commas:
+                    </p>
+
+                    <textarea
+                      rows={3}
+                      value={manualEmailsInput}
+                      onChange={(e) => { setManualEmailsInput(e.target.value); setAddEmailsError(null); }}
+                      placeholder="client1@gmail.com, client2@yahoo.com, info@firm.com..."
+                      className="w-full rounded-xl border border-blue-200 bg-white p-2.5 text-xs outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 font-mono transition resize-none placeholder:text-slate-400"
+                    />
+
+                    {addEmailsError && (
+                      <p className="mt-1.5 text-[11px] font-semibold text-red-600">{addEmailsError}</p>
+                    )}
+
+                    <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">
+                      <label className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-700 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={autoSelectNewEmails}
+                          onChange={(e) => setAutoSelectNewEmails(e.target.checked)}
+                          className="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span>Auto-select for campaign</span>
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => { setShowAddEmails(false); setManualEmailsInput(''); setAddEmailsError(null); }}
+                          className="px-2.5 py-1 text-xs font-bold text-slate-500 hover:text-slate-700"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          disabled={addingEmails || !manualEmailsInput.trim()}
+                          onClick={handleAddManualEmails}
+                          className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 transition"
+                        >
+                          {addingEmails ? (
+                            <>
+                              <RefreshCw className="h-3 w-3 animate-spin" />
+                              Adding…
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="h-3.5 w-3.5" />
+                              Add to List
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <input 
