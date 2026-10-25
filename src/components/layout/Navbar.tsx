@@ -260,9 +260,6 @@ export default function Navbar() {
               <i className="fas fa-wand-magic-sparkles text-red-500 mr-1"></i> Digital Tools
             </Link>
 
-            <Link href="/forum" className={`px-2.5 xl:px-3 py-1.5 xl:py-2 text-xs xl:text-sm font-medium rounded-md whitespace-nowrap flex-shrink-0 transition-all duration-200 ${pathname?.startsWith('/forum') ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>
-              <i className="fas fa-users mr-1"></i> Tech Forum
-            </Link>
 
             <Link href="/search" aria-label="Search the site" className={`inline-flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 ${pathname === '/search' ? 'bg-[#040e40] text-red-500' : 'text-gray-700 hover:bg-slate-100 hover:text-[#040e40]'}`}>
               <i className="fas fa-search"></i>
@@ -463,9 +460,6 @@ export default function Navbar() {
               <i className="fas fa-wand-magic-sparkles w-5 mr-3 text-red-600"></i>Digital Tools Suite
             </Link>
 
-            <Link href="/forum" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
-              <i className="fas fa-users w-5 mr-3 text-[#040e40]"></i>Tech Forum
-            </Link>
 
             <Link href="/search" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
               <i className="fas fa-search w-5 mr-3 text-[#040e40]"></i>Search the site
