@@ -2,9 +2,9 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 
-// ISNet Neural Engine Asset Path (Dichotomous Image Segmentation - 1.7.0 LTS)
-const NEURAL_REMOVER_ASSET_PATH = 'https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/';
-const NEURAL_REMOVER_CDN_FALLBACK = 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.7.0/dist/index.mjs';
+// ISNet Neural Engine Asset Path (Dichotomous Image Segmentation)
+const NEURAL_REMOVER_ASSET_PATH = 'https://unpkg.com/@imgly/background-removal-data@1.4.5/dist/';
+const NEURAL_REMOVER_CDN = 'https://unpkg.com/@imgly/background-removal@1.4.5/dist/index.mjs';
 
 type NeuralBackgroundRemovalFn = (
   image: ImageData | ArrayBuffer | Uint8Array | Blob | URL | string,
@@ -490,39 +490,57 @@ export default function ImageBackgroundRemover() {
     }
   };
 
-  // ── Load ISNet deep learning segmentation model (bundled or dynamic ESM) ────
+  // ── Load ISNet deep learning segmentation model purely at runtime in browser ────
   const loadNeuralBackgroundRemoval = useCallback(async (): Promise<NeuralBackgroundRemovalFn | null> => {
     if (typeof window === 'undefined') return null;
     if ((window as any).__bridgeTechBgRemoval) {
       return (window as any).__bridgeTechBgRemoval as NeuralBackgroundRemovalFn;
     }
 
-    // 1. Direct package import from local node_modules (Fastest & most reliable in Next.js)
-    try {
-      const imgly = await import('@imgly/background-removal');
-      const fn = imgly.removeBackground || (imgly as any).default;
-      if (typeof fn === 'function') {
-        (window as any).__bridgeTechBgRemoval = fn;
-        return fn as NeuralBackgroundRemovalFn;
-      }
-    } catch (bundleErr) {
-      console.warn('Local @imgly module import failed, attempting native browser ESM dynamic import:', bundleErr);
-    }
-
-    // 2. Native browser dynamic ESM import (bypasses Webpack bundle resolution)
+    // 1. Native dynamic browser ESM import (evaluated purely at runtime in browser, bypassing Webpack/Terser)
     try {
       const dynamicImport = new Function('url', 'return import(url)');
-      const module = await dynamicImport(NEURAL_REMOVER_CDN_FALLBACK);
+      const module = await dynamicImport(NEURAL_REMOVER_CDN);
       const fn = module.removeBackground || module.default;
       if (typeof fn === 'function') {
         (window as any).__bridgeTechBgRemoval = fn;
         return fn as NeuralBackgroundRemovalFn;
       }
-    } catch (netErr) {
-      console.error('All neural background remover loaders failed:', netErr);
+    } catch (dynamicErr) {
+      console.warn('Native dynamic import failed, trying script tag injection:', dynamicErr);
     }
 
-    return null;
+    // 2. Fallback: <script type="module"> injection (native browser ES module execution)
+    return new Promise((resolve) => {
+      try {
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.textContent = `
+          import { removeBackground } from "${NEURAL_REMOVER_CDN}";
+          window.__bridgeTechBgRemoval = removeBackground;
+          window.dispatchEvent(new CustomEvent('bridge_bg_ready'));
+        `;
+        const onReady = () => {
+          window.removeEventListener('bridge_bg_ready', onReady);
+          resolve((window as any).__bridgeTechBgRemoval || null);
+        };
+        window.addEventListener('bridge_bg_ready', onReady);
+        script.onerror = () => {
+          window.removeEventListener('bridge_bg_ready', onReady);
+          resolve(null);
+        };
+        document.head.appendChild(script);
+
+        // Timeout safety fallback
+        setTimeout(() => {
+          window.removeEventListener('bridge_bg_ready', onReady);
+          resolve((window as any).__bridgeTechBgRemoval || null);
+        }, 12000);
+      } catch (scriptErr) {
+        console.warn('Script injection failed:', scriptErr);
+        resolve(null);
+      }
+    });
   }, []);
 
   const handleFileSelect = (file: File) => {
