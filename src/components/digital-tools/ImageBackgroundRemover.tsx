@@ -11,6 +11,59 @@ type NeuralBackgroundRemovalFn = (
   config?: Record<string, unknown>
 ) => Promise<Blob>;
 
+// ── Standalone ISNet deep learning loader (evaluated purely at runtime in browser) ────
+async function loadNeuralBackgroundRemoval(): Promise<NeuralBackgroundRemovalFn | null> {
+  if (typeof window === 'undefined') return null;
+  if ((window as any).__bridgeTechBgRemoval) {
+    return (window as any).__bridgeTechBgRemoval as NeuralBackgroundRemovalFn;
+  }
+
+  // 1. Native dynamic browser ESM import (bypassing Webpack/Terser bundling)
+  try {
+    const dynamicImport = new Function('url', 'return import(url)');
+    const module = await dynamicImport(NEURAL_REMOVER_CDN);
+    const fn = module?.removeBackground || module?.default;
+    if (typeof fn === 'function') {
+      (window as any).__bridgeTechBgRemoval = fn;
+      return fn as NeuralBackgroundRemovalFn;
+    }
+  } catch (dynamicErr) {
+    console.warn('Native dynamic import failed, trying script tag injection:', dynamicErr);
+  }
+
+  // 2. Fallback: <script type="module"> injection
+  return new Promise((resolve) => {
+    try {
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.textContent = `
+        import { removeBackground } from "${NEURAL_REMOVER_CDN}";
+        window.__bridgeTechBgRemoval = removeBackground;
+        window.dispatchEvent(new CustomEvent('bridge_bg_ready'));
+      `;
+      const onReady = () => {
+        window.removeEventListener('bridge_bg_ready', onReady);
+        resolve((window as any).__bridgeTechBgRemoval || null);
+      };
+      window.addEventListener('bridge_bg_ready', onReady);
+      script.onerror = () => {
+        window.removeEventListener('bridge_bg_ready', onReady);
+        resolve(null);
+      };
+      document.head.appendChild(script);
+
+      // Timeout safety fallback
+      setTimeout(() => {
+        window.removeEventListener('bridge_bg_ready', onReady);
+        resolve((window as any).__bridgeTechBgRemoval || null);
+      }, 10000);
+    } catch (scriptErr) {
+      console.warn('Script injection failed:', scriptErr);
+      resolve(null);
+    }
+  });
+}
+
 type Rgb = { r: number; g: number; b: number };
 
 export interface StudioPreset {
@@ -405,12 +458,6 @@ export default function ImageBackgroundRemover() {
     };
   }, []);
 
-  // Pre-initialize ISNet neural model in the background on page load
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      loadNeuralBackgroundRemoval().catch(() => {});
-    }
-  }, [loadNeuralBackgroundRemoval]);
 
   // ── Real-Time Matte Composite Function (runs in <15ms on slider change) ─────
   const applyMattingComposition = useCallback(
@@ -490,58 +537,6 @@ export default function ImageBackgroundRemover() {
     }
   };
 
-  // ── Load ISNet deep learning segmentation model purely at runtime in browser ────
-  const loadNeuralBackgroundRemoval = useCallback(async (): Promise<NeuralBackgroundRemovalFn | null> => {
-    if (typeof window === 'undefined') return null;
-    if ((window as any).__bridgeTechBgRemoval) {
-      return (window as any).__bridgeTechBgRemoval as NeuralBackgroundRemovalFn;
-    }
-
-    // 1. Native dynamic browser ESM import (evaluated purely at runtime in browser, bypassing Webpack/Terser)
-    try {
-      const dynamicImport = new Function('url', 'return import(url)');
-      const module = await dynamicImport(NEURAL_REMOVER_CDN);
-      const fn = module.removeBackground || module.default;
-      if (typeof fn === 'function') {
-        (window as any).__bridgeTechBgRemoval = fn;
-        return fn as NeuralBackgroundRemovalFn;
-      }
-    } catch (dynamicErr) {
-      console.warn('Native dynamic import failed, trying script tag injection:', dynamicErr);
-    }
-
-    // 2. Fallback: <script type="module"> injection (native browser ES module execution)
-    return new Promise((resolve) => {
-      try {
-        const script = document.createElement('script');
-        script.type = 'module';
-        script.textContent = `
-          import { removeBackground } from "${NEURAL_REMOVER_CDN}";
-          window.__bridgeTechBgRemoval = removeBackground;
-          window.dispatchEvent(new CustomEvent('bridge_bg_ready'));
-        `;
-        const onReady = () => {
-          window.removeEventListener('bridge_bg_ready', onReady);
-          resolve((window as any).__bridgeTechBgRemoval || null);
-        };
-        window.addEventListener('bridge_bg_ready', onReady);
-        script.onerror = () => {
-          window.removeEventListener('bridge_bg_ready', onReady);
-          resolve(null);
-        };
-        document.head.appendChild(script);
-
-        // Timeout safety fallback
-        setTimeout(() => {
-          window.removeEventListener('bridge_bg_ready', onReady);
-          resolve((window as any).__bridgeTechBgRemoval || null);
-        }, 12000);
-      } catch (scriptErr) {
-        console.warn('Script injection failed:', scriptErr);
-        resolve(null);
-      }
-    });
-  }, []);
 
   const handleFileSelect = (file: File) => {
     if (!file.type.startsWith('image/')) {
