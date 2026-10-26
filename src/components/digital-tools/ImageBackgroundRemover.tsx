@@ -2,9 +2,9 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 
-// Neural engine CDN paths (U2Net / Saliency ONNX Web assembly)
-const NEURAL_REMOVER_MODULE_URL = 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.0/dist/index.mjs';
-const NEURAL_REMOVER_ASSET_PATH = 'https://staticimgly.com/@imgly/background-removal-data/1.5.0/dist/';
+// Neural engine CDN paths (U2Net / Saliency ONNX Web assembly - Stable 1.4.5 LTS)
+const NEURAL_REMOVER_MODULE_URL = 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/index.mjs';
+const NEURAL_REMOVER_ASSET_PATH = 'https://staticimgly.com/@imgly/background-removal-data/1.4.5/dist/';
 
 type NeuralBackgroundRemovalFn = (
   image: ImageData | ArrayBuffer | Uint8Array | Blob | URL | string,
@@ -369,7 +369,7 @@ export default function ImageBackgroundRemover() {
   const [viewMode, setViewMode] = useState<'slider' | 'cutout' | 'original'>('slider');
 
   // Fallback Tuning State
-  const [tolerance, setTolerance] = useState<number>(30);
+  const [tolerance, setTolerance] = useState<number>(15);
 
   // Internal Offscreen References for Real-Time 60FPS Filtering
   const originalImgElementRef = useRef<HTMLImageElement | null>(null);
@@ -548,99 +548,177 @@ export default function ImageBackgroundRemover() {
     const data = imageData.data;
     const pixelCount = width * height;
 
-    // Collect perimeter background color samples
-    const perimeterSamples: Rgb[] = [];
-    const sampleStep = Math.max(1, Math.floor(Math.min(width, height) / 90));
-
-    for (let x = 0; x < width; x += sampleStep) {
-      perimeterSamples.push(getPixel(data, x));
-      perimeterSamples.push(getPixel(data, (height - 1) * width + x));
-    }
-    for (let y = 0; y < height; y += sampleStep) {
-      perimeterSamples.push(getPixel(data, y * width));
-      perimeterSamples.push(getPixel(data, y * width + width - 1));
+    // 1. Calculate luminance and Sobel edge barrier map
+    // Any pixel with a high contrast gradient is an object boundary that the flood-fill CANNOT cross
+    const gray = new Uint8Array(pixelCount);
+    for (let i = 0; i < pixelCount; i++) {
+      const idx = i * 4;
+      gray[i] = (data[idx] * 299 + data[idx + 1] * 587 + data[idx + 2] * 114) / 1000;
     }
 
-    const backgroundPalette = buildBackgroundPalette(perimeterSamples);
+    const isEdge = new Uint8Array(pixelCount);
+    // Gradient threshold: scaled with user tolerance (lower tol = stronger edge barrier)
+    const edgeThreshold = Math.max(14, 28 - tol * 0.25);
+    for (let y = 1; y < height - 1; y++) {
+      const rowOffset = y * width;
+      for (let x = 1; x < width - 1; x++) {
+        const i = rowOffset + x;
+        const gx = Math.abs(gray[i + 1] - gray[i - 1]);
+        const gy = Math.abs(gray[i + width] - gray[i - width]);
+        if (gx + gy > edgeThreshold) {
+          isEdge[i] = 1;
+        }
+      }
+    }
+
+    // 2. Sample background ONLY from top corners and top border
+    // CRITICAL FIX: NEVER sample the bottom 35% of the frame (where clothes, torso, hands, or products rest)
+    const bgSamples: Rgb[] = [];
+    const sampleStep = Math.max(1, Math.floor(Math.min(width, height) / 80));
+
+    // Top border (across top 10% of height)
+    const topBandHeight = Math.max(1, Math.floor(height * 0.10));
+    for (let y = 0; y < topBandHeight; y += sampleStep) {
+      for (let x = 0; x < width; x += sampleStep) {
+        bgSamples.push(getPixel(data, y * width + x));
+      }
+    }
+
+    // Top-left corner (upper 25% height, left 20% width)
+    const cornerHeight = Math.floor(height * 0.25);
+    const cornerWidthLeft = Math.floor(width * 0.20);
+    for (let y = topBandHeight; y < cornerHeight; y += sampleStep) {
+      for (let x = 0; x < cornerWidthLeft; x += sampleStep) {
+        bgSamples.push(getPixel(data, y * width + x));
+      }
+    }
+
+    // Top-right corner (upper 25% height, right 20% width)
+    const cornerWidthRight = Math.floor(width * 0.80);
+    for (let y = topBandHeight; y < cornerHeight; y += sampleStep) {
+      for (let x = cornerWidthRight; x < width; x += sampleStep) {
+        bgSamples.push(getPixel(data, y * width + x));
+      }
+    }
+
+    const backgroundPalette = buildBackgroundPalette(bgSamples, 5);
     backgroundPaletteRef.current = backgroundPalette;
 
+    // 3. Compute distance to background palette
     const bgDistance = new Float32Array(pixelCount);
-    const strictBackgroundDistance = 16 + tol * 1.1;
-    const looseBackgroundDistance = 34 + tol * 2.1;
-    const connectedEdgeDistance = 22 + tol * 1.6;
-    const cx = width / 2;
-    const cy = height / 2;
-
-    for (let index = 0; index < pixelCount; index++) {
-      const px = getPixel(data, index);
+    for (let i = 0; i < pixelCount; i++) {
+      const px = getPixel(data, i);
       let bestDist = Number.POSITIVE_INFINITY;
       for (const center of backgroundPalette) {
         const dist = weightedColorDistance(px, center);
         if (dist < bestDist) bestDist = dist;
       }
-      bgDistance[index] = bestDist;
+      bgDistance[i] = bestDist;
     }
+
+    // Conservative color distance thresholds (prevents swallowing colored clothes/hair)
+    const strictThreshold = 14 + tol * 0.55;
+    const looseThreshold = 26 + tol * 0.85;
+
+    // 4. Center Foreground Prior (Elliptical core)
+    // The central core of the image is strongly protected from background classification
+    const cx = width / 2;
+    const cy = height / 2;
+    const rx = width * 0.32;
+    const ry = height * 0.38;
 
     const backgroundMask = new Uint8Array(pixelCount);
     const queue = new Int32Array(pixelCount);
     let head = 0;
     let tail = 0;
 
-    const seedBackground = (index: number) => {
-      if (backgroundMask[index] || bgDistance[index] > looseBackgroundDistance) return;
-      backgroundMask[index] = 1;
-      queue[tail++] = index;
-    };
-
+    // Seed background ONLY from the top edge and top corners
     for (let x = 0; x < width; x++) {
-      seedBackground(x);
-      seedBackground((height - 1) * width + x);
-    }
-    for (let y = 0; y < height; y++) {
-      seedBackground(y * width);
-      seedBackground(y * width + width - 1);
-    }
-
-    const maybeAddNeighbor = (parentIndex: number, neighborIndex: number) => {
-      if (neighborIndex < 0 || neighborIndex >= pixelCount || backgroundMask[neighborIndex]) return;
-
-      const parentColor = getPixel(data, parentIndex);
-      const neighborColor = getPixel(data, neighborIndex);
-      const localContinuity = weightedColorDistance(parentColor, neighborColor);
-      const x = neighborIndex % width;
-      const y = Math.floor(neighborIndex / width);
-      const centerDistance = Math.sqrt(Math.pow((x - cx) / cx, 2) + Math.pow((y - cy) / cy, 2));
-      const centerProtection = Math.max(0, 1 - centerDistance) * (18 + tol * 0.35);
-      const adjustedLooseDistance = looseBackgroundDistance - centerProtection;
-
-      const isSmoothConnected =
-        bgDistance[neighborIndex] < adjustedLooseDistance && localContinuity < connectedEdgeDistance;
-
-      if (bgDistance[neighborIndex] < strictBackgroundDistance || isSmoothConnected) {
-        backgroundMask[neighborIndex] = 1;
-        queue[tail++] = neighborIndex;
+      if (bgDistance[x] < looseThreshold && !isEdge[x]) {
+        backgroundMask[x] = 1;
+        queue[tail++] = x;
       }
-    };
-
-    while (head < tail) {
-      const index = queue[head++];
-      const x = index % width;
-      if (x > 0) maybeAddNeighbor(index, index - 1);
-      if (x < width - 1) maybeAddNeighbor(index, index + 1);
-      if (index >= width) maybeAddNeighbor(index, index - width);
-      if (index < pixelCount - width) maybeAddNeighbor(index, index + width);
+    }
+    // Also seed from upper left & right edges
+    for (let y = 1; y < cornerHeight; y++) {
+      const leftIdx = y * width;
+      const rightIdx = y * width + width - 1;
+      if (bgDistance[leftIdx] < looseThreshold && !isEdge[leftIdx] && !backgroundMask[leftIdx]) {
+        backgroundMask[leftIdx] = 1;
+        queue[tail++] = leftIdx;
+      }
+      if (bgDistance[rightIdx] < looseThreshold && !isEdge[rightIdx] && !backgroundMask[rightIdx]) {
+        backgroundMask[rightIdx] = 1;
+        queue[tail++] = rightIdx;
+      }
     }
 
-    // Generate continuous raw alpha mask
+    // Flood fill respecting Sobel edge barriers and center foreground prior
+    while (head < tail) {
+      const curr = queue[head++];
+      const cxPos = curr % width;
+      const cyPos = Math.floor(curr / width);
+
+      // Check 4 neighbors
+      const neighbors = [
+        cxPos > 0 ? curr - 1 : -1,
+        cxPos < width - 1 ? curr + 1 : -1,
+        cyPos > 0 ? curr - width : -1,
+        cyPos < height - 1 ? curr + width : -1,
+      ];
+
+      for (const n of neighbors) {
+        if (n === -1 || backgroundMask[n]) continue;
+
+        // Never cross a detected edge barrier
+        if (isEdge[n]) continue;
+
+        // Center protection: Do not flood into the central core unless color is nearly identical to background
+        const nx = n % width;
+        const ny = Math.floor(n / width);
+        const normDistSq = Math.pow((nx - cx) / rx, 2) + Math.pow((ny - cy) / ry, 2);
+        const isInCentralCore = normDistSq < 1.0;
+
+        const maxAllowedDist = isInCentralCore ? strictThreshold * 0.75 : looseThreshold;
+
+        if (bgDistance[n] < maxAllowedDist) {
+          backgroundMask[n] = 1;
+          queue[tail++] = n;
+        }
+      }
+    }
+
+    // 5. Construct Solid Alpha Matte
+    // Background is 0. Foreground is 255 (SOLID OPAQUE).
+    // Edge pixels smoothly transition based on proximity to boundary.
     const rawAlpha = new Uint8ClampedArray(pixelCount);
-    for (let index = 0; index < pixelCount; index++) {
-      if (backgroundMask[index]) {
-        rawAlpha[index] = 0;
+    for (let i = 0; i < pixelCount; i++) {
+      if (backgroundMask[i]) {
+        rawAlpha[i] = 0;
       } else {
-        const matte =
-          (bgDistance[index] - strictBackgroundDistance * 0.7) /
-          Math.max(1, looseBackgroundDistance - strictBackgroundDistance * 0.7);
-        rawAlpha[index] = Math.round(clamp(matte, 0.2, 1) * 255);
+        // Foreground is 100% solid (255) by default, protecting clothes, skin, and hair completely!
+        rawAlpha[i] = 255;
+      }
+    }
+
+    // Edge antialiasing: soften the exact 1-pixel boundary between background and foreground
+    for (let y = 1; y < height - 1; y++) {
+      const rowOffset = y * width;
+      for (let x = 1; x < width - 1; x++) {
+        const i = rowOffset + x;
+        if (rawAlpha[i] === 255) {
+          // Check if neighboring background pixel exists
+          const hasBgNeighbor =
+            rawAlpha[i - 1] === 0 ||
+            rawAlpha[i + 1] === 0 ||
+            rawAlpha[i - width] === 0 ||
+            rawAlpha[i + width] === 0;
+
+          if (hasBgNeighbor) {
+            // Soft sub-pixel boundary alpha
+            rawAlpha[i] = Math.round(180 + (bgDistance[i] / looseThreshold) * 75);
+          }
+        }
       }
     }
 
@@ -682,14 +760,14 @@ export default function ImageBackgroundRemover() {
 
         const blob = await removeBackground(imageSrc, {
           publicPath: NEURAL_REMOVER_ASSET_PATH,
-          model: 'medium',
-          proxyToWorker: true,
+          model: 'small',
+          proxyToWorker: false,
           debug: false,
           progress: (_key: string, current: number, total: number) => {
             if (total > 0) {
-              const pct = Math.round((current / total) * 35) + 45;
+              const pct = Math.round((current / total) * 45) + 35;
               setProgressPercent(Math.min(pct, 85));
-              setProgressStage(`Processing neural weights (${Math.round((current / total) * 100)}%)...`);
+              setProgressStage(`Neural AI segmenting subject (${Math.round((current / total) * 100)}%)...`);
             }
           },
           output: {
