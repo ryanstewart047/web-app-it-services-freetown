@@ -19,6 +19,7 @@
     "@formspree/react": "^3.0.0",
     "@google/generative-ai": "^0.24.1",
     "@headlessui/react": "^1.7.17",
+    "@imgly/background-removal": "^1.7.0",
     "@prisma/client": "^5.7.1",
     "bcryptjs": "^3.0.3",
     "date-fns": "^2.30.0",

@@ -2,9 +2,9 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 
-// Neural engine CDN paths (U2Net / Saliency ONNX Web assembly - Stable 1.4.5 LTS)
-const NEURAL_REMOVER_MODULE_URL = 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/index.mjs';
-const NEURAL_REMOVER_ASSET_PATH = 'https://staticimgly.com/@imgly/background-removal-data/1.4.5/dist/';
+// ISNet Neural Engine Asset Path (Dichotomous Image Segmentation - 1.7.0 LTS)
+const NEURAL_REMOVER_ASSET_PATH = 'https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/';
+const NEURAL_REMOVER_CDN_FALLBACK = 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.7.0/dist/index.mjs';
 
 type NeuralBackgroundRemovalFn = (
   image: ImageData | ArrayBuffer | Uint8Array | Blob | URL | string,
@@ -405,6 +405,13 @@ export default function ImageBackgroundRemover() {
     };
   }, []);
 
+  // Pre-initialize ISNet neural model in the background on page load
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      loadNeuralBackgroundRemoval().catch(() => {});
+    }
+  }, [loadNeuralBackgroundRemoval]);
+
   // ── Real-Time Matte Composite Function (runs in <15ms on slider change) ─────
   const applyMattingComposition = useCallback(
     (radius: number, decontaminate: boolean) => {
@@ -483,23 +490,36 @@ export default function ImageBackgroundRemover() {
     }
   };
 
-  // ── Load browser neural segmentation model dynamically ───────────────────────
+  // ── Load ISNet deep learning segmentation model (bundled or dynamic ESM) ────
   const loadNeuralBackgroundRemoval = useCallback(async (): Promise<NeuralBackgroundRemovalFn | null> => {
     if (typeof window === 'undefined') return null;
     if ((window as any).__bridgeTechBgRemoval) {
       return (window as any).__bridgeTechBgRemoval as NeuralBackgroundRemovalFn;
     }
 
+    // 1. Direct package import from local node_modules (Fastest & most reliable in Next.js)
     try {
-      const imglyModule: any = await import(/* webpackIgnore: true */ NEURAL_REMOVER_MODULE_URL);
-      const removeBackground = imglyModule?.default || imglyModule?.removeBackground;
-
-      if (typeof removeBackground === 'function') {
-        (window as any).__bridgeTechBgRemoval = removeBackground;
-        return removeBackground as NeuralBackgroundRemovalFn;
+      const imgly = await import('@imgly/background-removal');
+      const fn = imgly.removeBackground || (imgly as any).default;
+      if (typeof fn === 'function') {
+        (window as any).__bridgeTechBgRemoval = fn;
+        return fn as NeuralBackgroundRemovalFn;
       }
-    } catch (loadError) {
-      console.warn('Neural background remover module failed to load:', loadError);
+    } catch (bundleErr) {
+      console.warn('Local @imgly module import failed, attempting native browser ESM dynamic import:', bundleErr);
+    }
+
+    // 2. Native browser dynamic ESM import (bypasses Webpack bundle resolution)
+    try {
+      const dynamicImport = new Function('url', 'return import(url)');
+      const module = await dynamicImport(NEURAL_REMOVER_CDN_FALLBACK);
+      const fn = module.removeBackground || module.default;
+      if (typeof fn === 'function') {
+        (window as any).__bridgeTechBgRemoval = fn;
+        return fn as NeuralBackgroundRemovalFn;
+      }
+    } catch (netErr) {
+      console.error('All neural background remover loaders failed:', netErr);
     }
 
     return null;
@@ -749,33 +769,56 @@ export default function ImageBackgroundRemover() {
     imageHeightRef.current = height;
 
     try {
-      // Step 1: Attempt to run Neural Segmentation
-      setProgressPercent(25);
-      setProgressStage('Loading high-precision neural segmentation model...');
+      // Step 1: Attempt to run ISNet Neural Segmentation (Remove.bg Technology)
+      setProgressPercent(20);
+      setProgressStage('Loading ISNet neural AI model (Remove.bg technology)...');
       const removeBackground = await loadNeuralBackgroundRemoval();
 
       if (removeBackground) {
-        setProgressPercent(45);
-        setProgressStage('Detecting subject and tracing micro hair boundaries...');
+        setProgressPercent(35);
+        setProgressStage('AI isolating main subject from background...');
 
-        const blob = await removeBackground(imageSrc, {
-          publicPath: NEURAL_REMOVER_ASSET_PATH,
-          model: 'small',
-          proxyToWorker: false,
-          debug: false,
-          progress: (_key: string, current: number, total: number) => {
-            if (total > 0) {
-              const pct = Math.round((current / total) * 45) + 35;
-              setProgressPercent(Math.min(pct, 85));
-              setProgressStage(`Neural AI segmenting subject (${Math.round((current / total) * 100)}%)...`);
-            }
-          },
-          output: {
-            format: 'image/png',
-            quality: 1.0,
-            type: 'foreground',
-          },
-        });
+        let blob: Blob;
+        try {
+          blob = await removeBackground(imageSrc, {
+            publicPath: NEURAL_REMOVER_ASSET_PATH,
+            model: 'medium', // isnet_fp16: maximum hair & boundary precision
+            proxyToWorker: false,
+            debug: false,
+            progress: (_key: string, current: number, total: number) => {
+              if (total > 0) {
+                const pct = Math.round((current / total) * 45) + 35;
+                setProgressPercent(Math.min(pct, 85));
+                setProgressStage(`Neural AI segmenting main image (${Math.round((current / total) * 100)}%)...`);
+              }
+            },
+            output: {
+              format: 'image/png',
+              quality: 1.0,
+              type: 'foreground',
+            },
+          });
+        } catch (mediumErr) {
+          console.warn('ISNet medium model failed, falling back to fast isnet_quint8:', mediumErr);
+          blob = await removeBackground(imageSrc, {
+            publicPath: NEURAL_REMOVER_ASSET_PATH,
+            model: 'small', // isnet_quint8 (42MB)
+            proxyToWorker: false,
+            debug: false,
+            progress: (_key: string, current: number, total: number) => {
+              if (total > 0) {
+                const pct = Math.round((current / total) * 45) + 35;
+                setProgressPercent(Math.min(pct, 85));
+                setProgressStage(`Fast ISNet segmenting main image (${Math.round((current / total) * 100)}%)...`);
+              }
+            },
+            output: {
+              format: 'image/png',
+              quality: 1.0,
+              type: 'foreground',
+            },
+          });
+        }
 
         // Extract alpha channel from neural output so edge feathering can be dynamically adjusted
         setProgressPercent(88);
@@ -1217,12 +1260,12 @@ export default function ImageBackgroundRemover() {
 
                 <div className="flex items-center gap-2 text-[11px] text-slate-400">
                   {processingMode === 'neural' ? (
-                    <span className="text-emerald-400 font-semibold flex items-center gap-1">
-                      <i className="fas fa-sparkles text-[10px]"></i> Neural AI Model
+                    <span className="text-emerald-400 font-semibold flex items-center gap-1.5 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                      <i className="fas fa-brain text-[10px]"></i> ISNet Neural AI (Remove.bg Tech)
                     </span>
                   ) : processingMode === 'saliency' ? (
-                    <span className="text-cyan-400 font-semibold flex items-center gap-1">
-                      <i className="fas fa-sliders text-[10px]"></i> Adaptive Saliency
+                    <span className="text-amber-400 font-semibold flex items-center gap-1.5 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                      <i className="fas fa-sliders text-[10px]"></i> Adaptive Contour Saliency
                     </span>
                   ) : null}
                 </div>
