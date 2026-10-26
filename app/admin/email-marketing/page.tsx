@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import dynamicImport from 'next/dynamic'
-import { Send, Users, Image as ImageIcon, Link as LinkIcon, CheckSquare, Square, Trash2, RefreshCw, Mail, ArrowLeft, Sparkles, Wand2, Calendar, ToggleLeft, ToggleRight, Plus, X, FlaskConical, History, ChevronDown, ChevronUp, Eye, ExternalLink, Megaphone, AlertTriangle, UserPlus } from 'lucide-react'
+import { Send, Users, Image as ImageIcon, Link as LinkIcon, CheckSquare, Square, Trash2, RefreshCw, Mail, ArrowLeft, Sparkles, Wand2, Calendar, ToggleLeft, ToggleRight, Plus, X, FlaskConical, History, ChevronDown, ChevronUp, Eye, ExternalLink, Megaphone, AlertTriangle, UserPlus, Code } from 'lucide-react'
 import Link from 'next/link'
 import 'react-quill/dist/quill.snow.css'
 
@@ -70,11 +70,36 @@ export default function EmailMarketingPage() {
   const [aiPrompt, setAiPrompt] = useState('')
   const [generating, setGenerating] = useState(false)
   const [showAi, setShowAi] = useState(false)
+  const editorContainerRef = useRef<HTMLDivElement | null>(null)
   const [showBtnModal, setShowBtnModal] = useState(false)
   const [showImgModal, setShowImgModal] = useState(false)
-  const [btnText, setBtnText] = useState('Click Here')
-  const [btnUrl, setBtnUrl] = useState('https://')
+  
+  // Enhanced Link & Button Insertion State
+  const [linkModalTab, setLinkModalTab] = useState<'button' | 'text'>('button')
+  const [btnText, setBtnText] = useState('Book Your Repair Now')
+  const [btnUrl, setBtnUrl] = useState('https://www.itservicesfreetown.com/book-appointment')
+  const [btnColor, setBtnColor] = useState<'red' | 'blue' | 'green' | 'indigo' | 'slate'>('red')
+  const [btnAlign, setBtnAlign] = useState<'center' | 'left' | 'right'>('center')
+  const [inlineLinkText, setInlineLinkText] = useState('')
+  const [inlineLinkUrl, setInlineLinkUrl] = useState('https://www.itservicesfreetown.com')
+
+  // Enhanced Photo / Image Insertion State
+  const [imgTab, setImgTab] = useState<'upload' | 'url'>('upload')
   const [imageUrl, setImageUrl] = useState('')
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null)
+  const [imageAlt, setImageAlt] = useState('')
+  const [imageCaption, setImageCaption] = useState('')
+  const [imageAlignment, setImageAlignment] = useState<'center' | 'left' | 'right'>('center')
+  const [imageWidth, setImageWidth] = useState<'100%' | '75%' | '50%'>('100%')
+  const [imageBorderRadius, setImageBorderRadius] = useState<'12' | '6' | '0'>('12')
+  const [imageLinkUrl, setImageLinkUrl] = useState('')
+
+  // Enhanced AI & Preview State
+  const [generatingNewsletter, setGeneratingNewsletter] = useState(false)
+  const [manualBlastTopic, setManualBlastTopic] = useState('')
+  const [aiDraftNotice, setAiDraftNotice] = useState<string | null>(null)
+  const [previewMode, setPreviewMode] = useState<'mobile' | 'desktop'>('mobile')
+  const [isRawHtmlMode, setIsRawHtmlMode] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [isConfigured, setIsConfigured] = useState<boolean | null>(null)
   const [recipientPage, setRecipientPage] = useState(1)
@@ -216,7 +241,7 @@ export default function EmailMarketingPage() {
   }
 
   const sendManualBlast = async () => {
-    if (!confirm('🚨 WARNING: This will immediately blast the weekly newsletter to ALL active subscribers using the next rotating topic. Are you sure you want to proceed?')) return
+    if (!confirm('🚨 WARNING: This will immediately send the newsletter to ALL active subscribers. Make sure you have reviewed the email in the editor above before proceeding. Are you sure?')) return
     
     setSendingManualBlast(true)
     try {
@@ -233,6 +258,39 @@ export default function EmailMarketingPage() {
       alert('❌ Error sending manual blast.')
     } finally {
       setSendingManualBlast(false)
+    }
+  }
+
+  // Generate AI newsletter draft and load it into the main editor for review/editing before blasting
+  const handleGenerateNewsletterDraft = async () => {
+    setGeneratingNewsletter(true)
+    setAiDraftNotice(null)
+    try {
+      const res = await fetch('/api/admin/email-marketing/newsletter-generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic: manualBlastTopic || undefined })
+      })
+      const data = await res.json()
+      if (res.ok && data.subject && data.content) {
+        // Load into the main editor so admin can review, edit, add images/links
+        setSubject(data.subject)
+        setContent(data.content)
+        if (quillRef.current) {
+          quillRef.current.getEditor().clipboard.dangerouslyPasteHTML(data.content)
+        }
+        setAiDraftNotice(`✅ AI draft loaded! Topic: "${data.topic}" — Scroll up to review and edit the email in the editor, then use the Campaign blast button to send.`)
+        // Scroll editor into view
+        setTimeout(() => {
+          document.getElementById('email-editor-top')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }, 300)
+      } else {
+        alert('❌ Failed to generate newsletter draft: ' + (data.error || 'Unknown error'))
+      }
+    } catch (e) {
+      alert('❌ Network error generating newsletter draft.')
+    } finally {
+      setGeneratingNewsletter(false)
     }
   }
 
@@ -384,55 +442,73 @@ export default function EmailMarketingPage() {
   }
 
   const insertButton = () => {
+    const colorMap: Record<string, string> = {
+      red: '#dc2626', blue: '#2563eb', green: '#16a34a', indigo: '#4f46e5', slate: '#334155'
+    }
+    const alignPad = btnAlign === 'center' ? 'auto' : btnAlign === 'right' ? '0 0 0 auto' : '0 auto 0 0'
+    const buttonHtml = `<div style="text-align:${btnAlign}; margin: 20px 0;"><a href="${btnUrl}" class="email-button" style="display: inline-block; background-color: ${colorMap[btnColor]}; color: #ffffff !important; padding: 14px 28px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 15px; letter-spacing: 0.3px;">${btnText}</a></div>`
     try {
-      const buttonHtml = `<a href="${btnUrl}" class="email-button" style="display: inline-block; background-color: #dc2626; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">${btnText}</a>`
       const quill = quillRef.current?.getEditor()
-      
       if (quill) {
         quill.focus()
-        // Use remembered range or current or end
         const index = lastRange.current ? lastRange.current.index : quill.getLength()
         quill.clipboard.dangerouslyPasteHTML(index, buttonHtml)
-        // Explicitly update content state from editor
         setTimeout(() => setContent(quill.root.innerHTML), 100)
       } else {
-        setContent(prev => prev + '<p>' + buttonHtml + '</p>')
+        setContent(prev => prev + buttonHtml)
       }
       setShowBtnModal(false)
     } catch (e) {
       console.error('Insert button error:', e)
-      setContent(prev => prev + `<p><a href="${btnUrl}" style="color:red;font-weight:bold;">${btnText}</a></p>`)
+      setContent(prev => prev + buttonHtml)
       setShowBtnModal(false)
     }
   }
 
   const insertImage = () => {
-    if (!imageUrl) {
-      alert('Please enter an image URL first.')
-      return
-    }
+    const finalUrl = imagePreviewUrl || imageUrl
+    if (!finalUrl) { alert('Please provide an image URL or upload a photo first.'); return }
+    const wrapAlign = imageAlignment === 'center' ? '0 auto' : imageAlignment === 'right' ? '0 0 0 auto' : '0 auto 0 0'
+    const imgStyle = `max-width:${imageWidth}; height:auto; display:block; border-radius:${imageBorderRadius}px; margin:${wrapAlign};`
+    const captionHtml = imageCaption ? `<p style="text-align:${imageAlignment}; font-size:12px; color:#6b7280; margin-top:6px; font-style:italic;">${imageCaption}</p>` : ''
+    const innerImg = `<img src="${finalUrl}" alt="${imageAlt || 'Email Image'}" style="${imgStyle}" />${captionHtml}`
+    const imgBlock = imageLinkUrl
+      ? `<div style="margin:20px 0;"><a href="${imageLinkUrl}" target="_blank" rel="noopener noreferrer" style="display:block;">${innerImg}</a></div>`
+      : `<div style="margin:20px 0;">${innerImg}</div>`
     try {
-      const imgHtml = `<img src="${imageUrl}" alt="Email Image" style="max-width: 100%; height: auto; display: block; margin: 15px 0; border-radius: 8px;" />`
       const quill = quillRef.current?.getEditor()
-      
       if (quill) {
         quill.focus()
-        // Use remembered range or current or end
         const index = lastRange.current ? lastRange.current.index : quill.getLength()
-        quill.clipboard.dangerouslyPasteHTML(index, imgHtml)
-        // Explicitly update content state from editor
+        quill.clipboard.dangerouslyPasteHTML(index, imgBlock)
         setTimeout(() => setContent(quill.root.innerHTML), 100)
       } else {
-        setContent(prev => prev + '<p>' + imgHtml + '</p>')
+        setContent(prev => prev + imgBlock)
       }
       setShowImgModal(false)
       setImageUrl('')
+      setImagePreviewUrl(null)
+      setImageAlt('')
+      setImageCaption('')
+      setImageLinkUrl('')
     } catch (e) {
       console.error('Insert image error:', e)
-      setContent(prev => prev + `<p><img src="${imageUrl}" style="max-width:100%" /></p>`)
+      setContent(prev => prev + imgBlock)
       setShowImgModal(false)
+    }
+  }
+
+  // Handle direct photo upload → convert to base64 data URL for embedding
+  const handleImageFileUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) { alert('Please select an image file.'); return }
+    if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB.'); return }
+    const reader = new FileReader()
+    reader.onload = e => {
+      const dataUrl = e.target?.result as string
+      setImagePreviewUrl(dataUrl)
       setImageUrl('')
     }
+    reader.readAsDataURL(file)
   }
 
   const fetchLeads = async () => {
@@ -461,9 +537,15 @@ export default function EmailMarketingPage() {
       if (res.ok && data.subject && data.content) {
         setSubject(data.subject)
         setContent(data.content)
+        if (quillRef.current) {
+          quillRef.current.getEditor().clipboard.dangerouslyPasteHTML(data.content)
+        }
         setShowAi(false)
         setAiPrompt('')
-        alert('✅ AI content generated and placed in editor!')
+        setAiDraftNotice('✅ AI email generated! Review and edit it in the editor below, then add images or links, and blast when ready.')
+        setTimeout(() => {
+          document.getElementById('email-editor-top')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }, 300)
       } else {
         alert('❌ AI generation failed:\n\n' + (data.error || 'Unknown error. Check that GROQ_API_KEY is set in your Vercel environment variables.'))
       }
@@ -847,6 +929,7 @@ export default function EmailMarketingPage() {
             <div className="mb-4 flex items-center gap-2">
               <Wand2 className="h-5 w-5 text-amber-600" />
               <h2 className="text-lg font-black text-amber-900">AI Email Marketing Writer</h2>
+              <span className="ml-auto rounded-full bg-amber-100 px-3 py-1 text-[10px] font-black uppercase text-amber-700">Generates editable draft</span>
             </div>
             <div className="flex flex-col gap-4 sm:flex-row">
               <input
@@ -863,10 +946,23 @@ export default function EmailMarketingPage() {
                 className="flex items-center justify-center gap-2 rounded-2xl bg-amber-600 px-8 py-4 text-sm font-black text-white transition hover:bg-amber-700 disabled:opacity-50"
               >
                 {generating ? <RefreshCw className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}
-                {generating ? 'AI is Writing...' : 'Generate Email'}
+                {generating ? 'AI is Writing...' : 'Generate & Load into Editor'}
               </button>
             </div>
-            <p className="mt-3 text-xs text-amber-600">The AI will automatically draft a subject line and a professional HTML body for you.</p>
+            <p className="mt-3 text-xs text-amber-600">⬇️ The AI will generate a full HTML email and load it directly into the editor below — you can then edit, add images, links, and buttons before sending.</p>
+          </div>
+        )}
+
+        {/* AI Draft Loaded Notice */}
+        {aiDraftNotice && (
+          <div className="mb-6 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 animate-in fade-in slide-in-from-top-2 duration-300">
+            <Sparkles className="h-5 w-5 shrink-0 text-emerald-600 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-bold text-emerald-800">{aiDraftNotice}</p>
+            </div>
+            <button onClick={() => setAiDraftNotice(null)} className="shrink-0 text-emerald-500 hover:text-emerald-700">
+              <X className="h-4 w-4" />
+            </button>
           </div>
         )}
 
@@ -874,7 +970,7 @@ export default function EmailMarketingPage() {
           
           {/* Main Editor */}
           <div className="space-y-6">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:p-8">
+            <div id="email-editor-top" className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:p-8">
               <div className="mb-6 space-y-4">
                 <div>
                   <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-500">Campaign Subject</label>
@@ -888,94 +984,224 @@ export default function EmailMarketingPage() {
                 </div>
               </div>
 
-              <div className="mb-4 flex items-center justify-between">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Email Body (HTML Editor)</label>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <button 
-                    onClick={() => { setContent(''); if(quillRef.current) quillRef.current.getEditor().setText(''); }}
+                    onClick={() => setIsRawHtmlMode(m => !m)}
+                    className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition ${isRawHtmlMode ? 'border-violet-300 bg-violet-100 text-violet-700' : 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50'}`}
+                  >
+                    <Code className="h-3 w-3" />
+                    {isRawHtmlMode ? 'Visual Editor' : 'Raw HTML'}
+                  </button>
+                  <button 
+                    onClick={() => { setContent(''); if(quillRef.current) quillRef.current.getEditor().setText(''); setAiDraftNotice(null); }}
                     className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-50 transition"
                   >
                     <Trash2 className="h-3 w-3" />
-                    Clear Editor
+                    Clear
                   </button>
                   <button 
                     onClick={() => { setShowImgModal(!showImgModal); setShowBtnModal(false); }}
-                    className="flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 transition"
+                    className={`flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-bold transition ${showImgModal ? 'border-blue-400 bg-blue-100 text-blue-800' : 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
                   >
                     <ImageIcon className="h-3 w-3" />
-                    Insert Image URL
+                    📷 Add Photo
                   </button>
                   <button 
                     onClick={() => { setShowBtnModal(!showBtnModal); setShowImgModal(false); }}
-                    className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-100 transition"
+                    className={`flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-bold transition ${showBtnModal ? 'border-indigo-400 bg-indigo-100 text-indigo-800' : 'border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100'}`}
                   >
                     <LinkIcon className="h-3 w-3" />
-                    Insert Red Button
+                    Add Button / Link
                   </button>
                 </div>
               </div>
 
+              {/* ── Photo Insertion Panel ───────────────────────────────── */}
               {showImgModal && (
-                <div className="mb-4 rounded-2xl border border-blue-100 bg-blue-50/30 p-4 animate-in zoom-in-95 duration-200">
-                  <div>
-                    <label className="mb-1 block text-[10px] font-bold text-blue-800 uppercase">Paste Image URL</label>
-                    <div className="flex gap-2">
+                <div className="mb-5 rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-slate-50 p-5 animate-in zoom-in-95 duration-200">
+                  <div className="mb-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ImageIcon className="h-4 w-4 text-blue-600" />
+                      <h4 className="font-black text-blue-900">Insert Photo into Email</h4>
+                    </div>
+                    <button onClick={() => setShowImgModal(false)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
+                  </div>
+
+                  {/* Tab: Upload vs URL */}
+                  <div className="mb-4 flex rounded-xl border border-blue-100 bg-white p-1">
+                    <button onClick={() => setImgTab('upload')} className={`flex-1 rounded-lg py-2 text-xs font-black transition ${imgTab === 'upload' ? 'bg-blue-600 text-white shadow' : 'text-slate-500 hover:text-slate-700'}`}>⬆️ Upload from Computer</button>
+                    <button onClick={() => setImgTab('url')} className={`flex-1 rounded-lg py-2 text-xs font-black transition ${imgTab === 'url' ? 'bg-blue-600 text-white shadow' : 'text-slate-500 hover:text-slate-700'}`}>🔗 Paste Image URL</button>
+                  </div>
+
+                  {imgTab === 'upload' ? (
+                    <div className="mb-4">
+                      <label className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border-2 border-dashed border-blue-200 bg-blue-50/60 p-6 text-center hover:border-blue-400 hover:bg-blue-100/40 transition">
+                        <ImageIcon className="h-8 w-8 text-blue-400" />
+                        <div>
+                          <p className="font-bold text-blue-700">Click to select a photo</p>
+                          <p className="text-[11px] text-blue-500 mt-1">JPG, PNG, WebP — max 5MB</p>
+                        </div>
+                        <input type="file" accept="image/*" className="hidden" onChange={e => e.target.files?.[0] && handleImageFileUpload(e.target.files[0])} />
+                      </label>
+                      {imagePreviewUrl && (
+                        <div className="mt-3 relative rounded-xl overflow-hidden border border-blue-200">
+                          <img src={imagePreviewUrl} alt="preview" className="w-full max-h-48 object-contain bg-slate-100" />
+                          <button onClick={() => setImagePreviewUrl(null)} className="absolute top-2 right-2 rounded-full bg-red-500 p-1 text-white shadow"><X className="h-3 w-3" /></button>
+                          <p className="py-1 text-center text-[10px] text-blue-600 font-bold bg-blue-50">✅ Photo ready — configure options below and click Insert</p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="mb-4">
+                      <label className="mb-1 block text-[10px] font-bold uppercase text-blue-700">Image URL</label>
                       <input 
                         placeholder="https://example.com/photo.jpg"
                         value={imageUrl}
-                        onChange={e => setImageUrl(e.target.value)}
-                        className="flex-1 rounded-lg border border-blue-100 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                        onChange={e => { setImageUrl(e.target.value); setImagePreviewUrl(null); }}
+                        className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-300"
                       />
-                      <button onClick={insertImage} className="rounded-lg bg-blue-600 px-6 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 hover:bg-blue-700">Add</button>
-                      <button onClick={() => setShowImgModal(false)} className="px-2 py-2 text-xs font-bold text-slate-500">Cancel</button>
+                    </div>
+                  )}
+
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <div>
+                      <label className="mb-1 block text-[10px] font-bold uppercase text-slate-500">Alt Text (Accessibility)</label>
+                      <input value={imageAlt} onChange={e => setImageAlt(e.target.value)} placeholder="Photo description..." className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200" />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-[10px] font-bold uppercase text-slate-500">Caption (Optional)</label>
+                      <input value={imageCaption} onChange={e => setImageCaption(e.target.value)} placeholder="e.g. Our team at work..." className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200" />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-[10px] font-bold uppercase text-slate-500">Link (Optional)</label>
+                      <input value={imageLinkUrl} onChange={e => setImageLinkUrl(e.target.value)} placeholder="https://..." className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200" />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-[10px] font-bold uppercase text-slate-500">Alignment</label>
+                      <div className="flex gap-1">
+                        {(['left', 'center', 'right'] as const).map(a => (
+                          <button key={a} onClick={() => setImageAlignment(a)} className={`flex-1 rounded-lg py-2 text-xs font-bold capitalize transition ${imageAlignment === a ? 'bg-blue-600 text-white' : 'border border-slate-200 bg-white text-slate-500 hover:bg-slate-50'}`}>{a}</button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-[10px] font-bold uppercase text-slate-500">Width</label>
+                      <div className="flex gap-1">
+                        {(['100%', '75%', '50%'] as const).map(w => (
+                          <button key={w} onClick={() => setImageWidth(w)} className={`flex-1 rounded-lg py-2 text-xs font-bold transition ${imageWidth === w ? 'bg-blue-600 text-white' : 'border border-slate-200 bg-white text-slate-500 hover:bg-slate-50'}`}>{w}</button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-[10px] font-bold uppercase text-slate-500">Rounded Corners</label>
+                      <div className="flex gap-1">
+                        {([['12', 'Soft'], ['6', 'Mild'], ['0', 'None']] as const).map(([v, label]) => (
+                          <button key={v} onClick={() => setImageBorderRadius(v)} className={`flex-1 rounded-lg py-2 text-xs font-bold transition ${imageBorderRadius === v ? 'bg-blue-600 text-white' : 'border border-slate-200 bg-white text-slate-500 hover:bg-slate-50'}`}>{label}</button>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                  <p className="mt-2 text-[10px] text-blue-600/60 italic">Note: Use a direct link to an image (ending in .jpg, .png, etc.)</p>
+
+                  <div className="mt-4 flex justify-end gap-2">
+                    <button onClick={() => { setShowImgModal(false); setImagePreviewUrl(null); setImageUrl(''); }} className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
+                    <button onClick={insertImage} disabled={!imagePreviewUrl && !imageUrl} className="flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 hover:bg-blue-700 disabled:opacity-40">
+                      <ImageIcon className="h-3.5 w-3.5" /> Insert Photo into Email
+                    </button>
+                  </div>
                 </div>
               )}
 
+              {/* ── Button / Link Insertion Panel ──────────────────────── */}
               {showBtnModal && (
-                <div className="mb-4 rounded-2xl border border-red-100 bg-red-50/30 p-4 animate-in zoom-in-95 duration-200">
+                <div className="mb-5 rounded-2xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 to-slate-50 p-5 animate-in zoom-in-95 duration-200">
+                  <div className="mb-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <LinkIcon className="h-4 w-4 text-indigo-600" />
+                      <h4 className="font-black text-indigo-900">Insert Button / Link</h4>
+                    </div>
+                    <button onClick={() => setShowBtnModal(false)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
+                  </div>
+
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <label className="mb-1 block text-[10px] font-bold text-red-800 uppercase">Button Text</label>
-                      <input 
-                        value={btnText}
-                        onChange={e => setBtnText(e.target.value)}
-                        className="w-full rounded-lg border border-red-100 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-200"
-                      />
+                      <label className="mb-1 block text-[10px] font-bold uppercase text-indigo-700">Button Text</label>
+                      <input value={btnText} onChange={e => setBtnText(e.target.value)} placeholder="Book Your Repair Now" className="w-full rounded-xl border border-indigo-100 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-indigo-200" />
                     </div>
                     <div>
-                      <label className="mb-1 block text-[10px] font-bold text-red-800 uppercase">Link URL</label>
-                      <input 
-                        value={btnUrl}
-                        onChange={e => setBtnUrl(e.target.value)}
-                        className="w-full rounded-lg border border-red-100 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-200"
-                      />
+                      <label className="mb-1 block text-[10px] font-bold uppercase text-indigo-700">Destination URL</label>
+                      <input value={btnUrl} onChange={e => setBtnUrl(e.target.value)} placeholder="https://www.itservicesfreetown.com/..." className="w-full rounded-xl border border-indigo-100 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-indigo-200" />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-[10px] font-bold uppercase text-indigo-700">Button Color</label>
+                      <div className="flex gap-2">
+                        {([['red','#dc2626'],['blue','#2563eb'],['green','#16a34a'],['indigo','#4f46e5'],['slate','#334155']] as const).map(([c, hex]) => (
+                          <button key={c} onClick={() => setBtnColor(c)} className="h-8 w-8 rounded-lg ring-2 ring-offset-2 transition" style={{ backgroundColor: hex, ringColor: btnColor === c ? hex : 'transparent', outline: btnColor === c ? `2px solid ${hex}` : 'none' }} title={c} />
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-[10px] font-bold uppercase text-indigo-700">Alignment</label>
+                      <div className="flex gap-1">
+                        {(['left', 'center', 'right'] as const).map(a => (
+                          <button key={a} onClick={() => setBtnAlign(a)} className={`flex-1 rounded-lg py-2 text-xs font-bold capitalize transition ${btnAlign === a ? 'bg-indigo-600 text-white' : 'border border-slate-200 bg-white text-slate-500 hover:bg-slate-50'}`}>{a}</button>
+                        ))}
+                      </div>
                     </div>
                   </div>
+
+                  {/* Live preview */}
+                  <div className="mt-4 rounded-xl border border-indigo-100 bg-white p-4">
+                    <p className="mb-2 text-[10px] font-bold uppercase text-indigo-400">Button Preview</p>
+                    <div style={{ textAlign: btnAlign }}>
+                      <span style={{ display:'inline-block', backgroundColor: ['#dc2626','#2563eb','#16a34a','#4f46e5','#334155'][['red','blue','green','indigo','slate'].indexOf(btnColor)], color:'#fff', padding:'12px 24px', borderRadius:'10px', fontWeight:'bold', fontSize:'14px' }}>
+                        {btnText || 'Button Text'}
+                      </span>
+                    </div>
+                  </div>
+
                   <div className="mt-4 flex justify-end gap-2">
-                    <button onClick={() => setShowBtnModal(false)} className="px-4 py-2 text-xs font-bold text-slate-500">Cancel</button>
-                    <button onClick={insertButton} className="rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-red-200 hover:bg-red-700">Add to Email</button>
+                    <button onClick={() => setShowBtnModal(false)} className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
+                    <button onClick={insertButton} disabled={!btnText || !btnUrl} className="flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-2 text-xs font-bold text-white shadow-md shadow-indigo-200 hover:bg-indigo-700 disabled:opacity-40">
+                      <LinkIcon className="h-3.5 w-3.5" /> Insert into Email
+                    </button>
                   </div>
                 </div>
               )}
 
-              <div className="space-y-2">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Email Body (HTML Editor)</label>
-                <div className="quill-wrapper">
-                  <ReactQuill
-                    ref={quillRef}
-                    theme="snow"
+              {/* ── Rich Text Editor or Raw HTML ────────────────────────── */}
+              {isRawHtmlMode ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-violet-600">Raw HTML Mode</label>
+                    <span className="text-[10px] text-slate-400">Edit HTML directly — switch back to Visual Editor to use the toolbar</span>
+                  </div>
+                  <textarea
                     value={content}
-                    onChange={setContent}
-                    onChangeSelection={handleSelectionChange}
-                    modules={modules}
-                    placeholder="Start designing your email here..."
-                    className="h-[500px] overflow-hidden rounded-2xl border-slate-100 bg-slate-50 text-slate-800"
+                    onChange={e => setContent(e.target.value)}
+                    className="h-[520px] w-full rounded-2xl border border-violet-200 bg-slate-950 p-6 font-mono text-xs text-emerald-300 outline-none focus:ring-2 focus:ring-violet-400"
+                    spellCheck={false}
+                    placeholder="<h1>Hello,</h1><p>Your message here...</p>"
                   />
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Visual Editor</label>
+                  <div className="quill-wrapper">
+                    <ReactQuill
+                      ref={quillRef}
+                      theme="snow"
+                      value={content}
+                      onChange={setContent}
+                      onChangeSelection={handleSelectionChange}
+                      modules={modules}
+                      placeholder="Paste AI-generated content here, or start typing your email..."
+                      className="h-[520px] overflow-hidden rounded-2xl border-slate-100 bg-slate-50 text-slate-800"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:p-8">
@@ -1469,22 +1695,57 @@ export default function EmailMarketingPage() {
                 </div>
               </div>
 
-              {/* Manual Blast Section */}
-              <div className="rounded-2xl border-2 border-red-100 bg-red-50/40 p-5 mt-4">
-                <div className="mb-4 flex items-center gap-2">
+              {/* Manual Blast Section — Generate → Review & Edit → Blast */}
+              <div className="rounded-2xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-rose-50/30 p-5 mt-4">
+                <div className="mb-3 flex items-center gap-2">
                   <Send className="h-5 w-5 text-red-600" />
-                  <h3 className="font-black text-red-900">Send Manual Blast (Live)</h3>
+                  <h3 className="font-black text-red-900">Manual Newsletter Blast</h3>
+                  <span className="ml-auto rounded-full bg-red-100 px-2.5 py-0.5 text-[10px] font-black uppercase text-red-700">2-step: Generate → Edit → Send</span>
                 </div>
-                <p className="mb-4 text-sm text-red-700">This will immediately generate and send the newsletter to <strong>ALL</strong> active subscribers. Use this only if the scheduled automated send failed or you need to send an emergency out-of-schedule blast.</p>
-                <div className="flex justify-end">
-                  <button
-                    onClick={sendManualBlast}
-                    disabled={sendingManualBlast}
-                    className="flex items-center gap-2 rounded-2xl bg-red-600 px-8 py-3 text-sm font-black text-white shadow-md shadow-red-200 hover:bg-red-700 disabled:opacity-50 transition"
-                  >
-                    {sendingManualBlast ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    {sendingManualBlast ? 'Blasting...' : 'Blast Newsletter to All'}
-                  </button>
+                <p className="mb-4 text-sm text-red-700">
+                  First, generate the AI newsletter draft and load it into the editor so you can <strong>review, edit, add photos and links</strong>. Once you're happy, click <strong>Blast Campaign</strong> in the header to send to all selected subscribers.
+                </p>
+
+                {/* Step 1: Generate draft */}
+                <div className="mb-4 rounded-xl border border-red-100 bg-white p-4">
+                  <p className="mb-2 text-[10px] font-black uppercase text-red-500">Step 1 — Generate AI Draft</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={manualBlastTopic}
+                      onChange={e => setManualBlastTopic(e.target.value)}
+                      placeholder="Optional: specify topic (leave blank for auto-rotation)"
+                      className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-red-200"
+                    />
+                    <button
+                      onClick={handleGenerateNewsletterDraft}
+                      disabled={generatingNewsletter}
+                      className="flex shrink-0 items-center gap-2 rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-black text-white shadow shadow-amber-200 hover:bg-amber-600 disabled:opacity-50 transition"
+                    >
+                      {generatingNewsletter ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                      {generatingNewsletter ? 'Generating...' : 'Generate AI Draft'}
+                    </button>
+                  </div>
+                  {generatingNewsletter && (
+                    <p className="mt-2 text-[11px] text-amber-600 animate-pulse">⏳ AI is writing your newsletter — this takes 5–15 seconds...</p>
+                  )}
+                </div>
+
+                {/* Step 2: After draft is loaded into editor */}
+                <div className="rounded-xl border border-red-100 bg-red-50/50 p-4">
+                  <p className="mb-2 text-[10px] font-black uppercase text-red-500">Step 2 — After Editing in the Editor Above</p>
+                  <p className="mb-3 text-xs text-red-600">Select your recipients in the sidebar, then use the <strong>"Blast Campaign"</strong> button in the top right header to send. Or use the emergency direct blast below (bypasses editor, uses AI auto-generated content).</p>
+                  <div className="flex items-center justify-between gap-3 border-t border-red-100 pt-3">
+                    <p className="text-[10px] text-red-400 italic">⚠️ Emergency only — skips editor review</p>
+                    <button
+                      onClick={sendManualBlast}
+                      disabled={sendingManualBlast}
+                      className="flex shrink-0 items-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-xs font-black text-white shadow shadow-red-200 hover:bg-red-700 disabled:opacity-50 transition"
+                    >
+                      {sendingManualBlast ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                      {sendingManualBlast ? 'Blasting...' : '⚡ Emergency Blast (Skip Review)'}
+                    </button>
+                  </div>
                 </div>
               </div>
 
