@@ -1930,6 +1930,49 @@ Tips:
           color: #718096;
           font-style: italic;
         }
+
+        /* Table support */
+        #html-preview-content table {
+          border-collapse: collapse;
+          width: 100%;
+          margin: 1.5rem 0;
+          font-size: 14px;
+        }
+
+        #html-preview-content th,
+        #html-preview-content td {
+          padding: 10px 14px;
+          border: 1px solid #d1d5db;
+          text-align: left;
+          color: #1f2937;
+        }
+
+        #html-preview-content th {
+          background-color: #1e293b;
+          color: #ffffff;
+          font-weight: 700;
+        }
+
+        /* Div-based flex grid table support */
+        .prose div[style*="display: flex"],
+        .prose div[style*="display:flex"] {
+          display: flex !important;
+        }
+
+        /* Preserve ALL inline styles inside prose */
+        .prose [style] {
+          all: revert;
+        }
+
+        /* Re-apply base prose text colour after revert */
+        .prose p { color: #4a5568; line-height: 1.8; margin-bottom: 1rem; }
+        .prose h2 { color: #2d3748; font-size: 1.5rem; font-weight: 600; margin-top: 2rem; margin-bottom: 1rem; }
+        .prose h3 { color: #2d3748; font-size: 1.25rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .prose ul, .prose ol { margin: 1rem 0 1rem 1.5rem; }
+        .prose li { margin-bottom: 0.5rem; color: #4a5568; }
+        .prose strong { color: #1a202c; font-weight: 600; }
+        .prose a { color: #667eea; text-decoration: underline; }
+        .prose img { max-width: 100%; height: auto; border-radius: 8px; }
       `}</style>
       </div>
     </>
