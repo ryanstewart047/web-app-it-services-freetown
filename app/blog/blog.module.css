@@ -550,6 +550,37 @@
   margin: 1.5rem 0;
 }
 
+.articleProse :global(table) {
+  display: table !important;
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin: 1.5rem 0 !important;
+  font-size: 14px !important;
+}
+
+.articleProse :global(thead) { display: table-header-group !important; }
+.articleProse :global(tbody) { display: table-row-group !important; }
+.articleProse :global(tr) { display: table-row !important; }
+
+.articleProse :global(th),
+.articleProse :global(td) {
+  display: table-cell !important;
+  padding: 10px 14px !important;
+  border: 1px solid #d1d5db !important;
+  text-align: left !important;
+}
+
+.articleProse :global(th) {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.articleProse :global(div[style*="display: flex"]),
+.articleProse :global(div[style*="display:flex"]) {
+  display: flex !important;
+}
+
 .attachmentCard {
   overflow: hidden;
   border-radius: 1.5rem;

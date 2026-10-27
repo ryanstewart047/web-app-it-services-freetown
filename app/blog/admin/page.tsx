@@ -516,7 +516,9 @@ export default function BlogAdminPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!title.trim() || !content.trim()) {
+    const finalContent = (editorMode === 'html' && htmlContent.trim()) ? htmlContent.trim() : content.trim()
+
+    if (!title.trim() || !finalContent) {
       toast.error('Please fill in all fields')
       return
     }
@@ -537,7 +539,7 @@ export default function BlogAdminPage() {
         result = await updateBlogPost(
           parseInt(editingPostId),
           title.trim(),
-          content.trim(),
+          finalContent,
           author.trim(),
           media.length > 0 ? media : undefined
         )
@@ -545,7 +547,7 @@ export default function BlogAdminPage() {
         // Create new post
         result = await createBlogPost(
           title.trim(),
-          content.trim(),
+          finalContent,
           author.trim(),
           media.length > 0 ? media : undefined
         )
@@ -1706,7 +1708,12 @@ Tips:
             <div className="flex gap-4">
               <button
                 type="button"
-                onClick={() => setPreview(true)}
+                onClick={() => {
+                  if (editorMode === 'html' && htmlContent.trim()) {
+                    setContent(htmlContent)
+                  }
+                  setPreview(true)
+                }}
                 disabled={isPublishing}
                 className="flex-1 px-6 py-4 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -1729,7 +1736,7 @@ Tips:
           </form>
         ) : (
           /* Preview */
-          <div className="scroll-animate">
+          <div className="w-full">
             <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
               <div className="flex items-center text-sm text-gray-500 mb-4">
                 <span>{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
@@ -1743,7 +1750,7 @@ Tips:
 
               <div 
                 className="prose max-w-none text-gray-700 mb-6"
-                dangerouslySetInnerHTML={{ __html: content || '<p class="text-gray-400">Your post content will appear here...</p>' }}
+                dangerouslySetInnerHTML={{ __html: (editorMode === 'html' && htmlContent.trim() ? htmlContent : content) || content || '<p class="text-gray-400">Your post content will appear here...</p>' }}
               />
 
               {/* Media Preview in Post */}
@@ -1931,48 +1938,44 @@ Tips:
           font-style: italic;
         }
 
-        /* Table support */
+        /* Table support in preview and prose */
+        .prose table,
         #html-preview-content table {
-          border-collapse: collapse;
-          width: 100%;
-          margin: 1.5rem 0;
-          font-size: 14px;
+          display: table !important;
+          border-collapse: collapse !important;
+          width: 100% !important;
+          margin: 1.5rem 0 !important;
+          font-size: 14px !important;
         }
 
+        .prose thead, #html-preview-content thead { display: table-header-group !important; }
+        .prose tbody, #html-preview-content tbody { display: table-row-group !important; }
+        .prose tr, #html-preview-content tr { display: table-row !important; }
+
+        .prose th,
+        .prose td,
         #html-preview-content th,
         #html-preview-content td {
-          padding: 10px 14px;
-          border: 1px solid #d1d5db;
-          text-align: left;
-          color: #1f2937;
+          display: table-cell !important;
+          padding: 10px 14px !important;
+          border: 1px solid #d1d5db !important;
+          text-align: left !important;
         }
 
+        .prose th,
         #html-preview-content th {
-          background-color: #1e293b;
-          color: #ffffff;
-          font-weight: 700;
+          background-color: #1e293b !important;
+          color: #ffffff !important;
+          font-weight: 700 !important;
         }
 
         /* Div-based flex grid table support */
         .prose div[style*="display: flex"],
-        .prose div[style*="display:flex"] {
+        .prose div[style*="display:flex"],
+        #html-preview-content div[style*="display: flex"],
+        #html-preview-content div[style*="display:flex"] {
           display: flex !important;
         }
-
-        /* Preserve ALL inline styles inside prose */
-        .prose [style] {
-          all: revert;
-        }
-
-        /* Re-apply base prose text colour after revert */
-        .prose p { color: #4a5568; line-height: 1.8; margin-bottom: 1rem; }
-        .prose h2 { color: #2d3748; font-size: 1.5rem; font-weight: 600; margin-top: 2rem; margin-bottom: 1rem; }
-        .prose h3 { color: #2d3748; font-size: 1.25rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.75rem; }
-        .prose ul, .prose ol { margin: 1rem 0 1rem 1.5rem; }
-        .prose li { margin-bottom: 0.5rem; color: #4a5568; }
-        .prose strong { color: #1a202c; font-weight: 600; }
-        .prose a { color: #667eea; text-decoration: underline; }
-        .prose img { max-width: 100%; height: auto; border-radius: 8px; }
       `}</style>
       </div>
     </>
