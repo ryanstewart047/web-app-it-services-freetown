@@ -699,6 +699,16 @@ www.itservicesfreetown.com
             border: none !important;
             padding: 0.5cm !important;
           }
+
+          /* Ensure logo is well-proportioned and never cut off in print */
+          #receipt-print-area img,
+          #modal-receipt-print-area img {
+            max-height: 52px !important;
+            max-width: 230px !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
+          }
           
           /* Professional fonts */
           body {
@@ -1276,13 +1286,13 @@ www.itservicesfreetown.com
         <div className="bg-white rounded-lg shadow-2xl p-6 border-2 border-gray-200">
           {/* Header with Logo */}
           <div className="text-center mb-4 pb-4 border-b-2 border-gray-300">
-            <div className="flex justify-center mb-4">
-              <a href="/" className="inline-block hover:opacity-80 transition-opacity no-print-link">
+            <div className="flex justify-center mb-3">
+              <a href="/" className="inline-flex items-center justify-center hover:opacity-80 transition-opacity no-print-link max-w-full">
                 <img 
                   src={BRAND_LOGO_SRC}
                   alt={BRAND_NAME}
-                  className="h-28 w-auto object-contain"
-                  style={{ maxHeight: '110px' }}
+                  className="h-14 sm:h-16 w-auto max-w-[240px] sm:max-w-[260px] object-contain"
+                  style={{ maxHeight: '60px', width: 'auto' }}
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = BRAND_LOGO_FALLBACK_SRC
                   }}
@@ -1514,8 +1524,8 @@ www.itservicesfreetown.com
                     <img 
                       src={BRAND_LOGO_SRC}
                       alt={BRAND_NAME}
-                      className="h-24 w-auto object-contain"
-                      style={{ maxHeight: '95px' }}
+                      className="h-14 sm:h-16 w-auto max-w-[240px] sm:max-w-[260px] object-contain"
+                      style={{ maxHeight: '60px', width: 'auto' }}
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = BRAND_LOGO_FALLBACK_SRC
                       }}

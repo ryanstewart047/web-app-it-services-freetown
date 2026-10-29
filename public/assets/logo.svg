@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 140" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" width="540" height="146" viewBox="0 0 540 146" fill="none">
   <!-- Shield Shape -->
   <path d="M70 4 L128 26 L128 84 C128 120 70 140 70 140 C70 140 12 120 12 84 L12 26 Z" fill="#040e40" stroke="#dc2626" stroke-width="6" stroke-linejoin="round"/>
   <!-- Inner Shield Ring -->
