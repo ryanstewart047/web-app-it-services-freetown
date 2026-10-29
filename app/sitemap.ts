@@ -1,16 +1,15 @@
 import { MetadataRoute } from 'next';
 import { prisma } from '@/lib/prisma';
+import { fetchBlogPosts } from '@/lib/github-blog-storage';
+import { seoServices } from '@/data/seo-services';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // Revalidate every hour
 
-// Fetch blog posts from localStorage or GitHub Issues
+// Fetch blog posts from GitHub Issues API
 async function getBlogPosts() {
   try {
-    // Since we're server-side, we'll just return placeholder entries
-    // In production, these will be from GitHub Issues
-    // For now, we'll add the blog homepage and let Google discover individual posts
-    return [];
+    return await fetchBlogPosts();
   } catch (error) {
     console.error('Error fetching blog posts for sitemap:', error);
     return [];
@@ -45,12 +44,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://www.itservicesfreetown.com';
   
   let products: any[] = [];
+  let blogPosts: any[] = [];
   
   try {
-    products = await getProducts();
+    [products, blogPosts] = await Promise.all([getProducts(), getBlogPosts()]);
   } catch (error) {
     console.error('Error generating sitemap:', error);
-    // Continue with empty arrays if database fails
+    // Continue with empty arrays if fetches fail
   }
 
   // Static pages - only include pages that actually exist
@@ -203,5 +203,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...staticPages, ...productPages];
+  // SEO repair service pages (e.g. /repairs/phone-screen-repair-freetown)
+  const repairPages: MetadataRoute.Sitemap = seoServices.map((service) => ({
+    url: `${baseUrl}/repairs/${service.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.85,
+  }));
+
+  // Blog post pages from GitHub Issues
+  const blogPages: MetadataRoute.Sitemap = blogPosts.map((post: any) => ({
+    url: `${baseUrl}/blog/${post.id}`,
+    lastModified: post.date ? new Date(post.date) : new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.75,
+  }));
+
+  return [...staticPages, ...repairPages, ...blogPages, ...productPages];
 }
