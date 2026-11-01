@@ -11,9 +11,17 @@
     "app/api/upload-video/route.ts": {
       "maxDuration": 60,
       "memory": 1024
+    },
+    "app/api/cron/auto-draft-blog/route.ts": {
+      "maxDuration": 60,
+      "memory": 1024
     }
   },
   "crons": [
+    {
+      "path": "/api/cron/auto-draft-blog",
+      "schedule": "0 2 * * *"
+    },
     {
       "path": "/api/cron/facebook-auto-post",
       "schedule": "0 9 * * *"

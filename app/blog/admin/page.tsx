@@ -297,6 +297,9 @@ export default function BlogAdminPage() {
   const [htmlContent, setHtmlContent] = useState('')
   const [editingPostId, setEditingPostId] = useState<string | null>(null)
   const [lastAutoSaved, setLastAutoSaved] = useState<Date | null>(null)
+  const [automatedDrafts, setAutomatedDrafts] = useState<any[]>([])
+  const [loadingAutomatedDrafts, setLoadingAutomatedDrafts] = useState(false)
+  const [runningAutomation, setRunningAutomation] = useState(false)
   const autoSavePromptedRef = React.useRef(false)
 
   useScrollAnimations()
@@ -506,9 +509,76 @@ export default function BlogAdminPage() {
     }
   }
 
+  const loadAutomatedDrafts = async () => {
+    setLoadingAutomatedDrafts(true)
+    try {
+      const res = await fetch('/api/admin/blog/drafts')
+      if (res.ok) {
+        const data = await res.json()
+        setAutomatedDrafts(data.drafts || [])
+      }
+    } catch (err) {
+      console.error('Failed fetching automated drafts', err)
+    } finally {
+      setLoadingAutomatedDrafts(false)
+    }
+  }
+
+  const handleDeleteAutomatedDraft = async (id: string) => {
+    if (!confirm('Are you sure you want to discard this auto-generated draft?')) return
+    try {
+      const res = await fetch(`/api/admin/blog/drafts?id=${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setAutomatedDrafts((prev) => prev.filter((d) => d.id !== id))
+        toast.success('Draft removed')
+      } else {
+        toast.error('Failed to delete draft')
+      }
+    } catch (err) {
+      toast.error('Network error deleting draft')
+    }
+  }
+
+  const handleLoadAutomatedDraft = (draft: any) => {
+    setTitle(draft.h1Title || draft.title || '')
+    setContent(draft.content || '')
+    setHtmlContent(draft.content || '')
+    setAuthor('BridgeTech IT Services')
+    setEditorMode('html')
+    setShowManagePosts(false)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    toast.success('🤖 AI Draft loaded into HTML editor! Review and publish.')
+    if (draft.editorNotes) {
+      toast(`💡 Editor Tip: ${draft.editorNotes.slice(0, 120)}...`, { duration: 6000 })
+    }
+  }
+
+  const handleTriggerAutomationNow = async () => {
+    setRunningAutomation(true)
+    const toastId = toast.loading('Running automated news background worker...')
+    try {
+      const res = await fetch('/api/cron/auto-draft-blog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ maxArticles: 2 }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        toast.success(`Success! Created ${data.draftsCreated} new draft(s).`, { id: toastId })
+        loadAutomatedDrafts()
+      } else {
+        toast.error(`Automation notice: ${data.error || 'No new stories found'}`, { id: toastId })
+      }
+    } catch (err: any) {
+      toast.error(`Error: ${err.message}`, { id: toastId })
+    } finally {
+      setRunningAutomation(false)
+    }
+  }
+
   const toggleManagePosts = async () => {
     if (!showManagePosts) {
-      await loadPosts()
+      await Promise.all([loadPosts(), loadAutomatedDrafts()])
     }
     setShowManagePosts(!showManagePosts)
   }
@@ -1084,7 +1154,127 @@ ${htmlContent || content || 'Empty draft'}`
         {/* Manage Posts Section */}
         {showManagePosts && (
           <div className="mb-8 bg-white rounded-2xl shadow-lg p-6 scroll-animate">
-            <h2 className="text-2xl font-bold mb-4" style={{ color: '#040e40' }}>Existing Posts</h2>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-gray-100">
+              <h2 className="text-2xl font-bold" style={{ color: '#040e40' }}>Manage Posts & Automated Drafts</h2>
+              <button
+                type="button"
+                onClick={handleTriggerAutomationNow}
+                disabled={runningAutomation}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white rounded-xl font-semibold shadow-sm transition-all disabled:opacity-50 text-xs sm:text-sm"
+              >
+                <Sparkles className="w-4 h-4" />
+                {runningAutomation ? 'Scanning Feeds & Writing...' : '⚡ Run News Worker Now'}
+              </button>
+            </div>
+
+            {/* AI Automated Tech News Drafts Section */}
+            <div className="mb-8 p-5 bg-gradient-to-br from-slate-900 to-slate-950 text-white rounded-2xl shadow-md border border-slate-800">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🤖</span>
+                  <h3 className="text-lg font-bold text-sky-400">
+                    Automated Tech News Drafts ({automatedDrafts.length})
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={loadAutomatedDrafts}
+                  disabled={loadingAutomatedDrafts}
+                  className="text-xs text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${loadingAutomatedDrafts ? 'animate-spin' : ''}`} />
+                  Refresh
+                </button>
+              </div>
+
+              <p className="text-xs text-slate-300 mb-4">
+                Articles automatically harvested from tech news RSS feeds, scraped, and written by AI with strict anti-cliché journalism rules. All items stay in <strong>Draft</strong> until you review and publish them.
+              </p>
+
+              {loadingAutomatedDrafts ? (
+                <div className="text-center py-6 text-slate-400 text-sm">
+                  <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-sky-400" />
+                  Loading automated drafts...
+                </div>
+              ) : automatedDrafts.length === 0 ? (
+                <div className="text-center py-6 border border-dashed border-slate-800 rounded-xl bg-slate-900/50">
+                  <p className="text-slate-400 text-sm">No pending automated drafts.</p>
+                  <p className="text-slate-500 text-xs mt-1">
+                    The background worker runs every 24h via Vercel Cron. You can also click <strong>&quot;Run News Worker Now&quot;</strong> above to scan feeds immediately.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {automatedDrafts.map((draft) => (
+                    <div
+                      key={draft.id}
+                      className="p-4 rounded-xl bg-slate-800/80 border border-slate-700 hover:border-sky-500/50 transition-all"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                              {draft.sourceFeed || 'Tech Feed'}
+                            </span>
+                            <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                              🔒 Draft (Unpublished)
+                            </span>
+                            <span className="text-[11px] text-slate-400">
+                              {new Date(draft.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <h4 className="font-bold text-white text-base">
+                            {draft.h1Title || draft.title}
+                          </h4>
+                          {draft.metaDescription && (
+                            <p className="text-xs text-slate-300 mt-1 line-clamp-2">
+                              {draft.metaDescription}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleLoadAutomatedDraft(draft)}
+                            className="px-3 py-1.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs rounded-lg transition-colors flex items-center gap-1 shadow-sm"
+                          >
+                            📂 Load & Review
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteAutomatedDraft(draft.id)}
+                            className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 rounded-lg transition-colors"
+                            title="Discard draft"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {draft.editorNotes && (
+                        <div className="mt-3 p-2.5 rounded-lg bg-slate-900/80 border border-slate-700/80 text-xs">
+                          <span className="font-semibold text-amber-400">💡 Notes for Human Editor:</span>{' '}
+                          <span className="text-slate-300">{draft.editorNotes}</span>
+                        </div>
+                      )}
+
+                      {draft.sourceUrl && (
+                        <div className="mt-2 text-[11px]">
+                          <a
+                            href={draft.sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sky-400 hover:underline"
+                          >
+                            🔗 View original source article &rarr;
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             {loadingPosts ? (
               <div className="text-center py-8">
                 <RefreshCw className="w-8 h-8 animate-spin mx-auto text-red-600 mb-2" />

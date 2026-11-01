@@ -617,3 +617,84 @@ model PartnerLogo {
   @@index([active])
   @@index([order])
 }
+
+model AdminTwoFactorConfig {
+  id             String   @id
+  enabled        Boolean  @default(true)
+  mode           String   @default("both")
+  totpSecret     String?
+  recipientEmail String?
+  createdAt      DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model SocialShareLink {
+  code      String   @id
+  url       String
+  metadata  Json?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model SurpriseReveal {
+  code          String   @id
+  recipientName String
+  achievement   String
+  message       String?
+  imageUrl      String
+  createdAt     DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime @default(now()) @db.Timestamptz(6)
+  soundEffect   String   @default("golden-fanfare")
+  quizData      String?
+  isVip         Boolean? @default(false)
+  paymentStatus String?  @default("pending")
+  customerEmail String?
+  customerPhone String?
+  selectedPlan  String?
+  paymentMethod String?
+  presenterName String?
+}
+
+// ── Automated Tech News Pipeline (Scaling & Deduplication) ──────
+
+model ProcessedFeed {
+  id          String   @id @default(cuid())
+  feedSource  String
+  guidHash    String   @unique
+  sourceUrl   String   @db.Text
+  title       String
+  processedAt DateTime @default(now())
+
+  @@index([guidHash])
+  @@index([processedAt])
+  @@map("processed_feeds")
+}
+
+model AutomatedBlogDraft {
+  id              String   @id @default(cuid())
+  title           String   @db.VarChar(255)
+  slug            String   @unique @db.VarChar(255)
+  h1Title         String   @db.VarChar(255)
+  metaTitle       String   @db.VarChar(120)
+  metaDescription String   @db.VarChar(255)
+  tldr            String   @db.Text
+  content         String   @db.Text
+  editorNotes     String?  @db.Text
+  sourceUrl       String?  @db.Text
+  sourceFeed      String?  @db.VarChar(100)
+  
+  // Mandatory status lock: NEVER auto-publish
+  status          String   @default("draft") // "draft" | "published" | "archived"
+  isPublished     Boolean  @default(false)
+
+  // Cloud sync reference (GitHub Issue number if synced to GitHub Issues DB)
+  githubIssueNumber Int?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([isPublished, createdAt(sort: Desc)])
+  @@index([slug])
+  @@map("automated_blog_drafts")
+}
