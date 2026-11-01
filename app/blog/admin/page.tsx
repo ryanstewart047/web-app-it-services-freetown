@@ -563,11 +563,16 @@ export default function BlogAdminPage() {
         body: JSON.stringify({ maxArticles: 2 }),
       })
       const data = await res.json()
-      if (data.success) {
+      if (data.success && data.draftsCreated > 0) {
         toast.success(`Success! Created ${data.draftsCreated} new draft(s).`, { id: toastId })
         loadAutomatedDrafts()
       } else {
-        toast.error(`Automation notice: ${data.error || 'No new stories found'}`, { id: toastId })
+        const errorMsg =
+          data.error ||
+          (data.errors && data.errors.length > 0
+            ? data.errors[0]
+            : 'All feeds are up to date (no unread stories).');
+        toast.error(`Automation notice: ${errorMsg}`, { id: toastId, duration: 6000 })
       }
     } catch (err: any) {
       toast.error(`Error: ${err.message}`, { id: toastId })

@@ -6,6 +6,7 @@ export interface FeedItem {
   pubDate?: string;
   source: string;
   summary?: string;
+  fullFeedContent?: string;
 }
 
 export interface ScrapedArticle {
@@ -39,5 +40,6 @@ export interface PipelineResult {
     sourceUrl: string;
   }>;
   skipped: number;
+  error?: string;
   errors: string[];
 }

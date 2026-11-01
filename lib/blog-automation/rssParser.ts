@@ -7,6 +7,8 @@ export const DEFAULT_TECH_FEEDS = [
   { name: 'The Verge', url: 'https://www.theverge.com/rss/index.xml' },
   { name: 'Ars Technica', url: 'https://feeds.arstechnica.com/arstechnica/index' },
   { name: 'Wired Tech', url: 'https://www.wired.com/feed/category/gear/latest/rss' },
+  { name: 'BleepingComputer', url: 'https://www.bleepingcomputer.com/feed/' },
+  { name: '9to5Mac', url: 'https://9to5mac.com/feed/' },
 ];
 
 /**
@@ -45,11 +47,14 @@ export function parseRssXml(xml: string, sourceName: string): FeedItem[] {
     const guidMatch = itemXml.match(/<guid[\s\S]*?>([\s\S]*?)<\/guid>/i);
     const pubDateMatch = itemXml.match(/<pubDate>([\s\S]*?)<\/pubDate>/i);
     const descMatch = itemXml.match(/<description>([\s\S]*?)<\/description>/i);
+    const contentEncodedMatch = itemXml.match(/<content:encoded[\s\S]*?>([\s\S]*?)<\/content:encoded>/i);
 
     const title = cleanXmlText(titleMatch ? titleMatch[1] : '');
     let link = cleanXmlText(linkMatch ? linkMatch[1] : '');
     const guid = cleanXmlText(guidMatch ? guidMatch[1] : link);
     const pubDate = pubDateMatch ? pubDateMatch[1].trim() : undefined;
+    const rawContent = contentEncodedMatch ? contentEncodedMatch[1] : (descMatch ? descMatch[1] : '');
+    const fullFeedContent = cleanXmlText(rawContent);
     const summary = cleanXmlText(descMatch ? descMatch[1] : '');
 
     if (!link && guid.startsWith('http')) {
@@ -66,6 +71,7 @@ export function parseRssXml(xml: string, sourceName: string): FeedItem[] {
         pubDate,
         source: sourceName,
         summary: summary.replace(/<[^>]*>/g, '').slice(0, 300),
+        fullFeedContent: fullFeedContent || summary,
       });
     }
   }
@@ -78,11 +84,13 @@ export function parseRssXml(xml: string, sourceName: string): FeedItem[] {
       const linkMatch = entryXml.match(/<link[^>]+href=["']([^"']+)["']/i);
       const idMatch = entryXml.match(/<id>([\s\S]*?)<\/id>/i);
       const summaryMatch = entryXml.match(/<summary[\s\S]*?>([\s\S]*?)<\/summary>/i);
+      const contentMatch = entryXml.match(/<content[\s\S]*?>([\s\S]*?)<\/content>/i);
 
       const title = cleanXmlText(titleMatch ? titleMatch[1] : '');
       const link = linkMatch ? linkMatch[1].trim() : '';
       const guid = cleanXmlText(idMatch ? idMatch[1] : link);
       const summary = cleanXmlText(summaryMatch ? summaryMatch[1] : '');
+      const fullFeedContent = cleanXmlText(contentMatch ? contentMatch[1] : summary);
 
       if (title && (link || guid)) {
         const guidHash = hashGuid(guid || link);
@@ -93,6 +101,7 @@ export function parseRssXml(xml: string, sourceName: string): FeedItem[] {
           link: link || guid,
           source: sourceName,
           summary: summary.replace(/<[^>]*>/g, '').slice(0, 300),
+          fullFeedContent: fullFeedContent || summary,
         });
       }
     }

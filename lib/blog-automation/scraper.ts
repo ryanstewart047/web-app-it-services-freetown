@@ -65,17 +65,21 @@ function cleanHtmlContent(html: string): string {
 }
 
 /**
- * Scrapes an article URL with 75s timeout and browser headers
+ * Scrapes an article URL with 75s timeout and browser headers,
+ * falling back to RSS body if the live website blocks or paywalls the request.
  */
 export async function scrapeArticleContent(
   url: string,
   source: string,
-  fallbackTitle: string
+  fallbackTitle: string,
+  fallbackContent?: string
 ): Promise<ScrapedArticle | null> {
   const controller = new AbortController();
   // 75-second timeout (satisfies the 60-90s requirement to avoid 408s)
   const timeoutMs = 75000;
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  let cleanText = '';
 
   try {
     const res = await fetch(url, {
@@ -90,31 +94,38 @@ export async function scrapeArticleContent(
     });
     clearTimeout(timeoutId);
 
-    if (!res.ok) {
-      console.warn(`[Scraper] Failed to fetch article: ${url} (HTTP ${res.status})`);
-      return null;
+    if (res.ok) {
+      const html = await res.text();
+      cleanText = cleanHtmlContent(html);
+    } else {
+      console.warn(`[Scraper] HTTP ${res.status} for ${url}, attempting RSS content fallback.`);
     }
-
-    const html = await res.text();
-    const cleanText = cleanHtmlContent(html);
-
-    if (!cleanText || cleanText.length < 200) {
-      console.warn(`[Scraper] Incomplete or paywalled content from: ${url}`);
-      return null;
-    }
-
-    const wordCount = cleanText.split(/\s+/).filter(Boolean).length;
-
-    return {
-      title: fallbackTitle,
-      url,
-      source,
-      cleanText: cleanText.slice(0, 15000), // Cap at 15k chars for prompt token hygiene
-      wordCount,
-    };
   } catch (err: any) {
     clearTimeout(timeoutId);
-    console.error(`[Scraper] Error fetching ${url}:`, err.message);
+    console.warn(`[Scraper] Live fetch failed for ${url} (${err.message}), attempting RSS content fallback.`);
+  }
+
+  // If live scraping yielded insufficient text, fall back to RSS article text
+  if ((!cleanText || cleanText.length < 150) && fallbackContent) {
+    const cleanedFallback = cleanHtmlContent(fallbackContent);
+    if (cleanedFallback && cleanedFallback.length >= 80) {
+      console.log(`[Scraper] Successfully extracted ${cleanedFallback.length} chars from RSS content fallback.`);
+      cleanText = cleanedFallback;
+    }
+  }
+
+  if (!cleanText || cleanText.length < 80) {
+    console.warn(`[Scraper] Incomplete or unparseable content from: ${url}`);
     return null;
   }
+
+  const wordCount = cleanText.split(/\s+/).filter(Boolean).length;
+
+  return {
+    title: fallbackTitle,
+    url,
+    source,
+    cleanText: cleanText.slice(0, 15000), // Cap at 15k chars for prompt token hygiene
+    wordCount,
+  };
 }

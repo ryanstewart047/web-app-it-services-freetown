@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const result = await runBlogAutomationPipeline({ maxArticles: 2 });
-    return NextResponse.json(result, { status: result.success ? 200 : 500 });
+    return NextResponse.json(result, { status: 200 });
   } catch (err: any) {
     console.error('[Cron Auto Draft] Execution failed:', err);
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     const maxArticles = typeof body.maxArticles === 'number' ? body.maxArticles : 2;
 
     const result = await runBlogAutomationPipeline({ maxArticles });
-    return NextResponse.json(result, { status: result.success ? 200 : 500 });
+    return NextResponse.json(result, { status: 200 });
   } catch (err: any) {
     console.error('[Manual Auto Draft] Execution failed:', err);
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });

@@ -62,22 +62,16 @@ export async function runBlogAutomationPipeline(options: {
 
     try {
       console.log(`[Blog Pipeline] Scraping: "${item.title}" (${item.link})`);
-      const article = await scrapeArticleContent(item.link, item.source, item.title);
+      const article = await scrapeArticleContent(
+        item.link,
+        item.source,
+        item.title,
+        item.fullFeedContent
+      );
 
-      if (!article || article.wordCount < 100) {
+      if (!article || article.wordCount < 80) {
         console.warn(`[Blog Pipeline] Content insufficient for ${item.link}, skipping.`);
         skippedCount++;
-        // Record as processed so we don't repeatedly retry unparseable/paywalled stories
-        await prisma.processedFeed.upsert({
-          where: { guidHash: item.guidHash },
-          update: {},
-          create: {
-            guidHash: item.guidHash,
-            feedSource: item.source,
-            sourceUrl: item.link,
-            title: item.title,
-          },
-        });
         continue;
       }
 
@@ -138,13 +132,22 @@ export async function runBlogAutomationPipeline(options: {
     }
   }
 
+  const success = createdDrafts.length > 0;
+  const primaryError =
+    errors.length > 0
+      ? errors[0]
+      : feedItems.length === 0
+      ? 'All feeds are currently up-to-date (no new stories since last scan).'
+      : 'Could not extract usable text from discovered stories.';
+
   return {
-    success: errors.length === 0 || createdDrafts.length > 0,
+    success,
     feedItemsFound: feedItems.length,
     newArticlesScraped: scrapedCount,
     draftsCreated: createdDrafts.length,
     drafts: createdDrafts,
     skipped: skippedCount,
+    error: success ? undefined : primaryError,
     errors,
   };
 }
