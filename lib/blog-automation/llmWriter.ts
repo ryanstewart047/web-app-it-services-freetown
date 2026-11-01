@@ -69,8 +69,127 @@ function parseCleanJson(raw: string): any {
   }
 }
 
+let cachedGeminiModels: string[] | null = null;
+let lastGeminiFetch = 0;
+
 /**
- * Call Google Gemini API with timeout and robust model list
+ * Dynamically fetch active Gemini models for this key to prevent 404s
+ */
+async function getActiveGeminiModels(apiKey: string): Promise<string[]> {
+  const now = Date.now();
+  if (cachedGeminiModels && now - lastGeminiFetch < 3600000) {
+    return cachedGeminiModels;
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
+      { signal: controller.signal }
+    );
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.models)) {
+        const supported = data.models
+          .filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
+          .map((m: any) => m.name.replace(/^models\//, ''));
+
+        if (supported.length > 0) {
+          const preferredOrder = [
+            'gemini-1.5-flash',
+            'gemini-1.5-flash-latest',
+            'gemini-2.0-flash',
+            'gemini-2.0-flash-exp',
+            'gemini-1.5-flash-8b',
+            'gemini-1.0-pro',
+            'gemini-pro',
+          ];
+          const sorted = [
+            ...preferredOrder.filter((p) => supported.includes(p)),
+            ...supported.filter((s: string) => !preferredOrder.includes(s)),
+          ];
+          console.log('[LLM Writer] Available Gemini models:', sorted.slice(0, 4));
+          cachedGeminiModels = sorted;
+          lastGeminiFetch = now;
+          return sorted;
+        }
+      }
+    }
+  } catch (err: any) {
+    console.warn('[LLM Writer] Model list query failed, using known safe defaults:', err.message);
+  }
+
+  return ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-2.0-flash-exp', 'gemini-pro'];
+}
+
+let cachedGroqModels: string[] | null = null;
+let lastGroqFetch = 0;
+
+/**
+ * Dynamically fetch active Groq models for this key to avoid decommissioned models
+ */
+async function getActiveGroqModels(apiKey: string): Promise<string[]> {
+  const now = Date.now();
+  if (cachedGroqModels && now - lastGroqFetch < 3600000) {
+    return cachedGroqModels;
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch('https://api.groq.com/openai/v1/models', {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.data)) {
+        const ids: string[] = data.data
+          .map((m: any) => m.id)
+          .filter(
+            (id: string) =>
+              !id.includes('whisper') &&
+              !id.includes('guard') &&
+              !id.includes('vision') &&
+              !id.includes('embedding') &&
+              !id.includes('mixtral') // Avoid decommissioned mixtral
+          );
+
+        if (ids.length > 0) {
+          const preferredOrder = [
+            process.env.GROQ_MODEL,
+            'llama-3.3-70b-versatile',
+            'llama-3.1-8b-instant',
+            'llama-3.1-70b-versatile',
+            'llama3-70b-8192',
+            'llama3-8b-8192',
+          ].filter(Boolean) as string[];
+
+          const sorted = [
+            ...preferredOrder.filter((p) => ids.includes(p)),
+            ...ids.filter((i) => !preferredOrder.includes(i)),
+          ];
+          console.log('[LLM Writer] Available Groq models:', sorted.slice(0, 4));
+          cachedGroqModels = sorted;
+          lastGroqFetch = now;
+          return sorted;
+        }
+      }
+    }
+  } catch (err: any) {
+    console.warn('[LLM Writer] Groq model list failed, using known safe defaults:', err.message);
+  }
+
+  return ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'llama-3.1-70b-versatile'];
+}
+
+/**
+ * Call Google Gemini API with timeout and active models
  */
 async function callGemini(systemPrompt: string, userPrompt: string): Promise<any> {
   const apiKey =
@@ -83,24 +202,29 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<any
     throw new Error('Gemini API key is not configured in environment variables');
   }
 
-  // Official production Gemini models in prioritized order
-  const models = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro'];
-  let lastError: any = null;
+  const models = await getActiveGeminiModels(apiKey);
+  const errors: string[] = [];
 
-  for (const model of models) {
+  for (const model of models.slice(0, 4)) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 25000);
 
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          system_instruction: { parts: [{ text: systemPrompt }] },
-          contents: [{ parts: [{ text: userPrompt }] }],
+          contents: [
+            {
+              parts: [
+                {
+                  text: `${systemPrompt}\n\nIMPORTANT: Output MUST be strictly a single raw JSON object matching the requested schema without any markdown formatting or commentary.\n\n${userPrompt}`,
+                },
+              ],
+            },
+          ],
           generationConfig: {
-            responseMimeType: 'application/json',
             temperature: 0.7,
           },
         }),
@@ -110,7 +234,7 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<any
 
       if (!response.ok) {
         const errText = await response.text();
-        throw new Error(`Gemini ${model} HTTP ${response.status}: ${errText.slice(0, 200)}`);
+        throw new Error(`${model} HTTP ${response.status}: ${errText.slice(0, 160)}`);
       }
 
       const data = await response.json();
@@ -118,22 +242,22 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<any
       if (rawText) {
         const parsed = parseCleanJson(rawText);
         if (parsed && (parsed.h1Title || parsed.bodyContent || parsed.title)) {
-          console.log(`[LLM Writer] Gemini successfully generated article using ${model}`);
+          console.log(`[LLM Writer] Gemini generated article successfully with ${model}`);
           return parsed;
         }
       }
-      throw new Error(`Gemini ${model} returned empty or invalid content structure`);
+      throw new Error(`${model} returned unparseable content`);
     } catch (err: any) {
       console.warn(`[LLM Writer] Gemini (${model}) failed:`, err.message);
-      lastError = err;
+      errors.push(err.message);
     }
   }
 
-  throw lastError || new Error('All Gemini models failed');
+  throw new Error(`All Gemini models failed: ${errors.join('; ')}`);
 }
 
 /**
- * Call Groq API with timeout and robust model list
+ * Call Groq API with timeout and active models
  */
 async function callGroq(systemPrompt: string, userPrompt: string): Promise<any> {
   const apiKey = process.env.GROQ_API_KEY || process.env.GROQ_KEY;
@@ -142,20 +266,28 @@ async function callGroq(systemPrompt: string, userPrompt: string): Promise<any> 
     throw new Error('GROQ_API_KEY is not configured in environment variables');
   }
 
-  // Official production Groq models in prioritized order
-  const models = [
-    process.env.GROQ_MODEL,
-    'llama-3.3-70b-versatile',
-    'llama-3.1-8b-instant',
-    'llama-3.1-70b-versatile',
-    'mixtral-8x7b-32768',
-  ].filter(Boolean) as string[];
+  const models = await getActiveGroqModels(apiKey);
+  const errors: string[] = [];
 
-  let lastError: any = null;
-  for (const model of models) {
+  for (const model of models.slice(0, 4)) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 25000);
+
+      const isJsonModeSupported = model.includes('llama');
+
+      const bodyPayload: any = {
+        model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        temperature: 0.7,
+      };
+
+      if (isJsonModeSupported) {
+        bodyPayload.response_format = { type: 'json_object' };
+      }
 
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
@@ -163,22 +295,14 @@ async function callGroq(systemPrompt: string, userPrompt: string): Promise<any> 
           Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          temperature: 0.7,
-          response_format: { type: 'json_object' },
-        }),
+        body: JSON.stringify(bodyPayload),
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errText = await response.text();
-        throw new Error(`Groq ${model} HTTP ${response.status}: ${errText.slice(0, 200)}`);
+        throw new Error(`${model} HTTP ${response.status}: ${errText.slice(0, 160)}`);
       }
 
       const data = await response.json();
@@ -186,18 +310,18 @@ async function callGroq(systemPrompt: string, userPrompt: string): Promise<any> 
       if (rawText) {
         const parsed = parseCleanJson(rawText);
         if (parsed && (parsed.h1Title || parsed.bodyContent || parsed.title)) {
-          console.log(`[LLM Writer] Groq successfully generated article using ${model}`);
+          console.log(`[LLM Writer] Groq generated article successfully with ${model}`);
           return parsed;
         }
       }
-      throw new Error(`Groq ${model} returned empty or invalid content structure`);
+      throw new Error(`${model} returned unparseable content`);
     } catch (err: any) {
       console.warn(`[LLM Writer] Groq (${model}) failed:`, err.message);
-      lastError = err;
+      errors.push(err.message);
     }
   }
 
-  throw lastError || new Error('All Groq models failed');
+  throw new Error(`All Groq models failed: ${errors.join('; ')}`);
 }
 
 /**
