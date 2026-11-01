@@ -70,17 +70,28 @@ function parseCleanJson(raw: string): any {
 }
 
 /**
- * Call Google Gemini API
+ * Call Google Gemini API with timeout and robust model list
  */
 async function callGemini(systemPrompt: string, userPrompt: string): Promise<any> {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
-  if (!apiKey) throw new Error('Gemini API key is not configured');
+  const apiKey =
+    process.env.GEMINI_API_KEY ||
+    process.env.GOOGLE_AI_KEY ||
+    process.env.GOOGLE_API_KEY ||
+    process.env.GEMINI_API_KEY_SECRET;
 
-  const models = ['gemini-2.5-flash-lite', 'gemini-flash-latest', 'gemini-2.5-pro', 'gemini-1.5-flash'];
+  if (!apiKey) {
+    throw new Error('Gemini API key is not configured in environment variables');
+  }
+
+  // Official production Gemini models in prioritized order
+  const models = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro'];
   let lastError: any = null;
 
   for (const model of models) {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout
+
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
       const response = await fetch(url, {
         method: 'POST',
@@ -93,7 +104,9 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<any
             temperature: 0.7,
           },
         }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errText = await response.text();
@@ -104,10 +117,12 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<any
       const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
       if (rawText) {
         const parsed = parseCleanJson(rawText);
-        if (parsed && (parsed.h1Title || parsed.bodyContent)) {
+        if (parsed && (parsed.h1Title || parsed.bodyContent || parsed.title)) {
+          console.log(`[LLM Writer] Gemini successfully generated article using ${model}`);
           return parsed;
         }
       }
+      throw new Error(`Gemini ${model} returned empty or invalid content structure`);
     } catch (err: any) {
       console.warn(`[LLM Writer] Gemini (${model}) failed:`, err.message);
       lastError = err;
@@ -118,22 +133,30 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<any
 }
 
 /**
- * Call Groq API
+ * Call Groq API with timeout and robust model list
  */
 async function callGroq(systemPrompt: string, userPrompt: string): Promise<any> {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) throw new Error('GROQ_API_KEY is not configured');
+  const apiKey = process.env.GROQ_API_KEY || process.env.GROQ_KEY;
 
+  if (!apiKey) {
+    throw new Error('GROQ_API_KEY is not configured in environment variables');
+  }
+
+  // Official production Groq models in prioritized order
   const models = [
-    process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
-    'openai/gpt-oss-20b',
-    'qwen/qwen3.8-27b',
+    process.env.GROQ_MODEL,
     'llama-3.3-70b-versatile',
-  ];
+    'llama-3.1-8b-instant',
+    'llama-3.1-70b-versatile',
+    'mixtral-8x7b-32768',
+  ].filter(Boolean) as string[];
 
   let lastError: any = null;
   for (const model of models) {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout
+
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -149,7 +172,9 @@ async function callGroq(systemPrompt: string, userPrompt: string): Promise<any> 
           temperature: 0.7,
           response_format: { type: 'json_object' },
         }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errText = await response.text();
@@ -160,10 +185,12 @@ async function callGroq(systemPrompt: string, userPrompt: string): Promise<any> 
       const rawText = data.choices?.[0]?.message?.content;
       if (rawText) {
         const parsed = parseCleanJson(rawText);
-        if (parsed && (parsed.h1Title || parsed.bodyContent)) {
+        if (parsed && (parsed.h1Title || parsed.bodyContent || parsed.title)) {
+          console.log(`[LLM Writer] Groq successfully generated article using ${model}`);
           return parsed;
         }
       }
+      throw new Error(`Groq ${model} returned empty or invalid content structure`);
     } catch (err: any) {
       console.warn(`[LLM Writer] Groq (${model}) failed:`, err.message);
       lastError = err;
@@ -174,11 +201,14 @@ async function callGroq(systemPrompt: string, userPrompt: string): Promise<any> 
 }
 
 /**
- * Call OpenAI API
+ * Call OpenAI API (Safety fallback if both Gemini and Groq fail)
  */
 async function callOpenAI(systemPrompt: string, userPrompt: string): Promise<any> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error('OPENAI_API_KEY is not configured');
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 25000);
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -195,7 +225,9 @@ async function callOpenAI(systemPrompt: string, userPrompt: string): Promise<any
       temperature: 0.7,
       response_format: { type: 'json_object' },
     }),
+    signal: controller.signal,
   });
+  clearTimeout(timeoutId);
 
   if (!response.ok) {
     const errText = await response.text();
@@ -207,6 +239,72 @@ async function callOpenAI(systemPrompt: string, userPrompt: string): Promise<any
   if (!rawText) throw new Error('Empty response from OpenAI');
 
   return parseCleanJson(rawText);
+}
+
+/**
+ * Executes LLM generation with automatic bidirectional fallback between Gemini and Groq
+ */
+async function generateWithFallback(systemPrompt: string, userPrompt: string): Promise<any> {
+  const hasGemini = Boolean(
+    process.env.GEMINI_API_KEY ||
+    process.env.GOOGLE_AI_KEY ||
+    process.env.GOOGLE_API_KEY ||
+    process.env.GEMINI_API_KEY_SECRET
+  );
+  const hasGroq = Boolean(process.env.GROQ_API_KEY || process.env.GROQ_KEY);
+  const preferGroq = process.env.PRIMARY_LLM?.toLowerCase() === 'groq';
+
+  // Determine provider execution order
+  const providers = preferGroq
+    ? [
+        { name: 'Groq', fn: () => callGroq(systemPrompt, userPrompt), available: hasGroq },
+        { name: 'Gemini', fn: () => callGemini(systemPrompt, userPrompt), available: hasGemini },
+      ]
+    : [
+        { name: 'Gemini', fn: () => callGemini(systemPrompt, userPrompt), available: hasGemini },
+        { name: 'Groq', fn: () => callGroq(systemPrompt, userPrompt), available: hasGroq },
+      ];
+
+  const providerErrors: string[] = [];
+
+  for (let i = 0; i < providers.length; i++) {
+    const provider = providers[i];
+    const nextProvider = providers[i + 1];
+
+    if (!provider.available) {
+      console.log(`[LLM Writer] ${provider.name} API key not found in env, skipping.`);
+      continue;
+    }
+
+    try {
+      console.log(`[LLM Writer] Attempting generation with primary provider: ${provider.name}...`);
+      const result = await provider.fn();
+      return result;
+    } catch (err: any) {
+      const errorMsg = `${provider.name} failed (${err.message})`;
+      providerErrors.push(errorMsg);
+
+      if (nextProvider && nextProvider.available) {
+        console.warn(
+          `[LLM Fallback Alert] ⚠️ ${provider.name} failed. Initiating fallback to ${nextProvider.name} to complete the job...`
+        );
+      } else {
+        console.warn(`[LLM Writer] ${provider.name} failed:`, err.message);
+      }
+    }
+  }
+
+  // Final backup: If OpenAI is configured, try it
+  if (process.env.OPENAI_API_KEY) {
+    try {
+      console.log('[LLM Writer] Both Gemini and Groq failed. Initiating emergency fallback to OpenAI...');
+      return await callOpenAI(systemPrompt, userPrompt);
+    } catch (openAiErr: any) {
+      providerErrors.push(`OpenAI failed (${openAiErr.message})`);
+    }
+  }
+
+  throw new Error(`All LLM providers failed. Errors: ${providerErrors.join(' | ')}`);
 }
 
 /**
@@ -230,24 +328,8 @@ Remember:
 - Dedicate a section to "Why This Matters"
 - Output strictly in valid JSON format.`;
 
-  let result: any = null;
-
-  // Try providers in priority order: Gemini -> Groq -> OpenAI
-  try {
-    result = await callGemini(SYSTEM_PROMPT, userPrompt);
-  } catch (geminiErr: any) {
-    console.warn('[LLM Writer] Gemini fallback to Groq:', geminiErr.message);
-    try {
-      result = await callGroq(SYSTEM_PROMPT, userPrompt);
-    } catch (groqErr: any) {
-      console.warn('[LLM Writer] Groq fallback to OpenAI:', groqErr.message);
-      result = await callOpenAI(SYSTEM_PROMPT, userPrompt);
-    }
-  }
-
-  if (!result) {
-    throw new Error('All LLM providers failed to generate content');
-  }
+  // Execute generation with automatic fallback between Gemini and Groq
+  const result = await generateWithFallback(SYSTEM_PROMPT, userPrompt);
 
   const metaTitle = sanitizeProhibitedWords(result.metaTitle || article.title).slice(0, 60);
   const metaDescription = sanitizeProhibitedWords(

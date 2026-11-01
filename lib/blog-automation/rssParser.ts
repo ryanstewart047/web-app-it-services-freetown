@@ -22,7 +22,7 @@ export function hashGuid(rawGuidOrUrl: string): string {
 function cleanXmlText(text: string): string {
   if (!text) return '';
   return text
-    .replace(/<!\[CDATA\[(.*?)\]\]>/gs, '$1')
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')

@@ -1137,7 +1137,7 @@ export default function EmailMarketingPage() {
                       <label className="mb-1 block text-[10px] font-bold uppercase text-indigo-700">Button Color</label>
                       <div className="flex gap-2">
                         {([['red','#dc2626'],['blue','#2563eb'],['green','#16a34a'],['indigo','#4f46e5'],['slate','#334155']] as const).map(([c, hex]) => (
-                          <button key={c} onClick={() => setBtnColor(c)} className="h-8 w-8 rounded-lg ring-2 ring-offset-2 transition" style={{ backgroundColor: hex, ringColor: btnColor === c ? hex : 'transparent', outline: btnColor === c ? `2px solid ${hex}` : 'none' }} title={c} />
+                          <button key={c} onClick={() => setBtnColor(c)} className="h-8 w-8 rounded-lg ring-2 ring-offset-2 transition" style={{ backgroundColor: hex, outline: btnColor === c ? `2px solid ${hex}` : 'none' }} title={c} />
                         ))}
                       </div>
                     </div>

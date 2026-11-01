@@ -130,7 +130,7 @@ export async function runBlogAutomationPipeline(options: {
         id: savedDraft.id,
         title: savedDraft.title,
         slug: savedDraft.slug,
-        sourceUrl: savedDraft.sourceUrl,
+        sourceUrl: savedDraft.sourceUrl || item.link,
       });
     } catch (err: any) {
       console.error(`[Blog Pipeline] Error processing item ${item.link}:`, err.message);
