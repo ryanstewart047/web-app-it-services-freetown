@@ -345,10 +345,6 @@ function WebsiteQuestionnaireAdminInner() {
       .then(d => { if (d) setAuthed(true) })
       .catch(() => router.push('/admin'))
   }, [router])
-      })
-      .then(d => { if (d) setAuthed(true) })
-      .catch(() => router.push('/admin'))
-  }, [router])
 
   // ── Fetch data ──
   const fetchData = useCallback(async () => {
