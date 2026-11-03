@@ -78,27 +78,44 @@ export function generateQuestionnairePDF(
   function drawHeader() {
     // Navy top bar
     doc.setFillColor(4, 14, 64) // #040e40
-    doc.rect(0, 0, pageWidth, 28, 'F')
+    doc.rect(0, 0, pageWidth, 30, 'F')
 
     // Red accent line
     doc.setFillColor(239, 68, 68) // #ef4444
-    doc.rect(0, 28, pageWidth, 2.5, 'F')
+    doc.rect(0, 30, pageWidth, 2.5, 'F')
 
-    // Header text
+    // ── BridgeTech Shield Logo Emblem ──
+    doc.setFillColor(239, 68, 68) // Red outer shield
+    doc.roundedRect(margin, 5.5, 14, 18, 2, 2, 'F')
+    doc.setFillColor(4, 14, 64) // Navy inner shield
+    doc.roundedRect(margin + 1, 6.5, 12, 16, 1.5, 1.5, 'F')
+    // B (white) and S (red) monogram
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(11)
+    doc.setTextColor(255, 255, 255)
+    doc.text('B', margin + 3, 17.5)
+    doc.setTextColor(239, 68, 68)
+    doc.text('S', margin + 7.5, 17.5)
+
+    // Header brand typography next to shield
     doc.setTextColor(255, 255, 255)
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(14)
-    doc.text('BRIDGETECH IT SERVICES', margin, 12)
+    doc.text('BridgeTech', margin + 18, 13)
+
+    doc.setTextColor(239, 68, 68)
+    doc.setFontSize(9)
+    doc.text('IT SERVICES', margin + 46, 13)
 
     doc.setFont('helvetica', 'normal')
-    doc.setFontSize(9)
-    doc.setTextColor(220, 225, 240)
+    doc.setFontSize(8.5)
+    doc.setTextColor(203, 213, 225)
     doc.text(
       isBlank
         ? 'WEBSITE DEVELOPMENT CLIENT DISCOVERY QUESTIONNAIRE'
         : 'WEBSITE PROJECT BRIEF & TECHNICAL SPECIFICATION',
-      margin,
-      18
+      margin + 18,
+      19
     )
 
     // Meta details on the right
@@ -115,7 +132,7 @@ export function generateQuestionnairePDF(
       doc.text('Standard Client Intake Form', pageWidth - margin, 18, { align: 'right' })
     }
 
-    y = 38
+    y = 40
   }
 
   function checkPageBreak(neededHeight: number) {
@@ -123,16 +140,28 @@ export function generateQuestionnairePDF(
       doc.addPage()
       // Mini header for continuation pages
       doc.setFillColor(4, 14, 64)
-      doc.rect(0, 0, pageWidth, 12, 'F')
+      doc.rect(0, 0, pageWidth, 13, 'F')
       doc.setFillColor(239, 68, 68)
-      doc.rect(0, 12, pageWidth, 1.5, 'F')
+      doc.rect(0, 13, pageWidth, 1.5, 'F')
+
+      // Mini shield emblem
+      doc.setFillColor(239, 68, 68)
+      doc.roundedRect(margin, 2, 7, 9, 1, 1, 'F')
+      doc.setFillColor(4, 14, 64)
+      doc.roundedRect(margin + 0.5, 2.5, 6, 8, 0.8, 0.8, 'F')
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(6)
+      doc.setTextColor(255, 255, 255)
+      doc.text('B', margin + 1.5, 8)
+      doc.setTextColor(239, 68, 68)
+      doc.text('S', margin + 3.8, 8)
 
       doc.setTextColor(255, 255, 255)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(9)
-      doc.text('BRIDGETECH IT SERVICES  •  Website Project Brief', margin, 8)
+      doc.text('BridgeTech IT Services  •  Website Project Brief', margin + 10, 8.5)
 
-      y = 20
+      y = 22
     }
   }
 

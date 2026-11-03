@@ -524,9 +524,20 @@ export default function WebsiteQuestionnairePage() {
 
       {/* ─── Header ─── */}
       <header className="w-full bg-white/5 backdrop-blur-sm border-b border-white/10">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
-          <a href="https://www.itservicesfreetown.com" target="_blank" rel="noreferrer">
-            <Image src="/assets/logo-dark.svg" alt="BridgeTech IT Services" width={160} height={40} className="h-10 w-auto" />
+        <div className="max-w-4xl mx-auto px-4 py-3.5 flex items-center justify-between gap-4">
+          <a href="https://www.itservicesfreetown.com" target="_blank" rel="noreferrer" className="flex items-center gap-3 group">
+            <Image
+              src="/assets/bridgetech-avatar-transparent.png"
+              alt="BridgeTech Logo Shield"
+              width={44}
+              height={44}
+              className="h-10 w-10 sm:h-11 sm:w-11 object-contain group-hover:scale-105 transition-transform"
+              priority
+            />
+            <div className="flex flex-col">
+              <span className="text-lg sm:text-xl font-black tracking-tight text-white leading-none">BridgeTech</span>
+              <span className="text-[9px] sm:text-[10px] font-extrabold tracking-[0.2em] text-[#ef4444] uppercase leading-tight mt-0.5">IT Services</span>
+            </div>
           </a>
           <div className="flex items-center gap-3">
             <button
@@ -554,6 +565,23 @@ export default function WebsiteQuestionnairePage() {
         {submitted ? (
           /* ─── Success screen ─── */
           <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-10 text-center">
+            {/* BridgeTech Brand Logo on Success Screen */}
+            <div className="flex justify-center mb-5">
+              <div className="inline-flex items-center gap-2.5 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-200 shadow-sm">
+                <Image
+                  src="/assets/bridgetech-avatar-transparent.png"
+                  alt="BridgeTech Logo"
+                  width={36}
+                  height={36}
+                  className="h-8 w-8 object-contain"
+                />
+                <div className="text-left">
+                  <span className="text-base font-black text-[#040e40] leading-none block">BridgeTech</span>
+                  <span className="text-[9px] font-extrabold text-[#ef4444] tracking-widest uppercase block mt-0.5">IT SERVICES</span>
+                </div>
+              </div>
+            </div>
+
             <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
               <CheckCircle2 className="w-8 h-8 text-green-600" />
             </div>
@@ -702,13 +730,29 @@ export default function WebsiteQuestionnairePage() {
           </div>
         ) : (
           <>
-            {/* ─── Hero title ─── */}
-            <div className="text-center mb-8">
+            {/* ─── Hero title with BridgeTech Brand Emblem ─── */}
+            <div className="text-center mb-7">
+              <div className="flex justify-center mb-3.5">
+                <div className="inline-flex items-center gap-2.5 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20 shadow-xl">
+                  <Image
+                    src="/assets/bridgetech-avatar-transparent.png"
+                    alt="BridgeTech Logo Shield"
+                    width={36}
+                    height={36}
+                    className="h-8 w-8 object-contain drop-shadow"
+                    priority
+                  />
+                  <div className="text-left">
+                    <p className="text-white font-black text-sm tracking-tight leading-none">BridgeTech</p>
+                    <p className="text-[#ef4444] text-[9px] font-black tracking-widest uppercase mt-0.5">IT SERVICES</p>
+                  </div>
+                </div>
+              </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight">
                 Website Development<br />
                 <span className="text-[#ef4444]">Project Brief</span>
               </h1>
-              <p className="text-white/60 mt-3 text-sm max-w-md mx-auto">
+              <p className="text-white/60 mt-2.5 text-sm max-w-md mx-auto">
                 Fill this out so we can understand exactly what you need and give you an accurate quote. Takes about 5 minutes.
               </p>
             </div>
@@ -750,9 +794,34 @@ export default function WebsiteQuestionnairePage() {
             </div>
 
             {/* ─── Form card ─── */}
-            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-              {/* Card header */}
-              <div className="bg-gradient-to-r from-[#040e40] to-[#0a1a5c] px-6 py-5 flex items-center gap-3">
+            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-white/20">
+              {/* Brand Header Banner DIRECTLY ON THE FORM */}
+              <div className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <Image
+                    src="/assets/bridgetech-avatar-transparent.png"
+                    alt="BridgeTech Logo Shield"
+                    width={48}
+                    height={48}
+                    className="h-11 w-11 object-contain drop-shadow-sm"
+                    priority
+                  />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-base sm:text-lg font-black tracking-tight text-[#040e40]">BridgeTech</span>
+                      <span className="text-[10px] font-extrabold tracking-widest text-[#ef4444] uppercase bg-red-50 border border-red-200 px-2 py-0.5 rounded">IT SERVICES</span>
+                    </div>
+                    <p className="text-[11px] text-gray-500 font-medium">Official Website Development Intake & Discovery Form</p>
+                  </div>
+                </div>
+                <div className="hidden sm:flex flex-col items-end text-right">
+                  <span className="text-[11px] font-bold text-gray-700">Freetown, Sierra Leone</span>
+                  <a href="tel:+23233399391" className="text-[11px] text-[#ef4444] font-bold hover:underline">+232 33 399 391</a>
+                </div>
+              </div>
+
+              {/* Card step header */}
+              <div className="bg-gradient-to-r from-[#040e40] to-[#0a1a5c] px-6 py-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[#ef4444]/20 flex items-center justify-center">
                   <StepIcon className="w-5 h-5 text-[#ef4444]" />
                 </div>
