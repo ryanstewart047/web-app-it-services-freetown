@@ -434,6 +434,11 @@ export default function Footer() {
                       <h4 className="text-white font-semibold text-sm">Bridge Gallery Admin</h4>
                       <p className="text-gray-400 text-xs mt-1">Manage project photos</p>
                     </Link>
+                    <Link href="/admin?tab=website-questionnaire" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fas fa-clipboard-list text-emerald-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">Website Questionnaires</h4>
+                      <p className="text-gray-400 text-xs mt-1">Client briefs & specs</p>
+                    </Link>
                     <Link href="/admin?tab=facebook-auto" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
                       <i className="fab fa-facebook text-blue-500 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
                       <h4 className="text-white font-semibold text-sm">Facebook Auto</h4>
@@ -608,6 +613,12 @@ export default function Footer() {
                 <Link href="/troubleshoot" className="text-gray-200 hover:text-red-400 transition-colors text-sm flex items-center group">
                   <i className="fas fa-wrench mr-3 text-red-500 w-4"></i>
                   <span className="group-hover:translate-x-1 transition-transform">Troubleshoot</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/website-questionnaire" className="text-gray-200 hover:text-red-400 transition-colors text-sm flex items-center group">
+                  <i className="fas fa-file-code mr-3 text-red-500 w-4"></i>
+                  <span className="group-hover:translate-x-1 transition-transform">Website Project Brief</span>
                 </Link>
               </li>
             </ul>

@@ -259,6 +259,15 @@ const ADMIN_PANELS: AdminPanelItem[] = [
     url: '/madinaface3bridgeproject/admin',
   },
   {
+    id: 'website-questionnaire',
+    name: 'Website Questionnaires',
+    category: 'services',
+    description: 'Client briefs & project discovery specs',
+    icon: 'fas fa-clipboard-list',
+    color: 'text-emerald-400',
+    url: '/website-questionnaire/admin',
+  },
+  {
     id: 'shirleys-admin',
     name: 'Shirley\'s Gallery Admin',
     category: 'marketing',

@@ -698,3 +698,51 @@ model AutomatedBlogDraft {
   @@index([slug])
   @@map("automated_blog_drafts")
 }
+
+model WebsiteQuestionnaire {
+  id                    String   @id @default(cuid())
+  // Contact info
+  organizationName      String
+  contactName           String
+  email                 String
+  phone                 String?
+  // Site basics
+  websitePurpose        String   @db.Text
+  siteType              String   // "static" | "dynamic" | "ecommerce" | "portfolio" | "unsure"
+  hasExistingDomain     Boolean  @default(false)
+  existingDomain        String?
+  hasExistingBranding   Boolean  @default(false)
+  brandingDescription   String?  @db.Text
+  // Content & media
+  hasContent            Boolean  @default(false)
+  contentDescription    String?  @db.Text
+  hasHighQualityPhotos  Boolean  @default(false)
+  photosDescription     String?  @db.Text
+  // Technical requirements
+  canMaintainSelf       Boolean  @default(false)
+  needsCMS              Boolean  @default(false)
+  needsEcommerce        Boolean  @default(false)
+  needsBooking          Boolean  @default(false)
+  needsMultilingual     Boolean  @default(false)
+  integrations          String?  @db.Text
+  // Business context
+  targetAudience        String?  @db.Text
+  competitors           String?  @db.Text
+  budgetRange           String?  // "under-1000" | "1000-3000" | "3000-10000" | "10000+" | "flexible"
+  timeline              String?  // "urgent-2weeks" | "1-month" | "2-3-months" | "flexible"
+  // SEO & social
+  needsSEO              Boolean  @default(false)
+  socialMediaLinks      String?  @db.Text
+  // Extra info
+  additionalNotes       String?  @db.Text
+  inspirationUrls       String?  @db.Text
+  // Admin fields
+  status                String   @default("new") // "new" | "reviewed" | "contacted" | "closed"
+  adminNotes            String?  @db.Text
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([email])
+  @@map("website_questionnaires")
+}
