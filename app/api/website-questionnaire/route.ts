@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { sendQuestionnaireNotifications } from '@/lib/website-questionnaire-email'
 
 export const dynamic = 'force-dynamic'
 
@@ -56,6 +57,42 @@ export async function POST(request: NextRequest) {
         inspirationUrls:     body.inspirationUrls ? String(body.inspirationUrls).trim() : null,
         status:              'new',
       },
+    })
+
+    // Send automatic client receipt & admin notification email
+    sendQuestionnaireNotifications({
+      submissionId: submission.id,
+      organizationName: submission.organizationName,
+      contactName: submission.contactName,
+      email: submission.email,
+      phone: submission.phone,
+      websitePurpose: submission.websitePurpose,
+      siteType: submission.siteType,
+      hasExistingDomain: submission.hasExistingDomain,
+      existingDomain: submission.existingDomain,
+      hasExistingBranding: submission.hasExistingBranding,
+      brandingDescription: submission.brandingDescription,
+      hasHighQualityPhotos: submission.hasHighQualityPhotos,
+      photosDescription: submission.photosDescription,
+      hasContent: submission.hasContent,
+      contentDescription: submission.contentDescription,
+      canMaintainSelf: submission.canMaintainSelf,
+      needsCMS: submission.needsCMS,
+      needsEcommerce: submission.needsEcommerce,
+      needsBooking: submission.needsBooking,
+      needsMultilingual: submission.needsMultilingual,
+      needsSEO: submission.needsSEO,
+      integrations: submission.integrations,
+      targetAudience: submission.targetAudience,
+      competitors: submission.competitors,
+      budgetRange: submission.budgetRange,
+      timeline: submission.timeline,
+      socialMediaLinks: submission.socialMediaLinks,
+      inspirationUrls: submission.inspirationUrls,
+      additionalNotes: submission.additionalNotes,
+      createdAt: submission.createdAt.toISOString(),
+    }).catch(err => {
+      console.error('[Questionnaire Auto-Email Background]', err)
     })
 
     return NextResponse.json({ success: true, id: submission.id }, { status: 201 })
