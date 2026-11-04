@@ -710,15 +710,21 @@ model WebsiteQuestionnaire {
   websitePurpose        String   @db.Text
   siteType              String   // "static" | "dynamic" | "ecommerce" | "portfolio" | "unsure"
   hasExistingDomain     Boolean  @default(false)
+  domainStatus          String?  // "have-domain" | "need-domain" | "unsure"
   existingDomain        String?
   hasExistingBranding   Boolean  @default(false)
   brandingDescription   String?  @db.Text
+  brandColors           String?  @db.Text
   // Content & media
   hasContent            Boolean  @default(false)
   contentDescription    String?  @db.Text
   hasHighQualityPhotos  Boolean  @default(false)
   photosDescription     String?  @db.Text
+  wantsContentWriting   Boolean  @default(false)
+  wantsGraphicDesign    Boolean  @default(false)
   // Technical requirements
+  pageCount             String?  // "1-landing" | "3-5-pages" | "6-10-pages" | "10-plus" | "unsure"
+  needsHosting          Boolean  @default(false)
   canMaintainSelf       Boolean  @default(false)
   needsCMS              Boolean  @default(false)
   needsEcommerce        Boolean  @default(false)
@@ -734,6 +740,8 @@ model WebsiteQuestionnaire {
   needsSEO              Boolean  @default(false)
   socialMediaLinks      String?  @db.Text
   // Extra info
+  preferredContactMethod String? // "whatsapp" | "email" | "phone"
+  targetDeadline        String?
   additionalNotes       String?  @db.Text
   inspirationUrls       String?  @db.Text
   // Admin fields
