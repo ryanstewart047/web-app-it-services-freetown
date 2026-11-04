@@ -90,6 +90,9 @@ function getTransporter() {
     tls: {
       rejectUnauthorized: false,
     },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
   })
 }
 
@@ -103,6 +106,7 @@ export async function sendEmail({ to, subject, html, text }: EmailData): Promise
       // Check if Resend API key is available as an alternative
       if (process.env.RESEND_API_KEY) {
         try {
+          const resendFrom = process.env.EMAIL_FROM || process.env.FROM_EMAIL || 'BridgeTech IT Services <onboarding@resend.dev>'
           const resendRes = await fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: {
@@ -110,7 +114,7 @@ export async function sendEmail({ to, subject, html, text }: EmailData): Promise
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              from: process.env.EMAIL_FROM || 'BridgeTech IT Services <onboarding@resend.dev>',
+              from: resendFrom,
               to: [to],
               subject,
               html,
@@ -143,7 +147,10 @@ export async function sendEmail({ to, subject, html, text }: EmailData): Promise
     }
 
     const transporter = getTransporter()
-    const fromAddress = process.env.EMAIL_FROM || `"BridgeTech IT Services" <${smtpUser}>`
+    let fromAddress = process.env.EMAIL_FROM || process.env.FROM_EMAIL || smtpUser
+    if (fromAddress && !fromAddress.includes('<')) {
+      fromAddress = `"BridgeTech IT Services" <${fromAddress}>`
+    }
 
     const result = await transporter.sendMail({
       from: fromAddress,

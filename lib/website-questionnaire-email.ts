@@ -362,5 +362,6 @@ export async function sendQuestionnaireNotifications(input: QuestionnaireEmailIn
   })
 
   const [clientRes, adminRes] = await Promise.all([clientPromise, adminPromise])
+  console.log('[sendQuestionnaireNotifications] Outcome -> Client:', JSON.stringify(clientRes), 'Admin:', JSON.stringify(adminRes))
   return { clientRes, adminRes }
 }

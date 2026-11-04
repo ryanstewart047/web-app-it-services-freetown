@@ -83,51 +83,62 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Send automatic client receipt & admin notification email
-    sendQuestionnaireNotifications({
-      submissionId:           submission.id,
-      organizationName:       submission.organizationName,
-      contactName:            submission.contactName,
-      email:                  submission.email,
-      phone:                  submission.phone,
-      preferredContactMethod: submission.preferredContactMethod,
-      websitePurpose:         submission.websitePurpose,
-      siteType:               submission.siteType,
-      hasExistingDomain:      submission.hasExistingDomain,
-      domainStatus:           submission.domainStatus,
-      existingDomain:         submission.existingDomain,
-      hasExistingBranding:    submission.hasExistingBranding,
-      brandingDescription:    submission.brandingDescription,
-      brandColors:            submission.brandColors,
-      hasHighQualityPhotos:   submission.hasHighQualityPhotos,
-      photosDescription:      submission.photosDescription,
-      hasContent:             submission.hasContent,
-      contentDescription:     submission.contentDescription,
-      wantsContentWriting:    submission.wantsContentWriting,
-      wantsGraphicDesign:     submission.wantsGraphicDesign,
-      pageCount:              submission.pageCount,
-      needsHosting:           submission.needsHosting,
-      canMaintainSelf:        submission.canMaintainSelf,
-      needsCMS:               submission.needsCMS,
-      needsEcommerce:         submission.needsEcommerce,
-      needsBooking:           submission.needsBooking,
-      needsMultilingual:      submission.needsMultilingual,
-      needsSEO:               submission.needsSEO,
-      integrations:           submission.integrations,
-      targetAudience:         submission.targetAudience,
-      competitors:            submission.competitors,
-      budgetRange:            submission.budgetRange,
-      timeline:               submission.timeline,
-      targetDeadline:         submission.targetDeadline,
-      socialMediaLinks:       submission.socialMediaLinks,
-      inspirationUrls:        submission.inspirationUrls,
-      additionalNotes:        submission.additionalNotes,
-      createdAt:              submission.createdAt.toISOString(),
-    }).catch(err => {
-      console.error('[Questionnaire Auto-Email Background]', err)
-    })
+    // Send automatic client receipt & admin notification email (MUST await in serverless so lambda doesn't terminate before SMTP completes)
+    let emailStatus: any = null
+    try {
+      emailStatus = await sendQuestionnaireNotifications({
+        submissionId:           submission.id,
+        organizationName:       submission.organizationName,
+        contactName:            submission.contactName,
+        email:                  submission.email,
+        phone:                  submission.phone,
+        preferredContactMethod: submission.preferredContactMethod,
+        websitePurpose:         submission.websitePurpose,
+        siteType:               submission.siteType,
+        hasExistingDomain:      submission.hasExistingDomain,
+        domainStatus:           submission.domainStatus,
+        existingDomain:         submission.existingDomain,
+        hasExistingBranding:    submission.hasExistingBranding,
+        brandingDescription:    submission.brandingDescription,
+        brandColors:            submission.brandColors,
+        hasHighQualityPhotos:   submission.hasHighQualityPhotos,
+        photosDescription:      submission.photosDescription,
+        hasContent:             submission.hasContent,
+        contentDescription:     submission.contentDescription,
+        wantsContentWriting:    submission.wantsContentWriting,
+        wantsGraphicDesign:     submission.wantsGraphicDesign,
+        pageCount:              submission.pageCount,
+        needsHosting:           submission.needsHosting,
+        canMaintainSelf:        submission.canMaintainSelf,
+        needsCMS:               submission.needsCMS,
+        needsEcommerce:         submission.needsEcommerce,
+        needsBooking:           submission.needsBooking,
+        needsMultilingual:      submission.needsMultilingual,
+        needsSEO:               submission.needsSEO,
+        integrations:           submission.integrations,
+        targetAudience:         submission.targetAudience,
+        competitors:            submission.competitors,
+        budgetRange:            submission.budgetRange,
+        timeline:               submission.timeline,
+        targetDeadline:         submission.targetDeadline,
+        socialMediaLinks:       submission.socialMediaLinks,
+        inspirationUrls:        submission.inspirationUrls,
+        additionalNotes:        submission.additionalNotes,
+        createdAt:              submission.createdAt.toISOString(),
+      })
+      console.log('[Questionnaire Notification Result]:', JSON.stringify(emailStatus))
+    } catch (emailErr) {
+      console.error('[Questionnaire Auto-Email Exception]:', emailErr)
+    }
 
-    return NextResponse.json({ success: true, id: submission.id }, { status: 201 })
+    const clientEmailDelivered = Boolean(emailStatus?.clientRes?.success)
+
+    return NextResponse.json({ 
+      success: true, 
+      id: submission.id,
+      emailSent: clientEmailDelivered,
+      emailError: emailStatus?.clientRes?.error || null
+    }, { status: 201 })
   } catch (error) {
     console.error('[Website Questionnaire POST]', error)
     return NextResponse.json({ error: 'Failed to submit questionnaire. Please try again.' }, { status: 500 })

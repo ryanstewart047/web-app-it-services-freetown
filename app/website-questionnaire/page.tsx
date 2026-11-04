@@ -888,6 +888,7 @@ export default function WebsiteQuestionnairePage() {
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [submissionId, setSubmissionId] = useState<string | null>(null)
+  const [emailDelivered, setEmailDelivered] = useState<boolean | null>(null)
   const formCardRef = useRef<HTMLDivElement>(null)
 
   // Warn user before refreshing or closing the page with unsaved form entries
@@ -1016,6 +1017,7 @@ export default function WebsiteQuestionnairePage() {
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || 'Submission failed')
       if (json.id) setSubmissionId(json.id)
+      setEmailDelivered(Boolean(json.emailSent))
       setSubmitted(true)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err: unknown) {
@@ -1113,19 +1115,34 @@ export default function WebsiteQuestionnairePage() {
               Your questionnaire has been submitted successfully to <strong>BridgeTech IT Services</strong>. Our engineering team will review your specifications and reach out within <strong>1–2 business days</strong> via {data.preferredContactMethod.toUpperCase()}.
             </p>
 
-            {/* Email notification confirmation pill */}
-            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-6 flex items-start gap-3 text-left">
-              <MailCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="text-xs font-bold text-emerald-900 uppercase tracking-wide">Automatic Receipt Sent</p>
-                <p className="text-xs text-emerald-800 mt-0.5">
-                  We sent an official confirmation and copy of your answers to <strong>{data.email}</strong>.
-                  {submissionId && (
-                    <span className="block mt-1 font-mono text-[11px] text-emerald-700">Reference ID: #{submissionId.slice(-8).toUpperCase()}</span>
-                  )}
-                </p>
+            {/* Email notification status pill */}
+            {emailDelivered ? (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-6 flex items-start gap-3 text-left">
+                <MailCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-bold text-emerald-900 uppercase tracking-wide">Automatic Receipt Delivered</p>
+                  <p className="text-xs text-emerald-800 mt-0.5">
+                    We sent an official confirmation and copy of your answers to <strong>{data.email}</strong>.
+                    {submissionId && (
+                      <span className="block mt-1 font-mono text-[11px] text-emerald-700">Reference ID: #{submissionId.slice(-8).toUpperCase()}</span>
+                    )}
+                  </p>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-6 flex items-start gap-3 text-left">
+                <CheckCircle2 className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-bold text-blue-900 uppercase tracking-wide">Project Brief Logged</p>
+                  <p className="text-xs text-blue-800 mt-0.5">
+                    Your answers and specifications have been recorded successfully.
+                    {submissionId && (
+                      <span className="block mt-1 font-mono text-[11px] text-blue-700">Reference ID: #{submissionId.slice(-8).toUpperCase()}</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* PDF Download Actions */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8">
