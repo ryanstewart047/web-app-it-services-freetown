@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+export const revalidate = 3600; // Cache on edge for up to 1 hour
+
 // GET all categories
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     // Check if database is configured
     const dbUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;
@@ -15,17 +17,26 @@ export async function GET() {
       }, { status: 503 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const includeCount = searchParams.get('includeCount') === 'true';
+
     const categories = await prisma.category.findMany({
       where: { active: true },
       orderBy: { name: 'asc' },
-      include: {
-        _count: {
-          select: { products: true }
+      ...(includeCount ? {
+        include: {
+          _count: {
+            select: { products: true }
+          }
         }
-      }
+      } : {})
     });
 
-    return NextResponse.json(categories);
+    return NextResponse.json(categories, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+      },
+    });
   } catch (error) {
     console.error('Error fetching categories:', error);
     

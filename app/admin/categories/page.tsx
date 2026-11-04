@@ -44,7 +44,7 @@ export default function AdminCategoriesPage() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/categories');
+      const res = await fetch('/api/categories?includeCount=true');
       const data = await res.json();
       
       if (!res.ok) {

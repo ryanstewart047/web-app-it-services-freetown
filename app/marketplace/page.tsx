@@ -31,7 +31,7 @@ interface Category {
   id: string;
   name: string;
   slug: string;
-  _count: { products: number };
+  _count?: { products: number };
 }
 
 export default function MarketplacePage() {
@@ -39,6 +39,7 @@ export default function MarketplacePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +58,15 @@ export default function MarketplacePage() {
   const ITEMS_PER_PAGE = 12;
 
   useEffect(() => {
+    // Read category parameter from URL if provided (e.g. /marketplace?category=laptops)
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const catParam = urlParams.get('category') || urlParams.get('categoryId');
+      if (catParam) {
+        setSelectedCategory(catParam);
+      }
+    }
+
     fetchProducts();
     fetchCategories();
     fetchWishlist();
@@ -64,13 +74,8 @@ export default function MarketplacePage() {
 
   const fetchProducts = async () => {
     try {
-      const params = new URLSearchParams();
-      if (selectedCategory !== 'all') {
-        params.append('categoryId', selectedCategory);
-      }
-      params.append('status', 'active');
-
-      const res = await fetch(`/api/products?${params}`);
+      setLoading(true);
+      const res = await fetch('/api/products?status=active');
       if (!res.ok) {
         console.error('Failed to fetch products:', res.status);
         if (res.status === 500) {
@@ -84,6 +89,22 @@ export default function MarketplacePage() {
       if (Array.isArray(data)) {
         setProducts(data);
         setError(null);
+
+        // Instant category population fallback from loaded products
+        setCategories(prev => {
+          if (prev.length > 0) return prev;
+          const map = new Map<string, { id: string; name: string; slug: string }>();
+          data.forEach((p: any) => {
+            if (p.category?.name && p.category?.slug) {
+              map.set(p.category.slug, {
+                id: (p.category as any).id || p.category.slug,
+                name: p.category.name,
+                slug: p.category.slug
+              });
+            }
+          });
+          return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+        });
       } else {
         setProducts([]);
         setError('Failed to load products. Please try again later.');
@@ -99,18 +120,38 @@ export default function MarketplacePage() {
 
   const fetchCategories = async () => {
     try {
+      setCategoriesLoading(true);
+      // Fast cache from sessionStorage for instant zero-delay render
+      if (typeof window !== 'undefined') {
+        const cached = sessionStorage.getItem('marketplace_categories');
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setCategories(parsed);
+              setCategoriesLoading(false);
+            }
+          } catch {}
+        }
+      }
+
       const res = await fetch('/api/categories');
       if (!res.ok) {
         console.error('Failed to fetch categories:', res.status);
-        setCategories([]);
         return;
       }
       const data = await res.json();
-      // Ensure data is an array
-      setCategories(Array.isArray(data) ? data : []);
+      const validCategories = Array.isArray(data) ? data : (data.categories || []);
+      if (validCategories.length > 0) {
+        setCategories(validCategories);
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('marketplace_categories', JSON.stringify(validCategories));
+        }
+      }
     } catch (error) {
       console.error('Error fetching categories:', error);
-      setCategories([]);
+    } finally {
+      setCategoriesLoading(false);
     }
   };
 
@@ -262,15 +303,18 @@ export default function MarketplacePage() {
       const matchesSearch = searchLower === '' || (
         product.name.toLowerCase().includes(searchLower) ||
         product.description.toLowerCase().includes(searchLower) ||
-        product.brand?.toLowerCase().includes(searchLower) ||
-        product.category.name.toLowerCase().includes(searchLower) ||
+        (product.brand ? product.brand.toLowerCase().includes(searchLower) : false) ||
+        (product.category?.name ? product.category.name.toLowerCase().includes(searchLower) : false) ||
         // Search by price (e.g., user types "5000" to find products around that price)
         (product.price.toString().includes(searchLower)) ||
         // Match partial words (e.g., "lap" matches "laptop")
         product.name.toLowerCase().split(' ').some(word => word.startsWith(searchLower)) ||
         product.description.toLowerCase().split(' ').some(word => word.startsWith(searchLower))
       );
-      const matchesCategory = selectedCategory === 'all' || product.category.slug === selectedCategory;
+      const matchesCategory = selectedCategory === 'all' || 
+        product.category?.slug === selectedCategory ||
+        product.category?.name?.toLowerCase() === selectedCategory.toLowerCase() ||
+        (product as any).categoryId === selectedCategory;
       return matchesSearch && matchesCategory && product.stock > 0;
     });
 
@@ -395,39 +439,42 @@ export default function MarketplacePage() {
                 <button
                   onClick={() => {
                     setSelectedCategory('all');
-                    fetchProducts();
+                    setPage(1);
                   }}
-                  className={`w-full text-left px-4 py-3 rounded-lg transition-all ${
+                  className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-all ${
                     selectedCategory === 'all'
                       ? 'bg-blue-600 text-white shadow-md'
                       : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-transparent'
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <span>All Products</span>
-                    <span className="text-sm opacity-75">{products.length}</span>
-                  </div>
+                  All Products
                 </button>
 
-                {categories.map(category => (
-                  <button
-                    key={category.id}
-                    onClick={() => {
-                      setSelectedCategory(category.slug);
-                      fetchProducts();
-                    }}
-                    className={`w-full text-left px-4 py-3 rounded-lg transition-all ${
-                      selectedCategory === category.slug
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-transparent'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span>{category.name}</span>
-                      <span className="text-sm opacity-75">{category._count.products}</span>
-                    </div>
-                  </button>
-                ))}
+                {categoriesLoading && categories.length === 0 ? (
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="w-full h-11 bg-gray-100 animate-pulse rounded-lg"
+                    />
+                  ))
+                ) : (
+                  categories.map(category => (
+                    <button
+                      key={category.id}
+                      onClick={() => {
+                        setSelectedCategory(category.slug);
+                        setPage(1);
+                      }}
+                      className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-all ${
+                        selectedCategory === category.slug
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-transparent'
+                      }`}
+                    >
+                      {category.name}
+                    </button>
+                  ))
+                )}
               </div>
             </div>
           </aside>

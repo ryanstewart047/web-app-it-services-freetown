@@ -5,14 +5,20 @@ import { prisma } from '@/lib/prisma';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const categoryId = searchParams.get('categoryId');
+    const categoryParam = searchParams.get('categoryId') || searchParams.get('category');
     const status = searchParams.get('status');
     const featured = searchParams.get('featured');
     const repairRecommended = searchParams.get('repairRecommended');
     
     const where: any = {};
     
-    if (categoryId) where.categoryId = categoryId;
+    if (categoryParam && categoryParam !== 'all') {
+      where.OR = [
+        { categoryId: categoryParam },
+        { category: { slug: categoryParam } },
+        { category: { name: { equals: categoryParam, mode: 'insensitive' } } }
+      ];
+    }
     if (status) where.status = status;
     if (featured) where.featured = featured === 'true';
     if (repairRecommended) where.repairRecommended = repairRecommended === 'true';
@@ -32,7 +38,11 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    return NextResponse.json(products);
+    return NextResponse.json(products, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+      },
+    });
   } catch (error) {
     console.error('Error fetching products:', error);
     return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
