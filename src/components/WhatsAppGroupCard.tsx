@@ -14,7 +14,7 @@ export default function WhatsAppGroupCard() {
   const [minimized, setMinimized] = useState(false);
 
   useEffect(() => {
-    if (pathname?.startsWith('/surprise/')) {
+    if (pathname?.startsWith('/surprise/') || pathname?.startsWith('/website-questionnaire')) {
       setVisible(false);
       return;
     }
@@ -33,7 +33,7 @@ export default function WhatsAppGroupCard() {
     return () => clearTimeout(timer);
   }, [pathname]);
 
-  if (pathname?.startsWith('/surprise/')) return null;
+  if (pathname?.startsWith('/surprise/') || pathname?.startsWith('/website-questionnaire')) return null;
 
   const handleDismiss = (e: React.MouseEvent) => {
     e.preventDefault();

@@ -119,8 +119,8 @@ const TOTAL_STEPS = 4
 
 function Label({ children, required }: { children: React.ReactNode; required?: boolean }) {
   return (
-    <label className="block text-sm font-semibold text-[#040e40] mb-1.5">
-      {children} {required && <span className="text-[#ef4444] font-bold">*</span>}
+    <label className="block text-base sm:text-lg font-bold text-[#040e40] mb-2 leading-snug">
+      {children} {required && <span className="text-[#ef4444] font-black">*</span>}
     </label>
   )
 }
@@ -130,15 +130,15 @@ function Input({ error, ...props }: React.InputHTMLAttributes<HTMLInputElement> 
     <div>
       <input
         {...props}
-        className={`w-full px-4 py-3 rounded-xl border transition text-gray-800 placeholder-gray-400 bg-white text-sm shadow-sm focus:outline-none ${
+        className={`w-full px-4 py-3.5 rounded-xl border transition text-gray-900 placeholder-gray-400 bg-white text-base shadow-sm focus:outline-none ${
           error
             ? 'border-[#ef4444] ring-2 ring-[#ef4444]/20 focus:border-[#ef4444] focus:ring-[#ef4444]/40 bg-red-50/20'
-            : 'border-gray-200 focus:ring-2 focus:ring-[#ef4444]/40 focus:border-[#ef4444]'
+            : 'border-gray-300 focus:ring-2 focus:ring-[#ef4444]/40 focus:border-[#ef4444]'
         }`}
       />
       {error && (
-        <p className="flex items-center gap-1.5 text-xs text-[#ef4444] font-semibold mt-1.5">
-          <AlertCircle className="w-3.5 h-3.5 shrink-0 text-[#ef4444]" />
+        <p className="flex items-center gap-1.5 text-sm text-[#ef4444] font-semibold mt-1.5">
+          <AlertCircle className="w-4 h-4 shrink-0 text-[#ef4444]" />
           <span>{error}</span>
         </p>
       )}
@@ -152,15 +152,15 @@ function Textarea({ error, ...props }: React.TextareaHTMLAttributes<HTMLTextArea
       <textarea
         rows={3}
         {...props}
-        className={`w-full px-4 py-3 rounded-xl border transition text-gray-800 placeholder-gray-400 bg-white text-sm resize-none shadow-sm focus:outline-none ${
+        className={`w-full px-4 py-3.5 rounded-xl border transition text-gray-900 placeholder-gray-400 bg-white text-base resize-none shadow-sm focus:outline-none leading-relaxed ${
           error
             ? 'border-[#ef4444] ring-2 ring-[#ef4444]/20 focus:border-[#ef4444] focus:ring-[#ef4444]/40 bg-red-50/20'
-            : 'border-gray-200 focus:ring-2 focus:ring-[#ef4444]/40 focus:border-[#ef4444]'
+            : 'border-gray-300 focus:ring-2 focus:ring-[#ef4444]/40 focus:border-[#ef4444]'
         }`}
       />
       {error && (
-        <p className="flex items-center gap-1.5 text-xs text-[#ef4444] font-semibold mt-1.5">
-          <AlertCircle className="w-3.5 h-3.5 shrink-0 text-[#ef4444]" />
+        <p className="flex items-center gap-1.5 text-sm text-[#ef4444] font-semibold mt-1.5">
+          <AlertCircle className="w-4 h-4 shrink-0 text-[#ef4444]" />
           <span>{error}</span>
         </p>
       )}
@@ -174,25 +174,25 @@ function Toggle({
   return (
     <div
       onClick={() => onChange(!checked)}
-      className={`flex items-start gap-3 p-3.5 sm:p-4 rounded-xl border-2 cursor-pointer transition-all select-none ${
-        checked ? 'border-[#ef4444] bg-red-50/60 shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300'
+      className={`flex items-start gap-3.5 p-4 sm:p-5 rounded-2xl border-2 cursor-pointer transition-all select-none ${
+        checked ? 'border-[#ef4444] bg-red-50/70 shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300'
       }`}
     >
-      <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+      <div className={`mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
         checked ? 'border-[#ef4444] bg-[#ef4444]' : 'border-gray-300 bg-white'
       }`}>
-        {checked && <div className="w-2 h-2 rounded-full bg-white" />}
+        {checked && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <p className="text-sm font-semibold text-[#040e40]">{label}</p>
+          <p className="text-base sm:text-lg font-bold text-[#040e40]">{label}</p>
           {badge && (
-            <span className="text-[10px] font-bold uppercase bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded border border-amber-200">
+            <span className="text-xs font-bold uppercase bg-amber-100 text-amber-800 px-2 py-0.5 rounded border border-amber-200">
               {badge}
             </span>
           )}
         </div>
-        {description && <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{description}</p>}
+        {description && <p className="text-sm text-gray-600 mt-1 leading-relaxed">{description}</p>}
       </div>
     </div>
   )
@@ -204,13 +204,13 @@ function SelectCard({
   return (
     <div
       onClick={onClick}
-      className={`p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all ${
-        selected ? 'border-[#ef4444] bg-red-50/60 shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300'
+      className={`p-4 sm:p-5 rounded-2xl border-2 cursor-pointer transition-all ${
+        selected ? 'border-[#ef4444] bg-red-50/70 shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300'
       }`}
     >
-      <Icon className={`w-5 h-5 mb-2 ${selected ? 'text-[#ef4444]' : 'text-gray-400'}`} />
-      <p className={`text-sm font-bold ${selected ? 'text-[#ef4444]' : 'text-[#040e40]'}`}>{label}</p>
-      <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{description}</p>
+      <Icon className={`w-6 h-6 mb-2.5 ${selected ? 'text-[#ef4444]' : 'text-gray-400'}`} />
+      <p className={`text-base sm:text-lg font-bold ${selected ? 'text-[#ef4444]' : 'text-[#040e40]'}`}>{label}</p>
+      <p className="text-sm text-gray-600 mt-1 leading-relaxed">{description}</p>
     </div>
   )
 }
@@ -219,7 +219,7 @@ function SelectCard({
 
 function Step1({ data, errors, onChange }: { data: FormData; errors: Record<string, string>; onChange: (k: keyof FormData, v: any) => void }) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <Label required>Organisation / Website Name</Label>
@@ -275,19 +275,19 @@ function Step1({ data, errors, onChange }: { data: FormData; errors: Record<stri
               key={opt.value}
               type="button"
               onClick={() => onChange('preferredContactMethod', opt.value)}
-              className={`p-3 rounded-xl border-2 text-left transition-all ${
+              className={`p-3 sm:p-4 rounded-xl border-2 text-left transition-all ${
                 data.preferredContactMethod === opt.value
                   ? 'border-[#ef4444] bg-red-50/70 shadow-sm'
                   : 'border-gray-200 hover:border-gray-300 bg-white'
               }`}
             >
-              <div className="flex items-center gap-1.5 mb-1">
-                <opt.icon className={`w-4 h-4 ${data.preferredContactMethod === opt.value ? 'text-[#ef4444]' : 'text-gray-400'}`} />
-                <span className={`text-xs font-bold ${data.preferredContactMethod === opt.value ? 'text-[#ef4444]' : 'text-[#040e40]'}`}>
+              <div className="flex items-center gap-2 mb-1">
+                <opt.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${data.preferredContactMethod === opt.value ? 'text-[#ef4444]' : 'text-gray-400'}`} />
+                <span className={`text-sm sm:text-base font-bold ${data.preferredContactMethod === opt.value ? 'text-[#ef4444]' : 'text-[#040e40]'}`}>
                   {opt.label}
                 </span>
               </div>
-              <p className="text-[11px] text-gray-500">{opt.desc}</p>
+              <p className="text-xs sm:text-sm text-gray-500">{opt.desc}</p>
             </button>
           ))}
         </div>
@@ -379,7 +379,7 @@ function Step2({ data, errors, onChange }: { data: FormData; errors: Record<stri
                 onChange('domainStatus', opt.value)
                 onChange('hasExistingDomain', opt.value === 'have-domain')
               }}
-              className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all select-none ${
+              className={`p-4 rounded-xl border-2 cursor-pointer transition-all select-none ${
                 data.domainStatus === opt.value
                   ? 'border-[#ef4444] bg-red-50/70 shadow-sm'
                   : 'border-gray-200 bg-white hover:border-gray-300'
@@ -391,16 +391,16 @@ function Step2({ data, errors, onChange }: { data: FormData; errors: Record<stri
                 }`}>
                   {data.domainStatus === opt.value && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                 </div>
-                <p className="text-xs font-bold text-[#040e40]">{opt.label}</p>
+                <p className="text-sm sm:text-base font-bold text-[#040e40]">{opt.label}</p>
               </div>
-              <p className="text-[11px] text-gray-500 pl-6 leading-tight">{opt.desc}</p>
+              <p className="text-xs sm:text-sm text-gray-500 pl-6 leading-tight">{opt.desc}</p>
             </div>
           ))}
         </div>
 
         {/* Dynamic Domain Input based on selection */}
         {data.domainStatus === 'have-domain' && (
-          <div className="mt-3 bg-gray-50 p-4 rounded-xl border border-gray-200">
+          <div className="mt-3 bg-gray-50 p-4 sm:p-5 rounded-xl border border-gray-200">
             <Label required>What is your existing domain?</Label>
             <Input
               placeholder="e.g. www.mycompany.com"
@@ -408,20 +408,20 @@ function Step2({ data, errors, onChange }: { data: FormData; errors: Record<stri
               error={errors.existingDomain}
               onChange={e => onChange('existingDomain', e.target.value)}
             />
-            <p className="text-xs text-gray-500 mt-1">We will help you connect your existing registrar DNS to our server.</p>
+            <p className="text-xs sm:text-sm text-gray-500 mt-1.5">We will help you connect your existing registrar DNS to our server.</p>
           </div>
         )}
 
         {data.domainStatus === 'need-domain' && (
-          <div className="mt-3 bg-amber-50/70 p-4 rounded-xl border border-amber-200/80">
+          <div className="mt-3 bg-amber-50/70 p-4 sm:p-5 rounded-xl border border-amber-200/80">
             <Label>What domain name would you like to register?</Label>
             <Input
               placeholder="e.g. mycompany.com or mybusiness.sl"
               value={data.existingDomain}
               onChange={e => onChange('existingDomain', e.target.value)}
             />
-            <div className="flex items-start gap-2 mt-2 text-xs text-amber-900 leading-relaxed">
-              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2.5 mt-2.5 text-xs sm:text-sm text-amber-900 leading-relaxed">
+              <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 shrink-0 mt-0.5" />
               <span>
                 <strong>Notice:</strong> Registering a new domain name involves an <strong>annual registry fee</strong> (typically $15–$50/yr depending on extension e.g. .com, .org, or .sl), billed separately from web development.
               </span>
@@ -610,25 +610,25 @@ function Step2({ data, errors, onChange }: { data: FormData; errors: Record<stri
       </div>
 
       {/* ─── EXTRA COST NOTICE BANNER ─── */}
-      <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200/90 rounded-2xl p-4 sm:p-5 shadow-sm">
-        <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5">
+      <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200/90 rounded-2xl p-4 sm:p-6 shadow-sm">
+        <div className="flex items-start gap-3.5">
+          <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5">
             <AlertCircle className="w-5 h-5 text-amber-600" />
           </div>
           <div>
-            <h4 className="text-xs sm:text-sm font-bold text-amber-950 uppercase tracking-wide">
+            <h4 className="text-sm sm:text-base font-bold text-amber-950 uppercase tracking-wide">
               Important Notice Regarding Specialized Add-on Services
             </h4>
-            <p className="text-xs text-amber-900/90 mt-1 leading-relaxed">
+            <p className="text-xs sm:text-sm text-amber-900/90 mt-1 leading-relaxed">
               Base website development covers responsive frontend coding, system architecture, page styling, and testing.
               Please note that the following specialized services carry an <strong>extra fee</strong>:
             </p>
-            <ul className="text-xs text-amber-950/90 mt-2 space-y-1 list-disc pl-4 leading-relaxed font-medium">
+            <ul className="text-xs sm:text-sm text-amber-950/90 mt-2 space-y-1.5 list-disc pl-4 leading-relaxed font-medium">
               <li><strong>Domain Name Registration:</strong> Annual registry fee ($15–$50/yr depending on .com, .org, .sl).</li>
               <li><strong>Content Writing & Copywriting:</strong> Industry-specific copywriting, editing, and content formatting.</li>
               <li><strong>Custom Graphic Design:</strong> Brand logo creation/refinement, custom banners, vector icons, and photo retouching.</li>
             </ul>
-            <p className="text-[11px] text-amber-800 mt-2 italic">
+            <p className="text-xs sm:text-sm text-amber-800 mt-2 italic">
               Our team will outline transparent, itemized line items for each requested add-on in your official quotation.
             </p>
           </div>
@@ -654,23 +654,23 @@ function Step3({ data, errors, onChange }: { data: FormData; errors: Record<stri
       {/* ─── Estimated Page Count ─── */}
       <div>
         <Label required>Estimated Website Size (Number of Pages)</Label>
-        <p className="text-xs text-gray-500 mb-2">Help us scope the size and architecture of your website.</p>
+        <p className="text-sm text-gray-500 mb-2.5">Help us scope the size and architecture of your website.</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
           {pageCountOptions.map(opt => (
             <button
               key={opt.value}
               type="button"
               onClick={() => onChange('pageCount', opt.value)}
-              className={`p-3 rounded-xl border-2 text-left transition-all ${
+              className={`p-3.5 sm:p-4 rounded-xl border-2 text-left transition-all ${
                 data.pageCount === opt.value
                   ? 'border-[#ef4444] bg-red-50/70 shadow-sm'
                   : 'border-gray-200 hover:border-gray-300 bg-white'
               }`}
             >
-              <p className={`text-xs font-bold ${data.pageCount === opt.value ? 'text-[#ef4444]' : 'text-[#040e40]'}`}>
+              <p className={`text-sm sm:text-base font-bold ${data.pageCount === opt.value ? 'text-[#ef4444]' : 'text-[#040e40]'}`}>
                 {opt.label}
               </p>
-              <p className="text-[11px] text-gray-400 mt-0.5 leading-tight">{opt.desc}</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-0.5 leading-tight">{opt.desc}</p>
             </button>
           ))}
         </div>
@@ -790,22 +790,22 @@ function Step4({ data, errors, onChange }: { data: FormData; errors: Record<stri
 
       <div>
         <Label required>Project Budget Range (USD)</Label>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mt-1.5">
           {BUDGET_OPTIONS.map(opt => (
             <button
               key={opt.value}
               type="button"
               onClick={() => onChange('budgetRange', opt.value)}
-              className={`p-3 rounded-xl border-2 text-left transition-all ${
+              className={`p-3.5 sm:p-4 rounded-xl border-2 text-left transition-all ${
                 data.budgetRange === opt.value
                   ? 'border-[#ef4444] bg-red-50/70 shadow-sm'
                   : 'border-gray-200 hover:border-gray-300 bg-white'
               }`}
             >
-              <p className={`text-xs font-bold ${data.budgetRange === opt.value ? 'text-[#ef4444]' : 'text-[#040e40]'}`}>
+              <p className={`text-sm sm:text-base font-bold ${data.budgetRange === opt.value ? 'text-[#ef4444]' : 'text-[#040e40]'}`}>
                 {opt.label}
               </p>
-              <p className="text-[11px] text-gray-400 mt-0.5 leading-tight">{opt.desc}</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-0.5 leading-tight">{opt.desc}</p>
             </button>
           ))}
         </div>
@@ -819,22 +819,22 @@ function Step4({ data, errors, onChange }: { data: FormData; errors: Record<stri
 
       <div>
         <Label>Preferred Delivery Timeline</Label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-1">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-1.5">
           {TIMELINE_OPTIONS.map(opt => (
             <button
               key={opt.value}
               type="button"
               onClick={() => onChange('timeline', opt.value)}
-              className={`p-3 rounded-xl border-2 text-left transition-all ${
+              className={`p-3.5 sm:p-4 rounded-xl border-2 text-left transition-all ${
                 data.timeline === opt.value
                   ? 'border-[#ef4444] bg-red-50/70 shadow-sm'
                   : 'border-gray-200 hover:border-gray-300 bg-white'
               }`}
             >
-              <p className={`text-xs font-bold ${data.timeline === opt.value ? 'text-[#ef4444]' : 'text-[#040e40]'}`}>
+              <p className={`text-sm sm:text-base font-bold ${data.timeline === opt.value ? 'text-[#ef4444]' : 'text-[#040e40]'}`}>
                 {opt.label}
               </p>
-              <p className="text-[11px] text-gray-400 mt-0.5 leading-tight">{opt.desc}</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-0.5 leading-tight">{opt.desc}</p>
             </button>
           ))}
         </div>
@@ -1232,83 +1232,83 @@ export default function WebsiteQuestionnairePage() {
                   </div>
                 </div>
               </div>
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight">
+              <h1 className="text-3xl sm:text-5xl font-extrabold text-white leading-tight">
                 Website Development<br />
                 <span className="text-[#ef4444]">Project Discovery Brief</span>
               </h1>
-              <p className="text-white/70 mt-2.5 text-sm max-w-md mx-auto leading-relaxed">
+              <p className="text-white/80 mt-3 text-base sm:text-lg max-w-lg mx-auto leading-relaxed">
                 Complete this discovery brief so our team can accurately scope your website and prepare a custom proposal.
               </p>
             </div>
 
             {/* ─── Step Progress Bar ─── */}
-            <div className="px-3 sm:px-0 mb-4 sm:mb-6">
-              <div className="flex items-center justify-between mb-2">
+            <div className="px-3 sm:px-0 mb-5 sm:mb-7">
+              <div className="flex items-center justify-between mb-2.5">
                 {STEP_META.map((s, i) => {
                   const n = i + 1
                   const active = n === step
                   const done   = n < step
                   const Icon   = s.icon
                   return (
-                    <div key={n} className="flex flex-col items-center gap-1 flex-1">
-                      <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all font-bold text-sm border-2 ${
+                    <div key={n} className="flex flex-col items-center gap-1.5 flex-1">
+                      <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all font-bold text-sm sm:text-base border-2 ${
                         done   ? 'bg-[#ef4444] border-[#ef4444] text-white shadow-md' :
                         active ? 'bg-white border-[#ef4444] text-[#ef4444] shadow-md scale-105' :
                                  'bg-white/10 border-white/20 text-white/40'
                       }`}>
-                        {done ? <CheckCircle2 className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
+                        {done ? <CheckCircle2 className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
                       </div>
-                      <p className={`text-[11px] font-semibold hidden sm:block text-center ${active ? 'text-white' : done ? 'text-[#ef4444]' : 'text-white/30'}`}>
+                      <p className={`text-xs sm:text-sm font-bold hidden sm:block text-center ${active ? 'text-white' : done ? 'text-[#ef4444]' : 'text-white/40'}`}>
                         {s.title}
                       </p>
                     </div>
                   )
                 })}
               </div>
-              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mt-1">
+              <div className="h-2 bg-white/10 rounded-full overflow-hidden mt-1.5">
                 <div
                   className="h-full bg-[#ef4444] rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${((step - 1) / (TOTAL_STEPS - 1)) * 100}%` }}
                 />
               </div>
-              <p className="text-white/50 text-xs text-center mt-2 font-medium">Step {step} of {TOTAL_STEPS}</p>
+              <p className="text-white/60 text-sm text-center mt-2.5 font-bold">Step {step} of {TOTAL_STEPS}</p>
             </div>
 
             {/* ─── Main Form Card ─── */}
             <div ref={formCardRef} className="bg-white rounded-none sm:rounded-3xl shadow-none sm:shadow-2xl overflow-hidden border-0 sm:border border-white/20 scroll-mt-16 w-full">
               {/* Brand Header Banner DIRECTLY ON THE FORM */}
-              <div className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between gap-3">
+              <div className="bg-white border-b border-gray-100 px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <Image
                     src="/assets/bridgetech-avatar-transparent.png"
                     alt="BridgeTech Logo Shield"
-                    width={48}
-                    height={48}
-                    className="h-11 w-11 object-contain drop-shadow-sm"
+                    width={52}
+                    height={52}
+                    className="h-12 w-12 object-contain drop-shadow-sm"
                     priority
                   />
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-base sm:text-lg font-black tracking-tight text-[#040e40]">BridgeTech</span>
-                      <span className="text-[10px] font-extrabold tracking-widest text-[#ef4444] uppercase bg-red-50 border border-red-200 px-2 py-0.5 rounded">IT SERVICES</span>
+                      <span className="text-lg sm:text-xl font-black tracking-tight text-[#040e40]">BridgeTech</span>
+                      <span className="text-xs font-black tracking-widest text-[#ef4444] uppercase bg-red-50 border border-red-200 px-2 py-0.5 rounded">IT SERVICES</span>
                     </div>
-                    <p className="text-[11px] text-gray-500 font-medium">Official Website Intake & Scope Discovery Form</p>
+                    <p className="text-xs sm:text-sm text-gray-500 font-medium">Official Website Intake & Scope Discovery Form</p>
                   </div>
                 </div>
                 <div className="hidden sm:flex flex-col items-end text-right">
-                  <span className="text-[11px] font-bold text-gray-700">Freetown, Sierra Leone</span>
-                  <a href="tel:+23233399391" className="text-[11px] text-[#ef4444] font-bold hover:underline">+232 33 399 391</a>
+                  <span className="text-xs font-bold text-gray-700">Freetown, Sierra Leone</span>
+                  <a href="tel:+23233399391" className="text-xs text-[#ef4444] font-bold hover:underline">+232 33 399 391</a>
                 </div>
               </div>
 
               {/* Card Step Header */}
-              <div className="bg-gradient-to-r from-[#040e40] to-[#0a1a5c] px-4 sm:px-6 py-3.5 sm:py-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#ef4444]/20 flex items-center justify-center shrink-0">
-                  <StepIcon className="w-5 h-5 text-[#ef4444]" />
+              <div className="bg-gradient-to-r from-[#040e40] to-[#0a1a5c] px-4 sm:px-6 py-4 sm:py-5 flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-[#ef4444]/20 flex items-center justify-center shrink-0">
+                  <StepIcon className="w-6 h-6 text-[#ef4444]" />
                 </div>
                 <div>
-                  <h2 className="text-white font-bold text-lg leading-tight">{STEP_META[step - 1].title}</h2>
-                  <p className="text-white/60 text-xs">{STEP_META[step - 1].subtitle}</p>
+                  <h2 className="text-white font-bold text-xl sm:text-2xl leading-tight">{STEP_META[step - 1].title}</h2>
+                  <p className="text-white/75 text-sm sm:text-base mt-0.5">{STEP_META[step - 1].subtitle}</p>
                 </div>
               </div>
 
@@ -1336,30 +1336,30 @@ export default function WebsiteQuestionnairePage() {
                   type="button"
                   onClick={back}
                   disabled={step === 1}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                  className="flex items-center gap-2 px-5 sm:px-6 py-3 rounded-xl border border-gray-200 text-sm sm:text-base font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
                 >
-                  <ChevronLeft className="w-4 h-4" /> Back
+                  <ChevronLeft className="w-5 h-5" /> Back
                 </button>
 
                 {step < TOTAL_STEPS ? (
                   <button
                     type="button"
                     onClick={next}
-                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#ef4444] hover:bg-red-600 text-white text-sm font-bold shadow-md shadow-red-200 transition hover:scale-[1.01]"
+                    className="flex items-center gap-2 px-6 sm:px-8 py-3 rounded-xl bg-[#ef4444] hover:bg-red-600 text-white text-sm sm:text-base font-bold shadow-md shadow-red-200 transition hover:scale-[1.01]"
                   >
-                    Next <ChevronRight className="w-4 h-4" />
+                    Next <ChevronRight className="w-5 h-5" />
                   </button>
                 ) : (
                   <button
                     type="button"
                     onClick={submit}
                     disabled={submitting}
-                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#040e40] hover:bg-[#0a1a5c] text-white text-sm font-bold shadow-md transition disabled:opacity-60 disabled:cursor-not-allowed hover:scale-[1.01]"
+                    className="flex items-center gap-2 px-6 sm:px-8 py-3 rounded-xl bg-[#040e40] hover:bg-[#0a1a5c] text-white text-sm sm:text-base font-bold shadow-md transition disabled:opacity-60 disabled:cursor-not-allowed hover:scale-[1.01]"
                   >
                     {submitting ? (
                       <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Submitting Brief…</>
                     ) : (
-                      <><Send className="w-4 h-4" /> Submit Project Brief</>
+                      <><Send className="w-5 h-5" /> Submit Project Brief</>
                     )}
                   </button>
                 )}
@@ -1367,7 +1367,7 @@ export default function WebsiteQuestionnairePage() {
             </div>
 
             {/* ─── Footer Note ─── */}
-            <p className="text-white/40 text-xs text-center mt-6">
+            <p className="text-white/60 text-sm text-center mt-7">
               Your information is confidential and used solely to prepare your technical proposal. We never share details with third parties.
             </p>
           </>

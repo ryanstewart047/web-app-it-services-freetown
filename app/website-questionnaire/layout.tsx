@@ -43,5 +43,35 @@ export default function WebsiteQuestionnaireLayout({
 }: {
   children: React.ReactNode
 }) {
-  return children
+  return (
+    <>
+      {/* 
+        Foolproof CSS guarantee: even before client hydration completes,
+        strictly hide the main site navbar, sticky header, mobile bottom nav, 
+        and website footer so this page is 100% standalone.
+      */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            #site-sticky-header,
+            .sticky-header-container,
+            #mobile-bottom-nav,
+            .mobile-bottom-nav,
+            footer,
+            .site-footer,
+            #static-chat-float,
+            #cookie-popup,
+            #offer-popup,
+            #newsletter-popup,
+            #global-banner,
+            .partners-section,
+            [data-global-chrome="true"] {
+              display: none !important;
+            }
+          `,
+        }}
+      />
+      {children}
+    </>
+  )
 }

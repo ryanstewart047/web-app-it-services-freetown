@@ -25,25 +25,26 @@ function ConditionalLayoutInner({ children }: ConditionalLayoutProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isIframeMode = searchParams?.get('iframe') === '1';
+  const currentPath = pathname || (typeof window !== 'undefined' ? window.location.pathname : '');
 
   // Paths that are "admin-adjacent" but not under /admin — suppress chrome when in iframe
   const isAdminAdjacentPage =
-    pathname?.startsWith('/banner-admin') ||
-    pathname?.startsWith('/partners-admin') ||
-    pathname?.startsWith('/offer-admin') ||
-    pathname?.startsWith('/ads-admin') ||
-    pathname?.startsWith('/receipt') ||
-    pathname?.startsWith('/blog/admin') ||
-    pathname?.startsWith('/blog/admin') ||
-    pathname?.startsWith('/forum/admin') ||
-    pathname?.startsWith('/madinaface3bridgeproject/admin');
+    currentPath?.startsWith('/banner-admin') ||
+    currentPath?.startsWith('/partners-admin') ||
+    currentPath?.startsWith('/offer-admin') ||
+    currentPath?.startsWith('/ads-admin') ||
+    currentPath?.startsWith('/receipt') ||
+    currentPath?.startsWith('/blog/admin') ||
+    currentPath?.startsWith('/forum/admin') ||
+    currentPath?.startsWith('/madinaface3bridgeproject/admin');
 
-  const isAdminPage = pathname?.startsWith('/admin') || isAdminAdjacentPage;
-  const isPortfolioPage = pathname === '/ryanjstewart';
-  const isForumPage = pathname === '/forum' || pathname?.startsWith('/forum/');
-  const isDonationPage = pathname === '/madinaface3bridgeproject' || pathname?.startsWith('/madinaface3bridgeproject/');
-  const isShirleyPage = pathname === '/shirleys' || pathname?.startsWith('/shirleys/');
-  const isSurpriseRevealPage = pathname?.startsWith('/surprise/');
+  const isAdminPage = currentPath?.startsWith('/admin') || isAdminAdjacentPage;
+  const isPortfolioPage = currentPath === '/ryanjstewart';
+  const isForumPage = currentPath === '/forum' || currentPath?.startsWith('/forum/');
+  const isDonationPage = currentPath === '/madinaface3bridgeproject' || currentPath?.startsWith('/madinaface3bridgeproject/');
+  const isShirleyPage = currentPath === '/shirleys' || currentPath?.startsWith('/shirleys/');
+  const isSurpriseRevealPage = currentPath?.startsWith('/surprise/');
+  const isQuestionnairePage = currentPath?.startsWith('/website-questionnaire');
 
   // In iframe mode, always render bare children with no chrome
   if (isIframeMode) {
@@ -68,7 +69,7 @@ function ConditionalLayoutInner({ children }: ConditionalLayoutProps) {
     );
   }
 
-  if (isSurpriseRevealPage) {
+  if (isSurpriseRevealPage || isQuestionnairePage) {
     return (
       <>
         <main className="w-full">{children}</main>
