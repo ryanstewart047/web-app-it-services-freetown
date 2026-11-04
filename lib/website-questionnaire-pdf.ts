@@ -1,20 +1,33 @@
 import jsPDF from 'jspdf'
 
+export interface BrandColors {
+  primary?: string
+  secondary?: string
+  accent?: string
+}
+
 export interface QuestionnaireData {
   organizationName: string
   contactName: string
   email: string
   phone?: string | null
+  preferredContactMethod?: string | null
   websitePurpose: string
   siteType: string
   hasExistingDomain: boolean
+  domainStatus?: string | null
   existingDomain?: string | null
   hasExistingBranding: boolean
   brandingDescription?: string | null
+  brandColors?: string | BrandColors | null
   hasHighQualityPhotos: boolean
   photosDescription?: string | null
   hasContent: boolean
   contentDescription?: string | null
+  wantsContentWriting?: boolean
+  wantsGraphicDesign?: boolean
+  pageCount?: string | null
+  needsHosting?: boolean
   canMaintainSelf: boolean
   needsCMS: boolean
   needsEcommerce: boolean
@@ -26,6 +39,7 @@ export interface QuestionnaireData {
   competitors?: string | null
   budgetRange?: string | null
   timeline?: string | null
+  targetDeadline?: string | null
   socialMediaLinks?: string | null
   inspirationUrls?: string | null
   additionalNotes?: string | null
@@ -41,6 +55,8 @@ const SITE_TYPE_LABELS: Record<string, string> = {
 }
 
 const BUDGET_LABELS: Record<string, string> = {
+  '200-500': '$200 – $500 (Starter / Landing Page)',
+  '500-1000': '$500 – $1,000 (Small Business / Brochure)',
   'under-1000': 'Under $1,000 (Starter / Basic)',
   '1000-3000': '$1,000 – $3,000 (Small Business)',
   '3000-10000': '$3,000 – $10,000 (Custom / Feature-Rich)',
@@ -53,6 +69,14 @@ const TIMELINE_LABELS: Record<string, string> = {
   '1-month': 'Within 1 Month',
   '2-3-months': '2 – 3 Months',
   flexible: 'Flexible / No Rush',
+}
+
+const PAGE_COUNT_LABELS: Record<string, string> = {
+  '1-landing': '1 Page (Landing Page / One-Pager)',
+  '3-5-pages': '3 – 5 Pages (Standard Business)',
+  '6-10-pages': '6 – 10 Pages (Expanded Catalog / Sections)',
+  '10-plus': '10+ Pages (Large Portal / Corporate)',
+  unsure: 'Not Sure Yet / Guidance Needed',
 }
 
 /**
@@ -255,7 +279,6 @@ export function generateQuestionnairePDF(
     checkPageBreak(25)
     const colWidth = contentWidth / 2
     let curX = margin
-    let startY = y
 
     features.forEach((feat, i) => {
       if (i > 0 && i % 2 === 0) {
@@ -297,19 +320,56 @@ export function generateQuestionnairePDF(
   fieldRow('Contact Person:', isBlank ? '__________________________________________' : data.contactName)
   fieldRow('Email Address:', isBlank ? '__________________________________________' : data.email)
   fieldRow('Phone / WhatsApp:', isBlank ? '__________________________________________' : data.phone)
+  fieldRow('Preferred Contact Channel:', isBlank ? '[ ] WhatsApp  [ ] Phone  [ ] Email' : (data.preferredContactMethod ? data.preferredContactMethod.toUpperCase() : 'WHATSAPP'))
   fieldTextBlock('Primary Purpose & Goals of the Website:', isBlank ? '' : data.websitePurpose, 3)
 
   // 2. BRAND & CONTENT ASSETS
   sectionHeader('2. Brand Assets & Content Readiness', '2')
   fieldRow('Website Type / Architecture:', isBlank ? '[ ] Static  [ ] Dynamic/CMS  [ ] E-Commerce  [ ] Portfolio' : (SITE_TYPE_LABELS[data.siteType] || data.siteType))
-  fieldRow('Has Existing Domain:', isBlank ? '[ ] Yes   [ ] No' : data.hasExistingDomain)
-  if (data.existingDomain || isBlank) {
-    fieldRow('Existing Domain Name:', isBlank ? '__________________________________________' : data.existingDomain)
+  fieldRow('Estimated Page Count:', isBlank ? '[ ] 1 Landing  [ ] 3-5 Pages  [ ] 6-10 Pages  [ ] 10+ Pages' : (PAGE_COUNT_LABELS[data.pageCount || ''] || data.pageCount || 'Not specified'))
+
+  // Domain handling
+  let domainStr = '—'
+  if (isBlank) {
+    domainStr = '[ ] Owned  [ ] Need Registration ($15-$50/yr)  [ ] Unsure'
+  } else if (data.domainStatus === 'need-domain') {
+    domainStr = data.existingDomain
+      ? `Needs Registration: ${data.existingDomain} (Extra Cost)`
+      : 'We do not have a domain yet (Needs Registration - Extra Cost)'
+  } else if (data.domainStatus === 'have-domain' || data.hasExistingDomain) {
+    domainStr = data.existingDomain ? `Already Owned: ${data.existingDomain}` : 'Already Owned'
+  } else {
+    domainStr = 'Not Sure Yet / Guidance Needed'
   }
+  fieldRow('Domain Status:', domainStr)
+
+  // Brand colors & assets
   fieldRow('Has Existing Brand Assets / Logo:', isBlank ? '[ ] Yes   [ ] No' : data.hasExistingBranding)
-  if (data.brandingDescription || isBlank) {
-    fieldTextBlock('Brand Style Guide / Assets Notes:', isBlank ? '' : data.brandingDescription, 2)
+  if (data.brandColors || isBlank) {
+    let colorsDisplay = isBlank ? 'Primary: #_____  Secondary: #_____  Accent: #_____' : ''
+    if (!isBlank && data.brandColors) {
+      if (typeof data.brandColors === 'object') {
+        colorsDisplay = `Primary: ${data.brandColors.primary || '—'}  |  Secondary: ${data.brandColors.secondary || '—'}  |  Accent: ${data.brandColors.accent || '—'}`
+      } else {
+        try {
+          const parsed = JSON.parse(data.brandColors)
+          if (typeof parsed === 'object') {
+            colorsDisplay = `Primary: ${parsed.primary || '—'}  |  Secondary: ${parsed.secondary || '—'}  |  Accent: ${parsed.accent || '—'}`
+          } else {
+            colorsDisplay = String(data.brandColors)
+          }
+        } catch {
+          colorsDisplay = String(data.brandColors)
+        }
+      }
+    }
+    fieldRow('Brand Color Palette:', colorsDisplay)
   }
+  if (data.brandingDescription || isBlank) {
+    fieldTextBlock('Brand Style Guide & Logo Notes:', isBlank ? '' : data.brandingDescription, 2)
+  }
+
+  // Photos & content
   fieldRow('Has High-Quality Photos Ready:', isBlank ? '[ ] Yes   [ ] No' : data.hasHighQualityPhotos)
   if (data.photosDescription || isBlank) {
     fieldTextBlock('Photo Assets Description:', isBlank ? '' : data.photosDescription, 2)
@@ -318,6 +378,10 @@ export function generateQuestionnairePDF(
   if (data.contentDescription || isBlank) {
     fieldTextBlock('Content Outline & Readiness:', isBlank ? '' : data.contentDescription, 2)
   }
+
+  // Add-on service requests
+  fieldRow('Developer to Write Copy / Content:', isBlank ? '[ ] Yes (Add-on extra cost)   [ ] No' : (data.wantsContentWriting ? 'YES (Specialized Add-on)' : 'NO (Client provides)'))
+  fieldRow('Developer to Design Custom Graphics:', isBlank ? '[ ] Yes (Add-on extra cost)   [ ] No' : (data.wantsGraphicDesign ? 'YES (Specialized Add-on)' : 'NO (Client provides)'))
 
   // 3. TECHNICAL REQUIREMENTS
   sectionHeader('3. Technical Requirements & Functionality', '3')
@@ -328,6 +392,7 @@ export function generateQuestionnairePDF(
       { label: '[ ] Online Booking / Appointments', checked: false },
       { label: '[ ] Multi-language Support', checked: false },
       { label: '[ ] SEO Optimization Package', checked: false },
+      { label: '[ ] Cloud Hosting & Email Server', checked: false },
       { label: '[ ] Client Self-Maintenance', checked: false },
     ]
     featureGrid(blankFeatures)
@@ -338,6 +403,7 @@ export function generateQuestionnairePDF(
       { label: 'Online Booking / Appointments', checked: Boolean(data.needsBooking) },
       { label: 'Multi-language Support', checked: Boolean(data.needsMultilingual) },
       { label: 'SEO Optimization Package', checked: Boolean(data.needsSEO) },
+      { label: 'Cloud Hosting & Email Setup', checked: Boolean(data.needsHosting) },
       { label: 'Client Self-Maintenance', checked: Boolean(data.canMaintainSelf) },
     ]
     featureGrid(features)
@@ -346,12 +412,38 @@ export function generateQuestionnairePDF(
 
   // 4. AUDIENCE, BUDGET & SCHEDULE
   sectionHeader('4. Target Audience, Budget & Timeline', '4')
-  fieldRow('Budget Range:', isBlank ? '[ ] <$1k  [ ] $1k-$3k  [ ] $3k-$10k  [ ] $10k+  [ ] Flexible' : (BUDGET_LABELS[data.budgetRange || ''] || data.budgetRange || 'Not specified'))
+  fieldRow('Budget Range:', isBlank ? '[ ] $200-$500  [ ] $500-$1k  [ ] $1k-$3k  [ ] $3k-$10k  [ ] $10k+  [ ] Flexible' : (BUDGET_LABELS[data.budgetRange || ''] || data.budgetRange || 'Not specified'))
   fieldRow('Target Delivery Timeline:', isBlank ? '[ ] ASAP (<2wks)  [ ] 1 Month  [ ] 2-3 Months  [ ] Flexible' : (TIMELINE_LABELS[data.timeline || ''] || data.timeline || 'Not specified'))
+  if (data.targetDeadline || isBlank) {
+    fieldRow('Specific Launch Deadline:', isBlank ? '__________________________________________' : data.targetDeadline)
+  }
   fieldTextBlock('Target Audience Description:', isBlank ? '' : data.targetAudience, 2)
   fieldTextBlock('Competitor or Inspiration Websites:', isBlank ? '' : data.competitors, 2)
   fieldTextBlock('Social Media Links / Handles:', isBlank ? '' : data.socialMediaLinks, 1)
   fieldTextBlock('Additional Project Notes / Special Requests:', isBlank ? '' : data.additionalNotes, 3)
+
+  // Extra cost advisory note at bottom
+  checkPageBreak(16)
+  doc.setFillColor(254, 252, 232) // yellow-50
+  doc.roundedRect(margin, y, contentWidth, 14, 1.5, 1.5, 'F')
+  doc.setDrawColor(254, 240, 138) // yellow-200
+  doc.setLineWidth(0.3)
+  doc.roundedRect(margin, y, contentWidth, 14, 1.5, 1.5, 'S')
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(7.5)
+  doc.setTextColor(133, 77, 14) // yellow-800
+  doc.text('IMPORTANT NOTICE ON ADD-ON SERVICES:', margin + 3, y + 4.5)
+  doc.setFont('helvetica', 'normal')
+  doc.text(
+    'Domain name registration ($15-$50/yr), professional copywriting, and custom graphic design are specialized add-on services',
+    margin + 3,
+    y + 8.5
+  )
+  doc.text(
+    'that incur additional fees beyond standard base website development. Pricing will be itemized clearly in your custom quote.',
+    margin + 3,
+    y + 12
+  )
 
   // ── Footer on all pages ──
   const totalPages = doc.getNumberOfPages()

@@ -7,7 +7,8 @@ import toast, { Toaster } from 'react-hot-toast'
 import {
   ArrowLeft, RefreshCw, Trash2, ChevronDown, ChevronUp, Download,
   Search, Filter, CheckCircle2, Eye, MessageSquare, Phone, Mail,
-  Globe, DollarSign, Clock, Building2, User, Calendar, FileText
+  Globe, DollarSign, Clock, Building2, User, Calendar, FileText,
+  Palette, Layers, Sparkles, AlertCircle
 } from 'lucide-react'
 import { downloadQuestionnairePDF, downloadBlankQuestionnairePDF } from '@/lib/website-questionnaire-pdf'
 
@@ -19,16 +20,23 @@ interface Submission {
   contactName: string
   email: string
   phone: string | null
+  preferredContactMethod: string | null
   websitePurpose: string
   siteType: string
   hasExistingDomain: boolean
+  domainStatus: string | null
   existingDomain: string | null
   hasExistingBranding: boolean
   brandingDescription: string | null
+  brandColors: string | null
   hasHighQualityPhotos: boolean
   photosDescription: string | null
   hasContent: boolean
   contentDescription: string | null
+  wantsContentWriting: boolean
+  wantsGraphicDesign: boolean
+  pageCount: string | null
+  needsHosting: boolean
   canMaintainSelf: boolean
   needsCMS: boolean
   needsEcommerce: boolean
@@ -40,6 +48,7 @@ interface Submission {
   competitors: string | null
   budgetRange: string | null
   timeline: string | null
+  targetDeadline: string | null
   socialMediaLinks: string | null
   inspirationUrls: string | null
   additionalNotes: string | null
@@ -73,12 +82,28 @@ const SITE_TYPE_LABELS: Record<string, string> = {
 }
 
 const BUDGET_LABELS: Record<string, string> = {
-  'under-1000': 'Under $1,000', '1000-3000': '$1,000–$3,000', '3000-10000': '$3,000–$10,000',
-  '10000+': '$10,000+', 'flexible': 'Flexible',
+  '200-500': '$200 – $500',
+  '500-1000': '$500 – $1,000',
+  'under-1000': 'Under $1,000',
+  '1000-3000': '$1,000–$3,000',
+  '3000-10000': '$3,000–$10,000',
+  '10000+': '$10,000+',
+  'flexible': 'Flexible',
 }
 
 const TIMELINE_LABELS: Record<string, string> = {
-  'urgent-2weeks': 'ASAP (<2 wks)', '1-month': '1 Month', '2-3-months': '2–3 Months', 'flexible': 'Flexible',
+  'urgent-2weeks': 'ASAP (<2 wks)',
+  '1-month': '1 Month',
+  '2-3-months': '2–3 Months',
+  'flexible': 'Flexible',
+}
+
+const PAGE_COUNT_LABELS: Record<string, string> = {
+  '1-landing': '1 Page (Landing)',
+  '3-5-pages': '3–5 Pages',
+  '6-10-pages': '6–10 Pages',
+  '10-plus': '10+ Pages',
+  'unsure': 'Unsure',
 }
 
 function Pill({ on, label }: { on: boolean; label: string }) {
@@ -91,24 +116,34 @@ function Pill({ on, label }: { on: boolean; label: string }) {
 
 function exportCSV(submissions: Submission[]) {
   const headers = [
-    'ID', 'Submitted', 'Organisation', 'Contact', 'Email', 'Phone', 'Site Type',
-    'Budget', 'Timeline', 'Status', 'Has Domain', 'Has Branding', 'Has Photos',
-    'Has Content', 'Needs CMS', 'Needs Ecommerce', 'Needs Booking', 'Needs Multilingual',
-    'Needs SEO', 'Can Maintain', 'Purpose', 'Target Audience', 'Competitors',
-    'Integrations', 'Social Media', 'Inspiration URLs', 'Additional Notes', 'Admin Notes',
+    'ID', 'Submitted', 'Organisation', 'Contact', 'Email', 'Phone', 'Preferred Contact',
+    'Site Type', 'Page Count', 'Budget', 'Timeline', 'Target Deadline', 'Status',
+    'Domain Status', 'Domain Name', 'Brand Colors', 'Has Branding', 'Has Photos',
+    'Has Content', 'Wants Copywriting', 'Wants Graphics', 'Needs Hosting', 'Needs CMS',
+    'Needs Ecommerce', 'Needs Booking', 'Needs Multilingual', 'Needs SEO', 'Can Maintain',
+    'Purpose', 'Target Audience', 'Competitors', 'Integrations', 'Social Media',
+    'Inspiration URLs', 'Additional Notes', 'Admin Notes',
   ]
   const rows = submissions.map(s => [
     s.id,
     new Date(s.createdAt).toLocaleDateString(),
     s.organizationName, s.contactName, s.email, s.phone ?? '',
+    s.preferredContactMethod ?? 'whatsapp',
     SITE_TYPE_LABELS[s.siteType] ?? s.siteType,
+    PAGE_COUNT_LABELS[s.pageCount ?? ''] ?? s.pageCount ?? '',
     BUDGET_LABELS[s.budgetRange ?? ''] ?? s.budgetRange ?? '',
     TIMELINE_LABELS[s.timeline ?? ''] ?? s.timeline ?? '',
+    s.targetDeadline ?? '',
     s.status,
-    s.hasExistingDomain ? 'Yes' : 'No',
+    s.domainStatus ?? (s.hasExistingDomain ? 'have-domain' : 'need-domain'),
+    s.existingDomain ?? '',
+    `"${(s.brandColors ?? '').replace(/"/g, '""')}"`,
     s.hasExistingBranding ? 'Yes' : 'No',
     s.hasHighQualityPhotos ? 'Yes' : 'No',
     s.hasContent ? 'Yes' : 'No',
+    s.wantsContentWriting ? 'Yes' : 'No',
+    s.wantsGraphicDesign ? 'Yes' : 'No',
+    s.needsHosting ? 'Yes' : 'No',
     s.needsCMS ? 'Yes' : 'No',
     s.needsEcommerce ? 'Yes' : 'No',
     s.needsBooking ? 'Yes' : 'No',
@@ -156,6 +191,20 @@ function SubmissionCard({
     setSaving(false)
   }
 
+  // Parse brand colors
+  let brandColorsParsed: { primary?: string; secondary?: string; accent?: string } | null = null
+  if (sub.brandColors) {
+    try {
+      const parsed = JSON.parse(sub.brandColors)
+      if (typeof parsed === 'object') brandColorsParsed = parsed
+    } catch {
+      // not JSON
+    }
+  }
+
+  const isNeedDomain = sub.domainStatus === 'need-domain'
+  const isHaveDomain = sub.domainStatus === 'have-domain' || sub.hasExistingDomain
+
   return (
     <div className={`bg-white rounded-2xl border-2 transition-all ${expanded ? 'border-[#ef4444]' : 'border-gray-100'} shadow-sm`}>
       {/* Summary row */}
@@ -166,32 +215,69 @@ function SubmissionCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 flex-wrap">
             <div>
-              <p className="font-bold text-[#040e40] truncate">{sub.organizationName}</p>
-              <p className="text-sm text-gray-500">{sub.contactName} · {sub.email}</p>
+              <p className="font-bold text-[#040e40] truncate text-base">{sub.organizationName}</p>
+              <p className="text-sm text-gray-500">
+                {sub.contactName} · {sub.email}
+                {sub.preferredContactMethod && (
+                  <span className="ml-1.5 inline-block text-[10px] font-semibold uppercase bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded">
+                    via {sub.preferredContactMethod}
+                  </span>
+                )}
+              </p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               {statusBadge(sub.status)}
-              <span className="text-xs text-gray-400">{new Date(sub.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+              <span className="text-xs text-gray-400">
+                {new Date(sub.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </span>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2 mt-2">
+
+          {/* Quick Info Badges */}
+          <div className="flex flex-wrap gap-1.5 mt-2.5">
             {sub.siteType && (
               <span className="text-xs bg-[#040e40]/10 text-[#040e40] px-2 py-0.5 rounded font-medium">
                 {SITE_TYPE_LABELS[sub.siteType] ?? sub.siteType}
               </span>
             )}
+            {sub.pageCount && (
+              <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium">
+                📄 {PAGE_COUNT_LABELS[sub.pageCount] ?? sub.pageCount}
+              </span>
+            )}
             {sub.budgetRange && (
-              <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-medium">
-                {BUDGET_LABELS[sub.budgetRange] ?? sub.budgetRange}
+              <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">
+                💰 {BUDGET_LABELS[sub.budgetRange] ?? sub.budgetRange}
               </span>
             )}
             {sub.timeline && (
               <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-medium">
-                {TIMELINE_LABELS[sub.timeline] ?? sub.timeline}
+                ⏱ {TIMELINE_LABELS[sub.timeline] ?? sub.timeline}
+              </span>
+            )}
+            {isNeedDomain && (
+              <span className="text-xs bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded border border-amber-200">
+                🌐 Needs Domain Reg.
+              </span>
+            )}
+            {sub.wantsContentWriting && (
+              <span className="text-xs bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded border border-blue-200">
+                ✍️ Wants Copywriting
+              </span>
+            )}
+            {sub.wantsGraphicDesign && (
+              <span className="text-xs bg-rose-100 text-rose-800 font-semibold px-2 py-0.5 rounded border border-rose-200">
+                🎨 Wants Graphics
+              </span>
+            )}
+            {sub.needsHosting && (
+              <span className="text-xs bg-indigo-100 text-indigo-800 font-semibold px-2 py-0.5 rounded border border-indigo-200">
+                ☁️ Needs Hosting
               </span>
             )}
           </div>
         </div>
+
         <div className="flex items-center gap-1 shrink-0">
           <button
             type="button"
@@ -220,7 +306,7 @@ function SubmissionCard({
         <div className="border-t border-gray-100 px-5 pb-6 pt-4 space-y-5">
 
           {/* Contact details */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
             {sub.phone && (
               <a href={`tel:${sub.phone}`} className="flex items-center gap-2 text-sm text-gray-700 hover:text-[#ef4444] transition">
                 <Phone className="w-4 h-4 text-[#ef4444]" /> {sub.phone}
@@ -229,12 +315,64 @@ function SubmissionCard({
             <a href={`mailto:${sub.email}`} className="flex items-center gap-2 text-sm text-gray-700 hover:text-[#ef4444] transition">
               <Mail className="w-4 h-4 text-[#ef4444]" /> {sub.email}
             </a>
-            {sub.existingDomain && (
-              <a href={`https://${sub.existingDomain}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-gray-700 hover:text-[#ef4444] transition">
-                <Globe className="w-4 h-4 text-[#ef4444]" /> {sub.existingDomain}
+            {sub.phone && (
+              <a
+                href={`https://wa.me/${sub.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello ${sub.contactName}, thank you for submitting your website brief with BridgeTech.`)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 text-sm text-emerald-700 hover:underline font-semibold"
+              >
+                <MessageSquare className="w-4 h-4 text-emerald-600" /> WhatsApp Client
               </a>
             )}
           </div>
+
+          {/* Domain & Hosting status */}
+          <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3.5 space-y-1">
+            <p className="text-xs font-bold text-amber-900 uppercase tracking-wider">Domain & Hosting Requirements</p>
+            <div className="text-xs text-amber-800 flex flex-wrap gap-x-6 gap-y-1">
+              <div>
+                <strong>Domain:</strong>{' '}
+                {isNeedDomain
+                  ? `Needs Registration ${sub.existingDomain ? `(Requested: "${sub.existingDomain}")` : '(No domain yet)'}`
+                  : isHaveDomain
+                  ? `Already Owned ${sub.existingDomain ? `("${sub.existingDomain}")` : ''}`
+                  : 'Guidance Needed'}
+              </div>
+              <div>
+                <strong>Hosting & Business Email:</strong> {sub.needsHosting ? 'Yes (BridgeTech Cloud Package)' : 'Not requested'}
+              </div>
+            </div>
+          </div>
+
+          {/* Brand Colors if present */}
+          {brandColorsParsed && (
+            <div>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <Palette className="w-3.5 h-3.5 text-slate-500" /> Client Brand Color Palette
+              </p>
+              <div className="flex flex-wrap items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-200">
+                {brandColorsParsed.primary && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-md shadow-sm border border-black/10" style={{ backgroundColor: brandColorsParsed.primary }} />
+                    <span className="text-xs font-mono font-bold text-gray-800">Primary: {brandColorsParsed.primary}</span>
+                  </div>
+                )}
+                {brandColorsParsed.secondary && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-md shadow-sm border border-black/10" style={{ backgroundColor: brandColorsParsed.secondary }} />
+                    <span className="text-xs font-mono font-bold text-gray-800">Secondary: {brandColorsParsed.secondary}</span>
+                  </div>
+                )}
+                {brandColorsParsed.accent && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-md shadow-sm border border-black/10" style={{ backgroundColor: brandColorsParsed.accent }} />
+                    <span className="text-xs font-mono font-bold text-gray-800">Accent: {brandColorsParsed.accent}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Purpose */}
           <div>
@@ -246,30 +384,34 @@ function SubmissionCard({
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Features & Capabilities</p>
             <div className="flex flex-wrap gap-2">
-              <Pill on={sub.hasExistingDomain}    label="Existing Domain" />
-              <Pill on={sub.hasExistingBranding}  label="Has Branding" />
-              <Pill on={sub.hasHighQualityPhotos} label="Quality Photos" />
-              <Pill on={sub.hasContent}            label="Content Ready" />
-              <Pill on={sub.needsCMS}              label="Needs CMS" />
-              <Pill on={sub.needsEcommerce}        label="E-Commerce" />
-              <Pill on={sub.needsBooking}          label="Booking System" />
-              <Pill on={sub.needsMultilingual}     label="Multi-language" />
-              <Pill on={sub.needsSEO}              label="SEO" />
-              <Pill on={sub.canMaintainSelf}       label="Self-Maintain" />
+              <Pill on={isHaveDomain}               label="Has Domain" />
+              <Pill on={sub.hasExistingBranding}   label="Has Branding" />
+              <Pill on={sub.hasHighQualityPhotos}  label="Quality Photos" />
+              <Pill on={sub.hasContent}             label="Content Ready" />
+              <Pill on={sub.wantsContentWriting}    label="Developer Copywriting" />
+              <Pill on={sub.wantsGraphicDesign}     label="Developer Graphics" />
+              <Pill on={sub.needsHosting}           label="Hosting & Email" />
+              <Pill on={sub.needsCMS}               label="Needs CMS" />
+              <Pill on={sub.needsEcommerce}         label="E-Commerce" />
+              <Pill on={sub.needsBooking}           label="Booking System" />
+              <Pill on={sub.needsMultilingual}      label="Multi-language" />
+              <Pill on={sub.needsSEO}               label="SEO" />
+              <Pill on={sub.canMaintainSelf}        label="Self-Maintain" />
             </div>
           </div>
 
           {/* Optional text fields */}
           {[
-            { label: 'Branding Description',  val: sub.brandingDescription },
-            { label: 'Photos Description',    val: sub.photosDescription },
-            { label: 'Content Description',   val: sub.contentDescription },
-            { label: 'Integrations',          val: sub.integrations },
-            { label: 'Target Audience',       val: sub.targetAudience },
-            { label: 'Competitors / Inspiration', val: sub.competitors },
-            { label: 'Social Media',          val: sub.socialMediaLinks },
-            { label: 'Inspiration URLs',      val: sub.inspirationUrls },
-            { label: 'Additional Notes',      val: sub.additionalNotes },
+            { label: 'Branding Description',       val: sub.brandingDescription },
+            { label: 'Photos Description',         val: sub.photosDescription },
+            { label: 'Content Description',        val: sub.contentDescription },
+            { label: 'Integrations',               val: sub.integrations },
+            { label: 'Target Audience',            val: sub.targetAudience },
+            { label: 'Competitors / Inspiration',  val: sub.competitors },
+            { label: 'Specific Target Deadline',   val: sub.targetDeadline },
+            { label: 'Social Media',               val: sub.socialMediaLinks },
+            { label: 'Inspiration URLs',           val: sub.inspirationUrls },
+            { label: 'Additional Notes',           val: sub.additionalNotes },
           ].filter(f => f.val).map(f => (
             <div key={f.label}>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">{f.label}</p>
@@ -411,215 +553,157 @@ function WebsiteQuestionnaireAdminInner() {
       const res = await fetch(`/api/admin/website-questionnaire?id=${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error()
       toast.success('Submission deleted')
-      setSubmissions(prev => prev.filter(s => s.id !== id))
-      setTotal(t => t - 1)
+      fetchData()
     } catch {
       toast.error('Failed to delete submission')
     }
   }
 
-  // ── Filter by search ──
   const filtered = submissions.filter(s => {
-    if (!search.trim()) return true
+    if (!search) return true
     const q = search.toLowerCase()
     return (
       s.organizationName.toLowerCase().includes(q) ||
       s.contactName.toLowerCase().includes(q) ||
       s.email.toLowerCase().includes(q) ||
-      (s.phone ?? '').includes(q)
+      (s.phone ?? '').toLowerCase().includes(q) ||
+      (s.websitePurpose ?? '').toLowerCase().includes(q) ||
+      (s.existingDomain ?? '').toLowerCase().includes(q)
     )
   })
 
-  // ── Status counts ──
-  const counts: Record<string, number> = { all: submissions.length }
-  submissions.forEach(s => { counts[s.status] = (counts[s.status] ?? 0) + 1 })
+  const counts = {
+    all:       submissions.length,
+    new:       submissions.filter(s => s.status === 'new').length,
+    reviewed:  submissions.filter(s => s.status === 'reviewed').length,
+    contacted: submissions.filter(s => s.status === 'contacted').length,
+    closed:    submissions.filter(s => s.status === 'closed').length,
+  }
 
   if (authed === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-8 h-8 border-4 border-[#ef4444]/30 border-t-[#ef4444] rounded-full animate-spin" />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-[#040e40] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Toaster position="top-right" />
+    <div className={`min-h-screen bg-slate-50 ${isIframe ? 'p-4' : 'p-6 sm:p-8'}`}>
+      <Toaster position="top-center" />
 
-      {/* ─── Top bar ─── */}
-      {!isIframe ? (
-        <div className="bg-[#040e40] text-white px-4 py-4 shadow-lg">
-          <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <button onClick={() => router.push('/admin')} className="p-2 rounded-lg hover:bg-white/10 transition" title="Back to Admin Dashboard">
+      <div className="max-w-5xl mx-auto space-y-6">
+
+        {/* Top bar with BridgeTech brand logo */}
+        <div className="flex items-center justify-between gap-4 flex-wrap bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-sm">
+          <div className="flex items-center gap-3">
+            {!isIframe && (
+              <button
+                onClick={() => router.push('/admin')}
+                className="p-2 rounded-xl hover:bg-gray-100 transition text-gray-600"
+                title="Back to Admin Dashboard"
+              >
                 <ArrowLeft className="w-5 h-5" />
               </button>
-              <div className="flex items-center gap-2.5">
-                <Image
-                  src="/assets/bridgetech-avatar-transparent.png"
-                  alt="BridgeTech"
-                  width={36}
-                  height={36}
-                  className="h-8 w-8 object-contain"
-                />
-                <div className="flex flex-col">
-                  <span className="text-base font-black tracking-tight text-white leading-none">BridgeTech</span>
-                  <span className="text-[8px] font-extrabold tracking-widest text-[#ef4444] uppercase leading-tight mt-0.5">IT SERVICES</span>
-                </div>
-              </div>
-              <span className="hidden sm:block text-white/30">|</span>
-              <span className="hidden sm:block text-sm font-semibold text-white/80">Website Questionnaires</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  downloadBlankQuestionnairePDF()
-                  toast.success('Downloading blank questionnaire PDF...')
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/20 hover:bg-white/10 text-xs font-semibold transition text-white"
-                title="Download a blank printable intake form for offline client meetings"
-              >
-                <FileText className="w-3.5 h-3.5 text-[#ef4444]" /> Blank Form (PDF)
-              </button>
-              <button
-                onClick={() => exportCSV(filtered)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold transition"
-              >
-                <Download className="w-3.5 h-3.5" /> Export CSV
-              </button>
-              <button
-                onClick={fetchData}
-                className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition"
-                title="Refresh"
-              >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
-          <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+            )}
             <div className="flex items-center gap-2.5">
               <Image
                 src="/assets/bridgetech-avatar-transparent.png"
-                alt="BridgeTech"
-                width={32}
-                height={32}
-                className="h-8 w-8 object-contain"
+                alt="BridgeTech Logo Shield"
+                width={36}
+                height={36}
+                className="h-9 w-9 object-contain"
               />
               <div>
-                <div className="flex items-center gap-1.5">
-                  <h2 className="text-sm sm:text-base font-bold text-[#040e40]">Website Questionnaires</h2>
-                  <span className="text-[9px] font-extrabold text-[#ef4444] uppercase bg-red-50 border border-red-200 px-1.5 py-0.2 rounded">BridgeTech</span>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-lg font-bold text-[#040e40]">Website Project Briefs</h1>
+                  <span className="text-[10px] bg-red-100 text-[#ef4444] font-extrabold px-1.5 py-0.5 rounded">INTAKE</span>
                 </div>
-                <p className="text-[11px] text-gray-500">Client discovery briefs & project specifications</p>
+                <p className="text-xs text-gray-500">{total} total client submissions</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  downloadBlankQuestionnairePDF()
-                  toast.success('Downloading blank questionnaire PDF...')
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-gray-700 transition"
-                title="Download a blank printable intake form for offline client meetings"
-              >
-                <FileText className="w-3.5 h-3.5 text-[#ef4444]" /> Blank Form (PDF)
-              </button>
-              <button
-                onClick={() => exportCSV(filtered)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-gray-700 transition"
-              >
-                <Download className="w-3.5 h-3.5 text-gray-500" /> Export CSV
-              </button>
-              <button
-                onClick={fetchData}
-                className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-700 transition"
-                title="Refresh"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-              </button>
-            </div>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => {
+                downloadBlankQuestionnairePDF()
+                toast.success('Downloading blank form PDF...')
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition"
+              title="Download a blank printable form"
+            >
+              <FileText className="w-3.5 h-3.5 text-slate-500" /> Blank Form (PDF)
+            </button>
+            <button
+              onClick={() => exportCSV(filtered)}
+              disabled={filtered.length === 0}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-gray-700 transition disabled:opacity-40"
+            >
+              <Download className="w-3.5 h-3.5" /> Export CSV
+            </button>
+            <button
+              onClick={fetchData}
+              className="p-2 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-600 transition"
+              title="Refresh submissions"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
           </div>
         </div>
-      )}
 
-      <div className="max-w-6xl mx-auto px-4 py-8 space-y-6">
+        {/* Filter & Search Bar */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          {/* Status filters */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+            {(['all', 'new', 'reviewed', 'contacted', 'closed'] as const).map(st => (
+              <button
+                key={st}
+                onClick={() => setFilterStatus(st)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition capitalize shrink-0 ${
+                  filterStatus === st
+                    ? 'bg-[#040e40] text-white shadow-sm'
+                    : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
+                }`}
+              >
+                {st} {counts[st] !== undefined && `(${counts[st]})`}
+              </button>
+            ))}
+          </div>
 
-        {/* ─── Stats strip ─── */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {[
-            { key: 'all',       label: 'Total',     color: 'bg-[#040e40] text-white' },
-            { key: 'new',       label: 'New',        color: 'bg-blue-600 text-white' },
-            { key: 'reviewed',  label: 'Reviewed',   color: 'bg-yellow-500 text-white' },
-            { key: 'contacted', label: 'Contacted',  color: 'bg-green-600 text-white' },
-            { key: 'closed',    label: 'Closed',     color: 'bg-gray-400 text-white' },
-          ].map(st => (
-            <button
-              key={st.key}
-              onClick={() => setFilterStatus(st.key)}
-              className={`rounded-2xl px-4 py-3 text-center transition-all shadow-sm border-2 ${
-                filterStatus === st.key
-                  ? `${st.color} border-transparent scale-105 shadow-md`
-                  : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <p className="text-2xl font-extrabold">{counts[st.key] ?? 0}</p>
-              <p className="text-xs font-semibold opacity-80">{st.label}</p>
-            </button>
-          ))}
-        </div>
-
-        {/* ─── Search & filter bar ─── */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          {/* Search */}
+          <div className="relative sm:w-64">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search by name, email, or phone…"
+              placeholder="Search by client or keyword…"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm bg-white"
+              className="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 bg-white text-xs focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-gray-800"
             />
           </div>
-          <a
-            href="/website-questionnaire"
-            target="_blank"
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#ef4444] hover:bg-red-600 text-white text-sm font-bold transition shadow-sm"
-          >
-            <Eye className="w-4 h-4" /> View Public Form
-          </a>
         </div>
 
-        {/* ─── List ─── */}
+        {/* Content */}
         {loading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="bg-white rounded-2xl h-24 animate-pulse border border-gray-100" />
-            ))}
+          <div className="bg-white rounded-2xl p-12 text-center border border-gray-100">
+            <div className="w-8 h-8 border-4 border-[#ef4444] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-sm text-gray-500">Loading briefs…</p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="bg-white rounded-2xl p-12 text-center border border-gray-100">
-            <Building2 className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-            <p className="font-bold text-gray-400 text-lg">No submissions found</p>
-            <p className="text-gray-400 text-sm mt-1">
-              {filterStatus !== 'all' ? `No ${filterStatus} submissions.` : 'Share the questionnaire link with your customers to get started.'}
+            <Building2 className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+            <p className="text-base font-bold text-gray-700">No submissions found</p>
+            <p className="text-xs text-gray-400 mt-1">
+              {search ? 'Try clearing your search query' : 'When customers complete the website questionnaire, they will show up here.'}
             </p>
-            <a
-              href="/website-questionnaire"
-              target="_blank"
-              className="inline-block mt-4 px-5 py-2.5 rounded-xl bg-[#040e40] text-white text-sm font-bold hover:bg-[#0a1a5c] transition"
-            >
-              Open Public Form →
-            </a>
           </div>
         ) : (
           <div className="space-y-3">
-            {filtered.map(s => (
+            {filtered.map(sub => (
               <SubmissionCard
-                key={s.id}
-                sub={s}
+                key={sub.id}
+                sub={sub}
                 onStatusChange={handleStatusChange}
                 onDelete={handleDelete}
               />
@@ -627,41 +711,18 @@ function WebsiteQuestionnaireAdminInner() {
           </div>
         )}
 
-        {/* Shareable link */}
-        <div className="bg-[#040e40] rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div>
-            <p className="text-white font-bold text-sm">📎 Shareable Questionnaire Link</p>
-            <p className="text-white/50 text-xs mt-0.5">Share this with customers requesting a website</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <code className="bg-white/10 text-white/80 text-xs px-3 py-1.5 rounded-lg font-mono">
-              https://www.itservicesfreetown.com/website-questionnaire
-            </code>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText('https://www.itservicesfreetown.com/website-questionnaire')
-                toast.success('Link copied!')
-              }}
-              className="px-3 py-1.5 rounded-lg bg-[#ef4444] hover:bg-red-600 text-white text-xs font-bold transition"
-            >
-              Copy
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   )
 }
 
-export default function WebsiteQuestionnaireAdminPage() {
+export default function WebsiteQuestionnaireAdmin() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="w-8 h-8 border-4 border-[#ef4444]/30 border-t-[#ef4444] rounded-full animate-spin" />
-        </div>
-      }
-    >
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-[#040e40] border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
       <WebsiteQuestionnaireAdminInner />
     </Suspense>
   )
