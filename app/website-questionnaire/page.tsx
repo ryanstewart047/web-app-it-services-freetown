@@ -174,7 +174,7 @@ function Toggle({
   return (
     <div
       onClick={() => onChange(!checked)}
-      className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all select-none ${
+      className={`flex items-start gap-3 p-3.5 sm:p-4 rounded-xl border-2 cursor-pointer transition-all select-none ${
         checked ? 'border-[#ef4444] bg-red-50/60 shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300'
       }`}
     >
@@ -204,7 +204,7 @@ function SelectCard({
   return (
     <div
       onClick={onClick}
-      className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+      className={`p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all ${
         selected ? 'border-[#ef4444] bg-red-50/60 shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300'
       }`}
     >
@@ -1078,7 +1078,7 @@ export default function WebsiteQuestionnairePage() {
       </header>
 
       {/* ─── Main Form Container ─── */}
-      <main className="max-w-2xl mx-auto px-4 py-8 pb-16">
+      <main className="w-full max-w-2xl mx-auto px-0 sm:px-4 py-2 sm:py-8 pb-12 sm:pb-16">
 
         {submitted ? (
           /* ─── Success screen ─── */
@@ -1086,7 +1086,7 @@ export default function WebsiteQuestionnairePage() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="bg-white rounded-3xl shadow-2xl p-6 sm:p-10 text-center border border-white/20"
+            className="bg-white rounded-none sm:rounded-3xl shadow-none sm:shadow-2xl p-4 sm:p-10 text-center border-0 sm:border border-white/20"
           >
             {/* BridgeTech Brand Logo on Success Screen */}
             <div className="flex justify-center mb-4">
@@ -1259,7 +1259,7 @@ export default function WebsiteQuestionnairePage() {
         ) : (
           <>
             {/* ─── Hero Title with BridgeTech Brand Emblem ─── */}
-            <div className="text-center mb-7">
+            <div className="text-center px-3 sm:px-0 mb-7">
               <div className="flex justify-center mb-3.5">
                 <div className="inline-flex items-center gap-2.5 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20 shadow-xl">
                   <Image
@@ -1286,7 +1286,7 @@ export default function WebsiteQuestionnairePage() {
             </div>
 
             {/* ─── Step Progress Bar ─── */}
-            <div className="mb-6">
+            <div className="px-3 sm:px-0 mb-4 sm:mb-6">
               <div className="flex items-center justify-between mb-2">
                 {STEP_META.map((s, i) => {
                   const n = i + 1
@@ -1319,9 +1319,9 @@ export default function WebsiteQuestionnairePage() {
             </div>
 
             {/* ─── Main Form Card ─── */}
-            <div ref={formCardRef} className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-white/20 scroll-mt-20">
+            <div ref={formCardRef} className="bg-white rounded-none sm:rounded-3xl shadow-none sm:shadow-2xl overflow-hidden border-0 sm:border border-white/20 scroll-mt-16 w-full">
               {/* Brand Header Banner DIRECTLY ON THE FORM */}
-              <div className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between gap-4">
+              <div className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <Image
                     src="/assets/bridgetech-avatar-transparent.png"
@@ -1346,7 +1346,7 @@ export default function WebsiteQuestionnairePage() {
               </div>
 
               {/* Card Step Header */}
-              <div className="bg-gradient-to-r from-[#040e40] to-[#0a1a5c] px-6 py-4 flex items-center gap-3">
+              <div className="bg-gradient-to-r from-[#040e40] to-[#0a1a5c] px-4 sm:px-6 py-3.5 sm:py-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[#ef4444]/20 flex items-center justify-center shrink-0">
                   <StepIcon className="w-5 h-5 text-[#ef4444]" />
                 </div>
@@ -1357,7 +1357,7 @@ export default function WebsiteQuestionnairePage() {
               </div>
 
               {/* Card Body with Framer Motion Animated Transitions */}
-              <div className="p-6 sm:p-8">
+              <div className="p-4 sm:p-8">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={step}
@@ -1375,7 +1375,7 @@ export default function WebsiteQuestionnairePage() {
               </div>
 
               {/* Card Footer Navigation */}
-              <div className="px-6 sm:px-8 pb-6 flex items-center justify-between border-t border-gray-100 pt-5">
+              <div className="px-4 sm:px-8 pb-6 flex items-center justify-between border-t border-gray-100 pt-5">
                 <button
                   type="button"
                   onClick={back}
