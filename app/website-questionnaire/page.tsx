@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast, { Toaster } from 'react-hot-toast'
@@ -125,22 +125,46 @@ function Label({ children, required }: { children: React.ReactNode; required?: b
   )
 }
 
-function Input({ ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
+function Input({ error, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { error?: string }) {
   return (
-    <input
-      {...props}
-      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 focus:border-[#ef4444] transition text-gray-800 placeholder-gray-400 bg-white text-sm shadow-sm"
-    />
+    <div>
+      <input
+        {...props}
+        className={`w-full px-4 py-3 rounded-xl border transition text-gray-800 placeholder-gray-400 bg-white text-sm shadow-sm focus:outline-none ${
+          error
+            ? 'border-[#ef4444] ring-2 ring-[#ef4444]/20 focus:border-[#ef4444] focus:ring-[#ef4444]/40 bg-red-50/20'
+            : 'border-gray-200 focus:ring-2 focus:ring-[#ef4444]/40 focus:border-[#ef4444]'
+        }`}
+      />
+      {error && (
+        <p className="flex items-center gap-1.5 text-xs text-[#ef4444] font-semibold mt-1.5">
+          <AlertCircle className="w-3.5 h-3.5 shrink-0 text-[#ef4444]" />
+          <span>{error}</span>
+        </p>
+      )}
+    </div>
   )
 }
 
-function Textarea({ ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+function Textarea({ error, ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { error?: string }) {
   return (
-    <textarea
-      rows={3}
-      {...props}
-      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 focus:border-[#ef4444] transition text-gray-800 placeholder-gray-400 bg-white text-sm resize-none shadow-sm"
-    />
+    <div>
+      <textarea
+        rows={3}
+        {...props}
+        className={`w-full px-4 py-3 rounded-xl border transition text-gray-800 placeholder-gray-400 bg-white text-sm resize-none shadow-sm focus:outline-none ${
+          error
+            ? 'border-[#ef4444] ring-2 ring-[#ef4444]/20 focus:border-[#ef4444] focus:ring-[#ef4444]/40 bg-red-50/20'
+            : 'border-gray-200 focus:ring-2 focus:ring-[#ef4444]/40 focus:border-[#ef4444]'
+        }`}
+      />
+      {error && (
+        <p className="flex items-center gap-1.5 text-xs text-[#ef4444] font-semibold mt-1.5">
+          <AlertCircle className="w-3.5 h-3.5 shrink-0 text-[#ef4444]" />
+          <span>{error}</span>
+        </p>
+      )}
+    </div>
   )
 }
 
@@ -193,7 +217,7 @@ function SelectCard({
 
 // ─── Step 1: Organisation & Contact ──────────────────────────────────────────
 
-function Step1({ data, onChange }: { data: FormData; onChange: (k: keyof FormData, v: any) => void }) {
+function Step1({ data, errors, onChange }: { data: FormData; errors: Record<string, string>; onChange: (k: keyof FormData, v: any) => void }) {
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -202,6 +226,7 @@ function Step1({ data, onChange }: { data: FormData; onChange: (k: keyof FormDat
           <Input
             placeholder="e.g. BridgeTech IT Services"
             value={data.organizationName}
+            error={errors.organizationName}
             onChange={e => onChange('organizationName', e.target.value)}
           />
         </div>
@@ -210,6 +235,7 @@ function Step1({ data, onChange }: { data: FormData; onChange: (k: keyof FormDat
           <Input
             placeholder="e.g. Mohamed Kamara"
             value={data.contactName}
+            error={errors.contactName}
             onChange={e => onChange('contactName', e.target.value)}
           />
         </div>
@@ -222,6 +248,7 @@ function Step1({ data, onChange }: { data: FormData; onChange: (k: keyof FormDat
             type="email"
             placeholder="you@example.com"
             value={data.email}
+            error={errors.email}
             onChange={e => onChange('email', e.target.value)}
           />
         </div>
@@ -272,6 +299,7 @@ function Step1({ data, onChange }: { data: FormData; onChange: (k: keyof FormDat
           rows={3}
           placeholder="Describe what the website should achieve for your organisation (e.g. showcase our consulting services, sell clothing online, allow clients to book appointments, recruit staff, or publish news and updates)…"
           value={data.websitePurpose}
+          error={errors.websitePurpose}
           onChange={e => onChange('websitePurpose', e.target.value)}
         />
       </div>
@@ -288,7 +316,7 @@ const PRESET_PALETTES = [
   { name: 'Royal Sunset',       primary: '#311042', secondary: '#f97316', accent: '#ec4899' },
 ]
 
-function Step2({ data, onChange }: { data: FormData; onChange: (k: keyof FormData, v: any) => void }) {
+function Step2({ data, errors, onChange }: { data: FormData; errors: Record<string, string>; onChange: (k: keyof FormData, v: any) => void }) {
   const siteTypes = [
     { value: 'static',    icon: Monitor,      label: 'Static / Brochure',  description: 'Clean company presentation, fast and minimal updates' },
     { value: 'dynamic',   icon: Layers,       label: 'Dynamic / CMS',      description: 'Blog, news portal, frequently updated services' },
@@ -332,6 +360,12 @@ function Step2({ data, onChange }: { data: FormData; onChange: (k: keyof FormDat
             />
           ))}
         </div>
+        {errors.siteType && (
+          <p className="flex items-center gap-1.5 text-xs text-[#ef4444] font-semibold mt-2.5 bg-red-50 border border-red-200 p-2.5 rounded-xl">
+            <AlertCircle className="w-4 h-4 shrink-0 text-[#ef4444]" />
+            <span>{errors.siteType}</span>
+          </p>
+        )}
       </div>
 
       {/* ─── Domain Name Section ─── */}
@@ -367,10 +401,11 @@ function Step2({ data, onChange }: { data: FormData; onChange: (k: keyof FormDat
         {/* Dynamic Domain Input based on selection */}
         {data.domainStatus === 'have-domain' && (
           <div className="mt-3 bg-gray-50 p-4 rounded-xl border border-gray-200">
-            <Label>What is your existing domain?</Label>
+            <Label required>What is your existing domain?</Label>
             <Input
               placeholder="e.g. www.mycompany.com"
               value={data.existingDomain}
+              error={errors.existingDomain}
               onChange={e => onChange('existingDomain', e.target.value)}
             />
             <p className="text-xs text-gray-500 mt-1">We will help you connect your existing registrar DNS to our server.</p>
@@ -605,7 +640,7 @@ function Step2({ data, onChange }: { data: FormData; onChange: (k: keyof FormDat
 
 // ─── Step 3: Technical Features & Scope ───────────────────────────────────────
 
-function Step3({ data, onChange }: { data: FormData; onChange: (k: keyof FormData, v: any) => void }) {
+function Step3({ data, errors, onChange }: { data: FormData; errors: Record<string, string>; onChange: (k: keyof FormData, v: any) => void }) {
   const pageCountOptions = [
     { value: '1-landing', label: '1 Page', desc: 'Single-page landing or micro-site' },
     { value: '3-5-pages', label: '3 – 5 Pages', desc: 'Standard business (Home, About, Services, Contact)' },
@@ -639,6 +674,12 @@ function Step3({ data, onChange }: { data: FormData; onChange: (k: keyof FormDat
             </button>
           ))}
         </div>
+        {errors.pageCount && (
+          <p className="flex items-center gap-1.5 text-xs text-[#ef4444] font-semibold mt-2.5 bg-red-50 border border-red-200 p-2.5 rounded-xl">
+            <AlertCircle className="w-4 h-4 shrink-0 text-[#ef4444]" />
+            <span>{errors.pageCount}</span>
+          </p>
+        )}
       </div>
 
       {/* ─── Core Features ─── */}
@@ -724,7 +765,7 @@ const TIMELINE_OPTIONS = [
   { value: 'flexible',      label: 'Flexible',         desc: 'No hard delivery deadline' },
 ]
 
-function Step4({ data, onChange }: { data: FormData; onChange: (k: keyof FormData, v: any) => void }) {
+function Step4({ data, errors, onChange }: { data: FormData; errors: Record<string, string>; onChange: (k: keyof FormData, v: any) => void }) {
   return (
     <div className="space-y-5">
       <div>
@@ -768,6 +809,12 @@ function Step4({ data, onChange }: { data: FormData; onChange: (k: keyof FormDat
             </button>
           ))}
         </div>
+        {errors.budgetRange && (
+          <p className="flex items-center gap-1.5 text-xs text-[#ef4444] font-semibold mt-2.5 bg-red-50 border border-red-200 p-2.5 rounded-xl">
+            <AlertCircle className="w-4 h-4 shrink-0 text-[#ef4444]" />
+            <span>{errors.budgetRange}</span>
+          </p>
+        )}
       </div>
 
       <div>
@@ -837,32 +884,101 @@ const STEP_META = [
 export default function WebsiteQuestionnairePage() {
   const [step, setStep] = useState(1)
   const [data, setData] = useState<FormData>(INITIAL)
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [submissionId, setSubmissionId] = useState<string | null>(null)
   const formCardRef = useRef<HTMLDivElement>(null)
 
-  function update(key: keyof FormData, value: any) {
-    setData(prev => ({ ...prev, [key]: value }))
-  }
-
-  function validateStep(s: number): string | null {
-    if (s === 1) {
-      if (!data.organizationName.trim()) return 'Please enter your organisation or website name.'
-      if (!data.contactName.trim())      return 'Please enter your full name.'
-      if (!data.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) return 'Please enter a valid email address.'
-      if (!data.websitePurpose.trim())   return 'Please describe the purpose of the website.'
+  // Warn user before refreshing or closing the page with unsaved form entries
+  useEffect(() => {
+    const isDirty = () => {
+      if (submitted) return false
+      return (
+        Boolean(data.organizationName.trim()) ||
+        Boolean(data.contactName.trim()) ||
+        Boolean(data.email.trim()) ||
+        Boolean(data.websitePurpose.trim()) ||
+        Boolean(data.existingDomain.trim()) ||
+        step > 1
+      )
     }
-    if (s === 2) {
-      if (!data.siteType) return 'Please select a website type.'
-      if (data.domainStatus === 'have-domain' && !data.existingDomain.trim()) {
-        return 'Please provide your existing domain name (e.g. mycompany.com).'
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty()) {
+        e.preventDefault()
+        e.returnValue = ''
+        return ''
       }
     }
-    if (s === 4) {
-      if (!data.budgetRange) return 'Please select a budget range tier.'
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
     }
-    return null
+  }, [data, step, submitted])
+
+  function update(key: keyof FormData, value: any) {
+    setData(prev => ({ ...prev, [key]: value }))
+    if (errors[key]) {
+      setErrors(prev => {
+        const copy = { ...prev }
+        delete copy[key]
+        return copy
+      })
+    }
+  }
+
+  function validateStep(s: number): boolean {
+    const newErrors: Record<string, string> = {}
+
+    if (s === 1) {
+      if (!data.organizationName.trim()) {
+        newErrors.organizationName = 'Please enter your organisation or website name.'
+      }
+      if (!data.contactName.trim()) {
+        newErrors.contactName = 'Please enter your full name.'
+      }
+      if (!data.email.trim()) {
+        newErrors.email = 'Please enter your email address.'
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+        newErrors.email = 'Please enter a valid email address (e.g. name@example.com).'
+      }
+      if (!data.websitePurpose.trim()) {
+        newErrors.websitePurpose = 'Please describe what the website should achieve.'
+      }
+    }
+
+    if (s === 2) {
+      if (!data.siteType) {
+        newErrors.siteType = 'Please select what type of website you need.'
+      }
+      if (data.domainStatus === 'have-domain' && !data.existingDomain.trim()) {
+        newErrors.existingDomain = 'Please provide your existing domain name (e.g. mycompany.com).'
+      }
+    }
+
+    if (s === 3) {
+      if (!data.pageCount) {
+        newErrors.pageCount = 'Please select an estimated number of pages.'
+      }
+    }
+
+    if (s === 4) {
+      if (!data.budgetRange) {
+        newErrors.budgetRange = 'Please select a project budget range tier.'
+      }
+    }
+
+    setErrors(newErrors)
+
+    if (Object.keys(newErrors).length > 0) {
+      const firstMsg = Object.values(newErrors)[0]
+      toast.error(firstMsg)
+      return false
+    }
+
+    return true
   }
 
   function scrollToFormTop() {
@@ -874,20 +990,21 @@ export default function WebsiteQuestionnairePage() {
   }
 
   function next() {
-    const err = validateStep(step)
-    if (err) { toast.error(err); return }
+    const isValid = validateStep(step)
+    if (!isValid) return
     setStep(s => Math.min(s + 1, TOTAL_STEPS))
     scrollToFormTop()
   }
 
   function back() {
+    setErrors({})
     setStep(s => Math.max(s - 1, 1))
     scrollToFormTop()
   }
 
   async function submit() {
-    const err = validateStep(step)
-    if (err) { toast.error(err); return }
+    const isValid = validateStep(step)
+    if (!isValid) return
 
     setSubmitting(true)
     try {
@@ -1232,10 +1349,10 @@ export default function WebsiteQuestionnairePage() {
                     exit={{ opacity: 0, y: -12 }}
                     transition={{ duration: 0.22, ease: 'easeOut' }}
                   >
-                    {step === 1 && <Step1 data={data} onChange={update} />}
-                    {step === 2 && <Step2 data={data} onChange={update} />}
-                    {step === 3 && <Step3 data={data} onChange={update} />}
-                    {step === 4 && <Step4 data={data} onChange={update} />}
+                    {step === 1 && <Step1 data={data} errors={errors} onChange={update} />}
+                    {step === 2 && <Step2 data={data} errors={errors} onChange={update} />}
+                    {step === 3 && <Step3 data={data} errors={errors} onChange={update} />}
+                    {step === 4 && <Step4 data={data} errors={errors} onChange={update} />}
                   </motion.div>
                 </AnimatePresence>
               </div>
