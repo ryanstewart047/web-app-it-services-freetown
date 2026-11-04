@@ -1033,52 +1033,8 @@ export default function WebsiteQuestionnairePage() {
     <div className="min-h-screen bg-gradient-to-br from-[#040e40] via-[#091a54] to-[#040e40] selection:bg-[#ef4444] selection:text-white">
       <Toaster position="top-center" />
 
-      {/* ─── Top Header (Clean distraction-free navigation) ─── */}
-      <header className="w-full bg-white/5 backdrop-blur-md border-b border-white/10 sticky top-0 z-40">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-          <a
-            href="https://www.itservicesfreetown.com"
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-3 group transition"
-          >
-            <Image
-              src="/assets/bridgetech-avatar-transparent.png"
-              alt="BridgeTech Logo Shield"
-              width={42}
-              height={42}
-              className="h-9 w-9 sm:h-10 sm:w-10 object-contain group-hover:scale-105 transition-transform"
-              priority
-            />
-            <div className="flex flex-col">
-              <span className="text-base sm:text-lg font-black tracking-tight text-white leading-none">BridgeTech</span>
-              <span className="text-[9px] sm:text-[10px] font-extrabold tracking-[0.2em] text-[#ef4444] uppercase leading-tight mt-0.5">IT Services</span>
-            </div>
-          </a>
-
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                downloadBlankQuestionnairePDF()
-                toast.success('Downloading blank questionnaire PDF...')
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/20 transition shadow-sm"
-              title="Download a blank printable form to review or fill offline"
-            >
-              <FileText className="w-3.5 h-3.5 text-[#ef4444]" />
-              <span className="hidden sm:inline">Download</span> Blank Form (PDF)
-            </button>
-            <div className="text-right hidden md:block">
-              <p className="text-white/60 text-[11px]">Need immediate help?</p>
-              <a href="tel:+23233399391" className="text-[#ef4444] font-bold text-xs hover:underline">+232 33 399 391</a>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* ─── Main Form Container ─── */}
-      <main className="w-full max-w-2xl mx-auto px-0 sm:px-4 py-2 sm:py-8 pb-12 sm:pb-16">
+      <main className="w-full max-w-2xl mx-auto px-0 sm:px-4 py-6 sm:py-10 pb-12 sm:pb-16">
 
         {submitted ? (
           /* ─── Success screen ─── */
@@ -1417,21 +1373,6 @@ export default function WebsiteQuestionnairePage() {
           </>
         )}
       </main>
-
-      {/* ─── Bottom Footer ─── */}
-      <footer className="bg-black/25 border-t border-white/5 py-6">
-        <div className="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-          <div className="flex items-center justify-center sm:justify-start gap-3">
-            <span className="text-white font-bold text-sm">BridgeTech IT Services</span>
-            <span className="text-white/20 text-xs">|</span>
-            <span className="text-white/50 text-xs">#1 Regent Highway, Jui Junction, Freetown, Sierra Leone</span>
-          </div>
-          <div className="flex items-center justify-center gap-4">
-            <a href="tel:+23233399391" className="text-white/60 hover:text-white text-xs transition">+232 33 399 391</a>
-            <a href="mailto:info@itservicesfreetown.com" className="text-white/60 hover:text-white text-xs transition">info@itservicesfreetown.com</a>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }
