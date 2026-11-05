@@ -11,6 +11,8 @@ export interface QuestionnaireData {
   contactName: string
   email: string
   phone?: string | null
+  address?: string | null
+  businessRegistration?: string | null
   preferredContactMethod?: string | null
   websitePurpose: string
   siteType: string
@@ -55,32 +57,33 @@ const SITE_TYPE_LABELS: Record<string, string> = {
 }
 
 const BUDGET_LABELS: Record<string, string> = {
-  '200-500': '$200 – $500 (Starter / Landing Page)',
+  '200-500': '$200 – $500 (Starter / Landing Page / Micro-site)',
   '500-1000': '$500 – $1,000 (Small Business / Brochure)',
   'under-1000': 'Under $1,000 (Starter / Basic)',
-  '1000-3000': '$1,000 – $3,000 (Small Business)',
-  '3000-10000': '$3,000 – $10,000 (Custom / Feature-Rich)',
-  '10000+': '$10,000+ (Enterprise / Complex System)',
-  flexible: 'Flexible / Open to Quote',
+  '1000-3000': '$1,000 – $3,000 (Small Business / Growing Co.)',
+  '3000-10000': '$3,000 – $10,000 (Custom / Feature-Rich / Store)',
+  '10000+': '$10,000+ (Enterprise / Complex Platform)',
+  flexible: 'Flexible / Open to Recommendations',
 }
 
 const TIMELINE_LABELS: Record<string, string> = {
-  'urgent-2weeks': 'ASAP (< 2 Weeks)',
-  '1-month': 'Within 1 Month',
-  '2-3-months': '2 – 3 Months',
-  flexible: 'Flexible / No Rush',
+  'urgent-2weeks': 'ASAP (< 2 Weeks) — Rush Turnaround',
+  '1-month': 'Within 1 Month — Standard Delivery',
+  '2-3-months': '2 – 3 Months — Phased Rollout',
+  flexible: 'Flexible — No Hard Deadline',
 }
 
 const PAGE_COUNT_LABELS: Record<string, string> = {
   '1-landing': '1 Page (Landing Page / One-Pager)',
-  '3-5-pages': '3 – 5 Pages (Standard Business)',
-  '6-10-pages': '6 – 10 Pages (Expanded Catalog / Sections)',
-  '10-plus': '10+ Pages (Large Portal / Corporate)',
+  '3-5-pages': '3 – 5 Pages (Standard Business: Home, About, Services, Contact)',
+  '6-10-pages': '6 – 10 Pages (Expanded Catalog / Multi-service)',
+  '10-plus': '10+ Pages (Large Portal / Corporate / Platform)',
   unsure: 'Not Sure Yet / Guidance Needed',
 }
 
 /**
- * Builds a styled, multi-page PDF document for a website development questionnaire
+ * Builds a styled, executive multi-page PDF document for a website development questionnaire
+ * with maximum contrast, professional typography, and crisp section organization.
  */
 export function generateQuestionnairePDF(
   data: QuestionnaireData,
@@ -95,133 +98,183 @@ export function generateQuestionnairePDF(
 
   const pageWidth = 210
   const pageHeight = 297
-  const margin = 15
+  const margin = 16
   const contentWidth = pageWidth - margin * 2
   let y = margin
 
-  function drawHeader() {
-    // Navy top bar
-    doc.setFillColor(4, 14, 64) // #040e40
-    doc.rect(0, 0, pageWidth, 30, 'F')
+  // ── Palette Constants (High Contrast) ──
+  const C_NAVY: [number, number, number] = [4, 14, 64]       // #040e40 Deep Navy
+  const C_RED: [number, number, number] = [239, 68, 68]      // #ef4444 Brand Red
+  const C_DARK: [number, number, number] = [15, 23, 42]      // #0f172a Pure Slate-900 (High contrast text)
+  const C_SLATE: [number, number, number] = [51, 65, 85]     // #334155 Slate-700 (Readable subtext)
+  const C_BORDER: [number, number, number] = [203, 213, 225] // #cbd5e1 Slate-300 (Crisp borders)
+  const C_BG_CARD: [number, number, number] = [248, 250, 252] // #f8fafc Slate-50 (Card fill)
 
-    // Red accent line
-    doc.setFillColor(239, 68, 68) // #ef4444
-    doc.rect(0, 30, pageWidth, 2.5, 'F')
+  function drawHeader() {
+    // Top navy banner
+    doc.setFillColor(...C_NAVY)
+    doc.rect(0, 0, pageWidth, 32, 'F')
+
+    // Top red accent rule
+    doc.setFillColor(...C_RED)
+    doc.rect(0, 32, pageWidth, 2.5, 'F')
 
     // ── BridgeTech Shield Logo Emblem ──
-    doc.setFillColor(239, 68, 68) // Red outer shield
-    doc.roundedRect(margin, 5.5, 14, 18, 2, 2, 'F')
-    doc.setFillColor(4, 14, 64) // Navy inner shield
-    doc.roundedRect(margin + 1, 6.5, 12, 16, 1.5, 1.5, 'F')
+    doc.setFillColor(...C_RED)
+    doc.roundedRect(margin, 5.5, 14, 19, 2, 2, 'F')
+    doc.setFillColor(...C_NAVY)
+    doc.roundedRect(margin + 1, 6.5, 12, 17, 1.5, 1.5, 'F')
+
     // B (white) and S (red) monogram
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(11)
+    doc.setFontSize(12)
     doc.setTextColor(255, 255, 255)
-    doc.text('B', margin + 3, 17.5)
-    doc.setTextColor(239, 68, 68)
-    doc.text('S', margin + 7.5, 17.5)
+    doc.text('B', margin + 2.8, 18.5)
+    doc.setTextColor(...C_RED)
+    doc.text('S', margin + 7.5, 18.5)
 
-    // Header brand typography next to shield
+    // Header brand typography
     doc.setTextColor(255, 255, 255)
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(14)
-    doc.text('BridgeTech', margin + 18, 13)
+    doc.setFontSize(16)
+    doc.text('BridgeTech', margin + 18, 14)
 
-    doc.setTextColor(239, 68, 68)
-    doc.setFontSize(9)
-    doc.text('IT SERVICES', margin + 46, 13)
+    doc.setTextColor(...C_RED)
+    doc.setFontSize(10)
+    doc.text('IT SERVICES', margin + 50, 14)
 
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(8.5)
-    doc.setTextColor(203, 213, 225)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(9.5)
+    doc.setTextColor(241, 245, 249) // #f1f5f9
     doc.text(
       isBlank
         ? 'WEBSITE DEVELOPMENT CLIENT DISCOVERY QUESTIONNAIRE'
-        : 'WEBSITE PROJECT BRIEF & TECHNICAL SPECIFICATION',
+        : 'WEBSITE PROJECT BRIEF & TECHNICAL SCOPE SPECIFICATION',
       margin + 18,
-      19
+      21.5
+    )
+
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(8)
+    doc.setTextColor(203, 213, 225)
+    doc.text(
+      'Freetown, Sierra Leone  •  +232 33 399 391  •  www.itservicesfreetown.com',
+      margin + 18,
+      27
     )
 
     // Meta details on the right
-    doc.setFontSize(8)
-    doc.setTextColor(200, 210, 230)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(9)
+    doc.setTextColor(255, 255, 255)
     const dateStr = data.createdAt
       ? new Date(data.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
       : new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-    doc.text(`Date: ${dateStr}`, pageWidth - margin, 12, { align: 'right' })
+    doc.text(`Date: ${dateStr}`, pageWidth - margin, 13, { align: 'right' })
 
     if (options?.submissionId) {
-      doc.text(`Ref: #${options.submissionId.slice(-8).toUpperCase()}`, pageWidth - margin, 18, { align: 'right' })
+      doc.setFontSize(8.5)
+      doc.setTextColor(...C_RED)
+      doc.text(`Ref: #${options.submissionId.slice(-8).toUpperCase()}`, pageWidth - margin, 19.5, { align: 'right' })
+      doc.setTextColor(203, 213, 225)
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(7.5)
+      doc.text('Official Client Record', pageWidth - margin, 25, { align: 'right' })
     } else if (isBlank) {
-      doc.text('Standard Client Intake Form', pageWidth - margin, 18, { align: 'right' })
+      doc.setFontSize(8.5)
+      doc.setTextColor(203, 213, 225)
+      doc.text('Printable Client Intake Form', pageWidth - margin, 19.5, { align: 'right' })
     }
 
-    y = 40
+    y = 42
   }
 
   function checkPageBreak(neededHeight: number) {
-    if (y + neededHeight > pageHeight - 20) {
+    if (y + neededHeight > pageHeight - 18) {
       doc.addPage()
-      // Mini header for continuation pages
-      doc.setFillColor(4, 14, 64)
+      // Continuation header for subsequent pages
+      doc.setFillColor(...C_NAVY)
       doc.rect(0, 0, pageWidth, 13, 'F')
-      doc.setFillColor(239, 68, 68)
+      doc.setFillColor(...C_RED)
       doc.rect(0, 13, pageWidth, 1.5, 'F')
 
       // Mini shield emblem
-      doc.setFillColor(239, 68, 68)
+      doc.setFillColor(...C_RED)
       doc.roundedRect(margin, 2, 7, 9, 1, 1, 'F')
-      doc.setFillColor(4, 14, 64)
+      doc.setFillColor(...C_NAVY)
       doc.roundedRect(margin + 0.5, 2.5, 6, 8, 0.8, 0.8, 'F')
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(6)
       doc.setTextColor(255, 255, 255)
       doc.text('B', margin + 1.5, 8)
-      doc.setTextColor(239, 68, 68)
+      doc.setTextColor(...C_RED)
       doc.text('S', margin + 3.8, 8)
 
       doc.setTextColor(255, 255, 255)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(9)
-      doc.text('BridgeTech IT Services  •  Website Project Brief', margin + 10, 8.5)
+      doc.text('BridgeTech IT Services  •  Website Project Discovery Brief', margin + 10, 8.5)
+
+      if (options?.submissionId) {
+        doc.setFontSize(8)
+        doc.setTextColor(241, 245, 249)
+        doc.text(`Ref: #${options.submissionId.slice(-8).toUpperCase()}`, pageWidth - margin, 8.5, { align: 'right' })
+      }
 
       y = 22
     }
   }
 
-  function sectionHeader(title: string, iconNumber: string) {
-    checkPageBreak(14)
-    // Section header badge
-    doc.setFillColor(4, 14, 64)
-    doc.roundedRect(margin, y, 6, 6, 1, 1, 'F')
+  function sectionHeader(title: string, sectionNumber: string) {
+    checkPageBreak(30) // Ensure ample space for header plus initial fields
+
+    // Number badge
+    doc.setFillColor(...C_NAVY)
+    doc.roundedRect(margin, y, 7, 7, 1.5, 1.5, 'F')
     doc.setTextColor(255, 255, 255)
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(8)
-    doc.text(iconNumber, margin + 3, y + 4.2, { align: 'center' })
+    doc.setFontSize(9)
+    doc.text(sectionNumber, margin + 3.5, y + 5, { align: 'center' })
 
-    doc.setTextColor(4, 14, 64)
+    // Section title
+    doc.setTextColor(...C_NAVY)
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(11)
-    doc.text(title.toUpperCase(), margin + 9, y + 4.5)
+    doc.setFontSize(12)
+    doc.text(title.toUpperCase(), margin + 10, y + 5.2)
 
-    // Underline rule
-    doc.setDrawColor(226, 232, 240)
-    doc.setLineWidth(0.4)
-    doc.line(margin, y + 7.5, pageWidth - margin, y + 7.5)
+    // Solid accent underline
+    doc.setDrawColor(...C_BORDER)
+    doc.setLineWidth(0.6)
+    doc.line(margin, y + 8.5, pageWidth - margin, y + 8.5)
 
-    y += 11
+    y += 13
   }
 
   function fieldRow(label: string, value: string | boolean | undefined | null) {
-    checkPageBreak(9)
+    checkPageBreak(10)
+
+    // Label column
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(8.5)
-    doc.setTextColor(71, 85, 105) // slate-600
+    doc.setFontSize(9.5)
+    doc.setTextColor(...C_SLATE)
     doc.text(label, margin, y)
 
+    // Value column
+    const colX = margin + 70
+    const colWidth = contentWidth - 70
+
+    if (isBlank && (!value || value === '—' || String(value).startsWith('___'))) {
+      // Clean dotted writing line for blank form
+      doc.setDrawColor(...C_BORDER)
+      doc.setLineWidth(0.4)
+      doc.line(colX, y + 1, pageWidth - margin, y + 1)
+      y += 7.5
+      return
+    }
+
     doc.setFont('helvetica', 'normal')
-    doc.setFontSize(9)
-    doc.setTextColor(15, 23, 42) // slate-900
+    doc.setFontSize(10)
+    doc.setTextColor(...C_DARK)
 
     let valStr = ''
     if (typeof value === 'boolean') {
@@ -230,108 +283,150 @@ export function generateQuestionnairePDF(
       valStr = value && String(value).trim() ? String(value).trim() : '—'
     }
 
-    const lines = doc.splitTextToSize(valStr, contentWidth - 65)
-    doc.text(lines, margin + 65, y)
-    y += Math.max(lines.length * 4.5, 6)
+    // Bold highlight for prominent answers
+    if (valStr.startsWith('YES') || valStr === 'Already Owned') {
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(4, 120, 87) // emerald-700
+    } else if (valStr.includes('Extra Cost') || valStr.startsWith('Needs Registration')) {
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(180, 83, 9) // amber-700
+    }
+
+    const lines = doc.splitTextToSize(valStr, colWidth)
+    doc.text(lines, colX, y)
+    y += Math.max(lines.length * 5, 7.5)
   }
 
   function fieldTextBlock(label: string, text: string | undefined | null, blankPlaceholderLines = 3) {
-    checkPageBreak(16)
+    checkPageBreak(20)
+
+    // Heading label
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(8.5)
-    doc.setTextColor(71, 85, 105)
+    doc.setFontSize(9.5)
+    doc.setTextColor(...C_NAVY)
     doc.text(label, margin, y)
-    y += 4.5
+    y += 5
 
     if (isBlank) {
       for (let i = 0; i < blankPlaceholderLines; i++) {
-        checkPageBreak(7)
-        doc.setDrawColor(203, 213, 225)
-        doc.setLineWidth(0.2)
+        checkPageBreak(8)
+        doc.setDrawColor(...C_BORDER)
+        doc.setLineWidth(0.3)
         doc.line(margin, y + 4, pageWidth - margin, y + 4)
-        y += 6
+        y += 7
       }
-      y += 2
+      y += 3
       return
     }
 
-    const content = text && text.trim() ? text.trim() : 'None provided'
+    const content = text && text.trim() ? text.trim() : 'None specified'
     doc.setFont('helvetica', 'normal')
-    doc.setFontSize(8.5)
-    doc.setTextColor(15, 23, 42)
+    doc.setFontSize(9.5)
+    doc.setTextColor(...C_DARK)
 
-    // Soft background box
-    const lines = doc.splitTextToSize(content, contentWidth - 6)
-    const boxHeight = lines.length * 4 + 4
-    checkPageBreak(boxHeight + 2)
+    const lines = doc.splitTextToSize(content, contentWidth - 10)
+    const boxHeight = lines.length * 5 + 6
+    checkPageBreak(boxHeight + 4)
 
-    doc.setFillColor(248, 250, 252) // slate-50
+    // Card background box
+    doc.setFillColor(...C_BG_CARD)
     doc.roundedRect(margin, y, contentWidth, boxHeight, 1.5, 1.5, 'F')
-    doc.setDrawColor(226, 232, 240)
-    doc.setLineWidth(0.2)
+    doc.setDrawColor(...C_BORDER)
+    doc.setLineWidth(0.3)
     doc.roundedRect(margin, y, contentWidth, boxHeight, 1.5, 1.5, 'S')
 
-    doc.text(lines, margin + 3, y + 4)
-    y += boxHeight + 3
+    // Left decorative bar
+    doc.setFillColor(...C_NAVY)
+    doc.roundedRect(margin, y, 1.8, boxHeight, 0.8, 0.8, 'F')
+
+    // Text content inside card
+    doc.text(lines, margin + 5, y + 5)
+    y += boxHeight + 4
   }
 
   function featureGrid(features: { label: string; checked: boolean }[]) {
-    checkPageBreak(25)
+    checkPageBreak(30)
     const colWidth = contentWidth / 2
     let curX = margin
 
     features.forEach((feat, i) => {
       if (i > 0 && i % 2 === 0) {
-        y += 6
+        y += 7.5
         curX = margin
       } else if (i % 2 !== 0) {
         curX = margin + colWidth
       }
-      checkPageBreak(7)
+      checkPageBreak(9)
 
-      // Box indicator
       if (feat.checked) {
-        doc.setFillColor(239, 68, 68) // Red check
-        doc.roundedRect(curX, y - 3, 4, 4, 0.8, 0.8, 'F')
+        // High contrast checked badge
+        doc.setFillColor(...C_NAVY)
+        doc.roundedRect(curX, y - 3.5, 5, 5, 1, 1, 'F')
         doc.setTextColor(255, 255, 255)
         doc.setFont('helvetica', 'bold')
-        doc.setFontSize(6.5)
-        doc.text('v', curX + 1.2, y - 0.3)
-      } else {
-        doc.setDrawColor(203, 213, 225)
-        doc.setLineWidth(0.3)
-        doc.roundedRect(curX, y - 3, 4, 4, 0.8, 0.8, 'S')
-      }
+        doc.setFontSize(7.5)
+        doc.text('X', curX + 1.4, y + 0.2)
 
-      doc.setTextColor(feat.checked ? 4 : 100, feat.checked ? 14 : 116, feat.checked ? 64 : 139)
-      doc.setFont('helvetica', feat.checked ? 'bold' : 'normal')
-      doc.setFontSize(8.5)
-      doc.text(feat.label, curX + 6, y)
+        doc.setTextColor(...C_NAVY)
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(10)
+        doc.text(feat.label, curX + 7.5, y)
+      } else {
+        // Unchecked box (high contrast clean border)
+        doc.setDrawColor(...C_BORDER)
+        doc.setLineWidth(0.5)
+        doc.setFillColor(255, 255, 255)
+        doc.roundedRect(curX, y - 3.5, 5, 5, 1, 1, 'FD')
+
+        doc.setTextColor(...C_SLATE)
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(10)
+        doc.text(feat.label, curX + 7.5, y)
+      }
     })
-    y += 8
+    y += 10
   }
 
-  // ── Render ──
+  // ══════════════════════════════════════════════════════════════════════════
+  // RENDER DOCUMENT CONTENT
+  // ══════════════════════════════════════════════════════════════════════════
   drawHeader()
 
-  // 1. ORGANISATION & CONTACT
+  // ── 1. ORGANISATION & CLIENT DETAILS ──
   sectionHeader('1. Organisation & Client Details', '1')
-  fieldRow('Organisation / Website Name:', isBlank ? '__________________________________________' : data.organizationName)
-  fieldRow('Contact Person:', isBlank ? '__________________________________________' : data.contactName)
+  fieldRow('Organisation / Business Name:', isBlank ? '__________________________________________' : data.organizationName)
+  fieldRow('Contact Person & Title:', isBlank ? '__________________________________________' : data.contactName)
   fieldRow('Email Address:', isBlank ? '__________________________________________' : data.email)
-  fieldRow('Phone / WhatsApp:', isBlank ? '__________________________________________' : data.phone)
-  fieldRow('Preferred Contact Channel:', isBlank ? '[ ] WhatsApp  [ ] Phone  [ ] Email' : (data.preferredContactMethod ? data.preferredContactMethod.toUpperCase() : 'WHATSAPP'))
-  fieldTextBlock('Primary Purpose & Goals of the Website:', isBlank ? '' : data.websitePurpose, 3)
+  fieldRow('Phone / WhatsApp Number:', isBlank ? '__________________________________________' : data.phone)
+  fieldRow('Physical / Office Address:', isBlank ? '__________________________________________' : (data.address || '—'))
+  fieldRow('Tax ID / Business Reg No.:', isBlank ? '__________________________________________' : (data.businessRegistration || '—'))
+  fieldRow(
+    'Preferred Contact Channel:',
+    isBlank
+      ? '[ ] WhatsApp    [ ] Phone Call    [ ] Email'
+      : (data.preferredContactMethod ? data.preferredContactMethod.toUpperCase() : 'WHATSAPP')
+  )
+  fieldTextBlock('Primary Purpose & Core Goals of the Website:', isBlank ? '' : data.websitePurpose, 3)
 
-  // 2. BRAND & CONTENT ASSETS
-  sectionHeader('2. Brand Assets & Content Readiness', '2')
-  fieldRow('Website Type / Architecture:', isBlank ? '[ ] Static  [ ] Dynamic/CMS  [ ] E-Commerce  [ ] Portfolio' : (SITE_TYPE_LABELS[data.siteType] || data.siteType))
-  fieldRow('Estimated Page Count:', isBlank ? '[ ] 1 Landing  [ ] 3-5 Pages  [ ] 6-10 Pages  [ ] 10+ Pages' : (PAGE_COUNT_LABELS[data.pageCount || ''] || data.pageCount || 'Not specified'))
+  // ── 2. BRAND & CONTENT ASSETS ──
+  sectionHeader('2. Brand Assets, Domain & Content Readiness', '2')
+  fieldRow(
+    'Website Architecture Type:',
+    isBlank
+      ? '[ ] Static / Brochure    [ ] Dynamic CMS / Blog    [ ] E-Commerce    [ ] Portfolio'
+      : (SITE_TYPE_LABELS[data.siteType] || data.siteType)
+  )
+  fieldRow(
+    'Estimated Website Scope / Pages:',
+    isBlank
+      ? '[ ] 1 Landing Page    [ ] 3 – 5 Pages    [ ] 6 – 10 Pages    [ ] 10+ Pages'
+      : (PAGE_COUNT_LABELS[data.pageCount || ''] || data.pageCount || 'Not specified')
+  )
 
   // Domain handling
   let domainStr = '—'
   if (isBlank) {
-    domainStr = '[ ] Owned  [ ] Need Registration ($15-$50/yr)  [ ] Unsure'
+    domainStr = '[ ] Already Owned    [ ] Need Registration ($15–$50/yr)    [ ] Unsure'
   } else if (data.domainStatus === 'need-domain') {
     domainStr = data.existingDomain
       ? `Needs Registration: ${data.existingDomain} (Extra Cost)`
@@ -341,12 +436,12 @@ export function generateQuestionnairePDF(
   } else {
     domainStr = 'Not Sure Yet / Guidance Needed'
   }
-  fieldRow('Domain Status:', domainStr)
+  fieldRow('Domain Name Status:', domainStr)
 
   // Brand colors & assets
-  fieldRow('Has Existing Brand Assets / Logo:', isBlank ? '[ ] Yes   [ ] No' : data.hasExistingBranding)
+  fieldRow('Has Existing Brand Assets / Logo:', isBlank ? '[ ] Yes    [ ] No' : data.hasExistingBranding)
   if (data.brandColors || isBlank) {
-    let colorsDisplay = isBlank ? 'Primary: #_____  Secondary: #_____  Accent: #_____' : ''
+    let colorsDisplay = isBlank ? 'Primary: #_______   Secondary: #_______   Accent: #_______' : ''
     if (!isBlank && data.brandColors) {
       if (typeof data.brandColors === 'object') {
         colorsDisplay = `Primary: ${data.brandColors.primary || '—'}  |  Secondary: ${data.brandColors.secondary || '—'}  |  Accent: ${data.brandColors.accent || '—'}`
@@ -370,98 +465,119 @@ export function generateQuestionnairePDF(
   }
 
   // Photos & content
-  fieldRow('Has High-Quality Photos Ready:', isBlank ? '[ ] Yes   [ ] No' : data.hasHighQualityPhotos)
+  fieldRow('Has High-Quality Photos Ready:', isBlank ? '[ ] Yes    [ ] No' : data.hasHighQualityPhotos)
   if (data.photosDescription || isBlank) {
     fieldTextBlock('Photo Assets Description:', isBlank ? '' : data.photosDescription, 2)
   }
-  fieldRow('Written Content / Copy Ready:', isBlank ? '[ ] Yes   [ ] No' : data.hasContent)
+  fieldRow('Written Content / Copy Ready:', isBlank ? '[ ] Yes    [ ] No' : data.hasContent)
   if (data.contentDescription || isBlank) {
-    fieldTextBlock('Content Outline & Readiness:', isBlank ? '' : data.contentDescription, 2)
+    fieldTextBlock('Written Content Outline & Readiness:', isBlank ? '' : data.contentDescription, 2)
   }
 
   // Add-on service requests
-  fieldRow('Developer to Write Copy / Content:', isBlank ? '[ ] Yes (Add-on extra cost)   [ ] No' : (data.wantsContentWriting ? 'YES (Specialized Add-on)' : 'NO (Client provides)'))
-  fieldRow('Developer to Design Custom Graphics:', isBlank ? '[ ] Yes (Add-on extra cost)   [ ] No' : (data.wantsGraphicDesign ? 'YES (Specialized Add-on)' : 'NO (Client provides)'))
+  fieldRow(
+    'Developer to Write Copy / Content:',
+    isBlank ? '[ ] Yes (Specialized Add-on)    [ ] No' : (data.wantsContentWriting ? 'YES (Specialized Add-on)' : 'NO (Client provides)')
+  )
+  fieldRow(
+    'Developer to Design Custom Graphics:',
+    isBlank ? '[ ] Yes (Specialized Add-on)    [ ] No' : (data.wantsGraphicDesign ? 'YES (Specialized Add-on)' : 'NO (Client provides)')
+  )
 
-  // 3. TECHNICAL REQUIREMENTS
-  sectionHeader('3. Technical Requirements & Functionality', '3')
+  // ── 3. TECHNICAL REQUIREMENTS & SCOPE ──
+  sectionHeader('3. Technical Requirements & Integrations', '3')
   if (isBlank) {
     const blankFeatures = [
       { label: '[ ] Content Management (CMS)', checked: false },
-      { label: '[ ] E-Commerce / Online Store', checked: false },
-      { label: '[ ] Online Booking / Appointments', checked: false },
+      { label: '[ ] E-Commerce / Online Store & Cart', checked: false },
+      { label: '[ ] Online Booking / Appointment Calendar', checked: false },
       { label: '[ ] Multi-language Support', checked: false },
       { label: '[ ] SEO Optimization Package', checked: false },
-      { label: '[ ] Cloud Hosting & Email Server', checked: false },
-      { label: '[ ] Client Self-Maintenance', checked: false },
+      { label: '[ ] Cloud Hosting & Business Email Setup', checked: false },
+      { label: '[ ] Client Self-Maintenance Capability', checked: false },
     ]
     featureGrid(blankFeatures)
   } else {
     const features = [
       { label: 'Content Management (CMS)', checked: Boolean(data.needsCMS) },
-      { label: 'E-Commerce / Online Store', checked: Boolean(data.needsEcommerce) },
+      { label: 'E-Commerce / Online Store & Cart', checked: Boolean(data.needsEcommerce) },
       { label: 'Online Booking / Appointments', checked: Boolean(data.needsBooking) },
       { label: 'Multi-language Support', checked: Boolean(data.needsMultilingual) },
       { label: 'SEO Optimization Package', checked: Boolean(data.needsSEO) },
-      { label: 'Cloud Hosting & Email Setup', checked: Boolean(data.needsHosting) },
+      { label: 'Cloud Hosting & Business Email', checked: Boolean(data.needsHosting) },
       { label: 'Client Self-Maintenance', checked: Boolean(data.canMaintainSelf) },
     ]
     featureGrid(features)
   }
   fieldTextBlock('Third-Party Integrations (WhatsApp, Maps, Payments, CRM):', isBlank ? '' : data.integrations, 2)
 
-  // 4. AUDIENCE, BUDGET & SCHEDULE
-  sectionHeader('4. Target Audience, Budget & Timeline', '4')
-  fieldRow('Budget Range:', isBlank ? '[ ] $200-$500  [ ] $500-$1k  [ ] $1k-$3k  [ ] $3k-$10k  [ ] $10k+  [ ] Flexible' : (BUDGET_LABELS[data.budgetRange || ''] || data.budgetRange || 'Not specified'))
-  fieldRow('Target Delivery Timeline:', isBlank ? '[ ] ASAP (<2wks)  [ ] 1 Month  [ ] 2-3 Months  [ ] Flexible' : (TIMELINE_LABELS[data.timeline || ''] || data.timeline || 'Not specified'))
+  // ── 4. AUDIENCE, BUDGET & SCHEDULE ──
+  sectionHeader('4. Target Audience, Budget & Schedule', '4')
+  fieldRow(
+    'Project Budget Range:',
+    isBlank
+      ? '[ ] $200-$500    [ ] $500-$1k    [ ] $1k-$3k    [ ] $3k-$10k    [ ] $10k+    [ ] Flexible'
+      : (BUDGET_LABELS[data.budgetRange || ''] || data.budgetRange || 'Not specified')
+  )
+  fieldRow(
+    'Target Delivery Timeline:',
+    isBlank
+      ? '[ ] ASAP (< 2 wks)    [ ] 1 Month    [ ] 2 – 3 Months    [ ] Flexible'
+      : (TIMELINE_LABELS[data.timeline || ''] || data.timeline || 'Not specified')
+  )
   if (data.targetDeadline || isBlank) {
     fieldRow('Specific Launch Deadline:', isBlank ? '__________________________________________' : data.targetDeadline)
   }
-  fieldTextBlock('Target Audience Description:', isBlank ? '' : data.targetAudience, 2)
+  fieldTextBlock('Target Audience & Ideal Clients:', isBlank ? '' : data.targetAudience, 2)
   fieldTextBlock('Competitor or Inspiration Websites:', isBlank ? '' : data.competitors, 2)
   fieldTextBlock('Social Media Links / Handles:', isBlank ? '' : data.socialMediaLinks, 1)
-  fieldTextBlock('Additional Project Notes / Special Requests:', isBlank ? '' : data.additionalNotes, 3)
+  fieldTextBlock('Additional Project Notes / Technical Constraints:', isBlank ? '' : data.additionalNotes, 3)
 
-  // Extra cost advisory note at bottom
-  checkPageBreak(16)
-  doc.setFillColor(254, 252, 232) // yellow-50
-  doc.roundedRect(margin, y, contentWidth, 14, 1.5, 1.5, 'F')
-  doc.setDrawColor(254, 240, 138) // yellow-200
-  doc.setLineWidth(0.3)
-  doc.roundedRect(margin, y, contentWidth, 14, 1.5, 1.5, 'S')
+  // ── High-Contrast Advisory Box (Replaced yellow-on-yellow) ──
+  checkPageBreak(24)
+  const noticeHeight = 22
+  doc.setFillColor(...C_BG_CARD)
+  doc.roundedRect(margin, y, contentWidth, noticeHeight, 1.5, 1.5, 'F')
+  doc.setDrawColor(...C_BORDER)
+  doc.setLineWidth(0.4)
+  doc.roundedRect(margin, y, contentWidth, noticeHeight, 1.5, 1.5, 'S')
+
+  // Red accent left border
+  doc.setFillColor(...C_RED)
+  doc.roundedRect(margin, y, 2, noticeHeight, 1, 1, 'F')
+
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(7.5)
-  doc.setTextColor(133, 77, 14) // yellow-800
-  doc.text('IMPORTANT NOTICE ON ADD-ON SERVICES:', margin + 3, y + 4.5)
-  doc.setFont('helvetica', 'normal')
-  doc.text(
-    'Domain name registration ($15-$50/yr), professional copywriting, and custom graphic design are specialized add-on services',
-    margin + 3,
-    y + 8.5
-  )
-  doc.text(
-    'that incur additional fees beyond standard base website development. Pricing will be itemized clearly in your custom quote.',
-    margin + 3,
-    y + 12
-  )
+  doc.setFontSize(10)
+  doc.setTextColor(153, 27, 27) // Dark crimson (#991b1b) - high contrast & authoritative
+  doc.text('IMPORTANT NOTICE REGARDING SPECIALIZED ADD-ON SERVICES', margin + 5, y + 5.5)
 
-  // ── Footer on all pages ──
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9.5)
+  doc.setTextColor(...C_DARK) // High contrast slate-900
+  const noticeLines = doc.splitTextToSize(
+    'Base website development covers responsive frontend coding, architecture, design layout, and testing. Specialized services such as Domain Registration ($15–$50/yr registry fee), professional copywriting, and custom graphic design carry extra fees. These will be itemized transparently in your official quotation.',
+    contentWidth - 10
+  )
+  doc.text(noticeLines, margin + 5, y + 10.5)
+
+  // ── Running Footer on All Pages ──
   const totalPages = doc.getNumberOfPages()
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i)
-    doc.setDrawColor(226, 232, 240)
-    doc.setLineWidth(0.3)
+    doc.setDrawColor(...C_BORDER)
+    doc.setLineWidth(0.4)
     doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12)
 
     doc.setFont('helvetica', 'normal')
-    doc.setFontSize(7.5)
-    doc.setTextColor(148, 163, 184) // slate-400
+    doc.setFontSize(8.5)
+    doc.setTextColor(...C_SLATE) // High contrast slate-700
     doc.text(
       'BridgeTech IT Services  •  #1 Regent Highway, Jui Junction, Freetown  •  +232 33 399 391  •  info@itservicesfreetown.com',
       margin,
-      pageHeight - 7.5
+      pageHeight - 7
     )
-    doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 7.5, { align: 'right' })
+    doc.setFont('helvetica', 'bold')
+    doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 7, { align: 'right' })
   }
 
   return doc
@@ -488,6 +604,9 @@ export function downloadBlankQuestionnairePDF(filename = 'BridgeTech_Website_Dev
     organizationName: '',
     contactName: '',
     email: '',
+    phone: '',
+    address: '',
+    businessRegistration: '',
     websitePurpose: '',
     siteType: 'unsure',
     hasExistingDomain: false,

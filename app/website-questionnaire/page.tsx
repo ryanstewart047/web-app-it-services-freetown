@@ -27,6 +27,8 @@ interface FormData {
   contactName: string
   email: string
   phone: string
+  address: string
+  businessRegistration: string
   preferredContactMethod: 'whatsapp' | 'email' | 'phone'
   websitePurpose: string
 
@@ -72,6 +74,8 @@ const INITIAL: FormData = {
   contactName: '',
   email: '',
   phone: '',
+  address: '',
+  businessRegistration: '',
   preferredContactMethod: 'whatsapp',
   websitePurpose: '',
 
@@ -259,6 +263,25 @@ function Step1({ data, errors, onChange }: { data: FormData; errors: Record<stri
             placeholder="+232 33 399 391"
             value={data.phone}
             onChange={e => onChange('phone', e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <Label>Physical / Office Address</Label>
+          <Input
+            placeholder="e.g. 15 Wilkinson Road, Freetown"
+            value={data.address}
+            onChange={e => onChange('address', e.target.value)}
+          />
+        </div>
+        <div>
+          <Label>Tax ID / Business Registration No.</Label>
+          <Input
+            placeholder="e.g. TIN / Business Reg # (Optional)"
+            value={data.businessRegistration}
+            onChange={e => onChange('businessRegistration', e.target.value)}
           />
         </div>
       </div>
@@ -1137,6 +1160,8 @@ export default function WebsiteQuestionnairePage() {
                 <div>
                   <p className="text-slate-400 font-semibold uppercase">Organisation / Project</p>
                   <p className="font-bold text-slate-900 text-sm mt-0.5">{data.organizationName}</p>
+                  {data.address && <p className="text-slate-600 text-[11px] mt-0.5">📍 {data.address}</p>}
+                  {data.businessRegistration && <p className="text-slate-600 text-[11px]">🏢 Reg/TIN: {data.businessRegistration}</p>}
                 </div>
                 <div>
                   <p className="text-slate-400 font-semibold uppercase">Contact Person</p>

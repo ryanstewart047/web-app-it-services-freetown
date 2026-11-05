@@ -6,6 +6,8 @@ export interface QuestionnaireEmailInput {
   contactName: string
   email: string
   phone?: string | null
+  address?: string | null
+  businessRegistration?: string | null
   preferredContactMethod?: string | null
   websitePurpose: string
   siteType: string
@@ -202,6 +204,16 @@ export async function sendQuestionnaireNotifications(input: QuestionnaireEmailIn
                   <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #64748b;"><strong>Email / Phone:</strong></td>
                   <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #0f172a;">${escapeHtml(input.email)} ${input.phone ? `• ${escapeHtml(input.phone)}` : ''}</td>
                 </tr>
+                ${input.address ? `
+                <tr>
+                  <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #64748b;"><strong>Office Address:</strong></td>
+                  <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #0f172a;">${escapeHtml(input.address)}</td>
+                </tr>` : ''}
+                ${input.businessRegistration ? `
+                <tr>
+                  <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #64748b;"><strong>Tax ID / Reg No:</strong></td>
+                  <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #0f172a;">${escapeHtml(input.businessRegistration)}</td>
+                </tr>` : ''}
                 <tr>
                   <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #64748b;"><strong>Website Type:</strong></td>
                   <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #0f172a; font-weight: 600;">${escapeHtml(siteTypeFormatted)}</td>
@@ -319,6 +331,8 @@ export async function sendQuestionnaireNotifications(input: QuestionnaireEmailIn
       <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #64748b;">Contact:</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${escapeHtml(input.contactName)} (${escapeHtml(input.preferredContactMethod || 'WhatsApp')})</td></tr>
       <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #64748b;">Email:</td><td style="padding: 8px; border-bottom: 1px solid #eee;"><a href="mailto:${escapeHtml(input.email)}">${escapeHtml(input.email)}</a></td></tr>
       <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #64748b;">Phone:</td><td style="padding: 8px; border-bottom: 1px solid #eee;"><a href="tel:${escapeHtml(input.phone || '')}">${escapeHtml(input.phone || 'N/A')}</a></td></tr>
+      ${input.address ? `<tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #64748b;">Office Address:</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${escapeHtml(input.address)}</td></tr>` : ''}
+      ${input.businessRegistration ? `<tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #64748b;">Tax ID / Reg No:</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${escapeHtml(input.businessRegistration)}</td></tr>` : ''}
       <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #64748b;">Site Type:</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${escapeHtml(siteTypeFormatted)}</td></tr>
       <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #64748b;">Page Count:</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${escapeHtml(pageCountFormatted)}</td></tr>
       <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #64748b;">Domain:</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 600;">${domainText}</td></tr>
