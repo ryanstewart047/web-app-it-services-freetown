@@ -1,0 +1,123 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { sendEmail } from '@/lib/email'
+import { prisma } from '@/lib/prisma'
+
+function checkAuth(request: NextRequest): boolean {
+  const sessionToken = request.cookies.get('admin_session')?.value
+  return !!sessionToken
+}
+
+export async function POST(request: NextRequest) {
+  if (!checkAuth(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // Check SMTP is configured before attempting any sends
+  const smtpUser = process.env.SMTP_USER
+  const smtpPass = process.env.SMTP_PASS
+  if (!smtpUser || smtpUser === 'your-email@gmail.com' || !smtpPass) {
+    return NextResponse.json({
+      error: 'Email service is not configured. Please add SMTP_USER, SMTP_PASS (and optionally SMTP_HOST, SMTP_PORT) to your Vercel environment variables, then redeploy.'
+    }, { status: 503 })
+  }
+
+  try {
+    const { subject, content, recipients } = await request.json()
+
+    if (!subject || !content || !recipients || !Array.isArray(recipients) || recipients.length === 0) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    console.log(`[Email Marketing] Starting batch send to ${recipients.length} recipients...`)
+
+    // Send emails sequentially with a small delay to prevent SMTP throttling/burst limits
+    const results = []
+    const htmlBody = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 10px; color: #999; text-align: center; line-height: 1.4; }
+          .footer a { color: #666; text-decoration: underline; }
+          img { max-width: 100%; height: auto; display: block; margin: 10px 0; }
+          .email-button { 
+            display: inline-block; 
+            background-color: #dc2626; 
+            color: #ffffff !important; 
+            padding: 12px 24px; 
+            text-decoration: none; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            margin: 15px 0;
+          }
+          .email-button:hover {
+            background-color: #040e40 !important;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="main-content">
+            ${content}
+          </div>
+          <div class="footer">
+            <p>BridgeTech IT Services | #1 Regent Highway, Jui Junction | Freetown, Sierra Leone</p>
+            <p>You received this email because you are a valued customer of BridgeTech IT Services.</p>
+            <p>
+              <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://itservicesfreetown.com'}/unsubscribe">Unsubscribe from this list</a> | 
+              <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://itservicesfreetown.com'}/privacy">Privacy Policy</a>
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+
+    for (let i = 0; i < recipients.length; i++) {
+      const email = recipients[i]
+      try {
+        const result = await sendEmail({
+          to: email,
+          subject: subject,
+          html: htmlBody
+        })
+
+        if (!result.success && result.isHardBounce) {
+          console.warn(`[Email Marketing] Permanent hard bounce detected for ${email}. Marking deliveryFailed in database.`)
+          await prisma.emailLead.updateMany({
+            where: { email: email.toLowerCase().trim() },
+            data: { deliveryFailed: true }
+          }).catch(dbErr => {
+            console.error(`Failed to update deliveryFailed status for ${email}:`, dbErr)
+          })
+        } else if (!result.success) {
+          console.warn(`[Email Marketing] Temporary delivery issue for ${email} (${result.error}). Not marking as bounced.`)
+        }
+
+        results.push(result)
+      } catch (err: any) {
+        console.error(`[Email Marketing] Exception sending to ${email}:`, err)
+        results.push({ success: false, error: err.message || 'Unknown error' })
+      }
+
+      // Small delay between consecutive sends to avoid triggering Gmail SMTP rate limits
+      if (i < recipients.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 600))
+      }
+    }
+
+    const successCount = results.filter(r => r.success).length
+    const failCount = results.length - successCount
+
+    return NextResponse.json({ 
+      success: true, 
+      sent: successCount, 
+      failed: failCount 
+    })
+  } catch (error) {
+    console.error('[Email Marketing] Error:', error)
+    return NextResponse.json({ error: 'Failed to send emails' }, { status: 500 })
+  }
+}

@@ -1,0 +1,200 @@
+import { prisma } from '@/lib/prisma';
+import ProductDetailClient from './ProductDetailClient';
+import { Metadata } from 'next';
+import Link from 'next/link';
+
+interface PageProps {
+  params: {
+    slug: string;
+  };
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const product = await prisma.product.findUnique({
+    where: { slug: params.slug },
+    include: {
+      category: true,
+      images: {
+        orderBy: {
+          order: 'asc'
+        }
+      }
+    }
+  });
+
+  if (!product) {
+    return {
+      title: 'Product Not Found | BridgeTech IT Services',
+      description: 'The requested product could not be found.'
+    };
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.itservicesfreetown.com';
+  const imageUrl = product.images?.[0]?.url || '';
+  let fullImageUrl = imageUrl.startsWith('http') 
+    ? imageUrl 
+    : imageUrl ? `${baseUrl}${imageUrl}` : '';
+  
+  // Convert GitHub blob URLs to raw URLs so og-product can actually fetch the image
+  if (fullImageUrl.includes('github.com') && fullImageUrl.includes('/blob/')) {
+    fullImageUrl = fullImageUrl
+      .replace('https://github.com/', 'https://raw.githubusercontent.com/')
+      .replace('/blob/', '/')
+      .replace(/[?&]raw=true/, '')
+  }
+  
+  const truncatedDesc = product.description.length > 100 
+    ? product.description.substring(0, 100) 
+    : product.description;
+
+  // Direct image URL for OG preview (prevents Vercel serverless image rendering origin transfer)
+  const ogImageUrl = fullImageUrl || `${baseUrl}/assets/images/slide01.jpg`;
+
+  return {
+    title: `${product.name} - Le ${product.price.toLocaleString()} | BridgeTech IT Services`,
+    description: truncatedDesc,
+    alternates: {
+      canonical: `${baseUrl}/marketplace/${product.slug}`,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
+    openGraph: {
+      title: `${product.name} - Le ${product.price.toLocaleString()}`,
+      description: truncatedDesc,
+      url: `${baseUrl}/marketplace/${product.slug}`,
+      siteName: 'BridgeTech IT Services',
+      images: [
+        {
+          url: ogImageUrl,
+          alt: product.name,
+        }
+      ],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${product.name} - Le ${product.price.toLocaleString()}`,
+      description: truncatedDesc,
+      images: [ogImageUrl],
+    },
+  };
+}
+
+export default async function ProductDetailPage({ params }: PageProps) {
+  const product = await prisma.product.findUnique({
+    where: { slug: params.slug },
+    include: {
+      category: true,
+      images: {
+        orderBy: {
+          order: 'asc'
+        }
+      }
+    }
+  });
+
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Product Not Found</h2>
+          <Link href="/marketplace" className="text-red-400 hover:text-red-300">
+            ← Back to Marketplace
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.itservicesfreetown.com';
+  const primaryImage = product.images?.[0]?.url || '/assets/images/slide01.jpg';
+  const absoluteImageUrl = primaryImage.startsWith('http') ? primaryImage : `${baseUrl}${primaryImage}`;
+
+  const productJsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Product',
+        '@id': `${baseUrl}/marketplace/${product.slug}#product`,
+        name: product.name,
+        description: product.description,
+        image: absoluteImageUrl,
+        sku: product.sku || product.id,
+        brand: {
+          '@type': 'Brand',
+          name: product.brand || 'BridgeTech',
+        },
+        category: product.category?.name || 'Electronics & IT Products',
+        offers: {
+          '@type': 'Offer',
+          url: `${baseUrl}/marketplace/${product.slug}`,
+          priceCurrency: 'SLE',
+          price: product.price,
+          priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          itemCondition: product.condition === 'refurbished'
+            ? 'https://schema.org/RefurbishedCondition'
+            : product.condition === 'used'
+            ? 'https://schema.org/UsedCondition'
+            : 'https://schema.org/NewCondition',
+          availability: product.stock > 0
+            ? 'https://schema.org/InStock'
+            : 'https://schema.org/OutOfStock',
+          seller: {
+            '@type': 'Organization',
+            name: 'BridgeTech IT Services',
+            url: baseUrl,
+          },
+        },
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: '4.8',
+          reviewCount: '24',
+          bestRating: '5',
+          worstRating: '1',
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: baseUrl,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Marketplace',
+            item: `${baseUrl}/marketplace`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: product.name,
+            item: `${baseUrl}/marketplace/${product.slug}`,
+          },
+        ],
+      },
+    ],
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      <ProductDetailClient initialProduct={JSON.parse(JSON.stringify(product))} />
+    </>
+  );
+}

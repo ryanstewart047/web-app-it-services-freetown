@@ -1,0 +1,383 @@
+import './globals.css'
+import type { Metadata } from 'next'
+import { Toaster } from 'react-hot-toast'
+import Script from 'next/script'
+import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
+import CookiePopup from '@/components/CookiePopup'
+import BannerPopup from '@/components/BannerPopup'
+import StaticChatFloat from '@/components/StaticChatFloat'
+import FloatingScrollToTop from '@/components/FloatingScrollToTop'
+import ServiceWorkerRegistration from '../src/components/ServiceWorkerRegistration'
+import PWAInstallBanner from '../src/components/PWAInstallBanner'
+import NetworkMonitor from '../src/components/NetworkMonitor'
+import { AnalyticsProvider } from '../src/components/AnalyticsTracker'
+import ConditionalLayout from '@/components/ConditionalLayout'
+import ForumPromoCard from '@/components/ForumPromoCard'
+import WhatsAppGroupCard from '../src/components/WhatsAppGroupCard'
+import HostingerSlideUp from '../src/components/HostingerSlideUp'
+import { CartProvider } from '@/contexts/CartContext'
+import {
+  BRAND_APPLE_TOUCH_ICON_SRC,
+  BRAND_FAVICON_ICO_SRC,
+  BRAND_FAVICON_SVG_SRC,
+  BRAND_LOGO_URL,
+  BRAND_SITE_URL,
+} from '@/lib/brand'
+
+// Set to true to re-enable the Hostinger promotional popup site-wide.
+const HOSTINGER_POPUP_ENABLED = false
+
+export const metadata: Metadata = {
+  metadataBase: new URL(BRAND_SITE_URL),
+  title: {
+    default: 'BridgeTech IT Services',
+    template: '%s | BridgeTech IT Services'
+  },
+  description: 'BridgeTech IT Services, Computer & Mobile Repair, POS Installation, Networking, and Device Unlocking. Professional, reliable same-day technical service.',
+  keywords: [
+    // Primary repair services
+    'computer repair Freetown',
+    'computer repair in Freetown',
+    'mobile repair',
+    'mobile repair Freetown',
+    'mobile repair in Freetown',
+    'mobile technician',
+    'mobile technician Freetown',
+    
+    // Location-specific
+    'Freetown Sierra Leone',
+    'BridgeTech IT Services',
+    'home repair Freetown',
+    
+    // Device-specific
+    'laptop repair Freetown',
+    'phone repair Freetown',
+    'iPhone repair',
+    'iPhone repair Freetown',
+    'screen replacement Freetown',
+    
+    // Unlocking services
+    'unlocking',
+    'mobile unlock',
+    'network unlocking',
+    'phone unlocking Freetown',
+    
+    // iCloud services
+    'iCloud removal',
+    'remove iCloud',
+    'iCloud unlock',
+    'iCloud bypass',
+    
+    // FRP services
+    'FRP',
+    'FRP removal',
+    'Google account FRP',
+    'remove FRP',
+    'FRP bypass',
+    'Google lock removal',
+    
+    // General services
+    'data recovery Sierra Leone',
+    'motherboard repair',
+    'virus removal Freetown',
+    'same day repair Freetown',
+    'tech support Sierra Leone',
+    'computer repair near me Freetown',
+    'best phone repair in Freetown',
+    'Samsung screen replacement Freetown',
+    'Tecno phone repair Freetown',
+    'Infinix screen replacement Freetown',
+    'HP Dell Lenovo laptop repair Sierra Leone',
+    '3D business card design Freetown',
+    'staff ID card maker Sierra Leone',
+    'free online digital tools Sierra Leone'
+  ],
+  authors: [{ name: 'BridgeTech IT Services' }],
+  creator: 'BridgeTech IT Services',
+  publisher: 'BridgeTech IT Services',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'BridgeTech IT Services'
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://www.itservicesfreetown.com',
+    siteName: 'BridgeTech IT Services',
+    title: 'BridgeTech IT Services - #1 Computer & Mobile Repair',
+    description: 'Professional computer and mobile repair services in Freetown. Same-day service, 1-month warranty, 95% success rate.',
+    images: [
+      {
+        url: '/assets/images/slide01.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'BridgeTech IT Services - Professional Repair Services',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@itservicesft',
+    creator: '@itservicesft',
+    title: 'BridgeTech IT Services - #1 Computer & Mobile Repair',
+    description: 'Professional computer and mobile repair services in Freetown. Same-day service, 1-month warranty, 95% success rate.',
+    images: ['/assets/images/slide01.jpg'],
+  },
+  alternates: {
+    canonical: '/',
+    types: {
+      'application/rss+xml': 'https://www.itservicesfreetown.com/rss.xml',
+    },
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: 'C_qQ737j2Bhg-AVVx_SwZ_diTB_ycwlOxgn68tefCw4',
+  },
+  other: {
+    'fb:app_id': '2508538602950972',
+  },
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <head>
+        {/* Preconnect to external resources */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+        <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
+        <link rel="preconnect" href="https://googleads.g.doubleclick.net" />
+        <link rel="preconnect" href="https://tpc.googlesyndication.com" />
+        <link rel="dns-prefetch" href="https://adservice.google.com" />
+        
+        {/* Google AdSense Verification Meta Tag */}
+        <meta name="google-adsense-account" content="ca-pub-9989697800650646" />
+        
+        {/* Google AdSense Script - Using raw script tag to avoid data-nscript attribute */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9989697800650646"
+          crossOrigin="anonymous"
+        ></script>
+        
+        {/* Font Awesome */}
+        <link 
+          rel="stylesheet" 
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+        />
+        
+        {/* PWA Meta Tags - Optimized for Play Store and iOS */}
+        <meta name="theme-color" content="#ffffff" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="BridgeTech IT Services" />
+        <meta name="application-name" content="BridgeTech IT Services" />
+        <meta name="msapplication-TileColor" content="#ffffff" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        
+        {/* Favicon - Using Site Logo */}
+        <link rel="icon" type="image/svg+xml" href={`${BRAND_FAVICON_SVG_SRC}?v=3`} />
+        <link rel="icon" type="image/x-icon" href={`${BRAND_FAVICON_ICO_SRC}?v=3`} />
+        
+        {/* Apple Touch Icons - PNG format required for Apple devices */}
+        <link rel="apple-touch-icon" href={BRAND_APPLE_TOUCH_ICON_SRC} />
+        <link rel="apple-touch-icon" sizes="180x180" href={BRAND_APPLE_TOUCH_ICON_SRC} />
+        <link rel="apple-touch-icon" sizes="152x152" href={BRAND_APPLE_TOUCH_ICON_SRC} />
+        <link rel="apple-touch-icon" sizes="167x167" href={BRAND_APPLE_TOUCH_ICON_SRC} />
+        
+        {/* Structured Data - Local Business Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'LocalBusiness',
+              '@id': 'https://www.itservicesfreetown.com',
+              name: 'BridgeTech IT Services',
+              alternateName: 'BridgeTech IT',
+              description: 'Professional computer and mobile repair services in Freetown, Sierra Leone. Same-day service, 1-month warranty, 95% success rate.',
+              url: BRAND_SITE_URL,
+              telephone: '+23233399391',
+              email: 'support@itservicesfreetown.com',
+              address: {
+                '@type': 'PostalAddress',
+                streetAddress: '#1 Regent Highway Jui Junction',
+                addressLocality: 'Freetown',
+                addressCountry: 'SL',
+                addressRegion: 'Western Area',
+              },
+              geo: {
+                '@type': 'GeoCoordinates',
+                latitude: '8.4840',
+                longitude: '-13.2130',
+              },
+              openingHoursSpecification: [
+                {
+                  '@type': 'OpeningHoursSpecification',
+                  dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+                  opens: '08:00',
+                  closes: '18:00',
+                },
+              ],
+              priceRange: '$$',
+              image: 'https://www.itservicesfreetown.com/assets/images/slide01.jpg',
+              logo: BRAND_LOGO_URL,
+              sameAs: [
+                'https://www.facebook.com/itservicesfreetown',
+                'https://twitter.com/itservicesft',
+                'https://www.instagram.com/itservicesfreetown',
+              ],
+              aggregateRating: {
+                '@type': 'AggregateRating',
+                ratingValue: '4.8',
+                reviewCount: '1000',
+                bestRating: '5',
+                worstRating: '1',
+              },
+              hasOfferCatalog: {
+                '@type': 'OfferCatalog',
+                name: 'Repair Services',
+                itemListElement: [
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'Computer & Laptop Repair',
+                      description: 'Expert motherboard micro-soldering, virus removal, hardware diagnostics, and laptop repair for HP, Dell, Lenovo, and Apple in Freetown.',
+                    },
+                  },
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'iPhone & Android Mobile Phone Repair',
+                      description: 'Professional iPhone screen replacement, Samsung Galaxy repair, battery replacement, and charging port repair with warranty.',
+                    },
+                  },
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'iCloud Removal & FRP Unlock',
+                      description: 'Factory network unlocking, Google FRP bypass, and verified device account unlock services in Freetown.',
+                    },
+                  },
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'Data Recovery & Storage Solutions',
+                      description: 'Hard drive, SSD, USB flash drive, and phone water-damage data recovery services in Sierra Leone.',
+                    },
+                  },
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: '3D Business Card & Staff ID Badge Studio',
+                      description: 'Design print-ready 300 DPI executive business cards, Guilloche security ID badges, and VIP passes online.',
+                    },
+                  },
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'Free Digital Tools Suite',
+                      description: 'AI background eraser, deepfake forensics inspector, audio/video to MP3 converter, and Word to PDF utilities.',
+                    },
+                  },
+                ],
+              },
+            }),
+          }}
+        />
+        
+        {/* Organization Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'BridgeTech IT Services',
+              url: BRAND_SITE_URL,
+              logo: BRAND_LOGO_URL,
+              contactPoint: {
+                '@type': 'ContactPoint',
+                telephone: '+23233399391',
+                contactType: 'customer service',
+                areaServed: 'SL',
+                availableLanguage: ['en', 'kri'],
+              },
+            }),
+          }}
+        />
+        {/* Google Fonts Preconnect & Inter Font Stylesheet */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="font-sans bg-gray-50 min-h-screen">
+        {/* Google Analytics - loaded after page is interactive for performance */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-2SS4WDYJRF"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-2SS4WDYJRF');
+          `}
+        </Script>
+        <CartProvider>
+          <AnalyticsProvider config={{
+            enabled: true,
+            trackPageViews: true,
+            trackClicks: true,
+            trackFormInteractions: true,
+            trackErrors: true,
+            trackPerformance: true,
+            sessionTimeout: 30
+          }}>
+            <ConditionalLayout>
+              {children}
+            </ConditionalLayout>
+            <ForumPromoCard />
+            <WhatsAppGroupCard />
+            {HOSTINGER_POPUP_ENABLED && <HostingerSlideUp />}
+            <Toaster position="top-right" />
+          </AnalyticsProvider>
+        </CartProvider>
+      </body>
+    </html>
+  )
+}
