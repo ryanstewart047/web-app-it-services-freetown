@@ -1,15 +1,42 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   FileText, Plus, Trash2, Printer, Download, Save, Search, Eye,
   ArrowLeft, CheckCircle, Clock, XCircle, AlertTriangle, TrendingUp,
   User, Building2, Phone, Mail, MapPin, CreditCard, Copy, Edit3, RefreshCw,
-  Sparkles, Check, ChevronDown, ChevronUp, Settings
+  Sparkles, Check, ChevronDown, ChevronUp, Settings, DollarSign
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAdminSession } from '../../../src/hooks/useAdminSession';
 import { BRAND_NAME, BRAND_LOGO_SRC, BRAND_LOGO_DARK_SRC, BRAND_LOGO_FALLBACK_SRC } from '@/lib/brand';
+
+// ── Currency Definitions ─────────────────────────────────────────────────────
+interface CurrencyOption {
+  code: string;
+  symbol: string;
+  label: string;
+  locale: string;
+  taxLabel: string;   // e.g. "NRA VAT" or "VAT" or "GST"
+  defaultTax: number; // default tax rate for this currency
+}
+
+const CURRENCIES: CurrencyOption[] = [
+  { code: 'SLL', symbol: 'Le',  label: 'Leone (SLL) — Sierra Leone', locale: 'en-SL', taxLabel: 'NRA VAT (Sierra Leone)', defaultTax: 15 },
+  { code: 'USD', symbol: '$',   label: 'US Dollar (USD)',             locale: 'en-US', taxLabel: 'Sales Tax',             defaultTax: 0  },
+  { code: 'EUR', symbol: '€',   label: 'Euro (EUR)',                  locale: 'de-DE', taxLabel: 'VAT',                   defaultTax: 20 },
+  { code: 'GBP', symbol: '£',   label: 'British Pound (GBP)',         locale: 'en-GB', taxLabel: 'VAT',                   defaultTax: 20 },
+  { code: 'GMD', symbol: 'D',   label: 'Dalasi (GMD) — Gambia',      locale: 'en-GM', taxLabel: 'VAT',                   defaultTax: 15 },
+  { code: 'GHS', symbol: '₵',   label: 'Cedi (GHS) — Ghana',         locale: 'en-GH', taxLabel: 'VAT',                   defaultTax: 15 },
+  { code: 'NGN', symbol: '₦',   label: 'Naira (NGN) — Nigeria',      locale: 'en-NG', taxLabel: 'VAT',                   defaultTax: 7.5},
+  { code: 'XOF', symbol: 'CFA', label: 'CFA Franc (XOF) — W.Africa', locale: 'fr-SN', taxLabel: 'TVA',                   defaultTax: 18 },
+  { code: 'CAD', symbol: 'CA$', label: 'Canadian Dollar (CAD)',       locale: 'en-CA', taxLabel: 'GST/HST',               defaultTax: 13 },
+  { code: 'AUD', symbol: 'A$',  label: 'Australian Dollar (AUD)',     locale: 'en-AU', taxLabel: 'GST',                   defaultTax: 10 },
+  { code: 'ZAR', symbol: 'R',   label: 'Rand (ZAR) — South Africa',  locale: 'en-ZA', taxLabel: 'VAT',                   defaultTax: 15 },
+  { code: 'KES', symbol: 'KSh', label: 'Shilling (KES) — Kenya',     locale: 'en-KE', taxLabel: 'VAT',                   defaultTax: 16 },
+];
+
+const DEFAULT_CURRENCY = CURRENCIES[0]; // SLL / Leone
 
 // ── Types ────────────────────────────────────────────────────────────────────
 interface InvoiceItem {
@@ -33,6 +60,7 @@ interface CompanyInfo {
 interface Invoice extends CompanyInfo {
   id?: string;
   invoiceNumber: string;
+  currency: string; // currency code e.g. 'SLL', 'USD', 'GBP'
   clientName: string;
   clientCompany: string;
   clientEmail: string;
@@ -74,7 +102,19 @@ const DRAFT_KEY = 'admin_invoice_draft';
 const COMPANY_INFO_KEY = 'admin_company_info';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-const fmt = (n: number) => `Le ${Number(n || 0).toLocaleString('en-SL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const getCurrency = (code?: string): CurrencyOption =>
+  CURRENCIES.find(c => c.code === code) ?? DEFAULT_CURRENCY;
+
+const fmtWithCurrency = (n: number, currencyCode?: string): string => {
+  const cur = getCurrency(currencyCode);
+  const formatted = Number(n || 0).toLocaleString(cur.locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  // For multi-char symbols like 'CFA', 'CA$', 'A$', 'KSh' put a space
+  const sep = cur.symbol.length > 1 ? ' ' : '';
+  return `${cur.symbol}${sep}${formatted}`;
+};
+
+// Legacy alias for places that don't yet pass currency (uses SLL by default)
+const fmt = (n: number) => fmtWithCurrency(n, 'SLL');
 const today = () => new Date().toISOString().split('T')[0];
 const genInvoiceNo = () => {
   const d = new Date();
@@ -126,6 +166,7 @@ const blankInvoice = (): Invoice => {
   const company = getSavedCompanyInfo();
   return {
     invoiceNumber: genInvoiceNo(),
+    currency: DEFAULT_CURRENCY.code,
     ...company,
     payTo: company.payTo || company.companyName || 'BridgeTech IT Services',
     clientName: '',
@@ -140,7 +181,7 @@ const blankInvoice = (): Invoice => {
     status: 'pending',
     items: [emptyItem()],
     subtotal: 0,
-    taxRate: 15,
+    taxRate: DEFAULT_CURRENCY.defaultTax,
     taxAmount: 0,
     discountAmount: 0,
     amountPaid: 0,
@@ -176,6 +217,10 @@ export default function InvoicesAdminPage() {
   const [savedModalInvoice, setSavedModalInvoice] = useState<Invoice | null>(null);
   const [justSaved, setJustSaved] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+
+  // ── Currency helpers ────────────────────────────────────────────────────────
+  const activeCurrency = useMemo(() => getCurrency(invoice.currency), [invoice.currency]);
+  const f = useCallback((n: number) => fmtWithCurrency(n, invoice.currency), [invoice.currency]);
 
   // ── Restore draft on mount ─────────────────────────────────────────────────
   useEffect(() => {
@@ -416,6 +461,7 @@ export default function InvoicesAdminPage() {
     const safeItems = Array.isArray(inv.items) && inv.items.length > 0 ? inv.items : [emptyItem()];
     setInvoice({
       ...DEFAULT_COMPANY_INFO,
+      currency: DEFAULT_CURRENCY.code, // fallback for old invoices without currency
       ...inv,
       items: safeItems
     });
@@ -429,6 +475,7 @@ export default function InvoicesAdminPage() {
     const safeItems = Array.isArray(inv.items) && inv.items.length > 0 ? inv.items : [emptyItem()];
     const dup: Invoice = {
       ...DEFAULT_COMPANY_INFO,
+      currency: inv.currency || DEFAULT_CURRENCY.code,
       ...inv,
       id: undefined,
       invoiceNumber: genInvoiceNo(),
@@ -645,12 +692,12 @@ export default function InvoicesAdminPage() {
               )}
               <div className="flex justify-between">
                 <span className="text-slate-400">Grand Total:</span>
-                <span className="font-bold font-mono text-blue-300">{fmt(savedModalInvoice.totalAmount)}</span>
+                <span className="font-bold font-mono text-blue-300">{fmtWithCurrency(savedModalInvoice.totalAmount, savedModalInvoice.currency)}</span>
               </div>
               <div className="flex justify-between border-t border-white/10 pt-2 font-semibold">
                 <span className="text-slate-300">Balance Due:</span>
                 <span className={`font-mono font-bold ${savedModalInvoice.balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                  {fmt(savedModalInvoice.balanceDue)}
+                  {fmtWithCurrency(savedModalInvoice.balanceDue, savedModalInvoice.currency)}
                 </span>
               </div>
               {savedModalInvoice.payTo && (
@@ -936,6 +983,27 @@ export default function InvoicesAdminPage() {
                     <input type="date" value={invoice.dueDate} onChange={e => setInvoice(p => ({ ...p, dueDate: e.target.value }))}
                       className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-red-500" />
                   </div>
+                  {/* Currency Selector */}
+                  <div className="col-span-2">
+                    <label className="text-xs text-slate-400 mb-1 flex items-center gap-1">
+                      <DollarSign className="w-3.5 h-3.5" /> Invoice Currency
+                    </label>
+                    <select
+                      value={invoice.currency}
+                      onChange={e => {
+                        const cur = getCurrency(e.target.value);
+                        setInvoice(p => ({ ...p, currency: e.target.value, taxRate: cur.defaultTax }));
+                      }}
+                      className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-red-500"
+                    >
+                      {CURRENCIES.map(c => (
+                        <option key={c.code} value={c.code}>{c.label}</option>
+                      ))}
+                    </select>
+                    <p className="text-[10px] text-slate-500 mt-1">
+                      Symbol: <span className="font-mono font-bold text-slate-300">{activeCurrency.symbol}</span> · Default Tax: {activeCurrency.defaultTax}% · {activeCurrency.taxLabel}
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -980,8 +1048,8 @@ export default function InvoicesAdminPage() {
                   <div className="grid grid-cols-12 gap-2 text-[10px] text-slate-500 uppercase tracking-widest px-1">
                     <div className="col-span-5">Description</div>
                     <div className="col-span-2 text-center">Qty</div>
-                    <div className="col-span-3 text-right">Unit Price</div>
-                    <div className="col-span-1 text-right">Total</div>
+                    <div className="col-span-3 text-right">Unit Price ({activeCurrency.symbol})</div>
+                    <div className="col-span-1 text-right">Total ({activeCurrency.symbol})</div>
                     <div className="col-span-1"></div>
                   </div>
                   {invoice.items.map(item => (
@@ -1015,13 +1083,13 @@ export default function InvoicesAdminPage() {
                 <div className="mt-6 border-t border-white/10 pt-5 space-y-2.5">
                   <div className="flex justify-between text-sm text-slate-400">
                     <span>Subtotal</span>
-                    <span className="font-mono">{fmt(invoice.subtotal)}</span>
+                    <span className="font-mono">{f(invoice.subtotal)}</span>
                   </div>
                   <div className="space-y-2 border-t border-white/10 pt-3">
                     <div className="flex items-center justify-between gap-4">
                       <div>
-                        <label className="text-sm font-semibold text-slate-300">NRA Value Added Tax (VAT %)</label>
-                        <p className="text-[11px] text-slate-400">Standard Sierra Leone NRA VAT rate is 15%</p>
+                        <label className="text-sm font-semibold text-slate-300">{activeCurrency.taxLabel} (%)</label>
+                        <p className="text-[11px] text-slate-400">{activeCurrency.taxLabel} — Default rate: {activeCurrency.defaultTax}%</p>
                       </div>
                       <div className="flex items-center gap-2">
                         {[
@@ -1047,39 +1115,39 @@ export default function InvoicesAdminPage() {
                       </div>
                     </div>
                     <div className="flex justify-between text-sm text-slate-300 bg-slate-900/60 p-2.5 rounded-lg border border-white/5">
-                      <span className="font-medium">Calculated VAT ({invoice.taxRate}% NRA)</span>
-                      <span className="font-mono text-red-400 font-bold">+ {fmt(invoice.taxAmount)}</span>
+                      <span className="font-medium">{activeCurrency.taxLabel} ({invoice.taxRate}%)</span>
+                      <span className="font-mono text-red-400 font-bold">+ {f(invoice.taxAmount)}</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between gap-4">
-                    <label className="text-sm text-slate-400">Discount (Le)</label>
+                    <label className="text-sm text-slate-400">Discount ({activeCurrency.symbol})</label>
                     <input type="number" min="0" value={invoice.discountAmount} onChange={e => setInvoice(p => ({ ...p, discountAmount: parseFloat(e.target.value) || 0 }))}
                       className="w-32 bg-slate-900 border border-white/15 rounded-lg px-3 py-1.5 text-white text-sm text-right focus:ring-2 focus:ring-red-500 font-mono" />
                   </div>
                   {invoice.discountAmount > 0 && (
                     <div className="flex justify-between text-sm text-slate-400">
                       <span>Discount</span>
-                      <span className="font-mono text-emerald-400">- {fmt(invoice.discountAmount)}</span>
+                      <span className="font-mono text-emerald-400">- {f(invoice.discountAmount)}</span>
                     </div>
                   )}
                   <div className="flex justify-between font-bold text-lg text-white border-t border-white/10 pt-3">
                     <span>Total</span>
-                    <span className="font-mono text-blue-300">{fmt(invoice.totalAmount)}</span>
+                    <span className="font-mono text-blue-300">{f(invoice.totalAmount)}</span>
                   </div>
                   <div className="flex items-center justify-between gap-4">
-                    <label className="text-sm text-slate-400">Amount Paid / Deposit (Le)</label>
+                    <label className="text-sm text-slate-400">Amount Paid / Deposit ({activeCurrency.symbol})</label>
                     <input type="number" min="0" value={invoice.amountPaid} onChange={e => setInvoice(p => ({ ...p, amountPaid: parseFloat(e.target.value) || 0 }))}
                       className="w-36 bg-slate-900 border border-white/15 rounded-lg px-3 py-1.5 text-white text-sm text-right focus:ring-2 focus:ring-red-500 font-mono" />
                   </div>
                   {invoice.amountPaid > 0 && (
                     <div className="flex justify-between text-sm text-slate-400">
                       <span>Amount Paid</span>
-                      <span className="font-mono text-emerald-400">- {fmt(invoice.amountPaid)}</span>
+                      <span className="font-mono text-emerald-400">- {f(invoice.amountPaid)}</span>
                     </div>
                   )}
                   <div className="flex justify-between font-bold text-xl border-t-2 border-red-500/50 pt-3">
                     <span className="text-white">Balance Due</span>
-                    <span className={`font-mono ${invoice.balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>{fmt(invoice.balanceDue)}</span>
+                    <span className={`font-mono ${invoice.balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>{f(invoice.balanceDue)}</span>
                   </div>
 
                   {/* Pay To Option under Balance Due */}
@@ -1265,8 +1333,8 @@ export default function InvoicesAdminPage() {
                               <td className="px-3.5 py-2.5 print:py-1.5 print:px-2.5 text-slate-400 font-mono">{idx + 1}</td>
                               <td className="px-3.5 py-2.5 print:py-1.5 print:px-2.5 text-slate-800 font-semibold">{item.description}</td>
                               <td className="px-3.5 py-2.5 print:py-1.5 print:px-2.5 text-center text-slate-700 font-mono font-medium">{item.quantity}</td>
-                              <td className="px-3.5 py-2.5 print:py-1.5 print:px-2.5 text-right text-slate-700 font-mono">{fmt(item.unitPrice)}</td>
-                              <td className="px-3.5 py-2.5 print:py-1.5 print:px-2.5 text-right text-slate-900 font-mono font-bold">{fmt(item.total)}</td>
+                              <td className="px-3.5 py-2.5 print:py-1.5 print:px-2.5 text-right text-slate-700 font-mono">{f(item.unitPrice)}</td>
+                              <td className="px-3.5 py-2.5 print:py-1.5 print:px-2.5 text-right text-slate-900 font-mono font-bold">{f(item.total)}</td>
                             </tr>
                           ))}
                           {invoice.items.filter(i => i.description).length === 0 && (
@@ -1279,17 +1347,17 @@ export default function InvoicesAdminPage() {
                     {/* Totals */}
                     <div className="invoice-avoid-break flex justify-end">
                       <div className="w-80 print:w-72 bg-slate-50/90 rounded-xl p-3.5 print:p-2.5 border border-slate-200 space-y-1.5 print:space-y-1 text-xs">
-                        <div className="flex justify-between text-slate-600"><span>Subtotal</span><span className="font-mono font-semibold">{fmt(invoice.subtotal)}</span></div>
+                        <div className="flex justify-between text-slate-600"><span>Subtotal</span><span className="font-mono font-semibold">{f(invoice.subtotal)}</span></div>
                         <div className="flex justify-between text-slate-700 font-medium">
-                          <span>Value Added Tax (VAT {invoice.taxRate}%)</span>
-                          <span className="font-mono font-bold text-slate-800">+ {fmt(invoice.taxAmount)}</span>
+                          <span>{activeCurrency.taxLabel} ({invoice.taxRate}%)</span>
+                          <span className="font-mono font-bold text-slate-800">+ {f(invoice.taxAmount)}</span>
                         </div>
-                        {invoice.discountAmount > 0 && <div className="flex justify-between text-emerald-600 font-semibold"><span>Discount</span><span className="font-mono">- {fmt(invoice.discountAmount)}</span></div>}
-                        <div className="flex justify-between font-extrabold text-sm print:text-xs border-t border-slate-200 pt-1.5 text-slate-900"><span>Grand Total</span><span className="font-mono text-[#040e40]">{fmt(invoice.totalAmount)}</span></div>
-                        {invoice.amountPaid > 0 && <div className="flex justify-between text-emerald-700 font-semibold"><span>Amount Paid / Deposit</span><span className="font-mono">- {fmt(invoice.amountPaid)}</span></div>}
+                        {invoice.discountAmount > 0 && <div className="flex justify-between text-emerald-600 font-semibold"><span>Discount</span><span className="font-mono">- {f(invoice.discountAmount)}</span></div>}
+                        <div className="flex justify-between font-extrabold text-sm print:text-xs border-t border-slate-200 pt-1.5 text-slate-900"><span>Grand Total</span><span className="font-mono text-[#040e40]">{f(invoice.totalAmount)}</span></div>
+                        {invoice.amountPaid > 0 && <div className="flex justify-between text-emerald-700 font-semibold"><span>Amount Paid / Deposit</span><span className="font-mono">- {f(invoice.amountPaid)}</span></div>}
                         <div className={`flex justify-between font-black text-sm print:text-xs border-t-2 pt-1.5 ${invoice.balanceDue > 0 ? 'border-red-400 text-[#dc2626]' : 'border-emerald-400 text-emerald-700'}`}>
                           <span>Balance Due</span>
-                          <span className="font-mono">{fmt(invoice.balanceDue)}</span>
+                          <span className="font-mono">{f(invoice.balanceDue)}</span>
                         </div>
 
                         {/* Pay To Option under Balance Due */}
@@ -1414,9 +1482,12 @@ export default function InvoicesAdminPage() {
                             </td>
                             <td className="px-5 py-3.5 text-slate-400 text-xs hidden md:table-cell">{inv.invoiceDate}</td>
                             <td className="px-5 py-3.5 text-slate-400 text-xs hidden lg:table-cell">{inv.dueDate}</td>
-                            <td className="px-5 py-3.5 text-right font-mono text-white text-xs">{fmt(inv.totalAmount)}</td>
+                            <td className="px-5 py-3.5 text-right font-mono text-white text-xs">
+                              {fmtWithCurrency(inv.totalAmount, inv.currency)}
+                              <span className="text-[10px] text-slate-400 block font-sans font-medium">{inv.currency || DEFAULT_CURRENCY.code}</span>
+                            </td>
                             <td className={`px-5 py-3.5 text-right font-mono text-xs font-bold hidden md:table-cell ${inv.balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                              {fmt(inv.balanceDue)}
+                              {fmtWithCurrency(inv.balanceDue, inv.currency)}
                             </td>
                             <td className="px-5 py-3.5 text-center">
                               <select value={inv.status} onChange={e => updateStatus(inv.invoiceNumber, e.target.value)}

@@ -99,12 +99,15 @@ export async function GET(request: NextRequest) {
         // If items has company metadata attached, extract it
         let itemsData = inv.items
         let companyInfo: any = {}
+        let invoiceCurrency = inv.currency || 'SLL'
         if (itemsData && typeof itemsData === 'object' && !Array.isArray(itemsData) && (itemsData as any).itemsList) {
           companyInfo = (itemsData as any).companyInfo || {}
+          if ((itemsData as any).currency) invoiceCurrency = (itemsData as any).currency
           itemsData = (itemsData as any).itemsList
         }
         merged.push({
           ...inv,
+          currency: invoiceCurrency,
           items: itemsData,
           companyName: companyInfo.companyName || inv.companyName || undefined,
           companyTagline: companyInfo.companyTagline || inv.companyTagline || undefined,
@@ -120,7 +123,10 @@ export async function GET(request: NextRequest) {
     for (const inv of filteredFallback) {
       if (inv.invoiceNumber && !seen.has(inv.invoiceNumber)) {
         seen.add(inv.invoiceNumber)
-        merged.push(inv)
+        merged.push({
+          ...inv,
+          currency: inv.currency || 'SLL'
+        })
       }
     }
 
@@ -150,11 +156,13 @@ export async function POST(request: NextRequest) {
 
     // Clean items list
     const itemsList = Array.isArray(data.items) ? data.items : []
+    const currency = data.currency || 'SLL'
 
     // Pack items and company metadata so it survives Prisma Json field
     const itemsPayload = {
       itemsList: itemsList,
-      companyInfo: companyInfo
+      companyInfo: companyInfo,
+      currency: currency
     }
 
     const payload = {
@@ -199,6 +207,7 @@ export async function POST(request: NextRequest) {
     const obj = {
       id: saved?.id || (idx >= 0 ? fallback[idx].id : `inv_${Date.now()}`),
       ...payload,
+      currency: currency,
       items: itemsList,
       ...companyInfo,
       createdAt: saved?.createdAt || (idx >= 0 ? fallback[idx].createdAt : new Date().toISOString()),
@@ -217,6 +226,7 @@ export async function POST(request: NextRequest) {
     } else {
       saved = {
         ...saved,
+        currency: currency,
         items: itemsList,
         ...companyInfo
       }
