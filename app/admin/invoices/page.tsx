@@ -217,6 +217,8 @@ export default function InvoicesAdminPage() {
   const [invoice, setInvoice] = useState<Invoice>(blankInvoice());
   const [savedInvoices, setSavedInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
+  const [syncMessage, setSyncMessage] = useState<string>('');
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -332,67 +334,145 @@ export default function InvoicesAdminPage() {
     setInvoice(prev => ({ ...prev, items: prev.items.filter(i => i.id !== id) }));
   };
 
-  // ── Load & Sync Invoices (Offline & Online Resilient) ─────────────────────────
-  const fetchInvoices = useCallback(async () => {
+  // ── Load & Bidirectional Sync (Multi-Device & Cloud Persistent) ─────────────
+  const fetchInvoices = useCallback(async (isManual = false) => {
     setLoading(true);
-    // 1. Instantly load from localStorage
+    setSyncStatus('syncing');
+
+    // 1. Instantly display cached localStorage invoices
     let localList: Invoice[] = [];
     try {
       const local = localStorage.getItem(SAVED_INVOICES_KEY);
       if (local) {
-        localList = JSON.parse(local);
-        setSavedInvoices(localList);
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed)) {
+          localList = parsed;
+          setSavedInvoices(localList);
+        }
       }
-    } catch {}
+    } catch (e) {
+      console.warn('Error reading local cache:', e);
+    }
 
-    // 2. Fetch from API & Merge
+    // 2. Fetch fresh invoices from Server API (bypassing any browser cache)
     try {
       const params = new URLSearchParams();
       if (searchQuery) params.set('search', searchQuery);
       if (statusFilter !== 'all') params.set('status', statusFilter);
-      const res = await fetch(`/api/invoices?${params}`);
-      if (res.ok) {
-        const apiData = await res.json();
-        if (Array.isArray(apiData)) {
-          // Merge API data with localStorage data
-          const map = new Map<string, Invoice>();
-          // Put local invoices first
-          for (const item of localList) {
-            if (item.invoiceNumber) map.set(item.invoiceNumber, item);
-          }
-          // Merge / override with server invoices
-          for (const item of apiData) {
-            if (item.invoiceNumber) {
-              const existing = map.get(item.invoiceNumber);
-              map.set(item.invoiceNumber, {
-                ...DEFAULT_COMPANY_INFO,
-                ...existing,
-                ...item,
-                items: Array.isArray(item.items) ? item.items : (existing?.items || [emptyItem()])
-              });
-            }
-          }
-          const merged = Array.from(map.values()).sort((a, b) => {
-            const da = new Date(a.createdAt || a.invoiceDate).getTime();
-            const db = new Date(b.createdAt || b.invoiceDate).getTime();
-            return db - da;
-          });
-          setSavedInvoices(merged);
-          localStorage.setItem(SAVED_INVOICES_KEY, JSON.stringify(merged));
+      params.set('_t', Date.now().toString());
+
+      const res = await fetch(`/api/invoices?${params}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
         }
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const apiData = await res.json();
+      if (Array.isArray(apiData)) {
+        // Map of server records
+        const serverMap = new Map<string, Invoice>();
+        for (const item of apiData) {
+          if (item.invoiceNumber) serverMap.set(item.invoiceNumber, item);
+        }
+
+        // 3. Two-way sync: Detect local-only invoices that need to be uploaded to server
+        const unsyncedLocals = localList.filter(
+          loc => loc.invoiceNumber && !serverMap.has(loc.invoiceNumber)
+        );
+
+        if (unsyncedLocals.length > 0) {
+          try {
+            // Upload missing local invoices in batch to the server
+            const uploadRes = await fetch('/api/invoices', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ batch: unsyncedLocals }),
+            });
+            if (uploadRes.ok) {
+              const uploadData = await uploadRes.json();
+              if (Array.isArray(uploadData.invoices)) {
+                for (const uploaded of uploadData.invoices) {
+                  if (uploaded.invoiceNumber) serverMap.set(uploaded.invoiceNumber, uploaded);
+                }
+              }
+            }
+          } catch (uploadErr) {
+            console.warn('Background sync of unsynced local invoices failed:', uploadErr);
+          }
+        }
+
+        // 4. Merge server invoices with local items
+        const map = new Map<string, Invoice>();
+        for (const item of localList) {
+          if (item.invoiceNumber) map.set(item.invoiceNumber, item);
+        }
+        for (const [invNum, item] of serverMap.entries()) {
+          const existing = map.get(invNum);
+          map.set(invNum, {
+            ...DEFAULT_COMPANY_INFO,
+            ...existing,
+            ...item,
+            items: Array.isArray(item.items) && item.items.length > 0 ? item.items : (existing?.items || [emptyItem()])
+          });
+        }
+
+        const merged = Array.from(map.values()).sort((a, b) => {
+          const da = new Date(a.createdAt || a.invoiceDate).getTime();
+          const db = new Date(b.createdAt || b.invoiceDate).getTime();
+          return db - da;
+        });
+
+        setSavedInvoices(merged);
+        localStorage.setItem(SAVED_INVOICES_KEY, JSON.stringify(merged));
+
+        // 5. Restore company info on new device from latest invoice if not set
+        try {
+          const savedComp = localStorage.getItem(COMPANY_INFO_KEY);
+          if (!savedComp && merged.length > 0 && merged[0].companyName) {
+            const restoredCompany: CompanyInfo = {
+              companyName: merged[0].companyName || BRAND_NAME,
+              companyTagline: merged[0].companyTagline || DEFAULT_COMPANY_INFO.companyTagline,
+              companyAddress: merged[0].companyAddress || DEFAULT_COMPANY_INFO.companyAddress,
+              companyCityCountry: merged[0].companyCityCountry || DEFAULT_COMPANY_INFO.companyCityCountry,
+              companyPhone: merged[0].companyPhone || DEFAULT_COMPANY_INFO.companyPhone,
+              companyEmail: merged[0].companyEmail || DEFAULT_COMPANY_INFO.companyEmail,
+              payTo: merged[0].payTo || merged[0].companyName,
+            };
+            localStorage.setItem(COMPANY_INFO_KEY, JSON.stringify(restoredCompany));
+          }
+        } catch {}
+
+        setSyncStatus('synced');
+        setSyncMessage(`Synced ${merged.length} invoice${merged.length === 1 ? '' : 's'}`);
+        if (isManual) notify('success', `Synced ${merged.length} invoice${merged.length === 1 ? '' : 's'} across all devices!`);
       }
     } catch (e) {
       console.warn('API fetch failed, displaying local invoices:', e);
+      setSyncStatus('error');
+      setSyncMessage('Using local cache (Server unreachable)');
+      if (isManual) notify('error', 'Could not reach server. Showing local cache.');
     } finally {
       setLoading(false);
     }
   }, [searchQuery, statusFilter]);
 
+  // ── Auto-Sync on Mount (Guarantees other devices load all invoices immediately) ─
   useEffect(() => {
-    if (tab === 'history') fetchInvoices();
+    fetchInvoices();
+  }, [fetchInvoices]);
+
+  // ── Refresh on Tab Switch ───────────────────────────────────────────────────
+  useEffect(() => {
+    if (tab === 'history') {
+      fetchInvoices();
+    }
   }, [tab, fetchInvoices]);
 
-  // ── Save Invoice (Guaranteed Client & Server Sync) ───────────────────────────
+  // ── Save Invoice (Guaranteed Multi-Device Cloud Sync) ────────────────────────
   const saveInvoice = async () => {
     // 1. Resolve client name so empty inputs never block saving
     const effectiveClientName = invoice.clientName.trim() || invoice.clientCompany.trim() || 'Valued Client';
@@ -407,7 +487,7 @@ export default function InvoicesAdminPage() {
     setSaving(true);
     setSavedModalInvoice(invoiceToSave);
 
-    // 2. Save to localStorage immediately (synchronous, 100% reliable)
+    // 2. Save to localStorage immediately (instant UI feedback)
     try {
       const local = localStorage.getItem(SAVED_INVOICES_KEY);
       let list: Invoice[] = local ? JSON.parse(local) : [];
@@ -428,7 +508,7 @@ export default function InvoicesAdminPage() {
       console.error('LocalStorage write error:', e);
     }
 
-    // 3. Sync to Server API
+    // 3. Sync to Server Database API (so other devices can see it)
     try {
       const res = await fetch('/api/invoices', {
         method: 'POST',
@@ -436,10 +516,23 @@ export default function InvoicesAdminPage() {
         body: JSON.stringify(invoiceToSave),
       });
       if (res.ok) {
-        notify('success', `Invoice ${invoiceToSave.invoiceNumber} saved successfully!`);
+        const resData = await res.json().catch(() => null);
+        const finalInv = resData?.invoice || invoiceToSave;
+        // Update local list with server-returned version
+        try {
+          const local = localStorage.getItem(SAVED_INVOICES_KEY);
+          let list: Invoice[] = local ? JSON.parse(local) : [];
+          const idx = list.findIndex(i => i.invoiceNumber === finalInv.invoiceNumber);
+          if (idx >= 0) list[idx] = finalInv;
+          else list.unshift(finalInv);
+          localStorage.setItem(SAVED_INVOICES_KEY, JSON.stringify(list));
+          setSavedInvoices(list);
+          setSavedModalInvoice(finalInv);
+        } catch {}
+        notify('success', `Invoice ${finalInv.invoiceNumber} saved & synced across all devices!`);
       } else {
         const err = await res.json().catch(() => ({}));
-        notify('success', `Invoice saved locally! (${err.error || 'Server sync pending'})`);
+        notify('success', `Invoice saved locally! (${err.error || 'Cloud sync pending'})`);
       }
     } catch {
       notify('success', `Invoice ${invoiceToSave.invoiceNumber} saved locally!`);
@@ -464,10 +557,14 @@ export default function InvoicesAdminPage() {
 
     // Delete from API
     try {
-      await fetch(`/api/invoices?invoiceNumber=${invNo}`, { method: 'DELETE' });
-      notify('success', 'Invoice deleted.');
+      const res = await fetch(`/api/invoices?invoiceNumber=${invNo}`, { method: 'DELETE' });
+      if (res.ok) {
+        notify('success', `Invoice ${invNo} deleted from all devices.`);
+      } else {
+        notify('success', `Invoice ${invNo} removed locally.`);
+      }
     } catch {
-      notify('success', 'Invoice removed locally.');
+      notify('success', `Invoice ${invNo} removed locally.`);
     }
   };
 
@@ -1561,9 +1658,20 @@ ${p.paymentInstructions}`.trim()
                 <option value="all">All Statuses</option>
                 {Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
               </select>
-              <button onClick={fetchInvoices} className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm font-medium transition-all border border-white/10">
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
+              <button
+                onClick={() => fetchInvoices(true)}
+                disabled={loading}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 rounded-lg text-sm font-semibold transition-all border border-blue-500/30 shadow-xs"
+                title="Synchronize invoices with cloud database across all devices"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+                <span>{loading ? 'Syncing...' : 'Sync Cloud'}</span>
               </button>
+              {syncMessage && (
+                <span className="text-[11px] text-slate-400 font-medium px-2 py-1 bg-white/5 rounded-md border border-white/5 hidden md:inline-block">
+                  {syncMessage}
+                </span>
+              )}
               <button onClick={() => { setInvoice(blankInvoice()); setTab('builder'); setPreviewMode(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                 className="flex items-center gap-2 px-4 py-2 bg-[#dc2626] hover:bg-red-700 text-white rounded-lg text-sm font-bold transition-all shadow-md">
                 <Plus className="w-3.5 h-3.5" /> New Invoice
