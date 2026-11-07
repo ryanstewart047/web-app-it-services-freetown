@@ -2734,48 +2734,154 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                 )}
               </div>
 
-              {/* Pricing & Billing Details */}
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 sm:p-4 space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
-                  <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <i className="fas fa-coins text-xs" /> Pricing &amp; Balance Due
+              {/* ── Interactive Repair Cost Builder & Pricing ── */}
+              <div className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden shadow-sm space-y-0">
+                <div className="bg-slate-950 px-3.5 py-2.5 border-b border-slate-800 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <i className="fas fa-calculator text-red-400 text-xs" />
+                    <span className="font-bold text-white text-[11px] uppercase tracking-wide">Repair Cost Builder</span>
+                  </div>
+                  <span className="text-xs font-mono font-black text-emerald-400">
+                    Total: Le {grandTotal.toLocaleString()}
                   </span>
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                    selectedRepair.paymentStatus === 'paid' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                    : selectedRepair.paymentStatus === 'part_payment' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                    : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                </div>
+
+                <div className="p-3.5 sm:p-4 space-y-3">
+                  {/* Consultation Fee Row (With Waive / Maintain Toggle) */}
+                  <div className={`flex items-center justify-between border rounded-lg p-2.5 gap-2 transition-all ${
+                    waiveConsultationFee
+                      ? 'bg-emerald-950/40 border-emerald-700/50'
+                      : 'bg-amber-950/40 border-amber-700/40'
                   }`}>
-                    {selectedRepair.paymentStatus ? selectedRepair.paymentStatus.replace(/_/g, ' ') : 'Pending'}
-                  </span>
-                </div>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <i className={`fas ${isComputer ? 'fa-laptop' : 'fa-mobile-alt'} ${waiveConsultationFee ? 'text-emerald-400' : 'text-amber-400'} text-xs shrink-0`} />
+                      <div className="min-w-0">
+                        <span className={`${waiveConsultationFee ? 'text-emerald-200' : 'text-amber-200'} font-semibold text-[11px] block truncate`}>
+                          Consultation ({isComputer ? 'Computer' : 'Mobile'})
+                        </span>
+                        <span className={`text-[10px] font-bold uppercase inline-block ${
+                          waiveConsultationFee ? 'text-emerald-300' : 'text-amber-300'
+                        }`}>
+                          {waiveConsultationFee ? 'Waived (Le 0)' : `Le ${consultationFee.toLocaleString()}`}
+                        </span>
+                      </div>
+                    </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
-                  <div className="bg-slate-950 border border-slate-800 rounded-lg p-2.5">
-                    <span className="text-[10px] text-slate-500 uppercase block font-semibold">Total Cost</span>
-                    <span className="text-base font-extrabold text-red-400 font-mono">
-                      {selectedRepair.totalCost ? `Le ${selectedRepair.totalCost.toLocaleString()}` : `Le ${grandTotal.toLocaleString()}`}
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        markFormDirty();
+                        setWaiveConsultationFee(!waiveConsultationFee);
+                      }}
+                      className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all shadow-sm flex items-center gap-1.5 shrink-0 ${
+                        waiveConsultationFee
+                          ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-900/50'
+                          : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40'
+                      }`}
+                      title={waiveConsultationFee ? "Click to maintain consultation fee" : "Click to waive consultation fee"}
+                    >
+                      <i className={`fas ${waiveConsultationFee ? 'fa-check-circle' : 'fa-tag'}`} />
+                      {waiveConsultationFee ? 'Waived' : 'Waive Fee'}
+                    </button>
                   </div>
-                  <div className="bg-slate-950 border border-slate-800 rounded-lg p-2.5">
-                    <span className="text-[10px] text-slate-500 uppercase block font-semibold">Consultation Fee</span>
-                    <span className="text-xs font-bold text-amber-300 font-mono">
-                      {waiveConsultationFee ? 'Le 0 [Waived]' : `Le ${consultationFee.toLocaleString()}`}
-                    </span>
-                  </div>
-                  <div className="bg-slate-950 border border-slate-800 rounded-lg p-2.5 col-span-2 sm:col-span-1">
-                    <span className="text-[10px] text-slate-500 uppercase block font-semibold">Payment Status</span>
-                    <span className={`text-xs font-bold capitalize ${selectedRepair.paymentStatus === 'paid' ? 'text-emerald-400' : 'text-amber-400'}`}>
-                      {selectedRepair.paymentStatus || 'Pending'}
-                    </span>
-                  </div>
-                </div>
 
-                {selectedRepair.notes && (
-                  <div className="bg-slate-950 border border-slate-800 rounded-lg p-3">
-                    <span className="text-[10px] text-slate-400 uppercase block font-semibold mb-1">Cost Breakdown / Invoicing Notes</span>
-                    <pre className="text-xs font-mono text-slate-300 whitespace-pre-wrap leading-relaxed">{selectedRepair.notes}</pre>
+                  {/* Repair Line Items */}
+                  {repairItems.length > 0 ? (
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] text-slate-400 uppercase font-semibold block">Repair Lines ({repairItems.length})</span>
+                      {repairItems.map((item, index) => (
+                        <div key={index} className="flex items-center justify-between bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <i className="fas fa-wrench text-red-400 text-[10px] shrink-0" />
+                            <span className="text-slate-200 text-xs truncate">{item.description}</span>
+                          </div>
+                          <div className="flex items-center gap-2.5 shrink-0">
+                            <span className="font-bold text-red-400 text-xs font-mono whitespace-nowrap">
+                              Le {parseFloat(item.cost || '0').toLocaleString()}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => removeRepairItem(index)}
+                              className="w-6 h-6 rounded-md bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 flex items-center justify-center transition-colors"
+                              title="Remove item"
+                            >
+                              <i className="fas fa-times text-[10px]" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-slate-950/60 border border-dashed border-slate-800 rounded-lg p-2.5 text-center">
+                      <p className="text-[11px] text-slate-500 italic">No custom repair line items added yet.</p>
+                    </div>
+                  )}
+
+                  {/* Add New Repair Line */}
+                  <div className="pt-1 space-y-1.5">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wide font-bold">+ Add Repair Item</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="e.g. Screen replacement"
+                        value={newItem.description}
+                        onChange={e => {
+                          markFormDirty();
+                          setNewItem(prev => ({ ...prev, description: e.target.value }));
+                        }}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addRepairItem();
+                          }
+                        }}
+                        className="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-red-500 min-w-0"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Le cost"
+                        value={newItem.cost}
+                        onChange={e => {
+                          markFormDirty();
+                          setNewItem(prev => ({ ...prev, cost: e.target.value }));
+                        }}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addRepairItem();
+                          }
+                        }}
+                        className="w-24 sm:w-28 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2 text-white text-xs font-mono focus:outline-none focus:border-red-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={addRepairItem}
+                        className="px-3.5 py-2 bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-bold text-xs rounded-lg transition-colors shrink-0 flex items-center gap-1 shadow-sm"
+                      >
+                        <i className="fas fa-plus text-xs" />
+                        <span className="hidden xs:inline">Add</span>
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-slate-500 italic">Enter item description and cost, then tap + to add.</p>
                   </div>
-                )}
+
+                  {/* Grand Total */}
+                  <div className="flex items-center justify-between border-t border-slate-800 pt-2.5 mt-1">
+                    <div>
+                      <p className="text-[10px] text-slate-400 uppercase tracking-wide font-bold">Grand Total</p>
+                      <p className="text-[10px] text-slate-500">Consultation + {repairItems.length} repair line{repairItems.length !== 1 ? 's' : ''}</p>
+                    </div>
+                    <span className="font-black text-emerald-400 text-lg font-mono">Le {grandTotal.toLocaleString()}</span>
+                  </div>
+
+                  {/* Historical Invoicing Notes if exists */}
+                  {selectedRepair.notes && (
+                    <div className="bg-slate-950 border border-slate-800 rounded-lg p-2.5 mt-2">
+                      <span className="text-[10px] text-slate-400 uppercase block font-semibold mb-1">Previous Cost Breakdown / Invoicing Notes</span>
+                      <pre className="text-xs font-mono text-slate-300 whitespace-pre-wrap leading-relaxed max-h-28 overflow-y-auto">{selectedRepair.notes}</pre>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Diagnostic Notes & Images */}
@@ -2892,6 +2998,16 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                       onChange={e => updateRepairForm(p => ({ ...p, amountPaid: e.target.value }))}
                       className="w-full bg-slate-950 border border-amber-500/50 rounded-lg px-3 py-2 text-white text-xs font-mono font-bold focus:outline-none focus:border-amber-400"
                     />
+                    {grandTotal > 0 && (
+                      <div className="flex items-center justify-between text-[11px] bg-slate-950 rounded-lg px-3 py-2 border border-slate-800">
+                        <span className="text-emerald-400 font-semibold">
+                          Paid: Le {(parseFloat(updateForm.amountPaid) || 0).toLocaleString()}
+                        </span>
+                        <span className="text-amber-400 font-black font-mono">
+                          Balance Due: Le {Math.max(0, grandTotal - (parseFloat(updateForm.amountPaid) || 0)).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -2905,6 +3021,41 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                     placeholder="e.g. Screen replaced. Tested charging and audio OK."
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-red-500"
                   />
+                </div>
+
+                {/* Diagnostic Images Upload */}
+                <div>
+                  <label className="block text-slate-400 mb-1 text-[11px] uppercase tracking-wide">Diagnostic Images (max 5)</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageUpload}
+                    className="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-red-600/20 file:text-red-400 file:font-semibold cursor-pointer"
+                  />
+                  {updateForm.diagnosticImages.length > 0 && (
+                    <div className="flex gap-2 mt-2 overflow-x-auto pb-1">
+                      {updateForm.diagnosticImages.map((img, i) => (
+                        <div key={i} className="relative shrink-0">
+                          <img src={img} className="w-14 h-14 object-cover rounded-lg border border-slate-800" alt={`Diagnostic ${i + 1}`} />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              markFormDirty();
+                              updateRepairForm(prev => ({
+                                ...prev,
+                                diagnosticImages: prev.diagnosticImages.filter((_, idx) => idx !== i)
+                              }));
+                            }}
+                            className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-rose-600 hover:bg-rose-500 text-white text-xs flex items-center justify-center shadow"
+                            title="Remove photo"
+                          >
+                            &times;
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Save Button */}
