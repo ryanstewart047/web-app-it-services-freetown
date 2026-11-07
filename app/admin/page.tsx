@@ -1215,7 +1215,7 @@ export default function AdminPage() {
           )}
           {activeTab === 'dashboard' ? (
             /* Native Overview, Repairs & Analytics Panel */
-            <div className="p-6 space-y-6 max-w-7xl mx-auto">
+            <div className="p-1 sm:p-6 space-y-3 sm:space-y-6 max-w-7xl mx-auto">
               {/* Analytics Snapshot Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Total Revenue Card */}
@@ -1261,7 +1261,7 @@ export default function AdminPage() {
               </div>
 
               {/* Full Repair Operations Console */}
-              <div className="bg-slate-900 border border-red-900/30 rounded-2xl p-6 space-y-6">
+              <div className="bg-slate-900 border border-red-900/30 rounded-xl sm:rounded-2xl p-2.5 sm:p-6 space-y-3.5 sm:space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-red-900/20 pb-4">
                   <div>
                     <h2 className="text-base font-bold text-white flex items-center gap-2">
@@ -1697,6 +1697,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [selectedRepair, setSelectedRepair] = useState<RepairRecord | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState<boolean>(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchFilter, setSearchFilter] = useState<string>('');
   const [repairPage, setRepairPage] = useState<number>(1);
@@ -1945,6 +1946,7 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
 
         alert('Repair updated! Customer can now view the updated status and cost breakdown.');
         setSelectedRepair(null);
+        setIsDetailModalOpen(false);
         onUpdate();
       } else {
         const err = await res.json();
@@ -2200,10 +2202,13 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
           {paginatedRepairs.length > 0 ? paginatedRepairs.map(repair => (
             <div
               key={repair.trackingId}
-              onClick={() => setSelectedRepair(repair)}
-              className={`p-4 rounded-xl border cursor-pointer transition-all ${
+              onClick={() => {
+                setSelectedRepair(repair);
+                setIsDetailModalOpen(true);
+              }}
+              className={`p-3 sm:p-4 rounded-xl border cursor-pointer transition-all active:scale-[0.99] touch-manipulation ${
                 selectedRepair?.trackingId === repair.trackingId
-                  ? 'bg-red-600/10 border-red-600/40 shadow-md'
+                  ? 'bg-red-600/10 border-red-600/40 shadow-md ring-1 ring-red-500/30'
                   : 'bg-slate-950 border-slate-800 hover:border-slate-700'
               }`}
             >
@@ -2234,9 +2239,12 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                 <div><span className="block text-[10px] text-slate-500 uppercase">Total Cost</span><span className="font-medium text-red-400">{repair.totalCost ? `Le ${repair.totalCost.toLocaleString()}` : 'Not set'}</span></div>
                 <div><span className="block text-[10px] text-slate-500 uppercase">Payment</span><span className={`font-semibold capitalize ${repair.paymentStatus === 'paid' ? 'text-emerald-400' : 'text-amber-400'}`}>{repair.paymentStatus || 'Pending'}</span></div>
               </div>
-              <div className="mt-3 flex items-center justify-between pt-2 border-t border-slate-900 text-[11px] text-slate-500">
-                <span className="truncate max-w-xs">{repair.issueSummary || 'No description'}</span>
-                <div className="flex items-center gap-2 shrink-0 ml-2">
+              <div className="mt-2.5 flex items-center justify-between pt-2 border-t border-slate-900 text-[11px] text-slate-500">
+                <span className="truncate max-w-[170px] sm:max-w-xs">{repair.issueSummary || 'No description'}</span>
+                <span className="text-[10px] font-bold text-red-400 flex items-center gap-1 sm:hidden">
+                  <i className="fas fa-expand-alt text-[9px]" /> Details &rarr;
+                </span>
+                <div className="hidden sm:flex items-center gap-2 shrink-0 ml-2">
                   <button
                     onClick={e => openEmailModalForSingle(repair, e)}
                     className="text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-1 hover:underline"
@@ -2549,6 +2557,430 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
           )}
         </div>
       </div>
+
+      {/* ── Mobile Edge-to-Edge Repair & Customer Details Pop-Up Modal ── */}
+      {isDetailModalOpen && selectedRepair && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col bg-slate-950 text-white sm:bg-black/80 sm:backdrop-blur-sm sm:flex sm:items-center sm:justify-center sm:p-4 animate-in fade-in duration-150"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="w-full h-full sm:max-w-3xl sm:h-[92vh] sm:rounded-2xl sm:border sm:border-slate-800 bg-slate-950 flex flex-col overflow-hidden shadow-2xl">
+            
+            {/* Edge-to-Edge Sticky Header */}
+            <div className="sticky top-0 z-30 flex items-center justify-between px-3.5 py-3 bg-slate-900 border-b border-slate-800 shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-red-600/20 border border-red-500/40 flex items-center justify-center text-red-400 shrink-0">
+                  <i className="fas fa-wrench text-sm" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-sm text-white truncate">{selectedRepair.trackingId}</span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                          navigator.clipboard.writeText(selectedRepair.trackingId);
+                          alert(`Copied ID: ${selectedRepair.trackingId}`);
+                        }
+                      }}
+                      className="text-[10px] text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded border border-slate-700 transition-colors"
+                      title="Copy Tracking ID"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-slate-400 truncate">{selectedRepair.customerName || 'Customer Details'}</p>
+                </div>
+              </div>
+
+              {/* Edge-to-Edge Close Button */}
+              <button
+                type="button"
+                onClick={() => setIsDetailModalOpen(false)}
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-red-600 hover:bg-red-500 active:bg-red-700 text-white rounded-xl text-xs font-bold transition-all shrink-0 shadow-md active:scale-95"
+                aria-label="Close details popup"
+              >
+                <i className="fas fa-times text-sm" />
+                <span>Close</span>
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-3.5 sm:p-5 space-y-4 overscroll-contain">
+              
+              {/* Customer Profile Card */}
+              <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border border-slate-800 rounded-xl p-3.5 sm:p-4 shadow-sm">
+                <div className="flex items-center justify-between mb-3 border-b border-slate-800/80 pb-2">
+                  <span className="text-[11px] font-bold text-red-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <i className="fas fa-user-circle text-xs" /> Customer Details
+                  </span>
+                  <span className="text-[10px] text-slate-500">
+                    {selectedRepair.lastUpdated ? `Updated: ${selectedRepair.lastUpdated}` : 'Customer File'}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-[10px] text-slate-500 uppercase block font-semibold">Customer Full Name</span>
+                    <span className="text-base sm:text-lg font-bold text-white block">{selectedRepair.customerName || 'N/A (Walk-in Customer)'}</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                    {/* Phone & Direct Actions */}
+                    <div className="bg-slate-950 border border-slate-800 rounded-lg p-3">
+                      <span className="text-[10px] text-slate-400 uppercase block font-semibold mb-1 flex items-center gap-1">
+                        <i className="fas fa-phone-alt text-[10px] text-emerald-400" /> Phone Number
+                      </span>
+                      <span className="font-mono text-sm font-bold text-white block mb-2.5">
+                        {selectedRepair.phone || 'No phone provided'}
+                      </span>
+                      {selectedRepair.phone ? (
+                        <div className="flex items-center gap-2">
+                          <a
+                            href={`tel:${selectedRepair.phone}`}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-xs"
+                          >
+                            <i className="fas fa-phone-alt text-[10px]" /> Call Client
+                          </a>
+                          <a
+                            href={`https://wa.me/${selectedRepair.phone.replace(/\D/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-green-700 hover:bg-green-600 active:bg-green-800 text-white rounded-lg text-xs font-bold transition-colors shadow-xs"
+                          >
+                            <i className="fab fa-whatsapp text-xs" /> WhatsApp
+                          </a>
+                        </div>
+                      ) : (
+                        <p className="text-[10px] text-slate-500 italic py-1">No phone on record</p>
+                      )}
+                    </div>
+
+                    {/* Email & Direct Actions */}
+                    <div className="bg-slate-950 border border-slate-800 rounded-lg p-3">
+                      <span className="text-[10px] text-slate-400 uppercase block font-semibold mb-1 flex items-center gap-1">
+                        <i className="fas fa-envelope text-[10px] text-sky-400" /> Email Address
+                      </span>
+                      <span className="font-mono text-xs text-white truncate block mb-2.5">
+                        {selectedRepair.email || 'No email provided'}
+                      </span>
+                      {selectedRepair.email ? (
+                        <div className="flex items-center gap-2">
+                          <a
+                            href={`mailto:${selectedRepair.email}`}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold border border-slate-700 transition-colors"
+                          >
+                            <i className="fas fa-paper-plane text-[10px]" /> Native Email
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => openEmailModalForSingle(selectedRepair)}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white rounded-lg text-xs font-bold transition-colors shadow-xs"
+                          >
+                            <i className="fas fa-bullhorn text-[10px]" /> Status Update
+                          </button>
+                        </div>
+                      ) : (
+                        <p className="text-[10px] text-slate-500 italic py-1">No email on record</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Device & Status Card */}
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 sm:p-4 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                  <span className="text-[11px] font-bold text-orange-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <i className="fas fa-laptop text-xs" /> Device &amp; Job Status
+                  </span>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                    selectedRepair.status === 'terminal' ? 'bg-red-950 text-red-100 border border-red-600'
+                    : selectedRepair.status === 'collected' ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40'
+                    : selectedRepair.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    : selectedRepair.status === 'ready-for-pickup' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+                    : selectedRepair.status === 'cancelled' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                    : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                  }`}>
+                    {selectedRepair.status === 'terminal' ? '❌ Terminal' : selectedRepair.status ? selectedRepair.status.replace(/-/g, ' ') : 'Pending'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2.5 text-xs">
+                  <div className="bg-slate-950 border border-slate-800 rounded-lg p-2.5">
+                    <span className="text-[10px] text-slate-500 uppercase block font-semibold">Device Type</span>
+                    <span className="font-bold text-white text-sm">{selectedRepair.deviceType || 'N/A'}</span>
+                  </div>
+                  <div className="bg-slate-950 border border-slate-800 rounded-lg p-2.5">
+                    <span className="text-[10px] text-slate-500 uppercase block font-semibold">Device Model</span>
+                    <span className="font-bold text-white text-sm">{selectedRepair.deviceModel || 'N/A'}</span>
+                  </div>
+                </div>
+
+                {selectedRepair.issueSummary && (
+                  <div className="bg-slate-950 border border-slate-800 rounded-lg p-3">
+                    <span className="text-[10px] text-slate-400 uppercase block font-semibold mb-1">Issue Description</span>
+                    <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">{selectedRepair.issueSummary}</p>
+                  </div>
+                )}
+
+                {selectedRepair.estimatedCompletion && (
+                  <div className="text-xs text-slate-400 flex items-center gap-1.5 bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                    <i className="far fa-clock text-orange-400" />
+                    <span>Estimated Completion: <strong className="text-white">{selectedRepair.estimatedCompletion}</strong></span>
+                  </div>
+                )}
+              </div>
+
+              {/* Pricing & Billing Details */}
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 sm:p-4 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                  <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <i className="fas fa-coins text-xs" /> Pricing &amp; Balance Due
+                  </span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                    selectedRepair.paymentStatus === 'paid' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    : selectedRepair.paymentStatus === 'part_payment' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                    : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                  }`}>
+                    {selectedRepair.paymentStatus ? selectedRepair.paymentStatus.replace(/_/g, ' ') : 'Pending'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+                  <div className="bg-slate-950 border border-slate-800 rounded-lg p-2.5">
+                    <span className="text-[10px] text-slate-500 uppercase block font-semibold">Total Cost</span>
+                    <span className="text-base font-extrabold text-red-400 font-mono">
+                      {selectedRepair.totalCost ? `Le ${selectedRepair.totalCost.toLocaleString()}` : `Le ${grandTotal.toLocaleString()}`}
+                    </span>
+                  </div>
+                  <div className="bg-slate-950 border border-slate-800 rounded-lg p-2.5">
+                    <span className="text-[10px] text-slate-500 uppercase block font-semibold">Consultation Fee</span>
+                    <span className="text-xs font-bold text-amber-300 font-mono">
+                      {waiveConsultationFee ? 'Le 0 [Waived]' : `Le ${consultationFee.toLocaleString()}`}
+                    </span>
+                  </div>
+                  <div className="bg-slate-950 border border-slate-800 rounded-lg p-2.5 col-span-2 sm:col-span-1">
+                    <span className="text-[10px] text-slate-500 uppercase block font-semibold">Payment Status</span>
+                    <span className={`text-xs font-bold capitalize ${selectedRepair.paymentStatus === 'paid' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      {selectedRepair.paymentStatus || 'Pending'}
+                    </span>
+                  </div>
+                </div>
+
+                {selectedRepair.notes && (
+                  <div className="bg-slate-950 border border-slate-800 rounded-lg p-3">
+                    <span className="text-[10px] text-slate-400 uppercase block font-semibold mb-1">Cost Breakdown / Invoicing Notes</span>
+                    <pre className="text-xs font-mono text-slate-300 whitespace-pre-wrap leading-relaxed">{selectedRepair.notes}</pre>
+                  </div>
+                )}
+              </div>
+
+              {/* Diagnostic Notes & Images */}
+              {((selectedRepair as any).diagnosticNotes || (updateForm.diagnosticImages && updateForm.diagnosticImages.length > 0)) && (
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 sm:p-4 space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                    <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <i className="fas fa-camera text-xs" /> Diagnostics &amp; Photos
+                    </span>
+                  </div>
+
+                  {(selectedRepair as any).diagnosticNotes && (
+                    <div className="bg-slate-950 border border-slate-800 rounded-lg p-3">
+                      <span className="text-[10px] text-slate-400 uppercase block font-semibold mb-1">Diagnostic Notes</span>
+                      <p className="text-xs text-slate-200 whitespace-pre-wrap">{(selectedRepair as any).diagnosticNotes}</p>
+                    </div>
+                  )}
+
+                  {updateForm.diagnosticImages && updateForm.diagnosticImages.length > 0 && (
+                    <div>
+                      <span className="text-[10px] text-slate-500 uppercase block font-semibold mb-1.5">Uploaded Photos ({updateForm.diagnosticImages.length})</span>
+                      <div className="flex gap-2 overflow-x-auto pb-1">
+                        {updateForm.diagnosticImages.map((img, i) => (
+                          <a key={i} href={img} target="_blank" rel="noopener noreferrer" className="block shrink-0">
+                            <img src={img} className="w-16 h-16 object-cover rounded-lg border border-slate-700 hover:border-red-500 transition-colors" alt={`Diagnostic ${i + 1}`} />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Customer Comments */}
+              {((selectedRepair as any)?.customerComments || []).length > 0 && (
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 sm:p-4 space-y-2">
+                  <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-800/80 pb-2">
+                    <i className="fas fa-comments text-amber-400" /> Customer Comments ({((selectedRepair as any)?.customerComments || []).length})
+                  </span>
+                  <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                    {((selectedRepair as any)?.customerComments || []).map((cmt: any) => (
+                      <div key={cmt.id} className="bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-[11px]">
+                        <div className="flex justify-between text-slate-400 text-[10px] mb-1 font-semibold">
+                          <span className="text-amber-300">{cmt.authorName}</span>
+                          <span>{new Date(cmt.createdAt).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}</span>
+                        </div>
+                        <p className="text-slate-200 text-xs whitespace-pre-wrap">{cmt.comment}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Inline Quick Update Form */}
+              <div className="bg-slate-900 border border-red-900/40 rounded-xl p-3.5 sm:p-4 space-y-3.5">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <span className="text-[11px] font-bold text-red-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <i className="fas fa-edit text-xs" /> Update Status &amp; Pricing
+                  </span>
+                  <span className="text-[10px] text-slate-500">Live Customer Portal Sync</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Status Dropdown */}
+                  <div>
+                    <label className="block text-slate-400 mb-1 text-[11px] uppercase tracking-wide">Change Status</label>
+                    <select
+                      value={updateForm.status}
+                      onChange={e => updateRepairForm(p => ({ ...p, status: e.target.value }))}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-red-500 font-medium"
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="received">Received</option>
+                      <option value="diagnosed">Diagnosed</option>
+                      <option value="in-progress">In Progress</option>
+                      <option value="ready-for-pickup">Ready for Pickup</option>
+                      <option value="collected">Collected (Customer Picked Up)</option>
+                      <option value="completed">Completed</option>
+                      <option value="cancelled">Cancelled</option>
+                      <option value="terminal">❌ Terminal — Cannot Proceed (Fatal / Unrepairable)</option>
+                    </select>
+                  </div>
+
+                  {/* Payment Status Dropdown */}
+                  <div>
+                    <label className="block text-slate-400 mb-1 text-[11px] uppercase tracking-wide">Payment Status</label>
+                    <select
+                      value={updateForm.paymentStatus}
+                      onChange={e => updateRepairForm(p => ({ ...p, paymentStatus: e.target.value }))}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-red-500 font-semibold"
+                    >
+                      <option value="pending">Pending (Unpaid)</option>
+                      <option value="part_payment">Part Payment (Deposit)</option>
+                      <option value="paid">Paid (Fully Paid)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Part Payment Input if part_payment */}
+                {updateForm.paymentStatus === 'part_payment' && (
+                  <div className="bg-amber-950/30 border border-amber-500/40 rounded-xl p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-amber-300 text-[11px] font-bold uppercase tracking-wide">
+                        Part Payment Amount Received (Le)
+                      </label>
+                      <span className="text-[10px] text-amber-300/70 font-mono font-bold">
+                        Total: Le {grandTotal.toLocaleString()}
+                      </span>
+                    </div>
+                    <input
+                      type="number"
+                      placeholder="e.g. 200"
+                      value={updateForm.amountPaid}
+                      onChange={e => updateRepairForm(p => ({ ...p, amountPaid: e.target.value }))}
+                      className="w-full bg-slate-950 border border-amber-500/50 rounded-lg px-3 py-2 text-white text-xs font-mono font-bold focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+                )}
+
+                {/* Diagnostic Notes */}
+                <div>
+                  <label className="block text-slate-400 mb-1 text-[11px] uppercase tracking-wide">Diagnostic Notes (Visible to Customer)</label>
+                  <textarea
+                    rows={2}
+                    value={updateForm.diagnosticNotes}
+                    onChange={e => updateRepairForm(p => ({ ...p, diagnosticNotes: e.target.value }))}
+                    placeholder="e.g. Screen replaced. Tested charging and audio OK."
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-red-500"
+                  />
+                </div>
+
+                {/* Save Button */}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await saveRepair();
+                    setIsDetailModalOpen(false);
+                  }}
+                  className="w-full py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-extrabold text-xs rounded-xl transition-all shadow-lg shadow-red-950/50 flex items-center justify-center gap-2"
+                >
+                  <i className="fas fa-check-circle" /> Save &amp; Publish Update to Customer
+                </button>
+              </div>
+
+              {/* Danger Zone */}
+              <div className="flex items-center justify-between pt-1 text-xs">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    handleCancelRepair(selectedRepair.trackingId, e);
+                    setIsDetailModalOpen(false);
+                  }}
+                  className="px-3 py-1.5 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 rounded-lg transition-colors border border-amber-500/20"
+                >
+                  <i className="fas fa-ban mr-1" /> Cancel Repair
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    handleDeleteRepair(selectedRepair.trackingId, e);
+                    setIsDetailModalOpen(false);
+                  }}
+                  className="px-3 py-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-colors border border-rose-500/20"
+                >
+                  <i className="fas fa-trash-alt mr-1" /> Delete Repair
+                </button>
+              </div>
+
+            </div>
+
+            {/* Edge-to-Edge Sticky Bottom Bar */}
+            <div className="sticky bottom-0 z-30 px-3.5 py-2.5 bg-slate-900 border-t border-slate-800 flex items-center justify-between gap-2 shrink-0">
+              <div className="flex items-center gap-2">
+                {selectedRepair.phone && (
+                  <a
+                    href={`tel:${selectedRepair.phone}`}
+                    className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs"
+                  >
+                    <i className="fas fa-phone-alt text-[10px]" /> Call
+                  </a>
+                )}
+                {selectedRepair.email && (
+                  <button
+                    type="button"
+                    onClick={() => openEmailModalForSingle(selectedRepair)}
+                    className="px-3 py-2 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs"
+                  >
+                    <i className="fas fa-envelope text-[10px]" /> Email
+                  </button>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsDetailModalOpen(false)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-white rounded-xl text-xs font-bold border border-slate-700 flex items-center gap-1.5 transition-colors"
+              >
+                <i className="fas fa-times" /> Close Popup
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
 
       {/* ── Email Notification Modal ── */}
       {isEmailModalOpen && (
