@@ -128,6 +128,62 @@ export default function AdminOnDemandPage() {
     }
   };
 
+  const handleUpdateProStatus = async (proId: string, newStatus: string) => {
+    try {
+      const res = await fetch('/api/on-demand', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update_pro',
+          id: proId,
+          status: newStatus,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        loadData();
+        if (viewingPro && viewingPro.id === proId) {
+          setViewingPro(p => p ? { ...p, status: newStatus as any } : null);
+        }
+      }
+    } catch (e) {
+      alert('Failed to update account status');
+    }
+  };
+
+  const handleAdminResetPassword = async (proId: string, customPassword?: string) => {
+    const defaultPin = Math.floor(100000 + Math.random() * 900000).toString();
+    const passwordToSet = customPassword || prompt('Enter new password for this artisan (or use auto-generated PIN):', defaultPin);
+    if (!passwordToSet || passwordToSet.trim().length < 4) {
+      if (passwordToSet !== null) alert('Password must be at least 4 characters or digits.');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/on-demand', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'admin_reset_password',
+          id: proId,
+          newPassword: passwordToSet.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(data.message || `Password reset successfully to: ${passwordToSet.trim()}`);
+        loadData();
+        if (viewingPro && viewingPro.id === proId) {
+          setViewingPro(p => p ? { ...p, password: passwordToSet.trim() } : null);
+        }
+      } else {
+        alert(data.error || 'Failed to reset password');
+      }
+    } catch (e) {
+      alert('Failed to reset password');
+    }
+  };
+
   const handleDeleteRequest = async (id: string) => {
     if (!confirm(`Delete request ${id}?`)) return;
     try {
@@ -142,15 +198,20 @@ export default function AdminOnDemandPage() {
     }
   };
 
-  const handleDeletePro = async (id: string) => {
-    if (!confirm(`Remove pro ${id}?`)) return;
+  const handleDeletePro = async (id: string, name?: string) => {
+    if (!confirm(`Are you sure you want to permanently delete pro ${name || id}? This will remove all their profile data and cannot be undone.`)) return;
     try {
       const res = await fetch('/api/on-demand', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete_pro', id }),
       });
-      if (res.ok) loadData();
+      if (res.ok) {
+        loadData();
+        if (viewingPro && viewingPro.id === id) {
+          setViewingPro(null);
+        }
+      }
     } catch (e) {
       alert('Failed to delete pro');
     }
@@ -642,9 +703,11 @@ export default function AdminOnDemandPage() {
                         </div>
 
                         <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase shrink-0 ${
+                          pro.status === 'blocked' ? 'bg-red-700/30 text-red-400 border border-red-600/30' :
+                          pro.status === 'suspended' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' :
                           isActive ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                         }`}>
-                          {isActive ? 'Active Pro' : 'Pending'}
+                          {pro.status === 'blocked' ? '🚫 Blocked' : pro.status === 'suspended' ? '⏸ Suspended' : isActive ? 'Active Pro' : 'Pending'}
                         </span>
                       </div>
 
@@ -737,7 +800,8 @@ export default function AdminOnDemandPage() {
                       </div>
 
                       {/* Action buttons */}
-                      <div className="flex items-center justify-between gap-2">
+                      <div className="space-y-2">
+                        {/* Contact row */}
                         <div className="flex items-center gap-1.5">
                           <a
                             href={`tel:${pro.phone}`}
@@ -755,16 +819,62 @@ export default function AdminOnDemandPage() {
                           >
                             <i className="fab fa-whatsapp text-[10px]" /> WhatsApp
                           </a>
+                          <button
+                            type="button"
+                            onClick={() => handleAdminResetPassword(pro.id)}
+                            className="px-2.5 py-1 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 rounded-lg text-[11px] font-bold border border-blue-500/30 flex items-center gap-1"
+                            title="Reset account password"
+                          >
+                            <i className="fas fa-key text-[9px]" /> Reset PW
+                          </button>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() => handleDeletePro(pro.id)}
-                          className="text-slate-600 hover:text-rose-400 text-xs p-1"
-                          title="Remove pro"
-                        >
-                          <i className="fas fa-trash-alt" />
-                        </button>
+                        {/* Account control row: Suspend / Block / Delete */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {pro.status !== 'suspended' && pro.status !== 'blocked' && (
+                            <button
+                              type="button"
+                              onClick={() => { if (confirm(`Suspend ${pro.fullName}'s account? They will not be able to log in until unsuspended.`)) handleUpdateProStatus(pro.id, 'suspended'); }}
+                              className="px-2.5 py-1 bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 rounded-lg text-[10px] font-bold border border-orange-500/30"
+                            >
+                              <i className="fas fa-pause-circle text-[9px]" /> Suspend
+                            </button>
+                          )}
+                          {pro.status === 'suspended' && (
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateProStatus(pro.id, 'verified_active')}
+                              className="px-2.5 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-lg text-[10px] font-bold border border-emerald-500/30"
+                            >
+                              <i className="fas fa-play-circle text-[9px]" /> Unsuspend
+                            </button>
+                          )}
+                          {pro.status !== 'blocked' ? (
+                            <button
+                              type="button"
+                              onClick={() => { if (confirm(`BLOCK ${pro.fullName}? This permanently bars them from logging in. Continue?`)) handleUpdateProStatus(pro.id, 'blocked'); }}
+                              className="px-2.5 py-1 bg-red-700/20 hover:bg-red-700/30 text-red-400 rounded-lg text-[10px] font-bold border border-red-700/30"
+                            >
+                              <i className="fas fa-ban text-[9px]" /> Block
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateProStatus(pro.id, 'pending_review')}
+                              className="px-2.5 py-1 bg-slate-700/40 hover:bg-slate-700/60 text-slate-300 rounded-lg text-[10px] font-bold border border-slate-600/30"
+                            >
+                              <i className="fas fa-undo text-[9px]" /> Unblock
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePro(pro.id, pro.fullName)}
+                            className="ml-auto text-slate-600 hover:text-rose-400 text-xs p-1 transition-colors"
+                            title="Permanently delete profile"
+                          >
+                            <i className="fas fa-trash-alt" />
+                          </button>
+                        </div>
                       </div>
                     </div>
 
@@ -903,7 +1013,8 @@ export default function AdminOnDemandPage() {
             </div>
 
             {/* Fee & Action Controls */}
-            <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+            <div className="space-y-3 pt-2 border-t border-slate-800">
+              {/* Fee Row */}
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-400 font-bold">Le 30 Fee:</span>
                 <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
@@ -923,13 +1034,86 @@ export default function AdminOnDemandPage() {
                 </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setViewingPro(null)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold"
-              >
-                Close
-              </button>
+              {/* Account Controls */}
+              <div className="border-t border-slate-800 pt-3 space-y-2">
+                <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest block">Account Controls</span>
+                <div className="flex flex-wrap gap-2">
+                  {/* Reset Password */}
+                  <button
+                    type="button"
+                    onClick={() => handleAdminResetPassword(viewingPro.id)}
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1"
+                  >
+                    🔑 Reset Password
+                  </button>
+
+                  {/* Suspend / Unsuspend */}
+                  {viewingPro.status === 'suspended' ? (
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateProStatus(viewingPro.id, 'verified_active')}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1"
+                    >
+                      ▶ Unsuspend
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm(`Suspend ${viewingPro.fullName}? They will not be able to log in until unsuspended.`)) {
+                          handleUpdateProStatus(viewingPro.id, 'suspended');
+                        }
+                      }}
+                      className="px-3 py-1.5 bg-orange-600 hover:bg-orange-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1"
+                    >
+                      ⏸ Suspend
+                    </button>
+                  )}
+
+                  {/* Block / Unblock */}
+                  {viewingPro.status === 'blocked' ? (
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateProStatus(viewingPro.id, 'pending_review')}
+                      className="px-3 py-1.5 bg-slate-600 hover:bg-slate-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1"
+                    >
+                      🔓 Unblock
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm(`BLOCK ${viewingPro.fullName}? This will permanently ban them from logging in. Continue?`)) {
+                          handleUpdateProStatus(viewingPro.id, 'blocked');
+                        }
+                      }}
+                      className="px-3 py-1.5 bg-red-800 hover:bg-red-700 text-white rounded-lg text-[10px] font-bold flex items-center gap-1"
+                    >
+                      🚫 Block
+                    </button>
+                  )}
+
+                  {/* Delete */}
+                  <button
+                    type="button"
+                    onClick={() => handleDeletePro(viewingPro.id, viewingPro.fullName)}
+                    className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 ml-auto"
+                  >
+                    🗑 Delete Profile
+                  </button>
+                </div>
+              </div>
+
+              {/* Close */}
+              <div className="flex justify-end pt-1">
+                <button
+                  type="button"
+                  onClick={() => setViewingPro(null)}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>
