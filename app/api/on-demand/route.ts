@@ -5,6 +5,7 @@ import {
   updateOnDemandRequest,
   deleteOnDemandRequest,
   getOnDemandPros,
+  getOnDemandPro,
   saveOnDemandPro,
   updateOnDemandPro,
   deleteOnDemandPro,
@@ -248,11 +249,40 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Check if temporary PIN has expired
+      if (pro.mustChangePassword && pro.tempPasswordExpiresAt) {
+        if (new Date() > new Date(pro.tempPasswordExpiresAt)) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'This temporary reset PIN has expired (valid for 24 hours). Please contact BridgeTech support (076210320) or use password recovery.',
+              isExpiredPin: true,
+            },
+            { status: 401, headers: NO_CACHE_HEADERS }
+          );
+        }
+      }
+
       // Check password if set
       if (pro.password && password && pro.password !== password.trim()) {
         return NextResponse.json(
           { success: false, error: 'Incorrect password. Please try again.' },
           { status: 401, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      // If pro has a temporary PIN, force them to set a new permanent password on first login
+      if (pro.mustChangePassword) {
+        return NextResponse.json(
+          {
+            success: true,
+            requiresPasswordChange: true,
+            proId: pro.id,
+            proName: pro.fullName,
+            phone: pro.phone,
+            message: 'Temporary PIN verified. You must set a new permanent password on your first login to access the dashboard.',
+          },
+          { headers: NO_CACHE_HEADERS }
         );
       }
 
@@ -262,6 +292,67 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(
         { success: true, pro, assignedJobs },
+        { headers: NO_CACHE_HEADERS }
+      );
+    }
+
+    // ── 3b. Artisan First-Login: Change Temporary Password ────────────────────
+    if (action === 'set_permanent_password') {
+      const { proId, currentPassword, newPassword } = body;
+      if (!proId || !newPassword?.trim()) {
+        return NextResponse.json(
+          { success: false, error: 'Artisan ID and new permanent password are required.' },
+          { status: 400, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      if (newPassword.trim().length < 4) {
+        return NextResponse.json(
+          { success: false, error: 'New password must be at least 4 characters or digits.' },
+          { status: 400, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      const pro = await getOnDemandPro(proId);
+      if (!pro) {
+        return NextResponse.json({ success: false, error: 'Artisan profile not found.' }, { status: 404, headers: NO_CACHE_HEADERS });
+      }
+
+      // If current password provided, verify it
+      if (currentPassword && pro.password && pro.password !== currentPassword.trim()) {
+        return NextResponse.json(
+          { success: false, error: 'Current temporary PIN does not match.' },
+          { status: 401, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      // If temporary PIN has expired
+      if (pro.tempPasswordExpiresAt && new Date() > new Date(pro.tempPasswordExpiresAt)) {
+        return NextResponse.json(
+          { success: false, error: 'Temporary PIN has expired. Please contact support or request a new reset code.' },
+          { status: 401, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      // Save new permanent password and clear temporary flags
+      const updatedPro = await updateOnDemandPro(pro.id, {
+        password: newPassword.trim(),
+        mustChangePassword: false,
+        tempPasswordExpiresAt: null as any,
+        resetCode: undefined,
+        resetCodeExpiresAt: undefined,
+      });
+
+      const allRequests = await getOnDemandRequests();
+      const assignedJobs = allRequests.filter(r => r.assignedProId === pro.id);
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'Permanent password saved successfully! You are now logged in.',
+          pro: updatedPro,
+          assignedJobs,
+        },
         { headers: NO_CACHE_HEADERS }
       );
     }
@@ -409,6 +500,8 @@ export async function POST(request: NextRequest) {
       // Update password and clear reset code
       const updatedPro = await updateOnDemandPro(pro.id, {
         password: newPassword.trim(),
+        mustChangePassword: false,
+        tempPasswordExpiresAt: null as any,
         resetCode: undefined,
         resetCodeExpiresAt: undefined,
       });
@@ -430,7 +523,7 @@ export async function POST(request: NextRequest) {
 
     // ── 6. Admin Reset Pro Password Directly ─────────────────────────────────
     if (action === 'admin_reset_password') {
-      const { id, newPassword } = body;
+      const { id, newPassword, expiryHours = 24 } = body;
       if (!id || !newPassword?.trim()) {
         return NextResponse.json(
           { success: false, error: 'Pro ID and new password are required.' },
@@ -438,8 +531,12 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      const tempExpiresAt = new Date(Date.now() + (Number(expiryHours) || 24) * 60 * 60 * 1000).toISOString();
+
       const updatedPro = await updateOnDemandPro(id, {
         password: newPassword.trim(),
+        mustChangePassword: true,
+        tempPasswordExpiresAt: tempExpiresAt,
         resetCode: undefined,
         resetCodeExpiresAt: undefined,
       });
@@ -451,8 +548,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: true,
-          message: `Password for ${updatedPro.fullName} reset successfully.`,
+          message: `Temporary PIN for ${updatedPro.fullName} reset to ${newPassword.trim()}. It expires in ${expiryHours}h and must be changed on first login.`,
           pro: updatedPro,
+          tempPasswordExpiresAt: tempExpiresAt,
+          mustChangePassword: true,
         },
         { headers: NO_CACHE_HEADERS }
       );

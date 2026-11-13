@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { 
   X, Phone, MessageCircle, Copy, CheckCircle, Smartphone, User, Shield, 
   Camera, FileText, ArrowRight, LogIn, Image as LucideImage, MapPin, Mail,
-  ChevronDown, Check, Star, Eye, EyeOff, LogOut, AlertCircle, RefreshCw, Sparkles
+  ChevronDown, Check, Star, Eye, EyeOff, LogOut, AlertCircle, RefreshCw, Sparkles, Lock, KeyRound
 } from 'lucide-react';
 
 interface TradeCategory {
@@ -21,7 +21,7 @@ interface TradeCategory {
 }
 
 const TRADE_CATEGORIES: TradeCategory[] = [
-  // Tech & Electronics
+  // ── Tech & Electronics Specialists ──
   {
     id: 'printer-tech',
     title: 'Printer & Copier Repair',
@@ -34,14 +34,25 @@ const TRADE_CATEGORIES: TradeCategory[] = [
     popular: true,
   },
   {
-    id: 'electrician',
-    title: 'Certified Electricians',
-    subtitle: 'House rewiring, circuit breaker trips, generator changeover switches & sockets',
-    icon: 'fas fa-bolt',
-    color: 'from-amber-600 to-yellow-600',
-    badge: 'Certified Trade',
-    type: 'trade',
-    image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80',
+    id: 'pc-laptop',
+    title: 'Computer & Laptop Repair',
+    subtitle: 'MacBook, Dell, HP, Lenovo — screen replacement, charging port, motherboard & OS install',
+    icon: 'fas fa-laptop',
+    color: 'from-blue-600 to-cyan-600',
+    badge: 'IT Hardware',
+    type: 'tech',
+    image: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?auto=format&fit=crop&w=800&q=80',
+    popular: true,
+  },
+  {
+    id: 'phone-tablet',
+    title: 'Smartphone & Tablet Repair',
+    subtitle: 'iPhone, Samsung, Tecno, Infinix — screen replacement, battery swap & water damage',
+    icon: 'fas fa-mobile-alt',
+    color: 'from-violet-600 to-purple-600',
+    badge: 'Mobile Tech',
+    type: 'tech',
+    image: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=800&q=80',
     popular: true,
   },
   {
@@ -53,6 +64,74 @@ const TRADE_CATEGORIES: TradeCategory[] = [
     badge: 'Tech Specialist',
     type: 'tech',
     image: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?auto=format&fit=crop&w=800&q=80',
+    popular: true,
+  },
+  {
+    id: 'cctv-security',
+    title: 'CCTV & Security Cameras',
+    subtitle: 'Camera installation, recorder setup, phone live-view & wire repairs',
+    icon: 'fas fa-video',
+    color: 'from-cyan-600 to-blue-600',
+    badge: 'Security Tech',
+    type: 'tech',
+    image: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&w=800&q=80',
+    popular: true,
+  },
+  {
+    id: 'networking-wifi',
+    title: 'Wi-Fi & Office Cabling',
+    subtitle: 'Office internet cables, router setup, Wi-Fi booster & network setup',
+    icon: 'fas fa-network-wired',
+    color: 'from-teal-600 to-emerald-600',
+    badge: 'IT Cabling',
+    type: 'tech',
+    image: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=800&q=80',
+    popular: true,
+  },
+  {
+    id: 'solar-inverter',
+    title: 'Solar & Inverter Systems',
+    subtitle: 'Battery banks, solar panels, hybrid inverters & backup wiring',
+    icon: 'fas fa-solar-panel',
+    color: 'from-amber-500 to-orange-600',
+    badge: 'Power & Solar',
+    type: 'tech',
+    image: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&w=800&q=80',
+    popular: true,
+  },
+  {
+    id: 'audio-visual',
+    title: 'TV & Projector Mounting',
+    subtitle: 'Wall mounting for smart TVs, conference room projectors & audio systems',
+    icon: 'fas fa-tv',
+    color: 'from-red-600 to-rose-600',
+    badge: 'Audio & Video',
+    type: 'tech',
+    image: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=800&q=80',
+    popular: true,
+  },
+  {
+    id: 'satellite-dstv',
+    title: 'Satellite Dish & DStv Installers',
+    subtitle: 'DStv, Canal+, StarTimes dish alignment, signal loss troubleshooting & multi-room cabling',
+    icon: 'fas fa-satellite-dish',
+    color: 'from-blue-700 to-indigo-800',
+    badge: 'Broadcast Tech',
+    type: 'tech',
+    image: 'https://images.unsplash.com/photo-1516849841032-87cbac4d88f7?auto=format&fit=crop&w=800&q=80',
+    popular: true,
+  },
+
+  // ── Certified Trades & Home Maintenance ──
+  {
+    id: 'electrician',
+    title: 'Certified Electricians',
+    subtitle: 'House rewiring, circuit breaker trips, generator changeover switches & sockets',
+    icon: 'fas fa-bolt',
+    color: 'from-amber-600 to-yellow-600',
+    badge: 'Certified Trade',
+    type: 'trade',
+    image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80',
     popular: true,
   },
   {
@@ -78,45 +157,48 @@ const TRADE_CATEGORIES: TradeCategory[] = [
     popular: true,
   },
   {
-    id: 'solar-inverter',
-    title: 'Solar & Inverter Systems',
-    subtitle: 'Battery banks, solar panels, hybrid inverters & backup wiring',
-    icon: 'fas fa-solar-panel',
-    color: 'from-amber-500 to-orange-600',
-    badge: 'Power & Solar',
-    type: 'tech',
-    image: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&w=800&q=80',
+    id: 'generator-mechanic',
+    title: 'Generator Mechanics',
+    subtitle: 'Perkins, Lister, Kipor & portable generators — servicing, AVR, injector & rewinding',
+    icon: 'fas fa-cogs',
+    color: 'from-amber-600 to-red-600',
+    badge: 'Power Machinery',
+    type: 'trade',
+    image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
     popular: true,
   },
   {
-    id: 'cctv-security',
-    title: 'CCTV & Security Cameras',
-    subtitle: 'Camera installation, recorder setup, phone live-view & wire repairs',
-    icon: 'fas fa-video',
-    color: 'from-cyan-600 to-blue-600',
-    badge: 'Security Tech',
-    type: 'tech',
-    image: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&w=800&q=80',
+    id: 'auto-electrician',
+    title: 'Auto-Electricians & Diagnostics',
+    subtitle: 'OBD2 computer scanning, starter motor, alternator, ECU wiring & car AC cooling',
+    icon: 'fas fa-car',
+    color: 'from-red-600 to-rose-700',
+    badge: 'Automotive',
+    type: 'trade',
+    image: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=800&q=80',
+    popular: true,
   },
   {
-    id: 'networking-wifi',
-    title: 'Wi-Fi & Office Cabling',
-    subtitle: 'Office internet cables, router setup, Wi-Fi booster & network setup',
-    icon: 'fas fa-network-wired',
-    color: 'from-teal-600 to-emerald-600',
-    badge: 'IT Cabling',
-    type: 'tech',
-    image: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=800&q=80',
+    id: 'appliance-repair',
+    title: 'Home & Kitchen Appliances',
+    subtitle: 'Microwaves, washing machines, electric cookers, water dispensers & blenders',
+    icon: 'fas fa-blender',
+    color: 'from-emerald-600 to-teal-600',
+    badge: 'Appliances',
+    type: 'trade',
+    image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=800&q=80',
+    popular: true,
   },
   {
-    id: 'audio-visual',
-    title: 'TV & Projector Mounting',
-    subtitle: 'Wall mounting for smart TVs, conference room projectors & audio systems',
-    icon: 'fas fa-tv',
-    color: 'from-red-600 to-rose-600',
-    badge: 'Audio & Video',
-    type: 'tech',
-    image: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=800&q=80',
+    id: 'water-pump-borehole',
+    title: 'Borehole & Water Pump Specialists',
+    subtitle: 'Deep-well submersible pumps, pressure switch control boxes & float switch setup',
+    icon: 'fas fa-water',
+    color: 'from-sky-600 to-cyan-700',
+    badge: 'Water Systems',
+    type: 'trade',
+    image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80',
+    popular: true,
   },
   {
     id: 'welder-metal',
@@ -126,7 +208,8 @@ const TRADE_CATEGORIES: TradeCategory[] = [
     color: 'from-orange-600 to-red-600',
     badge: 'Fabrication',
     type: 'trade',
-    image: 'https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?auto=format&fit=crop&w=800&q=80',
+    popular: true,
   },
   {
     id: 'carpenter',
@@ -137,6 +220,7 @@ const TRADE_CATEGORIES: TradeCategory[] = [
     badge: 'Artisan',
     type: 'trade',
     image: 'https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?auto=format&fit=crop&w=800&q=80',
+    popular: true,
   },
   {
     id: 'mason-builder',
@@ -146,7 +230,8 @@ const TRADE_CATEGORIES: TradeCategory[] = [
     color: 'from-stone-600 to-stone-800',
     badge: 'Construction',
     type: 'trade',
-    image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1590069261209-f8e9b8642343?auto=format&fit=crop&w=800&q=80',
+    popular: true,
   },
   {
     id: 'painter',
@@ -157,6 +242,7 @@ const TRADE_CATEGORIES: TradeCategory[] = [
     badge: 'Finishing',
     type: 'trade',
     image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&w=800&q=80',
+    popular: true,
   },
 ];
 
@@ -268,6 +354,30 @@ export default function OnDemandServicesPage() {
   const [resetSuccess, setResetSuccess] = useState<string | null>(null);
   const [isResetting, setIsResetting] = useState(false);
   const [resetResponseData, setResetResponseData] = useState<any>(null);
+
+  // Force Permanent Password Change Modal (First Login with Temporary PIN)
+  const [forcePasswordChange, setForcePasswordChange] = useState<{
+    isOpen: boolean;
+    proId: string;
+    proName: string;
+    phone: string;
+    currentTempPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+    isSubmitting: boolean;
+    error: string | null;
+  }>({
+    isOpen: false,
+    proId: '',
+    proName: '',
+    phone: '',
+    currentTempPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+    isSubmitting: false,
+    error: null,
+  });
+  const [showPermanentPassword, setShowPermanentPassword] = useState(false);
 
   // Scroll reveal observer
   useEffect(() => {
@@ -528,12 +638,87 @@ export default function OnDemandServicesPage() {
         throw new Error(data.error || 'Sign in failed');
       }
 
+      // Check if temporary PIN forces permanent password change
+      if (data.requiresPasswordChange) {
+        setForcePasswordChange({
+          isOpen: true,
+          proId: data.proId,
+          proName: data.proName,
+          phone: data.phone || loginPhone,
+          currentTempPassword: loginPassword,
+          newPassword: '',
+          confirmPassword: '',
+          isSubmitting: false,
+          error: null,
+        });
+        return;
+      }
+
       setLoggedInPro(data.pro);
       setLoggedInJobs(data.assignedJobs || []);
     } catch (err: any) {
       setArtisanError(err.message || 'Invalid login details');
     } finally {
       setIsLoggingIn(false);
+    }
+  };
+
+  // Set Permanent Password (First-login after PIN reset)
+  const handleSetPermanentPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forcePasswordChange.newPassword.trim()) {
+      setForcePasswordChange(prev => ({ ...prev, error: 'Please enter a new password' }));
+      return;
+    }
+    if (forcePasswordChange.newPassword.trim().length < 4) {
+      setForcePasswordChange(prev => ({ ...prev, error: 'Password must be at least 4 characters or digits' }));
+      return;
+    }
+    if (forcePasswordChange.newPassword !== forcePasswordChange.confirmPassword) {
+      setForcePasswordChange(prev => ({ ...prev, error: 'New passwords do not match. Please verify.' }));
+      return;
+    }
+
+    setForcePasswordChange(prev => ({ ...prev, isSubmitting: true, error: null }));
+
+    try {
+      const res = await fetch('/api/on-demand', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'set_permanent_password',
+          proId: forcePasswordChange.proId,
+          currentPassword: forcePasswordChange.currentTempPassword,
+          newPassword: forcePasswordChange.newPassword.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to update permanent password');
+      }
+
+      setLoggedInPro(data.pro);
+      setLoggedInJobs(data.assignedJobs || []);
+      setArtisanSuccess('Permanent password saved successfully! Welcome to your Artisan Portal.');
+      setForcePasswordChange({
+        isOpen: false,
+        proId: '',
+        proName: '',
+        phone: '',
+        currentTempPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+        isSubmitting: false,
+        error: null,
+      });
+      setLoginPassword('');
+    } catch (err: any) {
+      setForcePasswordChange(prev => ({
+        ...prev,
+        isSubmitting: false,
+        error: err.message || 'Failed to set permanent password',
+      }));
     }
   };
 
@@ -742,8 +927,64 @@ export default function OnDemandServicesPage() {
               </a>
             </div>
 
+            {/* Quick Category Filters */}
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setFilterType('all')}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-sm ${
+                  filterType === 'all'
+                    ? 'bg-slate-900 text-white shadow-md'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                <span>All Popular Services</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                  filterType === 'all' ? 'bg-slate-800 text-slate-100' : 'bg-slate-100 text-slate-600'
+                }`}>
+                  {TRADE_CATEGORIES.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFilterType('tech')}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-sm ${
+                  filterType === 'tech'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                <i className="fas fa-microchip text-xs" />
+                <span>Tech Specialists</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                  filterType === 'tech' ? 'bg-blue-700 text-blue-100' : 'bg-slate-100 text-slate-600'
+                }`}>
+                  {TRADE_CATEGORIES.filter(c => c.type === 'tech').length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFilterType('trade')}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-sm ${
+                  filterType === 'trade'
+                    ? 'bg-emerald-600 text-white shadow-md'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                <i className="fas fa-tools text-xs" />
+                <span>Certified Trades</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                  filterType === 'trade' ? 'bg-emerald-700 text-emerald-100' : 'bg-slate-100 text-slate-600'
+                }`}>
+                  {TRADE_CATEGORIES.filter(c => c.type === 'trade').length}
+                </span>
+              </button>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {TRADE_CATEGORIES.filter(c => c.popular).map(cat => {
+              {filteredCategories.map(cat => {
                 const isSelected = selectedCategory === cat.id;
                 return (
                   <div
@@ -2348,6 +2589,170 @@ export default function OnDemandServicesPage() {
                   Yes, Sign Out
                 </button>
               </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── POPUP: FORCE PERMANENT PASSWORD CHANGE MODAL ── */}
+      {forcePasswordChange.isOpen && (
+        <>
+          <div 
+            className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 transition-opacity"
+            onClick={() => {
+              if (!forcePasswordChange.isSubmitting) {
+                setForcePasswordChange({
+                  isOpen: false,
+                  proId: '',
+                  proName: '',
+                  phone: '',
+                  currentTempPassword: '',
+                  newPassword: '',
+                  confirmPassword: '',
+                  isSubmitting: false,
+                  error: null,
+                });
+              }
+            }}
+          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+            <div 
+              className="bg-white border border-slate-200 rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-7 text-left pointer-events-auto space-y-5 animate-in fade-in"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-start gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center shrink-0 shadow-md">
+                  <KeyRound className="w-6 h-6" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-700">
+                    Security Requirement
+                  </span>
+                  <h3 className="text-xl font-black text-slate-900 mt-1">
+                    Set Permanent Password
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Welcome back, <strong className="text-slate-800">{forcePasswordChange.proName}</strong>!
+                  </p>
+                </div>
+              </div>
+
+              {/* Notice Box */}
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 leading-relaxed flex items-start gap-2.5">
+                <Shield className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <p>
+                  You signed in with a temporary reset PIN. For your account security, you must create a new permanent password before accessing your jobs dashboard.
+                </p>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleSetPermanentPassword} className="space-y-4">
+                {/* Account Phone (Read-Only) */}
+                <div>
+                  <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block mb-1">
+                    Registered Phone Number
+                  </label>
+                  <div className="px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-700 flex items-center justify-between">
+                    <span>{forcePasswordChange.phone}</span>
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">Verified</span>
+                  </div>
+                </div>
+
+                {/* New Password */}
+                <div>
+                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                    New Permanent Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPermanentPassword ? 'text' : 'password'}
+                      value={forcePasswordChange.newPassword}
+                      onChange={e => setForcePasswordChange(prev => ({ ...prev, newPassword: e.target.value, error: null }))}
+                      placeholder="At least 4 characters or digits"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 rounded-xl text-sm font-medium text-slate-900 pr-10 transition-all outline-none"
+                      disabled={forcePasswordChange.isSubmitting}
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPermanentPassword(!showPermanentPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      tabIndex={-1}
+                    >
+                      {showPermanentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Confirm Password */}
+                <div>
+                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                    Confirm New Password
+                  </label>
+                  <input
+                    type={showPermanentPassword ? 'text' : 'password'}
+                    value={forcePasswordChange.confirmPassword}
+                    onChange={e => setForcePasswordChange(prev => ({ ...prev, confirmPassword: e.target.value, error: null }))}
+                    placeholder="Re-type new password"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 rounded-xl text-sm font-medium text-slate-900 transition-all outline-none"
+                    disabled={forcePasswordChange.isSubmitting}
+                  />
+                </div>
+
+                {/* Error Banner */}
+                {forcePasswordChange.error && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-xs text-red-700 font-semibold">
+                    <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                    <span>{forcePasswordChange.error}</span>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="pt-2 flex items-center gap-2.5">
+                  <button
+                    type="button"
+                    disabled={forcePasswordChange.isSubmitting}
+                    onClick={() => {
+                      setForcePasswordChange({
+                        isOpen: false,
+                        proId: '',
+                        proName: '',
+                        phone: '',
+                        currentTempPassword: '',
+                        newPassword: '',
+                        confirmPassword: '',
+                        isSubmitting: false,
+                        error: null,
+                      });
+                    }}
+                    className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={
+                      forcePasswordChange.isSubmitting ||
+                      !forcePasswordChange.newPassword.trim() ||
+                      !forcePasswordChange.confirmPassword.trim()
+                    }
+                    className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-black text-xs rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5"
+                  >
+                    {forcePasswordChange.isSubmitting ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>Saving Password...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4" />
+                        <span>Save &amp; Enter Dashboard</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </>

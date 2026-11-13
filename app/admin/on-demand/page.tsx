@@ -230,14 +230,25 @@ export default function AdminOnDemandPage() {
           action: 'admin_reset_password',
           id: proId,
           newPassword: newPin,
+          expiryHours: 24,
         }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        showToast(`Password for ${proName} reset successfully to ${newPin}`, 'success');
-        setPros(prev => prev.map(p => p.id === proId ? { ...p, password: newPin } : p));
+        showToast(`Temporary PIN set for ${proName}. Expires in 24h & forces password change on first login.`, 'success');
+        setPros(prev => prev.map(p => p.id === proId ? { 
+          ...p, 
+          password: newPin, 
+          mustChangePassword: true, 
+          tempPasswordExpiresAt: data.tempPasswordExpiresAt 
+        } : p));
         if (viewingPro && viewingPro.id === proId) {
-          setViewingPro(p => p ? { ...p, password: newPin } : null);
+          setViewingPro(p => p ? { 
+            ...p, 
+            password: newPin, 
+            mustChangePassword: true, 
+            tempPasswordExpiresAt: data.tempPasswordExpiresAt 
+          } : null);
         }
         setResetModal({ isOpen: false, pro: null, pin: '', copied: false, isSubmitting: false });
         loadData(false);
@@ -340,7 +351,7 @@ export default function AdminOnDemandPage() {
           </Link>
           <button
             type="button"
-            onClick={loadData}
+            onClick={() => loadData()}
             disabled={isLoading}
             className="px-3.5 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold transition-all shadow flex items-center gap-1.5"
           >
@@ -771,13 +782,20 @@ export default function AdminOnDemandPage() {
                           </div>
                         </div>
 
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase shrink-0 ${
-                          pro.status === 'blocked' ? 'bg-red-700/30 text-red-400 border border-red-600/30' :
-                          pro.status === 'suspended' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' :
-                          isActive ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                        }`}>
-                          {pro.status === 'blocked' ? '🚫 Blocked' : pro.status === 'suspended' ? '⏸ Suspended' : isActive ? 'Active Pro' : 'Pending'}
-                        </span>
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                            pro.status === 'blocked' ? 'bg-red-700/30 text-red-400 border border-red-600/30' :
+                            pro.status === 'suspended' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' :
+                            isActive ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                          }`}>
+                            {pro.status === 'blocked' ? '🚫 Blocked' : pro.status === 'suspended' ? '⏸ Suspended' : isActive ? 'Active Pro' : 'Pending'}
+                          </span>
+                          {pro.mustChangePassword && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center gap-1" title="Temporary PIN active. Requires password change on next login.">
+                              <i className="fas fa-clock text-[8px]" /> Temp PIN Active
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       {/* Contact & MoMo */}
@@ -1082,9 +1100,20 @@ export default function AdminOnDemandPage() {
               </div>
 
               {viewingPro.password && (
-                <div className="sm:col-span-2 pt-1 border-t border-slate-800">
-                  <span className="text-slate-500 text-[10px] uppercase font-bold block">Account Password (PIN)</span>
-                  <span className="font-mono text-amber-300 font-bold">{viewingPro.password}</span>
+                <div className="sm:col-span-2 pt-2 border-t border-slate-800 flex items-center justify-between">
+                  <div>
+                    <span className="text-slate-500 text-[10px] uppercase font-bold block">Account Password / PIN</span>
+                    <span className="font-mono text-amber-300 font-bold">{viewingPro.password}</span>
+                  </div>
+                  {viewingPro.mustChangePassword ? (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center gap-1">
+                      <i className="fas fa-clock text-[8px]" /> Temp PIN (First Use Pending)
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      Permanent Password
+                    </span>
+                  )}
                 </div>
               )}
             </div>
@@ -1242,13 +1271,21 @@ export default function AdminOnDemandPage() {
             </div>
 
             <div className="space-y-3">
-              <p className="text-xs text-slate-300">
-                Set a new login password or PIN for <strong>{resetModal.pro.fullName}</strong>. They will use their phone number (<span className="font-mono text-emerald-400">{resetModal.pro.phone}</span>) and this password to sign in.
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Generate a temporary 6-digit PIN for <strong>{resetModal.pro.fullName}</strong>. They will use their phone number (<span className="font-mono text-emerald-400">{resetModal.pro.phone}</span>) and this temporary PIN to sign in.
               </p>
+
+              <div className="p-2.5 bg-blue-950/40 border border-blue-800/50 rounded-xl flex items-start gap-2 text-xs text-blue-200">
+                <i className="fas fa-shield-alt text-blue-400 mt-0.5 shrink-0" />
+                <div className="text-[11px] leading-relaxed">
+                  <span className="font-bold text-white block">24-Hour Expiration &amp; First-Use Enforcement:</span>
+                  This temporary PIN expires in <strong>24 hours</strong>. Upon signing in, the artisan is immediately required to set their own permanent password before gaining dashboard access.
+                </div>
+              </div>
 
               <div>
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                  New Password / 6-Digit PIN
+                  Temporary 6-Digit PIN (Expires in 24h)
                 </label>
                 <div className="flex items-center gap-2">
                   <input
@@ -1293,7 +1330,7 @@ export default function AdminOnDemandPage() {
                 </div>
                 <a
                   href={`https://wa.me/${(resetModal.pro.whatsapp || resetModal.pro.phone).replace(/\D/g, '')}?text=${encodeURIComponent(
-                    `Hello ${resetModal.pro.fullName}, your BridgeTech Artisan Portal password has been reset to: ${resetModal.pin}. You can log in at https://www.itservicesfreetown.com/on-demand with your phone number and this PIN.`
+                    `Hello ${resetModal.pro.fullName}, your BridgeTech Artisan Portal temporary login PIN is: ${resetModal.pin}. NOTE: This PIN expires in 24 hours. When you log in at https://www.itservicesfreetown.com/on-demand with your phone number and this PIN, you will be prompted to create your private permanent password.`
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -1328,7 +1365,7 @@ export default function AdminOnDemandPage() {
                 ) : (
                   <>
                     <i className="fas fa-check text-xs" />
-                    <span>Set Password</span>
+                    <span>Set Temp PIN (24h)</span>
                   </>
                 )}
               </button>

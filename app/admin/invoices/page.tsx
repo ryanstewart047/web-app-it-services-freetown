@@ -1,15 +1,42 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   FileText, Plus, Trash2, Printer, Download, Save, Search, Eye,
   ArrowLeft, CheckCircle, Clock, XCircle, AlertTriangle, TrendingUp,
   User, Building2, Phone, Mail, MapPin, CreditCard, Copy, Edit3, RefreshCw,
-  Sparkles, Check, ChevronDown, ChevronUp, Settings
+  Sparkles, Check, ChevronDown, ChevronUp, Settings, DollarSign, Calendar
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAdminSession } from '../../../src/hooks/useAdminSession';
 import { BRAND_NAME, BRAND_LOGO_SRC, BRAND_LOGO_DARK_SRC, BRAND_LOGO_FALLBACK_SRC } from '@/lib/brand';
+
+// ── Currency Definitions ─────────────────────────────────────────────────────
+interface CurrencyOption {
+  code: string;
+  symbol: string;
+  label: string;
+  locale: string;
+  taxLabel: string;   // e.g. "NRA VAT" or "VAT" or "GST"
+  defaultTax: number; // default tax rate for this currency
+}
+
+const CURRENCIES: CurrencyOption[] = [
+  { code: 'SLL', symbol: 'Le',  label: 'Leone (SLL) — Sierra Leone', locale: 'en-SL', taxLabel: 'NRA VAT (Sierra Leone)', defaultTax: 15 },
+  { code: 'USD', symbol: '$',   label: 'US Dollar (USD)',             locale: 'en-US', taxLabel: 'Sales Tax',             defaultTax: 0  },
+  { code: 'EUR', symbol: '€',   label: 'Euro (EUR)',                  locale: 'de-DE', taxLabel: 'VAT',                   defaultTax: 20 },
+  { code: 'GBP', symbol: '£',   label: 'British Pound (GBP)',         locale: 'en-GB', taxLabel: 'VAT',                   defaultTax: 20 },
+  { code: 'GMD', symbol: 'D',   label: 'Dalasi (GMD) — Gambia',      locale: 'en-GM', taxLabel: 'VAT',                   defaultTax: 15 },
+  { code: 'GHS', symbol: '₵',   label: 'Cedi (GHS) — Ghana',         locale: 'en-GH', taxLabel: 'VAT',                   defaultTax: 15 },
+  { code: 'NGN', symbol: '₦',   label: 'Naira (NGN) — Nigeria',      locale: 'en-NG', taxLabel: 'VAT',                   defaultTax: 7.5},
+  { code: 'XOF', symbol: 'CFA', label: 'CFA Franc (XOF) — W.Africa', locale: 'fr-SN', taxLabel: 'TVA',                   defaultTax: 18 },
+  { code: 'CAD', symbol: 'CA$', label: 'Canadian Dollar (CAD)',       locale: 'en-CA', taxLabel: 'GST/HST',               defaultTax: 13 },
+  { code: 'AUD', symbol: 'A$',  label: 'Australian Dollar (AUD)',     locale: 'en-AU', taxLabel: 'GST',                   defaultTax: 10 },
+  { code: 'ZAR', symbol: 'R',   label: 'Rand (ZAR) — South Africa',  locale: 'en-ZA', taxLabel: 'VAT',                   defaultTax: 15 },
+  { code: 'KES', symbol: 'KSh', label: 'Shilling (KES) — Kenya',     locale: 'en-KE', taxLabel: 'VAT',                   defaultTax: 16 },
+];
+
+const DEFAULT_CURRENCY = CURRENCIES[0]; // SLL / Leone
 
 // ── Types ────────────────────────────────────────────────────────────────────
 interface InvoiceItem {
@@ -33,6 +60,7 @@ interface CompanyInfo {
 interface Invoice extends CompanyInfo {
   id?: string;
   invoiceNumber: string;
+  currency: string; // currency code e.g. 'SLL', 'USD', 'GBP'
   clientName: string;
   clientCompany: string;
   clientEmail: string;
@@ -54,6 +82,7 @@ interface Invoice extends CompanyInfo {
   payTo?: string;
   notes: string;
   paymentInstructions: string;
+  enableInstallments?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -74,7 +103,28 @@ const DRAFT_KEY = 'admin_invoice_draft';
 const COMPANY_INFO_KEY = 'admin_company_info';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-const fmt = (n: number) => `Le ${Number(n || 0).toLocaleString('en-SL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const calculateInstallments = (total: number) => {
+  const t = Math.max(0, Number(total) || 0);
+  const raw = t / 3;
+  const inst1 = parseFloat(raw.toFixed(2));
+  const inst2 = parseFloat(raw.toFixed(2));
+  const inst3 = parseFloat((t - inst1 - inst2).toFixed(2));
+  return { inst1, inst2, inst3, total: t };
+};
+
+const getCurrency = (code?: string): CurrencyOption =>
+  CURRENCIES.find(c => c.code === code) ?? DEFAULT_CURRENCY;
+
+const fmtWithCurrency = (n: number, currencyCode?: string): string => {
+  const cur = getCurrency(currencyCode);
+  const formatted = Number(n || 0).toLocaleString(cur.locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  // For multi-char symbols like 'CFA', 'CA$', 'A$', 'KSh' put a space
+  const sep = cur.symbol.length > 1 ? ' ' : '';
+  return `${cur.symbol}${sep}${formatted}`;
+};
+
+// Legacy alias for places that don't yet pass currency (uses SLL by default)
+const fmt = (n: number) => fmtWithCurrency(n, 'SLL');
 const today = () => new Date().toISOString().split('T')[0];
 const genInvoiceNo = () => {
   const d = new Date();
@@ -97,7 +147,9 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
 };
 
 const PAYMENT_TERMS = ['Due on Receipt', 'Net 7', 'Net 14', 'Net 30', 'Net 60'];
-const DEFAULT_PAYMENT_INSTRUCTIONS = `Payment can be made via:
+const DEFAULT_PAYMENT_INSTRUCTIONS = `• Payment Instruction: Payment to be made in three (3) installments of the total sum (see schedule breakdown).
+
+Payment can be made via:
 • Orange Money: +232 76 210 320
 • Africell Money: +232 88 294 631
 • Bank Transfer: United Bank of Africa
@@ -126,6 +178,7 @@ const blankInvoice = (): Invoice => {
   const company = getSavedCompanyInfo();
   return {
     invoiceNumber: genInvoiceNo(),
+    currency: DEFAULT_CURRENCY.code,
     ...company,
     payTo: company.payTo || company.companyName || 'BridgeTech IT Services',
     clientName: '',
@@ -140,7 +193,7 @@ const blankInvoice = (): Invoice => {
     status: 'pending',
     items: [emptyItem()],
     subtotal: 0,
-    taxRate: 15,
+    taxRate: DEFAULT_CURRENCY.defaultTax,
     taxAmount: 0,
     discountAmount: 0,
     amountPaid: 0,
@@ -148,6 +201,7 @@ const blankInvoice = (): Invoice => {
     balanceDue: 0,
     notes: '',
     paymentInstructions: DEFAULT_PAYMENT_INSTRUCTIONS,
+    enableInstallments: true,
   };
 };
 
@@ -163,6 +217,8 @@ export default function InvoicesAdminPage() {
   const [invoice, setInvoice] = useState<Invoice>(blankInvoice());
   const [savedInvoices, setSavedInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
+  const [syncMessage, setSyncMessage] = useState<string>('');
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -176,6 +232,11 @@ export default function InvoicesAdminPage() {
   const [savedModalInvoice, setSavedModalInvoice] = useState<Invoice | null>(null);
   const [justSaved, setJustSaved] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+
+  // ── Currency helpers ────────────────────────────────────────────────────────
+  const activeCurrency = useMemo(() => getCurrency(invoice.currency), [invoice.currency]);
+  const { inst1, inst2, inst3 } = useMemo(() => calculateInstallments(invoice.totalAmount), [invoice.totalAmount]);
+  const f = useCallback((n: number) => fmtWithCurrency(n, invoice.currency), [invoice.currency]);
 
   // ── Restore draft on mount ─────────────────────────────────────────────────
   useEffect(() => {
@@ -273,67 +334,145 @@ export default function InvoicesAdminPage() {
     setInvoice(prev => ({ ...prev, items: prev.items.filter(i => i.id !== id) }));
   };
 
-  // ── Load & Sync Invoices (Offline & Online Resilient) ─────────────────────────
-  const fetchInvoices = useCallback(async () => {
+  // ── Load & Bidirectional Sync (Multi-Device & Cloud Persistent) ─────────────
+  const fetchInvoices = useCallback(async (isManual = false) => {
     setLoading(true);
-    // 1. Instantly load from localStorage
+    setSyncStatus('syncing');
+
+    // 1. Instantly display cached localStorage invoices
     let localList: Invoice[] = [];
     try {
       const local = localStorage.getItem(SAVED_INVOICES_KEY);
       if (local) {
-        localList = JSON.parse(local);
-        setSavedInvoices(localList);
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed)) {
+          localList = parsed;
+          setSavedInvoices(localList);
+        }
       }
-    } catch {}
+    } catch (e) {
+      console.warn('Error reading local cache:', e);
+    }
 
-    // 2. Fetch from API & Merge
+    // 2. Fetch fresh invoices from Server API (bypassing any browser cache)
     try {
       const params = new URLSearchParams();
       if (searchQuery) params.set('search', searchQuery);
       if (statusFilter !== 'all') params.set('status', statusFilter);
-      const res = await fetch(`/api/invoices?${params}`);
-      if (res.ok) {
-        const apiData = await res.json();
-        if (Array.isArray(apiData)) {
-          // Merge API data with localStorage data
-          const map = new Map<string, Invoice>();
-          // Put local invoices first
-          for (const item of localList) {
-            if (item.invoiceNumber) map.set(item.invoiceNumber, item);
-          }
-          // Merge / override with server invoices
-          for (const item of apiData) {
-            if (item.invoiceNumber) {
-              const existing = map.get(item.invoiceNumber);
-              map.set(item.invoiceNumber, {
-                ...DEFAULT_COMPANY_INFO,
-                ...existing,
-                ...item,
-                items: Array.isArray(item.items) ? item.items : (existing?.items || [emptyItem()])
-              });
-            }
-          }
-          const merged = Array.from(map.values()).sort((a, b) => {
-            const da = new Date(a.createdAt || a.invoiceDate).getTime();
-            const db = new Date(b.createdAt || b.invoiceDate).getTime();
-            return db - da;
-          });
-          setSavedInvoices(merged);
-          localStorage.setItem(SAVED_INVOICES_KEY, JSON.stringify(merged));
+      params.set('_t', Date.now().toString());
+
+      const res = await fetch(`/api/invoices?${params}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
         }
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const apiData = await res.json();
+      if (Array.isArray(apiData)) {
+        // Map of server records
+        const serverMap = new Map<string, Invoice>();
+        for (const item of apiData) {
+          if (item.invoiceNumber) serverMap.set(item.invoiceNumber, item);
+        }
+
+        // 3. Two-way sync: Detect local-only invoices that need to be uploaded to server
+        const unsyncedLocals = localList.filter(
+          loc => loc.invoiceNumber && !serverMap.has(loc.invoiceNumber)
+        );
+
+        if (unsyncedLocals.length > 0) {
+          try {
+            // Upload missing local invoices in batch to the server
+            const uploadRes = await fetch('/api/invoices', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ batch: unsyncedLocals }),
+            });
+            if (uploadRes.ok) {
+              const uploadData = await uploadRes.json();
+              if (Array.isArray(uploadData.invoices)) {
+                for (const uploaded of uploadData.invoices) {
+                  if (uploaded.invoiceNumber) serverMap.set(uploaded.invoiceNumber, uploaded);
+                }
+              }
+            }
+          } catch (uploadErr) {
+            console.warn('Background sync of unsynced local invoices failed:', uploadErr);
+          }
+        }
+
+        // 4. Merge server invoices with local items
+        const map = new Map<string, Invoice>();
+        for (const item of localList) {
+          if (item.invoiceNumber) map.set(item.invoiceNumber, item);
+        }
+        for (const [invNum, item] of Array.from(serverMap.entries())) {
+          const existing = map.get(invNum);
+          map.set(invNum, {
+            ...DEFAULT_COMPANY_INFO,
+            ...existing,
+            ...item,
+            items: Array.isArray(item.items) && item.items.length > 0 ? item.items : (existing?.items || [emptyItem()])
+          });
+        }
+
+        const merged = Array.from(map.values()).sort((a, b) => {
+          const da = new Date(a.createdAt || a.invoiceDate).getTime();
+          const db = new Date(b.createdAt || b.invoiceDate).getTime();
+          return db - da;
+        });
+
+        setSavedInvoices(merged);
+        localStorage.setItem(SAVED_INVOICES_KEY, JSON.stringify(merged));
+
+        // 5. Restore company info on new device from latest invoice if not set
+        try {
+          const savedComp = localStorage.getItem(COMPANY_INFO_KEY);
+          if (!savedComp && merged.length > 0 && merged[0].companyName) {
+            const restoredCompany: CompanyInfo = {
+              companyName: merged[0].companyName || BRAND_NAME,
+              companyTagline: merged[0].companyTagline || DEFAULT_COMPANY_INFO.companyTagline,
+              companyAddress: merged[0].companyAddress || DEFAULT_COMPANY_INFO.companyAddress,
+              companyCityCountry: merged[0].companyCityCountry || DEFAULT_COMPANY_INFO.companyCityCountry,
+              companyPhone: merged[0].companyPhone || DEFAULT_COMPANY_INFO.companyPhone,
+              companyEmail: merged[0].companyEmail || DEFAULT_COMPANY_INFO.companyEmail,
+              payTo: merged[0].payTo || merged[0].companyName,
+            };
+            localStorage.setItem(COMPANY_INFO_KEY, JSON.stringify(restoredCompany));
+          }
+        } catch {}
+
+        setSyncStatus('synced');
+        setSyncMessage(`Synced ${merged.length} invoice${merged.length === 1 ? '' : 's'}`);
+        if (isManual) notify('success', `Synced ${merged.length} invoice${merged.length === 1 ? '' : 's'} across all devices!`);
       }
     } catch (e) {
       console.warn('API fetch failed, displaying local invoices:', e);
+      setSyncStatus('error');
+      setSyncMessage('Using local cache (Server unreachable)');
+      if (isManual) notify('error', 'Could not reach server. Showing local cache.');
     } finally {
       setLoading(false);
     }
   }, [searchQuery, statusFilter]);
 
+  // ── Auto-Sync on Mount (Guarantees other devices load all invoices immediately) ─
   useEffect(() => {
-    if (tab === 'history') fetchInvoices();
+    fetchInvoices();
+  }, [fetchInvoices]);
+
+  // ── Refresh on Tab Switch ───────────────────────────────────────────────────
+  useEffect(() => {
+    if (tab === 'history') {
+      fetchInvoices();
+    }
   }, [tab, fetchInvoices]);
 
-  // ── Save Invoice (Guaranteed Client & Server Sync) ───────────────────────────
+  // ── Save Invoice (Guaranteed Multi-Device Cloud Sync) ────────────────────────
   const saveInvoice = async () => {
     // 1. Resolve client name so empty inputs never block saving
     const effectiveClientName = invoice.clientName.trim() || invoice.clientCompany.trim() || 'Valued Client';
@@ -348,7 +487,7 @@ export default function InvoicesAdminPage() {
     setSaving(true);
     setSavedModalInvoice(invoiceToSave);
 
-    // 2. Save to localStorage immediately (synchronous, 100% reliable)
+    // 2. Save to localStorage immediately (instant UI feedback)
     try {
       const local = localStorage.getItem(SAVED_INVOICES_KEY);
       let list: Invoice[] = local ? JSON.parse(local) : [];
@@ -369,7 +508,7 @@ export default function InvoicesAdminPage() {
       console.error('LocalStorage write error:', e);
     }
 
-    // 3. Sync to Server API
+    // 3. Sync to Server Database API (so other devices can see it)
     try {
       const res = await fetch('/api/invoices', {
         method: 'POST',
@@ -377,10 +516,23 @@ export default function InvoicesAdminPage() {
         body: JSON.stringify(invoiceToSave),
       });
       if (res.ok) {
-        notify('success', `Invoice ${invoiceToSave.invoiceNumber} saved successfully!`);
+        const resData = await res.json().catch(() => null);
+        const finalInv = resData?.invoice || invoiceToSave;
+        // Update local list with server-returned version
+        try {
+          const local = localStorage.getItem(SAVED_INVOICES_KEY);
+          let list: Invoice[] = local ? JSON.parse(local) : [];
+          const idx = list.findIndex(i => i.invoiceNumber === finalInv.invoiceNumber);
+          if (idx >= 0) list[idx] = finalInv;
+          else list.unshift(finalInv);
+          localStorage.setItem(SAVED_INVOICES_KEY, JSON.stringify(list));
+          setSavedInvoices(list);
+          setSavedModalInvoice(finalInv);
+        } catch {}
+        notify('success', `Invoice ${finalInv.invoiceNumber} saved & synced across all devices!`);
       } else {
         const err = await res.json().catch(() => ({}));
-        notify('success', `Invoice saved locally! (${err.error || 'Server sync pending'})`);
+        notify('success', `Invoice saved locally! (${err.error || 'Cloud sync pending'})`);
       }
     } catch {
       notify('success', `Invoice ${invoiceToSave.invoiceNumber} saved locally!`);
@@ -405,10 +557,14 @@ export default function InvoicesAdminPage() {
 
     // Delete from API
     try {
-      await fetch(`/api/invoices?invoiceNumber=${invNo}`, { method: 'DELETE' });
-      notify('success', 'Invoice deleted.');
+      const res = await fetch(`/api/invoices?invoiceNumber=${invNo}`, { method: 'DELETE' });
+      if (res.ok) {
+        notify('success', `Invoice ${invNo} deleted from all devices.`);
+      } else {
+        notify('success', `Invoice ${invNo} removed locally.`);
+      }
     } catch {
-      notify('success', 'Invoice removed locally.');
+      notify('success', `Invoice ${invNo} removed locally.`);
     }
   };
 
@@ -417,6 +573,8 @@ export default function InvoicesAdminPage() {
     setInvoice({
       ...DEFAULT_COMPANY_INFO,
       ...inv,
+      currency: inv.currency || DEFAULT_CURRENCY.code,
+      enableInstallments: inv.enableInstallments !== false,
       items: safeItems
     });
     setTab('builder');
@@ -430,6 +588,8 @@ export default function InvoicesAdminPage() {
     const dup: Invoice = {
       ...DEFAULT_COMPANY_INFO,
       ...inv,
+      currency: inv.currency || DEFAULT_CURRENCY.code,
+      enableInstallments: inv.enableInstallments !== false,
       id: undefined,
       invoiceNumber: genInvoiceNo(),
       invoiceDate: today(),
@@ -645,12 +805,12 @@ export default function InvoicesAdminPage() {
               )}
               <div className="flex justify-between">
                 <span className="text-slate-400">Grand Total:</span>
-                <span className="font-bold font-mono text-blue-300">{fmt(savedModalInvoice.totalAmount)}</span>
+                <span className="font-bold font-mono text-blue-300">{fmtWithCurrency(savedModalInvoice.totalAmount, savedModalInvoice.currency)}</span>
               </div>
               <div className="flex justify-between border-t border-white/10 pt-2 font-semibold">
                 <span className="text-slate-300">Balance Due:</span>
                 <span className={`font-mono font-bold ${savedModalInvoice.balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                  {fmt(savedModalInvoice.balanceDue)}
+                  {fmtWithCurrency(savedModalInvoice.balanceDue, savedModalInvoice.currency)}
                 </span>
               </div>
               {savedModalInvoice.payTo && (
@@ -936,6 +1096,27 @@ export default function InvoicesAdminPage() {
                     <input type="date" value={invoice.dueDate} onChange={e => setInvoice(p => ({ ...p, dueDate: e.target.value }))}
                       className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-red-500" />
                   </div>
+                  {/* Currency Selector */}
+                  <div className="col-span-2">
+                    <label className="text-xs text-slate-400 mb-1 flex items-center gap-1">
+                      <DollarSign className="w-3.5 h-3.5" /> Invoice Currency
+                    </label>
+                    <select
+                      value={invoice.currency}
+                      onChange={e => {
+                        const cur = getCurrency(e.target.value);
+                        setInvoice(p => ({ ...p, currency: e.target.value, taxRate: cur.defaultTax }));
+                      }}
+                      className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-red-500"
+                    >
+                      {CURRENCIES.map(c => (
+                        <option key={c.code} value={c.code}>{c.label}</option>
+                      ))}
+                    </select>
+                    <p className="text-[10px] text-slate-500 mt-1">
+                      Symbol: <span className="font-mono font-bold text-slate-300">{activeCurrency.symbol}</span> · Default Tax: {activeCurrency.defaultTax}% · {activeCurrency.taxLabel}
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -980,8 +1161,8 @@ export default function InvoicesAdminPage() {
                   <div className="grid grid-cols-12 gap-2 text-[10px] text-slate-500 uppercase tracking-widest px-1">
                     <div className="col-span-5">Description</div>
                     <div className="col-span-2 text-center">Qty</div>
-                    <div className="col-span-3 text-right">Unit Price</div>
-                    <div className="col-span-1 text-right">Total</div>
+                    <div className="col-span-3 text-right">Unit Price ({activeCurrency.symbol})</div>
+                    <div className="col-span-1 text-right">Total ({activeCurrency.symbol})</div>
                     <div className="col-span-1"></div>
                   </div>
                   {invoice.items.map(item => (
@@ -1015,13 +1196,13 @@ export default function InvoicesAdminPage() {
                 <div className="mt-6 border-t border-white/10 pt-5 space-y-2.5">
                   <div className="flex justify-between text-sm text-slate-400">
                     <span>Subtotal</span>
-                    <span className="font-mono">{fmt(invoice.subtotal)}</span>
+                    <span className="font-mono">{f(invoice.subtotal)}</span>
                   </div>
                   <div className="space-y-2 border-t border-white/10 pt-3">
                     <div className="flex items-center justify-between gap-4">
                       <div>
-                        <label className="text-sm font-semibold text-slate-300">NRA Value Added Tax (VAT %)</label>
-                        <p className="text-[11px] text-slate-400">Standard Sierra Leone NRA VAT rate is 15%</p>
+                        <label className="text-sm font-semibold text-slate-300">{activeCurrency.taxLabel} (%)</label>
+                        <p className="text-[11px] text-slate-400">{activeCurrency.taxLabel} — Default rate: {activeCurrency.defaultTax}%</p>
                       </div>
                       <div className="flex items-center gap-2">
                         {[
@@ -1047,39 +1228,39 @@ export default function InvoicesAdminPage() {
                       </div>
                     </div>
                     <div className="flex justify-between text-sm text-slate-300 bg-slate-900/60 p-2.5 rounded-lg border border-white/5">
-                      <span className="font-medium">Calculated VAT ({invoice.taxRate}% NRA)</span>
-                      <span className="font-mono text-red-400 font-bold">+ {fmt(invoice.taxAmount)}</span>
+                      <span className="font-medium">{activeCurrency.taxLabel} ({invoice.taxRate}%)</span>
+                      <span className="font-mono text-red-400 font-bold">+ {f(invoice.taxAmount)}</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between gap-4">
-                    <label className="text-sm text-slate-400">Discount (Le)</label>
+                    <label className="text-sm text-slate-400">Discount ({activeCurrency.symbol})</label>
                     <input type="number" min="0" value={invoice.discountAmount} onChange={e => setInvoice(p => ({ ...p, discountAmount: parseFloat(e.target.value) || 0 }))}
                       className="w-32 bg-slate-900 border border-white/15 rounded-lg px-3 py-1.5 text-white text-sm text-right focus:ring-2 focus:ring-red-500 font-mono" />
                   </div>
                   {invoice.discountAmount > 0 && (
                     <div className="flex justify-between text-sm text-slate-400">
                       <span>Discount</span>
-                      <span className="font-mono text-emerald-400">- {fmt(invoice.discountAmount)}</span>
+                      <span className="font-mono text-emerald-400">- {f(invoice.discountAmount)}</span>
                     </div>
                   )}
                   <div className="flex justify-between font-bold text-lg text-white border-t border-white/10 pt-3">
                     <span>Total</span>
-                    <span className="font-mono text-blue-300">{fmt(invoice.totalAmount)}</span>
+                    <span className="font-mono text-blue-300">{f(invoice.totalAmount)}</span>
                   </div>
                   <div className="flex items-center justify-between gap-4">
-                    <label className="text-sm text-slate-400">Amount Paid / Deposit (Le)</label>
+                    <label className="text-sm text-slate-400">Amount Paid / Deposit ({activeCurrency.symbol})</label>
                     <input type="number" min="0" value={invoice.amountPaid} onChange={e => setInvoice(p => ({ ...p, amountPaid: parseFloat(e.target.value) || 0 }))}
                       className="w-36 bg-slate-900 border border-white/15 rounded-lg px-3 py-1.5 text-white text-sm text-right focus:ring-2 focus:ring-red-500 font-mono" />
                   </div>
                   {invoice.amountPaid > 0 && (
                     <div className="flex justify-between text-sm text-slate-400">
                       <span>Amount Paid</span>
-                      <span className="font-mono text-emerald-400">- {fmt(invoice.amountPaid)}</span>
+                      <span className="font-mono text-emerald-400">- {f(invoice.amountPaid)}</span>
                     </div>
                   )}
                   <div className="flex justify-between font-bold text-xl border-t-2 border-red-500/50 pt-3">
                     <span className="text-white">Balance Due</span>
-                    <span className={`font-mono ${invoice.balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>{fmt(invoice.balanceDue)}</span>
+                    <span className={`font-mono ${invoice.balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>{f(invoice.balanceDue)}</span>
                   </div>
 
                   {/* Pay To Option under Balance Due */}
@@ -1110,7 +1291,73 @@ export default function InvoicesAdminPage() {
                     rows={3} className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-red-500 resize-y placeholder-slate-600" />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 mb-1 block uppercase tracking-widest font-bold">Payment Details & Instructions</label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs text-slate-400 uppercase tracking-widest font-bold flex items-center gap-1.5">
+                      <CreditCard className="w-3.5 h-3.5" /> Payment Details &amp; Instructions
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-slate-300">
+                      <input
+                        type="checkbox"
+                        checked={invoice.enableInstallments !== false}
+                        onChange={e => setInvoice(p => ({ ...p, enableInstallments: e.target.checked }))}
+                        className="rounded bg-slate-900 border-white/20 text-red-500 focus:ring-red-500"
+                      />
+                      <span>3-Installment Schedule</span>
+                    </label>
+                  </div>
+
+                  {/* 3-Installments Live Breakdown Card */}
+                  {invoice.enableInstallments !== false && (
+                    <div className="mb-3 bg-blue-950/40 border border-blue-500/30 rounded-xl p-3">
+                      <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-blue-500/20">
+                        <span className="text-xs font-bold text-blue-300 flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-blue-400" />
+                          3-Installment Mathematical Breakdown (Total: {f(invoice.totalAmount)})
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const instText = `• Payment Terms: Payment to be made in three (3) installments of total ${f(invoice.totalAmount)}:
+  1. 1st Installment (Advance / Kickoff - 33.34%): ${f(inst1)}
+  2. 2nd Installment (Progress Milestone - 33.33%): ${f(inst2)}
+  3. 3rd Installment (Final Handover - 33.33%): ${f(inst3)}`;
+                            if (!invoice.paymentInstructions.includes('1st Installment')) {
+                              setInvoice(p => ({
+                                ...p,
+                                paymentInstructions: `${instText}
+
+${p.paymentInstructions}`.trim()
+                              }));
+                            }
+                          }}
+                          className="text-[10px] text-blue-300 hover:text-white bg-blue-800/40 hover:bg-blue-800/60 border border-blue-400/30 px-2.5 py-1 rounded transition-colors"
+                        >
+                          + Append to text
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div className="bg-slate-900/80 border border-blue-500/20 rounded-lg p-2">
+                          <div className="text-[10px] text-slate-400 font-semibold">1st Installment (33.34%)</div>
+                          <div className="text-sm font-mono font-bold text-white mt-0.5">{f(inst1)}</div>
+                          <div className="text-[9px] text-slate-500">Advance / Kickoff</div>
+                        </div>
+                        <div className="bg-slate-900/80 border border-blue-500/20 rounded-lg p-2">
+                          <div className="text-[10px] text-slate-400 font-semibold">2nd Installment (33.33%)</div>
+                          <div className="text-sm font-mono font-bold text-white mt-0.5">{f(inst2)}</div>
+                          <div className="text-[9px] text-slate-500">Progress Milestone</div>
+                        </div>
+                        <div className="bg-slate-900/80 border border-blue-500/20 rounded-lg p-2">
+                          <div className="text-[10px] text-slate-400 font-semibold">3rd Installment (33.33%)</div>
+                          <div className="text-sm font-mono font-bold text-white mt-0.5">{f(inst3)}</div>
+                          <div className="text-[9px] text-slate-500">Final Handover</div>
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-blue-300/80 mt-2">
+                        Mathematically calculated from Grand Total: {f(invoice.totalAmount)}. Sum of installments = {f(inst1 + inst2 + inst3)}.
+                      </p>
+                    </div>
+                  )}
+
                   <textarea value={invoice.paymentInstructions} onChange={e => setInvoice(p => ({ ...p, paymentInstructions: e.target.value }))}
                     rows={6} className="w-full bg-slate-900 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-red-500 resize-y font-mono text-xs" />
                 </div>
@@ -1265,8 +1512,8 @@ export default function InvoicesAdminPage() {
                               <td className="px-3.5 py-2.5 print:py-1.5 print:px-2.5 text-slate-400 font-mono">{idx + 1}</td>
                               <td className="px-3.5 py-2.5 print:py-1.5 print:px-2.5 text-slate-800 font-semibold">{item.description}</td>
                               <td className="px-3.5 py-2.5 print:py-1.5 print:px-2.5 text-center text-slate-700 font-mono font-medium">{item.quantity}</td>
-                              <td className="px-3.5 py-2.5 print:py-1.5 print:px-2.5 text-right text-slate-700 font-mono">{fmt(item.unitPrice)}</td>
-                              <td className="px-3.5 py-2.5 print:py-1.5 print:px-2.5 text-right text-slate-900 font-mono font-bold">{fmt(item.total)}</td>
+                              <td className="px-3.5 py-2.5 print:py-1.5 print:px-2.5 text-right text-slate-700 font-mono">{f(item.unitPrice)}</td>
+                              <td className="px-3.5 py-2.5 print:py-1.5 print:px-2.5 text-right text-slate-900 font-mono font-bold">{f(item.total)}</td>
                             </tr>
                           ))}
                           {invoice.items.filter(i => i.description).length === 0 && (
@@ -1279,17 +1526,17 @@ export default function InvoicesAdminPage() {
                     {/* Totals */}
                     <div className="invoice-avoid-break flex justify-end">
                       <div className="w-80 print:w-72 bg-slate-50/90 rounded-xl p-3.5 print:p-2.5 border border-slate-200 space-y-1.5 print:space-y-1 text-xs">
-                        <div className="flex justify-between text-slate-600"><span>Subtotal</span><span className="font-mono font-semibold">{fmt(invoice.subtotal)}</span></div>
+                        <div className="flex justify-between text-slate-600"><span>Subtotal</span><span className="font-mono font-semibold">{f(invoice.subtotal)}</span></div>
                         <div className="flex justify-between text-slate-700 font-medium">
-                          <span>Value Added Tax (VAT {invoice.taxRate}%)</span>
-                          <span className="font-mono font-bold text-slate-800">+ {fmt(invoice.taxAmount)}</span>
+                          <span>{activeCurrency.taxLabel} ({invoice.taxRate}%)</span>
+                          <span className="font-mono font-bold text-slate-800">+ {f(invoice.taxAmount)}</span>
                         </div>
-                        {invoice.discountAmount > 0 && <div className="flex justify-between text-emerald-600 font-semibold"><span>Discount</span><span className="font-mono">- {fmt(invoice.discountAmount)}</span></div>}
-                        <div className="flex justify-between font-extrabold text-sm print:text-xs border-t border-slate-200 pt-1.5 text-slate-900"><span>Grand Total</span><span className="font-mono text-[#040e40]">{fmt(invoice.totalAmount)}</span></div>
-                        {invoice.amountPaid > 0 && <div className="flex justify-between text-emerald-700 font-semibold"><span>Amount Paid / Deposit</span><span className="font-mono">- {fmt(invoice.amountPaid)}</span></div>}
+                        {invoice.discountAmount > 0 && <div className="flex justify-between text-emerald-600 font-semibold"><span>Discount</span><span className="font-mono">- {f(invoice.discountAmount)}</span></div>}
+                        <div className="flex justify-between font-extrabold text-sm print:text-xs border-t border-slate-200 pt-1.5 text-slate-900"><span>Grand Total</span><span className="font-mono text-[#040e40]">{f(invoice.totalAmount)}</span></div>
+                        {invoice.amountPaid > 0 && <div className="flex justify-between text-emerald-700 font-semibold"><span>Amount Paid / Deposit</span><span className="font-mono">- {f(invoice.amountPaid)}</span></div>}
                         <div className={`flex justify-between font-black text-sm print:text-xs border-t-2 pt-1.5 ${invoice.balanceDue > 0 ? 'border-red-400 text-[#dc2626]' : 'border-emerald-400 text-emerald-700'}`}>
                           <span>Balance Due</span>
-                          <span className="font-mono">{fmt(invoice.balanceDue)}</span>
+                          <span className="font-mono">{f(invoice.balanceDue)}</span>
                         </div>
 
                         {/* Pay To Option under Balance Due */}
@@ -1304,13 +1551,59 @@ export default function InvoicesAdminPage() {
                       </div>
                     </div>
 
-                    {/* Payment Instructions */}
-                    {invoice.paymentInstructions && (
-                      <div className="invoice-avoid-break bg-blue-50/60 rounded-xl p-3 print:p-2 border border-blue-100">
-                        <div className="text-[9px] text-[#040e40] uppercase tracking-widest font-black mb-1 flex items-center gap-1.5">
-                          <CreditCard className="w-3.5 h-3.5 text-[#040e40]" /> Payment Details &amp; Instructions
+                    {/* Payment Instructions & 3-Installment Schedule */}
+                    {(invoice.paymentInstructions || (invoice.enableInstallments !== false && invoice.totalAmount > 0)) && (
+                      <div className="invoice-avoid-break bg-blue-50/70 rounded-xl p-3 print:p-2 border border-blue-200/80 space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <div className="text-[9px] text-[#040e40] uppercase tracking-widest font-black flex items-center gap-1.5">
+                            <CreditCard className="w-3.5 h-3.5 text-[#040e40]" /> Payment Details &amp; Instructions
+                          </div>
+                          {invoice.enableInstallments !== false && invoice.totalAmount > 0 && (
+                            <span className="text-[9px] font-bold text-[#040e40] bg-blue-100/90 border border-blue-200 px-2 py-0.5 rounded-full print:border-none">
+                              3-Installment Plan
+                            </span>
+                          )}
                         </div>
-                        <pre className="text-xs print:text-[10px] text-slate-700 whitespace-pre-wrap font-sans leading-relaxed">{invoice.paymentInstructions}</pre>
+
+                        {/* 3-Installment Breakdown Table */}
+                        {invoice.enableInstallments !== false && invoice.totalAmount > 0 && (
+                          <div className="bg-white rounded-lg border border-blue-200/90 overflow-hidden shadow-xs">
+                            <div className="bg-gradient-to-r from-[#040e40] to-[#0c1f72] text-white px-3 py-1.5 flex items-center justify-between">
+                              <span className="text-[10px] print:text-[9px] font-bold tracking-wide flex items-center gap-1.5">
+                                <Calendar className="w-3 h-3 text-red-400" /> Payment Terms: 3 Installments of Total Sum
+                              </span>
+                              <span className="text-[9px] text-blue-200 font-mono font-semibold">Total = {f(invoice.totalAmount)}</span>
+                            </div>
+                            <div className="grid grid-cols-3 divide-x divide-slate-200 text-center bg-slate-50/50">
+                              <div className="p-2 print:p-1.5">
+                                <div className="text-[9px] font-bold text-slate-700 uppercase tracking-wider">1st Installment</div>
+                                <div className="text-[8px] text-slate-500 font-medium">Initial Deposit / Kickoff</div>
+                                <div className="text-xs print:text-[11px] font-mono font-extrabold text-[#040e40] mt-0.5">{f(inst1)}</div>
+                                <div className="text-[8px] text-slate-400 mt-0.5">33.34% of total</div>
+                              </div>
+                              <div className="p-2 print:p-1.5">
+                                <div className="text-[9px] font-bold text-slate-700 uppercase tracking-wider">2nd Installment</div>
+                                <div className="text-[8px] text-slate-500 font-medium">Progress Milestone</div>
+                                <div className="text-xs print:text-[11px] font-mono font-extrabold text-[#040e40] mt-0.5">{f(inst2)}</div>
+                                <div className="text-[8px] text-slate-400 mt-0.5">33.33% of total</div>
+                              </div>
+                              <div className="p-2 print:p-1.5">
+                                <div className="text-[9px] font-bold text-slate-700 uppercase tracking-wider">3rd Installment</div>
+                                <div className="text-[8px] text-slate-500 font-medium">Final Handover</div>
+                                <div className="text-xs print:text-[11px] font-mono font-extrabold text-[#040e40] mt-0.5">{f(inst3)}</div>
+                                <div className="text-[8px] text-slate-400 mt-0.5">33.33% of total</div>
+                              </div>
+                            </div>
+                            <div className="px-3 py-1 bg-blue-50/50 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-600">
+                              <span className="italic font-medium">Instruction: Payment to be settled in three (3) installments as scheduled above.</span>
+                              <span className="font-mono font-bold text-slate-800">Sum = {f(inst1 + inst2 + inst3)}</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {invoice.paymentInstructions && (
+                          <pre className="text-xs print:text-[10px] text-slate-700 whitespace-pre-wrap font-sans leading-relaxed">{invoice.paymentInstructions}</pre>
+                        )}
                       </div>
                     )}
 
@@ -1365,9 +1658,20 @@ export default function InvoicesAdminPage() {
                 <option value="all">All Statuses</option>
                 {Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
               </select>
-              <button onClick={fetchInvoices} className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm font-medium transition-all border border-white/10">
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
+              <button
+                onClick={() => fetchInvoices(true)}
+                disabled={loading}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 rounded-lg text-sm font-semibold transition-all border border-blue-500/30 shadow-xs"
+                title="Synchronize invoices with cloud database across all devices"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+                <span>{loading ? 'Syncing...' : 'Sync Cloud'}</span>
               </button>
+              {syncMessage && (
+                <span className="text-[11px] text-slate-400 font-medium px-2 py-1 bg-white/5 rounded-md border border-white/5 hidden md:inline-block">
+                  {syncMessage}
+                </span>
+              )}
               <button onClick={() => { setInvoice(blankInvoice()); setTab('builder'); setPreviewMode(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                 className="flex items-center gap-2 px-4 py-2 bg-[#dc2626] hover:bg-red-700 text-white rounded-lg text-sm font-bold transition-all shadow-md">
                 <Plus className="w-3.5 h-3.5" /> New Invoice
@@ -1414,9 +1718,12 @@ export default function InvoicesAdminPage() {
                             </td>
                             <td className="px-5 py-3.5 text-slate-400 text-xs hidden md:table-cell">{inv.invoiceDate}</td>
                             <td className="px-5 py-3.5 text-slate-400 text-xs hidden lg:table-cell">{inv.dueDate}</td>
-                            <td className="px-5 py-3.5 text-right font-mono text-white text-xs">{fmt(inv.totalAmount)}</td>
+                            <td className="px-5 py-3.5 text-right font-mono text-white text-xs">
+                              {fmtWithCurrency(inv.totalAmount, inv.currency)}
+                              <span className="text-[10px] text-slate-400 block font-sans font-medium">{inv.currency || DEFAULT_CURRENCY.code}</span>
+                            </td>
                             <td className={`px-5 py-3.5 text-right font-mono text-xs font-bold hidden md:table-cell ${inv.balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                              {fmt(inv.balanceDue)}
+                              {fmtWithCurrency(inv.balanceDue, inv.currency)}
                             </td>
                             <td className="px-5 py-3.5 text-center">
                               <select value={inv.status} onChange={e => updateStatus(inv.invoiceNumber, e.target.value)}

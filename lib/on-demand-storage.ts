@@ -54,6 +54,8 @@ export interface OnDemandPro {
   onboardingFeeStatus: 'unpaid' | 'pending_verification' | 'paid';
   onboardingPaymentRef?: string;
   status: 'pending_payment' | 'pending_review' | 'verified_active' | 'inactive' | 'suspended' | 'blocked';
+  mustChangePassword?: boolean;
+  tempPasswordExpiresAt?: string;
   resetCode?: string;
   resetCodeExpiresAt?: string;
   rating?: number;
@@ -119,6 +121,8 @@ async function ensureTables(): Promise<boolean> {
         "onboardingFeeStatus" VARCHAR(32) NOT NULL DEFAULT 'unpaid',
         "onboardingPaymentRef" VARCHAR(255),
         "status" VARCHAR(32) NOT NULL DEFAULT 'pending_review',
+        "mustChangePassword" BOOLEAN DEFAULT FALSE,
+        "tempPasswordExpiresAt" TIMESTAMPTZ,
         "resetCode" VARCHAR(16),
         "resetCodeExpiresAt" VARCHAR(64),
         "rating" NUMERIC DEFAULT 5.0,
@@ -206,6 +210,10 @@ function rowToPro(row: any): OnDemandPro {
     onboardingFeeStatus: row.onboardingFeeStatus || 'pending_verification',
     onboardingPaymentRef: row.onboardingPaymentRef ? String(row.onboardingPaymentRef) : undefined,
     status: row.status || 'pending_review',
+    mustChangePassword: Boolean(row.mustChangePassword),
+    tempPasswordExpiresAt: row.tempPasswordExpiresAt instanceof Date 
+      ? row.tempPasswordExpiresAt.toISOString() 
+      : (row.tempPasswordExpiresAt ? String(row.tempPasswordExpiresAt) : undefined),
     resetCode: row.resetCode ? String(row.resetCode) : undefined,
     resetCodeExpiresAt: row.resetCodeExpiresAt ? String(row.resetCodeExpiresAt) : undefined,
     rating: Number(row.rating || 5.0),
@@ -371,6 +379,8 @@ export async function saveOnDemandPro(input: Partial<OnDemandPro>): Promise<OnDe
     onboardingFeeStatus: input.onboardingFeeStatus || 'pending_verification',
     onboardingPaymentRef: input.onboardingPaymentRef?.trim() || undefined,
     status: input.status || 'pending_review',
+    mustChangePassword: Boolean(input.mustChangePassword),
+    tempPasswordExpiresAt: input.tempPasswordExpiresAt ? String(input.tempPasswordExpiresAt) : undefined,
     rating: 5.0,
     completedJobsCount: 0,
     totalEarned: 0,
@@ -472,6 +482,8 @@ export async function updateOnDemandPro(id: string, updates: Partial<OnDemandPro
         onboardingFeeStatus: { col: '"onboardingFeeStatus"' },
         onboardingPaymentRef: { col: '"onboardingPaymentRef"' },
         status: { col: '"status"' },
+        mustChangePassword: { col: '"mustChangePassword"', format: (v) => Boolean(v) },
+        tempPasswordExpiresAt: { col: '"tempPasswordExpiresAt"', cast: '::timestamptz', format: (v) => v ? new Date(v).toISOString() : null },
         resetCode: { col: '"resetCode"' },
         resetCodeExpiresAt: { col: '"resetCodeExpiresAt"' },
         rating: { col: '"rating"', format: (v) => Number(v) || 5.0 },
