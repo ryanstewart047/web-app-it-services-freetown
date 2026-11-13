@@ -102,7 +102,6 @@ const ADMIN_PANELS: AdminPanelItem[] = [
     icon: 'fas fa-handshake',
     color: 'text-amber-400',
     url: '/admin/on-demand',
-    badge: 'NEW',
   },
   {
     id: 'banner-admin',
@@ -1179,17 +1178,6 @@ export default function AdminPage() {
 
           {/* Header Action Buttons */}
           <div className="flex items-center gap-2">
-            {activeTab !== 'on-demand' && (
-              <button
-                onClick={() => handleTabChange('on-demand')}
-                className="px-3 py-1.5 bg-gradient-to-r from-amber-500/20 to-amber-600/20 hover:from-amber-500/30 hover:to-amber-600/30 border border-amber-500/50 text-amber-300 font-bold rounded-lg text-xs transition-all flex items-center gap-1.5 shadow-sm"
-                title="Switch directly to On-Demand Service Hub"
-              >
-                <i className="fas fa-handshake text-amber-400"></i>
-                <span className="hidden sm:inline">On-Demand Hub</span>
-                <span className="text-[9px] bg-amber-500 text-slate-950 font-black px-1 rounded uppercase tracking-wider">NEW</span>
-              </button>
-            )}
             <button
               onClick={() => {
                 setShow2FAModal(true);
@@ -1288,46 +1276,6 @@ export default function AdminPage() {
                   </div>
                   <div className="text-2xl font-bold text-white">{analytics.totalVisitors || 0}</div>
                   <p className="text-xs text-slate-500 mt-1">Unique: {analytics.uniqueVisitors || 0} &bull; Bounce: {analytics.bounceRate || 0}%</p>
-                </div>
-              </div>
-
-              {/* ── PROMINENT FEATURED HERO: ON-DEMAND SERVICE HUB ── */}
-              <div className="bg-gradient-to-r from-amber-500/15 via-red-950/40 to-slate-900 border-2 border-amber-500/40 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl shadow-amber-500/5">
-                <div className="flex items-center gap-3.5 sm:gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center shrink-0 text-xl shadow-inner">
-                    <i className="fas fa-handshake"></i>
-                  </div>
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[10px] font-black uppercase tracking-widest bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full shadow-sm">
-                        New Operations Panel
-                      </span>
-                      <h3 className="text-sm sm:text-base font-bold text-white">On-Demand Service Hub</h3>
-                      <span className="text-xs text-amber-400 font-bold hidden sm:inline">&bull; 15% Platform Commission</span>
-                    </div>
-                    <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
-                      Manage registered technicians &amp; artisans (electricians, welders, plumbers, PC techs), review ID card photos, verify Le 30 onboarding fees, assign customer jobs, and manage account statuses (suspend/block/reset password).
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
-                  <button
-                    onClick={() => handleTabChange('on-demand')}
-                    className="flex-1 md:flex-initial px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
-                  >
-                    <span>Open in Hub</span>
-                    <i className="fas fa-arrow-right"></i>
-                  </button>
-                  <a
-                    href="/admin/on-demand"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
-                    title="Open full-screen in a new tab"
-                  >
-                    <i className="fas fa-external-link-alt text-xs"></i>
-                    <span className="hidden sm:inline">Direct Link</span>
-                  </a>
                 </div>
               </div>
 
