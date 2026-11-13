@@ -392,9 +392,10 @@ export default function AdminOnDemandPage() {
           </div>
 
           {filteredRequests.length === 0 ? (
-            <div className="p-12 text-center bg-slate-950 border border-slate-800 rounded-2xl text-slate-500 space-y-2">
-              <i className="fas fa-clipboard-list text-3xl opacity-30" />
-              <p className="text-xs">No service requests match the current filter.</p>
+            <div className="p-12 text-center bg-slate-950 border border-slate-800 rounded-2xl text-slate-400 space-y-2">
+              <i className="fas fa-clipboard-list text-3xl text-slate-600 mb-1" />
+              <p className="text-sm font-bold text-slate-300">No service requests yet</p>
+              <p className="text-xs text-slate-500">Live customer bookings submitted through the on-demand portal will appear here immediately.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4">
@@ -665,9 +666,10 @@ export default function AdminOnDemandPage() {
         <div className="space-y-4">
           
           {filteredPros.length === 0 ? (
-            <div className="p-12 text-center bg-slate-950 border border-slate-800 rounded-2xl text-slate-500 space-y-2">
-              <i className="fas fa-users-slash text-3xl opacity-30" />
-              <p className="text-xs">No artisans found.</p>
+            <div className="p-12 text-center bg-slate-950 border border-slate-800 rounded-2xl text-slate-400 space-y-2">
+              <i className="fas fa-hard-hat text-3xl text-slate-600 mb-1" />
+              <p className="text-sm font-bold text-slate-300">No registered artisans yet</p>
+              <p className="text-xs text-slate-500">Newly registered technician profiles and Le 30 fee submissions will appear here immediately.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
