@@ -222,6 +222,15 @@ const ADMIN_PANELS: AdminPanelItem[] = [
   },
   // Services & Community
   {
+    id: 'on-demand',
+    name: 'On-Demand Service Hub',
+    category: 'services',
+    description: 'Techs, trades, artisans & 15% commissions',
+    icon: 'fas fa-handshake',
+    color: 'text-amber-400',
+    url: '/admin/on-demand',
+  },
+  {
     id: 'bookings',
     name: 'Bookings',
     category: 'services',
