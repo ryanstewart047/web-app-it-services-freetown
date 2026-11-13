@@ -34,6 +34,7 @@ export interface OnDemandPro {
   id: string; // e.g. 'PRO-3819'
   fullName: string;
   phone: string;
+  password?: string; // For pro sign-in
   whatsapp?: string;
   mobileMoneyNumber: string;
   mobileMoneyProvider: 'orange' | 'afri' | 'other';
@@ -42,10 +43,12 @@ export interface OnDemandPro {
   yearsOfExperience: number | string;
   coverageAreas: string[];
   nationalIdNumber?: string;
+  profilePhoto?: string; // Full size photo of applicant
+  idCardPhoto?: string; // Uploaded ID card image
   onboardingFeeAmount: number; // 30 Leones
   onboardingFeeStatus: 'unpaid' | 'pending_verification' | 'paid';
   onboardingPaymentRef?: string;
-  status: 'pending_review' | 'verified_active' | 'inactive' | 'suspended';
+  status: 'pending_payment' | 'pending_review' | 'verified_active' | 'inactive' | 'suspended';
   rating?: number;
   completedJobsCount?: number;
   totalEarned?: number;
@@ -332,6 +335,7 @@ export async function saveOnDemandPro(input: Partial<OnDemandPro>): Promise<OnDe
     id,
     fullName: input.fullName || '',
     phone: input.phone || '',
+    password: input.password || '',
     whatsapp: input.whatsapp || input.phone || '',
     mobileMoneyNumber: input.mobileMoneyNumber || input.phone || '',
     mobileMoneyProvider: input.mobileMoneyProvider || 'orange',
@@ -340,6 +344,8 @@ export async function saveOnDemandPro(input: Partial<OnDemandPro>): Promise<OnDe
     yearsOfExperience: input.yearsOfExperience || 1,
     coverageAreas: input.coverageAreas || ['Central Freetown'],
     nationalIdNumber: input.nationalIdNumber,
+    profilePhoto: input.profilePhoto,
+    idCardPhoto: input.idCardPhoto,
     onboardingFeeAmount: 30, // Fixed Le 30 commitment fee
     onboardingFeeStatus: input.onboardingFeeStatus || 'pending_verification',
     onboardingPaymentRef: input.onboardingPaymentRef,

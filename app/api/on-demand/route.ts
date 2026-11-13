@@ -133,6 +133,7 @@ export async function POST(request: NextRequest) {
       const {
         fullName,
         phone,
+        password,
         whatsapp,
         mobileMoneyNumber,
         mobileMoneyProvider,
@@ -141,6 +142,8 @@ export async function POST(request: NextRequest) {
         yearsOfExperience,
         coverageAreas,
         nationalIdNumber,
+        profilePhoto,
+        idCardPhoto,
         onboardingPaymentRef,
         bioOrWorkSummary,
       } = body;
@@ -155,6 +158,7 @@ export async function POST(request: NextRequest) {
       const created = await saveOnDemandPro({
         fullName: fullName.trim(),
         phone: phone.trim(),
+        password: password?.trim() || undefined,
         whatsapp: (whatsapp || phone).trim(),
         mobileMoneyNumber: (mobileMoneyNumber || phone).trim(),
         mobileMoneyProvider: mobileMoneyProvider || 'orange',
@@ -163,6 +167,8 @@ export async function POST(request: NextRequest) {
         yearsOfExperience: yearsOfExperience || 1,
         coverageAreas: Array.isArray(coverageAreas) && coverageAreas.length > 0 ? coverageAreas : ['Central Freetown'],
         nationalIdNumber: nationalIdNumber?.trim() || undefined,
+        profilePhoto: profilePhoto || undefined,
+        idCardPhoto: idCardPhoto || undefined,
         onboardingFeeAmount: 30, // 30 Leones commitment fee
         onboardingFeeStatus: onboardingPaymentRef ? 'pending_verification' : 'unpaid',
         onboardingPaymentRef: onboardingPaymentRef?.trim() || undefined,
@@ -173,6 +179,48 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: true, pro: created, proId: created.id },
         { status: 201, headers: NO_CACHE_HEADERS }
+      );
+    }
+
+    // ── 3. Artisan Sign In ───────────────────────────────────────────────────
+    if (action === 'login_pro') {
+      const { phone, password } = body;
+      if (!phone?.trim()) {
+        return NextResponse.json(
+          { success: false, error: 'Phone number is required.' },
+          { status: 400, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      const allPros = await getOnDemandPros();
+      const cleanPhone = phone.trim().replace(/\s+/g, '');
+      const pro = allPros.find(p => {
+        const pPhone = p.phone.replace(/\s+/g, '');
+        return pPhone === cleanPhone || pPhone.endsWith(cleanPhone.slice(-8)) || p.id.toLowerCase() === cleanPhone.toLowerCase();
+      });
+
+      if (!pro) {
+        return NextResponse.json(
+          { success: false, error: 'No artisan profile found with this phone number. Please register first.' },
+          { status: 404, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      // Check password if set
+      if (pro.password && password && pro.password !== password.trim()) {
+        return NextResponse.json(
+          { success: false, error: 'Incorrect password. Please try again.' },
+          { status: 401, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      // Fetch assigned jobs
+      const allRequests = await getOnDemandRequests();
+      const assignedJobs = allRequests.filter(r => r.assignedProId === pro.id);
+
+      return NextResponse.json(
+        { success: true, pro, assignedJobs },
+        { headers: NO_CACHE_HEADERS }
       );
     }
 

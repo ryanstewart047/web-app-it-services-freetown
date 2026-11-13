@@ -23,6 +23,7 @@ export default function AdminOnDemandPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [editingRequestId, setEditingRequestId] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<OnDemandRequest>>({});
+  const [viewingPro, setViewingPro] = useState<OnDemandPro | null>(null);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -620,12 +621,26 @@ export default function AdminOnDemandPage() {
                   >
                     <div>
                       {/* Top Bar */}
-                      <div className="flex items-start justify-between gap-2 border-b border-slate-800/80 pb-2.5 mb-2.5">
-                        <div>
-                          <span className="font-mono text-[11px] font-bold text-slate-500">{pro.id}</span>
-                          <h3 className="font-extrabold text-white text-base leading-snug">{pro.fullName}</h3>
-                          <span className="text-xs text-red-400 font-semibold">{pro.primaryTrade}</span>
+                      <div className="flex items-start justify-between gap-3 border-b border-slate-800/80 pb-3 mb-3">
+                        <div className="flex items-center gap-3">
+                          {pro.profilePhoto ? (
+                            <img
+                              src={pro.profilePhoto}
+                              alt={pro.fullName}
+                              className="w-12 h-12 rounded-xl object-cover border border-slate-700 shrink-0"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 font-bold shrink-0">
+                              <i className="fas fa-user text-sm" />
+                            </div>
+                          )}
+                          <div>
+                            <span className="font-mono text-[10px] font-bold text-slate-500">{pro.id}</span>
+                            <h3 className="font-extrabold text-white text-sm leading-snug">{pro.fullName}</h3>
+                            <span className="text-xs text-red-400 font-semibold">{pro.primaryTrade}</span>
+                          </div>
                         </div>
+
                         <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase shrink-0 ${
                           isActive ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                         }`}>
@@ -675,6 +690,16 @@ export default function AdminOnDemandPage() {
                           "{pro.bioOrWorkSummary}"
                         </p>
                       )}
+
+                      {/* View Profile & ID Photos Button */}
+                      <button
+                        type="button"
+                        onClick={() => setViewingPro(pro)}
+                        className="w-full mt-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-xl text-xs font-bold border border-slate-800 flex items-center justify-center gap-1.5 transition-colors"
+                      >
+                        <i className="fas fa-id-card text-xs text-blue-400" />
+                        <span>View Profile &amp; ID Photos</span>
+                      </button>
                     </div>
 
                     {/* Onboarding Fee Status Box */}
@@ -737,6 +762,127 @@ export default function AdminOnDemandPage() {
             </div>
           )}
 
+        </div>
+      )}
+
+      {/* ── ARTISAN PROFILE & ID PHOTOS LIGHTBOX MODAL ── */}
+      {viewingPro && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in"
+          onClick={() => setViewingPro(null)}
+        >
+          <div
+            className="bg-slate-950 border border-slate-800 rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-6 space-y-5 text-white shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div>
+                <span className="font-mono text-xs text-slate-500">{viewingPro.id}</span>
+                <h3 className="text-lg font-black text-white">{viewingPro.fullName}</h3>
+                <p className="text-xs text-red-400 font-bold">{viewingPro.primaryTrade}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewingPro(null)}
+                className="w-8 h-8 rounded-full bg-slate-900 hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Photos Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <span className="text-xs font-bold text-slate-300 block">Full-Size Profile Photo</span>
+                {viewingPro.profilePhoto ? (
+                  <a href={viewingPro.profilePhoto} target="_blank" rel="noopener noreferrer" className="block">
+                    <img
+                      src={viewingPro.profilePhoto}
+                      alt={viewingPro.fullName}
+                      className="w-full h-56 object-cover rounded-2xl border border-slate-800 hover:border-emerald-500 transition-colors shadow-sm"
+                    />
+                  </a>
+                ) : (
+                  <div className="w-full h-56 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 text-xs italic">
+                    No photo uploaded
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                <span className="text-xs font-bold text-slate-300 block">Uploaded ID Card Photo</span>
+                {viewingPro.idCardPhoto ? (
+                  <a href={viewingPro.idCardPhoto} target="_blank" rel="noopener noreferrer" className="block">
+                    <img
+                      src={viewingPro.idCardPhoto}
+                      alt="ID Card"
+                      className="w-full h-56 object-cover rounded-2xl border border-slate-800 hover:border-blue-500 transition-colors shadow-sm"
+                    />
+                  </a>
+                ) : (
+                  <div className="w-full h-56 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 text-xs italic">
+                    No ID card photo uploaded
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Complete Profile Details */}
+            <div className="grid grid-cols-2 gap-3 text-xs bg-slate-900 p-4 rounded-2xl border border-slate-800">
+              <div>
+                <span className="text-slate-500 text-[10px] uppercase font-bold block">Phone</span>
+                <span className="font-bold font-mono text-white">{viewingPro.phone}</span>
+              </div>
+              <div>
+                <span className="text-slate-500 text-[10px] uppercase font-bold block">Mobile Money Payout</span>
+                <span className="font-bold text-emerald-400 font-mono">{viewingPro.mobileMoneyNumber} ({viewingPro.mobileMoneyProvider})</span>
+              </div>
+              <div>
+                <span className="text-slate-500 text-[10px] uppercase font-bold block">Experience</span>
+                <span className="font-bold text-white">{viewingPro.yearsOfExperience} years</span>
+              </div>
+              <div>
+                <span className="text-slate-500 text-[10px] uppercase font-bold block">National ID / Voter ID</span>
+                <span className="font-mono text-white">{viewingPro.nationalIdNumber || 'Not provided'}</span>
+              </div>
+              {viewingPro.password && (
+                <div className="col-span-2 pt-1 border-t border-slate-800">
+                  <span className="text-slate-500 text-[10px] uppercase font-bold block">Account Password (PIN)</span>
+                  <span className="font-mono text-amber-300 font-bold">{viewingPro.password}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Fee & Action Controls */}
+            <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-400 font-bold">Le 30 Fee:</span>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                  viewingPro.onboardingFeeStatus === 'paid' ? 'bg-emerald-500 text-slate-950 font-bold' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                }`}>
+                  {viewingPro.onboardingFeeStatus === 'paid' ? 'Paid' : 'Unpaid'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleVerifyProFee(viewingPro.id, viewingPro.onboardingFeeStatus);
+                    setViewingPro(p => p ? { ...p, onboardingFeeStatus: p.onboardingFeeStatus === 'paid' ? 'unpaid' : 'paid' } : null);
+                  }}
+                  className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-[10px] font-bold"
+                >
+                  Toggle Fee Status
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setViewingPro(null)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

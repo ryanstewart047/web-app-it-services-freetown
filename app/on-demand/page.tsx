@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { X, Phone, MessageCircle, Copy, CheckCircle, Smartphone, User, Shield, Camera, FileText, ArrowRight, LogIn } from 'lucide-react';
 
 interface TradeCategory {
   id: string;
@@ -14,66 +15,66 @@ interface TradeCategory {
 }
 
 const TRADE_CATEGORIES: TradeCategory[] = [
-  // Specialized Tech
+  // Tech & Electronics
   {
     id: 'printer-tech',
     title: 'Printer & Copier Repair',
-    subtitle: 'HP, Canon, Epson, Ricoh laser/inkjet, rollers & error code fixes',
+    subtitle: 'HP, Canon, Epson, Ricoh — paper jams, printheads, power faults & error codes',
     icon: 'fas fa-print',
     color: 'from-blue-600 to-indigo-600',
-    badge: 'Specialized Tech',
+    badge: 'Tech Specialist',
     type: 'tech',
   },
   {
     id: 'gaming-console',
     title: 'Gaming Console Repair',
-    subtitle: 'PS4, PS5, Xbox Series, Switch — HDMI ports, overheating & pads',
+    subtitle: 'PlayStation (PS4/PS5), Xbox & Switch — HDMI ports, overheating & controller fix',
     icon: 'fas fa-gamepad',
     color: 'from-purple-600 to-pink-600',
-    badge: 'Specialized Tech',
+    badge: 'Tech Specialist',
     type: 'tech',
   },
   {
     id: 'cctv-security',
-    title: 'CCTV & Security Systems',
-    subtitle: 'Camera mounting, DVR/NVR setup, mobile streaming & repairs',
+    title: 'CCTV & Security Cameras',
+    subtitle: 'Camera installation, recorder setup, phone live-view & wire repairs',
     icon: 'fas fa-video',
     color: 'from-cyan-600 to-blue-600',
-    badge: 'Specialized Tech',
+    badge: 'Security Tech',
     type: 'tech',
   },
   {
     id: 'solar-inverter',
     title: 'Solar & Inverter Systems',
-    subtitle: 'Hybrid inverters, battery banks, solar panel wiring & diagnostics',
+    subtitle: 'Battery banks, solar panels, hybrid inverters & backup wiring',
     icon: 'fas fa-solar-panel',
     color: 'from-amber-500 to-orange-600',
-    badge: 'Energy & Power',
+    badge: 'Power & Solar',
     type: 'tech',
   },
   {
     id: 'networking-wifi',
-    title: 'Networking & Wi-Fi Setup',
-    subtitle: 'Office LAN cabling, router config, mesh Wi-Fi & signal boost',
+    title: 'Wi-Fi & Office Cabling',
+    subtitle: 'Office internet cables, router setup, Wi-Fi booster & network setup',
     icon: 'fas fa-network-wired',
     color: 'from-teal-600 to-emerald-600',
-    badge: 'IT Infrastructure',
+    badge: 'IT Cabling',
     type: 'tech',
   },
   {
     id: 'audio-visual',
     title: 'TV & Projector Mounting',
-    subtitle: 'Smart TV wall mounting, conference projector setup & audio',
+    subtitle: 'Wall mounting for smart TVs, conference room projectors & audio systems',
     icon: 'fas fa-tv',
     color: 'from-red-600 to-rose-600',
-    badge: 'Specialized Tech',
+    badge: 'Audio & Video',
     type: 'tech',
   },
-  // Trades & Artisans
+  // Home & Office Trades
   {
     id: 'electrician',
     title: 'Certified Electricians',
-    subtitle: 'House rewiring, breaker faults, generator changeovers & lighting',
+    subtitle: 'House rewiring, circuit breaker trips, generator changeover switches & sockets',
     icon: 'fas fa-bolt',
     color: 'from-amber-600 to-yellow-600',
     badge: 'Certified Trade',
@@ -82,7 +83,7 @@ const TRADE_CATEGORIES: TradeCategory[] = [
   {
     id: 'plumber',
     title: 'Plumbers & Pipe Fitters',
-    subtitle: 'Water pumps, leak repair, overhead tank plumbing & drainage',
+    subtitle: 'Water pumps, leaking pipes, overhead water tanks & bathroom fittings',
     icon: 'fas fa-faucet',
     color: 'from-sky-600 to-blue-700',
     badge: 'Certified Trade',
@@ -90,8 +91,8 @@ const TRADE_CATEGORIES: TradeCategory[] = [
   },
   {
     id: 'ac-refrigeration',
-    title: 'AC & Refrigeration',
-    subtitle: 'Split AC servicing, gas refilling, compressor repair & cooling',
+    title: 'AC & Fridge Technicians',
+    subtitle: 'Split AC servicing, gas refilling, compressor repairs & cooling faults',
     icon: 'fas fa-snowflake',
     color: 'from-indigo-600 to-blue-500',
     badge: 'Certified Trade',
@@ -99,8 +100,8 @@ const TRADE_CATEGORIES: TradeCategory[] = [
   },
   {
     id: 'welder-metal',
-    title: 'Welders & Metal Fabricators',
-    subtitle: 'Burglar bars, security metal gates, custom welding & railings',
+    title: 'Welders & Metal Workers',
+    subtitle: 'Burglar bars, security metal gates, iron railings & custom metal welding',
     icon: 'fas fa-fire',
     color: 'from-orange-600 to-red-600',
     badge: 'Fabrication',
@@ -109,7 +110,7 @@ const TRADE_CATEGORIES: TradeCategory[] = [
   {
     id: 'carpenter',
     title: 'Carpenters & Woodworkers',
-    subtitle: 'Door hanging, lock repairs, bespoke cabinets, roofing & desks',
+    subtitle: 'Door hanging, lock repairs, kitchen cabinets, office desks & roofing',
     icon: 'fas fa-hammer',
     color: 'from-amber-700 to-orange-800',
     badge: 'Artisan',
@@ -118,7 +119,7 @@ const TRADE_CATEGORIES: TradeCategory[] = [
   {
     id: 'mason-builder',
     title: 'Masons, Tilers & Builders',
-    subtitle: 'Floor tiling, brick/block laying, plastering & structural repair',
+    subtitle: 'Floor tiling, bricklaying, wall plastering & building repairs',
     icon: 'fas fa-trowel',
     color: 'from-stone-600 to-stone-800',
     badge: 'Construction',
@@ -127,7 +128,7 @@ const TRADE_CATEGORIES: TradeCategory[] = [
   {
     id: 'painter',
     title: 'Professional Painters',
-    subtitle: 'Interior & exterior painting, weatherproofing & damp coating',
+    subtitle: 'Interior & exterior painting, weatherproofing & damp wall coating',
     icon: 'fas fa-paint-roller',
     color: 'from-emerald-600 to-green-700',
     badge: 'Finishing',
@@ -164,16 +165,19 @@ export default function OnDemandServicesPage() {
   const [addressDetails, setAddressDetails] = useState('');
   const [urgency, setUrgency] = useState<'emergency' | '24h' | 'flexible'>('24h');
   const [problemDescription, setProblemDescription] = useState('');
-  const [preferredDate, setPreferredDate] = useState('');
 
-  // Customer Submission State
+  // Customer Submission
   const [isSubmittingCustomer, setIsSubmittingCustomer] = useState(false);
   const [customerSuccessTrackingId, setCustomerSuccessTrackingId] = useState<string | null>(null);
   const [customerError, setCustomerError] = useState<string | null>(null);
 
-  // Artisan Form State
+  // Artisan Mode: 'register' vs 'login'
+  const [artisanMode, setArtisanMode] = useState<'register' | 'login'>('register');
+
+  // Artisan Registration Form State
   const [artisanName, setArtisanName] = useState('');
   const [artisanPhone, setArtisanPhone] = useState('');
+  const [artisanPassword, setArtisanPassword] = useState('');
   const [artisanWhatsapp, setArtisanWhatsapp] = useState('');
   const [artisanMomo, setArtisanMomo] = useState('');
   const [artisanMomoNetwork, setArtisanMomoNetwork] = useState<'orange' | 'afri'>('orange');
@@ -182,38 +186,89 @@ export default function OnDemandServicesPage() {
   const [artisanExperience, setArtisanExperience] = useState('3');
   const [artisanCoverage, setArtisanCoverage] = useState<string[]>(['Central Freetown', 'Lumley']);
   const [artisanIdNumber, setArtisanIdNumber] = useState('');
-  const [artisanPaymentRef, setArtisanPaymentRef] = useState('');
   const [artisanBio, setArtisanBio] = useState('');
   const [agreedTerms, setAgreedTerms] = useState(false);
 
-  // Artisan Submission State
-  const [isSubmittingArtisan, setIsSubmittingArtisan] = useState(false);
-  const [artisanSuccessId, setArtisanSuccessId] = useState<string | null>(null);
-  const [artisanError, setArtisanError] = useState<string | null>(null);
+  // Photos
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [idCardPhoto, setIdCardPhoto] = useState<string | null>(null);
 
-  // Filter Categories
+  // Payment Catch Modal State
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [pendingProId, setPendingProId] = useState<string>('');
+  const [paymentTransactionRef, setPaymentTransactionRef] = useState('');
+  const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  // Artisan Login State
+  const [loginPhone, setLoginPhone] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [loggedInPro, setLoggedInPro] = useState<any | null>(null);
+  const [loggedInJobs, setLoggedInJobs] = useState<any[]>([]);
+  const [artisanError, setArtisanError] = useState<string | null>(null);
+  const [artisanSuccess, setArtisanSuccess] = useState<string | null>(null);
+
+  // Scroll reveal observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('opacity-100', 'translate-y-0');
+            entry.target.classList.remove('opacity-0', 'translate-y-8');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    document.querySelectorAll('.scroll-reveal').forEach((el) => {
+      observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [activeTab, filterType]);
+
+  const selectedCategoryObj = TRADE_CATEGORIES.find(c => c.id === selectedCategory) || TRADE_CATEGORIES[0];
+
   const filteredCategories = TRADE_CATEGORIES.filter(cat => {
     if (filterType === 'all') return true;
     return cat.type === filterType;
   });
 
-  const selectedCategoryObj = TRADE_CATEGORIES.find(c => c.id === selectedCategory) || TRADE_CATEGORIES[0];
-
   const handleSelectCategory = (cat: TradeCategory) => {
     setSelectedCategory(cat.id);
-    // Smooth scroll to form on mobile
     const formEl = document.getElementById('request-booking-form');
     if (formEl) {
       formEl.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
+  // Handle Image Upload to Base64
+  const handleImageFile = (file: File, type: 'profile' | 'idCard') => {
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Photo is larger than 5MB. Please choose a smaller photo.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (typeof e.target?.result === 'string') {
+        if (type === 'profile') setProfilePhoto(e.target.result);
+        if (type === 'idCard') setIdCardPhoto(e.target.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Submit Customer Request
   const handleCustomerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setCustomerError(null);
 
     if (!customerName.trim() || !phone.trim() || !problemDescription.trim()) {
-      setCustomerError('Please provide your name, phone number, and a description of the issue.');
+      setCustomerError('Please enter your full name, phone number, and what needs fixing.');
       return;
     }
 
@@ -234,7 +289,6 @@ export default function OnDemandServicesPage() {
           addressDetails,
           urgency,
           problemDescription,
-          preferredDate: preferredDate || undefined,
         }),
       });
 
@@ -245,35 +299,63 @@ export default function OnDemandServicesPage() {
 
       setCustomerSuccessTrackingId(data.trackingId);
     } catch (err: any) {
-      setCustomerError(err.message || 'An unexpected error occurred. Please try again.');
+      setCustomerError(err.message || 'Something went wrong. Please try again.');
     } finally {
       setIsSubmittingCustomer(false);
     }
   };
 
-  const handleArtisanSubmit = async (e: React.FormEvent) => {
+  // Pre-validate Artisan Registration & Open Payment Catch Popup
+  const handlePreSubmitArtisan = (e: React.FormEvent) => {
     e.preventDefault();
     setArtisanError(null);
 
     if (!artisanName.trim() || !artisanPhone.trim() || !artisanTrade.trim()) {
-      setArtisanError('Please fill in your full name, phone number, and primary trade.');
+      setArtisanError('Please fill in your full name, phone number, and trade.');
+      return;
+    }
+
+    if (!artisanPassword || artisanPassword.length < 4) {
+      setArtisanError('Please set a password of at least 4 digits/characters for your account.');
+      return;
+    }
+
+    if (!profilePhoto) {
+      setArtisanError('Please take or upload a full-size photo of yourself before proceeding.');
+      return;
+    }
+
+    if (!idCardPhoto) {
+      setArtisanError('Please upload a photo of your Voter ID Card, National ID, or Passport.');
       return;
     }
 
     if (!agreedTerms) {
-      setArtisanError('Please agree to the BridgeTech 15% platform commission terms to proceed.');
+      setArtisanError('Please agree to the BridgeTech 15% platform management terms.');
       return;
     }
 
-    setIsSubmittingArtisan(true);
+    // Generate reference ID and open payment catch popup
+    const generatedId = `PRO-${Math.floor(1000 + Math.random() * 9000)}`;
+    setPendingProId(generatedId);
+    setShowPaymentModal(true);
+  };
+
+  // Complete Payment & Save Profile
+  const handleConfirmPaymentAndRegister = async () => {
+    setIsConfirmingPayment(true);
+    setArtisanError(null);
+
     try {
       const res = await fetch('/api/on-demand', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'register_pro',
+          id: pendingProId,
           fullName: artisanName,
           phone: artisanPhone,
+          password: artisanPassword,
           whatsapp: artisanWhatsapp || artisanPhone,
           mobileMoneyNumber: artisanMomo || artisanPhone,
           mobileMoneyProvider: artisanMomoNetwork,
@@ -282,22 +364,63 @@ export default function OnDemandServicesPage() {
           yearsOfExperience: artisanExperience,
           coverageAreas: artisanCoverage,
           nationalIdNumber: artisanIdNumber || undefined,
-          onboardingPaymentRef: artisanPaymentRef || undefined,
+          profilePhoto: profilePhoto || undefined,
+          idCardPhoto: idCardPhoto || undefined,
+          onboardingPaymentRef: paymentTransactionRef.trim() || 'Paid via Mobile Money',
           bioOrWorkSummary: artisanBio || undefined,
         }),
       });
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to submit application');
+        throw new Error(data.error || 'Failed to complete registration');
       }
 
-      setArtisanSuccessId(data.proId);
+      setShowPaymentModal(false);
+      setArtisanSuccess(`Your profile has been created! Reference ID: ${data.proId}. Our dispatch team will verify your payment and activate your jobs dashboard.`);
+      setLoggedInPro(data.pro);
     } catch (err: any) {
-      setArtisanError(err.message || 'An error occurred during submission.');
+      setArtisanError(err.message || 'Error completing registration');
     } finally {
-      setIsSubmittingArtisan(false);
+      setIsConfirmingPayment(false);
     }
+  };
+
+  // Artisan Login
+  const handleArtisanLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setArtisanError(null);
+    setIsLoggingIn(true);
+
+    try {
+      const res = await fetch('/api/on-demand', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'login_pro',
+          phone: loginPhone,
+          password: loginPassword,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Sign in failed');
+      }
+
+      setLoggedInPro(data.pro);
+      setLoggedInJobs(data.assignedJobs || []);
+    } catch (err: any) {
+      setArtisanError(err.message || 'Invalid login details');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const copyToClipboard = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
   };
 
   const toggleCoverageArea = (area: string) => {
@@ -307,117 +430,107 @@ export default function OnDemandServicesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      
-      {/* ── HERO BANNER ── */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#040e40] via-slate-900 to-slate-950 border-b border-slate-800 pt-10 pb-12 sm:pt-16 sm:pb-20">
-        <div className="absolute inset-0 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px] opacity-10 pointer-events-none" />
-        
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-600/20 border border-red-500/40 text-red-400 text-xs font-black tracking-wider uppercase">
-              <i className="fas fa-bolt text-xs animate-pulse" />
-              <span>BridgeTech Pro Network · Freetown</span>
+    <div className="min-h-screen bg-white text-slate-900 selection:bg-red-500 selection:text-white">
+
+      {/* ── CLEAN WHITE HERO ── */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 via-white to-white border-b border-slate-200/80 pt-12 pb-14 sm:pt-16 sm:pb-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10 text-center">
+          
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-50 border border-red-200 text-red-600 text-xs font-bold uppercase tracking-wider mb-4 animate-fade-in">
+            <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
+            <span>BridgeTech On-Demand Services · Freetown</span>
+          </div>
+
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-tight max-w-4xl mx-auto">
+            Find a Trusted Technician in <span className="text-red-600">Freetown</span>
+          </h1>
+
+          <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto mt-4 leading-relaxed">
+            Need an expert right now? From printer repairs and gaming consoles to certified electricians and plumbers — we send a vetted professional to your door with a <strong>14-day warranty</strong>.
+          </p>
+
+          {/* Value Pillars */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-4xl mx-auto mt-8 text-left scroll-reveal opacity-0 translate-y-8 transition-all duration-700">
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 shadow-sm hover:shadow transition-shadow">
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-2">
+                <Shield className="w-4 h-4" />
+              </div>
+              <h4 className="text-xs font-bold text-slate-900">100% Vetted</h4>
+              <p className="text-[11px] text-slate-500 mt-0.5">ID card &amp; background checked</p>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
-              On-Demand <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-amber-400 to-emerald-400">Services</span>
-            </h1>
-
-            <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-              Connect with vetted, background-checked professionals across Freetown. From printer specialists and gaming console repair to certified electricians, plumbers, and builders — backed by the <strong>BridgeTech 15% Quality Guarantee</strong>.
-            </p>
-
-            {/* Value Pillars */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-4 text-left">
-              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-3 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                  <i className="fas fa-shield-alt text-xs" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white leading-tight">100% Vetted Pros</h4>
-                  <p className="text-[10px] text-slate-400">ID &amp; skill checked</p>
-                </div>
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 shadow-sm hover:shadow transition-shadow">
+              <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-2">
+                <CheckCircle className="w-4 h-4" />
               </div>
-
-              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-3 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
-                  <i className="fas fa-medal text-xs" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white leading-tight">14-Day Guarantee</h4>
-                  <p className="text-[10px] text-slate-400">Guaranteed quality</p>
-                </div>
-              </div>
-
-              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-3 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
-                  <i className="fas fa-stopwatch text-xs" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white leading-tight">Fast Dispatch</h4>
-                  <p className="text-[10px] text-slate-400">Emergency &amp; 24h</p>
-                </div>
-              </div>
-
-              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-3 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center shrink-0">
-                  <i className="fas fa-file-invoice-dollar text-xs" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white leading-tight">Fair Invoicing</h4>
-                  <p className="text-[10px] text-slate-400">Leones &amp; installments</p>
-                </div>
-              </div>
+              <h4 className="text-xs font-bold text-slate-900">14-Day Warranty</h4>
+              <p className="text-[11px] text-slate-500 mt-0.5">If it breaks again, we fix it free</p>
             </div>
 
-            {/* TAB SELECTOR */}
-            <div className="pt-6">
-              <div className="inline-flex p-1.5 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('customer')}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all ${
-                    activeTab === 'customer'
-                      ? 'bg-red-600 text-white shadow-lg shadow-red-950/60'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  <i className="fas fa-user-check text-xs" />
-                  <span>Request a Pro (Book Service)</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('artisan')}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all ${
-                    activeTab === 'artisan'
-                      ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-950/60'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  <i className="fas fa-hard-hat text-xs" />
-                  <span>Join as a Pro (For Artisans &amp; Techs)</span>
-                  <span className="hidden sm:inline-block ml-1 px-1.5 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] rounded font-mono">
-                    Keep 85%
-                  </span>
-                </button>
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 shadow-sm hover:shadow transition-shadow">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2">
+                <Smartphone className="w-4 h-4" />
               </div>
+              <h4 className="text-xs font-bold text-slate-900">Fast Call-Out</h4>
+              <p className="text-[11px] text-slate-500 mt-0.5">Emergency or scheduled visits</p>
+            </div>
+
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 shadow-sm hover:shadow transition-shadow">
+              <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-2">
+                <FileText className="w-4 h-4" />
+              </div>
+              <h4 className="text-xs font-bold text-slate-900">Official Invoicing</h4>
+              <p className="text-[11px] text-slate-500 mt-0.5">Clear price quotes in Leones</p>
             </div>
           </div>
+
+          {/* Simple Tab Switcher */}
+          <div className="mt-10 flex justify-center">
+            <div className="inline-flex p-1.5 bg-slate-100 rounded-2xl border border-slate-200 shadow-inner">
+              <button
+                type="button"
+                onClick={() => setActiveTab('customer')}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                  activeTab === 'customer'
+                    ? 'bg-red-600 text-white shadow-md'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <User className="w-4 h-4" />
+                <span>I Need a Service (Book a Pro)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('artisan')}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                  activeTab === 'artisan'
+                    ? 'bg-[#040e40] text-white shadow-md'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <i className="fas fa-hard-hat text-xs" />
+                <span>I Am a Technician (Join Network)</span>
+                <span className="hidden sm:inline-block ml-1 px-1.5 py-0.5 bg-amber-400 text-slate-900 text-[10px] rounded font-black">
+                  Keep 85%
+                </span>
+              </button>
+            </div>
+          </div>
+
         </div>
       </section>
 
       {/* ── TAB 1: CUSTOMER BOOKING FLOW ── */}
       {activeTab === 'customer' && (
-        <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-10">
+        <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-12">
           
-          {/* Section 1: Category Picker */}
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          {/* Step 1: Service Categories Grid */}
+          <section className="space-y-4 scroll-reveal opacity-0 translate-y-8 transition-all duration-700">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
               <div>
-                <h2 className="text-xl sm:text-2xl font-black text-white">1. Select Required Service</h2>
-                <p className="text-xs text-slate-400">Choose a trade below to auto-fill your request.</p>
+                <span className="text-xs font-bold text-red-600 uppercase tracking-wider">Step 1 of 2</span>
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900">Choose the Service You Need</h2>
               </div>
 
               {/* Filter Pills */}
@@ -426,7 +539,7 @@ export default function OnDemandServicesPage() {
                   type="button"
                   onClick={() => setFilterType('all')}
                   className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                    filterType === 'all' ? 'bg-slate-800 text-white border border-slate-700' : 'text-slate-400 hover:text-white'
+                    filterType === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
                   All (13)
@@ -435,25 +548,24 @@ export default function OnDemandServicesPage() {
                   type="button"
                   onClick={() => setFilterType('tech')}
                   className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                    filterType === 'tech' ? 'bg-blue-600/30 text-blue-300 border border-blue-500/40' : 'text-slate-400 hover:text-white'
+                    filterType === 'tech' ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
                   }`}
                 >
-                  <i className="fas fa-microchip mr-1" /> Tech &amp; Consoles
+                  Tech &amp; Electronics
                 </button>
                 <button
                   type="button"
                   onClick={() => setFilterType('trade')}
                   className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                    filterType === 'trade' ? 'bg-amber-600/30 text-amber-300 border border-amber-500/40' : 'text-slate-400 hover:text-white'
+                    filterType === 'trade' ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-800 hover:bg-amber-100'
                   }`}
                 >
-                  <i className="fas fa-wrench mr-1" /> Home &amp; Trades
+                  Home &amp; Trades
                 </button>
               </div>
             </div>
 
-            {/* Categories Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
               {filteredCategories.map(cat => {
                 const isSelected = selectedCategory === cat.id;
                 return (
@@ -461,13 +573,13 @@ export default function OnDemandServicesPage() {
                     key={cat.id}
                     type="button"
                     onClick={() => handleSelectCategory(cat)}
-                    className={`text-left p-3.5 rounded-2xl border transition-all duration-200 relative group flex items-start gap-3.5 ${
+                    className={`text-left p-4 rounded-2xl border transition-all duration-200 flex items-start gap-3.5 relative ${
                       isSelected
-                        ? 'bg-slate-900 border-red-500 ring-2 ring-red-500/30 shadow-xl'
-                        : 'bg-slate-900/50 hover:bg-slate-900 border-slate-800 hover:border-slate-700'
+                        ? 'bg-red-50/50 border-red-500 ring-2 ring-red-500/20 shadow-md'
+                        : 'bg-white hover:bg-slate-50 border-slate-200/90 hover:border-slate-300'
                     }`}
                   >
-                    <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-white shrink-0 shadow-md group-hover:scale-105 transition-transform`}>
+                    <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-white shrink-0 shadow-sm`}>
                       <i className={`${cat.icon} text-lg`} />
                     </div>
 
@@ -477,15 +589,15 @@ export default function OnDemandServicesPage() {
                           {cat.badge}
                         </span>
                         {isSelected && (
-                          <span className="flex items-center gap-1 text-[10px] font-black text-red-400">
+                          <span className="flex items-center gap-1 text-[10px] font-black text-red-600">
                             <i className="fas fa-check-circle" /> Selected
                           </span>
                         )}
                       </div>
-                      <h3 className="font-extrabold text-sm text-white group-hover:text-red-400 transition-colors leading-snug">
+                      <h3 className="font-bold text-sm text-slate-900 leading-snug">
                         {cat.title}
                       </h3>
-                      <p className="text-[11px] text-slate-400 leading-tight mt-1 line-clamp-2">
+                      <p className="text-[11px] text-slate-500 leading-tight mt-1 line-clamp-2">
                         {cat.subtitle}
                       </p>
                     </div>
@@ -493,53 +605,52 @@ export default function OnDemandServicesPage() {
                 );
               })}
             </div>
-          </div>
+          </section>
 
-          {/* Section 2: Booking Form & Summary */}
-          <div id="request-booking-form" className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-6">
+          {/* Step 2: Request Form */}
+          <section id="request-booking-form" className="grid grid-cols-1 lg:grid-cols-3 gap-8 scroll-reveal opacity-0 translate-y-8 transition-all duration-700">
             
-            {/* Form Column */}
-            <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-7 shadow-2xl space-y-6">
-              <div className="border-b border-slate-800 pb-3">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-red-400">Step 2 of 2</span>
-                <h3 className="text-xl font-black text-white">Describe Your Job Request</h3>
-                <p className="text-xs text-slate-400">
-                  Selected Service: <strong className="text-white">{selectedCategoryObj.title}</strong>
+            <div className="lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+              <div className="border-b border-slate-200 pb-3">
+                <span className="text-xs font-bold text-red-600 uppercase tracking-wider">Step 2 of 2</span>
+                <h3 className="text-xl font-black text-slate-900">Tell Us What Needs Fixing</h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Selected: <strong className="text-slate-900">{selectedCategoryObj.title}</strong>
                 </p>
               </div>
 
               {customerError && (
-                <div className="p-3 bg-red-950/70 border border-red-500/50 rounded-xl text-red-200 text-xs flex items-center gap-2">
-                  <i className="fas fa-exclamation-triangle shrink-0" />
+                <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs flex items-center gap-2">
+                  <i className="fas fa-exclamation-circle shrink-0 text-sm" />
                   <span>{customerError}</span>
                 </div>
               )}
 
               {customerSuccessTrackingId ? (
-                <div className="p-6 bg-emerald-950/40 border border-emerald-500/60 rounded-2xl text-center space-y-4">
-                  <div className="w-14 h-14 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 flex items-center justify-center mx-auto text-2xl">
-                    <i className="fas fa-check" />
+                <div className="p-8 bg-emerald-50 border border-emerald-200 rounded-2xl text-center space-y-4">
+                  <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-2xl font-black">
+                    ✓
                   </div>
                   <div>
-                    <h4 className="text-lg font-black text-white">Request Successfully Dispatched!</h4>
-                    <p className="text-xs text-slate-300 mt-1">
-                      Your service request has been logged and assigned for pro matching.
+                    <h4 className="text-xl font-black text-slate-900">Your Request Has Been Received!</h4>
+                    <p className="text-xs text-slate-600 mt-1 max-w-md mx-auto">
+                      We are matching the nearest qualified technician in your area. You will receive a phone confirmation shortly.
                     </p>
                   </div>
-                  <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 inline-block">
-                    <span className="text-[10px] text-slate-500 uppercase block font-semibold">Your Tracking ID</span>
-                    <span className="font-mono text-xl font-black text-emerald-400">{customerSuccessTrackingId}</span>
+                  <div className="p-3.5 bg-white rounded-xl border border-slate-200 inline-block shadow-sm">
+                    <span className="text-[10px] text-slate-500 uppercase block font-bold">Your Tracking ID</span>
+                    <span className="font-mono text-2xl font-black text-red-600">{customerSuccessTrackingId}</span>
                   </div>
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                     <a
-                      href={`https://wa.me/23278123456?text=${encodeURIComponent(
-                        `Hello BridgeTech, I just booked an On-Demand Service: ${selectedCategoryObj.title}. My Tracking ID is ${customerSuccessTrackingId}. Kindly confirm dispatch.`
+                      href={`https://wa.me/23233399391?text=${encodeURIComponent(
+                        `Hello BridgeTech, I just booked an on-demand service: ${selectedCategoryObj.title}. My Tracking ID is ${customerSuccessTrackingId}. Please confirm dispatch.`
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full sm:w-auto px-5 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg"
+                      className="w-full sm:w-auto px-6 py-3 bg-green-600 hover:bg-green-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow"
                     >
-                      <i className="fab fa-whatsapp text-sm" /> Message on WhatsApp
+                      <i className="fab fa-whatsapp text-sm" /> Confirm Instantly on WhatsApp
                     </a>
                     <button
                       type="button"
@@ -547,124 +658,120 @@ export default function OnDemandServicesPage() {
                         setCustomerSuccessTrackingId(null);
                         setProblemDescription('');
                       }}
-                      className="w-full sm:w-auto px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold"
+                      className="w-full sm:w-auto px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold"
                     >
-                      Book Another Service
+                      Book Another Request
                     </button>
                   </div>
                 </div>
               ) : (
                 <form onSubmit={handleCustomerSubmit} className="space-y-4">
                   
-                  {/* Location & Urgency */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 mb-1">
-                        Location / Area in Freetown *
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Your Area in Freetown *
                       </label>
                       <select
                         value={locationArea}
                         onChange={e => setLocationArea(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-red-500 font-medium"
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500 font-medium"
                       >
-                        {FREETOWN_AREAS.map(area => (
-                          <option key={area} value={area}>{area}</option>
+                        {FREETOWN_AREAS.map(a => (
+                          <option key={a} value={a}>{a}</option>
                         ))}
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 mb-1">
-                        Urgency Level *
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        How Urgent Is It? *
                       </label>
                       <select
                         value={urgency}
                         onChange={e => setUrgency(e.target.value as any)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-red-500 font-medium"
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500 font-medium"
                       >
-                        <option value="emergency">🚨 Emergency (Within 2-4 Hours)</option>
-                        <option value="24h">⏱️ Standard (Within 24 Hours)</option>
-                        <option value="flexible">📅 Flexible / Scheduled</option>
+                        <option value="24h">Standard (Within 24 Hours)</option>
+                        <option value="emergency">🚨 Emergency (Within 2–4 Hours)</option>
+                        <option value="flexible">Flexible / Next Available Day</option>
                       </select>
                     </div>
                   </div>
 
-                  {/* Street Address / Landmark */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
                       Street Address or Landmark *
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. Near Lumley Police Station, Blue House"
+                      placeholder="e.g. Near Lumley Police Station, Yellow Building opposite church"
                       value={addressDetails}
                       onChange={e => setAddressDetails(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-red-500"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
                     />
                   </div>
 
-                  {/* Problem Description */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">
-                      Problem Details / Scope of Work *
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      What is the Problem? *
                     </label>
                     <textarea
                       rows={3}
-                      placeholder="Please describe what is faulty or what you need installed. E.g., 'Epson L805 printer double light blinking', or 'Distribution board tripping whenever AC starts', or 'PS5 no display after power surge'..."
+                      placeholder="Please explain simply what is broken or what you need installed. E.g., 'Epson printer papers getting stuck and ink light blinking' or 'Breaker board tripping whenever AC turns on'..."
                       value={problemDescription}
                       onChange={e => setProblemDescription(e.target.value)}
                       required
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-red-500"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
                     />
                   </div>
 
-                  {/* Contact Info */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 mb-1">Your Full Name *</label>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Your Full Name *</label>
                       <input
                         type="text"
-                        placeholder="e.g. Samuel Kargbo"
+                        placeholder="e.g. Mariama Kamara"
                         value={customerName}
                         onChange={e => setCustomerName(e.target.value)}
                         required
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-red-500"
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 mb-1">Phone Number (Calls) *</label>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Phone Number *</label>
                       <input
                         type="tel"
-                        placeholder="e.g. +232 7X XXXXXX"
+                        placeholder="e.g. 076 000 000"
                         value={phone}
                         onChange={e => setPhone(e.target.value)}
                         required
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-red-500"
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 mb-1">WhatsApp Number</label>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">WhatsApp Number (Optional)</label>
                       <input
                         type="tel"
-                        placeholder="e.g. +232 7X XXXXXX"
+                        placeholder="e.g. 076 000 000"
                         value={whatsapp}
                         onChange={e => setWhatsapp(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-red-500"
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 mb-1">Email Address (Optional)</label>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Email Address (Optional)</label>
                       <input
                         type="email"
-                        placeholder="For digital invoice &amp; receipt"
+                        placeholder="For receipt &amp; invoice"
                         value={email}
                         onChange={e => setEmail(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-red-500"
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
                       />
                     </div>
                   </div>
@@ -672,7 +779,7 @@ export default function OnDemandServicesPage() {
                   <button
                     type="submit"
                     disabled={isSubmittingCustomer}
-                    className="w-full py-3.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-black text-sm rounded-xl transition-all shadow-xl shadow-red-950/60 flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-50"
+                    className="w-full py-3.5 bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm rounded-xl transition-all shadow-md shadow-red-600/20 flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-50"
                   >
                     {isSubmittingCustomer ? (
                       <>
@@ -680,7 +787,8 @@ export default function OnDemandServicesPage() {
                       </>
                     ) : (
                       <>
-                        <i className="fas fa-paper-plane" /> Submit Request &amp; Match Pro
+                        <span>Submit Request &amp; Send Technician</span>
+                        <ArrowRight className="w-4 h-4" />
                       </>
                     )}
                   </button>
@@ -688,179 +796,382 @@ export default function OnDemandServicesPage() {
               )}
             </div>
 
-            {/* Sidebar / Trust Card */}
+            {/* Sidebar Assurance */}
             <div className="space-y-4">
-              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-4">
-                <div className="flex items-center gap-2 text-xs font-extrabold text-white uppercase tracking-wider border-b border-slate-800 pb-2">
-                  <i className="fas fa-shield-virus text-emerald-400" />
-                  <span>The BridgeTech Guarantee</span>
+              <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 space-y-4 shadow-sm">
+                <div className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-2">
+                  <Shield className="w-4 h-4 text-emerald-600" />
+                  <span>How You Are Protected</span>
                 </div>
 
-                <div className="space-y-3 text-xs text-slate-300">
+                <div className="space-y-3 text-xs text-slate-600">
                   <div className="flex items-start gap-2.5">
-                    <i className="fas fa-check-circle text-emerald-400 mt-0.5 shrink-0" />
-                    <span><strong>15% Quality Escrow:</strong> We hold payment until you confirm the job is completed properly.</span>
+                    <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span><strong>Verified Identity:</strong> Every technician provides their National ID and full photo before entering the network.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
-                    <i className="fas fa-check-circle text-emerald-400 mt-0.5 shrink-0" />
-                    <span><strong>Direct Accountability:</strong> If an artisan fails or defects appear within 14 days, BridgeTech rectifies it.</span>
+                    <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span><strong>14-Day Warranty:</strong> If the repair fails or faults recur within 14 days, we fix it at no extra cost.</span>
                   </div>
                   <div className="flex items-start gap-2.5">
-                    <i className="fas fa-check-circle text-emerald-400 mt-0.5 shrink-0" />
-                    <span><strong>Official Invoices:</strong> Full digital receipt and PDF invoice available for corporate records.</span>
+                    <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span><strong>Transparent Quotes:</strong> Clear prices in Leones with optional installment plans.</span>
                   </div>
                 </div>
 
-                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-[11px] text-slate-400 leading-snug">
-                  <span className="font-bold text-white block mb-0.5">Need Urgent Phone Booking?</span>
-                  Call our operational hotline at <strong>+232 78 123 456</strong> or visit our office.
+                <div className="p-3 bg-white rounded-xl border border-slate-200 text-xs text-slate-700">
+                  <span className="font-bold block text-slate-900 mb-0.5">Need immediate phone support?</span>
+                  Call our service desk: <strong>076210320</strong> / <strong>088294631</strong>
                 </div>
               </div>
 
-              {/* Artisan recruitment callout */}
-              <div className="bg-gradient-to-br from-emerald-950/40 to-slate-900 border border-emerald-500/30 rounded-3xl p-5 space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 text-[10px] font-bold rounded">For Technicians</span>
-                </div>
-                <h4 className="text-sm font-extrabold text-white leading-tight">
-                  Are you a skilled technician or artisan in Freetown?
+              {/* Technician Invitation */}
+              <div className="bg-gradient-to-br from-slate-900 to-[#040e40] text-white rounded-3xl p-6 space-y-3 shadow-md">
+                <span className="px-2.5 py-1 bg-amber-400 text-slate-950 font-black text-[10px] rounded uppercase">
+                  Technicians &amp; Artisans
+                </span>
+                <h4 className="text-base font-extrabold text-white leading-tight">
+                  Want more high-paying clients in Freetown?
                 </h4>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Join our verified network, get regular corporate and domestic clients, and keep 85% of your labor earnings.
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Join our verified team, get regular job dispatches, and keep 85% of your earnings.
                 </p>
                 <button
                   type="button"
                   onClick={() => setActiveTab('artisan')}
-                  className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+                  className="w-full py-2.5 bg-white hover:bg-slate-100 text-slate-900 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow"
                 >
-                  <span>Apply to Join Pro Network</span>
-                  <i className="fas fa-arrow-right text-[10px]" />
+                  <span>Sign In or Apply as a Pro</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
 
-          </div>
+          </section>
 
         </main>
       )}
 
-      {/* ── TAB 2: ARTISAN / TALENT ONBOARDING FLOW ── */}
+      {/* ── TAB 2: ARTISAN ONBOARDING & SIGN IN FLOW ── */}
       {activeTab === 'artisan' && (
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 py-10 space-y-8">
           
           <div className="text-center space-y-2">
-            <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-full text-xs font-bold uppercase tracking-wider">
-              Artisan &amp; Specialist Recruitment
+            <span className="px-3.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-bold uppercase tracking-wider">
+              Artisans &amp; Technicians Network
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-white">Join the BridgeTech Pro Network</h2>
-            <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto">
-              Get steady client leads in Freetown with zero marketing hassle. We secure client deposits, generate invoices, and disburse <strong>85%</strong> directly to your mobile money.
+            <h2 className="text-2xl sm:text-4xl font-black text-slate-900">
+              Join the BridgeTech Pro Network
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto">
+              Get steady residential and corporate jobs across Freetown. We manage customer bookings, secure payment deposits, and disburse <strong>85%</strong> straight to your mobile money.
             </p>
           </div>
 
-          {/* Commitment Fee Box */}
-          <div className="bg-gradient-to-r from-amber-950/40 via-slate-900 to-amber-950/40 border-2 border-amber-500/40 rounded-3xl p-5 sm:p-6 shadow-xl space-y-3">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm font-bold">
-                  <i className="fas fa-coins" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-white">One-Time Onboarding &amp; Verification Fee</h4>
-                  <p className="text-[11px] text-amber-300/80">Proves commitment &amp; verifies account identity</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <span className="text-xs text-slate-400 uppercase font-semibold block">Commitment Fee</span>
-                <span className="text-xl font-black text-amber-400 font-mono">Le 30</span>
-              </div>
+          {/* Mode Switcher: Sign In vs Register */}
+          <div className="flex justify-center">
+            <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setArtisanMode('register')}
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                  artisanMode === 'register' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Create New Pro Profile
+              </button>
+              <button
+                type="button"
+                onClick={() => setArtisanMode('login')}
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  artisanMode === 'login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Sign In to Existing Account</span>
+              </button>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
-              <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3">
-                <div className="flex items-center gap-2 font-bold text-orange-400 mb-1">
-                  <i className="fas fa-mobile-alt" />
-                  <span>Orange Money</span>
-                </div>
-                <p className="text-[11px] text-slate-300">Dial <strong>*144#</strong> &rarr; Send Money to: <strong>+232 78 123 456</strong></p>
-                <p className="text-[10px] text-slate-500 mt-1">Reference: <em>Your Full Name</em></p>
-              </div>
-
-              <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3">
-                <div className="flex items-center gap-2 font-bold text-red-400 mb-1">
-                  <i className="fas fa-mobile-alt" />
-                  <span>Afrimoney</span>
-                </div>
-                <p className="text-[11px] text-slate-300">Dial <strong>*161#</strong> &rarr; Send Money to: <strong>+232 88 123 456</strong></p>
-                <p className="text-[10px] text-slate-500 mt-1">Reference: <em>Your Full Name</em></p>
-              </div>
-            </div>
-            <p className="text-[10px] text-slate-400 italic">
-              * Enter your transaction reference code in the form below. Once received, our operations team verifies your credentials and activates your account within 24 hours.
-            </p>
           </div>
 
-          {/* Artisan Application Form */}
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6">
-            
-            {artisanError && (
-              <div className="p-3 bg-red-950/70 border border-red-500/50 rounded-xl text-red-200 text-xs flex items-center gap-2">
-                <i className="fas fa-exclamation-triangle shrink-0" />
-                <span>{artisanError}</span>
-              </div>
-            )}
-
-            {artisanSuccessId ? (
-              <div className="p-6 bg-emerald-950/40 border border-emerald-500/60 rounded-2xl text-center space-y-4">
-                <div className="w-14 h-14 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto text-2xl">
-                  <i className="fas fa-check" />
-                </div>
-                <div>
-                  <h4 className="text-xl font-black text-white">Application Received!</h4>
-                  <p className="text-xs text-slate-300 mt-1">
-                    Your Pro Profile has been created and logged for onboarding verification.
-                  </p>
-                </div>
-                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 inline-block">
-                  <span className="text-[10px] text-slate-500 uppercase block font-semibold">Pro Reference ID</span>
-                  <span className="font-mono text-xl font-black text-emerald-400">{artisanSuccessId}</span>
-                </div>
-                <p className="text-xs text-slate-400 max-w-md mx-auto">
-                  Our dispatch manager will review your trade credentials and confirm the Le 30 commitment fee before notifying you of jobs in your area.
-                </p>
-                <a
-                  href={`https://wa.me/23278123456?text=${encodeURIComponent(
-                    `Hello BridgeTech, I have submitted my Artisan Pro application for ${artisanTrade}. My Reference ID is ${artisanSuccessId}. Kindly verify my account.`
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-500 text-white rounded-xl text-xs font-bold shadow-lg"
-                >
-                  <i className="fab fa-whatsapp text-sm" /> Confirm on WhatsApp
-                </a>
-              </div>
-            ) : (
-              <form onSubmit={handleArtisanSubmit} className="space-y-4">
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          {/* If Logged In: Show Profile Dashboard */}
+          {loggedInPro ? (
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+                <div className="flex items-center gap-4">
+                  {loggedInPro.profilePhoto ? (
+                    <img
+                      src={loggedInPro.profilePhoto}
+                      alt={loggedInPro.fullName}
+                      className="w-16 h-16 rounded-2xl object-cover border-2 border-emerald-500 shadow-sm"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl font-bold">
+                      {loggedInPro.fullName[0]}
+                    </div>
+                  )}
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">Full Legal Name *</label>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xl font-black text-slate-900">{loggedInPro.fullName}</h3>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                        loggedInPro.status === 'verified_active' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        {loggedInPro.status === 'verified_active' ? 'Verified Active' : 'Under Review'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-red-600 font-bold">{loggedInPro.primaryTrade}</p>
+                    <p className="text-[11px] text-slate-500 font-mono">ID: {loggedInPro.id} &bull; Phone: {loggedInPro.phone}</p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoggedInPro(null);
+                    setArtisanSuccess(null);
+                  }}
+                  className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors"
+                >
+                  Sign Out
+                </button>
+              </div>
+
+              {/* Status Notice */}
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-700">Le 30 Commitment Fee Status:</span>
+                  <span className={`font-black uppercase text-[11px] ${
+                    loggedInPro.onboardingFeeStatus === 'paid' ? 'text-emerald-600' : 'text-amber-600'
+                  }`}>
+                    {loggedInPro.onboardingFeeStatus === 'paid' ? '✓ Paid & Verified' : 'Pending Verification'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-700">Payout Mobile Money:</span>
+                  <span className="font-mono font-bold text-slate-900">{loggedInPro.mobileMoneyNumber} ({loggedInPro.mobileMoneyProvider})</span>
+                </div>
+              </div>
+
+              {/* Assigned Jobs */}
+              <div className="space-y-3">
+                <h4 className="font-black text-sm text-slate-900 uppercase tracking-wide">
+                  Your Dispatched Jobs ({loggedInJobs.length})
+                </h4>
+                {loggedInJobs.length === 0 ? (
+                  <p className="text-xs text-slate-500 italic p-4 bg-slate-50 rounded-xl text-center">
+                    No active jobs assigned yet. Our operations team will notify you via call and WhatsApp when a job matches your area.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {loggedInJobs.map((job: any) => (
+                      <div key={job.id} className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-3 text-xs">
+                        <div>
+                          <span className="font-mono font-bold text-red-600">{job.id}</span>
+                          <p className="font-bold text-slate-900">{job.customerName} &bull; {job.locationArea}</p>
+                          <p className="text-[11px] text-slate-500 truncate max-w-md">{job.problemDescription}</p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className="font-black text-emerald-600 block">
+                            {job.proPayoutAmount ? `Le ${job.proPayoutAmount.toLocaleString()}` : 'Pending Quote'}
+                          </span>
+                          <span className="text-[10px] text-slate-400 uppercase">{job.status}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : artisanMode === 'login' ? (
+            /* ── ARTISAN LOGIN FORM ── */
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm max-w-md mx-auto space-y-4">
+              <div className="text-center border-b border-slate-200 pb-3">
+                <h3 className="text-lg font-black text-slate-900">Sign In to Your Pro Account</h3>
+                <p className="text-xs text-slate-500">Enter your registered phone number and password.</p>
+              </div>
+
+              {artisanError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs">
+                  {artisanError}
+                </div>
+              )}
+
+              <form onSubmit={handleArtisanLogin} className="space-y-3.5">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Registered Phone Number</label>
+                  <input
+                    type="tel"
+                    placeholder="e.g. 076 000 000"
+                    value={loginPhone}
+                    onChange={e => setLoginPhone(e.target.value)}
+                    required
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Password</label>
+                  <input
+                    type="password"
+                    placeholder="••••••••"
+                    value={loginPassword}
+                    onChange={e => setLoginPassword(e.target.value)}
+                    required
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoggingIn}
+                  className="w-full py-3 bg-[#040e40] hover:bg-[#06155e] text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                >
+                  {isLoggingIn ? 'Signing In...' : 'Sign In to Dashboard'}
+                </button>
+              </form>
+
+              <p className="text-center text-xs text-slate-500 pt-2">
+                Don't have a profile yet?{' '}
+                <button
+                  type="button"
+                  onClick={() => setArtisanMode('register')}
+                  className="text-red-600 font-bold hover:underline"
+                >
+                  Create one now
+                </button>
+              </p>
+            </div>
+          ) : (
+            /* ── ARTISAN REGISTRATION FORM ── */
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+              
+              <div className="border-b border-slate-200 pb-3">
+                <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Artisan Application</span>
+                <h3 className="text-xl font-black text-slate-900">Create Your Pro Profile</h3>
+                <p className="text-xs text-slate-500">
+                  Please provide clear information. A full photo and valid ID are required for customer safety.
+                </p>
+              </div>
+
+              {artisanError && (
+                <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs flex items-center gap-2">
+                  <i className="fas fa-exclamation-circle shrink-0 text-sm" />
+                  <span>{artisanError}</span>
+                </div>
+              )}
+
+              {artisanSuccess && (
+                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs">
+                  {artisanSuccess}
+                </div>
+              )}
+
+              <form onSubmit={handlePreSubmitArtisan} className="space-y-5">
+                
+                {/* ── MANDATORY PHOTOS: Full Profile Photo & ID Card ── */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                  
+                  {/* Photo 1: Full Size Photo */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                      <Camera className="w-3.5 h-3.5 text-red-600" />
+                      <span>Full Photo of Yourself *</span>
+                    </label>
+                    <p className="text-[11px] text-slate-500">
+                      Take or upload a clear, full photo of yourself. Customers see this to recognize you.
+                    </p>
+
+                    {profilePhoto ? (
+                      <div className="relative inline-block mt-1">
+                        <img
+                          src={profilePhoto}
+                          alt="Profile preview"
+                          className="w-28 h-32 object-cover rounded-xl border-2 border-emerald-500 shadow-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setProfilePhoto(null)}
+                          className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center text-xs shadow"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="mt-1 flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-300 hover:border-red-500 rounded-xl cursor-pointer bg-white transition-colors">
+                        <Camera className="w-6 h-6 text-slate-400 mb-1" />
+                        <span className="text-xs font-bold text-slate-700">Take or Upload Photo</span>
+                        <span className="text-[10px] text-slate-400">JPG, PNG (max 5MB)</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={e => e.target.files?.[0] && handleImageFile(e.target.files[0], 'profile')}
+                        />
+                      </label>
+                    )}
+                  </div>
+
+                  {/* Photo 2: ID Card */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Photo of Your ID Card *</span>
+                    </label>
+                    <p className="text-[11px] text-slate-500">
+                      Upload your Voter ID Card, National ID, or Passport. Kept confidential.
+                    </p>
+
+                    {idCardPhoto ? (
+                      <div className="relative inline-block mt-1">
+                        <img
+                          src={idCardPhoto}
+                          alt="ID Card preview"
+                          className="w-36 h-24 object-cover rounded-xl border-2 border-blue-500 shadow-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setIdCardPhoto(null)}
+                          className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center text-xs shadow"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="mt-1 flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl cursor-pointer bg-white transition-colors">
+                        <FileText className="w-6 h-6 text-slate-400 mb-1" />
+                        <span className="text-xs font-bold text-slate-700">Upload ID Card Photo</span>
+                        <span className="text-[10px] text-slate-400">Voter ID / National ID</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={e => e.target.files?.[0] && handleImageFile(e.target.files[0], 'idCard')}
+                        />
+                      </label>
+                    )}
+                  </div>
+
+                </div>
+
+                {/* Personal Information */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Full Legal Name *</label>
                     <input
                       type="text"
                       placeholder="e.g. Ibrahim Mansaray"
                       value={artisanName}
                       onChange={e => setArtisanName(e.target.value)}
                       required
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">Primary Trade / Specialty *</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Primary Trade / Specialty *</label>
                     <select
                       value={artisanTrade}
                       onChange={e => setArtisanTrade(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500 font-medium"
                     >
                       {TRADE_CATEGORIES.map(c => (
                         <option key={c.id} value={c.title}>{c.title}</option>
@@ -870,64 +1181,65 @@ export default function OnDemandServicesPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">Phone Number (Calls) *</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Phone Number (Calls) *</label>
                     <input
                       type="tel"
-                      placeholder="e.g. +232 7X XXXXXX"
+                      placeholder="e.g. 076 000 000"
                       value={artisanPhone}
                       onChange={e => setArtisanPhone(e.target.value)}
                       required
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">WhatsApp Number</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Create Account Password *</label>
                     <input
-                      type="tel"
-                      placeholder="e.g. +232 7X XXXXXX"
-                      value={artisanWhatsapp}
-                      onChange={e => setArtisanWhatsapp(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500"
+                      type="password"
+                      placeholder="At least 4 characters"
+                      value={artisanPassword}
+                      onChange={e => setArtisanPassword(e.target.value)}
+                      required
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">Years of Experience</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Years of Experience</label>
                     <input
                       type="number"
                       min="1"
                       max="40"
                       value={artisanExperience}
                       onChange={e => setArtisanExperience(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
                     />
                   </div>
                 </div>
 
-                {/* Mobile Money for Payouts */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800">
+                {/* Mobile Money Payout */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">
-                      Mobile Money Number for Job Payouts *
+                    <label className="block text-xs font-bold text-slate-900 mb-1">
+                      Mobile Money Number for Your Payouts *
                     </label>
                     <input
                       type="tel"
-                      placeholder="e.g. +232 78 000 000"
+                      placeholder="e.g. 076 000 000"
                       value={artisanMomo}
                       onChange={e => setArtisanMomo(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-red-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">Network Provider *</label>
+                    <label className="block text-xs font-bold text-slate-900 mb-1">Network Provider *</label>
                     <select
                       value={artisanMomoNetwork}
                       onChange={e => setArtisanMomoNetwork(e.target.value as any)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-red-500 font-medium"
                     >
                       <option value="orange">Orange Money</option>
                       <option value="afri">Afrimoney</option>
@@ -935,112 +1247,230 @@ export default function OnDemandServicesPage() {
                   </div>
                 </div>
 
-                {/* Voter / National ID */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">
-                      National ID / Voter ID Number (for security check)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. VOT-XXXXXX or NIN"
-                      value={artisanIdNumber}
-                      onChange={e => setArtisanIdNumber(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-amber-300 mb-1">
-                      Le 30 Commitment Payment Reference / TXN ID
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. OM-TXN-12345 or Cash at Office"
-                      value={artisanPaymentRef}
-                      onChange={e => setArtisanPaymentRef(e.target.value)}
-                      className="w-full bg-slate-950 border border-amber-500/50 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 font-mono"
-                    />
-                  </div>
-                </div>
-
-                {/* Operating Coverage Areas */}
+                {/* Operating Areas */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-2">
-                    Operating Areas in Freetown (Select all that apply)
+                  <label className="block text-xs font-bold text-slate-700 mb-2">
+                    Areas in Freetown You Can Work In:
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {FREETOWN_AREAS.map(area => {
-                      const checked = artisanCoverage.includes(area);
+                    {FREETOWN_AREAS.map(a => {
+                      const checked = artisanCoverage.includes(a);
                       return (
                         <button
-                          key={area}
+                          key={a}
                           type="button"
-                          onClick={() => toggleCoverageArea(area)}
-                          className={`text-left px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors flex items-center justify-between ${
+                          onClick={() => toggleCoverageArea(a)}
+                          className={`text-left px-3 py-2 rounded-xl text-xs font-medium border transition-colors flex items-center justify-between ${
                             checked
-                              ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-200'
-                              : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                              ? 'bg-emerald-50 border-emerald-400 text-emerald-900'
+                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                           }`}
                         >
-                          <span className="truncate">{area}</span>
-                          {checked && <i className="fas fa-check text-[10px] text-emerald-400" />}
+                          <span className="truncate">{a}</span>
+                          {checked && <span className="text-emerald-600 font-bold text-xs">✓</span>}
                         </button>
                       );
                     })}
                   </div>
                 </div>
 
-                {/* Bio / Experience Summary */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
-                    Previous Experience &amp; Tools Owned
-                  </label>
-                  <textarea
-                    rows={2}
-                    placeholder="Briefly state your key expertise (e.g. 'Expert in repairing PS4/PS5 HDMI ports and liquid metal', or '8 years experience with commercial 3-phase wiring and generator changeover switches')..."
-                    value={artisanBio}
-                    onChange={e => setArtisanBio(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500"
-                  />
-                </div>
-
                 {/* Terms Agreement */}
-                <div className="p-3.5 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
                   <label className="flex items-start gap-2.5 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={agreedTerms}
                       onChange={e => setAgreedTerms(e.target.checked)}
-                      className="mt-0.5 rounded border-slate-700 text-emerald-600 focus:ring-emerald-500"
+                      className="mt-0.5 rounded border-slate-300 text-red-600 focus:ring-red-500"
                     />
-                    <span className="text-xs text-slate-300 leading-snug">
-                      I agree to the <strong>15% BridgeTech platform fee</strong> on all jobs dispatched through the network, commit to honest and professional workmanship, and confirm payment of the <strong>Le 30 commitment fee</strong>.
+                    <span className="text-xs text-slate-700 leading-snug">
+                      I agree that BridgeTech keeps a <strong>15% platform fee</strong> on completed jobs while I receive 85%. I agree to pay the one-time <strong>Le 30 commitment fee</strong> to activate my verified account.
                     </span>
                   </label>
                 </div>
 
+                {/* Catch Button: Pops up the payment modal */}
                 <button
                   type="submit"
-                  disabled={isSubmittingArtisan || !agreedTerms}
-                  className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm rounded-xl transition-all shadow-xl shadow-emerald-950/60 flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-50"
+                  className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm rounded-2xl transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2"
                 >
-                  {isSubmittingArtisan ? (
+                  <span>Submit &amp; Pay Le 30 Commitment Fee</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </form>
+            </div>
+          )}
+
+        </main>
+      )}
+
+      {/* ── POPUP: LE 30 COMMITMENT FEE PAYMENT MODAL (Matching Shop Payment System) ── */}
+      {showPaymentModal && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 transition-opacity duration-300"
+            onClick={() => setShowPaymentModal(false)}
+          />
+
+          {/* Modal Container */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pointer-events-none">
+            <div 
+              className="bg-white border border-slate-200 rounded-3xl shadow-2xl max-w-lg w-full max-h-[95vh] overflow-hidden pointer-events-auto transform transition-all duration-300 flex flex-col"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all"
+                aria-label="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              {/* Header */}
+              <div className="bg-gradient-to-r from-red-600 to-[#040e40] p-5 sm:p-6 text-center text-white flex-shrink-0">
+                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-2 text-red-600 shadow-sm">
+                  <Phone className="w-6 h-6" />
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black mb-1">Complete Your Commitment Fee</h2>
+                <p className="text-xs sm:text-sm text-red-100">Mobile Money Payment Instructions</p>
+              </div>
+
+              {/* Scrollable Content */}
+              <div className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 text-slate-900">
+                
+                {/* Reference & Amount */}
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-slate-500 text-xs sm:text-sm">Pro Applicant ID:</span>
+                    <span className="text-slate-900 font-mono font-bold text-sm sm:text-base">{pendingProId}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-xs sm:text-sm">Onboarding Fee:</span>
+                    <span className="text-emerald-600 font-black text-xl font-mono">Le 30</span>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  To verify your identity and activate your account, pay the <strong>Le 30</strong> commitment fee using Orange Money or AfriMoney below:
+                </p>
+
+                {/* Orange Money */}
+                <div className="bg-orange-50/60 border border-orange-200 rounded-2xl p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold">
+                        OM
+                      </div>
+                      <span className="font-extrabold text-sm text-orange-950">Orange Money</span>
+                    </div>
+                    <span className="text-xs font-mono font-black text-orange-900">076210320</span>
+                  </div>
+
+                  <div className="flex gap-2 pt-1">
+                    <a
+                      href="tel:*144*2*2*241586%23"
+                      className="flex-1 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold text-center shadow-sm"
+                    >
+                      Dial USSD (*144#)
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard('076210320', 'orange')}
+                      className="px-3 py-2 bg-white border border-orange-300 text-orange-800 rounded-xl text-xs font-bold flex items-center gap-1"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>{copiedField === 'orange' ? 'Copied' : 'Copy'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* AfriMoney */}
+                <div className="bg-red-50/60 border border-red-200 rounded-2xl p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center text-xs font-bold">
+                        AF
+                      </div>
+                      <span className="font-extrabold text-sm text-red-950">AfriMoney</span>
+                    </div>
+                    <span className="text-xs font-mono font-black text-red-900">088294631</span>
+                  </div>
+
+                  <div className="flex gap-2 pt-1">
+                    <a
+                      href="tel:*161*6*2*088294631%23"
+                      className="flex-1 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold text-center shadow-sm"
+                    >
+                      Dial USSD (*161#)
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard('088294631', 'afri')}
+                      className="px-3 py-2 bg-white border border-red-300 text-red-800 rounded-xl text-xs font-bold flex items-center gap-1"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>{copiedField === 'afri' ? 'Copied' : 'Copy'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Transaction Ref Input */}
+                <div className="space-y-1.5 pt-1">
+                  <label className="block text-xs font-bold text-slate-800">
+                    Enter Your Mobile Money Transaction ID / Reference:
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. OM-TXN-12345 or AFRI-98765"
+                    value={paymentTransactionRef}
+                    onChange={e => setPaymentTransactionRef(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-mono font-bold focus:outline-none focus:border-red-500"
+                  />
+                  <p className="text-[10px] text-slate-500">
+                    Copy the transaction ID from your SMS receipt and paste it above.
+                  </p>
+                </div>
+
+                {/* Confirm Button */}
+                <button
+                  type="button"
+                  onClick={handleConfirmPaymentAndRegister}
+                  disabled={isConfirmingPayment}
+                  className="w-full py-3.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-black text-sm rounded-xl shadow-lg shadow-red-600/20 transition-all flex items-center justify-center gap-2"
+                >
+                  {isConfirmingPayment ? (
                     <>
-                      <i className="fas fa-spinner fa-spin" /> Submitting Application...
+                      <i className="fas fa-spinner fa-spin" /> Verifying &amp; Registering...
                     </>
                   ) : (
                     <>
-                      <i className="fas fa-check-circle" /> Submit Application &amp; Join Pro Network
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Confirm Payment &amp; Complete Registration</span>
                     </>
                   )}
                 </button>
-              </form>
-            )}
 
+                {/* WhatsApp Help */}
+                <div className="text-center pt-2">
+                  <a
+                    href={`https://wa.me/23233399391?text=${encodeURIComponent(
+                      `Hello BridgeTech, I am paying the Le 30 commitment fee for my Artisan Profile (${pendingProId}). Name: ${artisanName}. Kindly verify my payment.`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-green-700 hover:underline font-bold inline-flex items-center gap-1.5"
+                  >
+                    <i className="fab fa-whatsapp text-sm" />
+                    <span>Send Payment Screenshot via WhatsApp</span>
+                  </a>
+                </div>
+
+              </div>
+            </div>
           </div>
-
-        </main>
+        </>
       )}
 
     </div>
