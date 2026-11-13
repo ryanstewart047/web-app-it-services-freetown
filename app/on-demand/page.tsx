@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { X, Phone, MessageCircle, Copy, CheckCircle, Smartphone, User, Shield, Camera, FileText, ArrowRight, LogIn } from 'lucide-react';
+import { X, Phone, MessageCircle, Copy, CheckCircle, Smartphone, User, Shield, Camera, FileText, ArrowRight, LogIn, Image as LucideImage, MapPin, Mail } from 'lucide-react';
 
 interface TradeCategory {
   id: string;
@@ -178,6 +178,8 @@ export default function OnDemandServicesPage() {
   const [artisanName, setArtisanName] = useState('');
   const [artisanPhone, setArtisanPhone] = useState('');
   const [artisanPassword, setArtisanPassword] = useState('');
+  const [artisanAddress, setArtisanAddress] = useState(''); // Mandatory (Must)
+  const [artisanEmail, setArtisanEmail] = useState(''); // Optional
   const [artisanWhatsapp, setArtisanWhatsapp] = useState('');
   const [artisanMomo, setArtisanMomo] = useState('');
   const [artisanMomoNetwork, setArtisanMomoNetwork] = useState<'orange' | 'afri'>('orange');
@@ -189,9 +191,18 @@ export default function OnDemandServicesPage() {
   const [artisanBio, setArtisanBio] = useState('');
   const [agreedTerms, setAgreedTerms] = useState(false);
 
-  // Photos
+  // Photos: Profile Photo + Strictly 2 ID Card Photos (Front and Back)
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
-  const [idCardPhoto, setIdCardPhoto] = useState<string | null>(null);
+  const [idCardFrontPhoto, setIdCardFrontPhoto] = useState<string | null>(null);
+  const [idCardBackPhoto, setIdCardBackPhoto] = useState<string | null>(null);
+
+  // Hidden file input refs for Camera Shot vs Gallery Selection
+  const profileCameraRef = useRef<HTMLInputElement>(null);
+  const profileGalleryRef = useRef<HTMLInputElement>(null);
+  const idFrontCameraRef = useRef<HTMLInputElement>(null);
+  const idFrontGalleryRef = useRef<HTMLInputElement>(null);
+  const idBackCameraRef = useRef<HTMLInputElement>(null);
+  const idBackGalleryRef = useRef<HTMLInputElement>(null);
 
   // Payment Catch Modal State
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -247,16 +258,17 @@ export default function OnDemandServicesPage() {
   };
 
   // Handle Image Upload to Base64
-  const handleImageFile = (file: File, type: 'profile' | 'idCard') => {
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Photo is larger than 5MB. Please choose a smaller photo.');
+  const handleImageFile = (file: File, type: 'profile' | 'idFront' | 'idBack') => {
+    if (file.size > 8 * 1024 * 1024) {
+      alert('Photo is larger than 8MB. Please choose a smaller photo.');
       return;
     }
     const reader = new FileReader();
     reader.onload = (e) => {
       if (typeof e.target?.result === 'string') {
         if (type === 'profile') setProfilePhoto(e.target.result);
-        if (type === 'idCard') setIdCardPhoto(e.target.result);
+        if (type === 'idFront') setIdCardFrontPhoto(e.target.result);
+        if (type === 'idBack') setIdCardBackPhoto(e.target.result);
       }
     };
     reader.readAsDataURL(file);
@@ -311,7 +323,12 @@ export default function OnDemandServicesPage() {
     setArtisanError(null);
 
     if (!artisanName.trim() || !artisanPhone.trim() || !artisanTrade.trim()) {
-      setArtisanError('Please fill in your full name, phone number, and trade.');
+      setArtisanError('Please fill in your full legal name, phone number, and trade.');
+      return;
+    }
+
+    if (!artisanAddress.trim()) {
+      setArtisanError('Please provide your residential / physical address in Freetown (mandatory).');
       return;
     }
 
@@ -325,8 +342,13 @@ export default function OnDemandServicesPage() {
       return;
     }
 
-    if (!idCardPhoto) {
-      setArtisanError('Please upload a photo of your Voter ID Card, National ID, or Passport.');
+    if (!idCardFrontPhoto) {
+      setArtisanError('Please take or upload the FRONT side photo of your ID card.');
+      return;
+    }
+
+    if (!idCardBackPhoto) {
+      setArtisanError('Please take or upload the BACK side photo of your ID card.');
       return;
     }
 
@@ -357,6 +379,8 @@ export default function OnDemandServicesPage() {
           phone: artisanPhone,
           password: artisanPassword,
           whatsapp: artisanWhatsapp || artisanPhone,
+          email: artisanEmail.trim() || undefined,
+          address: artisanAddress.trim(),
           mobileMoneyNumber: artisanMomo || artisanPhone,
           mobileMoneyProvider: artisanMomoNetwork,
           primaryTrade: artisanTrade,
@@ -365,7 +389,9 @@ export default function OnDemandServicesPage() {
           coverageAreas: artisanCoverage,
           nationalIdNumber: artisanIdNumber || undefined,
           profilePhoto: profilePhoto || undefined,
-          idCardPhoto: idCardPhoto || undefined,
+          idCardFrontPhoto: idCardFrontPhoto || undefined,
+          idCardBackPhoto: idCardBackPhoto || undefined,
+          idCardPhoto: idCardFrontPhoto || undefined,
           onboardingPaymentRef: paymentTransactionRef.trim() || 'Paid via Mobile Money',
           bioOrWorkSummary: artisanBio || undefined,
         }),
@@ -949,6 +975,18 @@ export default function OnDemandServicesPage() {
                   <span className="font-bold text-slate-700">Payout Mobile Money:</span>
                   <span className="font-mono font-bold text-slate-900">{loggedInPro.mobileMoneyNumber} ({loggedInPro.mobileMoneyProvider})</span>
                 </div>
+                {loggedInPro.address && (
+                  <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200">
+                    <span className="font-bold text-slate-700">Residential Address:</span>
+                    <span className="font-medium text-slate-900 text-right">{loggedInPro.address}</span>
+                  </div>
+                )}
+                {loggedInPro.email && (
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-slate-700">Email Address:</span>
+                    <span className="font-mono text-slate-900">{loggedInPro.email}</span>
+                  </div>
+                )}
               </div>
 
               {/* Assigned Jobs */}
@@ -1067,87 +1105,237 @@ export default function OnDemandServicesPage() {
 
               <form onSubmit={handlePreSubmitArtisan} className="space-y-5">
                 
-                {/* ── MANDATORY PHOTOS: Full Profile Photo & ID Card ── */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                  
-                  {/* Photo 1: Full Size Photo */}
+                {/* ── HIDDEN FILE INPUTS FOR CAMERA SHOT VS GALLERY SELECTION ── */}
+                <input
+                  ref={profileCameraRef}
+                  type="file"
+                  accept="image/*"
+                  capture="user"
+                  className="hidden"
+                  onChange={e => e.target.files?.[0] && handleImageFile(e.target.files[0], 'profile')}
+                />
+                <input
+                  ref={profileGalleryRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={e => e.target.files?.[0] && handleImageFile(e.target.files[0], 'profile')}
+                />
+
+                <input
+                  ref={idFrontCameraRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={e => e.target.files?.[0] && handleImageFile(e.target.files[0], 'idFront')}
+                />
+                <input
+                  ref={idFrontGalleryRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={e => e.target.files?.[0] && handleImageFile(e.target.files[0], 'idFront')}
+                />
+
+                <input
+                  ref={idBackCameraRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={e => e.target.files?.[0] && handleImageFile(e.target.files[0], 'idBack')}
+                />
+                <input
+                  ref={idBackGalleryRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={e => e.target.files?.[0] && handleImageFile(e.target.files[0], 'idBack')}
+                />
+
+                {/* ── SECTION 1: APPLICANT PHOTO & ID CARD UPLOADS ── */}
+                <div className="space-y-4 p-4 sm:p-5 bg-slate-50 rounded-2xl border border-slate-200">
+                  <div className="border-b border-slate-200 pb-2">
+                    <span className="text-xs font-black uppercase text-slate-900 tracking-wider flex items-center gap-1.5">
+                      <Shield className="w-4 h-4 text-emerald-600" />
+                      <span>Identity Verification Photos</span>
+                    </span>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      On mobile, tap <strong>Camera Shot</strong> to take a photo instantly or <strong>From Gallery</strong> to pick an existing image.
+                    </p>
+                  </div>
+
+                  {/* 1. Full Photo of Yourself */}
                   <div className="space-y-2">
                     <label className="block text-xs font-bold text-slate-900 flex items-center gap-1.5">
                       <Camera className="w-3.5 h-3.5 text-red-600" />
-                      <span>Full Photo of Yourself *</span>
+                      <span>1. Full-Size Photo of Yourself *</span>
                     </label>
                     <p className="text-[11px] text-slate-500">
-                      Take or upload a clear, full photo of yourself. Customers see this to recognize you.
+                      Take a clear selfie or upload a full photo of yourself so customers can recognize you on arrival.
                     </p>
 
                     {profilePhoto ? (
-                      <div className="relative inline-block mt-1">
+                      <div className="flex items-center gap-3">
                         <img
                           src={profilePhoto}
                           alt="Profile preview"
-                          className="w-28 h-32 object-cover rounded-xl border-2 border-emerald-500 shadow-sm"
+                          className="w-24 h-28 object-cover rounded-xl border-2 border-emerald-500 shadow-sm"
                         />
-                        <button
-                          type="button"
-                          onClick={() => setProfilePhoto(null)}
-                          className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center text-xs shadow"
-                        >
-                          &times;
-                        </button>
+                        <div className="space-y-1">
+                          <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-md block w-fit">
+                            ✓ Photo Uploaded
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setProfilePhoto(null)}
+                            className="text-xs text-red-600 hover:text-red-700 font-bold underline"
+                          >
+                            Remove or Retake
+                          </button>
+                        </div>
                       </div>
                     ) : (
-                      <label className="mt-1 flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-300 hover:border-red-500 rounded-xl cursor-pointer bg-white transition-colors">
-                        <Camera className="w-6 h-6 text-slate-400 mb-1" />
-                        <span className="text-xs font-bold text-slate-700">Take or Upload Photo</span>
-                        <span className="text-[10px] text-slate-400">JPG, PNG (max 5MB)</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={e => e.target.files?.[0] && handleImageFile(e.target.files[0], 'profile')}
-                        />
-                      </label>
+                      <div className="p-3.5 bg-white border border-slate-300 rounded-xl space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => profileCameraRef.current?.click()}
+                            className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
+                          >
+                            <Camera className="w-3.5 h-3.5 text-red-400" />
+                            <span>Take Camera Shot</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => profileGalleryRef.current?.click()}
+                            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-slate-200 transition-colors"
+                          >
+                            <LucideImage className="w-3.5 h-3.5 text-blue-500" />
+                            <span>Select from Gallery</span>
+                          </button>
+                        </div>
+                        <span className="text-[10px] text-slate-400 block">Clear headshot or full-body photo (JPG/PNG, max 8MB)</span>
+                      </div>
                     )}
                   </div>
 
-                  {/* Photo 2: ID Card */}
-                  <div className="space-y-2">
-                    <label className="block text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                      <FileText className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Photo of Your ID Card *</span>
-                    </label>
-                    <p className="text-[11px] text-slate-500">
-                      Upload your Voter ID Card, National ID, or Passport. Kept confidential.
-                    </p>
-
-                    {idCardPhoto ? (
-                      <div className="relative inline-block mt-1">
-                        <img
-                          src={idCardPhoto}
-                          alt="ID Card preview"
-                          className="w-36 h-24 object-cover rounded-xl border-2 border-blue-500 shadow-sm"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setIdCardPhoto(null)}
-                          className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center text-xs shadow"
-                        >
-                          &times;
-                        </button>
-                      </div>
-                    ) : (
-                      <label className="mt-1 flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl cursor-pointer bg-white transition-colors">
-                        <FileText className="w-6 h-6 text-slate-400 mb-1" />
-                        <span className="text-xs font-bold text-slate-700">Upload ID Card Photo</span>
-                        <span className="text-[10px] text-slate-400">Voter ID / National ID</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={e => e.target.files?.[0] && handleImageFile(e.target.files[0], 'idCard')}
-                        />
+                  {/* 2. ID Card Photos (Strictly Two Photos: Front and Back) */}
+                  <div className="pt-3 border-t border-slate-200 space-y-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5 text-blue-600" />
+                        <span>2. ID Card Photos (Strictly 2 Photos: Front &amp; Back) *</span>
                       </label>
-                    )}
+                      <p className="text-[11px] text-slate-500">
+                        Upload your Voter ID Card, National ID, or Passport. Both front and back are required for verification.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {/* ID FRONT */}
+                      <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-800">Front Side of ID *</span>
+                          {idCardFrontPhoto && (
+                            <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">
+                              ✓ Front Added
+                            </span>
+                          )}
+                        </div>
+
+                        {idCardFrontPhoto ? (
+                          <div className="space-y-1.5">
+                            <img
+                              src={idCardFrontPhoto}
+                              alt="ID Front preview"
+                              className="w-full h-28 object-cover rounded-lg border border-blue-400 shadow-xs"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setIdCardFrontPhoto(null)}
+                              className="text-xs text-red-600 hover:text-red-700 font-bold underline block"
+                            >
+                              Retake Front
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => idFrontCameraRef.current?.click()}
+                                className="flex-1 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 shadow-xs"
+                              >
+                                <Camera className="w-3 h-3 text-red-400" />
+                                <span>Camera Shot</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => idFrontGalleryRef.current?.click()}
+                                className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-bold flex items-center justify-center gap-1 border border-slate-200"
+                              >
+                                <LucideImage className="w-3 h-3 text-blue-500" />
+                                <span>From Gallery</span>
+                              </button>
+                            </div>
+                            <span className="text-[10px] text-slate-400 block text-center">Capture the front face of your ID</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* ID BACK */}
+                      <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-800">Back Side of ID *</span>
+                          {idCardBackPhoto && (
+                            <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">
+                              ✓ Back Added
+                            </span>
+                          )}
+                        </div>
+
+                        {idCardBackPhoto ? (
+                          <div className="space-y-1.5">
+                            <img
+                              src={idCardBackPhoto}
+                              alt="ID Back preview"
+                              className="w-full h-28 object-cover rounded-lg border border-blue-400 shadow-xs"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setIdCardBackPhoto(null)}
+                              className="text-xs text-red-600 hover:text-red-700 font-bold underline block"
+                            >
+                              Retake Back
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => idBackCameraRef.current?.click()}
+                                className="flex-1 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 shadow-xs"
+                              >
+                                <Camera className="w-3 h-3 text-red-400" />
+                                <span>Camera Shot</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => idBackGalleryRef.current?.click()}
+                                className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-bold flex items-center justify-center gap-1 border border-slate-200"
+                              >
+                                <LucideImage className="w-3 h-3 text-blue-500" />
+                                <span>From Gallery</span>
+                              </button>
+                            </div>
+                            <span className="text-[10px] text-slate-400 block text-center">Capture the back face of your ID</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                 </div>
@@ -1178,6 +1366,40 @@ export default function OnDemandServicesPage() {
                       ))}
                       <option value="Other Specialist">Other Specialty</option>
                     </select>
+                  </div>
+                </div>
+
+                {/* Mandatory Address (Must) and Optional Email */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-red-600" />
+                      <span>Full Residential Address in Freetown * <span className="text-red-600 font-black">(Must)</span></span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 15 Wilkinson Road, near NP Junction, Freetown"
+                      value={artisanAddress}
+                      onChange={e => setArtisanAddress(e.target.value)}
+                      required
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
+                    />
+                    <p className="text-[10px] text-slate-500 mt-1">Must be your physical home or workshop address.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Email Address <span className="text-slate-400 font-normal">(Optional)</span></span>
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="e.g. yourname@gmail.com"
+                      value={artisanEmail}
+                      onChange={e => setArtisanEmail(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
+                    />
+                    <p className="text-[10px] text-slate-500 mt-1">Optional. For electronic statements and receipts.</p>
                   </div>
                 </div>
 

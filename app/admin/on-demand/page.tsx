@@ -660,6 +660,18 @@ export default function AdminOnDemandPage() {
                             {pro.mobileMoneyNumber} ({pro.mobileMoneyProvider})
                           </span>
                         </div>
+                        {pro.address && (
+                          <div className="flex items-start justify-between text-slate-300 gap-2">
+                            <span className="text-slate-500 shrink-0">Address:</span>
+                            <span className="text-right text-[11px] text-slate-200">{pro.address}</span>
+                          </div>
+                        )}
+                        {pro.email && (
+                          <div className="flex items-center justify-between text-slate-300">
+                            <span className="text-slate-500">Email:</span>
+                            <span className="font-mono text-[11px] text-slate-300 truncate max-w-[160px]">{pro.email}</span>
+                          </div>
+                        )}
                         <div className="flex items-center justify-between text-slate-300">
                           <span className="text-slate-500">Experience:</span>
                           <span className="font-bold">{pro.yearsOfExperience} years</span>
@@ -790,45 +802,68 @@ export default function AdminOnDemandPage() {
               </button>
             </div>
 
-            {/* Photos Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Photos Grid: Profile Photo + 2 ID Card Photos (Front & Back) */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Photo 1: Profile Photo */}
               <div className="space-y-1.5">
-                <span className="text-xs font-bold text-slate-300 block">Full-Size Profile Photo</span>
+                <span className="text-xs font-bold text-slate-300 block">1. Full Profile Photo</span>
                 {viewingPro.profilePhoto ? (
-                  <a href={viewingPro.profilePhoto} target="_blank" rel="noopener noreferrer" className="block">
+                  <a href={viewingPro.profilePhoto} target="_blank" rel="noopener noreferrer" className="block group">
                     <img
                       src={viewingPro.profilePhoto}
                       alt={viewingPro.fullName}
-                      className="w-full h-56 object-cover rounded-2xl border border-slate-800 hover:border-emerald-500 transition-colors shadow-sm"
+                      className="w-full h-44 object-cover rounded-xl border border-slate-800 group-hover:border-emerald-500 transition-colors shadow-sm"
                     />
+                    <span className="text-[10px] text-slate-400 mt-1 block group-hover:text-emerald-400">Click to open full size &rarr;</span>
                   </a>
                 ) : (
-                  <div className="w-full h-56 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 text-xs italic">
+                  <div className="w-full h-44 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 text-xs italic">
                     No photo uploaded
                   </div>
                 )}
               </div>
 
+              {/* Photo 2: ID Card Front */}
               <div className="space-y-1.5">
-                <span className="text-xs font-bold text-slate-300 block">Uploaded ID Card Photo</span>
-                {viewingPro.idCardPhoto ? (
-                  <a href={viewingPro.idCardPhoto} target="_blank" rel="noopener noreferrer" className="block">
+                <span className="text-xs font-bold text-slate-300 block">2. ID Card (Front Side)</span>
+                {(viewingPro.idCardFrontPhoto || viewingPro.idCardPhoto) ? (
+                  <a href={viewingPro.idCardFrontPhoto || viewingPro.idCardPhoto} target="_blank" rel="noopener noreferrer" className="block group">
                     <img
-                      src={viewingPro.idCardPhoto}
-                      alt="ID Card"
-                      className="w-full h-56 object-cover rounded-2xl border border-slate-800 hover:border-blue-500 transition-colors shadow-sm"
+                      src={viewingPro.idCardFrontPhoto || viewingPro.idCardPhoto}
+                      alt="ID Card Front"
+                      className="w-full h-44 object-cover rounded-xl border border-slate-800 group-hover:border-blue-500 transition-colors shadow-sm"
                     />
+                    <span className="text-[10px] text-slate-400 mt-1 block group-hover:text-blue-400">Click to open full size &rarr;</span>
                   </a>
                 ) : (
-                  <div className="w-full h-56 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 text-xs italic">
-                    No ID card photo uploaded
+                  <div className="w-full h-44 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 text-xs italic">
+                    No front ID photo
+                  </div>
+                )}
+              </div>
+
+              {/* Photo 3: ID Card Back */}
+              <div className="space-y-1.5">
+                <span className="text-xs font-bold text-slate-300 block">3. ID Card (Back Side)</span>
+                {viewingPro.idCardBackPhoto ? (
+                  <a href={viewingPro.idCardBackPhoto} target="_blank" rel="noopener noreferrer" className="block group">
+                    <img
+                      src={viewingPro.idCardBackPhoto}
+                      alt="ID Card Back"
+                      className="w-full h-44 object-cover rounded-xl border border-slate-800 group-hover:border-blue-500 transition-colors shadow-sm"
+                    />
+                    <span className="text-[10px] text-slate-400 mt-1 block group-hover:text-blue-400">Click to open full size &rarr;</span>
+                  </a>
+                ) : (
+                  <div className="w-full h-44 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 text-xs italic">
+                    No back ID photo
                   </div>
                 )}
               </div>
             </div>
 
             {/* Complete Profile Details */}
-            <div className="grid grid-cols-2 gap-3 text-xs bg-slate-900 p-4 rounded-2xl border border-slate-800">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-slate-900 p-4 rounded-2xl border border-slate-800">
               <div>
                 <span className="text-slate-500 text-[10px] uppercase font-bold block">Phone</span>
                 <span className="font-bold font-mono text-white">{viewingPro.phone}</span>
@@ -837,6 +872,19 @@ export default function AdminOnDemandPage() {
                 <span className="text-slate-500 text-[10px] uppercase font-bold block">Mobile Money Payout</span>
                 <span className="font-bold text-emerald-400 font-mono">{viewingPro.mobileMoneyNumber} ({viewingPro.mobileMoneyProvider})</span>
               </div>
+
+              <div className="sm:col-span-2">
+                <span className="text-slate-500 text-[10px] uppercase font-bold block">Residential Address (Must)</span>
+                <span className="font-bold text-white text-xs">{viewingPro.address || 'Not provided'}</span>
+              </div>
+
+              {viewingPro.email && (
+                <div className="sm:col-span-2">
+                  <span className="text-slate-500 text-[10px] uppercase font-bold block">Email Address (Optional)</span>
+                  <span className="font-mono text-slate-300">{viewingPro.email}</span>
+                </div>
+              )}
+
               <div>
                 <span className="text-slate-500 text-[10px] uppercase font-bold block">Experience</span>
                 <span className="font-bold text-white">{viewingPro.yearsOfExperience} years</span>
@@ -845,8 +893,9 @@ export default function AdminOnDemandPage() {
                 <span className="text-slate-500 text-[10px] uppercase font-bold block">National ID / Voter ID</span>
                 <span className="font-mono text-white">{viewingPro.nationalIdNumber || 'Not provided'}</span>
               </div>
+
               {viewingPro.password && (
-                <div className="col-span-2 pt-1 border-t border-slate-800">
+                <div className="sm:col-span-2 pt-1 border-t border-slate-800">
                   <span className="text-slate-500 text-[10px] uppercase font-bold block">Account Password (PIN)</span>
                   <span className="font-mono text-amber-300 font-bold">{viewingPro.password}</span>
                 </div>

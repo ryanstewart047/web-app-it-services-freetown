@@ -135,6 +135,8 @@ export async function POST(request: NextRequest) {
         phone,
         password,
         whatsapp,
+        email,
+        address,
         mobileMoneyNumber,
         mobileMoneyProvider,
         primaryTrade,
@@ -143,6 +145,8 @@ export async function POST(request: NextRequest) {
         coverageAreas,
         nationalIdNumber,
         profilePhoto,
+        idCardFrontPhoto,
+        idCardBackPhoto,
         idCardPhoto,
         onboardingPaymentRef,
         bioOrWorkSummary,
@@ -155,11 +159,20 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      if (!address?.trim()) {
+        return NextResponse.json(
+          { success: false, error: 'Residential / physical address in Freetown is required.' },
+          { status: 400, headers: NO_CACHE_HEADERS }
+        );
+      }
+
       const created = await saveOnDemandPro({
         fullName: fullName.trim(),
         phone: phone.trim(),
         password: password?.trim() || undefined,
         whatsapp: (whatsapp || phone).trim(),
+        email: email?.trim() || undefined,
+        address: address.trim(),
         mobileMoneyNumber: (mobileMoneyNumber || phone).trim(),
         mobileMoneyProvider: mobileMoneyProvider || 'orange',
         primaryTrade: primaryTrade.trim(),
@@ -168,13 +181,27 @@ export async function POST(request: NextRequest) {
         coverageAreas: Array.isArray(coverageAreas) && coverageAreas.length > 0 ? coverageAreas : ['Central Freetown'],
         nationalIdNumber: nationalIdNumber?.trim() || undefined,
         profilePhoto: profilePhoto || undefined,
-        idCardPhoto: idCardPhoto || undefined,
+        idCardFrontPhoto: idCardFrontPhoto || idCardPhoto || undefined,
+        idCardBackPhoto: idCardBackPhoto || undefined,
+        idCardPhoto: idCardFrontPhoto || idCardPhoto || undefined,
         onboardingFeeAmount: 30, // 30 Leones commitment fee
         onboardingFeeStatus: onboardingPaymentRef ? 'pending_verification' : 'unpaid',
         onboardingPaymentRef: onboardingPaymentRef?.trim() || undefined,
         status: 'pending_review',
         bioOrWorkSummary: bioOrWorkSummary?.trim() || undefined,
       });
+
+      // Capture email lead if provided
+      if (email && email.includes('@')) {
+        try {
+          await captureEmailLead({
+            email: email.trim(),
+            name: fullName.trim(),
+            phone: phone.trim(),
+            source: 'appointment',
+          });
+        } catch {}
+      }
 
       return NextResponse.json(
         { success: true, pro: created, proId: created.id },

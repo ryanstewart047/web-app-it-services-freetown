@@ -706,8 +706,6 @@ model WebsiteQuestionnaire {
   contactName           String
   email                 String
   phone                 String?
-  address               String?  @db.Text
-  businessRegistration  String?
   // Site basics
   websitePurpose        String   @db.Text
   siteType              String   // "static" | "dynamic" | "ecommerce" | "portfolio" | "unsure"

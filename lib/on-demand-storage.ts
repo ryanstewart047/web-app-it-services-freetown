@@ -36,6 +36,8 @@ export interface OnDemandPro {
   phone: string;
   password?: string; // For pro sign-in
   whatsapp?: string;
+  email?: string; // Optional email
+  address: string; // Mandatory physical residential / workshop address
   mobileMoneyNumber: string;
   mobileMoneyProvider: 'orange' | 'afri' | 'other';
   primaryTrade: string;
@@ -44,7 +46,9 @@ export interface OnDemandPro {
   coverageAreas: string[];
   nationalIdNumber?: string;
   profilePhoto?: string; // Full size photo of applicant
-  idCardPhoto?: string; // Uploaded ID card image
+  idCardFrontPhoto?: string; // ID Card Front Side
+  idCardBackPhoto?: string; // ID Card Back Side
+  idCardPhoto?: string; // Legacy / Fallback
   onboardingFeeAmount: number; // 30 Leones
   onboardingFeeStatus: 'unpaid' | 'pending_verification' | 'paid';
   onboardingPaymentRef?: string;
@@ -85,6 +89,8 @@ const INITIAL_PROS: OnDemandPro[] = [
     fullName: 'Alpha Koroma',
     phone: '+23278123456',
     whatsapp: '+23278123456',
+    email: 'alpha.koroma@freetowntech.sl',
+    address: '14 Percival Street, Central Freetown',
     mobileMoneyNumber: '+23278123456',
     mobileMoneyProvider: 'orange',
     primaryTrade: 'Printer & Copier Technician',
@@ -108,6 +114,8 @@ const INITIAL_PROS: OnDemandPro[] = [
     fullName: 'Mohamed Sesay',
     phone: '+23276654321',
     whatsapp: '+23276654321',
+    email: 'sesay.electrical@gmail.com',
+    address: '28 Main Motor Road, Congo Cross, Freetown',
     mobileMoneyNumber: '+23276654321',
     mobileMoneyProvider: 'orange',
     primaryTrade: 'Certified Electrician',
@@ -131,6 +139,7 @@ const INITIAL_PROS: OnDemandPro[] = [
     fullName: 'Francis Conteh',
     phone: '+23288998877',
     whatsapp: '+23288998877',
+    address: '7 Sanders Street, Central Freetown',
     mobileMoneyNumber: '+23288998877',
     mobileMoneyProvider: 'afri',
     primaryTrade: 'Gaming Console & Electronics Repair',
@@ -337,6 +346,8 @@ export async function saveOnDemandPro(input: Partial<OnDemandPro>): Promise<OnDe
     phone: input.phone || '',
     password: input.password || '',
     whatsapp: input.whatsapp || input.phone || '',
+    email: input.email?.trim() || undefined,
+    address: input.address?.trim() || '',
     mobileMoneyNumber: input.mobileMoneyNumber || input.phone || '',
     mobileMoneyProvider: input.mobileMoneyProvider || 'orange',
     primaryTrade: input.primaryTrade || 'General Technician',
@@ -345,7 +356,9 @@ export async function saveOnDemandPro(input: Partial<OnDemandPro>): Promise<OnDe
     coverageAreas: input.coverageAreas || ['Central Freetown'],
     nationalIdNumber: input.nationalIdNumber,
     profilePhoto: input.profilePhoto,
-    idCardPhoto: input.idCardPhoto,
+    idCardFrontPhoto: input.idCardFrontPhoto || input.idCardPhoto,
+    idCardBackPhoto: input.idCardBackPhoto,
+    idCardPhoto: input.idCardFrontPhoto || input.idCardPhoto,
     onboardingFeeAmount: 30, // Fixed Le 30 commitment fee
     onboardingFeeStatus: input.onboardingFeeStatus || 'pending_verification',
     onboardingPaymentRef: input.onboardingPaymentRef,

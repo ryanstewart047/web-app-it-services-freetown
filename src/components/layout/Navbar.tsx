@@ -260,14 +260,6 @@ export default function Navbar() {
               <i className="fas fa-wand-magic-sparkles text-red-500 mr-1"></i> Digital Tools
             </Link>
 
-            <Link href="/on-demand" className={`px-2.5 xl:px-3 py-1.5 xl:py-2 text-xs xl:text-sm font-bold rounded-md whitespace-nowrap flex-shrink-0 transition-all duration-200 flex items-center gap-1.5 ${pathname?.startsWith('/on-demand') ? 'bg-[#040e40] text-amber-400 font-bold' : 'text-gray-700 hover:text-[#040e40]'}`}>
-              <i className="fas fa-handshake text-amber-500"></i>
-              <span>On-Demand</span>
-              <span className="px-1.5 py-0.2 bg-amber-100 text-amber-800 text-[9px] font-black rounded-full uppercase">
-                Pros
-              </span>
-            </Link>
-
 
             <Link href="/search" aria-label="Search the site" className={`inline-flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 ${pathname === '/search' ? 'bg-[#040e40] text-red-500' : 'text-gray-700 hover:bg-slate-100 hover:text-[#040e40]'}`}>
               <i className="fas fa-search"></i>
@@ -307,14 +299,6 @@ export default function Navbar() {
                   <div className="space-y-4">
                     <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-2">Support Resources</h3>
                     <div className="space-y-2">
-                      <MegaMenuLink
-                        href="/on-demand"
-                        icon="fas fa-handshake"
-                        title="On-Demand Services"
-                        description="Printers, consoles, electricians, plumbers & more"
-                        color="text-amber-600"
-                        bg="bg-amber-50"
-                      />
                       <MegaMenuLink
                         href="/repair-cost-checker-freetown"
                         icon="fas fa-calculator"
@@ -468,16 +452,6 @@ export default function Navbar() {
               </span>
             </Link>
             
-            <Link href="/on-demand" className="text-gray-900 bg-amber-50/80 hover:bg-amber-100/80 block px-4 py-3 text-base font-bold rounded-lg transition-all border border-amber-200/60 my-1 flex items-center justify-between" onClick={closeMobileMenu}>
-              <div className="flex items-center">
-                <i className="fas fa-handshake w-5 mr-3 text-amber-600"></i>
-                <span>On-Demand Services</span>
-              </div>
-              <span className="px-1.5 py-0.5 bg-amber-500 text-slate-950 text-[10px] font-black rounded uppercase">
-                Pro Network
-              </span>
-            </Link>
-
             <Link href="/blog" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
               <i className="fas fa-blog w-5 mr-3 text-[#040e40]"></i>Blog
             </Link>
