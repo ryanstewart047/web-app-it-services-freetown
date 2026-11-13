@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import fs from 'fs';
+import path from 'path';
 import {
   getOnDemandRequests,
   saveOnDemandRequest,
@@ -10,6 +12,9 @@ import {
   updateOnDemandPro,
   deleteOnDemandPro,
   getOnDemandStats,
+  getCategoryImageOverrides,
+  saveCategoryImageOverride,
+  resetCategoryImageOverride,
 } from '@/lib/on-demand-storage';
 import { captureEmailLead } from '@/lib/email-leads';
 
@@ -43,10 +48,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, stats }, { headers: NO_CACHE_HEADERS });
     }
 
-    const [requests, pros, stats] = await Promise.all([
+    if (type === 'category_images') {
+      const categoryImages = await getCategoryImageOverrides();
+      return NextResponse.json({ success: true, overrides: categoryImages }, { headers: NO_CACHE_HEADERS });
+    }
+
+    const [requests, pros, stats, categoryImages] = await Promise.all([
       getOnDemandRequests(),
       getOnDemandPros(),
       getOnDemandStats(),
+      getCategoryImageOverrides(),
     ]);
 
     return NextResponse.json({
@@ -54,6 +65,7 @@ export async function GET(request: NextRequest) {
       requests,
       pros,
       stats,
+      categoryImages,
     }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     console.error('Error fetching on-demand data:', error);
@@ -575,6 +587,83 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, pro: updated }, { headers: NO_CACHE_HEADERS });
     }
 
+    // ── 8. Update Service Category Image (Local Upload / URL) ───────────────
+    if (action === 'update_category_image') {
+      const { categoryId, imageUrl, imageBase64 } = body;
+      if (!categoryId) {
+        return NextResponse.json(
+          { success: false, error: 'Category ID is required' },
+          { status: 400, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      let finalUrl = imageUrl;
+
+      // Handle local image file upload (Base64 data URL)
+      if (imageBase64 && typeof imageBase64 === 'string') {
+        const matches = imageBase64.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+        if (matches) {
+          const rawExt = matches[1].toLowerCase();
+          const ext = rawExt === 'jpeg' ? 'jpg' : rawExt;
+          const buffer = Buffer.from(matches[2], 'base64');
+          const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'on-demand');
+          if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true });
+          }
+          const safeFilename = `${categoryId}-${Date.now()}.${ext}`;
+          const filePath = path.join(uploadsDir, safeFilename);
+          fs.writeFileSync(filePath, buffer);
+          finalUrl = `/uploads/on-demand/${safeFilename}`;
+        } else if (imageBase64.startsWith('http') || imageBase64.startsWith('/')) {
+          finalUrl = imageBase64;
+        }
+      }
+
+      if (!finalUrl || typeof finalUrl !== 'string') {
+        return NextResponse.json(
+          { success: false, error: 'Valid image URL or local photo upload is required' },
+          { status: 400, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      const overrides = await saveCategoryImageOverride(categoryId, finalUrl.trim());
+      return NextResponse.json({
+        success: true,
+        categoryId,
+        imageUrl: finalUrl.trim(),
+        overrides,
+        message: 'Service category photo updated successfully',
+      }, { headers: NO_CACHE_HEADERS });
+    }
+
+    // ── 9. Revert Service Category Image to Default ─────────────────────────
+    if (action === 'reset_category_image') {
+      const { categoryId } = body;
+      if (!categoryId) {
+        return NextResponse.json(
+          { success: false, error: 'Category ID is required' },
+          { status: 400, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      const overrides = await resetCategoryImageOverride(categoryId);
+      return NextResponse.json({
+        success: true,
+        categoryId,
+        overrides,
+        message: 'Reverted service category photo to default',
+      }, { headers: NO_CACHE_HEADERS });
+    }
+
+    // ── 10. Fetch All Category Image Overrides ──────────────────────────────
+    if (action === 'get_category_images') {
+      const overrides = await getCategoryImageOverrides();
+      return NextResponse.json({
+        success: true,
+        overrides,
+      }, { headers: NO_CACHE_HEADERS });
+    }
+
     return NextResponse.json(
       { success: false, error: 'Invalid action specified' },
       { status: 400, headers: NO_CACHE_HEADERS }
@@ -624,6 +713,83 @@ export async function PUT(request: NextRequest) {
       }
 
       return NextResponse.json({ success: true, pro: updated }, { headers: NO_CACHE_HEADERS });
+    }
+
+    // ── 8. Update Service Category Image (Local Upload / URL) ───────────────
+    if (action === 'update_category_image') {
+      const { categoryId, imageUrl, imageBase64 } = body;
+      if (!categoryId) {
+        return NextResponse.json(
+          { success: false, error: 'Category ID is required' },
+          { status: 400, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      let finalUrl = imageUrl;
+
+      // Handle local image file upload (Base64 data URL)
+      if (imageBase64 && typeof imageBase64 === 'string') {
+        const matches = imageBase64.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+        if (matches) {
+          const rawExt = matches[1].toLowerCase();
+          const ext = rawExt === 'jpeg' ? 'jpg' : rawExt;
+          const buffer = Buffer.from(matches[2], 'base64');
+          const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'on-demand');
+          if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true });
+          }
+          const safeFilename = `${categoryId}-${Date.now()}.${ext}`;
+          const filePath = path.join(uploadsDir, safeFilename);
+          fs.writeFileSync(filePath, buffer);
+          finalUrl = `/uploads/on-demand/${safeFilename}`;
+        } else if (imageBase64.startsWith('http') || imageBase64.startsWith('/')) {
+          finalUrl = imageBase64;
+        }
+      }
+
+      if (!finalUrl || typeof finalUrl !== 'string') {
+        return NextResponse.json(
+          { success: false, error: 'Valid image URL or local photo upload is required' },
+          { status: 400, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      const overrides = await saveCategoryImageOverride(categoryId, finalUrl.trim());
+      return NextResponse.json({
+        success: true,
+        categoryId,
+        imageUrl: finalUrl.trim(),
+        overrides,
+        message: 'Service category photo updated successfully',
+      }, { headers: NO_CACHE_HEADERS });
+    }
+
+    // ── 9. Revert Service Category Image to Default ─────────────────────────
+    if (action === 'reset_category_image') {
+      const { categoryId } = body;
+      if (!categoryId) {
+        return NextResponse.json(
+          { success: false, error: 'Category ID is required' },
+          { status: 400, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      const overrides = await resetCategoryImageOverride(categoryId);
+      return NextResponse.json({
+        success: true,
+        categoryId,
+        overrides,
+        message: 'Reverted service category photo to default',
+      }, { headers: NO_CACHE_HEADERS });
+    }
+
+    // ── 10. Fetch All Category Image Overrides ──────────────────────────────
+    if (action === 'get_category_images') {
+      const overrides = await getCategoryImageOverrides();
+      return NextResponse.json({
+        success: true,
+        overrides,
+      }, { headers: NO_CACHE_HEADERS });
     }
 
     return NextResponse.json({ success: false, error: 'Invalid action specified' }, { status: 400 });

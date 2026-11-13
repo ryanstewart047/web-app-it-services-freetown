@@ -803,3 +803,89 @@ export async function getOnDemandStats(): Promise<OnDemandStats> {
     totalOnboardingFeesCollected,
   };
 }
+
+// ── CATEGORY IMAGE OVERRIDES (POSTGRESQL + LOCAL JSON FALLBACK) ─────────────
+
+const CATEGORY_IMAGES_FILE = path.join(process.cwd(), 'data', 'category_image_overrides.json');
+
+function readLocalCategoryImages(): Record<string, string> {
+  try {
+    if (!fs.existsSync(CATEGORY_IMAGES_FILE)) return {};
+    const raw = fs.readFileSync(CATEGORY_IMAGES_FILE, 'utf-8');
+    return JSON.parse(raw);
+  } catch (err) {
+    return {};
+  }
+}
+
+function writeLocalCategoryImages(data: Record<string, string>): void {
+  try {
+    const dir = path.dirname(CATEGORY_IMAGES_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(CATEGORY_IMAGES_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Failed to write local category images:', err);
+  }
+}
+
+export async function getCategoryImageOverrides(): Promise<Record<string, string>> {
+  try {
+    await ensureTables();
+    const rows = await prisma.$queryRawUnsafe<any[]>(
+      `SELECT "value" FROM "on_demand_meta" WHERE "key" = 'category_image_overrides' LIMIT 1;`
+    );
+    if (rows && rows.length > 0 && rows[0].value) {
+      const parsed = JSON.parse(rows[0].value);
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    }
+  } catch (err) {
+    console.warn('DB getCategoryImageOverrides error, falling back to local file:', err);
+  }
+  return readLocalCategoryImages();
+}
+
+export async function saveCategoryImageOverride(categoryId: string, imageUrl: string): Promise<Record<string, string>> {
+  const current = await getCategoryImageOverrides();
+  current[categoryId] = imageUrl;
+
+  // 1. Write to local file backup
+  writeLocalCategoryImages(current);
+
+  // 2. Write to PostgreSQL on_demand_meta
+  try {
+    await ensureTables();
+    await prisma.$executeRawUnsafe(
+      `INSERT INTO "on_demand_meta" ("key", "value")
+       VALUES ('category_image_overrides', $1)
+       ON CONFLICT ("key") DO UPDATE SET "value" = $1;`,
+      JSON.stringify(current)
+    );
+  } catch (err) {
+    console.error('DB saveCategoryImageOverride error:', err);
+  }
+
+  return current;
+}
+
+export async function resetCategoryImageOverride(categoryId: string): Promise<Record<string, string>> {
+  const current = await getCategoryImageOverrides();
+  delete current[categoryId];
+
+  // 1. Write to local file backup
+  writeLocalCategoryImages(current);
+
+  // 2. Write to PostgreSQL on_demand_meta
+  try {
+    await ensureTables();
+    await prisma.$executeRawUnsafe(
+      `INSERT INTO "on_demand_meta" ("key", "value")
+       VALUES ('category_image_overrides', $1)
+       ON CONFLICT ("key") DO UPDATE SET "value" = $1;`,
+      JSON.stringify(current)
+    );
+  } catch (err) {
+    console.error('DB resetCategoryImageOverride error:', err);
+  }
+
+  return current;
+}

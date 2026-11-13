@@ -3,9 +3,31 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { OnDemandRequest, OnDemandPro, OnDemandStats } from '@/lib/on-demand-storage';
+import { TRADE_CATEGORIES, TradeCategory } from '@/lib/on-demand-categories';
 
 export default function AdminOnDemandPage() {
-  const [activeTab, setActiveTab] = useState<'requests' | 'pros'>('requests');
+  const [activeTab, setActiveTab] = useState<'requests' | 'pros' | 'service-images'>('requests');
+  const [categoryImages, setCategoryImages] = useState<Record<string, string>>({});
+  const [categoryFilter, setCategoryFilter] = useState<'all' | 'needs-review' | 'custom' | 'tech' | 'trade'>('all');
+  const [imageModal, setImageModal] = useState<{
+    isOpen: boolean;
+    category: TradeCategory | null;
+    currentImage: string;
+    newImagePreview: string;
+    newImageUrl: string;
+    fileName: string;
+    fileSize: string;
+    isSubmitting: boolean;
+  }>({
+    isOpen: false,
+    category: null,
+    currentImage: '',
+    newImagePreview: '',
+    newImageUrl: '',
+    fileName: '',
+    fileSize: '',
+    isSubmitting: false,
+  });
   const [requests, setRequests] = useState<OnDemandRequest[]>([]);
   const [pros, setPros] = useState<OnDemandPro[]>([]);
   const [stats, setStats] = useState<OnDemandStats>({
@@ -46,6 +68,49 @@ export default function AdminOnDemandPage() {
     setTimeout(() => setToast(null), 4000);
   };
 
+  // Client-Side Image Compressor for Admin Local Photo Uploads (Fast & sharp)
+  const compressImage = (file: File, maxWidth = 1200, quality = 0.75): Promise<string> => {
+    return new Promise((resolve) => {
+      if (!file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(typeof e.target?.result === 'string' ? e.target.result : '');
+        reader.readAsDataURL(file);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+          if (width > maxWidth || height > maxWidth) {
+            if (width > height) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            } else {
+              width = Math.round((width * maxWidth) / height);
+              height = maxWidth;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          } else {
+            resolve(event.target?.result as string);
+          }
+        };
+        img.onerror = () => resolve(event.target?.result as string);
+        img.src = event.target?.result as string;
+      };
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    });
+  };
+
   const loadData = async (showSpinner = true) => {
     if (showSpinner) setIsLoading(true);
     try {
@@ -54,6 +119,11 @@ export default function AdminOnDemandPage() {
       if (data.success) {
         setRequests(data.requests || []);
         setPros(data.pros || []);
+        if (data.categoryImages) {
+          setCategoryImages(data.categoryImages);
+        } else if (data.overrides) {
+          setCategoryImages(data.overrides);
+        }
         setStats(data.stats || {
           totalRequests: 0,
           activeRequests: 0,
@@ -295,6 +365,101 @@ export default function AdminOnDemandPage() {
     }
   };
 
+  const PRIORITY_SERVICE_IDS = ['painter', 'mason-builder', 'water-pump-borehole', 'generator-mechanic'];
+
+  const handleOpenImageModal = (cat: TradeCategory) => {
+    const activeImg = categoryImages[cat.id] || cat.image;
+    setImageModal({
+      isOpen: true,
+      category: cat,
+      currentImage: activeImg,
+      newImagePreview: '',
+      newImageUrl: categoryImages[cat.id] || '',
+      fileName: '',
+      fileSize: '',
+      isSubmitting: false,
+    });
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const sizeKb = Math.round(file.size / 1024);
+    const compressed = await compressImage(file, 1200, 0.75);
+    if (compressed) {
+      setImageModal(prev => ({
+        ...prev,
+        newImagePreview: compressed,
+        fileName: file.name,
+        fileSize: `${sizeKb} KB`,
+      }));
+    }
+  };
+
+  const handleSaveCategoryImage = async () => {
+    if (!imageModal.category) return;
+    const catId = imageModal.category.id;
+    const targetImg = imageModal.newImagePreview || imageModal.newImageUrl.trim();
+    if (!targetImg) {
+      showToast('Please select a local image file or enter an image URL', 'error');
+      return;
+    }
+    setImageModal(prev => ({ ...prev, isSubmitting: true }));
+    try {
+      const res = await fetch('/api/on-demand', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update_category_image',
+          categoryId: catId,
+          imageBase64: imageModal.newImagePreview || undefined,
+          imageUrl: imageModal.newImageUrl.trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to update photo');
+      }
+      setCategoryImages(data.overrides || { ...categoryImages, [catId]: data.imageUrl });
+      showToast(`Cover photo updated for ${imageModal.category.title}!`, 'success');
+      setImageModal({
+        isOpen: false,
+        category: null,
+        currentImage: '',
+        newImagePreview: '',
+        newImageUrl: '',
+        fileName: '',
+        fileSize: '',
+        isSubmitting: false,
+      });
+    } catch (err: any) {
+      showToast(err.message || 'Error saving photo', 'error');
+      setImageModal(prev => ({ ...prev, isSubmitting: false }));
+    }
+  };
+
+  const handleResetCategoryImage = async (cat: TradeCategory) => {
+    if (!confirm(`Revert ${cat.title} to its default photo?`)) return;
+    try {
+      const res = await fetch('/api/on-demand', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'reset_category_image',
+          categoryId: cat.id,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to reset photo');
+      }
+      setCategoryImages(data.overrides || {});
+      showToast(`Reverted ${cat.title} to default photo!`, 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Error reverting photo', 'error');
+    }
+  };
+
   // Filter requests
   const filteredRequests = requests.filter(r => {
     const matchesSearch = 
@@ -316,6 +481,30 @@ export default function AdminOnDemandPage() {
       p.primaryTrade.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.phone.includes(searchTerm)
     );
+  });
+
+  // Filter service categories for photos manager
+  const filteredCategories = TRADE_CATEGORIES.filter(cat => {
+    const matchesSearch = 
+      cat.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cat.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cat.subtitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cat.badge.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!matchesSearch) return false;
+
+    if (categoryFilter === 'needs-review') {
+      return PRIORITY_SERVICE_IDS.includes(cat.id);
+    }
+    if (categoryFilter === 'custom') {
+      return Boolean(categoryImages[cat.id]);
+    }
+    if (categoryFilter === 'tech') {
+      return cat.type === 'tech';
+    }
+    if (categoryFilter === 'trade') {
+      return cat.type === 'trade';
+    }
+    return true;
   });
 
   return (
@@ -432,6 +621,19 @@ export default function AdminOnDemandPage() {
             <i className="fas fa-hard-hat text-xs" />
             <span>Artisan Pro Directory ({pros.length})</span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('service-images')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
+              activeTab === 'service-images'
+                ? 'bg-purple-600 text-white shadow-md shadow-purple-950'
+                : 'bg-slate-900 text-slate-400 hover:text-white'
+            }`}
+          >
+            <i className="fas fa-camera text-xs" />
+            <span>Service Card Photos ({TRADE_CATEGORIES.length})</span>
+          </button>
         </div>
 
         {/* Search Bar */}
@@ -439,7 +641,7 @@ export default function AdminOnDemandPage() {
           <i className="fas fa-search absolute left-3 top-2.5 text-slate-500 text-xs" />
           <input
             type="text"
-            placeholder={activeTab === 'requests' ? 'Search jobs, customer, area...' : 'Search pros by name, trade...'}
+            placeholder={activeTab === 'requests' ? 'Search jobs, customer, area...' : activeTab === 'pros' ? 'Search pros by name, trade...' : 'Search service cards (e.g. Painter, Mason)...'}
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500"
@@ -982,6 +1184,225 @@ export default function AdminOnDemandPage() {
         </div>
       )}
 
+      {/* ── TAB 3: SERVICE CARD PHOTOS MANAGER ── */}
+      {activeTab === 'service-images' && (
+        <div className="space-y-6 animate-in fade-in">
+          {/* Top Banner with Instructions and Priority Callout */}
+          <div className="bg-gradient-to-r from-purple-950/60 via-slate-950 to-slate-900 border border-purple-800/40 rounded-2xl p-4 sm:p-6 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-1">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-500/30 inline-block">
+                  Visual Asset Control
+                </span>
+                <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
+                  <i className="fas fa-images text-purple-400" />
+                  <span>Service Card Photo Manager</span>
+                </h2>
+                <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+                  Update cover photos for each on-demand service shown on the public portal. You can upload authentic local photos from your computer or phone, or enter direct image URLs. Custom photos automatically override stock photos in real-time.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setCategoryFilter('needs-review')}
+                  className="px-3.5 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shadow-sm"
+                >
+                  <i className="fas fa-exclamation-triangle text-amber-400" />
+                  <span>Update Priority 4 Trades</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Priority Callout Box */}
+            <div className="p-3 bg-amber-950/30 border border-amber-800/40 rounded-xl text-xs text-amber-200/90 flex items-start gap-2.5">
+              <i className="fas fa-bullhorn text-amber-400 text-sm mt-0.5 shrink-0" />
+              <div className="space-y-1 text-[11px] leading-relaxed">
+                <strong className="text-white block font-bold">Priority Update Requested:</strong>
+                <span>
+                  Please upload authentic local Freetown photos for: <strong>Professional Painters</strong>, <strong>Masons, Tilers &amp; Builders</strong>, <strong>Borehole &amp; Water Pump Specialists</strong>, and <strong>Generator Mechanics</strong>.
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Filter Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+            <button
+              type="button"
+              onClick={() => setCategoryFilter('all')}
+              className={`px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all ${
+                categoryFilter === 'all'
+                  ? 'bg-purple-600 text-white shadow-md'
+                  : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+              }`}
+            >
+              All Services ({TRADE_CATEGORIES.length})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setCategoryFilter('needs-review')}
+              className={`px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                categoryFilter === 'needs-review'
+                  ? 'bg-amber-500 text-slate-950 shadow-md font-black'
+                  : 'bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/30'
+              }`}
+            >
+              <i className="fas fa-star text-[10px]" />
+              <span>Needs Local Photos ({PRIORITY_SERVICE_IDS.length})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setCategoryFilter('custom')}
+              className={`px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                categoryFilter === 'custom'
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+              }`}
+            >
+              <i className="fas fa-check-circle text-[10px] text-emerald-400" />
+              <span>Custom Local Active ({Object.keys(categoryImages).length})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setCategoryFilter('trade')}
+              className={`px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all ${
+                categoryFilter === 'trade'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+              }`}
+            >
+              Certified Trades ({TRADE_CATEGORIES.filter(c => c.type === 'trade').length})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setCategoryFilter('tech')}
+              className={`px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all ${
+                categoryFilter === 'tech'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+              }`}
+            >
+              Tech Specialists ({TRADE_CATEGORIES.filter(c => c.type === 'tech').length})
+            </button>
+          </div>
+
+          {/* Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filteredCategories.map(cat => {
+              const customUrl = categoryImages[cat.id];
+              const activeImg = customUrl || cat.image;
+              const isPriority = PRIORITY_SERVICE_IDS.includes(cat.id);
+              const isCustom = Boolean(customUrl);
+
+              return (
+                <div
+                  key={cat.id}
+                  className={`bg-slate-950 border rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-200 group ${
+                    isPriority && !isCustom
+                      ? 'border-amber-500/60 ring-1 ring-amber-500/30 shadow-lg shadow-amber-950/20'
+                      : isCustom
+                        ? 'border-emerald-500/50 hover:border-emerald-400'
+                        : 'border-slate-800 hover:border-slate-700'
+                  }`}
+                >
+                  {/* Photo Preview Container */}
+                  <div className="relative h-44 bg-slate-900 overflow-hidden">
+                    <img
+                      src={activeImg}
+                      alt={cat.title}
+                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent" />
+
+                    {/* Top Badges */}
+                    <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1.5">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
+                        isCustom
+                          ? 'bg-emerald-500 text-slate-950 shadow'
+                          : isPriority
+                            ? 'bg-amber-400 text-slate-950 font-black shadow'
+                            : 'bg-slate-900/80 backdrop-blur-sm text-slate-300 border border-slate-700'
+                      }`}>
+                        {isCustom ? '✓ Custom Local Photo' : isPriority ? '⚠️ Needs Local Photo' : 'Stock Photo'}
+                      </span>
+
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-black/60 backdrop-blur-sm text-white border border-white/20">
+                        {cat.badge}
+                      </span>
+                    </div>
+
+                    {/* Bottom Title on Image */}
+                    <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center gap-2">
+                      <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${cat.color} flex items-center justify-center text-white text-xs shrink-0 shadow`}>
+                        <i className={cat.icon} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-extrabold text-white text-sm leading-tight truncate">
+                          {cat.title}
+                        </h3>
+                        <span className="text-[10px] font-mono text-slate-400 block truncate">
+                          ID: {cat.id}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card Body & Controls */}
+                  <div className="p-3.5 space-y-3 flex-1 flex flex-col justify-between">
+                    <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+                      {cat.subtitle}
+                    </p>
+
+                    <div className="space-y-2 pt-2 border-t border-slate-800">
+                      {/* Image Source Info */}
+                      <div className="text-[10px] text-slate-500 truncate font-mono">
+                        Source: {activeImg.startsWith('/uploads') ? 'Local Server Upload' : 'External Stock'}
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenImageModal(cat)}
+                          className="flex-1 py-2 px-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition-all shadow flex items-center justify-center gap-1.5"
+                        >
+                          <i className="fas fa-camera text-[10px]" />
+                          <span>{isCustom ? 'Change Photo' : 'Upload Local Photo'}</span>
+                        </button>
+
+                        {isCustom && (
+                          <button
+                            type="button"
+                            onClick={() => handleResetCategoryImage(cat)}
+                            title="Reset to default stock photo"
+                            className="p-2 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white rounded-xl text-xs border border-slate-800 transition-colors"
+                          >
+                            <i className="fas fa-undo text-[11px]" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {filteredCategories.length === 0 && (
+            <div className="p-8 text-center bg-slate-950 border border-slate-800 rounded-2xl text-slate-400">
+              <i className="fas fa-images text-2xl mb-2 text-slate-600" />
+              <p className="text-xs">No service categories matched your search criteria.</p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── ARTISAN PROFILE & ID PHOTOS LIGHTBOX MODAL ── */}
       {viewingPro && (
         <div
@@ -1369,6 +1790,168 @@ export default function AdminOnDemandPage() {
                   </>
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── SERVICE CARD PHOTO UPLOADER & EDITOR MODAL ── */}
+      {imageModal.isOpen && imageModal.category && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in"
+          onClick={() => !imageModal.isSubmitting && setImageModal(prev => ({ ...prev, isOpen: false }))}
+        >
+          <div
+            className="bg-slate-950 border border-slate-800 rounded-3xl max-w-lg w-full max-h-[92vh] overflow-y-auto p-5 sm:p-6 space-y-4 text-white shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${imageModal.category.color} flex items-center justify-center text-white text-sm shadow`}>
+                  <i className={imageModal.category.icon} />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white">Update Service Cover Photo</h3>
+                  <p className="text-xs text-purple-400 font-semibold">{imageModal.category.title}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={imageModal.isSubmitting}
+                onClick={() => setImageModal(prev => ({ ...prev, isOpen: false }))}
+                className="w-8 h-8 rounded-full bg-slate-900 hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Photo Previews */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                  Current Photo
+                </span>
+                <div className="h-28 rounded-xl overflow-hidden border border-slate-800 bg-slate-900">
+                  <img
+                    src={imageModal.currentImage}
+                    alt="Current"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider block mb-1">
+                  New Candidate Preview
+                </span>
+                <div className="h-28 rounded-xl overflow-hidden border border-purple-500/50 bg-slate-900 flex items-center justify-center text-center p-2">
+                  {imageModal.newImagePreview || imageModal.newImageUrl ? (
+                    <img
+                      src={imageModal.newImagePreview || imageModal.newImageUrl}
+                      alt="New Preview"
+                      className="w-full h-full object-cover"
+                      onError={(e: any) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                  ) : (
+                    <div className="text-slate-500 text-[11px]">
+                      <i className="fas fa-image text-lg mb-1 block" />
+                      Select a file or enter URL below
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Upload Option 1: Local Device File Picker */}
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+                <i className="fas fa-upload text-purple-400" />
+                <span>Upload Local Image (From Computer or Phone)</span>
+              </label>
+
+              <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-700 hover:border-purple-500 bg-slate-900/60 hover:bg-slate-900 rounded-2xl p-4 cursor-pointer transition-all text-center group">
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg, image/jpg, image/webp"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  disabled={imageModal.isSubmitting}
+                />
+                <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-base group-hover:scale-110 transition-transform mb-2">
+                  <i className="fas fa-cloud-upload-alt" />
+                </div>
+                <span className="text-xs font-bold text-slate-200">
+                  {imageModal.fileName ? `Selected: ${imageModal.fileName} (${imageModal.fileSize})` : 'Click to choose image file or take camera shot'}
+                </span>
+                <span className="text-[10px] text-slate-500 mt-1">
+                  Supports JPG, PNG, WebP (Automatically optimized for fast loading in Sierra Leone)
+                </span>
+              </label>
+            </div>
+
+            {/* Upload Option 2: Enter URL or Static Path */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+                <i className="fas fa-link text-slate-400" />
+                <span>Or Enter Image URL / Local Asset Path</span>
+              </label>
+              <input
+                type="text"
+                placeholder="https://... or /uploads/on-demand/..."
+                value={imageModal.newImageUrl}
+                onChange={e => setImageModal(prev => ({ ...prev, newImageUrl: e.target.value }))}
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs font-mono focus:outline-none focus:border-purple-500"
+                disabled={imageModal.isSubmitting}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-800">
+              {categoryImages[imageModal.category.id] ? (
+                <button
+                  type="button"
+                  disabled={imageModal.isSubmitting}
+                  onClick={() => {
+                    if (imageModal.category) {
+                      handleResetCategoryImage(imageModal.category);
+                      setImageModal(prev => ({ ...prev, isOpen: false }));
+                    }
+                  }}
+                  className="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-rose-400 text-xs font-bold rounded-xl border border-slate-800"
+                >
+                  Revert to Default
+                </button>
+              ) : <div />}
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={imageModal.isSubmitting}
+                  onClick={() => setImageModal(prev => ({ ...prev, isOpen: false }))}
+                  className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white rounded-xl text-xs font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={imageModal.isSubmitting || (!imageModal.newImagePreview && !imageModal.newImageUrl.trim())}
+                  onClick={handleSaveCategoryImage}
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white rounded-xl text-xs font-black transition-all shadow flex items-center gap-1.5"
+                >
+                  {imageModal.isSubmitting ? (
+                    <>
+                      <i className="fas fa-circle-notch fa-spin text-xs" />
+                      <span>Saving &amp; Uploading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-check text-xs" />
+                      <span>Save &amp; Publish Cover Photo</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

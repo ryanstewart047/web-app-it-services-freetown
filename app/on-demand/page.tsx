@@ -8,262 +8,31 @@ import {
   ChevronDown, Check, Star, Eye, EyeOff, LogOut, AlertCircle, RefreshCw, Sparkles, Lock, KeyRound
 } from 'lucide-react';
 
-interface TradeCategory {
-  id: string;
-  title: string;
-  subtitle: string;
-  icon: string;
-  color: string;
-  badge: string;
-  type: 'tech' | 'trade';
-  image: string;
-  popular?: boolean;
-}
-
-const TRADE_CATEGORIES: TradeCategory[] = [
-  // ── Tech & Electronics Specialists ──
-  {
-    id: 'printer-tech',
-    title: 'Printer & Copier Repair',
-    subtitle: 'HP, Canon, Epson, Ricoh — paper jams, printheads, power faults & error codes',
-    icon: 'fas fa-print',
-    color: 'from-blue-600 to-indigo-600',
-    badge: 'Tech Specialist',
-    type: 'tech',
-    image: 'https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?auto=format&fit=crop&w=800&q=80',
-    popular: true,
-  },
-  {
-    id: 'pc-laptop',
-    title: 'Computer & Laptop Repair',
-    subtitle: 'MacBook, Dell, HP, Lenovo — screen replacement, charging port, motherboard & OS install',
-    icon: 'fas fa-laptop',
-    color: 'from-blue-600 to-cyan-600',
-    badge: 'IT Hardware',
-    type: 'tech',
-    image: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?auto=format&fit=crop&w=800&q=80',
-    popular: true,
-  },
-  {
-    id: 'phone-tablet',
-    title: 'Smartphone & Tablet Repair',
-    subtitle: 'iPhone, Samsung, Tecno, Infinix — screen replacement, battery swap & water damage',
-    icon: 'fas fa-mobile-alt',
-    color: 'from-violet-600 to-purple-600',
-    badge: 'Mobile Tech',
-    type: 'tech',
-    image: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=800&q=80',
-    popular: true,
-  },
-  {
-    id: 'gaming-console',
-    title: 'Gaming Console Repair',
-    subtitle: 'PlayStation (PS4/PS5), Xbox & Switch — HDMI ports, overheating & controller fix',
-    icon: 'fas fa-gamepad',
-    color: 'from-purple-600 to-pink-600',
-    badge: 'Tech Specialist',
-    type: 'tech',
-    image: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?auto=format&fit=crop&w=800&q=80',
-    popular: true,
-  },
-  {
-    id: 'cctv-security',
-    title: 'CCTV & Security Cameras',
-    subtitle: 'Camera installation, recorder setup, phone live-view & wire repairs',
-    icon: 'fas fa-video',
-    color: 'from-cyan-600 to-blue-600',
-    badge: 'Security Tech',
-    type: 'tech',
-    image: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&w=800&q=80',
-    popular: true,
-  },
-  {
-    id: 'networking-wifi',
-    title: 'Wi-Fi & Office Cabling',
-    subtitle: 'Office internet cables, router setup, Wi-Fi booster & network setup',
-    icon: 'fas fa-network-wired',
-    color: 'from-teal-600 to-emerald-600',
-    badge: 'IT Cabling',
-    type: 'tech',
-    image: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=800&q=80',
-    popular: true,
-  },
-  {
-    id: 'solar-inverter',
-    title: 'Solar & Inverter Systems',
-    subtitle: 'Battery banks, solar panels, hybrid inverters & backup wiring',
-    icon: 'fas fa-solar-panel',
-    color: 'from-amber-500 to-orange-600',
-    badge: 'Power & Solar',
-    type: 'tech',
-    image: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&w=800&q=80',
-    popular: true,
-  },
-  {
-    id: 'audio-visual',
-    title: 'TV & Projector Mounting',
-    subtitle: 'Wall mounting for smart TVs, conference room projectors & audio systems',
-    icon: 'fas fa-tv',
-    color: 'from-red-600 to-rose-600',
-    badge: 'Audio & Video',
-    type: 'tech',
-    image: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=800&q=80',
-    popular: true,
-  },
-  {
-    id: 'satellite-dstv',
-    title: 'Satellite Dish & DStv Installers',
-    subtitle: 'DStv, Canal+, StarTimes dish alignment, signal loss troubleshooting & multi-room cabling',
-    icon: 'fas fa-satellite-dish',
-    color: 'from-blue-700 to-indigo-800',
-    badge: 'Broadcast Tech',
-    type: 'tech',
-    image: 'https://images.unsplash.com/photo-1516849841032-87cbac4d88f7?auto=format&fit=crop&w=800&q=80',
-    popular: true,
-  },
-
-  // ── Certified Trades & Home Maintenance ──
-  {
-    id: 'electrician',
-    title: 'Certified Electricians',
-    subtitle: 'House rewiring, circuit breaker trips, generator changeover switches & sockets',
-    icon: 'fas fa-bolt',
-    color: 'from-amber-600 to-yellow-600',
-    badge: 'Certified Trade',
-    type: 'trade',
-    image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80',
-    popular: true,
-  },
-  {
-    id: 'plumber',
-    title: 'Plumbers & Pipe Fitters',
-    subtitle: 'Water pumps, leaking pipes, overhead water tanks & bathroom fittings',
-    icon: 'fas fa-faucet',
-    color: 'from-sky-600 to-blue-700',
-    badge: 'Certified Trade',
-    type: 'trade',
-    image: 'https://images.unsplash.com/photo-1585704032915-c3400ca199e7?auto=format&fit=crop&w=800&q=80',
-    popular: true,
-  },
-  {
-    id: 'ac-refrigeration',
-    title: 'AC & Fridge Technicians',
-    subtitle: 'Split AC servicing, gas refilling, compressor repairs & cooling faults',
-    icon: 'fas fa-snowflake',
-    color: 'from-indigo-600 to-blue-500',
-    badge: 'Certified Trade',
-    type: 'trade',
-    image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=800&q=80',
-    popular: true,
-  },
-  {
-    id: 'generator-mechanic',
-    title: 'Generator Mechanics',
-    subtitle: 'Perkins, Lister, Kipor & portable generators — servicing, AVR, injector & rewinding',
-    icon: 'fas fa-cogs',
-    color: 'from-amber-600 to-red-600',
-    badge: 'Power Machinery',
-    type: 'trade',
-    image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
-    popular: true,
-  },
-  {
-    id: 'auto-electrician',
-    title: 'Auto-Electricians & Diagnostics',
-    subtitle: 'OBD2 computer scanning, starter motor, alternator, ECU wiring & car AC cooling',
-    icon: 'fas fa-car',
-    color: 'from-red-600 to-rose-700',
-    badge: 'Automotive',
-    type: 'trade',
-    image: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=800&q=80',
-    popular: true,
-  },
-  {
-    id: 'appliance-repair',
-    title: 'Home & Kitchen Appliances',
-    subtitle: 'Microwaves, washing machines, electric cookers, water dispensers & blenders',
-    icon: 'fas fa-blender',
-    color: 'from-emerald-600 to-teal-600',
-    badge: 'Appliances',
-    type: 'trade',
-    image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=800&q=80',
-    popular: true,
-  },
-  {
-    id: 'water-pump-borehole',
-    title: 'Borehole & Water Pump Specialists',
-    subtitle: 'Deep-well submersible pumps, pressure switch control boxes & float switch setup',
-    icon: 'fas fa-water',
-    color: 'from-sky-600 to-cyan-700',
-    badge: 'Water Systems',
-    type: 'trade',
-    image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80',
-    popular: true,
-  },
-  {
-    id: 'welder-metal',
-    title: 'Welders & Metal Workers',
-    subtitle: 'Burglar bars, security metal gates, iron railings & custom metal welding',
-    icon: 'fas fa-fire',
-    color: 'from-orange-600 to-red-600',
-    badge: 'Fabrication',
-    type: 'trade',
-    image: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?auto=format&fit=crop&w=800&q=80',
-    popular: true,
-  },
-  {
-    id: 'carpenter',
-    title: 'Carpenters & Woodworkers',
-    subtitle: 'Door hanging, lock repairs, kitchen cabinets, office desks & roofing',
-    icon: 'fas fa-hammer',
-    color: 'from-amber-700 to-orange-800',
-    badge: 'Artisan',
-    type: 'trade',
-    image: 'https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?auto=format&fit=crop&w=800&q=80',
-    popular: true,
-  },
-  {
-    id: 'mason-builder',
-    title: 'Masons, Tilers & Builders',
-    subtitle: 'Floor tiling, bricklaying, wall plastering & building repairs',
-    icon: 'fas fa-trowel',
-    color: 'from-stone-600 to-stone-800',
-    badge: 'Construction',
-    type: 'trade',
-    image: 'https://images.unsplash.com/photo-1590069261209-f8e9b8642343?auto=format&fit=crop&w=800&q=80',
-    popular: true,
-  },
-  {
-    id: 'painter',
-    title: 'Professional Painters',
-    subtitle: 'Interior & exterior painting, weatherproofing & damp wall coating',
-    icon: 'fas fa-paint-roller',
-    color: 'from-emerald-600 to-green-700',
-    badge: 'Finishing',
-    type: 'trade',
-    image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&w=800&q=80',
-    popular: true,
-  },
-];
-
-const FREETOWN_AREAS = [
-  'Aberdeen',
-  'Lumley',
-  'Juba & Goderich',
-  'Wilberforce & Spur Road',
-  'Congo Cross & Brookfields',
-  'Central Freetown',
-  'Hill Station & Regent',
-  'Kissy & Cline Town',
-  'Wellington',
-  'Calaba Town',
-  'Hastings & Waterloo',
-  'Other Western Area',
-];
+import { TRADE_CATEGORIES, TradeCategory, FREETOWN_AREAS } from '@/lib/on-demand-categories';
 
 export default function OnDemandServicesPage() {
   const [activeTab, setActiveTab] = useState<'customer' | 'artisan'>('customer');
   const [filterType, setFilterType] = useState<'all' | 'tech' | 'trade'>('all');
+
+  // Dynamic Custom Category Image Overrides from Admin
+  const [customCategoryImages, setCustomCategoryImages] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    fetch('/api/on-demand?type=category_images')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.success && data?.overrides) {
+          setCustomCategoryImages(data.overrides);
+        }
+      })
+      .catch(err => console.error('Failed to load category image overrides:', err));
+  }, []);
+
+  const activeCategories = TRADE_CATEGORIES.map(cat => ({
+    ...cat,
+    image: customCategoryImages[cat.id] || cat.image,
+  }));
+
 
   // Customer Form State
   const [selectedCategory, setSelectedCategory] = useState<string>('printer-tech');
@@ -401,9 +170,9 @@ export default function OnDemandServicesPage() {
     return () => observer.disconnect();
   }, [activeTab, filterType]);
 
-  const selectedCategoryObj = TRADE_CATEGORIES.find(c => c.id === selectedCategory) || TRADE_CATEGORIES[0];
+  const selectedCategoryObj = activeCategories.find(c => c.id === selectedCategory) || activeCategories[0];
 
-  const filteredCategories = TRADE_CATEGORIES.filter(cat => {
+  const filteredCategories = activeCategories.filter(cat => {
     if (filterType === 'all') return true;
     return cat.type === filterType;
   });
@@ -1081,7 +850,7 @@ export default function OnDemandServicesPage() {
                     <select
                       value={selectedCategory}
                       onChange={(e) => {
-                        const cat = TRADE_CATEGORIES.find(c => c.id === e.target.value);
+                        const cat = activeCategories.find(c => c.id === e.target.value);
                         if (cat) handleSelectCategory(cat);
                       }}
                       className="w-full appearance-none bg-white border-2 border-slate-300 hover:border-slate-400 focus:border-red-500 rounded-2xl pl-11 pr-10 py-3 text-xs sm:text-sm font-bold text-slate-900 shadow-sm focus:outline-none transition-all cursor-pointer"
