@@ -1176,6 +1176,15 @@ export default function OnDemandServicesPage() {
                         Create one now
                       </button>
                     </p>
+                    <div className="pt-2 border-t border-slate-100 w-full text-center">
+                      <Link
+                        href="/admin/on-demand"
+                        className="text-[11px] text-slate-400 hover:text-red-600 inline-flex items-center gap-1 font-medium transition-colors"
+                      >
+                        <Shield className="w-3 h-3" />
+                        <span>Manager / Admin Hub &rarr;</span>
+                      </Link>
+                    </div>
                   </div>
                 </>
               )}
@@ -1949,6 +1958,24 @@ export default function OnDemandServicesPage() {
           </div>
         </>
       )}
+
+      {/* ── FOOTER / ADMIN ACCESS ── */}
+      <footer className="border-t border-slate-200 py-6 px-4 bg-slate-50 mt-16 text-center">
+        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+          <p>© {new Date().getFullYear()} BridgeTech On-Demand Services · Freetown, Sierra Leone</p>
+          <div className="flex items-center gap-4">
+            <Link href="/" className="hover:text-slate-900 font-medium">Home</Link>
+            <Link href="/on-demand" className="hover:text-slate-900 font-medium">Services</Link>
+            <Link 
+              href="/admin/on-demand" 
+              className="inline-flex items-center gap-1.5 text-slate-700 hover:text-red-600 font-bold bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm transition-all hover:border-red-300"
+            >
+              <Shield className="w-3.5 h-3.5 text-red-500" />
+              <span>Admin Console &rarr;</span>
+            </Link>
+          </div>
+        </div>
+      </footer>
 
     </div>
   );
