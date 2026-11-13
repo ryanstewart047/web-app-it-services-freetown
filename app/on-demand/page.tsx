@@ -2,7 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { X, Phone, MessageCircle, Copy, CheckCircle, Smartphone, User, Shield, Camera, FileText, ArrowRight, LogIn, Image as LucideImage, MapPin, Mail } from 'lucide-react';
+import { 
+  X, Phone, MessageCircle, Copy, CheckCircle, Smartphone, User, Shield, 
+  Camera, FileText, ArrowRight, LogIn, Image as LucideImage, MapPin, Mail,
+  ChevronDown, Check, Star, Eye, EyeOff, LogOut, AlertCircle, RefreshCw, Sparkles
+} from 'lucide-react';
 
 interface TradeCategory {
   id: string;
@@ -12,6 +16,8 @@ interface TradeCategory {
   color: string;
   badge: string;
   type: 'tech' | 'trade';
+  image: string;
+  popular?: boolean;
 }
 
 const TRADE_CATEGORIES: TradeCategory[] = [
@@ -24,6 +30,19 @@ const TRADE_CATEGORIES: TradeCategory[] = [
     color: 'from-blue-600 to-indigo-600',
     badge: 'Tech Specialist',
     type: 'tech',
+    image: 'https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?auto=format&fit=crop&w=800&q=80',
+    popular: true,
+  },
+  {
+    id: 'electrician',
+    title: 'Certified Electricians',
+    subtitle: 'House rewiring, circuit breaker trips, generator changeover switches & sockets',
+    icon: 'fas fa-bolt',
+    color: 'from-amber-600 to-yellow-600',
+    badge: 'Certified Trade',
+    type: 'trade',
+    image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80',
+    popular: true,
   },
   {
     id: 'gaming-console',
@@ -33,52 +52,8 @@ const TRADE_CATEGORIES: TradeCategory[] = [
     color: 'from-purple-600 to-pink-600',
     badge: 'Tech Specialist',
     type: 'tech',
-  },
-  {
-    id: 'cctv-security',
-    title: 'CCTV & Security Cameras',
-    subtitle: 'Camera installation, recorder setup, phone live-view & wire repairs',
-    icon: 'fas fa-video',
-    color: 'from-cyan-600 to-blue-600',
-    badge: 'Security Tech',
-    type: 'tech',
-  },
-  {
-    id: 'solar-inverter',
-    title: 'Solar & Inverter Systems',
-    subtitle: 'Battery banks, solar panels, hybrid inverters & backup wiring',
-    icon: 'fas fa-solar-panel',
-    color: 'from-amber-500 to-orange-600',
-    badge: 'Power & Solar',
-    type: 'tech',
-  },
-  {
-    id: 'networking-wifi',
-    title: 'Wi-Fi & Office Cabling',
-    subtitle: 'Office internet cables, router setup, Wi-Fi booster & network setup',
-    icon: 'fas fa-network-wired',
-    color: 'from-teal-600 to-emerald-600',
-    badge: 'IT Cabling',
-    type: 'tech',
-  },
-  {
-    id: 'audio-visual',
-    title: 'TV & Projector Mounting',
-    subtitle: 'Wall mounting for smart TVs, conference room projectors & audio systems',
-    icon: 'fas fa-tv',
-    color: 'from-red-600 to-rose-600',
-    badge: 'Audio & Video',
-    type: 'tech',
-  },
-  // Home & Office Trades
-  {
-    id: 'electrician',
-    title: 'Certified Electricians',
-    subtitle: 'House rewiring, circuit breaker trips, generator changeover switches & sockets',
-    icon: 'fas fa-bolt',
-    color: 'from-amber-600 to-yellow-600',
-    badge: 'Certified Trade',
-    type: 'trade',
+    image: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?auto=format&fit=crop&w=800&q=80',
+    popular: true,
   },
   {
     id: 'plumber',
@@ -88,6 +63,8 @@ const TRADE_CATEGORIES: TradeCategory[] = [
     color: 'from-sky-600 to-blue-700',
     badge: 'Certified Trade',
     type: 'trade',
+    image: 'https://images.unsplash.com/photo-1585704032915-c3400ca199e7?auto=format&fit=crop&w=800&q=80',
+    popular: true,
   },
   {
     id: 'ac-refrigeration',
@@ -97,6 +74,49 @@ const TRADE_CATEGORIES: TradeCategory[] = [
     color: 'from-indigo-600 to-blue-500',
     badge: 'Certified Trade',
     type: 'trade',
+    image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=800&q=80',
+    popular: true,
+  },
+  {
+    id: 'solar-inverter',
+    title: 'Solar & Inverter Systems',
+    subtitle: 'Battery banks, solar panels, hybrid inverters & backup wiring',
+    icon: 'fas fa-solar-panel',
+    color: 'from-amber-500 to-orange-600',
+    badge: 'Power & Solar',
+    type: 'tech',
+    image: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&w=800&q=80',
+    popular: true,
+  },
+  {
+    id: 'cctv-security',
+    title: 'CCTV & Security Cameras',
+    subtitle: 'Camera installation, recorder setup, phone live-view & wire repairs',
+    icon: 'fas fa-video',
+    color: 'from-cyan-600 to-blue-600',
+    badge: 'Security Tech',
+    type: 'tech',
+    image: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    id: 'networking-wifi',
+    title: 'Wi-Fi & Office Cabling',
+    subtitle: 'Office internet cables, router setup, Wi-Fi booster & network setup',
+    icon: 'fas fa-network-wired',
+    color: 'from-teal-600 to-emerald-600',
+    badge: 'IT Cabling',
+    type: 'tech',
+    image: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    id: 'audio-visual',
+    title: 'TV & Projector Mounting',
+    subtitle: 'Wall mounting for smart TVs, conference room projectors & audio systems',
+    icon: 'fas fa-tv',
+    color: 'from-red-600 to-rose-600',
+    badge: 'Audio & Video',
+    type: 'tech',
+    image: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 'welder-metal',
@@ -106,6 +126,7 @@ const TRADE_CATEGORIES: TradeCategory[] = [
     color: 'from-orange-600 to-red-600',
     badge: 'Fabrication',
     type: 'trade',
+    image: 'https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 'carpenter',
@@ -115,6 +136,7 @@ const TRADE_CATEGORIES: TradeCategory[] = [
     color: 'from-amber-700 to-orange-800',
     badge: 'Artisan',
     type: 'trade',
+    image: 'https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 'mason-builder',
@@ -124,6 +146,7 @@ const TRADE_CATEGORIES: TradeCategory[] = [
     color: 'from-stone-600 to-stone-800',
     badge: 'Construction',
     type: 'trade',
+    image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 'painter',
@@ -133,6 +156,7 @@ const TRADE_CATEGORIES: TradeCategory[] = [
     color: 'from-emerald-600 to-green-700',
     badge: 'Finishing',
     type: 'trade',
+    image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&w=800&q=80',
   },
 ];
 
@@ -211,6 +235,20 @@ export default function OnDemandServicesPage() {
   const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
+  // Photo Compression State
+  const [compressingType, setCompressingType] = useState<'profile' | 'idFront' | 'idBack' | null>(null);
+
+  // Registration Confirmation "Thank You" Modal State
+  const [showRegistrationSuccessModal, setShowRegistrationSuccessModal] = useState(false);
+  const [registeredProData, setRegisteredProData] = useState<any | null>(null);
+
+  // Logout Confirmation Modal State
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  // Password Visibility Toggles
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+
   // Artisan Login State
   const [loginPhone, setLoginPhone] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -268,21 +306,64 @@ export default function OnDemandServicesPage() {
     }
   };
 
-  // Handle Image Upload to Base64
-  const handleImageFile = (file: File, type: 'profile' | 'idFront' | 'idBack') => {
-    if (file.size > 8 * 1024 * 1024) {
-      alert('Photo is larger than 8MB. Please choose a smaller photo.');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (typeof e.target?.result === 'string') {
-        if (type === 'profile') setProfilePhoto(e.target.result);
-        if (type === 'idFront') setIdCardFrontPhoto(e.target.result);
-        if (type === 'idBack') setIdCardBackPhoto(e.target.result);
+  // Compress Image to lightweight JPEG (max 1200px, 0.72 quality, <120KB)
+  const compressImage = (file: File, maxWidth = 1200, quality = 0.72): Promise<string> => {
+    return new Promise((resolve) => {
+      if (!file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(typeof e.target?.result === 'string' ? e.target.result : '');
+        reader.readAsDataURL(file);
+        return;
       }
-    };
-    reader.readAsDataURL(file);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+          if (width > maxWidth || height > maxWidth) {
+            if (width > height) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            } else {
+              width = Math.round((width * maxWidth) / height);
+              height = maxWidth;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          } else {
+            resolve(event.target?.result as string);
+          }
+        };
+        img.onerror = () => resolve(event.target?.result as string);
+        img.src = event.target?.result as string;
+      };
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Handle Image Upload with Client-Side Compression for instant, reliable uploads
+  const handleImageFile = async (file: File, type: 'profile' | 'idFront' | 'idBack') => {
+    setCompressingType(type);
+    try {
+      const compressedData = await compressImage(file, 1200, 0.72);
+      if (compressedData) {
+        if (type === 'profile') setProfilePhoto(compressedData);
+        if (type === 'idFront') setIdCardFrontPhoto(compressedData);
+        if (type === 'idBack') setIdCardBackPhoto(compressedData);
+      }
+    } catch (err) {
+      console.error('Photo optimization error:', err);
+    } finally {
+      setCompressingType(null);
+    }
   };
 
   // Submit Customer Request
@@ -414,8 +495,10 @@ export default function OnDemandServicesPage() {
       }
 
       setShowPaymentModal(false);
-      setArtisanSuccess(`Your profile has been created! Reference ID: ${data.proId}. Our dispatch team will verify your payment and activate your jobs dashboard.`);
+      setRegisteredProData(data.pro);
+      setShowRegistrationSuccessModal(true);
       setLoggedInPro(data.pro);
+      setArtisanSuccess(`Your profile has been created! Reference ID: ${data.proId}. Our dispatch team will verify your payment and activate your jobs dashboard.`);
     } catch (err: any) {
       setArtisanError(err.message || 'Error completing registration');
     } finally {
@@ -638,85 +721,177 @@ export default function OnDemandServicesPage() {
       {activeTab === 'customer' && (
         <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-12">
           
-          {/* Step 1: Service Categories Grid */}
-          <section className="space-y-4 scroll-reveal opacity-0 translate-y-8 transition-all duration-700">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
+          {/* ── SHOWCASE: POPULAR SERVICES (MODERN PHOTO CARDS) ── */}
+          <section className="space-y-6 scroll-reveal opacity-0 translate-y-8 transition-all duration-700">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-slate-200 pb-3">
               <div>
-                <span className="text-xs font-bold text-red-600 uppercase tracking-wider">Step 1 of 2</span>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900">Choose the Service You Need</h2>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-red-600 text-[11px] font-black uppercase tracking-wider mb-2">
+                  <Sparkles className="w-3.5 h-3.5 text-red-600" />
+                  <span>Most Requested Across Freetown</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                  Popular On-Demand Services
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600 mt-1">
+                  Trusted, vetted technicians ready for rapid call-out with a standard 14-day service warranty.
+                </p>
               </div>
 
-              {/* Filter Pills */}
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setFilterType('all')}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                    filterType === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  All (13)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFilterType('tech')}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                    filterType === 'tech' ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
-                  }`}
-                >
-                  Tech &amp; Electronics
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFilterType('trade')}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                    filterType === 'trade' ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-800 hover:bg-amber-100'
-                  }`}
-                >
-                  Home &amp; Trades
-                </button>
-              </div>
+              <a
+                href="#all-services-dropdown"
+                className="text-xs font-bold text-red-600 hover:text-red-700 hover:underline flex items-center gap-1 self-start sm:self-end"
+              >
+                <span>View Full Services Dropdown</span>
+                <ChevronDown className="w-3.5 h-3.5" />
+              </a>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              {filteredCategories.map(cat => {
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {TRADE_CATEGORIES.filter(c => c.popular).map(cat => {
                 const isSelected = selectedCategory === cat.id;
                 return (
-                  <button
+                  <div
                     key={cat.id}
-                    type="button"
-                    onClick={() => handleSelectCategory(cat)}
-                    className={`text-left p-4 rounded-2xl border transition-all duration-200 flex items-start gap-3.5 relative ${
+                    className={`group rounded-3xl overflow-hidden border transition-all duration-300 flex flex-col bg-white ${
                       isSelected
-                        ? 'bg-red-50/50 border-red-500 ring-2 ring-red-500/20 shadow-md'
-                        : 'bg-white hover:bg-slate-50 border-slate-200/90 hover:border-slate-300'
+                        ? 'border-red-500 ring-2 ring-red-500/30 shadow-xl shadow-red-500/10'
+                        : 'border-slate-200/90 hover:border-slate-300 hover:shadow-xl shadow-sm'
                     }`}
                   >
-                    <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-white shrink-0 shadow-sm`}>
-                      <i className={`${cat.icon} text-lg`} />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-1 mb-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    {/* Modern Image Card Banner */}
+                    <div className="relative h-48 overflow-hidden bg-slate-950">
+                      <img
+                        src={cat.image}
+                        alt={cat.title}
+                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 opacity-90"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+                      
+                      {/* Top Floating Badges */}
+                      <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/70 backdrop-blur-md text-white border border-white/20">
                           {cat.badge}
                         </span>
-                        {isSelected && (
-                          <span className="flex items-center gap-1 text-[10px] font-black text-red-600">
-                            <i className="fas fa-check-circle" /> Selected
-                          </span>
-                        )}
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-400 text-slate-950 flex items-center gap-1 shadow">
+                          <Star className="w-3 h-3 fill-slate-950" /> 14-Day Warranty
+                        </span>
                       </div>
-                      <h3 className="font-bold text-sm text-slate-900 leading-snug">
-                        {cat.title}
-                      </h3>
-                      <p className="text-[11px] text-slate-500 leading-tight mt-1 line-clamp-2">
+
+                      {/* Bottom Title on Image */}
+                      <div className="absolute bottom-3 left-3 right-3 flex items-end gap-2.5">
+                        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-white shrink-0 shadow-md`}>
+                          <i className={`${cat.icon} text-base`} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-black text-base text-white leading-tight drop-shadow-sm">
+                            {cat.title}
+                          </h3>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Card Body & Action */}
+                    <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4">
+                      <p className="text-xs text-slate-600 leading-relaxed line-clamp-2">
                         {cat.subtitle}
                       </p>
+
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                        <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1">
+                          <CheckCircle className="w-3.5 h-3.5 text-emerald-600" /> ID Verified
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleSelectCategory(cat)}
+                          className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+                            isSelected
+                              ? 'bg-red-600 text-white shadow-md'
+                              : 'bg-slate-100 hover:bg-red-600 hover:text-white text-slate-800'
+                          }`}
+                        >
+                          <span>{isSelected ? '✓ Selected' : 'Book Service'}</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
-                  </button>
+                  </div>
                 );
               })}
+            </div>
+          </section>
+
+          {/* ── CONSOLIDATED FULL SERVICES DROPDOWN SELECTOR ── */}
+          <section id="all-services-dropdown" className="space-y-4 scroll-reveal opacity-0 translate-y-8 transition-all duration-700">
+            <div className="bg-slate-50 border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-sm">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <span className="text-xs font-bold text-red-600 uppercase tracking-wider block">Step 1 of 2</span>
+                  <h3 className="text-lg sm:text-xl font-black text-slate-900">
+                    Browse All Services ({TRADE_CATEGORIES.length})
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Select from our complete catalog of certified tech experts and tradespeople across Freetown.
+                  </p>
+                </div>
+
+                {/* Consolidated Dropdown Menu */}
+                <div className="relative min-w-[280px] sm:min-w-[360px]">
+                  <label className="block text-[11px] font-black uppercase text-slate-700 tracking-wider mb-1.5">
+                    Choose Service from Dropdown:
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={selectedCategory}
+                      onChange={(e) => {
+                        const cat = TRADE_CATEGORIES.find(c => c.id === e.target.value);
+                        if (cat) handleSelectCategory(cat);
+                      }}
+                      className="w-full appearance-none bg-white border-2 border-slate-300 hover:border-slate-400 focus:border-red-500 rounded-2xl pl-11 pr-10 py-3 text-xs sm:text-sm font-bold text-slate-900 shadow-sm focus:outline-none transition-all cursor-pointer"
+                    >
+                      <optgroup label="💻 Tech & Electronics (Specialists)">
+                        {TRADE_CATEGORIES.filter(c => c.type === 'tech').map(c => (
+                          <option key={c.id} value={c.id}>{c.title}</option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="🔨 Home & Construction Trades (Certified)">
+                        {TRADE_CATEGORIES.filter(c => c.type === 'trade').map(c => (
+                          <option key={c.id} value={c.id}>{c.title}</option>
+                        ))}
+                      </optgroup>
+                    </select>
+                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                      <i className={`${selectedCategoryObj.icon} text-sm text-red-600`} />
+                    </div>
+                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                      <ChevronDown className="w-4 h-4" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Selected Service Active Info Banner */}
+              <div className="mt-4 pt-4 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200">
+                <div className="flex items-center gap-3">
+                  <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${selectedCategoryObj.color} text-white flex items-center justify-center shrink-0 shadow-sm`}>
+                    <i className={`${selectedCategoryObj.icon} text-lg`} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-extrabold text-sm text-slate-900">{selectedCategoryObj.title}</h4>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                        {selectedCategoryObj.badge}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 line-clamp-1">{selectedCategoryObj.subtitle}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 flex items-center gap-1">
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600" /> 14-Day Free Recall
+                  </span>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -1038,13 +1213,11 @@ export default function OnDemandServicesPage() {
 
                 <button
                   type="button"
-                  onClick={() => {
-                    setLoggedInPro(null);
-                    setArtisanSuccess(null);
-                  }}
-                  className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors"
+                  onClick={() => setShowLogoutModal(true)}
+                  className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 border border-rose-200 shadow-xs"
                 >
-                  Sign Out
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Sign Out</span>
                 </button>
               </div>
 
@@ -1138,15 +1311,36 @@ export default function OnDemandServicesPage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">Password</label>
-                      <input
-                        type="password"
-                        placeholder="••••••••"
-                        value={loginPassword}
-                        onChange={e => setLoginPassword(e.target.value)}
-                        required
-                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
-                      />
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-xs font-bold text-slate-700">Password</label>
+                        <button
+                          type="button"
+                          onClick={() => setShowLoginPassword(!showLoginPassword)}
+                          className="text-[11px] text-slate-500 hover:text-slate-800 flex items-center gap-1 font-medium transition-colors"
+                        >
+                          {showLoginPassword ? (
+                            <>
+                              <EyeOff className="w-3.5 h-3.5" />
+                              <span>Hide</span>
+                            </>
+                          ) : (
+                            <>
+                              <Eye className="w-3.5 h-3.5" />
+                              <span>Show</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      <div className="relative">
+                        <input
+                          type={showLoginPassword ? 'text' : 'password'}
+                          placeholder="••••••••"
+                          value={loginPassword}
+                          onChange={e => setLoginPassword(e.target.value)}
+                          required
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500 transition-colors"
+                        />
+                      </div>
                     </div>
 
                     <button
@@ -1440,7 +1634,12 @@ export default function OnDemandServicesPage() {
                       Take a clear selfie or upload a full photo of yourself so customers can recognize you on arrival.
                     </p>
 
-                    {profilePhoto ? (
+                    {compressingType === 'profile' ? (
+                      <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-center gap-2 text-xs font-bold text-blue-700 animate-pulse">
+                        <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
+                        <span>Compressing &amp; preparing your photo...</span>
+                      </div>
+                    ) : profilePhoto ? (
                       <div className="flex items-center gap-3">
                         <img
                           src={profilePhoto}
@@ -1449,7 +1648,7 @@ export default function OnDemandServicesPage() {
                         />
                         <div className="space-y-1">
                           <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-md block w-fit">
-                            ✓ Photo Uploaded
+                            ✓ Photo Uploaded (Optimized)
                           </span>
                           <button
                             type="button"
@@ -1480,7 +1679,7 @@ export default function OnDemandServicesPage() {
                             <span>Select from Gallery</span>
                           </button>
                         </div>
-                        <span className="text-[10px] text-slate-400 block">Clear headshot or full-body photo (JPG/PNG, max 8MB)</span>
+                        <span className="text-[10px] text-slate-400 block">Clear headshot or full-body photo (auto-compressed for fast upload)</span>
                       </div>
                     )}
                   </div>
@@ -1509,7 +1708,12 @@ export default function OnDemandServicesPage() {
                           )}
                         </div>
 
-                        {idCardFrontPhoto ? (
+                        {compressingType === 'idFront' ? (
+                          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-center gap-2 text-xs font-bold text-blue-700 animate-pulse">
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            <span>Compressing ID Front...</span>
+                          </div>
+                        ) : idCardFrontPhoto ? (
                           <div className="space-y-1.5">
                             <img
                               src={idCardFrontPhoto}
@@ -1560,7 +1764,12 @@ export default function OnDemandServicesPage() {
                           )}
                         </div>
 
-                        {idCardBackPhoto ? (
+                        {compressingType === 'idBack' ? (
+                          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-center gap-2 text-xs font-bold text-blue-700 animate-pulse">
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            <span>Compressing ID Back...</span>
+                          </div>
+                        ) : idCardBackPhoto ? (
                           <div className="space-y-1.5">
                             <img
                               src={idCardBackPhoto}
@@ -1681,14 +1890,33 @@ export default function OnDemandServicesPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Create Account Password *</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-slate-700">Create Account Password *</label>
+                      <button
+                        type="button"
+                        onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                        className="text-[11px] text-slate-500 hover:text-slate-800 flex items-center gap-1 font-medium transition-colors"
+                      >
+                        {showRegisterPassword ? (
+                          <>
+                            <EyeOff className="w-3 h-3" />
+                            <span>Hide</span>
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="w-3 h-3" />
+                            <span>Show</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                     <input
-                      type="password"
+                      type={showRegisterPassword ? 'text' : 'password'}
                       placeholder="At least 4 characters"
                       value={artisanPassword}
                       onChange={e => setArtisanPassword(e.target.value)}
                       required
-                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500 transition-colors"
                     />
                   </div>
 
@@ -1783,6 +2011,19 @@ export default function OnDemandServicesPage() {
                   <span>Submit &amp; Pay Le 30 Commitment Fee</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
+
+                <div className="text-center pt-1 border-t border-slate-100">
+                  <p className="text-xs text-slate-500">
+                    Already registered as a technician?{' '}
+                    <button
+                      type="button"
+                      onClick={() => setArtisanMode('login')}
+                      className="text-emerald-700 font-bold hover:underline"
+                    >
+                      Sign In to Your Account &rarr;
+                    </button>
+                  </p>
+                </div>
               </form>
             </div>
           )}
@@ -1953,6 +2194,163 @@ export default function OnDemandServicesPage() {
                   </a>
                 </div>
 
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── POPUP: REGISTRATION CONFIRMATION "THANK YOU" MODAL ── */}
+      {showRegistrationSuccessModal && registeredProData && (
+        <>
+          <div 
+            className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 transition-opacity"
+            onClick={() => setShowRegistrationSuccessModal(false)}
+          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+            <div 
+              className="bg-white border border-slate-200 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden pointer-events-auto transform transition-all duration-300 relative flex flex-col max-h-[92vh]"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Top Close Button (X) */}
+              <button
+                type="button"
+                onClick={() => setShowRegistrationSuccessModal(false)}
+                className="absolute top-3.5 right-3.5 z-20 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-all"
+                aria-label="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              {/* Celebration Header */}
+              <div className="bg-gradient-to-br from-emerald-600 via-teal-700 to-[#041d11] p-6 sm:p-7 text-center text-white relative overflow-hidden flex-shrink-0">
+                <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-3 text-white ring-4 ring-white/30 shadow-lg">
+                  <CheckCircle className="w-9 h-9 text-emerald-200" />
+                </div>
+                <span className="px-3 py-1 bg-white/20 backdrop-blur-sm text-emerald-100 rounded-full text-[11px] font-bold uppercase tracking-wider inline-block mb-2">
+                  Application Successfully Submitted
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-black">
+                  Thank You, {registeredProData.fullName}!
+                </h2>
+                <p className="text-xs sm:text-sm text-emerald-100 mt-1 max-w-sm mx-auto">
+                  Your technician profile has been saved to the BridgeTech network.
+                </p>
+              </div>
+
+              {/* Scrollable Content */}
+              <div className="p-6 space-y-4 overflow-y-auto flex-1 text-slate-900">
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2.5">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-500 font-medium">Applicant Reference ID:</span>
+                    <span className="font-mono font-black text-emerald-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200 text-sm">
+                      {registeredProData.id}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-500 font-medium">Primary Trade:</span>
+                    <span className="font-bold text-slate-900">{registeredProData.primaryTrade}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-500 font-medium">Le 30 Commitment Fee:</span>
+                    <span className="font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded uppercase text-[10px] border border-amber-200">
+                      Payment Submitted &bull; Under Verification
+                    </span>
+                  </div>
+                  {registeredProData.address && (
+                    <div className="flex justify-between items-center text-xs pt-1 border-t border-slate-200/80">
+                      <span className="text-slate-500 font-medium">Residential Address:</span>
+                      <span className="font-medium text-slate-900 text-right max-w-[210px] truncate">{registeredProData.address}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2.5">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+                    <Shield className="w-4 h-4 text-emerald-600" />
+                    <span>What Happens Next?</span>
+                  </h4>
+                  <div className="space-y-2 text-xs text-slate-600 bg-emerald-50/50 p-3.5 rounded-2xl border border-emerald-100">
+                    <div className="flex items-start gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-emerald-200 text-emerald-900 font-black flex items-center justify-center shrink-0 text-[10px] mt-0.5">1</div>
+                      <div><strong>Review &amp; Verification:</strong> Our operations desk reviews your ID card photos and verifies your mobile money payment.</div>
+                    </div>
+                    <div className="flex items-start gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-emerald-200 text-emerald-900 font-black flex items-center justify-center shrink-0 text-[10px] mt-0.5">2</div>
+                      <div><strong>Supervisor Phone Call:</strong> We will contact you on <strong>{registeredProData.phone}</strong> to confirm your service areas.</div>
+                    </div>
+                    <div className="flex items-start gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-emerald-200 text-emerald-900 font-black flex items-center justify-center shrink-0 text-[10px] mt-0.5">3</div>
+                      <div><strong>Direct Job Dispatches:</strong> Once approved, job requests in your areas will be routed to your phone. You keep 85% of payouts.</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="pt-2 flex flex-col sm:flex-row gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setShowRegistrationSuccessModal(false)}
+                    className="flex-1 py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2"
+                  >
+                    <span>View My Pro Dashboard</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowRegistrationSuccessModal(false)}
+                    className="px-5 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── POPUP: LOGOUT CONFIRMATION MODAL ── */}
+      {showLogoutModal && (
+        <>
+          <div 
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 transition-opacity"
+            onClick={() => setShowLogoutModal(false)}
+          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+            <div 
+              className="bg-white border border-slate-200 rounded-3xl shadow-2xl max-w-sm w-full p-6 text-center pointer-events-auto space-y-4"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-200">
+                <LogOut className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-900">Sign Out of Account?</h3>
+                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                  Are you sure you want to sign out? You will need your registered phone number and password to sign back in.
+                </p>
+              </div>
+              <div className="flex gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowLogoutModal(false)}
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all"
+                >
+                  Keep Me Signed In
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoggedInPro(null);
+                    setLoggedInJobs([]);
+                    setShowLogoutModal(false);
+                    setArtisanSuccess(null);
+                  }}
+                  className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl transition-all shadow"
+                >
+                  Yes, Sign Out
+                </button>
               </div>
             </div>
           </div>
