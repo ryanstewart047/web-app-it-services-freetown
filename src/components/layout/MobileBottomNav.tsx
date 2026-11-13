@@ -14,6 +14,12 @@ export default function MobileBottomNav() {
       activeColor: 'text-red-600'
     },
     {
+      label: 'On-Demand',
+      href: '/on-demand',
+      icon: 'fas fa-handshake',
+      activeColor: 'text-amber-500'
+    },
+    {
       label: 'Chat',
       href: '/chat',
       icon: 'fas fa-comments',
@@ -36,12 +42,6 @@ export default function MobileBottomNav() {
       href: '/track-repair',
       icon: 'fas fa-search',
       activeColor: 'text-purple-600'
-    },
-    {
-      label: 'AI Fix',
-      href: '/troubleshoot',
-      icon: 'fas fa-robot',
-      activeColor: 'text-amber-500'
     }
   ];
 

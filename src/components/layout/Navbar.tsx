@@ -35,6 +35,7 @@ export default function Navbar() {
   const [supportDropdownOpen, setSupportDropdownOpen] = useState(false);
   const [blogDropdownOpen, setBlogDropdownOpen] = useState(false);
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
+  const [supportPopupOpen, setSupportPopupOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const blogRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
@@ -48,6 +49,7 @@ export default function Navbar() {
     setSupportDropdownOpen(false);
     setBlogDropdownOpen(false);
     setMobileDropdownOpen(false);
+    setSupportPopupOpen(false);
   };
 
   const toggleSupportDropdown = () => {
@@ -155,6 +157,22 @@ export default function Navbar() {
               {/* Glow effect */}
               <span className="absolute inset-0 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 opacity-0 group-hover:opacity-75 blur-md transition-opacity duration-300 -z-10"></span>
             </Link>
+
+            {/* On-Demand Services Tab (Prominent on Navbar) */}
+            <Link 
+              href="/on-demand" 
+              className={`px-3 py-2 text-xs xl:text-sm font-bold rounded-lg whitespace-nowrap flex-shrink-0 transition-all duration-200 flex items-center gap-1.5 ${
+                pathname?.startsWith('/on-demand') 
+                  ? 'bg-[#040e40] text-amber-400 font-bold shadow-sm' 
+                  : 'text-gray-800 hover:text-amber-600 hover:bg-amber-50/70'
+              }`}
+            >
+              <i className="fas fa-handshake text-amber-500"></i>
+              <span>On-Demand Services</span>
+              <span className="px-1.5 py-0.5 bg-amber-500 text-slate-950 text-[9px] font-black rounded-full uppercase tracking-wider">
+                PROS
+              </span>
+            </Link>
             
             {/* Blog Mega Menu (Desktop) */}
             <div 
@@ -260,7 +278,6 @@ export default function Navbar() {
               <i className="fas fa-wand-magic-sparkles text-red-500 mr-1"></i> Digital Tools
             </Link>
 
-
             <Link href="/search" aria-label="Search the site" className={`inline-flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 ${pathname === '/search' ? 'bg-[#040e40] text-red-500' : 'text-gray-700 hover:bg-slate-100 hover:text-[#040e40]'}`}>
               <i className="fas fa-search"></i>
             </Link>
@@ -299,6 +316,14 @@ export default function Navbar() {
                   <div className="space-y-4">
                     <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-2">Support Resources</h3>
                     <div className="space-y-2">
+                      <MegaMenuLink
+                        href="/on-demand"
+                        icon="fas fa-handshake"
+                        title="On-Demand Services"
+                        description="Printers, consoles, electricians, plumbers & more"
+                        color="text-amber-600"
+                        bg="bg-amber-50"
+                      />
                       <MegaMenuLink
                         href="/repair-cost-checker-freetown"
                         icon="fas fa-calculator"
@@ -452,6 +477,16 @@ export default function Navbar() {
               </span>
             </Link>
             
+            <Link href="/on-demand" className="text-gray-900 bg-amber-50/80 hover:bg-amber-100/80 block px-4 py-3 text-base font-bold rounded-lg transition-all border border-amber-200/60 my-1 flex items-center justify-between" onClick={closeMobileMenu}>
+              <div className="flex items-center">
+                <i className="fas fa-handshake w-5 mr-3 text-amber-600"></i>
+                <span>On-Demand Services</span>
+              </div>
+              <span className="px-1.5 py-0.5 bg-amber-500 text-slate-950 text-[10px] font-black rounded uppercase">
+                Pro Network
+              </span>
+            </Link>
+
             <Link href="/blog" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
               <i className="fas fa-blog w-5 mr-3 text-[#040e40]"></i>Blog
             </Link>
@@ -478,106 +513,244 @@ export default function Navbar() {
               <i className="fas fa-headset w-5 mr-3 text-red-600"></i>Remote Support
             </Link>
             
-            {/* Get Support Dropdown for Mobile - Brand Colors */}
+            {/* Get Support Button for Mobile - Triggers Pop-Up Modal */}
             <div className="pt-2">
               <button 
-                onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
+                onClick={() => setSupportPopupOpen(true)}
                 type="button"
-                className="w-full text-left text-gray-700 hover:text-[#040e40] hover:bg-gray-50 px-4 py-3 text-base font-medium rounded-lg transition-all flex items-center justify-between"
+                className="w-full text-left text-gray-800 bg-red-50 hover:bg-red-100/80 border border-red-200 px-4 py-3 text-base font-bold rounded-xl transition-all flex items-center justify-between shadow-xs active:scale-[0.98]"
               >
-                <span>
-                  <i className="fas fa-headset w-5 mr-3 text-[#040e40]"></i>Get Support
+                <span className="flex items-center">
+                  <i className="fas fa-headset w-5 mr-3 text-red-600 text-lg"></i>
+                  <span>Get Support</span>
                 </span>
-                <i className={`fas fa-chevron-down text-sm transition-transform duration-200 ${mobileDropdownOpen ? 'rotate-180' : ''}`}></i>
+                <span className="flex items-center text-xs font-bold text-red-600 gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-red-200 shadow-xs">
+                  <span>View All</span>
+                  <i className="fas fa-arrow-up-right-from-square text-[10px]"></i>
+                </span>
               </button>
-              
-              {mobileDropdownOpen && (
-                <div className="mt-2 ml-6 mr-2 bg-gradient-to-br from-gray-50 to-red-50 rounded-lg border-2 border-[#040e40]/10 overflow-hidden">
-                  <Link
-                    href="/repair-cost-checker-freetown"
-                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
-                    onClick={closeMobileMenu}
-                  >
-                    <i className="fas fa-calculator w-5 text-red-600"></i>
-                    <span className="ml-3 font-medium">Repair Cost Checker</span>
-                  </Link>
-                  <Link
-                    href="/repair-showcase"
-                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
-                    onClick={closeMobileMenu}
-                  >
-                    <i className="fas fa-camera-retro w-5 text-teal-600"></i>
-                    <span className="ml-3 font-medium">Repair Showcase</span>
-                  </Link>
-                  <Link
-                    href="/repair-guides"
-                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
-                    onClick={closeMobileMenu}
-                  >
-                    <i className="fas fa-book-medical w-5 text-red-600"></i>
-                    <span className="ml-3 font-medium">Repair Guides</span>
-                  </Link>
-                  <Link
-                    href="/chat"
-                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
-                    onClick={closeMobileMenu}
-                  >
-                    <i className="fas fa-comments w-5 text-red-600"></i>
-                    <span className="ml-3 font-medium">Chat Support</span>
-                  </Link>
-                  <Link
-                    href="/contact"
-                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
-                    onClick={closeMobileMenu}
-                  >
-                    <i className="fas fa-envelope w-5 text-red-600"></i>
-                    <span className="ml-3 font-medium">Contact Us</span>
-                  </Link>
-                  <Link
-                    href="/about"
-                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
-                    onClick={closeMobileMenu}
-                  >
-                    <i className="fas fa-info-circle w-5 text-red-600"></i>
-                    <span className="ml-3 font-medium">About Us</span>
-                  </Link>
-                  <Link
-                    href="/faq"
-                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
-                    onClick={closeMobileMenu}
-                  >
-                    <i className="fas fa-question-circle w-5 text-red-600"></i>
-                    <span className="ml-3 font-medium">FAQ</span>
-                  </Link>
-                  <Link
-                    href="/privacy"
-                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
-                    onClick={closeMobileMenu}
-                  >
-                    <i className="fas fa-shield-alt w-5 text-[#040e40]"></i>
-                    <span className="ml-3 font-medium">Privacy Policy</span>
-                  </Link>
-                  <Link
-                    href="/terms"
-                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all border-b border-gray-200/50"
-                    onClick={closeMobileMenu}
-                  >
-                    <i className="fas fa-file-contract w-5 text-[#040e40]"></i>
-                    <span className="ml-3 font-medium">Terms of Service</span>
-                  </Link>
-                  <Link
-                    href="/disclaimer"
-                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-[#040e40] active:bg-red-100 transition-all"
-                    onClick={closeMobileMenu}
-                  >
-                    <i className="fas fa-exclamation-triangle w-5 text-[#040e40]"></i>
-                    <span className="ml-3 font-medium">Disclaimer</span>
-                  </Link>
-                </div>
-              )}
             </div>
             
             <Link href="/book-appointment" className="btn-primary text-sm px-4 py-2 w-full text-center mt-4" onClick={closeMobileMenu}>Book Now</Link>
+          </div>
+        </div>
+      )}
+
+      {/* ── GET SUPPORT MOBILE MODAL POPUP ── */}
+      {supportPopupOpen && (
+        <div className="fixed inset-0 z-[10001] flex items-end sm:items-center justify-center p-0 sm:p-4">
+          {/* Dark Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            onClick={() => setSupportPopupOpen(false)}
+          />
+
+          {/* Modal Sheet */}
+          <div className="relative bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col z-10 animate-in fade-in slide-in-from-bottom-6 duration-200">
+            
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-[#040e40] to-[#0a1e75] px-5 py-4 text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-red-400">
+                  <i className="fas fa-headset text-lg"></i>
+                </div>
+                <div>
+                  <h3 className="font-black text-base leading-tight">Get Support</h3>
+                  <p className="text-[11px] text-gray-300">Choose a service or support option</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSupportPopupOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-xl leading-none transition-colors"
+                aria-label="Close"
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Modal Scrollable List */}
+            <div className="p-4 overflow-y-auto space-y-2 max-h-[calc(85vh-130px)] divide-y divide-gray-100">
+              <div className="space-y-1.5 pb-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-2 block">Quick Services</span>
+                
+                <Link
+                  href="/on-demand"
+                  onClick={() => { setSupportPopupOpen(false); closeMobileMenu(); }}
+                  className="flex items-center gap-3.5 p-3 rounded-2xl hover:bg-amber-50/70 border border-amber-200/60 bg-amber-50/40 transition-all group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 flex items-center justify-center shrink-0 text-base">
+                    <i className="fas fa-handshake"></i>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-bold text-sm text-gray-900 group-hover:text-amber-700">On-Demand Services</h4>
+                      <span className="px-1.5 py-0.2 bg-amber-500 text-slate-950 text-[9px] font-black rounded uppercase">NEW</span>
+                    </div>
+                    <p className="text-xs text-gray-500 truncate">Printers, consoles, electricians, welders, plumbers</p>
+                  </div>
+                  <i className="fas fa-chevron-right text-gray-400 text-xs group-hover:translate-x-0.5 transition-transform"></i>
+                </Link>
+
+                <Link
+                  href="/repair-cost-checker-freetown"
+                  onClick={() => { setSupportPopupOpen(false); closeMobileMenu(); }}
+                  className="flex items-center gap-3.5 p-3 rounded-2xl hover:bg-red-50/60 transition-all group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0 text-base">
+                    <i className="fas fa-calculator"></i>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-sm text-gray-900 group-hover:text-red-600">Repair Cost Checker</h4>
+                    <p className="text-xs text-gray-500 truncate">Instant estimates before you book</p>
+                  </div>
+                  <i className="fas fa-chevron-right text-gray-400 text-xs group-hover:translate-x-0.5 transition-transform"></i>
+                </Link>
+
+                <Link
+                  href="/remote-support"
+                  onClick={() => { setSupportPopupOpen(false); closeMobileMenu(); }}
+                  className="flex items-center gap-3.5 p-3 rounded-2xl hover:bg-blue-50/60 transition-all group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 text-base">
+                    <i className="fas fa-desktop"></i>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-sm text-gray-900 group-hover:text-blue-600">Remote Support</h4>
+                    <p className="text-xs text-gray-500 truncate">Fast online fix anywhere in Sierra Leone</p>
+                  </div>
+                  <i className="fas fa-chevron-right text-gray-400 text-xs group-hover:translate-x-0.5 transition-transform"></i>
+                </Link>
+
+                <Link
+                  href="/chat"
+                  onClick={() => { setSupportPopupOpen(false); closeMobileMenu(); }}
+                  className="flex items-center gap-3.5 p-3 rounded-2xl hover:bg-emerald-50/60 transition-all group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 text-base">
+                    <i className="fas fa-comments"></i>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-sm text-gray-900 group-hover:text-emerald-600">Live Chat Support</h4>
+                    <p className="text-xs text-gray-500 truncate">Chat directly with a certified technician</p>
+                  </div>
+                  <i className="fas fa-chevron-right text-gray-400 text-xs group-hover:translate-x-0.5 transition-transform"></i>
+                </Link>
+
+                <Link
+                  href="/track-repair"
+                  onClick={() => { setSupportPopupOpen(false); closeMobileMenu(); }}
+                  className="flex items-center gap-3.5 p-3 rounded-2xl hover:bg-purple-50/60 transition-all group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 text-base">
+                    <i className="fas fa-search"></i>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-sm text-gray-900 group-hover:text-purple-600">Track Your Repair</h4>
+                    <p className="text-xs text-gray-500 truncate">Check the live status of your device repair</p>
+                  </div>
+                  <i className="fas fa-chevron-right text-gray-400 text-xs group-hover:translate-x-0.5 transition-transform"></i>
+                </Link>
+              </div>
+
+              <div className="space-y-1.5 pt-3">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-2 block">Guides &amp; Company</span>
+
+                <Link
+                  href="/repair-guides"
+                  onClick={() => { setSupportPopupOpen(false); closeMobileMenu(); }}
+                  className="flex items-center gap-3.5 p-3 rounded-2xl hover:bg-indigo-50/60 transition-all group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 text-base">
+                    <i className="fas fa-book-medical"></i>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-sm text-gray-900 group-hover:text-indigo-600">Repair Guides</h4>
+                    <p className="text-xs text-gray-500 truncate">Step-by-step DIY troubleshooting guides</p>
+                  </div>
+                  <i className="fas fa-chevron-right text-gray-400 text-xs group-hover:translate-x-0.5 transition-transform"></i>
+                </Link>
+
+                <Link
+                  href="/repair-showcase"
+                  onClick={() => { setSupportPopupOpen(false); closeMobileMenu(); }}
+                  className="flex items-center gap-3.5 p-3 rounded-2xl hover:bg-teal-50/60 transition-all group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0 text-base">
+                    <i className="fas fa-camera-retro"></i>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-sm text-gray-900 group-hover:text-teal-600">Repair Showcase</h4>
+                    <p className="text-xs text-gray-500 truncate">Before &amp; After photo gallery</p>
+                  </div>
+                  <i className="fas fa-chevron-right text-gray-400 text-xs group-hover:translate-x-0.5 transition-transform"></i>
+                </Link>
+
+                <Link
+                  href="/contact"
+                  onClick={() => { setSupportPopupOpen(false); closeMobileMenu(); }}
+                  className="flex items-center gap-3.5 p-3 rounded-2xl hover:bg-rose-50/60 transition-all group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 text-base">
+                    <i className="fas fa-envelope"></i>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-sm text-gray-900 group-hover:text-rose-600">Contact Us</h4>
+                    <p className="text-xs text-gray-500 truncate">Call, email, or visit our office</p>
+                  </div>
+                  <i className="fas fa-chevron-right text-gray-400 text-xs group-hover:translate-x-0.5 transition-transform"></i>
+                </Link>
+
+                <Link
+                  href="/faq"
+                  onClick={() => { setSupportPopupOpen(false); closeMobileMenu(); }}
+                  className="flex items-center gap-3.5 p-3 rounded-2xl hover:bg-amber-50/60 transition-all group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 text-base">
+                    <i className="fas fa-question-circle"></i>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-sm text-gray-900 group-hover:text-amber-600">FAQ</h4>
+                    <p className="text-xs text-gray-500 truncate">Frequently asked questions</p>
+                  </div>
+                  <i className="fas fa-chevron-right text-gray-400 text-xs group-hover:translate-x-0.5 transition-transform"></i>
+                </Link>
+
+                <Link
+                  href="/about"
+                  onClick={() => { setSupportPopupOpen(false); closeMobileMenu(); }}
+                  className="flex items-center gap-3.5 p-3 rounded-2xl hover:bg-slate-50 transition-all group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 text-base">
+                    <i className="fas fa-info-circle"></i>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-sm text-gray-900 group-hover:text-[#040e40]">About Us</h4>
+                    <p className="text-xs text-gray-500 truncate">BridgeTech IT Services team &amp; mission</p>
+                  </div>
+                  <i className="fas fa-chevron-right text-gray-400 text-xs group-hover:translate-x-0.5 transition-transform"></i>
+                </Link>
+              </div>
+            </div>
+
+            {/* Quick Contact Footer */}
+            <div className="p-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-xs font-bold shrink-0">
+              <a 
+                href="https://wa.me/23233399391" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-green-700 hover:underline flex items-center gap-1.5"
+              >
+                <i className="fab fa-whatsapp text-sm"></i> WhatsApp Us
+              </a>
+              <a 
+                href="tel:+23276210320" 
+                className="text-blue-700 hover:underline flex items-center gap-1.5"
+              >
+                <i className="fas fa-phone-alt text-xs"></i> Call Support
+              </a>
+            </div>
+
           </div>
         </div>
       )}
