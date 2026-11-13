@@ -326,12 +326,14 @@ export async function getOnDemandPros(): Promise<OnDemandPro[]> {
 }
 
 export async function getOnDemandPro(id: string): Promise<OnDemandPro | null> {
+  const cleanId = id?.trim();
+  if (!cleanId) return null;
   const dbReady = await ensureTables();
   if (dbReady) {
     try {
       const rows: any[] = await prisma.$queryRawUnsafe(`
-        SELECT * FROM "on_demand_pros" WHERE "id" = $1 LIMIT 1;
-      `, id);
+        SELECT * FROM "on_demand_pros" WHERE "id" = $1 OR LOWER("id") = LOWER($1) LIMIT 1;
+      `, cleanId);
       if (rows && rows.length > 0) return rowToPro(rows[0]);
     } catch (err) {
       console.error('[OnDemand Storage] Error querying pro by ID:', err);
@@ -339,7 +341,7 @@ export async function getOnDemandPro(id: string): Promise<OnDemandPro | null> {
   }
 
   const all = await getOnDemandPros();
-  return all.find(p => p.id === id) || null;
+  return all.find(p => p.id === cleanId || p.id.toLowerCase() === cleanId.toLowerCase()) || null;
 }
 
 export async function saveOnDemandPro(input: Partial<OnDemandPro>): Promise<OnDemandPro> {
@@ -443,66 +445,86 @@ export async function saveOnDemandPro(input: Partial<OnDemandPro>): Promise<OnDe
 export async function updateOnDemandPro(id: string, updates: Partial<OnDemandPro>): Promise<OnDemandPro | null> {
   const current = await getOnDemandPro(id);
   if (!current) return null;
+  const targetId = current.id;
 
-  const updatedItem: OnDemandPro = {
+  const dbReady = await ensureTables();
+  if (dbReady) {
+    try {
+      const fieldMap: Record<string, { col: string; cast?: string; format?: (v: any) => any }> = {
+        fullName: { col: '"fullName"' },
+        phone: { col: '"phone"' },
+        password: { col: '"password"' },
+        whatsapp: { col: '"whatsapp"' },
+        email: { col: '"email"' },
+        address: { col: '"address"' },
+        mobileMoneyNumber: { col: '"mobileMoneyNumber"' },
+        mobileMoneyProvider: { col: '"mobileMoneyProvider"' },
+        primaryTrade: { col: '"primaryTrade"' },
+        secondarySkills: { col: '"secondarySkills"' },
+        yearsOfExperience: { col: '"yearsOfExperience"', format: (v) => String(v) },
+        coverageAreas: { col: '"coverageAreas"', cast: '::jsonb', format: (v) => Array.isArray(v) ? JSON.stringify(v) : (typeof v === 'string' ? v : '[]') },
+        nationalIdNumber: { col: '"nationalIdNumber"' },
+        profilePhoto: { col: '"profilePhoto"' },
+        idCardFrontPhoto: { col: '"idCardFrontPhoto"' },
+        idCardBackPhoto: { col: '"idCardBackPhoto"' },
+        idCardPhoto: { col: '"idCardPhoto"' },
+        onboardingFeeAmount: { col: '"onboardingFeeAmount"', format: (v) => Number(v) || 30 },
+        onboardingFeeStatus: { col: '"onboardingFeeStatus"' },
+        onboardingPaymentRef: { col: '"onboardingPaymentRef"' },
+        status: { col: '"status"' },
+        resetCode: { col: '"resetCode"' },
+        resetCodeExpiresAt: { col: '"resetCodeExpiresAt"' },
+        rating: { col: '"rating"', format: (v) => Number(v) || 5.0 },
+        completedJobsCount: { col: '"completedJobsCount"', format: (v) => Number(v) || 0 },
+        totalEarned: { col: '"totalEarned"', format: (v) => Number(v) || 0 },
+        bioOrWorkSummary: { col: '"bioOrWorkSummary"' },
+      };
+
+      const setClauses: string[] = [];
+      const values: any[] = [];
+      let paramIndex = 1;
+
+      for (const [key, val] of Object.entries(updates)) {
+        if (key in fieldMap) {
+          const { col, cast, format } = fieldMap[key];
+          let formattedVal = val === undefined ? null : val;
+          if (format && formattedVal !== null) {
+            formattedVal = format(formattedVal);
+          }
+          setClauses.push(`${col} = $${paramIndex++}${cast || ''}`);
+          values.push(formattedVal);
+        }
+      }
+
+      if (setClauses.length > 0) {
+        setClauses.push(`"updatedAt" = CURRENT_TIMESTAMP`);
+        values.push(targetId);
+        const idIndex = paramIndex;
+        const sql = `UPDATE "on_demand_pros" SET ${setClauses.join(', ')} WHERE "id" = $${idIndex};`;
+        await prisma.$executeRawUnsafe(sql, ...values);
+      }
+    } catch (err) {
+      console.error('[OnDemand Storage] Error updating pro in database:', err);
+      throw err;
+    }
+  }
+
+  // Refetch fresh pro from database to return verified state
+  const freshPro = await getOnDemandPro(targetId);
+  const updatedItem: OnDemandPro = freshPro || {
     ...current,
     ...updates,
     updatedAt: new Date().toISOString(),
   };
 
-  const dbReady = await ensureTables();
-  if (dbReady) {
-    try {
-      await prisma.$executeRawUnsafe(`
-        UPDATE "on_demand_pros" SET
-          "fullName" = $1,
-          "phone" = $2,
-          "password" = $3,
-          "whatsapp" = $4,
-          "email" = $5,
-          "address" = $6,
-          "mobileMoneyNumber" = $7,
-          "mobileMoneyProvider" = $8,
-          "primaryTrade" = $9,
-          "secondarySkills" = $10,
-          "yearsOfExperience" = $11,
-          "coverageAreas" = $12::jsonb,
-          "nationalIdNumber" = $13,
-          "profilePhoto" = $14,
-          "idCardFrontPhoto" = $15,
-          "idCardBackPhoto" = $16,
-          "idCardPhoto" = $17,
-          "onboardingFeeStatus" = $18,
-          "onboardingPaymentRef" = $19,
-          "status" = $20,
-          "resetCode" = $21,
-          "resetCodeExpiresAt" = $22,
-          "bioOrWorkSummary" = $23,
-          "updatedAt" = CURRENT_TIMESTAMP
-        WHERE "id" = $24;
-      `,
-        updatedItem.fullName, updatedItem.phone, updatedItem.password || null,
-        updatedItem.whatsapp || null, updatedItem.email || null, updatedItem.address,
-        updatedItem.mobileMoneyNumber, updatedItem.mobileMoneyProvider, updatedItem.primaryTrade,
-        updatedItem.secondarySkills || null, String(updatedItem.yearsOfExperience),
-        JSON.stringify(updatedItem.coverageAreas), updatedItem.nationalIdNumber || null,
-        updatedItem.profilePhoto || null, updatedItem.idCardFrontPhoto || null,
-        updatedItem.idCardBackPhoto || null, updatedItem.idCardPhoto || null,
-        updatedItem.onboardingFeeStatus, updatedItem.onboardingPaymentRef || null,
-        updatedItem.status, updatedItem.resetCode || null, updatedItem.resetCodeExpiresAt || null,
-        updatedItem.bioOrWorkSummary || null, id
-      );
-    } catch (err) {
-      console.error('[OnDemand Storage] Error updating pro in database:', err);
-    }
-  }
-
-  // Update local file
+  // Update local file fallback
   const local = readLocalPros();
-  const index = local.findIndex(p => p.id === id);
+  const index = local.findIndex(p => p.id === targetId || p.id.toLowerCase() === targetId.toLowerCase());
   if (index !== -1) {
     local[index] = updatedItem;
     writeLocalPros(local);
+  } else {
+    writeLocalPros([updatedItem, ...local]);
   }
 
   return updatedItem;

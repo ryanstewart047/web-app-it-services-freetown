@@ -25,10 +25,31 @@ export default function AdminOnDemandPage() {
   const [editFormData, setEditFormData] = useState<Partial<OnDemandRequest>>({});
   const [viewingPro, setViewingPro] = useState<OnDemandPro | null>(null);
 
-  const loadData = async () => {
-    setIsLoading(true);
+  const [actionLoadingProId, setActionLoadingProId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [resetModal, setResetModal] = useState<{
+    isOpen: boolean;
+    pro: OnDemandPro | null;
+    pin: string;
+    copied: boolean;
+    isSubmitting: boolean;
+  }>({
+    isOpen: false,
+    pro: null,
+    pin: '',
+    copied: false,
+    isSubmitting: false,
+  });
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const loadData = async (showSpinner = true) => {
+    if (showSpinner) setIsLoading(true);
     try {
-      const res = await fetch('/api/on-demand', { cache: 'no-store' });
+      const res = await fetch(`/api/on-demand?t=${Date.now()}`, { cache: 'no-store' });
       const data = await res.json();
       if (data.success) {
         setRequests(data.requests || []);
@@ -46,7 +67,7 @@ export default function AdminOnDemandPage() {
     } catch (e) {
       console.error('Failed to load on-demand data:', e);
     } finally {
-      setIsLoading(false);
+      if (showSpinner) setIsLoading(false);
     }
   };
 
@@ -70,11 +91,12 @@ export default function AdminOnDemandPage() {
       });
       const data = await res.json();
       if (data.success) {
-        loadData();
+        loadData(false);
         setEditingRequestId(null);
+        showToast('Job financials updated successfully.', 'success');
       }
     } catch (e) {
-      alert('Failed to update request financials');
+      showToast('Failed to update request financials', 'error');
     }
   };
 
@@ -97,10 +119,11 @@ export default function AdminOnDemandPage() {
       });
       const data = await res.json();
       if (data.success) {
-        loadData();
+        loadData(false);
+        showToast(`Assigned ${pro.fullName} to job.`, 'success');
       }
     } catch (e) {
-      alert('Failed to assign pro');
+      showToast('Failed to assign pro', 'error');
     }
   };
 
@@ -121,14 +144,25 @@ export default function AdminOnDemandPage() {
       });
       const data = await res.json();
       if (data.success) {
-        loadData();
+        loadData(false);
+        showToast(newFeeStatus === 'paid' ? 'Le 30 commitment fee verified (Paid).' : 'Fee set to unpaid.', 'success');
       }
     } catch (e) {
-      alert('Failed to update pro fee status');
+      showToast('Failed to update pro fee status', 'error');
     }
   };
 
   const handleUpdateProStatus = async (proId: string, newStatus: string) => {
+    const previousPros = [...pros];
+    const previousViewing = viewingPro;
+    setActionLoadingProId(proId);
+
+    // Optimistic state update: immediate UI reflection
+    setPros(prev => prev.map(p => p.id === proId ? { ...p, status: newStatus as any } : p));
+    if (viewingPro && viewingPro.id === proId) {
+      setViewingPro(p => p ? { ...p, status: newStatus as any } : null);
+    }
+
     try {
       const res = await fetch('/api/on-demand', {
         method: 'PUT',
@@ -140,24 +174,53 @@ export default function AdminOnDemandPage() {
         }),
       });
       const data = await res.json();
-      if (data.success) {
-        loadData();
-        if (viewingPro && viewingPro.id === proId) {
-          setViewingPro(p => p ? { ...p, status: newStatus as any } : null);
-        }
+      if (res.ok && data.success) {
+        const statusLabels: Record<string, string> = {
+          suspended: 'Account suspended. Technician cannot log in.',
+          blocked: 'Account blocked. Technician is permanently banned.',
+          verified_active: 'Account unsuspended & verified active.',
+          pending_review: 'Account unblocked & returned to review.',
+        };
+        showToast(statusLabels[newStatus] || `Account status updated to ${newStatus}.`, 'success');
+        loadData(false);
+      } else {
+        // Revert on error
+        setPros(previousPros);
+        setViewingPro(previousViewing);
+        showToast(data.error || 'Failed to update account status', 'error');
       }
-    } catch (e) {
-      alert('Failed to update account status');
+    } catch (e: any) {
+      // Revert on network exception
+      setPros(previousPros);
+      setViewingPro(previousViewing);
+      showToast(e.message || 'Failed to update account status', 'error');
+    } finally {
+      setActionLoadingProId(null);
     }
   };
 
-  const handleAdminResetPassword = async (proId: string, customPassword?: string) => {
+  const openResetPasswordModal = (pro: OnDemandPro) => {
     const defaultPin = Math.floor(100000 + Math.random() * 900000).toString();
-    const passwordToSet = customPassword || prompt('Enter new password for this artisan (or use auto-generated PIN):', defaultPin);
-    if (!passwordToSet || passwordToSet.trim().length < 4) {
-      if (passwordToSet !== null) alert('Password must be at least 4 characters or digits.');
+    setResetModal({
+      isOpen: true,
+      pro,
+      pin: defaultPin,
+      copied: false,
+      isSubmitting: false,
+    });
+  };
+
+  const handleConfirmResetPassword = async () => {
+    if (!resetModal.pro || !resetModal.pin?.trim()) return;
+    const newPin = resetModal.pin.trim();
+    if (newPin.length < 4) {
+      showToast('Password must be at least 4 characters or digits.', 'error');
       return;
     }
+
+    setResetModal(prev => ({ ...prev, isSubmitting: true }));
+    const proId = resetModal.pro.id;
+    const proName = resetModal.pro.fullName;
 
     try {
       const res = await fetch('/api/on-demand', {
@@ -166,21 +229,25 @@ export default function AdminOnDemandPage() {
         body: JSON.stringify({
           action: 'admin_reset_password',
           id: proId,
-          newPassword: passwordToSet.trim(),
+          newPassword: newPin,
         }),
       });
       const data = await res.json();
-      if (data.success) {
-        alert(data.message || `Password reset successfully to: ${passwordToSet.trim()}`);
-        loadData();
+      if (res.ok && data.success) {
+        showToast(`Password for ${proName} reset successfully to ${newPin}`, 'success');
+        setPros(prev => prev.map(p => p.id === proId ? { ...p, password: newPin } : p));
         if (viewingPro && viewingPro.id === proId) {
-          setViewingPro(p => p ? { ...p, password: passwordToSet.trim() } : null);
+          setViewingPro(p => p ? { ...p, password: newPin } : null);
         }
+        setResetModal({ isOpen: false, pro: null, pin: '', copied: false, isSubmitting: false });
+        loadData(false);
       } else {
-        alert(data.error || 'Failed to reset password');
+        showToast(data.error || 'Failed to reset password', 'error');
+        setResetModal(prev => ({ ...prev, isSubmitting: false }));
       }
-    } catch (e) {
-      alert('Failed to reset password');
+    } catch (e: any) {
+      showToast(e.message || 'Network error resetting password', 'error');
+      setResetModal(prev => ({ ...prev, isSubmitting: false }));
     }
   };
 
@@ -823,7 +890,7 @@ export default function AdminOnDemandPage() {
                           </a>
                           <button
                             type="button"
-                            onClick={() => handleAdminResetPassword(pro.id)}
+                            onClick={() => openResetPasswordModal(pro)}
                             className="px-2.5 py-1 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 rounded-lg text-[11px] font-bold border border-blue-500/30 flex items-center gap-1"
                             title="Reset account password"
                           >
@@ -836,36 +903,44 @@ export default function AdminOnDemandPage() {
                           {pro.status !== 'suspended' && pro.status !== 'blocked' && (
                             <button
                               type="button"
-                              onClick={() => { if (confirm(`Suspend ${pro.fullName}'s account? They will not be able to log in until unsuspended.`)) handleUpdateProStatus(pro.id, 'suspended'); }}
-                              className="px-2.5 py-1 bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 rounded-lg text-[10px] font-bold border border-orange-500/30"
+                              disabled={actionLoadingProId === pro.id}
+                              onClick={() => handleUpdateProStatus(pro.id, 'suspended')}
+                              className="px-2.5 py-1 bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 rounded-lg text-[10px] font-bold border border-orange-500/30 flex items-center gap-1 disabled:opacity-50"
                             >
-                              <i className="fas fa-pause-circle text-[9px]" /> Suspend
+                              {actionLoadingProId === pro.id ? <i className="fas fa-circle-notch fa-spin text-[9px]" /> : <i className="fas fa-pause-circle text-[9px]" />}
+                              <span>Suspend</span>
                             </button>
                           )}
                           {pro.status === 'suspended' && (
                             <button
                               type="button"
+                              disabled={actionLoadingProId === pro.id}
                               onClick={() => handleUpdateProStatus(pro.id, 'verified_active')}
-                              className="px-2.5 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-lg text-[10px] font-bold border border-emerald-500/30"
+                              className="px-2.5 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-lg text-[10px] font-bold border border-emerald-500/30 flex items-center gap-1 disabled:opacity-50"
                             >
-                              <i className="fas fa-play-circle text-[9px]" /> Unsuspend
+                              {actionLoadingProId === pro.id ? <i className="fas fa-circle-notch fa-spin text-[9px]" /> : <i className="fas fa-play-circle text-[9px]" />}
+                              <span>Unsuspend</span>
                             </button>
                           )}
                           {pro.status !== 'blocked' ? (
                             <button
                               type="button"
-                              onClick={() => { if (confirm(`BLOCK ${pro.fullName}? This permanently bars them from logging in. Continue?`)) handleUpdateProStatus(pro.id, 'blocked'); }}
-                              className="px-2.5 py-1 bg-red-700/20 hover:bg-red-700/30 text-red-400 rounded-lg text-[10px] font-bold border border-red-700/30"
+                              disabled={actionLoadingProId === pro.id}
+                              onClick={() => handleUpdateProStatus(pro.id, 'blocked')}
+                              className="px-2.5 py-1 bg-red-700/20 hover:bg-red-700/30 text-red-400 rounded-lg text-[10px] font-bold border border-red-700/30 flex items-center gap-1 disabled:opacity-50"
                             >
-                              <i className="fas fa-ban text-[9px]" /> Block
+                              {actionLoadingProId === pro.id ? <i className="fas fa-circle-notch fa-spin text-[9px]" /> : <i className="fas fa-ban text-[9px]" />}
+                              <span>Block</span>
                             </button>
                           ) : (
                             <button
                               type="button"
+                              disabled={actionLoadingProId === pro.id}
                               onClick={() => handleUpdateProStatus(pro.id, 'pending_review')}
-                              className="px-2.5 py-1 bg-slate-700/40 hover:bg-slate-700/60 text-slate-300 rounded-lg text-[10px] font-bold border border-slate-600/30"
+                              className="px-2.5 py-1 bg-slate-700/40 hover:bg-slate-700/60 text-slate-300 rounded-lg text-[10px] font-bold border border-slate-600/30 flex items-center gap-1 disabled:opacity-50"
                             >
-                              <i className="fas fa-undo text-[9px]" /> Unblock
+                              {actionLoadingProId === pro.id ? <i className="fas fa-circle-notch fa-spin text-[9px]" /> : <i className="fas fa-undo text-[9px]" />}
+                              <span>Unblock</span>
                             </button>
                           )}
                           <button
@@ -1043,32 +1118,33 @@ export default function AdminOnDemandPage() {
                   {/* Reset Password */}
                   <button
                     type="button"
-                    onClick={() => handleAdminResetPassword(viewingPro.id)}
-                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1"
+                    onClick={() => openResetPasswordModal(viewingPro)}
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1.5 shadow"
                   >
-                    🔑 Reset Password
+                    <i className="fas fa-key text-[9px]" />
+                    <span>Reset Password</span>
                   </button>
 
                   {/* Suspend / Unsuspend */}
                   {viewingPro.status === 'suspended' ? (
                     <button
                       type="button"
+                      disabled={actionLoadingProId === viewingPro.id}
                       onClick={() => handleUpdateProStatus(viewingPro.id, 'verified_active')}
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1"
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1.5 disabled:opacity-50"
                     >
-                      ▶ Unsuspend
+                      {actionLoadingProId === viewingPro.id ? <i className="fas fa-circle-notch fa-spin text-[9px]" /> : <i className="fas fa-play-circle text-[9px]" />}
+                      <span>Unsuspend</span>
                     </button>
                   ) : (
                     <button
                       type="button"
-                      onClick={() => {
-                        if (confirm(`Suspend ${viewingPro.fullName}? They will not be able to log in until unsuspended.`)) {
-                          handleUpdateProStatus(viewingPro.id, 'suspended');
-                        }
-                      }}
-                      className="px-3 py-1.5 bg-orange-600 hover:bg-orange-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1"
+                      disabled={actionLoadingProId === viewingPro.id}
+                      onClick={() => handleUpdateProStatus(viewingPro.id, 'suspended')}
+                      className="px-3 py-1.5 bg-orange-600 hover:bg-orange-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1.5 disabled:opacity-50"
                     >
-                      ⏸ Suspend
+                      {actionLoadingProId === viewingPro.id ? <i className="fas fa-circle-notch fa-spin text-[9px]" /> : <i className="fas fa-pause-circle text-[9px]" />}
+                      <span>Suspend</span>
                     </button>
                   )}
 
@@ -1076,22 +1152,22 @@ export default function AdminOnDemandPage() {
                   {viewingPro.status === 'blocked' ? (
                     <button
                       type="button"
+                      disabled={actionLoadingProId === viewingPro.id}
                       onClick={() => handleUpdateProStatus(viewingPro.id, 'pending_review')}
-                      className="px-3 py-1.5 bg-slate-600 hover:bg-slate-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1"
+                      className="px-3 py-1.5 bg-slate-600 hover:bg-slate-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1.5 disabled:opacity-50"
                     >
-                      🔓 Unblock
+                      {actionLoadingProId === viewingPro.id ? <i className="fas fa-circle-notch fa-spin text-[9px]" /> : <i className="fas fa-undo text-[9px]" />}
+                      <span>Unblock</span>
                     </button>
                   ) : (
                     <button
                       type="button"
-                      onClick={() => {
-                        if (confirm(`BLOCK ${viewingPro.fullName}? This will permanently ban them from logging in. Continue?`)) {
-                          handleUpdateProStatus(viewingPro.id, 'blocked');
-                        }
-                      }}
-                      className="px-3 py-1.5 bg-red-800 hover:bg-red-700 text-white rounded-lg text-[10px] font-bold flex items-center gap-1"
+                      disabled={actionLoadingProId === viewingPro.id}
+                      onClick={() => handleUpdateProStatus(viewingPro.id, 'blocked')}
+                      className="px-3 py-1.5 bg-red-800 hover:bg-red-700 text-white rounded-lg text-[10px] font-bold flex items-center gap-1.5 disabled:opacity-50"
                     >
-                      🚫 Block
+                      {actionLoadingProId === viewingPro.id ? <i className="fas fa-circle-notch fa-spin text-[9px]" /> : <i className="fas fa-ban text-[9px]" />}
+                      <span>Block</span>
                     </button>
                   )}
 
@@ -1101,7 +1177,8 @@ export default function AdminOnDemandPage() {
                     onClick={() => handleDeletePro(viewingPro.id, viewingPro.fullName)}
                     className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 ml-auto"
                   >
-                    🗑 Delete Profile
+                    <i className="fas fa-trash-alt text-[9px]" />
+                    <span>Delete Profile</span>
                   </button>
                 </div>
               </div>
@@ -1116,6 +1193,145 @@ export default function AdminOnDemandPage() {
                   Close
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TOAST NOTIFICATION ── */}
+      {toast && (
+        <div className={`fixed bottom-5 right-5 z-[999] px-4 py-3 rounded-2xl shadow-2xl border flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200 ${
+          toast.type === 'success'
+            ? 'bg-emerald-950/95 border-emerald-500/40 text-emerald-200'
+            : 'bg-rose-950/95 border-rose-500/40 text-rose-200'
+        }`}>
+          <i className={`fas ${toast.type === 'success' ? 'fa-check-circle text-emerald-400' : 'fa-exclamation-circle text-rose-400'}`} />
+          <span className="text-xs font-bold">{toast.message}</span>
+          <button type="button" onClick={() => setToast(null)} className="ml-2 text-slate-400 hover:text-white">&times;</button>
+        </div>
+      )}
+
+      {/* ── RESET PASSWORD INTERACTIVE MODAL ── */}
+      {resetModal.isOpen && resetModal.pro && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in"
+          onClick={() => !resetModal.isSubmitting && setResetModal({ isOpen: false, pro: null, pin: '', copied: false, isSubmitting: false })}
+        >
+          <div
+            className="bg-slate-950 border border-slate-800 rounded-3xl max-w-md w-full p-5 sm:p-6 space-y-4 text-white shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-sm">
+                  <i className="fas fa-key" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white">Reset Account Password</h3>
+                  <p className="text-[11px] text-slate-400">{resetModal.pro.fullName} ({resetModal.pro.primaryTrade})</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={resetModal.isSubmitting}
+                onClick={() => setResetModal({ isOpen: false, pro: null, pin: '', copied: false, isSubmitting: false })}
+                className="w-7 h-7 rounded-full bg-slate-900 hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-xs text-slate-300">
+                Set a new login password or PIN for <strong>{resetModal.pro.fullName}</strong>. They will use their phone number (<span className="font-mono text-emerald-400">{resetModal.pro.phone}</span>) and this password to sign in.
+              </p>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                  New Password / 6-Digit PIN
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={resetModal.pin}
+                    onChange={e => setResetModal(prev => ({ ...prev, pin: e.target.value, copied: false }))}
+                    placeholder="e.g. 582914"
+                    className="flex-1 px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white font-mono text-base font-black tracking-widest focus:outline-none focus:border-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newPin = Math.floor(100000 + Math.random() * 900000).toString();
+                      setResetModal(prev => ({ ...prev, pin: newPin, copied: false }));
+                    }}
+                    title="Generate new PIN"
+                    className="px-3 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold flex items-center gap-1.5"
+                  >
+                    <i className="fas fa-dice text-blue-400" />
+                    <span>Dice</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(resetModal.pin);
+                      setResetModal(prev => ({ ...prev, copied: true }));
+                      setTimeout(() => setResetModal(prev => ({ ...prev, copied: false })), 2000);
+                    }}
+                    className="px-3 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold flex items-center gap-1"
+                  >
+                    <i className={`fas ${resetModal.copied ? 'fa-check text-emerald-400' : 'fa-copy'}`} />
+                    <span>{resetModal.copied ? 'Copied' : 'Copy'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* WhatsApp notification helper link */}
+              <div className="p-3 bg-green-950/30 border border-green-800/40 rounded-xl flex items-center justify-between text-xs">
+                <div className="text-[11px] text-green-300">
+                  <span className="font-bold">Send PIN to Artisan on WhatsApp:</span>
+                  <div className="font-mono text-[10px] text-slate-400">{resetModal.pro.whatsapp || resetModal.pro.phone}</div>
+                </div>
+                <a
+                  href={`https://wa.me/${(resetModal.pro.whatsapp || resetModal.pro.phone).replace(/\D/g, '')}?text=${encodeURIComponent(
+                    `Hello ${resetModal.pro.fullName}, your BridgeTech Artisan Portal password has been reset to: ${resetModal.pin}. You can log in at https://www.itservicesfreetown.com/on-demand with your phone number and this PIN.`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white rounded-lg text-xs font-bold flex items-center gap-1 shrink-0 shadow-sm"
+                >
+                  <i className="fab fa-whatsapp" />
+                  <span>Send via WhatsApp</span>
+                </a>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+              <button
+                type="button"
+                disabled={resetModal.isSubmitting}
+                onClick={() => setResetModal({ isOpen: false, pro: null, pin: '', copied: false, isSubmitting: false })}
+                className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white rounded-xl text-xs font-bold"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={resetModal.isSubmitting || !resetModal.pin?.trim() || resetModal.pin.trim().length < 4}
+                onClick={handleConfirmResetPassword}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow"
+              >
+                {resetModal.isSubmitting ? (
+                  <>
+                    <i className="fas fa-circle-notch fa-spin text-xs" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-check text-xs" />
+                    <span>Set Password</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

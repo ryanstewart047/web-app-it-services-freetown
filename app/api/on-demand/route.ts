@@ -233,6 +233,21 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Check account status
+      if (pro.status === 'blocked') {
+        return NextResponse.json(
+          { success: false, error: 'Your account has been blocked by administration. Please contact BridgeTech support at 076210320 / 088294631.' },
+          { status: 403, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      if (pro.status === 'suspended') {
+        return NextResponse.json(
+          { success: false, error: 'Your account is temporarily suspended by administration. Please contact BridgeTech support at 076210320.' },
+          { status: 403, headers: NO_CACHE_HEADERS }
+        );
+      }
+
       // Check password if set
       if (pro.password && password && pro.password !== password.trim()) {
         return NextResponse.json(
@@ -249,6 +264,216 @@ export async function POST(request: NextRequest) {
         { success: true, pro, assignedJobs },
         { headers: NO_CACHE_HEADERS }
       );
+    }
+
+    // ── 4. Request Password Reset Code (via WhatsApp or Email) ───────────────
+    if (action === 'request_reset_code') {
+      const { identifier, deliveryMethod } = body;
+      if (!identifier?.trim()) {
+        return NextResponse.json(
+          { success: false, error: 'Phone number or email address is required.' },
+          { status: 400, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      const allPros = await getOnDemandPros();
+      const cleanInput = identifier.trim().toLowerCase().replace(/\s+/g, '');
+      const pro = allPros.find(p => {
+        const pPhone = p.phone.replace(/\s+/g, '');
+        const pWa = (p.whatsapp || '').replace(/\s+/g, '');
+        const pEmail = (p.email || '').toLowerCase().trim();
+        return (
+          pPhone === cleanInput ||
+          pPhone.endsWith(cleanInput.slice(-8)) ||
+          pWa === cleanInput ||
+          pWa.endsWith(cleanInput.slice(-8)) ||
+          pEmail === cleanInput ||
+          p.id.toLowerCase() === cleanInput
+        );
+      });
+
+      if (!pro) {
+        return NextResponse.json(
+          { success: false, error: 'No account found matching this phone number or email.' },
+          { status: 404, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      if (deliveryMethod === 'email' && (!pro.email || !pro.email.includes('@'))) {
+        return NextResponse.json(
+          { success: false, error: 'No email address is linked to this account. Please select WhatsApp recovery instead.' },
+          { status: 400, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      // Generate 6-digit numeric reset code
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 mins
+
+      await updateOnDemandPro(pro.id, {
+        resetCode: code,
+        resetCodeExpiresAt: expiresAt,
+      });
+
+      const waPhone = (pro.whatsapp || pro.phone).replace(/\D/g, '');
+      const waMsg = encodeURIComponent(
+        `BridgeTech Security Code: Your 6-digit password reset code is ${code}. It expires in 15 minutes. Enter this code on the reset page to set a new password.`
+      );
+      const whatsappUrl = `https://wa.me/${waPhone}?text=${waMsg}`;
+
+      // Masked target for UI display
+      let maskedTarget = '';
+      if (deliveryMethod === 'email' && pro.email) {
+        const [user, domain] = pro.email.split('@');
+        maskedTarget = `${user.slice(0, 2)}***@${domain}`;
+      } else {
+        const phoneDigits = (pro.whatsapp || pro.phone).replace(/\s+/g, '');
+        maskedTarget = `${phoneDigits.slice(0, 4)}****${phoneDigits.slice(-3)}`;
+      }
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: `Reset code generated successfully for ${maskedTarget}.`,
+          deliveryMethod,
+          target: maskedTarget,
+          code, // Displayed in UI so applicant can immediately see and use it
+          whatsappUrl: deliveryMethod === 'whatsapp' ? whatsappUrl : undefined,
+          proId: pro.id,
+        },
+        { headers: NO_CACHE_HEADERS }
+      );
+    }
+
+    // ── 5. Verify Reset Code & Set New Password ──────────────────────────────
+    if (action === 'verify_reset_code') {
+      const { identifier, code, newPassword } = body;
+      if (!identifier?.trim() || !code?.trim() || !newPassword?.trim()) {
+        return NextResponse.json(
+          { success: false, error: 'Phone/email, 6-digit verification code, and new password are required.' },
+          { status: 400, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      if (newPassword.trim().length < 4) {
+        return NextResponse.json(
+          { success: false, error: 'New password must be at least 4 characters/digits.' },
+          { status: 400, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      const allPros = await getOnDemandPros();
+      const cleanInput = identifier.trim().toLowerCase().replace(/\s+/g, '');
+      const pro = allPros.find(p => {
+        const pPhone = p.phone.replace(/\s+/g, '');
+        const pWa = (p.whatsapp || '').replace(/\s+/g, '');
+        const pEmail = (p.email || '').toLowerCase().trim();
+        return (
+          pPhone === cleanInput ||
+          pPhone.endsWith(cleanInput.slice(-8)) ||
+          pWa === cleanInput ||
+          pWa.endsWith(cleanInput.slice(-8)) ||
+          pEmail === cleanInput ||
+          p.id.toLowerCase() === cleanInput
+        );
+      });
+
+      if (!pro) {
+        return NextResponse.json(
+          { success: false, error: 'Account not found.' },
+          { status: 404, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      if (!pro.resetCode) {
+        return NextResponse.json(
+          { success: false, error: 'No active reset code found. Please request a new code.' },
+          { status: 400, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      if (pro.resetCodeExpiresAt && new Date() > new Date(pro.resetCodeExpiresAt)) {
+        return NextResponse.json(
+          { success: false, error: 'The reset code has expired. Please request a new code.' },
+          { status: 400, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      if (pro.resetCode.trim() !== code.trim()) {
+        return NextResponse.json(
+          { success: false, error: 'Incorrect 6-digit verification code. Please check and try again.' },
+          { status: 400, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      // Update password and clear reset code
+      const updatedPro = await updateOnDemandPro(pro.id, {
+        password: newPassword.trim(),
+        resetCode: undefined,
+        resetCodeExpiresAt: undefined,
+      });
+
+      // Fetch assigned jobs so artisan is logged in directly
+      const allRequests = await getOnDemandRequests();
+      const assignedJobs = allRequests.filter(r => r.assignedProId === pro.id);
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'Password successfully updated! You are now signed in.',
+          pro: updatedPro,
+          assignedJobs,
+        },
+        { headers: NO_CACHE_HEADERS }
+      );
+    }
+
+    // ── 6. Admin Reset Pro Password Directly ─────────────────────────────────
+    if (action === 'admin_reset_password') {
+      const { id, newPassword } = body;
+      if (!id || !newPassword?.trim()) {
+        return NextResponse.json(
+          { success: false, error: 'Pro ID and new password are required.' },
+          { status: 400, headers: NO_CACHE_HEADERS }
+        );
+      }
+
+      const updatedPro = await updateOnDemandPro(id, {
+        password: newPassword.trim(),
+        resetCode: undefined,
+        resetCodeExpiresAt: undefined,
+      });
+
+      if (!updatedPro) {
+        return NextResponse.json({ success: false, error: 'Pro not found.' }, { status: 404, headers: NO_CACHE_HEADERS });
+      }
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: `Password for ${updatedPro.fullName} reset successfully.`,
+          pro: updatedPro,
+        },
+        { headers: NO_CACHE_HEADERS }
+      );
+    }
+
+    // ── 7. Admin Update Pro (also allowed via POST for proxy safety) ──────────
+    if (action === 'update_pro') {
+      const { id, action: _action, ...updates } = body;
+      if (!id) {
+        return NextResponse.json({ success: false, error: 'Pro ID is required' }, { status: 400, headers: NO_CACHE_HEADERS });
+      }
+      if (updates.status && typeof updates.status === 'string') {
+        updates.status = updates.status.trim() as any;
+      }
+
+      const updated = await updateOnDemandPro(id, updates);
+      if (!updated) {
+        return NextResponse.json({ success: false, error: 'Pro not found' }, { status: 404, headers: NO_CACHE_HEADERS });
+      }
+
+      return NextResponse.json({ success: true, pro: updated }, { headers: NO_CACHE_HEADERS });
     }
 
     return NextResponse.json(
@@ -286,14 +511,17 @@ export async function PUT(request: NextRequest) {
 
     // ── Update Pro / Artisan Details & Fee Verification ─────────────────────
     if (action === 'update_pro') {
-      const { id, ...updates } = body;
+      const { id, action: _action, ...updates } = body;
       if (!id) {
-        return NextResponse.json({ success: false, error: 'Pro ID is required' }, { status: 400 });
+        return NextResponse.json({ success: false, error: 'Pro ID is required' }, { status: 400, headers: NO_CACHE_HEADERS });
+      }
+      if (updates.status && typeof updates.status === 'string') {
+        updates.status = updates.status.trim() as any;
       }
 
       const updated = await updateOnDemandPro(id, updates);
       if (!updated) {
-        return NextResponse.json({ success: false, error: 'Pro not found' }, { status: 404 });
+        return NextResponse.json({ success: false, error: 'Pro not found' }, { status: 404, headers: NO_CACHE_HEADERS });
       }
 
       return NextResponse.json({ success: true, pro: updated }, { headers: NO_CACHE_HEADERS });
