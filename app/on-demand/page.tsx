@@ -1148,6 +1148,34 @@ export default function OnDemandServicesPage() {
             </p>
           </div>
 
+          {/* Banner link to Careers & Advert Flyer */}
+          <div className="p-4 bg-gradient-to-r from-red-600/10 via-amber-500/10 to-red-600/10 border border-red-500/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center font-bold shrink-0">
+                <i className="fas fa-bullhorn" />
+              </span>
+              <div>
+                <strong className="text-slate-900 font-bold block">Mass Recruitment Drive 2026: 20 Open Roles Available</strong>
+                <span className="text-slate-600 text-[11px]">View our official advert flyer or apply directly through our dedicated job application portal.</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Link
+                href="/careers/flyer"
+                target="_blank"
+                className="px-3.5 py-1.5 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all text-[11px] whitespace-nowrap shadow-sm"
+              >
+                View Flyer
+              </Link>
+              <Link
+                href="/careers"
+                className="px-3.5 py-1.5 rounded-xl bg-red-600 text-white font-black hover:bg-red-500 transition-all text-[11px] whitespace-nowrap shadow-sm"
+              >
+                Job Portal &rarr;
+              </Link>
+            </div>
+          </div>
+
           {/* Mode Switcher: Sign In vs Register */}
           <div className="flex justify-center">
             <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200">

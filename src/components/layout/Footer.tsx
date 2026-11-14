@@ -344,6 +344,11 @@ export default function Footer() {
                       <h4 className="text-white font-semibold text-sm">On-Demand Hub</h4>
                       <p className="text-gray-400 text-xs mt-1">Techs, jobs & 15% commission</p>
                     </Link>
+                    <Link href="/admin?tab=careers-admin" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
+                      <i className="fas fa-user-tie text-violet-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
+                      <h4 className="text-white font-semibold text-sm">Job Applications</h4>
+                      <p className="text-gray-400 text-xs mt-1">20 trades hiring pipeline</p>
+                    </Link>
                     <Link href="/admin?tab=dashboard" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3.5 transition-all hover:scale-[1.03] group" onClick={handleClose}>
                       <i className="fas fa-tachometer-alt text-cyan-400 text-2xl mb-2 block group-hover:scale-110 transition-transform"></i>
                       <h4 className="text-white font-semibold text-sm">Dashboard</h4>
@@ -624,6 +629,12 @@ export default function Footer() {
                 <Link href="/website-questionnaire" target="_blank" rel="noopener noreferrer" className="text-gray-200 hover:text-red-400 transition-colors text-sm flex items-center group">
                   <i className="fas fa-file-code mr-3 text-red-500 w-4"></i>
                   <span className="group-hover:translate-x-1 transition-transform">Website Project Brief</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/careers" className="text-gray-200 hover:text-amber-400 transition-colors text-sm flex items-center group">
+                  <i className="fas fa-briefcase mr-3 text-amber-500 w-4"></i>
+                  <span className="group-hover:translate-x-1 transition-transform font-bold text-amber-400">Careers &amp; Job Applications (20 Roles)</span>
                 </Link>
               </li>
             </ul>

@@ -104,6 +104,15 @@ const ADMIN_PANELS: AdminPanelItem[] = [
     url: '/admin/on-demand',
   },
   {
+    id: 'careers-admin',
+    name: 'Job Applications & Recruitment',
+    category: 'overview',
+    description: 'Review candidate applications & 20 trades recruitment pipeline',
+    icon: 'fas fa-user-tie',
+    color: 'text-violet-400',
+    url: '/admin/careers',
+  },
+  {
     id: 'banner-admin',
     name: 'Global Banner',
     category: 'overview',

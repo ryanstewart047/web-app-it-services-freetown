@@ -671,6 +671,14 @@ export default function AdminOnDemandPage() {
             <i className="fas fa-camera text-xs" />
             <span>Service Card Photos ({TRADE_CATEGORIES.length})</span>
           </button>
+
+          <Link
+            href="/admin/careers"
+            className="px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 bg-slate-900 hover:bg-slate-850 text-slate-300 hover:text-white border border-slate-800"
+          >
+            <i className="fas fa-user-tie text-xs text-violet-400" />
+            <span>Job Applications &amp; Recruitment &rarr;</span>
+          </Link>
         </div>
 
         {/* Search Bar */}
