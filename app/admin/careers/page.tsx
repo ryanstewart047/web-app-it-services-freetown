@@ -637,19 +637,48 @@ export default function AdminCareersPage() {
               </div>
             )}
 
-            {/* Attached Photo of ID Card */}
-            {selectedApp.idCardPhoto && (
-              <div className="space-y-2">
-                <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-slate-500 block">
-                  Candidate ID Card / Verification Document
-                </span>
-                <div className="h-44 rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-800 bg-black flex items-center justify-center">
-                  <img
-                    src={selectedApp.idCardPhoto}
-                    alt="ID Card"
-                    className="max-h-full max-w-full object-contain"
-                  />
+            {/* Attached Documents: ID Card & Trade Certificate */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {selectedApp.idCardPhoto ? (
+                <div className="space-y-1.5 p-3 rounded-xl border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/60">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 dark:text-slate-400 block">
+                    National ID Card / Passport
+                  </span>
+                  <div className="h-40 rounded-lg overflow-hidden border border-gray-200 dark:border-slate-800 bg-black flex items-center justify-center">
+                    <img
+                      src={selectedApp.idCardPhoto}
+                      alt="ID Card"
+                      className="max-h-full max-w-full object-contain cursor-pointer"
+                      onClick={() => window.open(selectedApp.idCardPhoto, '_blank')}
+                      title="Click to view full size"
+                    />
+                  </div>
+                  <span className="text-[10px] text-gray-400 block text-center">Click to open full size</span>
                 </div>
+              ) : null}
+
+              {selectedApp.certificatePhoto ? (
+                <div className="space-y-1.5 p-3 rounded-xl border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/60">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 block">
+                    Trade / Professional Certificate
+                  </span>
+                  <div className="h-40 rounded-lg overflow-hidden border border-gray-200 dark:border-slate-800 bg-black flex items-center justify-center">
+                    <img
+                      src={selectedApp.certificatePhoto}
+                      alt="Certificate"
+                      className="max-h-full max-w-full object-contain cursor-pointer"
+                      onClick={() => window.open(selectedApp.certificatePhoto, '_blank')}
+                      title="Click to view full size"
+                    />
+                  </div>
+                  <span className="text-[10px] text-gray-400 block text-center">Click to open full size</span>
+                </div>
+              ) : null}
+            </div>
+
+            {!selectedApp.idCardPhoto && !selectedApp.certificatePhoto && (
+              <div className="p-3 rounded-xl border border-gray-200 dark:border-slate-800 text-gray-400 text-xs text-center">
+                No identity or certification documents were attached with this application.
               </div>
             )}
 

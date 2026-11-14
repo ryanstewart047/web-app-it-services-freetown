@@ -1,28 +1,24 @@
 'use client';
 
 import Link from 'next/link';
-import { TRADE_CATEGORIES } from '@/lib/on-demand-categories';
 import { 
   Printer, 
   Share2, 
   ArrowLeft, 
   CheckCircle2, 
-  Phone, 
   MapPin, 
   ShieldCheck, 
-  Sparkles, 
   Clock, 
   Wallet, 
+  Award,
   ExternalLink 
 } from 'lucide-react';
 
 const CLUSTERS = [
   {
-    title: 'Digital & IT Hardware',
+    title: 'Digital & IT Hardware Specialists',
     tag: 'Tech Cluster',
     icon: 'fas fa-microchip',
-    color: 'border-blue-500/40 bg-blue-500/5 text-blue-400',
-    headerBg: 'bg-blue-600',
     roles: [
       { id: 'printer-tech', title: 'Printer & Copier Tech', desc: 'HP, Canon, Epson, Ricoh — paper jams, printheads, errors' },
       { id: 'pc-laptop', title: 'Computer & Laptop Tech', desc: 'Motherboards, screens, charging ports & OS installs' },
@@ -36,10 +32,8 @@ const CLUSTERS = [
     title: 'Electrical & Clean Energy',
     tag: 'Power Cluster',
     icon: 'fas fa-bolt',
-    color: 'border-amber-500/40 bg-amber-500/5 text-amber-400',
-    headerBg: 'bg-amber-600',
     roles: [
-      { id: 'electrician', title: 'Certified Electrician', desc: 'NPA/EDSA wiring, distribution boards & changeover switches' },
+      { id: 'electrician', title: 'Certified Electrician', desc: 'EDSA wiring, distribution boards & changeover switches' },
       { id: 'solar-inverter', title: 'Solar & Inverter Tech', desc: 'Hybrid inverters, lithium battery banks & roof mounting' },
       { id: 'generator-mechanic', title: 'Generator Mechanic', desc: 'Diesel & petrol engines, AVR calibration & major servicing' },
       { id: 'audio-visual', title: 'Audio-Visual Tech', desc: 'TV mounting up to 85", PA systems & church sound mixers' },
@@ -50,8 +44,6 @@ const CLUSTERS = [
     title: 'Plumbing, Cooling & Appliances',
     tag: 'Mechanical Cluster',
     icon: 'fas fa-wrench',
-    color: 'border-emerald-500/40 bg-emerald-500/5 text-emerald-400',
-    headerBg: 'bg-emerald-600',
     roles: [
       { id: 'plumber', title: 'Master Plumber', desc: 'PPR hot-fusion welding, Geepee tanks & bathroom fittings' },
       { id: 'ac-refrigeration', title: 'AC & Fridge Engineer', desc: 'Gas recharge (R410A/R32), compressor swap & deep washing' },
@@ -64,8 +56,6 @@ const CLUSTERS = [
     title: 'Construction, Metal & Finishing',
     tag: 'Trades Cluster',
     icon: 'fas fa-hammer',
-    color: 'border-rose-500/40 bg-rose-500/5 text-rose-400',
-    headerBg: 'bg-rose-600',
     roles: [
       { id: 'welder-metal', title: 'Welder & Metal Fabricator', desc: 'Burglar bars, security gates, iron doors & metal trusses' },
       { id: 'carpenter', title: 'Carpenter & Joiner', desc: 'Kitchen cabinets, roofing timber, doors & locks' },
@@ -83,31 +73,31 @@ export default function CareerAdvertFlyerPage() {
   };
 
   const shareText = encodeURIComponent(
-    `🔥 NOW HIRING IN FREETOWN: 20 Specialized Technician & Artisan Roles! Keep 85% of job billings + weekly mobile money payouts. View flyer and apply online here: https://www.itservicesfreetown.com/careers`
+    `NOW HIRING IN FREETOWN: 20 Specialized Technician & Artisan Roles with BridgeTech! Keep 85% of job billings + weekly mobile money payouts. View flyer and apply online here: https://www.itservicesfreetown.com/careers`
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-red-600 selection:text-white print:bg-white print:text-black">
+    <div className="min-h-screen bg-gray-100 text-gray-900 font-sans print:bg-white print:text-black">
       
       {/* Top Action Bar (Hidden when Printing) */}
-      <nav className="print:hidden sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 py-3">
-        <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <nav className="print:hidden sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-2.5 shadow-xs">
+        <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-3">
           <Link
             href="/careers"
-            className="inline-flex items-center gap-2 text-xs font-bold text-slate-300 hover:text-white transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-700 hover:text-black transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Job Application Portal</span>
+            <span>Back to Application Portal</span>
           </Link>
 
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
               type="button"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-700 transition-all shadow-sm"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-xs font-semibold text-gray-800 border border-gray-300 transition-colors"
               title="Print or Save as PDF"
             >
-              <Printer className="w-3.5 h-3.5 text-red-400" />
+              <Printer className="w-3.5 h-3.5 text-gray-700" />
               <span>Print / Save PDF</span>
             </button>
 
@@ -115,16 +105,15 @@ export default function CareerAdvertFlyerPage() {
               href={`https://wa.me/?text=${shareText}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white transition-all shadow-sm"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white transition-colors"
             >
               <Share2 className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Share on WhatsApp</span>
-              <span className="sm:hidden">Share</span>
+              <span>Share on WhatsApp</span>
             </a>
 
             <Link
-              href="/careers#apply"
-              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-xs font-black text-white transition-all shadow-md"
+              href="/careers#apply-form"
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-xs font-bold text-white transition-colors shadow-xs"
             >
               <span>Apply Online &rarr;</span>
             </Link>
@@ -132,134 +121,121 @@ export default function CareerAdvertFlyerPage() {
         </div>
       </nav>
 
-      {/* FLYER CONTAINER (Formatted for Clean A4 / Web Display) */}
-      <main className="max-w-5xl mx-auto p-4 sm:p-8 print:p-0 print:max-w-full">
+      {/* FLYER PAPER (Formatted for Clean White A4 / Letter Display) */}
+      <main className="max-w-4xl mx-auto p-4 sm:p-8 print:p-0 print:max-w-full">
         
-        <div className="bg-slate-900 border-2 border-slate-800 print:border-none rounded-3xl p-6 sm:p-10 space-y-8 shadow-2xl relative overflow-hidden print:bg-white print:text-black">
+        <div className="bg-white border border-gray-300 print:border-none rounded-2xl p-6 sm:p-10 space-y-7 shadow-sm">
           
-          {/* Subtle Ambient Glows */}
-          <div className="print:hidden absolute -top-24 -left-24 w-96 h-96 bg-red-600/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="print:hidden absolute -bottom-24 -right-24 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
-
           {/* FLYER HEADER */}
-          <header className="relative border-b-2 border-slate-800 pb-6 print:border-black space-y-4">
+          <header className="border-b-2 border-gray-900 pb-5 space-y-3">
             
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center text-white font-black text-lg shadow-lg">
+                <div className="w-10 h-10 rounded-lg bg-red-600 flex items-center justify-center text-white font-black text-lg">
                   BT
                 </div>
                 <div>
-                  <h1 className="text-sm font-black uppercase tracking-wider text-white print:text-black">
+                  <h1 className="text-sm font-black uppercase tracking-wider text-gray-950">
                     BridgeTech IT Services · On-Demand Network
                   </h1>
-                  <p className="text-[11px] text-slate-400 print:text-gray-600 font-medium">
-                    Freetown, Sierra Leone · Reg. Nationwide Tech &amp; Artisan Hub
+                  <p className="text-[11px] text-gray-500 font-medium">
+                    Freetown, Sierra Leone · Certified Technician &amp; Artisan Hub
                   </p>
                 </div>
               </div>
 
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-600/20 border border-red-500/40 text-red-400 print:text-red-700 text-xs font-black uppercase tracking-widest">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Mass Recruitment Drive 2026</span>
-              </div>
+              <span className="px-2.5 py-1 rounded text-xs font-bold bg-gray-100 text-gray-800 border border-gray-300 uppercase tracking-wide">
+                Official Recruitment Drive 2026
+              </span>
             </div>
 
-            {/* Big Catchy Title */}
-            <div className="pt-2">
-              <h2 className="text-3xl sm:text-5xl font-black text-white print:text-black tracking-tight uppercase leading-none">
-                We Are Hiring: <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-amber-400 to-yellow-400 print:text-red-600">20 Specialized Roles</span>
+            {/* Title */}
+            <div className="pt-1">
+              <h2 className="text-2xl sm:text-4xl font-black text-gray-950 uppercase tracking-tight leading-tight">
+                We Are Hiring: <span className="text-red-600">20 Specialized Roles</span>
               </h2>
-              <p className="text-sm sm:text-base text-slate-300 print:text-gray-700 mt-2 font-medium max-w-3xl leading-relaxed">
-                Calling all vetted technicians, engineers, mechanics, and master artisans in Freetown! Partner with BridgeTech to receive verified, guaranteed daily call-outs in your neighborhood.
+              <p className="text-xs sm:text-sm text-gray-700 mt-1 font-medium leading-relaxed">
+                Calling all vetted technicians, mechanics, and master tradespeople across Freetown. Partner with BridgeTech to receive verified customer call-outs in your neighborhood.
               </p>
             </div>
 
-            {/* 4 Key Benefit Badges */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-              <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 print:border-gray-300 print:bg-gray-50 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                  <Wallet className="w-4 h-4" />
-                </div>
+            {/* 4 Clean Highlight Badges */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+              <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-200 flex items-center gap-2">
+                <Wallet className="w-4 h-4 text-emerald-700 shrink-0" />
                 <div>
-                  <div className="text-xs font-black text-white print:text-black">Keep 85% Pay</div>
-                  <div className="text-[10px] text-slate-400 print:text-gray-600">Highest Net in SL</div>
+                  <div className="text-xs font-bold text-gray-900">Keep 85% Pay</div>
+                  <div className="text-[10px] text-gray-500">Highest Net in SL</div>
                 </div>
               </div>
 
-              <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 print:border-gray-300 print:bg-gray-50 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
-                  <Clock className="w-4 h-4" />
-                </div>
+              <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-200 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-blue-700 shrink-0" />
                 <div>
-                  <div className="text-xs font-black text-white print:text-black">Weekly Cashout</div>
-                  <div className="text-[10px] text-slate-400 print:text-gray-600">Orange / Afrimoney</div>
+                  <div className="text-xs font-bold text-gray-900">Weekly Payouts</div>
+                  <div className="text-[10px] text-gray-500">Orange / Afrimoney</div>
                 </div>
               </div>
 
-              <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 print:border-gray-300 print:bg-gray-50 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
+              <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-200 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-amber-700 shrink-0" />
                 <div>
-                  <div className="text-xs font-black text-white print:text-black">14-Day Warranty</div>
-                  <div className="text-[10px] text-slate-400 print:text-gray-600">Backed by BridgeTech</div>
+                  <div className="text-xs font-bold text-gray-900">14-Day Warranty</div>
+                  <div className="text-[10px] text-gray-500">BridgeTech Guarantee</div>
                 </div>
               </div>
 
-              <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 print:border-gray-300 print:bg-gray-50 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
-                  <MapPin className="w-4 h-4" />
-                </div>
+              <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-200 flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-red-700 shrink-0" />
                 <div>
-                  <div className="text-xs font-black text-white print:text-black">Local Call-Outs</div>
-                  <div className="text-[10px] text-slate-400 print:text-gray-600">Across Freetown</div>
+                  <div className="text-xs font-bold text-gray-900">Local Call-Outs</div>
+                  <div className="text-[10px] text-gray-500">Freetown &amp; Suburbs</div>
                 </div>
               </div>
             </div>
 
           </header>
 
-          {/* THE 20 JOBS LIST (4 CLUSTERS) */}
-          <section className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 print:text-gray-600">
-                Official Directory of 20 Open Positions
+          {/* THE 20 ROLES (4 CLEAN CLUSTERS) */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-1.5">
+              <h3 className="text-xs font-black uppercase tracking-wider text-gray-800">
+                Directory of 20 Open Technician &amp; Trade Positions
               </h3>
-              <span className="text-xs font-bold text-red-400 print:text-red-600">
-                Immediate Openings Available
+              <span className="text-[11px] font-bold text-red-600">
+                Immediate Openings
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 print:grid-cols-2">
-              {CLUSTERS.map((cluster, cIdx) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {CLUSTERS.map(cluster => (
                 <div
                   key={cluster.title}
-                  className={`rounded-2xl border p-4 sm:p-5 space-y-3.5 ${cluster.color} print:border-gray-400 print:bg-white`}
+                  className="rounded-xl border border-gray-200 bg-gray-50/60 p-4 space-y-2.5"
                 >
-                  <div className="flex items-center justify-between border-b border-slate-800 print:border-gray-200 pb-2.5">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-7 h-7 rounded-lg ${cluster.headerBg} text-white flex items-center justify-center text-xs shadow`}>
+                  <div className="flex items-center justify-between border-b border-gray-200 pb-2">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-5 h-5 rounded bg-gray-900 text-white flex items-center justify-center text-[10px]">
                         <i className={cluster.icon} />
-                      </div>
-                      <h4 className="font-black text-sm text-white print:text-black">
+                      </span>
+                      <h4 className="font-bold text-xs text-gray-900">
                         {cluster.title}
                       </h4>
                     </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-800 print:bg-gray-100 text-slate-300 print:text-gray-700">
+                    <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-white border border-gray-200 text-gray-600">
                       {cluster.tag}
                     </span>
                   </div>
 
-                  <div className="space-y-2.5">
-                    {cluster.roles.map((r, rIdx) => (
-                      <div key={r.id} className="flex items-start gap-2 text-xs">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-red-500 shrink-0 mt-0.5 print:text-red-700" />
+                  <div className="space-y-2">
+                    {cluster.roles.map(r => (
+                      <div key={r.id} className="flex items-start gap-1.5 text-xs">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
                         <div>
-                          <strong className="text-slate-100 print:text-black font-bold block">
+                          <strong className="text-gray-900 font-bold block">
                             {r.title}
                           </strong>
-                          <span className="text-[11px] text-slate-400 print:text-gray-600 leading-snug block">
+                          <span className="text-[11px] text-gray-600 leading-snug block">
                             {r.desc}
                           </span>
                         </div>
@@ -271,72 +247,71 @@ export default function CareerAdvertFlyerPage() {
             </div>
           </section>
 
-          {/* CANDIDATE REQUIREMENTS & QUALIFICATIONS */}
-          <section className="bg-slate-950/70 border border-slate-800 print:border-gray-300 print:bg-gray-50 rounded-2xl p-5 sm:p-6 space-y-3">
-            <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 print:text-amber-800 flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4" />
-              <span>Who Can Apply? (Minimum Requirements)</span>
+          {/* CANDIDATE REQUIREMENTS & CERTIFICATIONS */}
+          <section className="bg-gray-50 border border-gray-200 rounded-xl p-4 sm:p-5 space-y-2.5">
+            <h4 className="text-xs font-bold uppercase tracking-wide text-gray-900 flex items-center gap-1.5">
+              <Award className="w-4 h-4 text-amber-600" />
+              <span>Who Can Apply? (Requirements &amp; Certifications)</span>
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300 print:text-gray-700">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs text-gray-700">
               <div className="flex items-start gap-2">
-                <span className="w-5 h-5 rounded-full bg-slate-800 print:bg-gray-200 text-white print:text-black font-bold flex items-center justify-center shrink-0 text-[10px]">1</span>
-                <span><strong>Hands-On Experience:</strong> Minimum 1 year practical field experience in your selected trade.</span>
+                <span className="w-4 h-4 rounded-full bg-gray-200 text-gray-900 font-bold flex items-center justify-center shrink-0 text-[10px]">1</span>
+                <span><strong>Experience:</strong> Minimum 1 year practical field experience in your selected trade.</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="w-5 h-5 rounded-full bg-slate-800 print:bg-gray-200 text-white print:text-black font-bold flex items-center justify-center shrink-0 text-[10px]">2</span>
+                <span className="w-4 h-4 rounded-full bg-gray-200 text-gray-900 font-bold flex items-center justify-center shrink-0 text-[10px]">2</span>
+                <span><strong>Certifications (Advantage):</strong> NCTVA, TVET, City &amp; Guilds, Trade Test certificate, or apprenticeship testimonial.</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="w-4 h-4 rounded-full bg-gray-200 text-gray-900 font-bold flex items-center justify-center shrink-0 text-[10px]">3</span>
                 <span><strong>Tools of the Trade:</strong> Must own or have access to standard professional tools required for the job.</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="w-5 h-5 rounded-full bg-slate-800 print:bg-gray-200 text-white print:text-black font-bold flex items-center justify-center shrink-0 text-[10px]">3</span>
-                <span><strong>Valid Identification:</strong> National ID Card, Voter ID, Driver License or Passport required for vetting.</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="w-5 h-5 rounded-full bg-slate-800 print:bg-gray-200 text-white print:text-black font-bold flex items-center justify-center shrink-0 text-[10px]">4</span>
-                <span><strong>Smartphone &amp; Mobile Money:</strong> Active WhatsApp number and Orange Money / Afrimoney account for weekly payouts.</span>
+                <span className="w-4 h-4 rounded-full bg-gray-200 text-gray-900 font-bold flex items-center justify-center shrink-0 text-[10px]">4</span>
+                <span><strong>Identification:</strong> Valid National ID Card, Voter ID, Driver License or Passport.</span>
               </div>
             </div>
           </section>
 
           {/* CALL TO ACTION & CONTACT FOOTER */}
-          <footer className="border-t-2 border-slate-800 pt-6 print:border-black flex flex-col sm:flex-row items-center justify-between gap-6">
+          <footer className="border-t-2 border-gray-900 pt-5 flex flex-col sm:flex-row items-center justify-between gap-4">
             
-            <div className="space-y-1.5 text-center sm:text-left">
-              <div className="text-xs font-black uppercase tracking-wider text-red-400 print:text-red-700">
-                How to Apply: (2 Quick Options)
+            <div className="space-y-1 text-center sm:text-left">
+              <div className="text-xs font-bold uppercase tracking-wide text-red-600">
+                How to Apply (Fast &amp; Free)
               </div>
-              <div className="text-sm font-bold text-white print:text-black">
-                Apply online through our portal or send your details directly via WhatsApp.
+              <div className="text-xs font-semibold text-gray-900">
+                Apply online via our portal or message our recruitment team on WhatsApp.
               </div>
-              <p className="text-xs text-slate-400 print:text-gray-600">
-                Walk-in Desk: 24 Rawdon Street / Wilkinson Road, Freetown, Sierra Leone
+              <p className="text-[11px] text-gray-500">
+                Hotline / WhatsApp: +232 33 399391 · 24 Rawdon Street, Freetown
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-3 print:hidden">
+            <div className="flex flex-wrap items-center justify-center gap-2 print:hidden">
               <a
                 href="https://wa.me/23233399391?text=Hello%20BridgeTech%20Recruitment%2C%20I%20am%20applying%20for%20a%20technician%20role%20on%20the%20On-Demand%20Network."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black transition-all shadow-lg flex items-center gap-2"
+                className="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors inline-flex items-center gap-1.5 shadow-xs"
               >
                 <i className="fab fa-whatsapp text-sm" />
-                <span>Fast WhatsApp Apply</span>
+                <span>WhatsApp Apply</span>
               </a>
 
               <Link
-                href="/careers#apply"
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white text-xs font-black transition-all shadow-xl flex items-center gap-1.5"
+                href="/careers#apply-form"
+                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors shadow-xs inline-flex items-center gap-1.5"
               >
-                <span>Open Application Portal</span>
-                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Online Application Portal</span>
+                <ExternalLink className="w-3 h-3" />
               </Link>
             </div>
 
-            {/* Print Footer Details */}
-            <div className="hidden print:block text-right text-xs text-gray-700">
-              <p><strong>Website:</strong> www.itservicesfreetown.com/careers</p>
+            {/* Print Only Footer */}
+            <div className="hidden print:block text-right text-xs text-gray-600 space-y-0.5">
+              <p><strong>Apply Online:</strong> www.itservicesfreetown.com/careers</p>
               <p><strong>Recruitment WhatsApp:</strong> +232 33 399391</p>
-              <p><strong>Email:</strong> careers@itservicesfreetown.com</p>
             </div>
 
           </footer>

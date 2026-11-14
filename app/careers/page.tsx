@@ -5,25 +5,23 @@ import Link from 'next/link';
 import { 
   Briefcase, 
   Search, 
-  Filter, 
   CheckCircle, 
   MapPin, 
   ShieldCheck, 
   Phone, 
   ArrowRight, 
   FileText, 
-  Sparkles, 
   Printer, 
   Upload, 
   User, 
   Wallet, 
   Clock, 
-  Star, 
   X, 
   ExternalLink,
-  ChevronDown,
   Wrench,
-  AlertCircle
+  AlertCircle,
+  Award,
+  Check
 } from 'lucide-react';
 import { TRADE_CATEGORIES } from '@/lib/on-demand-categories';
 
@@ -33,7 +31,6 @@ interface JobPosting {
   subtitle: string;
   department: string;
   icon: string;
-  color: string;
   badge: string;
   type: 'tech' | 'trade';
   image: string;
@@ -87,7 +84,10 @@ export default function CareersPortalPage() {
   const [nationalIdNumber, setNationalIdNumber] = useState('');
   const [mobileMoneyProvider, setMobileMoneyProvider] = useState<'orange' | 'afrimoney'>('orange');
   const [mobileMoneyNumber, setMobileMoneyNumber] = useState('');
+  
+  // Document Upload States
   const [idCardPhotoPreview, setIdCardPhotoPreview] = useState<string | null>(null);
+  const [certificatePhotoPreview, setCertificatePhotoPreview] = useState<string | null>(null);
 
   // Submission State
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -114,11 +114,8 @@ export default function CareersPortalPage() {
     }
   }, [phone, sameAsPhone]);
 
-  // Compress ID Card image preview
-  const handleImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  // Image compressor helper
+  const processImageFile = (file: File, callback: (dataUrl: string) => void) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const dataUrl = event.target?.result as string;
@@ -126,7 +123,7 @@ export default function CareersPortalPage() {
 
       const img = new Image();
       img.onload = () => {
-        const maxWidth = 1000;
+        const maxWidth = 1200;
         let width = img.width;
         let height = img.height;
         if (width > maxWidth) {
@@ -139,20 +136,30 @@ export default function CareersPortalPage() {
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          setIdCardPhotoPreview(canvas.toDataURL('image/jpeg', 0.75));
+          callback(canvas.toDataURL('image/jpeg', 0.8));
         } else {
-          setIdCardPhotoPreview(dataUrl);
+          callback(dataUrl);
         }
       };
-      img.onerror = () => setIdCardPhotoPreview(dataUrl);
+      img.onerror = () => callback(dataUrl);
       img.src = dataUrl;
     };
     reader.readAsDataURL(file);
   };
 
+  const handleIdCardFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processImageFile(file, setIdCardPhotoPreview);
+  };
+
+  const handleCertificateFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processImageFile(file, setCertificatePhotoPreview);
+  };
+
   const handleApplyClick = (jobId: string) => {
     setSelectedJobId(jobId);
-    const formEl = document.getElementById('apply');
+    const formEl = document.getElementById('apply-form');
     if (formEl) {
       formEl.scrollIntoView({ behavior: 'smooth' });
     }
@@ -171,7 +178,7 @@ export default function CareersPortalPage() {
       return;
     }
     if (!residentialAddress.trim()) {
-      setErrorMsg('Residential address in Freetown is mandatory for verification');
+      setErrorMsg('Residential physical address in Freetown is mandatory for background verification');
       return;
     }
 
@@ -201,6 +208,7 @@ export default function CareersPortalPage() {
           workSummary: workSummary.trim() || undefined,
           nationalIdNumber: nationalIdNumber.trim() || undefined,
           idCardPhoto: idCardPhotoPreview || undefined,
+          certificatePhoto: certificatePhotoPreview || undefined,
           mobileMoneyProvider,
           mobileMoneyNumber: mobileMoneyNumber || phone,
         }),
@@ -235,144 +243,136 @@ export default function CareersPortalPage() {
   const selectedJob = jobs.find(j => j.id === selectedJobId) || jobs[0];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-red-600 selection:text-white">
+    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
       
-      {/* ── 1. HERO SECTION: RECRUITMENT DRIVE ── */}
-      <section className="relative overflow-hidden pt-12 pb-16 sm:pt-20 sm:pb-24 border-b border-slate-800 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950">
-        
-        {/* Ambient background glows */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-red-600/15 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute top-1/3 right-10 w-72 h-72 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none" />
-
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10 space-y-6 text-center">
+      {/* ── 1. PROFESSIONAL HEADER / HERO ── */}
+      <section className="bg-white border-b border-gray-200 pt-10 pb-12 sm:pt-14 sm:pb-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6">
           
-          {/* Top Tag Badges */}
-          <div className="inline-flex flex-wrap items-center justify-center gap-2">
-            <span className="px-3 py-1 rounded-full text-xs font-black bg-red-600/20 border border-red-500/40 text-red-400 uppercase tracking-widest flex items-center gap-1.5 shadow">
-              <Sparkles className="w-3.5 h-3.5 text-red-400" />
-              <span>BridgeTech Careers &amp; Recruitment</span>
+          {/* Top Status Badges */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="px-3 py-1 rounded-md text-xs font-bold bg-red-50 text-red-700 border border-red-200 uppercase tracking-wide">
+              BridgeTech Careers &amp; Recruitment
             </span>
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-400/10 border border-amber-400/30 text-amber-300">
-              ⚡ 20 Specialized Roles Available in Freetown
+            <span className="px-3 py-1 rounded-md text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+              Freetown, Sierra Leone · 20 Specialized Roles
             </span>
           </div>
 
-          {/* Headline */}
-          <div className="space-y-3 max-w-4xl mx-auto">
-            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tight uppercase leading-none">
-              Turn Your Skills Into <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-amber-400 to-yellow-400">Guaranteed Income</span>
+          {/* Clean Main Title */}
+          <div className="space-y-3 max-w-3xl">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-950 tracking-tight leading-tight">
+              Join Our Verified Technician &amp; Artisan Network
             </h1>
-            <p className="text-sm sm:text-base md:text-lg text-slate-300 font-medium max-w-2xl mx-auto leading-relaxed">
-              Join Freetown’s #1 On-Demand Tech &amp; Artisan Network. Receive steady customer repair jobs, keep <strong>85% take-home pay</strong>, and get weekly mobile money settlements.
+            <p className="text-base sm:text-lg text-gray-600 leading-relaxed font-normal">
+              BridgeTech connects certified trade professionals and electronics technicians with daily residential and commercial jobs across Freetown. Receive reliable bookings, keep <strong>85% take-home pay</strong>, and get weekly mobile money payouts.
             </p>
           </div>
 
-          {/* Action CTAs */}
-          <div className="pt-2 flex flex-wrap items-center justify-center gap-3.5">
+          {/* Clean Action Buttons */}
+          <div className="pt-2 flex flex-wrap items-center gap-3">
             <a
-              href="#apply"
-              className="px-6 py-3.5 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-black text-sm transition-all shadow-xl shadow-red-600/25 hover:scale-105 active:scale-95 flex items-center gap-2"
+              href="#apply-form"
+              className="px-5 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-sm transition-colors shadow-sm inline-flex items-center gap-2"
             >
-              <span>Apply Online (2-Min Form)</span>
+              <span>Apply Online</span>
               <ArrowRight className="w-4 h-4" />
             </a>
 
             <button
               onClick={() => setFlyerModalOpen(true)}
               type="button"
-              className="px-5 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-white border border-slate-700 font-bold text-sm transition-all flex items-center gap-2"
+              className="px-4 py-2.5 rounded-lg bg-white hover:bg-gray-50 text-gray-800 border border-gray-300 font-semibold text-sm transition-colors shadow-xs inline-flex items-center gap-2"
             >
-              <FileText className="w-4 h-4 text-amber-400" />
-              <span>View / Print Advert Flyer</span>
+              <FileText className="w-4 h-4 text-red-600" />
+              <span>View Advert Flyer</span>
             </button>
 
             <Link
               href="/careers/flyer"
-              className="px-4 py-3.5 rounded-2xl bg-slate-900/60 hover:bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 text-xs font-bold transition-all flex items-center gap-1.5"
+              target="_blank"
+              className="px-3.5 py-2.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium transition-colors inline-flex items-center gap-1.5"
             >
               <ExternalLink className="w-3.5 h-3.5" />
-              <span>Flyer Fullpage</span>
+              <span>Printable Full Page</span>
             </Link>
           </div>
 
-          {/* 4 Pillars of Why Work With BridgeTech */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 max-w-4xl mx-auto pt-6 text-left">
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800/80 backdrop-blur-sm space-y-1">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm font-bold">
-                <Wallet className="w-4 h-4" />
+          {/* 4 Clean Value Pillars */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-100">
+            <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 space-y-1">
+              <div className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                <Wallet className="w-4 h-4 text-emerald-600" />
+                <span>Keep 85% Take-Home</span>
               </div>
-              <h4 className="text-xs font-black text-white">Keep 85% Net</h4>
-              <p className="text-[11px] text-slate-400 leading-snug">Fair platform commission. Highest technician payout in Sierra Leone.</p>
+              <p className="text-xs text-gray-600">Standard 15% platform commission on completed call-outs.</p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800/80 backdrop-blur-sm space-y-1">
-              <div className="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-sm font-bold">
-                <Clock className="w-4 h-4" />
+            <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 space-y-1">
+              <div className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-blue-600" />
+                <span>Weekly Settlements</span>
               </div>
-              <h4 className="text-xs font-black text-white">Weekly Settlements</h4>
-              <p className="text-[11px] text-slate-400 leading-snug">Direct payout every Friday to your Orange Money or Afrimoney account.</p>
+              <p className="text-xs text-gray-600">Direct cashout to your Orange Money or Afrimoney account.</p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800/80 backdrop-blur-sm space-y-1">
-              <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm font-bold">
-                <ShieldCheck className="w-4 h-4" />
+            <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 space-y-1">
+              <div className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-amber-600" />
+                <span>14-Day Warranty Backing</span>
               </div>
-              <h4 className="text-xs font-black text-white">14-Day Warranty</h4>
-              <p className="text-[11px] text-slate-400 leading-snug">Official BridgeTech guarantee gives customers confidence to hire you.</p>
+              <p className="text-xs text-gray-600">BridgeTech backs your craftsmanship with a standard customer warranty.</p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800/80 backdrop-blur-sm space-y-1">
-              <div className="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-sm font-bold">
-                <MapPin className="w-4 h-4" />
+            <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 space-y-1">
+              <div className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                <MapPin className="w-4 h-4 text-red-600" />
+                <span>Local Freetown Jobs</span>
               </div>
-              <h4 className="text-xs font-black text-white">Local Call-Outs</h4>
-              <p className="text-[11px] text-slate-400 leading-snug">Jobs assigned close to your home base (Lumley, Kissy, Central, etc.).</p>
+              <p className="text-xs text-gray-600">Dispatched to call-outs within or near your residential zone.</p>
             </div>
           </div>
 
         </div>
-
       </section>
 
       {/* ── 2. JOBS DIRECTORY SECTION ── */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12 space-y-8">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-6">
         
-        {/* Section Header & Search */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-800 pb-5">
+        {/* Navigation & Search Bar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 pb-4">
           <div>
-            <span className="text-xs font-bold text-red-500 uppercase tracking-widest block">Available Positions</span>
-            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Explore 20 Specialized Roles
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-950">
+              Open Positions ({TRADE_CATEGORIES.length})
             </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Select a job card to view requirements and auto-populate your application form.
+            <p className="text-xs text-gray-600 mt-0.5">
+              Click &ldquo;Apply for Role&rdquo; on any position to quickly fill the form below.
             </p>
           </div>
 
-          {/* Search Input */}
           <div className="relative w-full md:w-72">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search trade, skill or tool..."
+              placeholder="Search by job title or tools..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500 transition-colors"
+              className="w-full pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-colors"
             />
           </div>
         </div>
 
-        {/* Department Filter Tabs */}
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Clean Department Tabs */}
+        <div className="flex flex-wrap items-center gap-1.5">
           {departments.map(dept => (
             <button
               key={dept}
               onClick={() => setSelectedDepartment(dept)}
               type="button"
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                 selectedDepartment === dept
-                  ? 'bg-red-600 text-white shadow-md'
-                  : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800 hover:bg-slate-850'
+                  ? 'bg-gray-900 text-white shadow-xs'
+                  : 'bg-white text-gray-600 hover:text-gray-900 border border-gray-200 hover:bg-gray-50'
               }`}
             >
               {dept === 'all' ? 'All Roles (20)' : dept}
@@ -382,17 +382,17 @@ export default function CareersPortalPage() {
 
         {/* Jobs Grid */}
         {loadingJobs ? (
-          <div className="p-12 text-center text-slate-500 text-xs flex items-center justify-center gap-2">
-            <i className="fas fa-circle-notch fa-spin text-red-500" />
-            <span>Loading active job postings...</span>
+          <div className="p-12 text-center text-gray-500 text-xs flex items-center justify-center gap-2">
+            <i className="fas fa-circle-notch fa-spin text-red-600" />
+            <span>Loading open roles...</span>
           </div>
         ) : filteredJobs.length === 0 ? (
-          <div className="p-12 text-center bg-slate-900/40 rounded-3xl border border-slate-800 text-slate-400 space-y-2">
-            <AlertCircle className="w-8 h-8 text-slate-600 mx-auto" />
-            <p className="text-sm font-bold">No jobs matching &ldquo;{searchQuery}&rdquo;</p>
+          <div className="p-10 text-center bg-white rounded-xl border border-gray-200 text-gray-500 space-y-2">
+            <AlertCircle className="w-6 h-6 text-gray-400 mx-auto" />
+            <p className="text-sm font-semibold">No positions found matching &ldquo;{searchQuery}&rdquo;</p>
             <button
               onClick={() => { setSearchQuery(''); setSelectedDepartment('all'); }}
-              className="text-xs text-red-400 hover:underline font-semibold"
+              className="text-xs text-red-600 font-bold hover:underline"
             >
               Clear filters
             </button>
@@ -405,94 +405,79 @@ export default function CareersPortalPage() {
               return (
                 <div
                   key={job.id}
-                  className={`rounded-3xl border transition-all duration-300 flex flex-col bg-slate-900 overflow-hidden group ${
+                  className={`rounded-xl border bg-white overflow-hidden transition-all flex flex-col justify-between ${
                     isSelected
-                      ? 'border-red-500 ring-2 ring-red-500/30 shadow-xl shadow-red-500/10'
-                      : 'border-slate-800 hover:border-slate-700 hover:shadow-xl'
+                      ? 'border-red-600 ring-2 ring-red-600/20 shadow-md'
+                      : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
                   }`}
                 >
-                  {/* Photo Header */}
-                  <div className="relative h-44 overflow-hidden bg-slate-950">
-                    <img
-                      src={job.image}
-                      alt={job.title}
-                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 opacity-80"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
-
-                    {/* Floating Badges */}
-                    <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/75 backdrop-blur-md text-white border border-white/20">
-                        {job.badge}
-                      </span>
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-400 text-slate-950 shadow">
-                        85% Take-Home
-                      </span>
+                  <div>
+                    {/* Image Header */}
+                    <div className="relative h-40 overflow-hidden bg-gray-100">
+                      <img
+                        src={job.image}
+                        alt={job.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                      <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-900/80 text-white backdrop-blur-xs">
+                          {job.badge}
+                        </span>
+                      </div>
+                      <div className="absolute top-2.5 right-2.5">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-700 text-white">
+                          Keep 85%
+                        </span>
+                      </div>
                     </div>
 
-                    {/* Title on Image */}
-                    <div className="absolute bottom-3 left-3 right-3 flex items-end gap-2.5">
-                      <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${job.color} flex items-center justify-center text-white shrink-0 shadow-md`}>
-                        <i className={`${job.icon} text-sm`} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-black text-sm text-white leading-tight drop-shadow-sm truncate">
+                    {/* Job Details */}
+                    <div className="p-4 space-y-2.5">
+                      <div>
+                        <h3 className="font-bold text-base text-gray-900">
                           {job.title}
                         </h3>
-                        <p className="text-[10px] text-slate-300 truncate font-medium">
+                        <p className="text-[11px] font-medium text-gray-500">
                           {job.department}
                         </p>
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Body */}
-                  <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4">
-                    <div className="space-y-3">
-                      <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">
+                      <p className="text-xs text-gray-600 leading-relaxed line-clamp-2">
                         {job.subtitle}
                       </p>
 
-                      {/* Earnings Estimate */}
-                      <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-[11px] flex items-center justify-between text-slate-300">
-                        <span className="text-slate-400 font-medium">Est. Pay:</span>
-                        <strong className="text-emerald-400 font-bold">{job.payEstimate}</strong>
-                      </div>
-
-                      {/* Key Requirements */}
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
-                          Must Know:
+                      <div className="pt-2 border-t border-gray-100 space-y-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wide text-gray-400 block">
+                          Key Requirements:
                         </span>
                         {job.requirements.slice(0, 2).map((req, rIdx) => (
-                          <div key={rIdx} className="flex items-center gap-1.5 text-[11px] text-slate-400">
-                            <CheckCircle className="w-3 h-3 text-red-500 shrink-0" />
+                          <div key={rIdx} className="flex items-center gap-1.5 text-xs text-gray-700">
+                            <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                             <span className="truncate">{req}</span>
                           </div>
                         ))}
                       </div>
                     </div>
+                  </div>
 
-                    {/* Action Button */}
-                    <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between gap-2">
-                      <span className="text-[10px] text-slate-500 flex items-center gap-1 font-medium">
-                        <MapPin className="w-3 h-3 text-slate-400" /> Freetown
-                      </span>
+                  {/* Card Footer */}
+                  <div className="p-4 pt-0 border-t border-gray-50 flex items-center justify-between gap-2 mt-2">
+                    <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-1 rounded">
+                      {job.payEstimate}
+                    </span>
 
-                      <button
-                        onClick={() => handleApplyClick(job.id)}
-                        type="button"
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
-                          isSelected
-                            ? 'bg-red-600 text-white shadow-md'
-                            : 'bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white'
-                        }`}
-                      >
-                        <span>{isSelected ? '✓ Selected' : 'Apply for Role'}</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => handleApplyClick(job.id)}
+                      type="button"
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                        isSelected
+                          ? 'bg-red-600 text-white'
+                          : 'bg-gray-100 hover:bg-red-600 text-gray-800 hover:text-white'
+                      }`}
+                    >
+                      {isSelected ? '✓ Selected' : 'Apply'}
+                    </button>
                   </div>
                 </div>
               );
@@ -503,23 +488,22 @@ export default function CareersPortalPage() {
       </section>
 
       {/* ── 3. CANDIDATE APPLICATION FORM ── */}
-      <section id="apply" className="max-w-4xl mx-auto px-4 sm:px-6 py-12 space-y-8 scroll-mt-10">
+      <section id="apply-form" className="max-w-3xl mx-auto px-4 sm:px-6 py-10 space-y-6 scroll-mt-6">
         
-        <div className="bg-slate-900 border-2 border-slate-800 rounded-3xl p-6 sm:p-10 space-y-8 shadow-2xl relative">
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
           
-          {/* Header */}
-          <div className="border-b border-slate-800 pb-5 space-y-1">
-            <span className="text-xs font-bold text-red-500 uppercase tracking-widest">Candidate Registration Portal</span>
-            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Submit Your Job Application
+          <div className="border-b border-gray-200 pb-4 space-y-1">
+            <span className="text-xs font-bold text-red-600 uppercase tracking-wide">Step-by-Step Registration</span>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-950">
+              Submit Job Application
             </h2>
-            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-              Applying for: <strong className="text-white">{selectedJob?.title || 'Selected Trade'}</strong>. Fill in your genuine details. Applications are vetted within 48 to 72 hours.
+            <p className="text-xs text-gray-600">
+              Applying for: <strong className="text-gray-900">{selectedJob?.title || 'Selected Trade'}</strong>. Complete the form below to apply.
             </p>
           </div>
 
           {errorMsg && (
-            <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
+            <div className="p-3.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{errorMsg}</span>
             </div>
@@ -527,17 +511,17 @@ export default function CareersPortalPage() {
 
           <form onSubmit={handleSubmitApplication} className="space-y-6">
             
-            {/* ── STEP 1: JOB ROLE SELECTION ── */}
+            {/* 1. Job Role Selection */}
             <div className="space-y-3">
-              <label className="text-xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                <Briefcase className="w-4 h-4 text-red-500" />
-                <span>1. Select Primary Job Role Applying For *</span>
+              <label className="text-xs font-bold uppercase tracking-wide text-gray-700 flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-red-600" />
+                <span>1. Primary Job Role Applying For *</span>
               </label>
 
               <select
                 value={selectedJobId}
                 onChange={e => setSelectedJobId(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-2xl text-xs sm:text-sm text-white font-medium focus:outline-none focus:border-red-500"
+                className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-lg text-xs sm:text-sm text-gray-900 font-medium focus:outline-none focus:border-red-600"
               >
                 {TRADE_CATEGORIES.map(cat => (
                   <option key={cat.id} value={cat.id}>
@@ -547,60 +531,60 @@ export default function CareersPortalPage() {
               </select>
 
               <div>
-                <label className="text-[11px] font-bold text-slate-400 block mb-1">
-                  Secondary Skills / Additional Trades (Optional)
+                <label className="text-xs font-medium text-gray-600 block mb-1">
+                  Secondary Skills / Other Trades You Can Perform (Optional)
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Also experienced with inverter batteries, auto wiring, wall tiling"
+                  placeholder="e.g. Also experienced with solar inverters, basic plumbing, auto diagnostics"
                   value={secondarySkills}
                   onChange={e => setSecondarySkills(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-600 focus:outline-none focus:border-red-500"
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-red-600"
                 />
               </div>
             </div>
 
-            {/* ── STEP 2: PERSONAL & CONTACT INFO ── */}
-            <div className="space-y-4 pt-4 border-t border-slate-800">
-              <label className="text-xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                <User className="w-4 h-4 text-red-500" />
+            {/* 2. Personal & Contact Details */}
+            <div className="space-y-4 pt-4 border-t border-gray-200">
+              <label className="text-xs font-bold uppercase tracking-wide text-gray-700 flex items-center gap-2">
+                <User className="w-4 h-4 text-red-600" />
                 <span>2. Personal &amp; Contact Details *</span>
               </label>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-300">Full Legal Name *</label>
+                  <label className="text-xs font-semibold text-gray-700">Full Legal Name *</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. Mohamed A. Kamara"
                     value={fullName}
                     onChange={e => setFullName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-red-500"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:border-red-600"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-300">Active Calling Phone Number *</label>
+                  <label className="text-xs font-semibold text-gray-700">Phone Calling Number *</label>
                   <input
                     type="tel"
                     required
                     placeholder="e.g. +232 76 123456 or 076123456"
                     value={phone}
                     onChange={e => setPhone(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-red-500"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:border-red-600"
                   />
                 </div>
 
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <label className="text-[11px] font-bold text-slate-300">WhatsApp Number *</label>
-                    <label className="text-[10px] text-slate-400 flex items-center gap-1 cursor-pointer">
+                    <label className="text-xs font-semibold text-gray-700">WhatsApp Number *</label>
+                    <label className="text-[11px] text-gray-500 flex items-center gap-1 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={sameAsPhone}
                         onChange={e => setSameAsPhone(e.target.checked)}
-                        className="rounded bg-slate-900 border-slate-700 text-red-600 focus:ring-0"
+                        className="rounded border-gray-300 text-red-600"
                       />
                       <span>Same as phone</span>
                     </label>
@@ -611,30 +595,30 @@ export default function CareersPortalPage() {
                     placeholder="e.g. +232 76 123456"
                     value={whatsapp}
                     onChange={e => { setWhatsapp(e.target.value); setSameAsPhone(false); }}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-red-500"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:border-red-600"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-300">Email Address (Optional)</label>
+                  <label className="text-xs font-semibold text-gray-700">Email Address (Optional)</label>
                   <input
                     type="email"
-                    placeholder="e.g. name@gmail.com"
+                    placeholder="e.g. yourname@gmail.com"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-red-500"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:border-red-600"
                   />
                 </div>
               </div>
 
-              {/* Location & Address */}
+              {/* Area & Address */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-300">Primary Area / Neighborhood in Freetown *</label>
+                  <label className="text-xs font-semibold text-gray-700">Area in Freetown *</label>
                   <select
                     value={locationArea}
                     onChange={e => setLocationArea(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-red-500"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:border-red-600"
                   >
                     {FREETOWN_AREAS.map(a => (
                       <option key={a} value={a}>{a}</option>
@@ -643,11 +627,11 @@ export default function CareersPortalPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-300">Gender</label>
+                  <label className="text-xs font-semibold text-gray-700">Gender</label>
                   <select
                     value={gender}
                     onChange={e => setGender(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-red-500"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:border-red-600"
                   >
                     <option value="male">Male</option>
                     <option value="female">Female</option>
@@ -657,9 +641,9 @@ export default function CareersPortalPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-300 flex items-center justify-between">
-                  <span>Exact Residential Physical Address (Mandatory) *</span>
-                  <span className="text-[10px] text-red-400">Required for background verification</span>
+                <label className="text-xs font-semibold text-gray-700 flex items-center justify-between">
+                  <span>Residential Physical Address in Freetown (Mandatory) *</span>
+                  <span className="text-[10px] text-red-600 font-medium">Required for vetting</span>
                 </label>
                 <input
                   type="text"
@@ -667,25 +651,25 @@ export default function CareersPortalPage() {
                   placeholder="e.g. 14 Sanders Street, Off Campbell Street, Freetown"
                   value={residentialAddress}
                   onChange={e => setResidentialAddress(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-red-500"
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:border-red-600"
                 />
               </div>
             </div>
 
-            {/* ── STEP 3: EXPERIENCE, TOOLS & AVAILABILITY ── */}
-            <div className="space-y-4 pt-4 border-t border-slate-800">
-              <label className="text-xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                <Wrench className="w-4 h-4 text-red-500" />
-                <span>3. Craftsmanship, Tools &amp; Mobility *</span>
+            {/* 3. Craftsmanship, Tools & Experience */}
+            <div className="space-y-4 pt-4 border-t border-gray-200">
+              <label className="text-xs font-bold uppercase tracking-wide text-gray-700 flex items-center gap-2">
+                <Wrench className="w-4 h-4 text-red-600" />
+                <span>3. Craftsmanship, Tools &amp; Experience *</span>
               </label>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-300">Years of Field Experience *</label>
+                  <label className="text-xs font-semibold text-gray-700">Years of Field Experience *</label>
                   <select
                     value={yearsExperience}
                     onChange={e => setYearsExperience(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-red-500"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:border-red-600"
                   >
                     <option value="1-2">1 to 2 Years</option>
                     <option value="3-5">3 to 5 Years</option>
@@ -695,11 +679,11 @@ export default function CareersPortalPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-300">Tool Ownership Status *</label>
+                  <label className="text-xs font-semibold text-gray-700">Tool Ownership *</label>
                   <select
                     value={toolOwnership}
                     onChange={e => setToolOwnership(e.target.value as any)}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-red-500"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:border-red-600"
                   >
                     <option value="fully_equipped">Fully Equipped (All trade tools)</option>
                     <option value="basic_tools">Basic Hand/Power Tools</option>
@@ -709,62 +693,179 @@ export default function CareersPortalPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-300">How You Travel to Jobs *</label>
+                  <label className="text-xs font-semibold text-gray-700">Mode of Transport *</label>
                   <select
                     value={transportMode}
                     onChange={e => setTransportMode(e.target.value as any)}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-red-500"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:border-red-600"
                   >
                     <option value="motorbike">Own Motorbike / Okada</option>
-                    <option value="commercial">Commercial Transport (Keke / Poda-Poda)</option>
+                    <option value="commercial">Commercial (Keke / Poda-Poda)</option>
                     <option value="private_car">Private Vehicle</option>
-                    <option value="on_foot">On Foot (Within immediate neighborhood)</option>
+                    <option value="on_foot">On Foot (Immediate Neighborhood)</option>
                   </select>
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-300">Availability *</label>
+                <label className="text-xs font-semibold text-gray-700">Availability *</label>
                 <select
                   value={availability}
                   onChange={e => setAvailability(e.target.value as any)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-red-500"
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:border-red-600"
                 >
-                  <option value="immediate_fulltime">Immediate Full-Time (Ready for daily call-outs)</option>
+                  <option value="immediate_fulltime">Immediate Full-Time (Ready for daily jobs)</option>
                   <option value="emergency_oncall">Emergency On-Call (Fast 2-hour response)</option>
-                  <option value="part_time">Part-Time (Selected days / afternoons)</option>
+                  <option value="part_time">Part-Time (Selected days)</option>
                   <option value="weekends_only">Weekends Only</option>
                 </select>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-300">
-                  Brief Summary of Past Projects &amp; Work Experience (Optional)
+                <label className="text-xs font-semibold text-gray-700">
+                  Summary of Past Projects &amp; Work Experience (Optional)
                 </label>
                 <textarea
                   rows={3}
-                  placeholder="e.g. Repaired HP printers at Sierra Leone commercial banks, installed 5kVA solar systems at Goderich residences, 4 years experience with Perkins diesel generators..."
+                  placeholder="e.g. Worked 3 years repairing HP & Canon photocopiers at offices, installed domestic solar systems in Goderich..."
                   value={workSummary}
                   onChange={e => setWorkSummary(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-600 focus:outline-none focus:border-red-500"
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-red-600"
                 />
               </div>
             </div>
 
-            {/* ── STEP 4: PAYOUT & IDENTIFICATION ── */}
-            <div className="space-y-4 pt-4 border-t border-slate-800">
-              <label className="text-xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                <Wallet className="w-4 h-4 text-red-500" />
-                <span>4. Payout Account &amp; National ID Verification</span>
+            {/* 4. Document & Certification Uploads */}
+            <div className="space-y-4 pt-4 border-t border-gray-200">
+              <label className="text-xs font-bold uppercase tracking-wide text-gray-700 flex items-center gap-2">
+                <Award className="w-4 h-4 text-red-600" />
+                <span>4. Professional Certification &amp; ID Uploads</span>
+              </label>
+
+              {/* CERTIFICATION UPLOAD (New Feature) */}
+              <div className="p-4 rounded-xl border border-dashed border-gray-300 bg-gray-50/50 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <label className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                      <Award className="w-4 h-4 text-amber-600" />
+                      <span>Trade / Professional Certification (Recommended)</span>
+                    </label>
+                    <p className="text-[11px] text-gray-500 mt-0.5">
+                      Upload photo or scan of your certificate (NCTVA, City &amp; Guilds, TVET, Trade Test Certificate, Ministry of Labour certificate, or master apprenticeship testimonial).
+                    </p>
+                  </div>
+                  {certificatePhotoPreview && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                      Uploaded ✓
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3 pt-1">
+                  <label className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 text-xs font-semibold text-gray-800 cursor-pointer transition-colors shadow-xs">
+                    <Upload className="w-3.5 h-3.5 text-gray-600" />
+                    <span>Choose Certificate File (JPG/PNG)</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleCertificateFile}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {certificatePhotoPreview && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-md overflow-hidden border border-gray-300 bg-white">
+                        <img src={certificatePhotoPreview} alt="Certificate preview" className="w-full h-full object-cover" />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setCertificatePhotoPreview(null)}
+                        className="text-xs text-red-600 hover:underline font-semibold"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* NATIONAL ID UPLOAD */}
+              <div className="p-4 rounded-xl border border-dashed border-gray-300 bg-gray-50/50 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <label className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-blue-600" />
+                      <span>National ID Card / Passport / Voter Card</span>
+                    </label>
+                    <p className="text-[11px] text-gray-500 mt-0.5">
+                      Upload photo of your valid national ID card, passport, driver license, or voter registration card for verification.
+                    </p>
+                  </div>
+                  {idCardPhotoPreview && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                      Uploaded ✓
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3 pt-1">
+                  <label className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 text-xs font-semibold text-gray-800 cursor-pointer transition-colors shadow-xs">
+                    <Upload className="w-3.5 h-3.5 text-gray-600" />
+                    <span>Choose ID Photo (JPG/PNG)</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleIdCardFile}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {idCardPhotoPreview && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-md overflow-hidden border border-gray-300 bg-white">
+                        <img src={idCardPhotoPreview} alt="ID preview" className="w-full h-full object-cover" />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIdCardPhotoPreview(null)}
+                        className="text-xs text-red-600 hover:underline font-semibold"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-gray-700">
+                  National ID / NIN / Voter Card Number (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. SL-ID-8492048"
+                  value={nationalIdNumber}
+                  onChange={e => setNationalIdNumber(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:border-red-600"
+                />
+              </div>
+            </div>
+
+            {/* 5. Mobile Money Payout Account */}
+            <div className="space-y-4 pt-4 border-t border-gray-200">
+              <label className="text-xs font-bold uppercase tracking-wide text-gray-700 flex items-center gap-2">
+                <Wallet className="w-4 h-4 text-red-600" />
+                <span>5. Weekly Payout Account *</span>
               </label>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-300">Weekly Payout Mobile Money Provider *</label>
+                  <label className="text-xs font-semibold text-gray-700">Mobile Money Provider *</label>
                   <select
                     value={mobileMoneyProvider}
                     onChange={e => setMobileMoneyProvider(e.target.value as any)}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-red-500"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:border-red-600"
                   >
                     <option value="orange">Orange Money</option>
                     <option value="afrimoney">Afrimoney</option>
@@ -772,88 +873,36 @@ export default function CareersPortalPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-300">Mobile Money Registered Number *</label>
+                  <label className="text-xs font-semibold text-gray-700">Registered Payout Number *</label>
                   <input
                     type="tel"
                     placeholder="e.g. 076123456"
                     value={mobileMoneyNumber}
                     onChange={e => setMobileMoneyNumber(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-red-500"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:border-red-600"
                   />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-300">
-                  National ID / NIN / Voter Card / Passport Number (Optional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. SL-ID-8492048"
-                  value={nationalIdNumber}
-                  onChange={e => setNationalIdNumber(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-red-500"
-                />
-              </div>
-
-              {/* ID Card Photo Upload */}
-              <div className="space-y-2">
-                <label className="text-[11px] font-bold text-slate-300 flex items-center justify-between">
-                  <span>Photo of ID Card / Certificate / Work Sample (Optional)</span>
-                  <span className="text-[10px] text-slate-500">Supports JPG, PNG</span>
-                </label>
-
-                <div className="flex items-center gap-3">
-                  <label className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 cursor-pointer text-xs font-bold text-slate-300 hover:text-white transition-all">
-                    <Upload className="w-3.5 h-3.5 text-red-500" />
-                    <span>Upload ID or Work Photo</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageFile}
-                      className="hidden"
-                    />
-                  </label>
-
-                  {idCardPhotoPreview && (
-                    <div className="flex items-center gap-2">
-                      <div className="w-10 h-10 rounded-lg overflow-hidden border border-emerald-500/50">
-                        <img src={idCardPhotoPreview} alt="Preview" className="w-full h-full object-cover" />
-                      </div>
-                      <span className="text-xs font-bold text-emerald-400">Photo attached ✓</span>
-                      <button
-                        type="button"
-                        onClick={() => setIdCardPhotoPreview(null)}
-                        className="text-slate-500 hover:text-red-400 text-xs ml-1"
-                      >
-                        &times; Remove
-                      </button>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
 
-            {/* Terms & Submission */}
-            <div className="pt-4 border-t border-slate-800 space-y-4">
-              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800/80 text-[11px] text-slate-400 leading-relaxed">
-                By submitting this application, you declare that all information provided is true and accurate. You agree to undergo standard identity verification and adhere to the <strong>BridgeTech 14-Day Customer Warranty &amp; Quality Standard</strong>.
-              </div>
+            {/* Declaration & Submission */}
+            <div className="pt-4 border-t border-gray-200 space-y-3">
+              <p className="text-[11px] text-gray-500 leading-relaxed">
+                By submitting, you certify that all information provided is accurate and true. You agree to undergo standard identity verification and adhere to the BridgeTech 14-Day Customer Warranty &amp; Professional Service Standards.
+              </p>
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 via-red-500 to-rose-600 hover:from-red-500 hover:to-rose-500 disabled:opacity-50 text-white font-black text-sm uppercase tracking-wider transition-all shadow-xl shadow-red-600/30 flex items-center justify-center gap-2"
+                className="w-full py-3.5 px-6 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold text-sm uppercase tracking-wide transition-colors shadow-sm flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>
                     <i className="fas fa-circle-notch fa-spin text-sm" />
-                    <span>Submitting Application to Recruitment Team...</span>
+                    <span>Submitting Application...</span>
                   </>
                 ) : (
-                  <>
-                    <span>Submit Official Application &rarr;</span>
-                  </>
+                  <span>Submit Application</span>
                 )}
               </button>
             </div>
@@ -866,49 +915,44 @@ export default function CareersPortalPage() {
 
       {/* ── 4. SUCCESS CONFIRMATION MODAL ── */}
       {successTrackingId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
-          <div className="bg-slate-950 border-2 border-emerald-500/40 rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 text-center shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white border border-gray-200 rounded-2xl max-w-md w-full p-6 text-center space-y-5 shadow-xl">
             
-            <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto text-2xl shadow-lg">
-              <CheckCircle className="w-8 h-8" />
+            <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto text-xl font-bold">
+              <Check className="w-6 h-6" />
             </div>
 
-            <div className="space-y-2">
-              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                Application Received Successfully
-              </span>
-              <h3 className="text-2xl font-black text-white">
-                Welcome to BridgeTech Recruitment!
+            <div className="space-y-1.5">
+              <h3 className="text-xl font-bold text-gray-950">
+                Application Received
               </h3>
-              <p className="text-xs text-slate-300 leading-relaxed max-w-sm mx-auto">
-                Thank you, <strong>{fullName}</strong>. Your candidate file has been registered under:
+              <p className="text-xs text-gray-600 max-w-sm mx-auto leading-relaxed">
+                Thank you, <strong>{fullName}</strong>. Your candidate file has been recorded under reference ID:
               </p>
             </div>
 
-            {/* Reference Badge */}
-            <div className="p-3.5 bg-slate-900 border border-slate-800 rounded-2xl">
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
-                Official Application Reference ID
+            <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl">
+              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">
+                Application Tracking ID
               </span>
-              <div className="text-xl font-mono font-black text-amber-400 tracking-wider">
+              <div className="text-lg font-mono font-bold text-red-600">
                 {successTrackingId}
               </div>
             </div>
 
-            <div className="text-[11px] text-slate-400 space-y-1">
-              <p>📅 <strong>Next Steps:</strong> Our Freetown recruitment officers will review your craftsmanship file and call you within <strong>48 to 72 hours</strong> for a quick telephone or in-person interview.</p>
-            </div>
+            <p className="text-xs text-gray-500 leading-normal">
+              Our recruitment team will review your qualifications and contact you within <strong>48 to 72 hours</strong>.
+            </p>
 
-            {/* Quick Actions */}
-            <div className="pt-2 flex flex-col sm:flex-row gap-3">
+            <div className="pt-2 flex flex-col sm:flex-row gap-2.5">
               <a
-                href={`https://wa.me/23233399391?text=${encodeURIComponent(`Hello BridgeTech Recruitment, I just submitted my application for ${selectedJob?.title} (Ref: ${successTrackingId}). My name is ${fullName}.`)}`}
+                href={`https://wa.me/23233399391?text=${encodeURIComponent(`Hello BridgeTech Recruitment, I submitted an application for ${selectedJob?.title} (Ref: ${successTrackingId}). Name: ${fullName}.`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition-all shadow-md flex items-center justify-center gap-1.5"
+                className="flex-1 py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
               >
                 <i className="fab fa-whatsapp text-sm" />
-                <span>Confirm on WhatsApp</span>
+                <span>Message Recruiter</span>
               </a>
 
               <button
@@ -918,10 +962,12 @@ export default function CareersPortalPage() {
                   setFullName('');
                   setPhone('');
                   setResidentialAddress('');
+                  setCertificatePhotoPreview(null);
+                  setIdCardPhotoPreview(null);
                 }}
-                className="py-3 px-5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-bold"
+                className="py-2.5 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold"
               >
-                Done / Close
+                Close
               </button>
             </div>
 
@@ -929,22 +975,21 @@ export default function CareersPortalPage() {
         </div>
       )}
 
-      {/* ── 5. ADVERT FLYER PREVIEW / PRINT MODAL ── */}
+      {/* ── 5. FLYER PREVIEW MODAL ── */}
       {flyerModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-md">
-          <div className="bg-slate-950 border border-slate-800 rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white border border-gray-200 rounded-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden shadow-xl">
             
-            {/* Modal Bar */}
-            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900">
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
               <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-red-500" />
-                <h3 className="text-sm font-black text-white">BridgeTech Recruitment Advert Flyer</h3>
+                <FileText className="w-4 h-4 text-red-600" />
+                <h3 className="text-sm font-bold text-gray-900">Official Recruitment Advert Flyer</h3>
               </div>
 
               <div className="flex items-center gap-2">
                 <Link
                   href="/careers/flyer"
-                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white flex items-center gap-1"
+                  className="px-3 py-1.5 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 text-xs font-semibold text-gray-800 flex items-center gap-1"
                 >
                   <ExternalLink className="w-3 h-3" />
                   <span>Open Standalone</span>
@@ -953,30 +998,29 @@ export default function CareersPortalPage() {
                 <button
                   type="button"
                   onClick={() => setFlyerModalOpen(false)}
-                  className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 hover:text-white"
+                  className="w-8 h-8 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-gray-700"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            {/* Flyer Iframe or Scrollable View */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-100">
               <iframe
                 src="/careers/flyer"
                 title="Career Advert Flyer"
-                className="w-full h-[650px] rounded-2xl border border-slate-800 bg-slate-900"
+                className="w-full h-[650px] rounded-xl border border-gray-300 bg-white"
               />
             </div>
 
-            <div className="p-3 border-t border-slate-800 bg-slate-900/80 flex items-center justify-between text-xs text-slate-400">
-              <span>Recruitment hotline: +232 33 399391 · 24 Rawdon St, Freetown</span>
+            <div className="p-3 border-t border-gray-200 bg-white flex items-center justify-between text-xs text-gray-500">
+              <span>Recruitment hotline: +232 33 399391 · Freetown, Sierra Leone</span>
               <button
                 type="button"
                 onClick={() => setFlyerModalOpen(false)}
-                className="px-4 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold"
+                className="px-4 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold"
               >
-                Close Preview
+                Done
               </button>
             </div>
 

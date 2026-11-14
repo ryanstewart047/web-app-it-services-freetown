@@ -24,6 +24,7 @@ export interface JobApplication {
   pastWorkPhotos?: string[]; // base64 or photo URLs
   nationalIdNumber?: string;
   idCardPhoto?: string;
+  certificatePhoto?: string;
   resumeUrlOrData?: string;
   mobileMoneyProvider: 'orange' | 'afrimoney';
   mobileMoneyNumber: string;
@@ -83,6 +84,7 @@ export async function ensureCareersTables(): Promise<boolean> {
         "pastWorkPhotos" TEXT,
         "nationalIdNumber" TEXT,
         "idCardPhoto" TEXT,
+        "certificatePhoto" TEXT,
         "resumeUrlOrData" TEXT,
         "mobileMoneyProvider" TEXT NOT NULL DEFAULT 'orange',
         "mobileMoneyNumber" TEXT NOT NULL,
@@ -97,6 +99,8 @@ export async function ensureCareersTables(): Promise<boolean> {
       CREATE INDEX IF NOT EXISTS "job_applications_jobId_idx" ON "job_applications"("jobId");
       CREATE INDEX IF NOT EXISTS "job_applications_status_idx" ON "job_applications"("status");
       CREATE INDEX IF NOT EXISTS "job_applications_createdAt_idx" ON "job_applications"("createdAt" DESC);
+
+      ALTER TABLE "job_applications" ADD COLUMN IF NOT EXISTS "certificatePhoto" TEXT;
     `);
 
     tablesInitialized = true;
@@ -169,6 +173,7 @@ function rowToApplication(row: any): JobApplication {
     pastWorkPhotos,
     nationalIdNumber: row.nationalIdNumber ? String(row.nationalIdNumber) : undefined,
     idCardPhoto: row.idCardPhoto ? String(row.idCardPhoto) : undefined,
+    certificatePhoto: row.certificatePhoto ? String(row.certificatePhoto) : undefined,
     resumeUrlOrData: row.resumeUrlOrData ? String(row.resumeUrlOrData) : undefined,
     mobileMoneyProvider: (row.mobileMoneyProvider as any) || 'orange',
     mobileMoneyNumber: String(row.mobileMoneyNumber || row.phone || ''),
@@ -287,11 +292,11 @@ export async function createJobApplication(data: Omit<JobApplication, 'id' | 'cr
           "gender", "dateOfBirth", "locationArea", "residentialAddress",
           "yearsExperience", "secondarySkills", "toolOwnership", "transportMode",
           "availability", "workSummary", "pastWorkPhotos", "nationalIdNumber",
-          "idCardPhoto", "resumeUrlOrData", "mobileMoneyProvider", "mobileMoneyNumber",
+          "idCardPhoto", "certificatePhoto", "resumeUrlOrData", "mobileMoneyProvider", "mobileMoneyNumber",
           "status", "adminNotes", "rating", "interviewDate", "createdAt", "updatedAt"
         ) VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-          $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28::timestamp, $29::timestamp
+          $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29::timestamp, $30::timestamp
         )
         ON CONFLICT ("id") DO UPDATE SET
           "jobTitle" = EXCLUDED."jobTitle",
@@ -320,6 +325,7 @@ export async function createJobApplication(data: Omit<JobApplication, 'id' | 'cr
         newApp.pastWorkPhotos && newApp.pastWorkPhotos.length > 0 ? JSON.stringify(newApp.pastWorkPhotos) : null,
         newApp.nationalIdNumber || null,
         newApp.idCardPhoto || null,
+        newApp.certificatePhoto || null,
         newApp.resumeUrlOrData || null,
         newApp.mobileMoneyProvider,
         newApp.mobileMoneyNumber,
