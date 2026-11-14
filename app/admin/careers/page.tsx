@@ -296,10 +296,11 @@ export default function AdminCareersPage() {
           <Link
             href="/careers/flyer"
             target="_blank"
-            className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+            className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+            title="Open printable full page recruitment advert flyer"
           >
             <Printer className="w-3.5 h-3.5 text-amber-400" />
-            <span>Advert Flyer</span>
+            <span>View Advert Flyer (Printable Full Page)</span>
           </Link>
 
           <Link

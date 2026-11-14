@@ -38,7 +38,7 @@ export const DEFAULT_PARTNERS_SETTINGS: PartnersSectionSettings = {
   title: 'Trusted Brands & Technology Partners',
   subtitle: 'We service, support, and collaborate with leading global technology brands',
   colorMode: 'grayscale-hover-color',
-  layout: 'grid',
+  layout: 'marquee',
   backgroundStyle: 'light',
   updatedAt: new Date().toISOString(),
 };

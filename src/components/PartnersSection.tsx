@@ -55,6 +55,10 @@ export default function PartnersSection() {
 
   if (!settings.enabled || partners.length === 0) return null;
 
+  // Ensure plenty of logos for seamless continuous right-to-left scrolling across ultra-wide screens
+  const marqueePartners = partners.length < 8 ? [...partners, ...partners] : partners;
+  const isMarquee = settings.layout !== 'grid';
+
   return (
     <section className="relative w-full py-12 sm:py-16 bg-gradient-to-b from-gray-50/50 via-white to-gray-50 border-t border-gray-200/60 dark:from-gray-900 dark:via-gray-900/90 dark:to-gray-950 dark:border-gray-800/80 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -76,23 +80,23 @@ export default function PartnersSection() {
           </div>
         )}
 
-        {/* Logos Container */}
-        {settings.layout === 'marquee' ? (
-          <div className="relative overflow-hidden w-full py-2">
+        {/* Logos Container - Continuous smooth right-to-left marquee scroll */}
+        {isMarquee ? (
+          <div className="relative overflow-hidden w-full py-2 select-none">
             {/* Fade edges */}
             <div className="pointer-events-none absolute inset-y-0 left-0 w-16 z-10 bg-gradient-to-r from-gray-50/80 via-gray-50/30 to-transparent dark:from-gray-900/80 dark:via-gray-900/30 dark:to-transparent" />
             <div className="pointer-events-none absolute inset-y-0 right-0 w-16 z-10 bg-gradient-to-l from-gray-50/80 via-gray-50/30 to-transparent dark:from-gray-900/80 dark:via-gray-900/30 dark:to-transparent" />
 
-            {/* Animated track — two identical sets side-by-side; translateX(-50%) = seamless loop */}
-            <div className="animate-marquee flex items-center w-max">
+            {/* Animated track — two identical sets side-by-side; translateX(-50%) = seamless loop right-to-left */}
+            <div className="animate-marquee flex items-center shrink-0 w-max">
               {/* Set 1 */}
-              <div className="flex items-center gap-5 sm:gap-7 pr-5 sm:pr-7">
-                {partners.map((partner) => {
+              <div className="flex shrink-0 items-center gap-5 sm:gap-7 pr-5 sm:pr-7">
+                {marqueePartners.map((partner, pIdx) => {
                   const effectiveColorMode = partner.colorMode || settings.colorMode;
                   const colorClasses = getLogoColorClasses(effectiveColorMode);
                   return (
                     <div
-                      key={`a-${partner.id}`}
+                      key={`a-${partner.id}-${pIdx}`}
                       className="shrink-0 flex items-center justify-center h-16 w-36 sm:h-20 sm:w-44 px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-gray-800/70 border border-gray-200/60 dark:border-gray-700/60 shadow-sm hover:shadow-md transition-all duration-300"
                     >
                       {partner.websiteUrl ? (
@@ -110,13 +114,13 @@ export default function PartnersSection() {
                 })}
               </div>
               {/* Set 2 — exact duplicate for seamless wrap */}
-              <div className="flex items-center gap-5 sm:gap-7 pr-5 sm:pr-7" aria-hidden="true">
-                {partners.map((partner) => {
+              <div className="flex shrink-0 items-center gap-5 sm:gap-7 pr-5 sm:pr-7" aria-hidden="true">
+                {marqueePartners.map((partner, pIdx) => {
                   const effectiveColorMode = partner.colorMode || settings.colorMode;
                   const colorClasses = getLogoColorClasses(effectiveColorMode);
                   return (
                     <div
-                      key={`b-${partner.id}`}
+                      key={`b-${partner.id}-${pIdx}`}
                       className="shrink-0 flex items-center justify-center h-16 w-36 sm:h-20 sm:w-44 px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-gray-800/70 border border-gray-200/60 dark:border-gray-700/60 shadow-sm hover:shadow-md transition-all duration-300"
                     >
                       {partner.websiteUrl ? (
