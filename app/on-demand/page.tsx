@@ -18,7 +18,7 @@ export default function OnDemandServicesPage() {
   const [customCategoryImages, setCustomCategoryImages] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    fetch('/api/on-demand?type=category_images')
+    fetch(`/api/on-demand?type=category_images&t=${Date.now()}`)
       .then(res => res.json())
       .then(data => {
         if (data?.success && data?.overrides) {

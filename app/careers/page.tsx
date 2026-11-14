@@ -30,21 +30,33 @@ interface JobPosting {
 
 export default function CareersPortalPage() {
   const [jobs, setJobs] = useState<JobPosting[]>([]);
+  const [categoryImages, setCategoryImages] = useState<Record<string, string>>({});
   const [loadingJobs, setLoadingJobs] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
 
-  // Load jobs from API
+  // Load jobs from API with real-time category image sync
   useEffect(() => {
-    fetch('/api/careers?type=jobs')
+    fetch(`/api/careers?type=jobs&t=${Date.now()}`)
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.jobs)) {
           setJobs(data.jobs);
+          if (data.overrides) setCategoryImages(data.overrides);
         }
       })
       .catch(err => console.error('Failed to load jobs catalog:', err))
       .finally(() => setLoadingJobs(false));
+
+    // Also fetch dynamic category image overrides in real-time
+    fetch(`/api/on-demand?type=category_images&t=${Date.now()}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data?.success && data?.overrides) {
+          setCategoryImages(data.overrides);
+        }
+      })
+      .catch(err => console.error('Failed to load category image overrides:', err));
   }, []);
 
   // Filter jobs
@@ -195,7 +207,7 @@ export default function CareersPortalPage() {
                   {/* Job Header Image */}
                   <div className="h-40 w-full relative overflow-hidden bg-gray-100">
                     <img
-                      src={job.image}
+                      src={categoryImages[job.id] || job.image}
                       alt={job.title}
                       className="w-full h-full object-cover"
                       loading="lazy"

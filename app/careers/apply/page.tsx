@@ -59,6 +59,7 @@ function ApplyFormContent() {
   const initialJobFromQuery = searchParams.get('job') || 'printer-tech';
 
   const [jobs, setJobs] = useState<JobPosting[]>([]);
+  const [categoryImages, setCategoryImages] = useState<Record<string, string>>({});
   const [loadingJobs, setLoadingJobs] = useState(true);
 
   // Application Form State
@@ -98,17 +99,27 @@ function ApplyFormContent() {
     }
   }, [searchParams]);
 
-  // Load jobs catalog from API
+  // Load jobs catalog from API with image overrides
   useEffect(() => {
-    fetch('/api/careers?type=jobs')
+    fetch(`/api/careers?type=jobs&t=${Date.now()}`)
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.jobs)) {
           setJobs(data.jobs);
+          if (data.overrides) setCategoryImages(data.overrides);
         }
       })
       .catch(err => console.error('Failed to load jobs catalog:', err))
       .finally(() => setLoadingJobs(false));
+
+    fetch(`/api/on-demand?type=category_images&t=${Date.now()}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data?.success && data?.overrides) {
+          setCategoryImages(data.overrides);
+        }
+      })
+      .catch(err => console.error('Failed to load category image overrides:', err));
   }, []);
 
   // Sync WhatsApp with Phone if checked

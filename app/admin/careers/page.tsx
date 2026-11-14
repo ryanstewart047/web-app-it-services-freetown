@@ -26,7 +26,8 @@ import {
   Eye,
   Wrench,
   ShieldCheck,
-  Wallet
+  Wallet,
+  Camera
 } from 'lucide-react';
 import { JobApplication, CareersStats } from '@/lib/careers-storage';
 import { TRADE_CATEGORIES } from '@/lib/on-demand-categories';
@@ -310,6 +311,15 @@ export default function AdminCareersPage() {
           >
             <ExternalLink className="w-3.5 h-3.5" />
             <span>Live Portal</span>
+          </Link>
+
+          <Link
+            href="/admin/on-demand#category-images"
+            className="px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+            title="Update card images for both Services and Live Portal"
+          >
+            <Camera className="w-3.5 h-3.5" />
+            <span>Update Card Images</span>
           </Link>
 
           <button

@@ -10,6 +10,7 @@ import {
   JobApplication,
 } from '@/lib/careers-storage';
 import { TRADE_CATEGORIES } from '@/lib/on-demand-categories';
+import { getCategoryImageOverrides } from '@/lib/on-demand-storage';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -155,8 +156,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') || 'jobs';
 
-    // 1. Return Open Jobs Catalog
+    // 1. Return Open Jobs Catalog with Dynamic Custom Category Image Overrides
     if (type === 'jobs') {
+      const overrides = await getCategoryImageOverrides();
       const jobs = TRADE_CATEGORIES.map(cat => {
         const details = JOB_DEPARTMENTS[cat.id] || {
           department: cat.type === 'tech' ? 'Digital & IT Hardware' : 'Trades & Craftsmanship',
@@ -174,7 +176,7 @@ export async function GET(request: NextRequest) {
           color: cat.color,
           badge: cat.badge,
           type: cat.type,
-          image: cat.image,
+          image: overrides[cat.id] || cat.image,
           payEstimate: details.payEstimate,
           requirements: details.requirements,
           keyTools: details.keyTools,
@@ -183,7 +185,7 @@ export async function GET(request: NextRequest) {
         };
       });
 
-      return NextResponse.json({ success: true, jobs }, { headers: NO_CACHE_HEADERS });
+      return NextResponse.json({ success: true, jobs, overrides }, { headers: NO_CACHE_HEADERS });
     }
 
     // 2. Return Recruitment Stats for Admin
