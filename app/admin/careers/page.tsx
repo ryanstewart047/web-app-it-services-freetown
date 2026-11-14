@@ -27,7 +27,8 @@ import {
   Wrench,
   ShieldCheck,
   Wallet,
-  Camera
+  Camera,
+  Share2
 } from 'lucide-react';
 import { JobApplication, CareersStats } from '@/lib/careers-storage';
 import { TRADE_CATEGORIES } from '@/lib/on-demand-categories';
@@ -302,6 +303,16 @@ export default function AdminCareersPage() {
           >
             <Printer className="w-3.5 h-3.5 text-amber-400" />
             <span>View Advert Flyer (Printable Full Page)</span>
+          </Link>
+
+          <Link
+            href="/careers/social-flyer"
+            target="_blank"
+            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+            title="Open professional social media advert flyer studio (Instagram, WhatsApp, Facebook)"
+          >
+            <Share2 className="w-3.5 h-3.5 text-white" />
+            <span>Social Media Flyer</span>
           </Link>
 
           <Link
