@@ -112,7 +112,9 @@ export default function CareerAdvertFlyerPage() {
             </a>
 
             <Link
-              href="/careers#apply-form"
+              href="/careers/apply"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-xs font-bold text-white transition-colors shadow-xs"
             >
               <span>Apply Online &rarr;</span>
@@ -300,7 +302,9 @@ export default function CareerAdvertFlyerPage() {
               </a>
 
               <Link
-                href="/careers#apply-form"
+                href="/careers/apply"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors shadow-xs inline-flex items-center gap-1.5"
               >
                 <span>Online Application Portal</span>
