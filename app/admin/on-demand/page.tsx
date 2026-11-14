@@ -71,40 +71,46 @@ export default function AdminOnDemandPage() {
   // Client-Side Image Compressor for Admin Local Photo Uploads (Fast & sharp)
   const compressImage = (file: File, maxWidth = 1200, quality = 0.75): Promise<string> => {
     return new Promise((resolve) => {
-      if (!file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => resolve(typeof e.target?.result === 'string' ? e.target.result : '');
-        reader.readAsDataURL(file);
-        return;
-      }
       const reader = new FileReader();
       reader.onload = (event) => {
+        const rawResult = typeof event.target?.result === 'string' ? event.target.result : '';
+        if (!rawResult) {
+          resolve('');
+          return;
+        }
+
         const img = new Image();
         img.onload = () => {
-          let width = img.width;
-          let height = img.height;
-          if (width > maxWidth || height > maxWidth) {
-            if (width > height) {
-              height = Math.round((height * maxWidth) / width);
-              width = maxWidth;
-            } else {
-              width = Math.round((width * maxWidth) / height);
-              height = maxWidth;
+          try {
+            let width = img.width;
+            let height = img.height;
+            if (width > maxWidth || height > maxWidth) {
+              if (width > height) {
+                height = Math.round((height * maxWidth) / width);
+                width = maxWidth;
+              } else {
+                width = Math.round((width * maxWidth) / height);
+                height = maxWidth;
+              }
             }
-          }
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL('image/jpeg', quality));
-          } else {
-            resolve(event.target?.result as string);
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              const dataUrl = canvas.toDataURL('image/jpeg', quality);
+              resolve(dataUrl || rawResult);
+            } else {
+              resolve(rawResult);
+            }
+          } catch (e) {
+            console.warn('Canvas export failed, falling back to raw data URL:', e);
+            resolve(rawResult);
           }
         };
-        img.onerror = () => resolve(event.target?.result as string);
-        img.src = event.target?.result as string;
+        img.onerror = () => resolve(rawResult);
+        img.src = rawResult;
       };
       reader.onerror = () => resolve('');
       reader.readAsDataURL(file);
@@ -385,14 +391,45 @@ export default function AdminOnDemandPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     const sizeKb = Math.round(file.size / 1024);
-    const compressed = await compressImage(file, 1200, 0.75);
-    if (compressed) {
-      setImageModal(prev => ({
-        ...prev,
-        newImagePreview: compressed,
-        fileName: file.name,
-        fileSize: `${sizeKb} KB`,
-      }));
+    try {
+      const compressed = await compressImage(file, 1200, 0.75);
+      if (compressed) {
+        setImageModal(prev => ({
+          ...prev,
+          newImagePreview: compressed,
+          fileName: file.name,
+          fileSize: `${sizeKb} KB`,
+        }));
+      } else {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const directData = ev.target?.result as string;
+          if (directData) {
+            setImageModal(prev => ({
+              ...prev,
+              newImagePreview: directData,
+              fileName: file.name,
+              fileSize: `${sizeKb} KB`,
+            }));
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    } catch (err) {
+      console.error('Failed to process image file:', err);
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const directData = ev.target?.result as string;
+        if (directData) {
+          setImageModal(prev => ({
+            ...prev,
+            newImagePreview: directData,
+            fileName: file.name,
+            fileSize: `${sizeKb} KB`,
+          }));
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -413,7 +450,7 @@ export default function AdminOnDemandPage() {
           action: 'update_category_image',
           categoryId: catId,
           imageBase64: imageModal.newImagePreview || undefined,
-          imageUrl: imageModal.newImageUrl.trim() || undefined,
+          imageUrl: imageModal.newImagePreview ? undefined : (imageModal.newImageUrl.trim() || undefined),
         }),
       });
       const data = await res.json();
@@ -1873,7 +1910,7 @@ export default function AdminOnDemandPage() {
               <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-700 hover:border-purple-500 bg-slate-900/60 hover:bg-slate-900 rounded-2xl p-4 cursor-pointer transition-all text-center group">
                 <input
                   type="file"
-                  accept="image/png, image/jpeg, image/jpg, image/webp"
+                  accept="image/*, image/png, image/jpeg, image/jpg, image/webp"
                   onChange={handleFileSelect}
                   className="hidden"
                   disabled={imageModal.isSubmitting}

@@ -144,21 +144,18 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center gap-1.5 xl:gap-2.5 2xl:gap-4 flex-shrink-0">
             <Link href="/" className={`px-3 py-2 text-xs xl:text-sm font-medium rounded-md whitespace-nowrap flex-shrink-0 transition-all duration-200 ${pathname === '/' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Home</Link>
             
-            {/* Special Shop Button with Badge and Animation */}
+            {/* Shop Button */}
             <Link 
               href="/marketplace" 
-              className="relative group inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse hover:animate-none"
+              className="relative group inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
             >
               <i className="fas fa-shopping-bag text-white drop-shadow-lg relative z-10"></i>
-              <span className="drop-shadow-lg relative z-10">Shop Now</span>
-              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-xs font-bold animate-bounce z-20">
-                🔥
-              </span>
+              <span className="drop-shadow-lg relative z-10">Shop</span>
               {/* Glow effect */}
               <span className="absolute inset-0 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 opacity-0 group-hover:opacity-75 blur-md transition-opacity duration-300 -z-10"></span>
             </Link>
 
-            {/* On-Demand Services Tab (Prominent on Navbar) */}
+            {/* Services Tab (Prominent on Navbar) */}
             <Link 
               href="/on-demand" 
               className={`px-3 py-2 text-xs xl:text-sm font-bold rounded-lg whitespace-nowrap flex-shrink-0 transition-all duration-200 flex items-center gap-1.5 ${
@@ -168,7 +165,7 @@ export default function Navbar() {
               }`}
             >
               <i className="fas fa-handshake text-amber-500"></i>
-              <span>On-Demand Services</span>
+              <span>Services</span>
               <span className="px-1.5 py-0.5 bg-amber-500 text-slate-950 text-[9px] font-black rounded-full uppercase tracking-wider">
                 PROS
               </span>
@@ -275,7 +272,7 @@ export default function Navbar() {
             </div>
 
             <Link href="/digital-tools" className={`px-2.5 xl:px-3 py-1.5 xl:py-2 text-xs xl:text-sm font-medium rounded-md whitespace-nowrap flex-shrink-0 transition-all duration-200 ${pathname?.startsWith('/digital-tools') ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>
-              <i className="fas fa-wand-magic-sparkles text-red-500 mr-1"></i> Digital Tools
+              <i className="fas fa-wand-magic-sparkles text-red-500 mr-1"></i> Tools
             </Link>
 
             <Link href="/search" aria-label="Search the site" className={`inline-flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 ${pathname === '/search' ? 'bg-[#040e40] text-red-500' : 'text-gray-700 hover:bg-slate-100 hover:text-[#040e40]'}`}>
@@ -283,7 +280,7 @@ export default function Navbar() {
             </Link>
 
             <Link href="/book-appointment" className={`hidden 2xl:inline-block px-2.5 xl:px-3 py-1.5 xl:py-2 text-xs xl:text-sm font-medium rounded-md whitespace-nowrap flex-shrink-0 transition-all duration-200 ${pathname === '/book-appointment' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Book Appointment</Link>
-            <Link href="/track-repair" className={`px-2.5 xl:px-3 py-1.5 xl:py-2 text-xs xl:text-sm font-medium rounded-md whitespace-nowrap flex-shrink-0 transition-all duration-200 ${pathname === '/track-repair' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Track Repair</Link>
+            <Link href="/track-repair" className={`px-2.5 xl:px-3 py-1.5 xl:py-2 text-xs xl:text-sm font-medium rounded-md whitespace-nowrap flex-shrink-0 transition-all duration-200 ${pathname === '/track-repair' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Track</Link>
             <Link href="/troubleshoot" className={`px-2.5 xl:px-3 py-1.5 xl:py-2 text-xs xl:text-sm font-medium rounded-md whitespace-nowrap flex-shrink-0 transition-all duration-200 ${pathname === '/troubleshoot' ? 'bg-[#040e40] text-red-500 font-semibold' : 'text-gray-700 hover:text-[#040e40]'}`}>Troubleshoot</Link>
             
             {/* Get Support Mega Menu (Desktop) */}
@@ -319,7 +316,7 @@ export default function Navbar() {
                       <MegaMenuLink
                         href="/on-demand"
                         icon="fas fa-handshake"
-                        title="On-Demand Services"
+                        title="Services"
                         description="Printers, consoles, electricians, plumbers & more"
                         color="text-amber-600"
                         bg="bg-amber-50"
@@ -464,23 +461,20 @@ export default function Navbar() {
               <i className="fas fa-home w-5 mr-3 text-[#040e40]"></i>Home
             </Link>
             
-            {/* Special Shop Button for Mobile */}
+            {/* Shop Button for Mobile */}
             <Link 
               href="/marketplace" 
               className="relative inline-flex items-center justify-center gap-1.5 mx-2 my-1.5 px-3 py-2 text-xs font-bold text-white bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 rounded-md shadow-sm active:scale-95 transition-all duration-300"
               onClick={closeMobileMenu}
             >
               <i className="fas fa-shopping-bag text-white text-xs"></i>
-              <span>Shop Now</span>
-              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-yellow-400 text-[10px] font-bold animate-bounce">
-                🔥
-              </span>
+              <span>Shop</span>
             </Link>
             
             <Link href="/on-demand" className="text-gray-900 bg-amber-50/80 hover:bg-amber-100/80 block px-4 py-3 text-base font-bold rounded-lg transition-all border border-amber-200/60 my-1 flex items-center justify-between" onClick={closeMobileMenu}>
               <div className="flex items-center">
                 <i className="fas fa-handshake w-5 mr-3 text-amber-600"></i>
-                <span>On-Demand Services</span>
+                <span>Services</span>
               </div>
               <span className="px-1.5 py-0.5 bg-amber-500 text-slate-950 text-[10px] font-black rounded uppercase">
                 Pro Network
@@ -492,7 +486,7 @@ export default function Navbar() {
             </Link>
 
             <Link href="/digital-tools" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
-              <i className="fas fa-wand-magic-sparkles w-5 mr-3 text-red-600"></i>Digital Tools Suite
+              <i className="fas fa-wand-magic-sparkles w-5 mr-3 text-red-600"></i>Tools
             </Link>
 
 
@@ -504,7 +498,7 @@ export default function Navbar() {
               <i className="fas fa-calendar-check w-5 mr-3 text-[#040e40]"></i>Book Appointment
             </Link>
             <Link href="/track-repair" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
-              <i className="fas fa-search w-5 mr-3 text-[#040e40]"></i>Track Repair
+              <i className="fas fa-search w-5 mr-3 text-[#040e40]"></i>Track
             </Link>
             <Link href="/troubleshoot" className="text-gray-700 hover:text-[#040e40] hover:bg-gray-50 block px-4 py-3 text-base font-medium rounded-lg transition-all" onClick={closeMobileMenu}>
               <i className="fas fa-tools w-5 mr-3 text-[#040e40]"></i>Troubleshoot
@@ -584,7 +578,7 @@ export default function Navbar() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-sm text-gray-900 group-hover:text-amber-700">On-Demand Services</h4>
+                      <h4 className="font-bold text-sm text-gray-900 group-hover:text-amber-700">Services</h4>
                       <span className="px-1.5 py-0.2 bg-amber-500 text-slate-950 text-[9px] font-black rounded uppercase">NEW</span>
                     </div>
                     <p className="text-xs text-gray-500 truncate">Printers, consoles, electricians, welders, plumbers</p>

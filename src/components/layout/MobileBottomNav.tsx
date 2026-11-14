@@ -14,7 +14,7 @@ export default function MobileBottomNav() {
       activeColor: 'text-red-600'
     },
     {
-      label: 'On-Demand',
+      label: 'Services',
       href: '/on-demand',
       icon: 'fas fa-handshake',
       activeColor: 'text-amber-500'

@@ -148,26 +148,12 @@ export default function OnDemandServicesPage() {
   });
   const [showPermanentPassword, setShowPermanentPassword] = useState(false);
 
-  // Scroll reveal observer
+  // Ensure content is immediately visible across all devices
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('opacity-100', 'translate-y-0');
-            entry.target.classList.remove('opacity-0', 'translate-y-8');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
     document.querySelectorAll('.scroll-reveal').forEach((el) => {
-      observer.observe(el);
+      el.classList.add('opacity-100', 'translate-y-0');
+      el.classList.remove('opacity-0', 'translate-y-8');
     });
-
-    return () => observer.disconnect();
   }, [activeTab, filterType]);
 
   const selectedCategoryObj = activeCategories.find(c => c.id === selectedCategory) || activeCategories[0];
@@ -600,7 +586,7 @@ export default function OnDemandServicesPage() {
           </p>
 
           {/* Value Pillars */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-4xl mx-auto mt-8 text-left scroll-reveal opacity-0 translate-y-8 transition-all duration-700">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-4xl mx-auto mt-8 text-left transition-all duration-700">
             <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 shadow-sm hover:shadow transition-shadow">
               <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-2">
                 <Shield className="w-4 h-4" />
@@ -676,7 +662,7 @@ export default function OnDemandServicesPage() {
         <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-12">
           
           {/* ── SHOWCASE: POPULAR SERVICES (MODERN PHOTO CARDS) ── */}
-          <section className="space-y-6 scroll-reveal opacity-0 translate-y-8 transition-all duration-700">
+          <section className="space-y-6 transition-all duration-700">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-slate-200 pb-3">
               <div>
                 <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
@@ -828,7 +814,7 @@ export default function OnDemandServicesPage() {
           </section>
 
           {/* ── CONSOLIDATED FULL SERVICES DROPDOWN SELECTOR ── */}
-          <section id="all-services-dropdown" className="space-y-4 scroll-reveal opacity-0 translate-y-8 transition-all duration-700">
+          <section id="all-services-dropdown" className="space-y-4 transition-all duration-700">
             <div className="bg-slate-50 border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-sm">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -902,7 +888,7 @@ export default function OnDemandServicesPage() {
           </section>
 
           {/* Step 2: Request Form */}
-          <section id="request-booking-form" className="grid grid-cols-1 lg:grid-cols-3 gap-8 scroll-reveal opacity-0 translate-y-8 transition-all duration-700">
+          <section id="request-booking-form" className="grid grid-cols-1 lg:grid-cols-3 gap-8 transition-all duration-700">
             
             <div className="lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
               <div className="border-b border-slate-200 pb-3">

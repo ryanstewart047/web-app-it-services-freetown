@@ -601,21 +601,37 @@ export async function POST(request: NextRequest) {
 
       // Handle local image file upload (Base64 data URL)
       if (imageBase64 && typeof imageBase64 === 'string') {
-        const matches = imageBase64.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
-        if (matches) {
-          const rawExt = matches[1].toLowerCase();
-          const ext = rawExt === 'jpeg' ? 'jpg' : rawExt;
-          const buffer = Buffer.from(matches[2], 'base64');
-          const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'on-demand');
-          if (!fs.existsSync(uploadsDir)) {
-            fs.mkdirSync(uploadsDir, { recursive: true });
+        const trimmed = imageBase64.trim();
+        const commaIdx = trimmed.indexOf(',');
+
+        if (commaIdx !== -1 && trimmed.startsWith('data:image/')) {
+          const prefix = trimmed.slice(0, commaIdx).toLowerCase();
+          const rawBase64 = trimmed.slice(commaIdx + 1).replace(/\s/g, '');
+
+          let ext = 'jpg';
+          if (prefix.includes('png')) ext = 'png';
+          else if (prefix.includes('webp')) ext = 'webp';
+          else if (prefix.includes('svg')) ext = 'svg';
+          else if (prefix.includes('gif')) ext = 'gif';
+
+          try {
+            const buffer = Buffer.from(rawBase64, 'base64');
+            const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'on-demand');
+            if (!fs.existsSync(uploadsDir)) {
+              fs.mkdirSync(uploadsDir, { recursive: true });
+            }
+            const safeFilename = `${categoryId}-${Date.now()}.${ext}`;
+            const filePath = path.join(uploadsDir, safeFilename);
+            fs.writeFileSync(filePath, buffer);
+            finalUrl = `/uploads/on-demand/${safeFilename}`;
+          } catch (fsErr) {
+            console.warn('Filesystem write failed, falling back to direct base64 data URL in DB:', fsErr);
+            finalUrl = trimmed;
           }
-          const safeFilename = `${categoryId}-${Date.now()}.${ext}`;
-          const filePath = path.join(uploadsDir, safeFilename);
-          fs.writeFileSync(filePath, buffer);
-          finalUrl = `/uploads/on-demand/${safeFilename}`;
-        } else if (imageBase64.startsWith('http') || imageBase64.startsWith('/')) {
-          finalUrl = imageBase64;
+        } else if (trimmed.startsWith('http') || trimmed.startsWith('/')) {
+          finalUrl = trimmed;
+        } else {
+          finalUrl = trimmed;
         }
       }
 
@@ -729,21 +745,37 @@ export async function PUT(request: NextRequest) {
 
       // Handle local image file upload (Base64 data URL)
       if (imageBase64 && typeof imageBase64 === 'string') {
-        const matches = imageBase64.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
-        if (matches) {
-          const rawExt = matches[1].toLowerCase();
-          const ext = rawExt === 'jpeg' ? 'jpg' : rawExt;
-          const buffer = Buffer.from(matches[2], 'base64');
-          const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'on-demand');
-          if (!fs.existsSync(uploadsDir)) {
-            fs.mkdirSync(uploadsDir, { recursive: true });
+        const trimmed = imageBase64.trim();
+        const commaIdx = trimmed.indexOf(',');
+
+        if (commaIdx !== -1 && trimmed.startsWith('data:image/')) {
+          const prefix = trimmed.slice(0, commaIdx).toLowerCase();
+          const rawBase64 = trimmed.slice(commaIdx + 1).replace(/\s/g, '');
+
+          let ext = 'jpg';
+          if (prefix.includes('png')) ext = 'png';
+          else if (prefix.includes('webp')) ext = 'webp';
+          else if (prefix.includes('svg')) ext = 'svg';
+          else if (prefix.includes('gif')) ext = 'gif';
+
+          try {
+            const buffer = Buffer.from(rawBase64, 'base64');
+            const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'on-demand');
+            if (!fs.existsSync(uploadsDir)) {
+              fs.mkdirSync(uploadsDir, { recursive: true });
+            }
+            const safeFilename = `${categoryId}-${Date.now()}.${ext}`;
+            const filePath = path.join(uploadsDir, safeFilename);
+            fs.writeFileSync(filePath, buffer);
+            finalUrl = `/uploads/on-demand/${safeFilename}`;
+          } catch (fsErr) {
+            console.warn('Filesystem write failed, falling back to direct base64 data URL in DB:', fsErr);
+            finalUrl = trimmed;
           }
-          const safeFilename = `${categoryId}-${Date.now()}.${ext}`;
-          const filePath = path.join(uploadsDir, safeFilename);
-          fs.writeFileSync(filePath, buffer);
-          finalUrl = `/uploads/on-demand/${safeFilename}`;
-        } else if (imageBase64.startsWith('http') || imageBase64.startsWith('/')) {
-          finalUrl = imageBase64;
+        } else if (trimmed.startsWith('http') || trimmed.startsWith('/')) {
+          finalUrl = trimmed;
+        } else {
+          finalUrl = trimmed;
         }
       }
 
