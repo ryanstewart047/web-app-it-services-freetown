@@ -101,15 +101,6 @@ export default function CareerAdvertFlyerPage() {
               <span>Print / Save PDF</span>
             </button>
 
-            <Link
-              href="/careers/social-flyer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-xs font-bold text-white transition-colors"
-              title="Social Media Flyer (Instagram, WhatsApp, Facebook)"
-            >
-              <Share2 className="w-3.5 h-3.5" />
-              <span>Social Flyer Studio</span>
-            </Link>
-
             <a
               href={`https://wa.me/?text=${shareText}`}
               target="_blank"
