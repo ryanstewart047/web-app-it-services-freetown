@@ -1365,7 +1365,7 @@ export default function AdminOnDemandPage() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent" />
 
-                    {/* Top Badges */}
+                    {/* Top Status Badge */}
                     <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1.5">
                       <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
                         isCustom
@@ -1375,10 +1375,6 @@ export default function AdminOnDemandPage() {
                             : 'bg-slate-900/80 backdrop-blur-sm text-slate-300 border border-slate-700'
                       }`}>
                         {isCustom ? '✓ Custom Local Photo' : isPriority ? '⚠️ Needs Local Photo' : 'Stock Photo'}
-                      </span>
-
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-black/60 backdrop-blur-sm text-white border border-white/20">
-                        {cat.badge}
                       </span>
                     </div>
 

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { 
   X, Phone, MessageCircle, Copy, CheckCircle, Smartphone, User, Shield, 
   Camera, FileText, ArrowRight, LogIn, Image as LucideImage, MapPin, Mail,
-  ChevronDown, Check, Star, Eye, EyeOff, LogOut, AlertCircle, RefreshCw, Sparkles, Lock, KeyRound
+  ChevronDown, Check, Eye, EyeOff, LogOut, AlertCircle, RefreshCw, Sparkles, Lock, KeyRound
 } from 'lucide-react';
 
 import { TRADE_CATEGORIES, TradeCategory, FREETOWN_AREAS } from '@/lib/on-demand-categories';
@@ -760,16 +760,6 @@ export default function OnDemandServicesPage() {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
                       
-                      {/* Top Floating Badges */}
-                      <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/70 backdrop-blur-md text-white border border-white/20">
-                          {cat.badge}
-                        </span>
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-400 text-slate-950 flex items-center gap-1 shadow">
-                          <Star className="w-3 h-3 fill-slate-950" /> 14-Day Warranty
-                        </span>
-                      </div>
-
                       {/* Bottom Title on Image */}
                       <div className="absolute bottom-3 left-3 right-3 flex items-end gap-2.5">
                         <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-white shrink-0 shadow-md`}>
