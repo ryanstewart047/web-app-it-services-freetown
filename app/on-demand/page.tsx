@@ -5,14 +5,18 @@ import Link from 'next/link';
 import { 
   X, Phone, MessageCircle, Copy, CheckCircle, Smartphone, User, Shield, 
   Camera, FileText, ArrowRight, LogIn, Image as LucideImage, MapPin, Mail,
-  ChevronDown, Check, Eye, EyeOff, LogOut, AlertCircle, RefreshCw, Sparkles, Lock, KeyRound
+  ChevronDown, Check, Eye, EyeOff, LogOut, AlertCircle, RefreshCw, Sparkles, Lock, KeyRound, Info
 } from 'lucide-react';
 
-import { TRADE_CATEGORIES, TradeCategory, FREETOWN_AREAS } from '@/lib/on-demand-categories';
+import { TRADE_CATEGORIES, TradeCategory, FREETOWN_AREAS, getCategoryDetails, CategoryDetailInfo } from '@/lib/on-demand-categories';
 
 export default function OnDemandServicesPage() {
   const [activeTab, setActiveTab] = useState<'customer' | 'artisan'>('customer');
   const [filterType, setFilterType] = useState<'all' | 'tech' | 'trade'>('all');
+
+  // Modal State: Details Modal and Booking Modal
+  const [selectedDetailCategory, setSelectedDetailCategory] = useState<TradeCategory | null>(null);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   // Dynamic Custom Category Image Overrides from Admin
   const [customCategoryImages, setCustomCategoryImages] = useState<Record<string, string>>({});
@@ -165,11 +169,48 @@ export default function OnDemandServicesPage() {
 
   const handleSelectCategory = (cat: TradeCategory) => {
     setSelectedCategory(cat.id);
-    const formEl = document.getElementById('request-booking-form');
-    if (formEl) {
-      formEl.scrollIntoView({ behavior: 'smooth' });
-    }
+    handleOpenBooking(cat);
   };
+
+  const handleOpenDetails = (cat: TradeCategory) => {
+    setSelectedCategory(cat.id);
+    setSelectedDetailCategory(cat);
+  };
+
+  const handleOpenBooking = (cat?: TradeCategory) => {
+    if (cat) {
+      setSelectedCategory(cat.id);
+    }
+    setSelectedDetailCategory(null);
+    setCustomerError(null);
+    setIsBookingModalOpen(true);
+  };
+
+  // Close modals on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedDetailCategory(null);
+        if (!isSubmittingCustomer) {
+          setIsBookingModalOpen(false);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSubmittingCustomer]);
+
+  // Lock background scroll when any modal is open
+  useEffect(() => {
+    if (selectedDetailCategory || isBookingModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [selectedDetailCategory, isBookingModalOpen]);
 
   // Compress Image to lightweight JPEG (max 1200px, 0.72 quality, <120KB)
   const compressImage = (file: File, maxWidth = 1200, quality = 0.72): Promise<string> => {
@@ -738,7 +779,8 @@ export default function OnDemandServicesPage() {
                 return (
                   <div
                     key={cat.id}
-                    className={`group rounded-3xl overflow-hidden border transition-all duration-300 flex flex-col bg-white ${
+                    onClick={() => handleOpenDetails(cat)}
+                    className={`group rounded-3xl overflow-hidden border transition-all duration-300 flex flex-col bg-white cursor-pointer ${
                       isSelected
                         ? 'border-red-500 ring-2 ring-red-500/30 shadow-xl shadow-red-500/10'
                         : 'border-slate-200/90 hover:border-slate-300 hover:shadow-xl shadow-sm'
@@ -774,19 +816,19 @@ export default function OnDemandServicesPage() {
                       </p>
 
                       <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                        <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1">
-                          <CheckCircle className="w-3.5 h-3.5 text-emerald-600" /> ID Verified
+                        <span className="text-[11px] font-bold text-slate-500 group-hover:text-red-600 flex items-center gap-1 transition-colors">
+                          <span>View Details</span>
+                          <Info className="w-3.5 h-3.5" />
                         </span>
                         <button
                           type="button"
-                          onClick={() => handleSelectCategory(cat)}
-                          className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
-                            isSelected
-                              ? 'bg-red-600 text-white shadow-md'
-                              : 'bg-slate-100 hover:bg-red-600 hover:text-white text-slate-800'
-                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenBooking(cat);
+                          }}
+                          className="px-4 py-2 rounded-xl text-xs font-black bg-red-600 hover:bg-red-700 text-white transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
                         >
-                          <span>{isSelected ? '✓ Selected' : 'Book Service'}</span>
+                          <span>Book Service</span>
                           <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -2523,6 +2565,385 @@ export default function OnDemandServicesPage() {
             </div>
           </div>
         </>
+      )}
+
+      {/* ── 1. SERVICE CARD FULL DESCRIPTION MODAL ── */}
+      {selectedDetailCategory && (() => {
+        const detailCat = {
+          ...selectedDetailCategory,
+          image: customCategoryImages[selectedDetailCategory.id] || selectedDetailCategory.image,
+        };
+        const detailInfo = getCategoryDetails(detailCat);
+
+        return (
+          <div 
+            className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[100] flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200"
+            onClick={() => setSelectedDetailCategory(null)}
+          >
+            <div 
+              className="bg-white rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl border border-slate-200 my-auto animate-in zoom-in-95 duration-200 flex flex-col max-h-[92vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header Image with Gradient & Title */}
+              <div className="relative h-48 sm:h-56 bg-slate-950 overflow-hidden shrink-0">
+                <img
+                  src={detailCat.image}
+                  alt={detailCat.title}
+                  className="w-full h-full object-cover object-center"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent" />
+
+                {/* Close Button */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedDetailCategory(null)}
+                  className="absolute top-3.5 right-3.5 p-2 rounded-full bg-black/50 hover:bg-black/75 text-white transition-all backdrop-blur-md border border-white/20 active:scale-95"
+                  aria-label="Close details"
+                >
+                  <X className="w-5 h-5 text-white" />
+                </button>
+
+                {/* Title and Icon on image */}
+                <div className="absolute bottom-4 left-4 right-4 flex items-end gap-3">
+                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${detailCat.color} text-white flex items-center justify-center shrink-0 shadow-lg text-lg`}>
+                    <i className={detailCat.icon} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-black text-xl sm:text-2xl text-white leading-tight drop-shadow-sm">
+                      {detailCat.title}
+                    </h3>
+                    <p className="text-xs text-slate-300 mt-0.5 line-clamp-1">{detailCat.subtitle}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Scrollable Modal Body */}
+              <div className="p-5 sm:p-7 overflow-y-auto space-y-6 flex-1 text-slate-800">
+                {/* Overview */}
+                <div>
+                  <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider mb-2">Service Overview</h4>
+                  <p className="text-sm text-slate-700 leading-relaxed font-medium">
+                    {detailInfo.overview}
+                  </p>
+                </div>
+
+                {/* Common Issues Fixed / Scope of Work */}
+                {detailInfo.whatWeFix && detailInfo.whatWeFix.length > 0 && (
+                  <div>
+                    <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider mb-3">Common Repairs &amp; Services Covered</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {detailInfo.whatWeFix.map((issue, idx) => (
+                        <div key={idx} className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-700">
+                          <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                          <span className="leading-snug">{issue}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Supported Brands (if any) */}
+                {detailInfo.supportedBrands && detailInfo.supportedBrands.length > 0 && (
+                  <div>
+                    <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider mb-2.5">Supported Brands &amp; Equipment</h4>
+                    <div className="flex flex-wrap gap-1.5">
+                      {detailInfo.supportedBrands.map((brand, idx) => (
+                        <span key={idx} className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                          {brand}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Trust Badges */}
+                <div className="grid grid-cols-3 gap-2.5 pt-2">
+                  <div className="p-3 bg-emerald-50/70 border border-emerald-100 rounded-2xl text-center">
+                    <Shield className="w-5 h-5 text-emerald-600 mx-auto mb-1" />
+                    <span className="text-[11px] font-black text-slate-900 block">ID Verified</span>
+                    <span className="text-[10px] text-slate-500">Background checked</span>
+                  </div>
+                  <div className="p-3 bg-amber-50/70 border border-amber-100 rounded-2xl text-center">
+                    <CheckCircle className="w-5 h-5 text-amber-600 mx-auto mb-1" />
+                    <span className="text-[11px] font-black text-slate-900 block">14-Day Warranty</span>
+                    <span className="text-[10px] text-slate-500">Free recall guarantee</span>
+                  </div>
+                  <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-2xl text-center">
+                    <Sparkles className="w-5 h-5 text-blue-600 mx-auto mb-1" />
+                    <span className="text-[11px] font-black text-slate-900 block">Fast Dispatch</span>
+                    <span className="text-[10px] text-slate-500">Within 2 to 24 hrs</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Actions Footer */}
+              <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setSelectedDetailCategory(null)}
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors order-2 sm:order-1"
+                >
+                  Cancel
+                </button>
+
+                <div className="w-full sm:w-auto flex items-center gap-2.5 order-1 sm:order-2">
+                  <a
+                    href={`https://wa.me/23233399391?text=${encodeURIComponent(
+                      `Hello BridgeTech, I have an inquiry about on-demand service: ${detailCat.title}. Please provide more info.`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm"
+                  >
+                    <i className="fab fa-whatsapp text-sm" />
+                    <span>Chat WhatsApp</span>
+                  </a>
+
+                  <button
+                    type="button"
+                    onClick={() => handleOpenBooking(detailCat)}
+                    className="flex-1 sm:flex-initial px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-black flex items-center justify-center gap-2 transition-all shadow-md shadow-red-600/20 active:scale-95 cursor-pointer"
+                  >
+                    <span>Book Service</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── 2. TELL US WHAT NEEDS FIXING: BOOKING POPUP MODAL ── */}
+      {isBookingModalOpen && (
+        <div 
+          className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[110] flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200"
+          onClick={() => {
+            if (!isSubmittingCustomer) {
+              setIsBookingModalOpen(false);
+            }
+          }}
+        >
+          <div 
+            className="bg-white rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl border border-slate-200 my-auto animate-in zoom-in-95 duration-200 flex flex-col max-h-[94vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header with gradient branding */}
+            <div className="bg-gradient-to-r from-[#040e40] to-red-600 px-5 sm:px-7 py-4 sm:py-5 text-white flex items-center justify-between shrink-0 relative overflow-hidden">
+              <div className="flex items-center gap-3 pr-8 min-w-0">
+                <div className={`w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white shrink-0 shadow-inner`}>
+                  <i className={`${selectedCategoryObj.icon} text-base`} />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] font-bold text-white/80 uppercase tracking-wider block">Service Request Booking</span>
+                  <h3 className="text-base sm:text-lg font-black text-white leading-tight truncate">
+                    {selectedCategoryObj.title}
+                  </h3>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsBookingModalOpen(false)}
+                className="p-1.5 sm:p-2 rounded-full bg-white/15 hover:bg-white/30 text-white transition-all active:scale-95 shrink-0"
+                aria-label="Close booking modal"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
+            </div>
+
+            {/* Content Body */}
+            <div className="p-5 sm:p-7 overflow-y-auto flex-1 space-y-5 text-slate-800">
+              {customerError && (
+                <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs flex items-center gap-2">
+                  <i className="fas fa-exclamation-circle shrink-0 text-sm" />
+                  <span>{customerError}</span>
+                </div>
+              )}
+
+              {customerSuccessTrackingId ? (
+                <div className="py-6 text-center space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-3xl font-black shadow-inner">
+                    ✓
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-black text-slate-900">Your Request Has Been Received!</h4>
+                    <p className="text-xs text-slate-600 mt-1 max-w-sm mx-auto">
+                      We are matching the nearest certified technician for <strong>{selectedCategoryObj.title}</strong>. You will receive a phone confirmation shortly.
+                    </p>
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 inline-block shadow-sm">
+                    <span className="text-[10px] text-slate-500 uppercase block font-bold tracking-wider">Your Tracking ID</span>
+                    <span className="font-mono text-2xl font-black text-red-600">{customerSuccessTrackingId}</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                    <a
+                      href={`https://wa.me/23233399391?text=${encodeURIComponent(
+                        `Hello BridgeTech, I just booked an on-demand service: ${selectedCategoryObj.title}. My Tracking ID is ${customerSuccessTrackingId}. Please confirm dispatch.`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full sm:w-auto px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow"
+                    >
+                      <i className="fab fa-whatsapp text-sm" /> Confirm Instantly on WhatsApp
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomerSuccessTrackingId(null);
+                        setProblemDescription('');
+                        setIsBookingModalOpen(false);
+                      }}
+                      className="w-full sm:w-auto px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold"
+                    >
+                      Close &amp; Done
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleCustomerSubmit} className="space-y-4">
+                  <div>
+                    <h4 className="text-sm font-black text-slate-900 mb-0.5">Tell Us What Needs Fixing</h4>
+                    <p className="text-xs text-slate-500">Provide a few details and we will dispatch a qualified technician to your location.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Your Area in Freetown *
+                      </label>
+                      <select
+                        value={locationArea}
+                        onChange={e => setLocationArea(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500 font-medium"
+                      >
+                        {FREETOWN_AREAS.map(a => (
+                          <option key={a} value={a}>{a}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        How Urgent Is It? *
+                      </label>
+                      <select
+                        value={urgency}
+                        onChange={e => setUrgency(e.target.value as any)}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500 font-medium"
+                      >
+                        <option value="24h">Standard (Within 24 Hours)</option>
+                        <option value="emergency">🚨 Emergency (Within 2–4 Hours)</option>
+                        <option value="flexible">Flexible / Next Available Day</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Street Address or Landmark *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Near Lumley Police Station, Yellow Building opposite church"
+                      value={addressDetails}
+                      onChange={e => setAddressDetails(e.target.value)}
+                      required
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      What is the Problem? *
+                    </label>
+                    <textarea
+                      rows={3}
+                      placeholder="Please explain simply what is broken or what you need installed. E.g. 'Breaker keeps tripping when AC turns on' or 'Printer paper keeps jamming'..."
+                      value={problemDescription}
+                      onChange={e => setProblemDescription(e.target.value)}
+                      required
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Your Full Name *</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Mariama Kamara"
+                        value={customerName}
+                        onChange={e => setCustomerName(e.target.value)}
+                        required
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Phone Number *</label>
+                      <input
+                        type="tel"
+                        placeholder="e.g. 076 000 000"
+                        value={phone}
+                        onChange={e => setPhone(e.target.value)}
+                        required
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">WhatsApp (Optional)</label>
+                      <input
+                        type="tel"
+                        placeholder="e.g. 076 000 000"
+                        value={whatsapp}
+                        onChange={e => setWhatsapp(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Email (Optional)</label>
+                      <input
+                        type="email"
+                        placeholder="For receipt &amp; invoice"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      disabled={isSubmittingCustomer}
+                      className="w-full py-3.5 bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm rounded-xl transition-all shadow-md shadow-red-600/20 flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+                    >
+                      {isSubmittingCustomer ? (
+                        <>
+                          <i className="fas fa-spinner fa-spin" /> Dispatching Request...
+                        </>
+                      ) : (
+                        <>
+                          <span>Submit Request &amp; Send Technician</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <p className="text-[11px] text-center text-slate-500 pt-1">
+                    🔒 100% Verified Artisans · 14-Day Free Recall Warranty · Pay on Completion
+                  </p>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
     </div>
