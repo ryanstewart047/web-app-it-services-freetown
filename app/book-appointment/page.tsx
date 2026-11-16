@@ -552,10 +552,10 @@ export default function BookAppointment() {
       return false;
     }
     
-    // Check if it's a weekend (Saturday = 6, Sunday = 0)
+    // Check if it's Sunday (Sunday = 0, Saturday = 6 is allowed)
     const selectedDay = selectedDateTime.getDay();
-    if (selectedDay === 0 || selectedDay === 6) {
-      alert('We are only available Monday through Friday. Please select a weekday.');
+    if (selectedDay === 0) {
+      alert('We are closed on Sundays. Please select a time Monday through Saturday.');
       return false;
     }
     
@@ -665,9 +665,9 @@ export default function BookAppointment() {
       const selectedHour = selectedDateTime.getHours();
       if (selectedHour < 8 || selectedHour >= 18) return false;
       
-      // Must be a weekday
+      // Must not be Sunday (Monday through Saturday allowed)
       const selectedDay = selectedDateTime.getDay();
-      if (selectedDay === 0 || selectedDay === 6) return false;
+      if (selectedDay === 0) return false;
       
       return true;
     }
@@ -710,8 +710,8 @@ export default function BookAppointment() {
         }
         
         const selectedDay = selectedDateTime.getDay();
-        if (selectedDay === 0 || selectedDay === 6) {
-          errors.push('We are only available Monday through Friday');
+        if (selectedDay === 0) {
+          errors.push('We are closed on Sundays. Please select Monday through Saturday');
         }
       }
       if (!acceptedTerms) errors.push('You must accept the Terms & Conditions');
@@ -1144,8 +1144,8 @@ export default function BookAppointment() {
                         <span className="font-semibold">Business Hours:</span>
                       </div>
                       <p className="text-blue-900 text-sm mt-1">
-                        Monday - Friday: 8:00 AM - 6:00 PM<br/>
-                        Weekends: Closed
+                        Monday - Saturday: 8:00 AM - 6:00 PM<br/>
+                        Sunday: Closed
                       </p>
                     </div>
                   </div>

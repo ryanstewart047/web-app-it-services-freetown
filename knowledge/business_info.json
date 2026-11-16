@@ -13,8 +13,8 @@
       "website": "www.itservicesfreetown.com"
     },
     "hours": {
-      "weekdays": "Monday - Friday: 8:00 AM - 6:00 PM",
-      "weekend": "Saturday: By appointment, Sunday: Closed",
+      "weekdays": "Monday - Saturday: 8:00 AM - 6:00 PM",
+      "weekend": "Saturday: 8:00 AM - 6:00 PM (Appointments & Walk-ins), Sunday: Closed",
       "holidays": "Closed on public holidays"
     },
     "social_media": {

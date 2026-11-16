@@ -138,7 +138,7 @@ ABOUT THE BUSINESS:
 - Phone: +232 33 399 391 / +232 76 210 320
 - Email: support@itservicesfreetown.com
 - Website: www.itservicesfreetown.com
-- Hours: Monday–Friday 8 AM – 6 PM | Saturday by appointment | Sunday Closed
+- Hours: Monday–Saturday 8 AM – 6 PM | Sunday Closed
 - Services: Computer & laptop repair, mobile phone repair, device unlocking (FRP/iCloud/network), data recovery, digital forensics, networking & Wi-Fi setup, web development, POS software, on-site visits, and a digital tools suite (background remover, media converter, image converter, QR generator, and more)
 - Marketplace: Sells laptops, phones, accessories, SSDs online at /marketplace
 - Lead Technician: Ryan Josiah Stewart (IT graduate, Amity University India)

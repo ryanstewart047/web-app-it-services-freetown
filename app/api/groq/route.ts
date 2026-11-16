@@ -388,7 +388,7 @@ Tell me your device model and the issue, or contact us directly at **+232 33 399
     return `📍 **Our Location & Hours:**
 • **Address**: No. 1 Regent Highway, Jui Junction (opposite Freetown Teachers College / FTC), Freetown, Sierra Leone.
 • **Google Maps**: [View on Google Maps](https://maps.app.goo.gl/FHCthxNEvNYxB4tJ7)
-• **Working Hours**: Monday to Friday: 8:00 AM – 6:00 PM | Saturday: By Appointment | Sunday: Closed
+• **Working Hours**: Monday to Saturday: 8:00 AM – 6:00 PM | Sunday: Closed
 • **Phone**: +232 33 399 391 / +232 76 210 320`;
   }
 
