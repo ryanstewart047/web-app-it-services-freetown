@@ -235,7 +235,11 @@ export default function Chat() {
           minDelay
         ])
         
-        addMessage(aiResponse, 'bot')
+        const safeAiResponse = (typeof aiResponse === 'string' && aiResponse.trim().length > 0)
+          ? aiResponse.trim()
+          : "I'm here to help! Could you please tell me more about your device or the issue you're experiencing?";
+        
+        addMessage(safeAiResponse, 'bot')
       } else {
         // Use server-side API for full Next.js deployments
         const [response] = await Promise.all([
@@ -255,20 +259,24 @@ export default function Chat() {
           const messageType = data.source === 'repair_tracking' ? 'tracking' : 'text'
           addMessage(data.response, 'bot', messageType, data.trackingData)
         } else {
-          addMessage("I'm sorry, I'm having trouble responding right now. Please try again or contact us directly.", 'bot')
+          addMessage("I'm sorry, I'm having trouble responding right now. Please try again or contact us directly at +232 33 399 391.", 'bot')
         }
       }
     } catch (error) {
       console.error('Error calling chat:', error)
       await minDelay // Still wait for natural feel even on error
-      addMessage("I'm sorry, I'm having trouble responding right now. Please try again or contact us directly.", 'bot')
+      addMessage("I'm sorry, I'm having trouble responding right now. Please try again or contact us directly at +232 33 399 391.", 'bot')
     }
     
     setIsTyping(false)
   }
 
   const addMessage = (content: string, sender: 'user' | 'bot' | 'agent', type: 'text' | 'system' | 'transfer' | 'tracking' = 'text', trackingData?: any) => {
-    const newMessage = createMessage(content, sender, type, trackingData)
+    let safeContent = content
+    if ((sender === 'bot' || sender === 'agent') && type !== 'tracking' && (!safeContent || !safeContent.trim())) {
+      safeContent = "I'm here to help! Could you please share a bit more detail about what you need assistance with, or reach our direct support line at **+232 33 399 391**?"
+    }
+    const newMessage = createMessage(safeContent, sender, type, trackingData)
     setMessages(prev => [...prev, newMessage])
     return newMessage
   }

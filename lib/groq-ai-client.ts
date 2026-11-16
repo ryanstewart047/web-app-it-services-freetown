@@ -64,19 +64,26 @@ function isStaticDeployment(): boolean {
 function normalizeConversationHistory(history?: Array<string | ConversationHistoryMessage>): ConversationHistoryMessage[] {
   if (!history) return []
 
-  return history
+  const raw = history
     .map((entry) => {
       if (typeof entry === 'string') {
-        return { role: 'user' as const, content: entry }
+        return { role: 'user' as const, content: entry.trim() }
       }
 
       return {
         role: entry.role === 'assistant' ? 'assistant' as const : 'user' as const,
-        content: entry.content
+        content: String(entry.content || '').trim()
       }
     })
-    .filter((entry) => entry.content.trim().length > 0)
-    .slice(-12)
+    .filter((entry) => entry.content.length > 0)
+    .slice(-16)
+
+  // Ensure conversation history starts with a user turn (strip any orphaned leading assistant message)
+  while (raw.length > 0 && raw[0].role !== 'user') {
+    raw.shift()
+  }
+
+  return raw
 }
 
 /**
@@ -173,10 +180,10 @@ YOUR BEHAVIOUR:
     ]
     
     const requestBody = {
-      model: 'openai/gpt-oss-120b',
+      model: 'llama-3.3-70b-versatile',
       messages: messages,
       temperature: 0.6,
-      max_tokens: 1000,
+      max_tokens: 1024,
       top_p: 0.95,
       stream: false
     }
@@ -199,11 +206,13 @@ YOUR BEHAVIOUR:
     const data: GroqAPIResponse = await response.json()
     
     if (data.choices && data.choices.length > 0) {
-      const responseText = data.choices[0].message.content
-      return responseText
+      const responseText = data.choices[0].message?.content
+      if (typeof responseText === 'string' && responseText.trim().length > 0) {
+        return responseText.trim()
+      }
     }
     
-    throw new Error('No response generated')
+    throw new Error('No valid response generated')
   } catch (error) {
     console.error('❌ [CLIENT-SIDE] Error calling AI via proxy:', error)
     return generateFallbackChatResponse(context.userMessage)
@@ -289,7 +298,7 @@ Provide 3 to 5 steps only. Make every step count.`
     ]
     
     const requestBody = {
-      model: 'openai/gpt-oss-20b',  // Handled by backend proxy
+      model: 'llama-3.1-8b-instant',  // Handled by backend proxy
       messages: messages,
       temperature: 0.5,
       max_tokens: 1000,
@@ -301,7 +310,7 @@ Provide 3 to 5 steps only. Make every step count.`
     console.log('📤 [CLIENT-SIDE] Request body preview:', {
       deviceType: context.deviceType,
       issue: context.issueDescription,
-      model: 'openai/gpt-oss-20b'
+      model: 'llama-3.1-8b-instant'
     })
     
     // Call our secure backend proxy instead of Groq directly

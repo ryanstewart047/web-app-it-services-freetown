@@ -5,13 +5,10 @@ const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 // Default list of modern Groq models in prioritized fallback order
 const DEFAULT_GROQ_MODELS = [
-  process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
-  'openai/gpt-oss-20b',
-  'qwen/qwen3.8-27b',
-  'qwen/qwen3.6-27b',
-  'groq/compound',
-  'groq/compound-mini',
-  'allam-2-7b',
+  process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+  'llama-3.1-8b-instant',
+  'gemma2-9b-it',
+  'mixtral-8x7b-32768',
 ];
 
 /**
@@ -26,22 +23,23 @@ async function fetchActiveGroqModels(apiKey: string): Promise<string[]> {
       const data = await res.json();
       if (Array.isArray(data.data)) {
         const ids: string[] = data.data.map((m: any) => m.id);
-        // Exclude audio/embedding/moderation models
+        // Exclude audio/embedding/moderation/reasoning models (reasoning models exhaust tokens in hidden thinking)
         const chatModels = ids.filter(
           (id) =>
             !id.includes('whisper') &&
             !id.includes('guard') &&
             !id.includes('vision') &&
-            !id.includes('embedding')
+            !id.includes('embedding') &&
+            !id.includes('deepseek-r1') &&
+            !id.includes('qwq') &&
+            !id.includes('r1')
         );
         if (chatModels.length > 0) {
           const preferred = [
-            'openai/gpt-oss-120b',
-            'openai/gpt-oss-20b',
-            'qwen/qwen3.8-27b',
-            'qwen/qwen3.6-27b',
-            'groq/compound',
-            'groq/compound-mini',
+            'llama-3.3-70b-versatile',
+            'llama-3.1-8b-instant',
+            'gemma2-9b-it',
+            'mixtral-8x7b-32768',
           ];
           const sorted = [
             ...preferred.filter((p) => chatModels.includes(p)),
@@ -71,7 +69,31 @@ export async function POST(request: NextRequest) {
     }
 
     const temperature = body.temperature ?? 0.6;
-    const max_tokens = body.max_tokens ?? 800;
+    const max_tokens = body.max_tokens ?? 1024;
+
+    // Clean and normalize messages for Groq/OpenAI:
+    // 1. Ensure system messages stay at the top.
+    // 2. Ensure the dialogue starts with 'user' (strip any leading orphaned assistant messages from history slice).
+    // 3. Ensure no empty messages.
+    const systemMessages = body.messages.filter((m: any) => m.role === 'system');
+    const nonSystemMessages = body.messages
+      .filter((m: any) => m.role !== 'system')
+      .map((m: any) => ({
+        role: m.role === 'assistant' ? 'assistant' : 'user',
+        content: String(m.content || '').trim(),
+      }))
+      .filter((m: any) => m.content.length > 0);
+
+    // Strip leading assistant messages if any
+    while (nonSystemMessages.length > 0 && nonSystemMessages[0].role !== 'user') {
+      nonSystemMessages.shift();
+    }
+
+    if (nonSystemMessages.length === 0) {
+      nonSystemMessages.push({ role: 'user', content: 'Hello' });
+    }
+
+    const groqMessages = [...systemMessages, ...nonSystemMessages];
 
     // ── 1. Try Groq with auto-discovered / prioritized active models ──────────
     if (GROQ_API_KEY) {
@@ -91,7 +113,7 @@ export async function POST(request: NextRequest) {
             },
             body: JSON.stringify({
               model,
-              messages: body.messages,
+              messages: groqMessages,
               temperature,
               max_tokens,
               top_p: body.top_p ?? 1,
@@ -102,7 +124,23 @@ export async function POST(request: NextRequest) {
 
           if (groqRes.ok) {
             const data = await groqRes.json();
-            return NextResponse.json(data);
+            const choice = data.choices?.[0];
+            const content = choice?.message?.content;
+            const reasoning = choice?.message?.reasoning || choice?.message?.reasoning_content;
+
+            // Only accept if we received an actual non-empty response
+            if (typeof content === 'string' && content.trim().length > 0) {
+              return NextResponse.json(data);
+            }
+
+            // If content was empty but reasoning had text (reasoning models), surface reasoning
+            if (typeof reasoning === 'string' && reasoning.trim().length > 0) {
+              data.choices[0].message.content = reasoning.trim();
+              return NextResponse.json(data);
+            }
+
+            console.warn(`[Groq Proxy] Model ${model} returned empty content (finish_reason: ${choice?.finish_reason}). Trying next model...`);
+            providerErrors.push(`Groq (${model}) returned empty content`);
           } else {
             const errBody = await groqRes.text();
             console.warn(`[Groq Proxy] Model ${model} returned ${groqRes.status}:`, errBody);
@@ -120,7 +158,7 @@ export async function POST(request: NextRequest) {
     // ── 2. Try Google Gemini with robust conversation formatting ─────────────
     const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY;
     if (geminiKey) {
-      const geminiModels = ['gemini-2.5-flash-lite', 'gemini-flash-latest', 'gemini-2.5-pro', 'gemini-1.5-flash'];
+      const geminiModels = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-1.5-flash-8b'];
 
       // Format messages for Gemini (must strictly alternate user/model and start with user)
       const rawContents = body.messages
@@ -436,7 +474,7 @@ export async function GET(request: NextRequest) {
         } catch {}
 
         // Test a 1-token completion using first available active model
-        const testModel = modelsJson?.data?.[0]?.id || 'openai/gpt-oss-120b';
+        const testModel = modelsJson?.data?.[0]?.id || 'llama-3.3-70b-versatile';
         const testComp = await fetch(GROQ_API_URL, {
           method: 'POST',
           headers: {

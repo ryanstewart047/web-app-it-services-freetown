@@ -20,13 +20,10 @@ const BRAND_LOCATION = '#1 Regent Highway, Jui Junction, Freetown';
 
 // Default list of modern Groq models in prioritized order (never use decommissioned models)
 const DEFAULT_GROQ_MODELS = [
-  process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
-  'openai/gpt-oss-20b',
-  'qwen/qwen3.8-27b',
-  'qwen/qwen3.6-27b',
-  'groq/compound',
-  'groq/compound-mini',
-  'allam-2-7b',
+  process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+  'llama-3.1-8b-instant',
+  'gemma2-9b-it',
+  'mixtral-8x7b-32768',
 ];
 
 let cachedGroqModels: string[] | null = null;
@@ -59,17 +56,18 @@ async function getActiveGroqModels(apiKey: string): Promise<string[]> {
             !id.includes('whisper') &&
             !id.includes('guard') &&
             !id.includes('vision') &&
-            !id.includes('embedding')
+            !id.includes('embedding') &&
+            !id.includes('deepseek-r1') &&
+            !id.includes('qwq') &&
+            !id.includes('r1')
         );
         if (chatModels.length > 0) {
           const preferred = [
             process.env.GROQ_MODEL,
-            'openai/gpt-oss-120b',
-            'openai/gpt-oss-20b',
-            'qwen/qwen3.8-27b',
-            'qwen/qwen3.6-27b',
-            'groq/compound',
-            'groq/compound-mini',
+            'llama-3.3-70b-versatile',
+            'llama-3.1-8b-instant',
+            'gemma2-9b-it',
+            'mixtral-8x7b-32768',
           ].filter(Boolean) as string[];
 
           const sorted = [
