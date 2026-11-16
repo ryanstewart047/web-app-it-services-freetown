@@ -745,22 +745,46 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
         {/* Existing Comments List */}
         {commentsList.length > 0 ? (
           <div className="space-y-3 mb-6">
-            {commentsList.map((cmt) => (
-              <div key={cmt.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2 font-bold text-slate-800">
-                    <span className="w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center text-[10px]">
-                      {cmt.authorName.charAt(0).toUpperCase()}
+            {commentsList.map((cmt) => {
+              const isStaff = (cmt as any).isStaff ||
+                (cmt.authorName || '').toLowerCase().includes('bridgetech') ||
+                (cmt.authorName || '').toLowerCase().includes('technician') ||
+                (cmt.authorName || '').toLowerCase().includes('support') ||
+                (cmt.authorName || '').toLowerCase().includes('admin');
+
+              return (
+                <div
+                  key={cmt.id}
+                  className={`p-4 rounded-xl border shadow-xs space-y-1.5 transition-all ${
+                    isStaff
+                      ? 'bg-red-50/50 border-red-200 border-l-4 border-l-red-600'
+                      : 'bg-white border-slate-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2 font-bold text-slate-800">
+                      <span
+                        className={`w-6 h-6 rounded-full text-white flex items-center justify-center text-[10px] ${
+                          isStaff ? 'bg-red-600 font-black' : 'bg-slate-700'
+                        }`}
+                      >
+                        {isStaff ? '🛡️' : cmt.authorName.charAt(0).toUpperCase()}
+                      </span>
+                      <span>{cmt.authorName}</span>
+                      {isStaff && (
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-red-600 text-white">
+                          Staff Response
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-slate-400">
+                      {new Date(cmt.createdAt).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}
                     </span>
-                    {cmt.authorName}
                   </div>
-                  <span className="text-[10px] text-slate-400">
-                    {new Date(cmt.createdAt).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}
-                  </span>
+                  <p className="text-gray-800 text-xs pl-8 whitespace-pre-wrap leading-relaxed">{cmt.comment}</p>
                 </div>
-                <p className="text-gray-700 text-xs pl-8 whitespace-pre-wrap">{cmt.comment}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="text-xs text-slate-500 italic mb-4">

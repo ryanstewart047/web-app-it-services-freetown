@@ -1717,6 +1717,198 @@ interface RepairManagementProps {
   statusSummary: Array<{ label: string; count: number }>;
 }
 
+function RepairCommentsSection({
+  repair,
+  adminReplyText,
+  setAdminReplyText,
+  adminReplyAuthor,
+  setAdminReplyAuthor,
+  isSubmittingReply,
+  replySuccessMsg,
+  onReply,
+  onDeleteComment,
+}: {
+  repair: RepairRecord;
+  adminReplyText: string;
+  setAdminReplyText: (text: string) => void;
+  adminReplyAuthor: string;
+  setAdminReplyAuthor: (author: string) => void;
+  isSubmittingReply: boolean;
+  replySuccessMsg: string;
+  onReply: (trackingId: string) => Promise<void>;
+  onDeleteComment: (trackingId: string, commentId: string) => Promise<void>;
+}) {
+  const comments: any[] = (repair as any)?.customerComments || [];
+  const cleanPhone = (repair.phone || '').replace(/\D/g, '');
+
+  return (
+    <div className="bg-slate-900 border border-slate-700/80 rounded-xl p-3.5 sm:p-4 space-y-3">
+      {/* Header */}
+      <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+        <div className="flex items-center gap-2">
+          <i className="fas fa-comments text-amber-400" />
+          <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+            Customer Comments &amp; Discussion
+          </span>
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+            {comments.length}
+          </span>
+        </div>
+        <span className="text-[10px] text-slate-400 flex items-center gap-1 font-medium">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          Live Portal Sync
+        </span>
+      </div>
+
+      {/* Comment Thread */}
+      {comments.length > 0 ? (
+        <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+          {comments.map((cmt: any) => {
+            const isStaff = cmt.isStaff ||
+              (cmt.authorName || '').toLowerCase().includes('bridgetech') ||
+              (cmt.authorName || '').toLowerCase().includes('technician') ||
+              (cmt.authorName || '').toLowerCase().includes('support') ||
+              (cmt.authorName || '').toLowerCase().includes('admin');
+
+            return (
+              <div
+                key={cmt.id}
+                className={`p-2.5 rounded-lg text-[11px] border ${
+                  isStaff
+                    ? 'bg-slate-950/90 border-red-900/50'
+                    : 'bg-slate-950/70 border-slate-800'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1 gap-2">
+                  <div className="flex items-center gap-1.5 font-semibold">
+                    {isStaff ? (
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-red-600/30 text-red-300 border border-red-500/30">
+                        🛡️ {cmt.authorName || 'BridgeTech Support'}
+                      </span>
+                    ) : (
+                      <span className="text-amber-300 flex items-center gap-1">
+                        <i className="fas fa-user text-[10px] text-amber-400/70" />
+                        {cmt.authorName || repair.customerName || 'Customer'}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-500 text-[10px]">
+                      {cmt.createdAt ? new Date(cmt.createdAt).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' }) : ''}
+                    </span>
+                    <button
+                      onClick={() => onDeleteComment(repair.trackingId, cmt.id)}
+                      className="text-slate-600 hover:text-rose-400 transition-colors p-0.5"
+                      title="Delete this comment"
+                      type="button"
+                    >
+                      <i className="fas fa-trash-alt text-[10px]" />
+                    </button>
+                  </div>
+                </div>
+                <p className="text-slate-200 text-xs whitespace-pre-wrap leading-relaxed">
+                  {cmt.comment}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="p-3 rounded-lg bg-slate-950/40 border border-slate-800/80 text-center">
+          <p className="text-xs text-slate-400 italic">
+            No comments on this repair yet. Leave a note or reply below to message the customer directly on their tracking portal.
+          </p>
+        </div>
+      )}
+
+      {/* Success Notification */}
+      {replySuccessMsg && (
+        <div className="p-2.5 rounded-lg bg-emerald-950/60 border border-emerald-800 text-xs text-emerald-300 flex items-center gap-2">
+          <i className="fas fa-check-circle text-emerald-400" />
+          <span>{replySuccessMsg}</span>
+        </div>
+      )}
+
+      {/* Reply Input Form */}
+      <div className="pt-2 border-t border-slate-800/80 space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            Respond to Customer
+          </label>
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] text-slate-500 font-medium">As:</span>
+            {['BridgeTech Support', 'Technician', 'Admin'].map(role => (
+              <button
+                key={role}
+                type="button"
+                onClick={() => setAdminReplyAuthor(role)}
+                className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all ${
+                  adminReplyAuthor === role
+                    ? 'bg-red-600 text-white shadow-xs'
+                    : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                }`}
+              >
+                {role}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <textarea
+          rows={2}
+          value={adminReplyText}
+          onChange={e => setAdminReplyText(e.target.value)}
+          placeholder={`Type message to ${repair.customerName || 'customer'} (will appear on their live tracking page)...`}
+          className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-red-500 resize-y"
+        />
+
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-[10px] text-slate-500">
+            Visible on: <strong className="text-slate-400 font-mono">/track-repair ({repair.trackingId})</strong>
+          </span>
+
+          <div className="flex items-center gap-2">
+            {cleanPhone && (
+              <a
+                href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(
+                  `Hello ${repair.customerName || 'Customer'},\nRegarding your repair request (${repair.trackingId} - ${repair.deviceType} ${repair.deviceModel}):\n\n${adminReplyText || 'We have an update regarding your repair.'}\n\nYou can track your repair progress here: https://www.itservicesfreetown.com/track-repair?id=${repair.trackingId}`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs"
+                title="Send update directly to customer's WhatsApp"
+              >
+                <i className="fab fa-whatsapp" />
+                <span>WhatsApp</span>
+              </a>
+            )}
+
+            <button
+              onClick={() => onReply(repair.trackingId)}
+              disabled={isSubmittingReply || !adminReplyText.trim()}
+              type="button"
+              className="px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs"
+            >
+              {isSubmittingReply ? (
+                <>
+                  <i className="fas fa-spinner fa-spin" />
+                  <span>Sending...</span>
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-reply" />
+                  <span>Post Reply</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagementProps) {
   // ── Constants ──────────────────────────────────────────────────────────────
   const CONSULTATION_FEE_COMPUTER = 50;
@@ -1758,6 +1950,12 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
     failedCount: number;
     results: Array<{ trackingId: string; email: string; customerName: string; success: boolean; error?: string }>;
   } | null>(null);
+
+  // Customer comment reply state
+  const [adminReplyText, setAdminReplyText] = useState<string>('');
+  const [adminReplyAuthor, setAdminReplyAuthor] = useState<string>('BridgeTech Support');
+  const [isSubmittingReply, setIsSubmittingReply] = useState<boolean>(false);
+  const [replySuccessMsg, setReplySuccessMsg] = useState<string>('');
 
   // Track whether the user has manually edited the form — prevents background
   // data reloads from stomping over in-progress changes.
@@ -2024,6 +2222,96 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
         onUpdate();
       }
     } catch (err) { console.error(err); }
+  };
+
+  const handleReplyToCustomer = async (trackingId: string) => {
+    const text = adminReplyText.trim();
+    if (!text || !trackingId) return;
+
+    setIsSubmittingReply(true);
+    setReplySuccessMsg('');
+
+    const author = adminReplyAuthor.trim() || 'BridgeTech Support';
+
+    try {
+      const res = await fetch('/api/analytics/repairs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'add_comment',
+          trackingId,
+          authorName: author,
+          comment: text,
+          isStaff: true,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to post reply');
+      }
+
+      const updatedComments = data.customerComments || (selectedRepair ? [...((selectedRepair as any).customerComments || []), data.comment] : [data.comment]);
+
+      try {
+        const { addCustomerComment } = await import('@/lib/unified-booking-storage');
+        addCustomerComment(trackingId, author, text);
+      } catch (_) {}
+
+      setSelectedRepair(prev => prev ? {
+        ...prev,
+        customerComments: updatedComments,
+      } as any : null);
+
+      setAdminReplyText('');
+      setReplySuccessMsg('Reply posted to customer tracking page!');
+      setTimeout(() => setReplySuccessMsg(''), 5000);
+
+      onUpdate();
+    } catch (err: any) {
+      console.error('Error posting reply:', err);
+      alert(err.message || 'Error posting reply');
+    } finally {
+      setIsSubmittingReply(false);
+    }
+  };
+
+  const handleDeleteComment = async (trackingId: string, commentId: string) => {
+    if (!confirm('Are you sure you want to delete this comment?')) return;
+
+    try {
+      const res = await fetch('/api/analytics/repairs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete_comment',
+          trackingId,
+          commentId,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to delete comment');
+      }
+
+      const updatedComments = data.customerComments || [];
+
+      try {
+        const { deleteCustomerComment } = await import('@/lib/unified-booking-storage');
+        deleteCustomerComment(trackingId, commentId);
+      } catch (_) {}
+
+      setSelectedRepair(prev => prev ? {
+        ...prev,
+        customerComments: updatedComments,
+      } as any : null);
+
+      onUpdate();
+    } catch (err: any) {
+      console.error('Error deleting comment:', err);
+      alert(err.message || 'Error deleting comment');
+    }
   };
 
   const toggleSelectRepair = (trackingId: string, e?: React.SyntheticEvent) => {
@@ -2526,28 +2814,18 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                 />
               </div>
 
-              {/* Customer Comments Display */}
-              {((selectedRepair as any)?.customerComments || []).length > 0 && (
-                <div className="bg-slate-900 border border-slate-700 rounded-xl p-3 space-y-2">
-                  <div className="flex items-center justify-between text-xs text-amber-400 font-bold">
-                    <span className="flex items-center gap-1.5">
-                      <i className="fas fa-comments text-amber-400" />
-                      Customer Comments ({((selectedRepair as any)?.customerComments || []).length})
-                    </span>
-                  </div>
-                  <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-                    {((selectedRepair as any)?.customerComments || []).map((cmt: any) => (
-                      <div key={cmt.id} className="bg-slate-950 border border-slate-800 rounded-lg p-2 text-[11px]">
-                        <div className="flex justify-between text-slate-400 text-[10px] mb-1 font-semibold">
-                          <span className="text-amber-300">{cmt.authorName}</span>
-                          <span>{new Date(cmt.createdAt).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}</span>
-                        </div>
-                        <p className="text-slate-200 text-xs whitespace-pre-wrap">{cmt.comment}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* Customer Comments & Staff Reply Section */}
+              <RepairCommentsSection
+                repair={selectedRepair}
+                adminReplyText={adminReplyText}
+                setAdminReplyText={setAdminReplyText}
+                adminReplyAuthor={adminReplyAuthor}
+                setAdminReplyAuthor={setAdminReplyAuthor}
+                isSubmittingReply={isSubmittingReply}
+                replySuccessMsg={replySuccessMsg}
+                onReply={handleReplyToCustomer}
+                onDeleteComment={handleDeleteComment}
+              />
 
               {/* Diagnostic Images */}
               <div>
@@ -2943,25 +3221,18 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                 </div>
               )}
 
-              {/* Customer Comments */}
-              {((selectedRepair as any)?.customerComments || []).length > 0 && (
-                <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 sm:p-4 space-y-2">
-                  <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-800/80 pb-2">
-                    <i className="fas fa-comments text-amber-400" /> Customer Comments ({((selectedRepair as any)?.customerComments || []).length})
-                  </span>
-                  <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-                    {((selectedRepair as any)?.customerComments || []).map((cmt: any) => (
-                      <div key={cmt.id} className="bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-[11px]">
-                        <div className="flex justify-between text-slate-400 text-[10px] mb-1 font-semibold">
-                          <span className="text-amber-300">{cmt.authorName}</span>
-                          <span>{new Date(cmt.createdAt).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}</span>
-                        </div>
-                        <p className="text-slate-200 text-xs whitespace-pre-wrap">{cmt.comment}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* Customer Comments & Staff Reply Section */}
+              <RepairCommentsSection
+                repair={selectedRepair}
+                adminReplyText={adminReplyText}
+                setAdminReplyText={setAdminReplyText}
+                adminReplyAuthor={adminReplyAuthor}
+                setAdminReplyAuthor={setAdminReplyAuthor}
+                isSubmittingReply={isSubmittingReply}
+                replySuccessMsg={replySuccessMsg}
+                onReply={handleReplyToCustomer}
+                onDeleteComment={handleDeleteComment}
+              />
 
               {/* Inline Quick Update Form */}
               <div className="bg-slate-900 border border-red-900/40 rounded-xl p-3.5 sm:p-4 space-y-3.5">

@@ -215,6 +215,14 @@ export async function POST(request: NextRequest) {
       const trackingId = data.trackingId;
       const commentText = (data.comment || '').trim();
       const authorName = (data.authorName || 'Customer').trim();
+      const isStaff = Boolean(
+        data.isStaff ?? (
+          authorName.toLowerCase().includes('bridgetech') ||
+          authorName.toLowerCase().includes('technician') ||
+          authorName.toLowerCase().includes('admin') ||
+          authorName.toLowerCase().includes('support')
+        )
+      );
 
       if (!trackingId || !commentText) {
         return NextResponse.json({ error: 'Tracking ID and comment text are required' }, { status: 400 });
@@ -225,10 +233,16 @@ export async function POST(request: NextRequest) {
         id: `cmt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
         authorName,
         comment: commentText,
+        isStaff,
         createdAt: new Date().toISOString()
       };
 
-      const existingComments = existingRepair?.customerComments || [];
+      let existingComments = existingRepair?.customerComments || [];
+      if (typeof existingComments === 'string') {
+        try { existingComments = JSON.parse(existingComments); } catch (_) { existingComments = []; }
+      }
+      if (!Array.isArray(existingComments)) existingComments = [];
+
       const updatedComments = [...existingComments, newComment];
 
       const updated = await updateRepair({
@@ -242,6 +256,34 @@ export async function POST(request: NextRequest) {
         customerComments: updatedComments,
         repair: updated || existingRepair,
         message: 'Comment added successfully'
+      });
+    } else if (data.action === 'delete_comment') {
+      const trackingId = data.trackingId;
+      const commentId = data.commentId;
+
+      if (!trackingId || !commentId) {
+        return NextResponse.json({ error: 'Tracking ID and comment ID are required' }, { status: 400 });
+      }
+
+      const existingRepair = await getRepairByTrackingId(trackingId);
+      let existingComments = existingRepair?.customerComments || [];
+      if (typeof existingComments === 'string') {
+        try { existingComments = JSON.parse(existingComments); } catch (_) { existingComments = []; }
+      }
+      if (!Array.isArray(existingComments)) existingComments = [];
+
+      const updatedComments = existingComments.filter((c: any) => c.id !== commentId);
+
+      const updated = await updateRepair({
+        trackingId,
+        customerComments: updatedComments
+      });
+
+      return NextResponse.json({
+        success: true,
+        customerComments: updatedComments,
+        repair: updated || existingRepair,
+        message: 'Comment deleted successfully'
       });
     }
 

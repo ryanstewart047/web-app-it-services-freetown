@@ -6,6 +6,7 @@ export interface CustomerComment {
   authorName: string;
   comment: string;
   createdAt: string;
+  isStaff?: boolean;
 }
 
 export interface BookingData {
@@ -319,4 +320,25 @@ export function addCustomerComment(
 
   saveBookings(bookings);
   return newComment;
+}
+
+// Delete a customer comment from a booking record
+export function deleteCustomerComment(
+  trackingId: string, 
+  commentId: string
+): boolean {
+  const bookings = getAllBookings();
+  const bookingIndex = bookings.findIndex(b => b.trackingId === trackingId);
+  
+  if (bookingIndex === -1) return false;
+  
+  const existingComments = bookings[bookingIndex].customerComments || [];
+  bookings[bookingIndex] = {
+    ...bookings[bookingIndex],
+    customerComments: existingComments.filter(c => c.id !== commentId),
+    updatedAt: new Date().toISOString()
+  };
+
+  saveBookings(bookings);
+  return true;
 }
