@@ -55,6 +55,28 @@ async function fetchActiveGroqModels(apiKey: string): Promise<string[]> {
   return DEFAULT_GROQ_MODELS;
 }
 
+/**
+ * Clean model output:
+ * 1. Strip <think>...</think> tags and raw thinking traces from reasoning models.
+ * 2. Strip accidental raw PDF bytecode (%PDF-1.x ... %%EOF).
+ * 3. Strip internal chain-of-thought monologue if leaked into output.
+ */
+function cleanAIOutput(rawText: string): string {
+  if (!rawText) return '';
+  let cleaned = rawText;
+
+  // Strip <think>...</think>
+  cleaned = cleaned.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+
+  // Strip raw PDF bytecode
+  cleaned = cleaned.replace(/%PDF-1\.\d[\s\S]*?%%EOF/gi, '').trim();
+
+  // Strip internal chain-of-thought monologue if leaked
+  cleaned = cleaned.replace(/^(?:User wants|We need to respond|Let's craft|We can provide|Let's generate)[\s\S]*?(?=\n\n|\n[A-Z#*]|$)/i, '').trim();
+
+  return cleaned || rawText.trim();
+}
+
 export async function POST(request: NextRequest) {
   const providerErrors: string[] = [];
 
@@ -125,17 +147,20 @@ export async function POST(request: NextRequest) {
           if (groqRes.ok) {
             const data = await groqRes.json();
             const choice = data.choices?.[0];
-            const content = choice?.message?.content;
-            const reasoning = choice?.message?.reasoning || choice?.message?.reasoning_content;
+            const rawContent = choice?.message?.content;
+            const content = typeof rawContent === 'string' ? cleanAIOutput(rawContent) : '';
+            const rawReasoning = choice?.message?.reasoning || choice?.message?.reasoning_content;
+            const reasoning = typeof rawReasoning === 'string' ? cleanAIOutput(rawReasoning) : '';
 
             // Only accept if we received an actual non-empty response
-            if (typeof content === 'string' && content.trim().length > 0) {
+            if (content.length > 0) {
+              data.choices[0].message.content = content;
               return NextResponse.json(data);
             }
 
-            // If content was empty but reasoning had text (reasoning models), surface reasoning
-            if (typeof reasoning === 'string' && reasoning.trim().length > 0) {
-              data.choices[0].message.content = reasoning.trim();
+            // If content was empty but reasoning had text (reasoning models), surface cleaned reasoning
+            if (reasoning.length > 0) {
+              data.choices[0].message.content = reasoning;
               return NextResponse.json(data);
             }
 
@@ -210,7 +235,8 @@ export async function POST(request: NextRequest) {
 
           if (geminiRes.ok) {
             const geminiData = await geminiRes.json();
-            const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            const text = cleanAIOutput(rawText);
             if (text.trim()) {
               return NextResponse.json({
                 choices: [{ message: { role: 'assistant', content: text }, finish_reason: 'stop' }],

@@ -305,81 +305,104 @@ export default function Chat() {
     }
   }
 
-  const renderMessageContent = (content: string) => {
-    // Regex for URLs (including http, https, and common site paths)
-    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|(?:\/|itservicesfreetown\.com\/)[a-zA-Z0-9\-\._~:\/\?#\[\]@!\$&'\(\)\*\+,;=%]+)/gi;
-    
+  const renderMessageContent = (rawContent: string) => {
+    if (!rawContent) return null;
+
+    // 1. Strip raw <think> tags if reasoning tokens ever leak
+    let content = rawContent.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+
+    // 2. Strip internal chain-of-thought monologue if leaked
+    content = content.replace(/^(?:User wants|We need to respond|Let's craft|We can provide|Let's generate)[\s\S]*?(?=\n\n|\n[A-Z#*]|$)/i, '').trim();
+
+    // 3. Strip accidental raw PDF bytecode (%PDF-1.x ... %%EOF)
+    content = content.replace(/%PDF-1\.\d[\s\S]*?%%EOF/gi, '').trim();
+
+    // Regex for Code Blocks (```lang ... ```)
+    const codeBlockRegex = /```(?:[a-zA-Z0-9_-]+)?\n?([\s\S]*?)```/g;
+    // Regex for URLs (safe against matching closing HTML tags like </title>, </h1>, </strong>, etc.)
+    const urlRegex = /(https?:\/\/[^\s<>"'\)]+|www\.[^\s<>"'\)]+|(?:^|[\s\(\[])(?:\/(?:track-repair|book-appointment|marketplace|services|on-demand|contact|about|receipt|repair-cost-checker-freetown|terms|privacy|careers)[a-zA-Z0-9\-\._~:\/\?#\[\]@!\$&'\(\)\*\+,;=%]*))/gi;
     // Regex for Bold text (**text**)
     const boldRegex = /\*\*([^*]+)\*\*/g;
 
-    // Process bold text first by wrapping in placeholders, then handle URLs
-    // This is a simple way to avoid conflicts between regexes
-    let parts: (string | JSX.Element)[] = [content];
+    // 0. Handle Code Blocks first so their content is preserved as code and not linkified
+    const segments: (string | JSX.Element)[] = [];
+    const codeSplit = content.split(codeBlockRegex);
 
-    // 1. Handle Bold
-    let newParts: (string | JSX.Element)[] = [];
-    parts.forEach(part => {
-      if (typeof part === 'string') {
-        const subParts = part.split(boldRegex);
-        for (let i = 0; i < subParts.length; i++) {
-          if (i % 2 === 1) {
-            newParts.push(<strong key={`bold-${i}`} className="font-bold">{subParts[i]}</strong>);
-          } else if (subParts[i]) {
-            newParts.push(subParts[i]);
-          }
-        }
-      } else {
-        newParts.push(part);
-      }
-    });
-    parts = newParts;
+    for (let s = 0; s < codeSplit.length; s++) {
+      if (s % 2 === 1) {
+        // Odd index is inside a code block
+        segments.push(
+          <pre key={`code-${s}`} className="bg-gray-800 text-gray-100 p-3 rounded-lg overflow-x-auto text-xs my-2 font-mono whitespace-pre-wrap">
+            <code>{codeSplit[s].trim()}</code>
+          </pre>
+        );
+      } else if (codeSplit[s]) {
+        // Even index is normal text - process bold and URLs
+        let parts: (string | JSX.Element)[] = [codeSplit[s]];
 
-    // 2. Handle URLs
-    newParts = [];
-    parts.forEach((part, partIdx) => {
-      if (typeof part === 'string') {
-        const subParts = part.split(urlRegex);
-        const matches: string[] = part.match(urlRegex) || [];
-        
-        let matchIdx = 0;
-        for (let i = 0; i < subParts.length; i++) {
-          // The split with capturing group returns the matches at odd indices
-          // But our regex has multiple groups or might be complex. 
-          // Let's use a simpler approach: check if subParts[i] matches the regex.
-          const isUrl = matches.includes(subParts[i]);
-          
-          if (isUrl) {
-            let url = subParts[i];
-            // Ensure URL is absolute for the href
-            let href = url;
-            if (url.startsWith('/')) {
-              href = url; // Internal link
-            } else if (!url.startsWith('http')) {
-              href = `https://${url}`;
+        // 1. Handle Bold
+        let newParts: (string | JSX.Element)[] = [];
+        parts.forEach(part => {
+          if (typeof part === 'string') {
+            const subParts = part.split(boldRegex);
+            for (let i = 0; i < subParts.length; i++) {
+              if (i % 2 === 1) {
+                newParts.push(<strong key={`bold-${s}-${i}`} className="font-bold">{subParts[i]}</strong>);
+              } else if (subParts[i]) {
+                newParts.push(subParts[i]);
+              }
             }
-            
-            newParts.push(
-              <a 
-                key={`link-${partIdx}-${i}`} 
-                href={href} 
-                target={url.startsWith('/') ? '_self' : '_blank'}
-                rel="noopener noreferrer" 
-                className="text-blue-600 hover:underline font-bold bg-blue-50 px-1 rounded mx-0.5 inline-flex items-center"
-              >
-                {url.startsWith('/') ? <i className="fas fa-external-link-alt text-[10px] mr-1"></i> : null}
-                {url}
-              </a>
-            );
-          } else if (subParts[i]) {
-            newParts.push(subParts[i]);
+          } else {
+            newParts.push(part);
           }
-        }
-      } else {
-        newParts.push(part);
-      }
-    });
+        });
+        parts = newParts;
 
-    return newParts;
+        // 2. Handle URLs
+        newParts = [];
+        parts.forEach((part, partIdx) => {
+          if (typeof part === 'string') {
+            const subParts = part.split(urlRegex);
+            const matches: string[] = part.match(urlRegex) || [];
+
+            for (let i = 0; i < subParts.length; i++) {
+              const matchedUrl = matches.find(m => m.trim() === subParts[i]?.trim());
+
+              if (matchedUrl && subParts[i]) {
+                let url = subParts[i].trim();
+                let href = url;
+                if (url.startsWith('/')) {
+                  href = url; // Internal link
+                } else if (!url.startsWith('http')) {
+                  href = `https://${url}`;
+                }
+
+                newParts.push(
+                  <a
+                    key={`link-${s}-${partIdx}-${i}`}
+                    href={href}
+                    target={url.startsWith('/') ? '_self' : '_blank'}
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline font-bold bg-blue-50 px-1 rounded mx-0.5 inline-flex items-center"
+                  >
+                    {url.startsWith('/') ? <i className="fas fa-external-link-alt text-[10px] mr-1"></i> : null}
+                    {url}
+                  </a>
+                );
+              } else if (subParts[i]) {
+                newParts.push(subParts[i]);
+              }
+            }
+          } else {
+            newParts.push(part);
+          }
+        });
+
+        segments.push(...newParts);
+      }
+    }
+
+    return segments;
   };
 
   return (
@@ -450,25 +473,29 @@ export default function Chat() {
                       
                       <div className="bg-white p-4 rounded-lg border shadow-sm space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">{message.trackingData.id}</span>
+                          <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded font-bold text-gray-800">
+                            {message.trackingData.id || message.trackingData.trackingId}
+                          </span>
                           <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                             message.trackingData.status === 'completed' ? 'bg-green-100 text-green-800' :
                             message.trackingData.status === 'in-progress' ? 'bg-red-100 text-red-800' :
                             message.trackingData.status === 'ready-for-pickup' ? 'bg-[#040e40]/20 text-[#040e40]' :
                             'bg-yellow-100 text-yellow-800'
                           }`}>
-                            {message.trackingData.status.charAt(0).toUpperCase() + message.trackingData.status.slice(1).replace('-', ' ')}
+                            {message.trackingData.status ? (message.trackingData.status.charAt(0).toUpperCase() + message.trackingData.status.slice(1).replace('-', ' ')) : 'In Progress'}
                           </span>
                         </div>
                         
-                        <div className="text-sm text-gray-600">
-                          <div><strong>Device:</strong> {message.trackingData.deviceType} - {message.trackingData.deviceModel}</div>
-                          <div><strong>Customer:</strong> {message.trackingData.customerName}</div>
+                        <div className="text-sm text-gray-600 space-y-1">
+                          <div>
+                            <strong>Device:</strong> {[message.trackingData.deviceType, message.trackingData.deviceModel].filter(Boolean).join(' — ') || message.trackingData.device || 'Device on file'}
+                          </div>
+                          <div><strong>Customer:</strong> {message.trackingData.customerName || 'Valued Customer'}</div>
                           {message.trackingData.estimatedCompletion && (
-                            <div><strong>Est. Completion:</strong> {new Date(message.trackingData.estimatedCompletion).toLocaleDateString()}</div>
+                            <div><strong>Est. Completion:</strong> {(() => { const d = new Date(message.trackingData.estimatedCompletion); return isNaN(d.getTime()) ? message.trackingData.estimatedCompletion : d.toLocaleDateString(); })()}</div>
                           )}
                           {message.trackingData.cost && (
-                            <div><strong>Est. Cost:</strong> Le {message.trackingData.cost.toLocaleString()}</div>
+                            <div><strong>Est. Cost:</strong> Le {Number(message.trackingData.cost).toLocaleString()}</div>
                           )}
                         </div>
                         
@@ -477,6 +504,18 @@ export default function Chat() {
                             <strong>Latest Update:</strong> {message.trackingData.notes}
                           </div>
                         )}
+
+                        <div className="pt-2 border-t mt-3">
+                          <a
+                            href={`/track-repair?trackingId=${encodeURIComponent(message.trackingData.id || message.trackingData.trackingId)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center space-x-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg transition-colors shadow-sm"
+                          >
+                            <i className="fas fa-file-invoice"></i>
+                            <span>View & Download Official Receipt Slip</span>
+                          </a>
+                        </div>
                       </div>
                       
                       <p className="text-xs opacity-70 mt-2">

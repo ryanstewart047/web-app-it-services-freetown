@@ -55,11 +55,22 @@ export default function TrackRepair() {
       console.warn('localStorage not supported on this device/browser');
     }
 
-    // Restore previous session if still valid
-    const session = getSession();
-    if (session) {
-      setTrackingId(session.trackingId);
+    // Check URL parameters for direct tracking ID link (e.g. /track-repair?trackingId=ITS-XXXXXX-XXXX)
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryTrackingId = urlParams.get('trackingId') || urlParams.get('id');
+
+    if (queryTrackingId && queryTrackingId.trim()) {
+      const cleanId = queryTrackingId.trim();
+      setTrackingId(cleanId);
+      saveSession(cleanId);
       setShowStatus(true);
+    } else {
+      // Restore previous session if still valid
+      const session = getSession();
+      if (session) {
+        setTrackingId(session.trackingId);
+        setShowStatus(true);
+      }
     }
 
     // Track user activity for idle timeout

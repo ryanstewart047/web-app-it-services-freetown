@@ -154,6 +154,15 @@ ABOUT THE BUSINESS:
 - Booking: itservicesfreetown.com/book-appointment
 - Partner brand: Shirley's Stitches & Sweet — pastries, cakes, custom fashion (WhatsApp: +232 99 781 649)
 ${webSearchSnippet ? `\nLIVE WEB CONTEXT:\n${webSearchSnippet}\n` : ''}
+RECEIPTS, INVOICES & PDF DOWNLOADS:
+- BridgeTech provides formal repair receipts and payment slips directly through the website!
+- If a customer asks for a receipt, invoice, or downloadable PDF for their repair:
+  1. Direct them to their official repair slip at itservicesfreetown.com/track-repair where they can view their status and click "Print Slip" to print or save their official receipt as a PDF with 1 click.
+  2. If they need an official stamped/signed copy emailed or sent via WhatsApp, let them know our support team (+232 33 399 391 / support@itservicesfreetown.com) can send it directly.
+  3. You can format the receipt details in clean markdown table format (Receipt No., Date, Customer, Device, Amount Paid, Balance Due).
+  4. NEVER dump raw HTML code blocks (<!DOCTYPE html>, <style>, <table>, etc.), CSS, programming scripts, or PDF bytecode into the chat. Customers are not developers and cannot run code.
+  5. NEVER output internal thinking or chain-of-thought reflections.
+
 YOUR BEHAVIOUR:
 - Think freely and respond naturally — don't follow a script.
 - Answer whatever the user asks directly and clearly, using your own intelligence.
@@ -770,8 +779,11 @@ async function fetchRepairFromApi(trackingId: string): Promise<any | null> {
     const repair = await response.json();
     if (repair && repair.trackingId) {
       return {
+        id: repair.trackingId,
         trackingId: repair.trackingId,
-        device: repair.deviceType || repair.device || 'Unknown device',
+        deviceType: repair.deviceType || 'Device',
+        deviceModel: repair.deviceModel || '',
+        device: [repair.deviceType, repair.deviceModel].filter(Boolean).join(' — ') || repair.device || 'Device',
         issue: repair.issueDescription || repair.issue || 'Repair service',
         status: repair.status || 'received',
         estimatedCompletion: repair.estimatedCompletion || new Date(Date.now() + 72 * 60 * 60 * 1000).toLocaleDateString(),
@@ -811,9 +823,11 @@ async function searchRepairsByCustomerInfoClient(info: {
     const data = await response.json();
     if (data.repairs && Array.isArray(data.repairs)) {
       return data.repairs.map((r: any) => ({
+        id: r.trackingId,
         trackingId: r.trackingId,
-        device: r.deviceType || r.device || 'Unknown device',
+        deviceType: r.deviceType,
         deviceModel: r.deviceModel,
+        device: [r.deviceType, r.deviceModel].filter(Boolean).join(' — ') || r.device || 'Unknown device',
         issue: r.issueDescription || r.issue || 'Repair service',
         status: r.status || 'received',
         estimatedCompletion: r.estimatedCompletion || new Date(Date.now() + 72 * 60 * 60 * 1000).toLocaleDateString(),
@@ -1047,7 +1061,19 @@ Need more details? Call us or visit our location.`
       return {
         response: trackingResponse,
         source: 'repair_tracking',
-        trackingData: repairData
+        trackingData: {
+          id: repairData.trackingId || repairData.id || trackingId,
+          trackingId: repairData.trackingId || repairData.id || trackingId,
+          deviceType: repairData.deviceType,
+          deviceModel: repairData.deviceModel,
+          device: repairData.device || [repairData.deviceType, repairData.deviceModel].filter(Boolean).join(' — ') || 'Device on file',
+          issue: repairData.issue || repairData.issueDescription,
+          status: repairData.status,
+          customerName: repairData.customerName,
+          estimatedCompletion: repairData.estimatedCompletion,
+          cost: repairData.cost,
+          notes: repairData.notes
+        }
       }
     } else {
       return {
