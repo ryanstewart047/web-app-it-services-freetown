@@ -571,12 +571,6 @@ export default function OnDemandServicesPage() {
       {/* ── CLEAN WHITE HERO ── */}
       <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 via-white to-white border-b border-slate-200/80 pt-12 pb-14 sm:pt-16 sm:pb-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10 text-center">
-          
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-50 border border-red-200 text-red-600 text-xs font-bold uppercase tracking-wider mb-4 animate-fade-in">
-            <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-            <span>BridgeTech On-Demand Services · Freetown</span>
-          </div>
-
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-tight max-w-4xl mx-auto">
             Find a Trusted Technician in <span className="text-red-600">Freetown</span>
           </h1>
