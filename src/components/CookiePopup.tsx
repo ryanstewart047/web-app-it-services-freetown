@@ -4,15 +4,19 @@ import { useState, useEffect } from 'react'
 import { Cookie, Shield, BarChart3, Zap, X } from 'lucide-react'
 
 export default function CookiePopup() {
-  const [isVisible, setIsVisible] = useState(true)
+  const [isVisible, setIsVisible] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [analytics, setAnalytics] = useState(true)
   const [marketing, setMarketing] = useState(true)
 
   useEffect(() => {
-    const cookieAccepted = localStorage.getItem('cookiesAccepted')
-    if (cookieAccepted) {
-      setIsVisible(false)
+    try {
+      const cookieAccepted = localStorage.getItem('cookiesAccepted')
+      if (!cookieAccepted) {
+        setIsVisible(true)
+      }
+    } catch {
+      // Handle private browsing or localStorage disabled
     }
   }, [])
 
