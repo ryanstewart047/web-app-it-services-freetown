@@ -4,7 +4,10 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { BRAND_LOGO_SRC, BRAND_LOGO_DARK_SRC, BRAND_NAME } from '@/lib/brand'
 
-export default function SplashScreen() {
+// Feature toggle: Set to true (or set NEXT_PUBLIC_ENABLE_SPLASH_SCREEN=true in .env / Vercel) to re-enable
+const ENABLE_SPLASH_SCREEN = process.env.NEXT_PUBLIC_ENABLE_SPLASH_SCREEN === 'true' || false;
+
+function SplashScreenContent() {
   const [isVisible, setIsVisible] = useState(true)
   const [isAnimatingOut, setIsAnimatingOut] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -132,4 +135,9 @@ export default function SplashScreen() {
       `}</style>
     </div>
   )
+}
+
+export default function SplashScreen() {
+  if (!ENABLE_SPLASH_SCREEN) return null;
+  return <SplashScreenContent />;
 }
