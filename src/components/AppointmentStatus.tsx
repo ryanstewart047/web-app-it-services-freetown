@@ -3,6 +3,13 @@
 import { useState, useEffect } from 'react'
 import { getBookingByTrackingId, getAllBookings, addCustomerComment, BookingData, CustomerComment } from '@/lib/unified-booking-storage'
 import PaymentInstructionsPopup from '@/components/PaymentInstructionsPopup'
+import {
+  isNotificationSupported,
+  getNotificationPermission,
+  requestBrowserNotificationPermission,
+  showBrowserNotification,
+  playNotificationSound,
+} from '@/lib/client-browser-notifications'
 
 // Print-only styles: hide everything on screen, show ONLY slip section when printing
 const printStyles = `
@@ -132,6 +139,107 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
   const [submittingComment, setSubmittingComment] = useState(false)
   const [commentSuccess, setCommentSuccess] = useState('')
   const [commentsList, setCommentsList] = useState<CustomerComment[]>([])
+
+  // Browser Notification state
+  const [notificationPermission, setNotificationPermission] = useState<string>('default')
+  const [newStaffReplyAlert, setNewStaffReplyAlert] = useState<{ author: string; comment: string } | null>(null)
+
+  useEffect(() => {
+    if (isNotificationSupported()) {
+      setNotificationPermission(getNotificationPermission())
+    }
+  }, [])
+
+  const handleEnableNotifications = async () => {
+    const res = await requestBrowserNotificationPermission()
+    setNotificationPermission(res)
+    if (res === 'granted') {
+      playNotificationSound()
+      showBrowserNotification({
+        title: '🔔 BridgeTech Notifications Active',
+        body: 'You will receive instant browser alerts when our technician replies to your repair.',
+        tag: 'welcome-notification',
+      })
+    }
+  }
+
+  const fetchSilentUpdate = async () => {
+    if (!trackingId) return
+    try {
+      const updated = await fetchFromApi(trackingId)
+      if (!updated) return
+
+      const newComments = updated.customerComments || []
+      if (newComments.length > 0) {
+        const latestComment = newComments[newComments.length - 1]
+        const isStaff = (latestComment as any).isStaff ||
+          (latestComment.authorName || '').toLowerCase().includes('bridgetech') ||
+          (latestComment.authorName || '').toLowerCase().includes('technician') ||
+          (latestComment.authorName || '').toLowerCase().includes('support') ||
+          (latestComment.authorName || '').toLowerCase().includes('admin')
+
+        const storageKey = `notified_cmt_${updated.id}_${latestComment.id}`
+        const alreadyNotified = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null
+
+        if (isStaff && !alreadyNotified) {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(storageKey, '1')
+          }
+
+          showBrowserNotification({
+            title: '🛠️ BridgeTech Technician Update',
+            body: `New response on #${updated.id}: "${latestComment.comment}"`,
+            url: window.location.href,
+            tag: `reply-${updated.id}-${latestComment.id}`
+          })
+
+          setNewStaffReplyAlert({
+            author: latestComment.authorName || 'BridgeTech Support',
+            comment: latestComment.comment
+          })
+          setTimeout(() => setNewStaffReplyAlert(null), 12000)
+        }
+
+        setCommentsList(newComments)
+      }
+
+      setAppointment(prev => prev ? {
+        ...prev,
+        status: updated.status,
+        diagnosticNotes: updated.diagnosticNotes,
+        diagnosticImages: updated.diagnosticImages,
+        customerComments: updated.customerComments,
+        notes: updated.notes,
+        cost: updated.cost,
+        paymentStatus: updated.paymentStatus,
+        updatedAt: updated.updatedAt
+      } : updated)
+    } catch (_) {}
+  }
+
+  // Periodic silent polling every 20s + on tab focus to catch new staff replies
+  useEffect(() => {
+    if (!trackingId) return
+
+    const pollInterval = setInterval(() => {
+      fetchSilentUpdate()
+    }, 20000)
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        fetchSilentUpdate()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibility)
+    window.addEventListener('focus', handleVisibility)
+
+    return () => {
+      clearInterval(pollInterval)
+      document.removeEventListener('visibilitychange', handleVisibility)
+      window.removeEventListener('focus', handleVisibility)
+    }
+  }, [trackingId])
 
   useEffect(() => {
     fetchAppointmentStatus()
@@ -356,7 +464,13 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
       cost: typeof repair.totalCost === 'number' ? repair.totalCost : undefined,
       createdAt: repair.submissionDate || new Date().toISOString(),
       updatedAt: repair.lastUpdated || repair.submissionDate || new Date().toISOString(),
-      diagnosticImages: repair.diagnosticImages,
+      diagnosticImages: (() => {
+        let imgs = repair.diagnosticImages;
+        if (typeof imgs === 'string') {
+          try { imgs = JSON.parse(imgs); } catch (_) { return [imgs]; }
+        }
+        return Array.isArray(imgs) ? imgs : (imgs ? [imgs] : []);
+      })(),
       diagnosticNotes: repair.diagnosticNotes,
       customerComments: repair.customerComments
     };
@@ -402,6 +516,33 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
     <style dangerouslySetInnerHTML={{ __html: printStyles }} />
     <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-lg border border-gray-100">
       
+      {/* Live New Staff Reply Toast Banner */}
+      {newStaffReplyAlert && (
+        <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-lg flex items-center justify-between gap-3 animate-pulse">
+          <div className="flex items-center gap-3">
+            <span className="w-9 h-9 rounded-full bg-white text-red-600 flex items-center justify-center font-bold text-sm shrink-0">
+              <i className="fas fa-bell"></i>
+            </span>
+            <div>
+              <p className="text-xs font-black uppercase tracking-wider text-red-100 flex items-center gap-1.5">
+                <span>New Response from {newStaffReplyAlert.author}</span>
+                <span className="w-2 h-2 rounded-full bg-amber-300 animate-ping"></span>
+              </p>
+              <p className="text-sm font-semibold text-white mt-0.5 line-clamp-2">
+                &ldquo;{newStaffReplyAlert.comment}&rdquo;
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setNewStaffReplyAlert(null)}
+            className="text-white/80 hover:text-white text-lg px-2 py-1 font-bold"
+            title="Dismiss notification"
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-6 mb-6 gap-4">
         <div>
@@ -740,6 +881,49 @@ export default function AppointmentStatus({ trackingId }: AppointmentStatusProps
           <span className="text-xs bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-bold">
             {commentsList.length} comment{commentsList.length !== 1 ? 's' : ''}
           </span>
+        </div>
+
+        {/* Browser Notification Bell Bar */}
+        <div className="mb-4 p-3 rounded-xl bg-white border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0 ${
+              notificationPermission === 'granted'
+                ? 'bg-emerald-100 text-emerald-700'
+                : 'bg-amber-100 text-amber-700'
+            }`}>
+              <i className={`fas ${notificationPermission === 'granted' ? 'fa-check-circle' : 'fa-bell'}`}></i>
+            </span>
+            <div>
+              <p className="text-xs font-bold text-slate-800">
+                {notificationPermission === 'granted'
+                  ? 'Live Browser Notifications Active on this Device'
+                  : 'Get Instant Device Alerts when Technician Replies'}
+              </p>
+              <p className="text-[11px] text-slate-500">
+                {notificationPermission === 'granted'
+                  ? 'Your browser will chime and alert you as soon as our team posts an update.'
+                  : 'Turn on notifications to receive alerts without keeping this page open.'}
+              </p>
+            </div>
+          </div>
+
+          {notificationPermission !== 'granted' && (
+            <button
+              type="button"
+              onClick={handleEnableNotifications}
+              className="px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs"
+            >
+              <i className="fas fa-bell"></i>
+              <span>Enable Device Alerts</span>
+            </button>
+          )}
+
+          {notificationPermission === 'granted' && (
+            <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Alerts Enabled</span>
+            </span>
+          )}
         </div>
 
         {/* Existing Comments List */}

@@ -4,6 +4,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { BRAND_AVATAR_TRANSPARENT_SRC } from '@/lib/brand';
+import {
+  isNotificationSupported,
+  getNotificationPermission,
+  requestBrowserNotificationPermission,
+  showBrowserNotification,
+  playNotificationSound,
+} from '@/lib/client-browser-notifications';
 
 // Helper: add ?iframe=1 to a URL (handles existing query strings)
 function iframeUrl(url: string): string {
@@ -412,6 +419,15 @@ export default function AdminPage() {
   const [setupFeedback, setSetupFeedback] = useState<string>('');
   const [setupError, setSetupError] = useState<string>('');
 
+  // Browser Notification state for Admin Alerts
+  const [adminNotificationPerm, setAdminNotificationPerm] = useState<string>('default');
+
+  useEffect(() => {
+    if (isNotificationSupported()) {
+      setAdminNotificationPerm(getNotificationPermission());
+    }
+  }, []);
+
   // Sync tab with URL search parameter
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -687,7 +703,37 @@ export default function AdminPage() {
 
       if (analyticsRes.ok) setAnalytics(await analyticsRes.json());
       if (formsRes.ok) setForms(await formsRes.json());
-      if (repairsRes.ok) setRepairs(await repairsRes.json());
+      if (repairsRes.ok) {
+        const freshRepairs = await repairsRes.json();
+        setRepairs(freshRepairs);
+
+        // Check for new customer comments to alert admin
+        try {
+          const allList: any[] = freshRepairs.allRepairs || [];
+          for (const r of allList) {
+            const cmts: any[] = r.customerComments || [];
+            if (cmts.length > 0) {
+              const latestCmt = cmts[cmts.length - 1];
+              const isCust = !latestCmt.isStaff &&
+                !(latestCmt.authorName || '').toLowerCase().includes('bridgetech') &&
+                !(latestCmt.authorName || '').toLowerCase().includes('technician') &&
+                !(latestCmt.authorName || '').toLowerCase().includes('admin') &&
+                !(latestCmt.authorName || '').toLowerCase().includes('support');
+
+              const adminNotifiedKey = `admin_notified_cmt_${latestCmt.id}`;
+              if (isCust && typeof window !== 'undefined' && !localStorage.getItem(adminNotifiedKey)) {
+                localStorage.setItem(adminNotifiedKey, '1');
+                showBrowserNotification({
+                  title: `💬 Customer Comment on #${r.trackingId}`,
+                  body: `${latestCmt.authorName || 'Customer'}: "${latestCmt.comment}"`,
+                  url: '/admin',
+                  tag: `admin-cmt-${latestCmt.id}`,
+                });
+              }
+            }
+          }
+        } catch (_) {}
+      }
 
       // Compute total orders revenue
       if (ordersRes.ok) {
@@ -1299,14 +1345,41 @@ export default function AdminPage() {
                       Track active repair jobs, update job status, record costs, and diagnostic images.
                     </p>
                   </div>
-                  <button
-                    onClick={() => void loadData()}
-                    disabled={isRefreshing}
-                    className="px-3 py-1.5 bg-red-600/10 border border-red-600/30 text-red-400 hover:bg-red-600/20 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors self-start sm:self-auto disabled:opacity-50"
-                  >
-                    <i className={`fas fa-sync-alt ${isRefreshing ? 'fa-spin' : ''}`}></i>
-                    <span>{isRefreshing ? 'Refreshing...' : 'Refresh Repairs'}</span>
-                  </button>
+                  <div className="flex items-center gap-2 self-start sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const perm = await requestBrowserNotificationPermission();
+                        setAdminNotificationPerm(perm);
+                        if (perm === 'granted') {
+                          playNotificationSound();
+                          showBrowserNotification({
+                            title: '🔔 Admin Notifications Enabled',
+                            body: 'You will receive desktop alerts when customers submit comments or questions.',
+                            tag: 'admin-enabled',
+                          });
+                        }
+                      }}
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors ${
+                        adminNotificationPerm === 'granted'
+                          ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+                          : 'bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20'
+                      }`}
+                      title={adminNotificationPerm === 'granted' ? 'Browser alerts active' : 'Click to enable browser notifications for new customer comments'}
+                    >
+                      <i className={`fas ${adminNotificationPerm === 'granted' ? 'fa-bell text-emerald-400' : 'fa-bell-slash text-amber-400'}`} />
+                      <span>{adminNotificationPerm === 'granted' ? 'Alerts Active' : 'Enable Alerts'}</span>
+                    </button>
+
+                    <button
+                      onClick={() => void loadData()}
+                      disabled={isRefreshing}
+                      className="px-3 py-1.5 bg-red-600/10 border border-red-600/30 text-red-400 hover:bg-red-600/20 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                    >
+                      <i className={`fas fa-sync-alt ${isRefreshing ? 'fa-spin' : ''}`}></i>
+                      <span>{isRefreshing ? 'Refreshing...' : 'Refresh Repairs'}</span>
+                    </button>
+                  </div>
                 </div>
 
                 <RepairManagement repairs={repairs} onUpdate={loadData} statusSummary={statusSummary} />
@@ -2034,9 +2107,14 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
     loadedTrackingId.current = selectedRepair.trackingId;
     formDirty.current = false; // Fresh load — mark clean so sync can run
 
-    const images = ((selectedRepair as any).diagnosticImages ?? []).map(
-      (img: any) => (typeof img === 'string' ? img : img.data)
-    );
+    let rawImages = (selectedRepair as any).diagnosticImages;
+    if (typeof rawImages === 'string') {
+      try { rawImages = JSON.parse(rawImages); } catch (_) { rawImages = [rawImages]; }
+    }
+    if (!Array.isArray(rawImages)) rawImages = rawImages ? [rawImages] : [];
+    const images = rawImages.map(
+      (img: any) => (typeof img === 'string' ? img : img?.data || '')
+    ).filter(Boolean);
 
     const notes = (selectedRepair as any).notes || '';
 
@@ -2105,9 +2183,45 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
     setRepairItems(prev => prev.filter((_, i) => i !== index));
   };
 
+  const compressDiagnosticImage = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new window.Image();
+        img.onload = () => {
+          const MAX_DIM = 1280;
+          let { width, height } = img;
+          if (width > MAX_DIM || height > MAX_DIM) {
+            if (width > height) {
+              height = Math.round((height * MAX_DIM) / width);
+              width = MAX_DIM;
+            } else {
+              width = Math.round((width * MAX_DIM) / height);
+              height = MAX_DIM;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(e.target?.result as string);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.82));
+        };
+        img.onerror = () => resolve(e.target?.result as string);
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files) return;
+    if (!files || files.length === 0) return;
     if (files.length + updateForm.diagnosticImages.length > 5) {
       alert('Maximum 5 images allowed.');
       return;
@@ -2115,16 +2229,19 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
     const newImages: string[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      if (file.size > 5 * 1024 * 1024) { alert(`${file.name} exceeds 5MB`); continue; }
-      await new Promise<void>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (ev) => { if (ev.target?.result) newImages.push(ev.target.result as string); resolve(); };
-        reader.readAsDataURL(file);
-      });
+      if (file.size > 15 * 1024 * 1024) { alert(`${file.name} exceeds 15MB limit`); continue; }
+      try {
+        const compressed = await compressDiagnosticImage(file);
+        if (compressed) newImages.push(compressed);
+      } catch (err) {
+        console.error('Error compressing diagnostic photo:', err);
+      }
     }
     if (newImages.length) {
       updateRepairForm(prev => ({ ...prev, diagnosticImages: [...prev.diagnosticImages, ...newImages] }));
     }
+    // Reset file input so user can pick the same file again if needed
+    e.target.value = '';
   };
 
   const saveRepair = async () => {
@@ -2838,9 +2955,25 @@ function RepairManagement({ repairs, onUpdate, statusSummary }: RepairManagement
                   className="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-red-600/20 file:text-red-400 file:font-semibold cursor-pointer"
                 />
                 {updateForm.diagnosticImages.length > 0 && (
-                  <div className="flex gap-2 mt-2 overflow-x-auto">
+                  <div className="flex gap-2 mt-2 overflow-x-auto pb-1">
                     {updateForm.diagnosticImages.map((img, i) => (
-                      <img key={i} src={img} className="w-12 h-12 object-cover rounded-lg border border-slate-800 shrink-0" alt={`Diagnostic ${i + 1}`} />
+                      <div key={i} className="relative shrink-0">
+                        <img src={img} className="w-14 h-14 object-cover rounded-lg border border-slate-800" alt={`Diagnostic ${i + 1}`} />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            markFormDirty();
+                            updateRepairForm(prev => ({
+                              ...prev,
+                              diagnosticImages: prev.diagnosticImages.filter((_, idx) => idx !== i)
+                            }));
+                          }}
+                          className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-rose-600 hover:bg-rose-500 text-white text-xs flex items-center justify-center shadow"
+                          title="Remove photo"
+                        >
+                          &times;
+                        </button>
+                      </div>
                     ))}
                   </div>
                 )}

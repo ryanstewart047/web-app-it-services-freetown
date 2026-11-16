@@ -76,8 +76,27 @@ function saveBookings(bookings: BookingData[]): void {
       bookings: bookings
     };
     localStorage.setItem(EXPORT_KEY, JSON.stringify(exportData));
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error saving bookings to localStorage:', error);
+    // If quota exceeded, strip heavy base64 strings so critical booking metadata is not lost
+    try {
+      const sanitized = bookings.map(b => {
+        if (!b.diagnosticImages) return b;
+        return {
+          ...b,
+          diagnosticImages: (b.diagnosticImages as any[]).map((img: any) => {
+            if (typeof img === 'string' && img.startsWith('data:image/')) {
+              return { data: '', uploadedAt: new Date().toISOString() };
+            }
+            if (typeof img === 'object' && img?.data && typeof img.data === 'string' && img.data.startsWith('data:image/')) {
+              return { ...img, data: '' };
+            }
+            return img;
+          })
+        };
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
+    } catch (_) {}
   }
 }
 

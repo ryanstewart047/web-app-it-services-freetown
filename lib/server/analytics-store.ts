@@ -90,7 +90,14 @@ function mapRepairRow(row: any): RepairBooking {
 		notes: row.notes || undefined,
 		lastUpdated: row.updatedAt?.toISOString?.() ?? new Date().toISOString(),
 		address: row.customer?.address ?? undefined,
-		diagnosticImages: row.diagnosticImages ?? undefined,
+		diagnosticImages: (() => {
+			if (!row.diagnosticImages) return undefined;
+			let imgs = row.diagnosticImages;
+			if (typeof imgs === 'string') {
+				try { imgs = JSON.parse(imgs); } catch (_) { return [imgs]; }
+			}
+			return Array.isArray(imgs) ? imgs : [imgs];
+		})(),
 		diagnosticNotes: row.diagnosticNotes ?? undefined,
 		customerComments: (row as any).customerComments ? (typeof (row as any).customerComments === 'string' ? JSON.parse((row as any).customerComments) : (row as any).customerComments) : undefined,
 	};
@@ -376,7 +383,42 @@ export async function updateRepair(input: UpdateRepairInput): Promise<RepairBook
 		if (input.status === 'completed') {
 			updateData.dateCompleted = new Date();
 		}
-		if (input.diagnosticImages !== undefined) updateData.diagnosticImages = input.diagnosticImages;
+		if (input.diagnosticImages !== undefined) {
+			let processedImages: any[] = [];
+			const rawList = Array.isArray(input.diagnosticImages) ? input.diagnosticImages : [];
+			const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'diagnostics');
+
+			for (let idx = 0; idx < rawList.length; idx++) {
+				const item: any = rawList[idx];
+				const imgStr: string = typeof item === 'string' ? item : (item?.data || '');
+				if (!imgStr) continue;
+
+				if (imgStr.startsWith('data:image/')) {
+					try {
+						await fs.mkdir(uploadDir, { recursive: true });
+						const matches = imgStr.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+						if (matches) {
+							let ext = matches[1].toLowerCase();
+							if (ext === 'jpeg') ext = 'jpg';
+							const base64Data = matches[2];
+							const buffer = Buffer.from(base64Data, 'base64');
+							const filename = `${input.trackingId.replace(/[^a-zA-Z0-9_-]/g, '_')}-${Date.now()}-${idx}.${ext}`;
+							const filePath = path.join(uploadDir, filename);
+							await fs.writeFile(filePath, buffer);
+							processedImages.push(`/uploads/diagnostics/${filename}`);
+						} else {
+							processedImages.push(imgStr);
+						}
+					} catch (fsErr) {
+						console.error('[AnalyticsStore] Failed to write diagnostic image to disk, keeping base64:', fsErr);
+						processedImages.push(imgStr);
+					}
+				} else {
+					processedImages.push(imgStr);
+				}
+			}
+			updateData.diagnosticImages = processedImages;
+		}
 		if (input.diagnosticNotes !== undefined) updateData.diagnosticNotes = input.diagnosticNotes;
 		if (input.customerComments !== undefined) updateData.customerComments = input.customerComments;
 
