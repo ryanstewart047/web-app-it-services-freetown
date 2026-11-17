@@ -248,6 +248,9 @@ const MobileRepairPricing: React.FC = () => {
                     <img 
                       src={device.icon} 
                       alt={`${device.name} device`}
+                      width={192}
+                      height={128}
+                      loading="lazy"
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
                   </div>
@@ -319,6 +322,8 @@ const MobileRepairPricing: React.FC = () => {
                 </div>
                 <button
                   onClick={closeModal}
+                  type="button"
+                  aria-label="Close repair pricing modal"
                   className="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all"
                 >
                   <i className="fas fa-times text-xl"></i>

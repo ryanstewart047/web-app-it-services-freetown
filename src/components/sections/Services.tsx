@@ -127,6 +127,48 @@ export default function Services() {
           ))}
         </div>
 
+        {/* On-Demand Service & Pro Network Featured Callout */}
+        <div className="mt-12 bg-gradient-to-r from-[#040e40] via-slate-900 to-[#040e40] rounded-3xl p-6 sm:p-8 shadow-2xl border-2 border-amber-500/30 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6">
+            <div className="space-y-2 text-center lg:text-left max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-black uppercase tracking-wider">
+                <i className="fas fa-bolt text-xs" />
+                <span>New: BridgeTech On-Demand Services</span>
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-black text-white leading-tight">
+                Need a Printer Tech, Console Repairer, Electrician, or Plumber?
+              </h3>
+              <p className="text-sm text-slate-300 leading-relaxed">
+                Book background-checked, vetted professionals across Freetown. Fast emergency dispatch, fair local pricing, and backed by the <strong>BridgeTech 15% Quality Guarantee</strong>.
+              </p>
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 pt-2 text-xs text-amber-200/90 font-semibold">
+                <span className="flex items-center gap-1.5"><i className="fas fa-check text-emerald-400" /> 13+ Specialized Trades</span>
+                <span>&bull;</span>
+                <span className="flex items-center gap-1.5"><i className="fas fa-check text-emerald-400" /> Vetted Artisans</span>
+                <span>&bull;</span>
+                <span className="flex items-center gap-1.5"><i className="fas fa-check text-emerald-400" /> 14-Day Warranty</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0 w-full sm:w-auto">
+              <Link
+                href="/on-demand"
+                className="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white rounded-2xl font-black text-sm shadow-xl shadow-red-950/60 transition-all text-center flex items-center justify-center gap-2 active:scale-95"
+              >
+                <span>Request a Pro Now</span>
+                <i className="fas fa-arrow-right text-xs" />
+              </Link>
+              <Link
+                href="/on-demand"
+                className="w-full sm:w-auto px-5 py-3.5 bg-slate-800/80 hover:bg-slate-800 text-slate-200 hover:text-white rounded-2xl font-bold text-sm border border-slate-700 transition-all text-center"
+              >
+                <span>Join as a Pro (Artisans)</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+
         {/* Internal Discovery Strip (Boosts Page Views & Internal Linking) */}
         <div className="mt-12 p-4 sm:p-6 bg-white/90 rounded-2xl shadow-sm border border-gray-200/80 flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-gray-600">
           <span className="flex items-center gap-2 text-gray-800 font-bold">

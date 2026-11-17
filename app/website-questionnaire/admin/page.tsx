@@ -20,6 +20,8 @@ interface Submission {
   contactName: string
   email: string
   phone: string | null
+  address: string | null
+  businessRegistration: string | null
   preferredContactMethod: string | null
   websitePurpose: string
   siteType: string
@@ -116,7 +118,7 @@ function Pill({ on, label }: { on: boolean; label: string }) {
 
 function exportCSV(submissions: Submission[]) {
   const headers = [
-    'ID', 'Submitted', 'Organisation', 'Contact', 'Email', 'Phone', 'Preferred Contact',
+    'ID', 'Submitted', 'Organisation', 'Contact', 'Email', 'Phone', 'Address', 'Tax ID / Business Reg', 'Preferred Contact',
     'Site Type', 'Page Count', 'Budget', 'Timeline', 'Target Deadline', 'Status',
     'Domain Status', 'Domain Name', 'Brand Colors', 'Has Branding', 'Has Photos',
     'Has Content', 'Wants Copywriting', 'Wants Graphics', 'Needs Hosting', 'Needs CMS',
@@ -128,6 +130,8 @@ function exportCSV(submissions: Submission[]) {
     s.id,
     new Date(s.createdAt).toLocaleDateString(),
     s.organizationName, s.contactName, s.email, s.phone ?? '',
+    `"${(s.address ?? '').replace(/"/g, '""')}"`,
+    `"${(s.businessRegistration ?? '').replace(/"/g, '""')}"`,
     s.preferredContactMethod ?? 'whatsapp',
     SITE_TYPE_LABELS[s.siteType] ?? s.siteType,
     PAGE_COUNT_LABELS[s.pageCount ?? ''] ?? s.pageCount ?? '',
@@ -306,7 +310,7 @@ function SubmissionCard({
         <div className="border-t border-gray-100 px-5 pb-6 pt-4 space-y-5">
 
           {/* Contact details */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
             {sub.phone && (
               <a href={`tel:${sub.phone}`} className="flex items-center gap-2 text-sm text-gray-700 hover:text-[#ef4444] transition">
                 <Phone className="w-4 h-4 text-[#ef4444]" /> {sub.phone}
@@ -324,6 +328,16 @@ function SubmissionCard({
               >
                 <MessageSquare className="w-4 h-4 text-emerald-600" /> WhatsApp Client
               </a>
+            )}
+            {sub.address && (
+              <div className="flex items-center gap-2 text-sm text-gray-700 sm:col-span-2 md:col-span-1">
+                <span className="text-[#ef4444] font-bold">📍</span> <span className="truncate">{sub.address}</span>
+              </div>
+            )}
+            {sub.businessRegistration && (
+              <div className="flex items-center gap-2 text-sm text-gray-700 sm:col-span-2 md:col-span-1">
+                <span className="text-[#040e40] font-bold">🏢</span> <span>Reg/TIN: {sub.businessRegistration}</span>
+              </div>
             )}
           </div>
 

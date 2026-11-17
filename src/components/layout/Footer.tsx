@@ -790,8 +790,10 @@ export default function Footer() {
             <div className="flex items-center space-x-6">
               <button
                 onClick={() => setShowAdminPanel(true)}
+                type="button"
                 className="text-gray-500 hover:text-gray-400 text-xs transition-colors"
                 title="Admin Access"
+                aria-label="Admin Access"
               >
                 <i className="fas fa-lock"></i>
               </button>

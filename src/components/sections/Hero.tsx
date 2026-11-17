@@ -135,7 +135,7 @@ export default function Hero() {
       <div className="hero-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-screen py-20">
           {/* Left Side - Text Content */}
-          <div className="text-left" data-animate="slide-right">
+          <div className="text-left">
             <h1 className="hero-title">
               Freetown&apos;s #1 Computer & Mobile Repair | iPhone Repair | iCloud Removal | FRP Unlock
             </h1>
@@ -181,9 +181,11 @@ export default function Hero() {
               {/* Desktop Facebook Button (Official live widget with follower count) */}
               <div className="hidden sm:flex h-[70px] w-[280px] overflow-hidden rounded-lg bg-white p-1 shadow-lg items-center justify-center hover:scale-105 transition-transform duration-300">
                 <iframe
+                  title="BridgeTech IT Services Facebook Page"
                   src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2Fitservicefreetown&tabs=&width=280&height=70&small_header=true&adapt_container_width=true&hide_cover=true&show_facepile=false&appId"
                   width="280"
                   height="70"
+                  loading="lazy"
                   style={{ border: 'none', overflow: 'hidden' }}
                   scrolling="no"
                   frameBorder="0"
@@ -211,7 +213,7 @@ export default function Hero() {
           </div>
           
           {/* Right Side - Image Slider */}
-          <div className="relative" data-animate="slide-left">
+          <div className="relative">
             <div className="image-slider-container relative w-full rounded-2xl overflow-hidden" style={{ aspectRatio: '4/3', minHeight: '400px' }}>
               {slides.map((slide, index) => (
                 <div

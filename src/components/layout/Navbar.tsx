@@ -446,6 +446,9 @@ export default function Navbar() {
           <div className="lg:hidden flex items-center">
             <button 
               onClick={toggleMobileMenu}
+              type="button"
+              aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={mobileMenuOpen}
               className="text-gray-700 hover:text-primary-950 focus:outline-none focus:text-primary-950"
             >
               <i className={`fas ${mobileMenuOpen ? 'fa-times' : 'fa-bars'} text-xl`}></i>

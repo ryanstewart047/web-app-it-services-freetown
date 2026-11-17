@@ -29,6 +29,8 @@ export default function BannerPopup() {
         {/* Close Button */}
         <button
           onClick={closeBanner}
+          type="button"
+          aria-label="Close promotional offer banner"
           className="absolute top-3 right-3 sm:top-4 sm:right-4 w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center z-10 transition-colors duration-200 touch-manipulation"
         >
           <i className="fas fa-times text-gray-600"></i>
@@ -76,33 +78,37 @@ export default function BannerPopup() {
             <p className="text-xs sm:text-sm text-gray-600 mb-3 text-center">Follow us for updates:</p>
             <div className="flex space-x-3 sm:space-x-4 justify-center">
               <a
-                href="https://facebook.com"
+                href="https://facebook.com/itservicefreetown"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Visit our Facebook page"
                 className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors duration-200 touch-manipulation"
               >
                 <i className="fab fa-facebook-f text-sm"></i>
               </a>
               <a
-                href="https://twitter.com"
+                href="https://twitter.com/itservicesft"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Follow us on Twitter"
                 className="w-10 h-10 bg-blue-400 text-white rounded-full flex items-center justify-center hover:bg-blue-500 transition-colors duration-200 touch-manipulation"
               >
                 <i className="fab fa-twitter text-sm"></i>
               </a>
               <a
-                href="https://instagram.com"
+                href="https://instagram.com/itservicesfreetown"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Follow us on Instagram"
                 className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full flex items-center justify-center hover:from-purple-600 hover:to-pink-600 transition-all duration-200 touch-manipulation"
               >
                 <i className="fab fa-instagram text-sm"></i>
               </a>
               <a
-                href="https://whatsapp.com"
+                href="https://wa.me/23233399391"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Connect with us on WhatsApp"
                 className="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center hover:bg-green-600 transition-colors duration-200 touch-manipulation"
               >
                 <i className="fab fa-whatsapp text-sm"></i>

@@ -59,7 +59,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 transition-colors dark:from-gray-950 dark:via-gray-900 dark:to-gray-950" id="admin-root">
         <header className="sticky top-0 z-40 border-b border-gray-200/80 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-gray-800/80 dark:bg-gray-900/90">
-          <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 md:flex-row md:items-center md:justify-between md:gap-6 lg:px-8">
+          <div className="mx-auto flex max-w-7xl flex-col gap-3 px-2 sm:px-6 py-3 sm:py-4 md:flex-row md:items-center md:justify-between md:gap-6 lg:px-8">
             <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
               <div className="relative flex-shrink-0">
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-gray-200 bg-white shadow-lg sm:h-12 sm:w-12 dark:border-gray-700 dark:bg-gray-800 p-1">
@@ -85,12 +85,12 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          <div className="border-t border-gray-200/60 bg-white/80 px-4 py-3 text-center text-sm text-gray-500 dark:border-gray-800/60 dark:bg-gray-900/80 dark:text-gray-400 md:hidden">
+          <div className="border-t border-gray-200/60 bg-white/80 px-2 py-2 text-center text-xs text-gray-500 dark:border-gray-800/60 dark:bg-gray-900/80 dark:text-gray-400 md:hidden">
             Streamlined workspace — scroll to manage analytics, forms, and repairs.
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full max-w-7xl px-0 sm:px-6 lg:px-8 py-1 sm:py-8">
           {children}
         </main>
       </div>

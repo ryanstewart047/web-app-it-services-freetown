@@ -10,23 +10,16 @@ import MobileRepairPricing from '@/components/sections/MobileRepairPricing'
 import CallToAction from '@/components/sections/CallToAction'
 import Contact from '@/components/sections/Contact'
 import PWAInstallBanner from '@/components/PWAInstallBanner'
-import LoadingOverlay from '@/components/LoadingOverlay'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
-import { usePageLoader } from '@/hooks/usePageLoader'
 
 import { DisplayAd, MultiplexAd } from '@/components/AdSense'
 
 export default function Home() {
-  const { isLoading, progress } = usePageLoader({
-    minLoadTime: 2000
-  })
-  
   // Initialize scroll animations
   useScrollAnimations()
 
   return (
     <>
-      <LoadingOverlay show={isLoading} progress={progress} variant="modern" />
       <Hero />
       <Services />
       

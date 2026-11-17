@@ -135,10 +135,11 @@ export default function StaticChatFloat() {
       <div className="chat-float-container">
         <button
           onClick={handleChatToggle}
+          type="button"
           className={`chat-float-button bg-red-600 hover:bg-red-700 text-white p-4 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center ${
             justOpened ? 'animate-pulse ring-4 ring-red-300' : ''
           }`}
-          aria-label="Open chat"
+          aria-label={isOpen ? "Close chat" : "Open chat"}
         >
           {isOpen ? <X size={24} /> : <MessageCircle size={24} />}
         </button>
@@ -169,7 +170,9 @@ export default function StaticChatFloat() {
               </div>
               <button
                 onClick={() => setIsOpen(false)}
+                type="button"
                 className="text-white/80 hover:text-white transition-colors"
+                aria-label="Close chat window"
               >
                 <X size={18} />
               </button>
@@ -179,6 +182,7 @@ export default function StaticChatFloat() {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Describe your IT issue..."
+              aria-label="Describe your IT issue"
               className="w-full h-24 p-3 border rounded-lg resize-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
               required
             />

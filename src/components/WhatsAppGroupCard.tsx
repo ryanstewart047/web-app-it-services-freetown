@@ -229,6 +229,7 @@ export default function WhatsAppGroupCard() {
       <button
         ref={pillRef}
         type="button"
+        aria-label="Join WhatsApp community group"
         onPointerDown={handlePointerDown}
         onClick={(e) => {
           if (Date.now() < suppressClickUntilRef.current) {
@@ -311,6 +312,7 @@ export default function WhatsAppGroupCard() {
           data-no-drag="true"
           className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-black/40 hover:bg-black text-gray-300 hover:text-white flex items-center justify-center transition-all z-10"
           title="Close"
+          aria-label="Close WhatsApp group card"
         >
           <X className="w-3.5 h-3.5" />
         </button>

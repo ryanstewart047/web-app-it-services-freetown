@@ -1,5 +1,6 @@
 import './globals.css'
 import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
 import Script from 'next/script'
 import Navbar from '@/components/layout/Navbar'
@@ -27,6 +28,12 @@ import {
 
 // Set to true to re-enable the Hostinger promotional popup site-wide.
 const HOSTINGER_POPUP_ENABLED = false
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+})
 
 export const metadata: Metadata = {
   metadataBase: new URL(BRAND_SITE_URL),
@@ -162,12 +169,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={inter.variable}>
       <head>
         {/* Preconnect to external resources */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+        <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
         <link rel="preconnect" href="https://googleads.g.doubleclick.net" />
         <link rel="preconnect" href="https://tpc.googlesyndication.com" />
@@ -184,9 +189,11 @@ export default function RootLayout({
         ></script>
         
         {/* Font Awesome */}
+        <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" as="style" crossOrigin="anonymous" />
         <link 
           rel="stylesheet" 
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+          crossOrigin="anonymous"
         />
         
         {/* PWA Meta Tags - Optimized for Play Store and iOS */}
@@ -336,15 +343,8 @@ export default function RootLayout({
             }),
           }}
         />
-        {/* Google Fonts Preconnect & Inter Font Stylesheet */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
-          rel="stylesheet"
-        />
       </head>
-      <body className="font-sans bg-gray-50 min-h-screen">
+      <body className={`${inter.className} font-sans bg-gray-50 min-h-screen`}>
         {/* Google Analytics - loaded after page is interactive for performance */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-2SS4WDYJRF"
