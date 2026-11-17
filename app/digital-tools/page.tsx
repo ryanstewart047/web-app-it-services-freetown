@@ -218,23 +218,23 @@ function PasswordGenerator() {
   const strengthColor = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-emerald-500', 'bg-blue-500'][strength - 1] || 'bg-slate-700';
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur space-y-5">
-      <div className="flex items-center gap-3 pb-3 border-b border-slate-800">
-        <div className="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-lg font-bold">
+    <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5 text-slate-900">
+      <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+        <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg font-bold">
           <i className="fas fa-key"></i>
         </div>
         <div>
-          <h3 className="text-base font-bold text-white">Cryptographic Password Generator</h3>
-          <p className="text-xs text-slate-400">Generate high-entropy, cryptographically randomized passwords.</p>
+          <h3 className="text-base font-bold text-slate-900">Cryptographic Password Generator</h3>
+          <p className="text-xs text-slate-500">Generate high-entropy, cryptographically randomized passwords.</p>
         </div>
       </div>
 
-      <div className="relative bg-slate-950 border border-slate-800 rounded-2xl p-4 pr-24 font-mono text-base text-emerald-400 break-all min-h-[56px] flex items-center shadow-inner">
+      <div className="relative bg-slate-50 border border-slate-200 rounded-2xl p-4 pr-24 font-mono text-base text-emerald-700 break-all min-h-[56px] flex items-center shadow-inner">
         <span>{password}</span>
         <button
           onClick={copy}
-          className={`absolute right-2.5 top-1/2 -translate-y-1/2 py-2 px-3.5 rounded-xl text-xs font-bold transition-all shadow-md ${
-            copied ? 'bg-emerald-600 text-white' : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
+          className={`absolute right-2.5 top-1/2 -translate-y-1/2 py-2 px-3.5 rounded-xl text-xs font-bold transition-all shadow-2xs ${
+            copied ? 'bg-emerald-600 text-white' : 'bg-slate-900 hover:bg-slate-800 text-white'
           }`}
         >
           {copied ? '✓ Copied!' : '📋 Copy'}
@@ -245,39 +245,39 @@ function PasswordGenerator() {
         <div className="space-y-1.5">
           <div className="flex gap-1.5">
             {[1,2,3,4].map(i => (
-              <div key={i} className={`h-2 flex-1 rounded-full transition-all ${i <= strength ? strengthColor : 'bg-slate-800'}`} />
+              <div key={i} className={`h-2 flex-1 rounded-full transition-all ${i <= strength ? strengthColor : 'bg-slate-200'}`} />
             ))}
           </div>
-          <p className="text-xs text-slate-400">Strength: <span className="text-white font-bold">{strengthLabel}</span></p>
+          <p className="text-xs text-slate-500">Strength: <span className="text-slate-900 font-bold">{strengthLabel}</span></p>
         </div>
       )}
 
       <div>
-        <div className="flex justify-between text-xs font-semibold text-slate-400 mb-1.5">
+        <div className="flex justify-between text-xs font-semibold text-slate-600 mb-1.5">
           <span>Password Length</span>
-          <span className="text-amber-400 font-mono font-bold text-sm">{length} characters</span>
+          <span className="text-red-600 font-mono font-bold text-sm">{length} characters</span>
         </div>
         <input type="range" min={8} max={64} value={length} onChange={e => setLength(Number(e.target.value))}
-          className="w-full accent-amber-500 cursor-pointer" />
+          className="w-full accent-red-600 cursor-pointer" />
       </div>
 
-      <div className="grid grid-cols-2 gap-3 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+      <div className="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
         {[
           { label: 'Uppercase (A–Z)', val: upper, set: setUpper },
           { label: 'Lowercase (a–z)', val: lower, set: setLower },
           { label: 'Numbers (0–9)', val: numbers, set: setNumbers },
           { label: 'Symbols (!@#$%)', val: symbols, set: setSymbols },
         ].map(({ label, val, set }) => (
-          <label key={label} className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer select-none">
+          <label key={label} className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer select-none">
             <input type="checkbox" checked={val} onChange={e => set(e.target.checked)}
-              className="accent-amber-500 rounded w-4 h-4" />
+              className="accent-red-600 rounded w-4 h-4" />
             {label}
           </label>
         ))}
       </div>
 
       <button onClick={generate}
-        className="w-full py-3 px-4 bg-gradient-to-r from-amber-600 to-orange-500 hover:opacity-90 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-lg">
+        className="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-xs">
         <i className="fas fa-arrows-rotate"></i>
         <span>Generate New Password</span>
       </button>
@@ -341,27 +341,27 @@ function ColorPaletteGenerator() {
   };
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur space-y-5">
-      <div className="flex items-center gap-3 pb-3 border-b border-slate-800">
-        <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg font-bold">
+    <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5 text-slate-900">
+      <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+        <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg font-bold">
           <i className="fas fa-palette"></i>
         </div>
         <div>
-          <h3 className="text-base font-bold text-white">Color Palette &amp; Shade Studio</h3>
-          <p className="text-xs text-slate-400">Generate tints, shades, and complementary color schemes.</p>
+          <h3 className="text-base font-bold text-slate-900">Color Palette &amp; Shade Studio</h3>
+          <p className="text-xs text-slate-500">Generate tints, shades, and complementary color schemes.</p>
         </div>
       </div>
 
-      <div className="flex items-center gap-3 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+      <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
         <input type="color" value={baseColor} onChange={e => setBaseColor(e.target.value)}
           className="w-12 h-12 rounded-xl cursor-pointer bg-transparent border-0 p-0" />
         <div>
-          <p className="text-xs font-semibold text-slate-300">Selected Base Color</p>
-          <p className="text-sm font-mono font-black text-cyan-400">{baseColor.toUpperCase()}</p>
+          <p className="text-xs font-semibold text-slate-600">Selected Base Color</p>
+          <p className="text-sm font-mono font-black text-slate-900">{baseColor.toUpperCase()}</p>
         </div>
         <button onClick={generatePalette}
-          className="ml-auto py-2.5 px-4 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md">
-          <i className="fas fa-wand-magic-sparkles"></i>
+          className="ml-auto py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs">
+          <i className="fas fa-wand-magic-sparkles text-purple-400"></i>
           <span>Regenerate</span>
         </button>
       </div>
@@ -369,11 +369,11 @@ function ColorPaletteGenerator() {
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
         {palette.map((color, i) => (
           <button key={i} onClick={() => copy(color)}
-            className="group relative rounded-2xl overflow-hidden border border-slate-800 transition-all hover:scale-105 hover:shadow-xl text-left">
+            className="group relative rounded-2xl overflow-hidden border border-slate-200 transition-all hover:scale-105 hover:shadow-md text-left">
             <div className="h-16 w-full" style={{ backgroundColor: color }} />
-            <div className="bg-slate-950 p-2.5 flex items-center justify-between">
-              <span className="font-mono text-xs font-bold text-white uppercase">{color}</span>
-              <span className="text-[10px] text-slate-500 group-hover:text-cyan-400">
+            <div className="bg-white p-2.5 flex items-center justify-between border-t border-slate-100">
+              <span className="font-mono text-xs font-bold text-slate-900 uppercase">{color}</span>
+              <span className="text-[10px] text-slate-400 group-hover:text-red-600">
                 {copiedColor === color ? '✓ Copied' : 'Copy'}
               </span>
             </div>
@@ -447,14 +447,14 @@ function TextToSpeech() {
   };
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur space-y-5">
-      <div className="flex items-center gap-3 pb-3 border-b border-slate-800">
-        <div className="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center text-lg font-bold">
+    <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5 text-slate-900">
+      <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+        <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center text-lg font-bold">
           <i className="fas fa-volume-high"></i>
         </div>
         <div>
-          <h3 className="text-base font-bold text-white">Natural Voice Text-to-Speech Engine</h3>
-          <p className="text-xs text-slate-400">Convert any text to realistic human speech with voice controls.</p>
+          <h3 className="text-base font-bold text-slate-900">Natural Voice Text-to-Speech Engine</h3>
+          <p className="text-xs text-slate-500">Convert any text to realistic human speech with voice controls.</p>
         </div>
       </div>
 
@@ -463,16 +463,16 @@ function TextToSpeech() {
         onChange={e => setText(e.target.value)}
         rows={4}
         placeholder="Type or paste text to speak..."
-        className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-teal-500 transition-colors resize-none"
+        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-teal-600 transition-colors resize-none shadow-inner"
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
-          <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">Voice Accent</label>
+          <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Voice Accent</label>
           <select
             value={selectedVoice}
             onChange={e => setSelectedVoice(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-teal-600"
           >
             {voices.map(v => (
               <option key={v.voiceURI || v.name} value={v.voiceURI || v.name}>
@@ -482,27 +482,27 @@ function TextToSpeech() {
           </select>
         </div>
         <div>
-          <div className="flex justify-between text-[11px] font-bold text-slate-400 uppercase mb-1">
+          <div className="flex justify-between text-[11px] font-bold text-slate-500 uppercase mb-1">
             <span>Speed</span>
-            <span className="text-teal-400">{rate}x</span>
+            <span className="text-teal-700 font-bold">{rate}x</span>
           </div>
           <input type="range" min={0.5} max={1.5} step={0.05} value={rate} onChange={e => setRate(Number(e.target.value))}
-            className="w-full accent-teal-500" />
+            className="w-full accent-teal-600" />
         </div>
         <div>
-          <div className="flex justify-between text-[11px] font-bold text-slate-400 uppercase mb-1">
+          <div className="flex justify-between text-[11px] font-bold text-slate-500 uppercase mb-1">
             <span>Pitch</span>
-            <span className="text-teal-400">{pitch}x</span>
+            <span className="text-teal-700 font-bold">{pitch}x</span>
           </div>
           <input type="range" min={0.6} max={1.4} step={0.05} value={pitch} onChange={e => setPitch(Number(e.target.value))}
-            className="w-full accent-teal-500" />
+            className="w-full accent-teal-600" />
         </div>
       </div>
 
       <div className="flex gap-2 pt-2">
         {!isSpeaking ? (
           <button onClick={speak}
-            className="flex-1 py-3 px-4 bg-teal-600 hover:bg-teal-500 text-black font-black text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-md">
+            className="flex-1 py-3 px-4 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-xs">
             <i className="fas fa-play"></i>
             <span>Speak Text</span>
           </button>
@@ -510,19 +510,19 @@ function TextToSpeech() {
           <>
             {!isPaused ? (
               <button onClick={pause}
-                className="flex-1 py-3 px-4 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-md">
+                className="flex-1 py-3 px-4 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-xs">
                 <i className="fas fa-pause"></i>
                 <span>Pause</span>
               </button>
             ) : (
               <button onClick={resume}
-                className="flex-1 py-3 px-4 bg-teal-600 hover:bg-teal-500 text-black font-black text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-md">
+                className="flex-1 py-3 px-4 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-xs">
                 <i className="fas fa-play"></i>
                 <span>Resume</span>
               </button>
             )}
             <button onClick={stop}
-              className="py-3 px-5 bg-slate-800 hover:bg-slate-700 text-rose-400 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors border border-slate-700">
+              className="py-3 px-5 bg-slate-100 hover:bg-slate-200 text-rose-600 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors border border-slate-200">
               <i className="fas fa-stop"></i>
               <span>Stop</span>
             </button>
@@ -550,14 +550,14 @@ function TextAnalyzer() {
   }, [text]);
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur space-y-5">
-      <div className="flex items-center gap-3 pb-3 border-b border-slate-800">
-        <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg font-bold">
+    <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5 text-slate-900">
+      <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+        <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg font-bold">
           <i className="fas fa-align-left"></i>
         </div>
         <div>
-          <h3 className="text-base font-bold text-white">Word Count &amp; Text Statistics</h3>
-          <p className="text-xs text-slate-400">Detailed character metrics, word frequency, and reading time estimation.</p>
+          <h3 className="text-base font-bold text-slate-900">Word Count &amp; Text Statistics</h3>
+          <p className="text-xs text-slate-500">Detailed character metrics, word frequency, and reading time estimation.</p>
         </div>
       </div>
 
@@ -566,19 +566,19 @@ function TextAnalyzer() {
         onChange={e => setText(e.target.value)}
         rows={5}
         placeholder="Paste article, essay, or copy here to analyze..."
-        className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors resize-none"
+        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-indigo-600 transition-colors resize-none shadow-inner"
       />
 
       <div className="grid grid-cols-2 sm:grid-cols-6 gap-2.5">
         {[
-          { label: 'Words', val: stats.words, color: 'text-indigo-400' },
-          { label: 'Characters', val: stats.chars, color: 'text-blue-400' },
-          { label: 'No Spaces', val: stats.charsNoSpaces, color: 'text-cyan-400' },
-          { label: 'Sentences', val: stats.sentences, color: 'text-emerald-400' },
-          { label: 'Paragraphs', val: stats.paragraphs, color: 'text-purple-400' },
-          { label: 'Reading Time', val: `${stats.readTimeMinutes} min`, color: 'text-amber-400' },
+          { label: 'Words', val: stats.words, color: 'text-indigo-600' },
+          { label: 'Characters', val: stats.chars, color: 'text-blue-600' },
+          { label: 'No Spaces', val: stats.charsNoSpaces, color: 'text-cyan-600' },
+          { label: 'Sentences', val: stats.sentences, color: 'text-emerald-600' },
+          { label: 'Paragraphs', val: stats.paragraphs, color: 'text-purple-600' },
+          { label: 'Reading Time', val: `${stats.readTimeMinutes} min`, color: 'text-amber-600' },
         ].map((item) => (
-          <div key={item.label} className="bg-slate-950 border border-slate-800 p-3 rounded-2xl text-center">
+          <div key={item.label} className="bg-slate-50 border border-slate-200 p-3 rounded-2xl text-center">
             <span className="text-[10px] uppercase font-bold text-slate-500 block">{item.label}</span>
             <span className={`text-lg font-black ${item.color}`}>{item.val}</span>
           </div>
@@ -612,10 +612,10 @@ export default function DigitalToolsPage() {
   const [qrText, setQrText] = useState('https://www.itservicesfreetown.com/digital-tools');
   const [qrDataUrl, setQrDataUrl] = useState('');
 
-  // Dark body background — matches page theme, prevents grey gap above global footer
+  // Clean light body background — matches page theme
   useEffect(() => {
     const body = document.body;
-    body.style.backgroundColor = '#020617'; // slate-950
+    body.style.backgroundColor = '#f8fafc'; // slate-50
     return () => { body.style.backgroundColor = ''; };
   }, []);
 
@@ -698,10 +698,7 @@ export default function DigitalToolsPage() {
   const activeToolObj = ALL_TOOLS.find(t => t.id === activeToolId);
 
   return (
-    <div className="bg-slate-950 text-white selection:bg-cyan-500 selection:text-black pb-16">
-      {/* Background Radial Glow */}
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black pointer-events-none -z-10" />
-
+    <div className="bg-slate-50 text-slate-900 selection:bg-red-500 selection:text-white pb-20 min-h-screen">
       {/* Main Container */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         {/* Animated 3D ID Card & Digital Tools Suite Header Section */}
@@ -714,19 +711,19 @@ export default function DigitalToolsPage() {
 
         {/* Global Live Search Bar */}
         <div className="max-w-2xl mx-auto mb-8">
-          <div className="relative shadow-2xl">
+          <div className="relative shadow-xs">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search 11+ digital tools (e.g. remove background, mp3, pdf, qr, deepfake)..."
-              className="w-full bg-slate-900 border-2 border-slate-800 rounded-2xl pl-12 pr-10 py-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-all shadow-inner"
+              placeholder="Search 11+ digital tools (e.g. music, remove background, mp3, pdf, qr, deepfake)..."
+              className="w-full bg-white border-2 border-slate-200 rounded-2xl pl-12 pr-10 py-3.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all shadow-xs"
             />
-            <i className="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-base"></i>
+            <i className="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base"></i>
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
               >
                 ✕
               </button>
@@ -740,7 +737,7 @@ export default function DigitalToolsPage() {
             { id: 'all',       label: '🔥 All Tools',        count: ALL_TOOLS.length },
             { id: 'image',     label: '🖼️ Image Tools',     count: ALL_TOOLS.filter(t => t.category === 'image').length },
             { id: 'pdf',       label: '📄 PDF & Docs',       count: ALL_TOOLS.filter(t => t.category === 'pdf').length },
-            { id: 'audio',     label: '🎵 Audio & Speech',   count: ALL_TOOLS.filter(t => t.category === 'audio').length },
+            { id: 'audio',     label: '🎵 Audio & Music',    count: ALL_TOOLS.filter(t => t.category === 'audio').length },
             { id: 'utilities', label: '🛠️ Utilities',        count: ALL_TOOLS.filter(t => t.category === 'utilities').length },
           ].map((tab) => (
             <button
@@ -751,12 +748,12 @@ export default function DigitalToolsPage() {
               }}
               className={`py-2 px-4 rounded-xl text-xs font-bold transition-all border ${
                 activeCategory === tab.id
-                  ? 'bg-cyan-500 text-black border-cyan-400 shadow-lg shadow-cyan-500/20'
-                  : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                  ? 'bg-red-600 text-white border-red-600 shadow-sm shadow-red-600/20'
+                  : 'bg-white border-slate-200 text-slate-700 hover:text-slate-900 hover:border-slate-300 shadow-2xs'
               }`}
             >
               <span>{tab.label}</span>
-              <span className={`ml-1.5 text-[10px] px-1.5 py-0.2 rounded-full ${activeCategory === tab.id ? 'bg-black/20 text-black' : 'bg-slate-800 text-slate-500'}`}>
+              <span className={`ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full ${activeCategory === tab.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
                 {tab.count}
               </span>
             </button>
@@ -766,19 +763,19 @@ export default function DigitalToolsPage() {
         {/* ── ACTIVE FOCUSED WORKSPACE (When a tool is opened) ── */}
         {activeToolId && (
           <div id="active-tool-workspace" className="mb-14 space-y-4 animate-fade-in scroll-mt-6">
-            <div className="flex items-center justify-between bg-slate-900/90 border border-slate-800 p-4 rounded-2xl">
+            <div className="flex items-center justify-between bg-white border border-slate-200 p-4 rounded-2xl shadow-xs">
               <div className="flex items-center gap-3">
-                <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm bg-gradient-to-tr ${activeToolObj?.gradient}`}>
+                <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm bg-gradient-to-tr ${activeToolObj?.gradient} shadow-2xs`}>
                   <i className={activeToolObj?.icon}></i>
                 </span>
                 <div>
-                  <h3 className="text-sm font-black text-white">{activeToolObj?.title}</h3>
-                  <p className="text-xs text-slate-400">{activeToolObj?.desc}</p>
+                  <h3 className="text-sm font-bold text-slate-900">{activeToolObj?.title}</h3>
+                  <p className="text-xs text-slate-500">{activeToolObj?.desc}</p>
                 </div>
               </div>
               <button
                 onClick={() => setActiveToolId(null)}
-                className="py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors border border-slate-700"
+                className="py-1.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors border border-slate-200"
               >
                 <i className="fas fa-grid-2"></i>
                 <span>Browse All Tools</span>
@@ -799,29 +796,29 @@ export default function DigitalToolsPage() {
             {activeToolId === 'color-palette' && <ColorPaletteGenerator />}
             {activeToolId === 'text-analyzer' && <TextAnalyzer />}
             {activeToolId === 'qr-generator' && (
-              <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur space-y-6 max-w-xl mx-auto">
-                <div className="flex items-center gap-3 pb-3 border-b border-slate-800">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg font-bold">
+              <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6 max-w-xl mx-auto text-slate-900">
+                <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-lg font-bold">
                     <i className="fas fa-qrcode"></i>
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white">HD QR Code Generator</h3>
-                    <p className="text-xs text-slate-400">Generate high-density scannable QR codes for any link or text.</p>
+                    <h3 className="text-base font-bold text-slate-900">HD QR Code Generator</h3>
+                    <p className="text-xs text-slate-500">Generate high-density scannable QR codes for any link or text.</p>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1.5">Enter URL or Message</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Enter URL or Message</label>
                   <input
                     type="text"
                     value={qrText}
                     onChange={(e) => setQrText(e.target.value)}
                     placeholder="https://example.com or text..."
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500 font-mono"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-red-500 font-mono shadow-inner"
                   />
                 </div>
 
-                <div className="flex items-center justify-center p-6 bg-white rounded-2xl shadow-inner max-w-[240px] mx-auto">
+                <div className="flex items-center justify-center p-6 bg-slate-50 border border-slate-200 rounded-2xl shadow-inner max-w-[240px] mx-auto">
                   {qrDataUrl && (
                     <img src={qrDataUrl} alt="QR Code" className="w-52 h-52 object-contain" />
                   )}
@@ -830,7 +827,7 @@ export default function DigitalToolsPage() {
                 <a
                   href={qrDataUrl}
                   download="qrcode-hd.png"
-                  className="w-full py-3 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 text-black font-black rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md"
+                  className="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-xs"
                 >
                   <i className="fas fa-download"></i>
                   <span>Download High-Resolution PNG</span>
@@ -843,12 +840,12 @@ export default function DigitalToolsPage() {
         {/* ── THE ICONIC TINYWOW TOOL DIRECTORY GRID ── */}
         <div id="tools-directory-grid" className="space-y-6 scroll-mt-8">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <i className="fas fa-grid-2 text-cyan-400"></i>
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <i className="fas fa-grid-2 text-red-600"></i>
               <span>Available Tools ({filteredTools.length})</span>
             </h2>
             {searchQuery && (
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-slate-500">
                 Found {filteredTools.length} tools matching &quot;{searchQuery}&quot;
               </span>
             )}
@@ -863,22 +860,22 @@ export default function DigitalToolsPage() {
                   setActiveToolId(tool.id);
                   window.scrollTo({ top: 350, behavior: 'smooth' });
                 }}
-                className={`group relative rounded-3xl p-6 border transition-all duration-300 cursor-pointer flex flex-col justify-between ${
+                className={`group relative rounded-3xl p-6 border transition-all duration-200 cursor-pointer flex flex-col justify-between ${
                   activeToolId === tool.id
-                    ? 'bg-slate-900 border-cyan-500 shadow-2xl shadow-cyan-950/60 ring-2 ring-cyan-500/20 scale-[1.02]'
-                    : 'bg-slate-900/60 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900 hover:shadow-xl hover:scale-[1.01]'
+                    ? 'bg-white border-2 border-red-500 shadow-md ring-2 ring-red-500/10 scale-[1.01]'
+                    : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/70 hover:shadow-md shadow-2xs'
                 }`}
               >
                 {/* Badges */}
                 <div className="flex items-start justify-between mb-4 gap-2">
-                  <div className={`w-12 h-12 shrink-0 aspect-square rounded-2xl flex items-center justify-center text-white text-xl shadow-lg bg-gradient-to-tr ${tool.gradient} group-hover:scale-110 transition-transform`}>
+                  <div className={`w-12 h-12 shrink-0 aspect-square rounded-2xl flex items-center justify-center text-white text-xl shadow-2xs bg-gradient-to-tr ${tool.gradient} group-hover:scale-105 transition-transform`}>
                     <i className={tool.icon}></i>
                   </div>
                   {tool.badge && (
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider leading-tight text-right max-w-[120px] ${
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider leading-tight text-right max-w-[120px] ${
                       tool.isNew
-                        ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 animate-pulse'
-                        : 'bg-slate-800 text-slate-300 border border-slate-700'
+                        ? 'bg-red-50 text-red-700 border border-red-200'
+                        : 'bg-slate-100 text-slate-700 border border-slate-200'
                     }`}>
                       {tool.badge}
                     </span>
@@ -887,20 +884,20 @@ export default function DigitalToolsPage() {
 
                 {/* Content */}
                 <div className="space-y-2 mb-6">
-                  <h3 className="text-base font-bold text-white group-hover:text-cyan-400 transition-colors">
+                  <h3 className="text-base font-bold text-slate-900 group-hover:text-red-600 transition-colors">
                     {tool.title}
                   </h3>
-                  <p className="text-xs text-slate-400 leading-relaxed">
+                  <p className="text-xs text-slate-600 leading-relaxed">
                     {tool.desc}
                   </p>
                 </div>
 
                 {/* Launch Button */}
-                <div className="pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs">
-                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                     {tool.category}
                   </span>
-                  <span className="font-bold text-cyan-400 group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                  <span className="font-bold text-red-600 group-hover:translate-x-1 transition-transform flex items-center gap-1">
                     <span>Use Tool</span>
                     <i className="fas fa-arrow-right text-[10px]"></i>
                   </span>

@@ -227,14 +227,14 @@ export default function ImageConverter() {
   };
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 lg:p-8 shadow-2xl backdrop-blur">
+    <div className="bg-white border border-slate-200 rounded-3xl p-6 lg:p-8 shadow-sm text-slate-900">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 bg-emerald-600/20 border border-emerald-500/30 rounded-2xl flex items-center justify-center text-emerald-400 text-xl font-bold">
+        <div className="w-12 h-12 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-center text-emerald-600 text-xl font-bold shadow-2xs">
           <i className="fas fa-image"></i>
         </div>
         <div>
-          <h2 className="text-xl font-bold text-white">Image & Video Frame Converter</h2>
-          <p className="text-xs text-slate-400">Convert images or export MP4/WebM frames as PNG, JPEG, or WebP with custom dimensions</p>
+          <h2 className="text-xl font-bold text-slate-900">Image &amp; Video Frame Converter</h2>
+          <p className="text-xs text-slate-500">Convert images or export MP4/WebM frames as PNG, JPEG, or WebP with custom dimensions</p>
         </div>
       </div>
 
@@ -245,9 +245,9 @@ export default function ImageConverter() {
           onChange={(e) => e.target.files?.[0] && handleFileChange(e.target.files[0])}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
         />
-        <div className="border-2 border-dashed border-slate-700 hover:border-emerald-500/60 bg-slate-950/60 rounded-2xl p-8 text-center transition-all">
-          <i className={`fas ${sourceKind === 'video' && file ? 'fa-file-video' : 'fa-file-image'} text-4xl text-emerald-500/80 mb-3 animate-pulse`}></i>
-          <h3 className="text-sm font-semibold text-slate-200">
+        <div className="border-2 border-dashed border-slate-300 hover:border-emerald-500/60 bg-slate-50 rounded-2xl p-8 text-center transition-all">
+          <i className={`fas ${sourceKind === 'video' && file ? 'fa-file-video' : 'fa-file-image'} text-4xl text-emerald-600/80 mb-3 animate-pulse`}></i>
+          <h3 className="text-sm font-semibold text-slate-800">
             {file ? file.name : 'Drag & drop image or video file here, or click to upload'}
           </h3>
           <p className="text-xs text-slate-500 mt-1">

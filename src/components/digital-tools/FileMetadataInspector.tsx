@@ -980,35 +980,35 @@ export default function FileMetadataInspector() {
   const sourceTone = result?.source.confidence === 'High' ? 'text-emerald-400' : result?.source.confidence === 'Medium' ? 'text-amber-400' : 'text-slate-400';
 
   return (
-    <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-5">
+    <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 space-y-5 text-slate-900 shadow-sm">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-900">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
         <div>
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
-            <i className="fas fa-shield-halved text-emerald-400" />
+          <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <i className="fas fa-shield-halved text-emerald-600" />
             <span>AI Forensic &amp; Deep Image Metadata Inspector</span>
           </h3>
-          <p className="text-xs text-slate-400">Error Level Analysis (ELA), AI Generator Detection, EXIF Privacy Sanitizer &amp; Evidence Certificate</p>
+          <p className="text-xs text-slate-500">Error Level Analysis (ELA), AI Generator Detection, EXIF Privacy Sanitizer &amp; Evidence Certificate</p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full text-[10px] font-bold flex items-center gap-1">
+          <span className="px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full text-[10px] font-bold flex items-center gap-1">
             <i className="fas fa-lock text-[8px]" /> 100% On-Device / Zero Cloud Upload
           </span>
         </div>
       </div>
 
       {/* Free Privacy Guarantee Banner */}
-      <div className="flex items-center gap-3 p-3 bg-slate-900/80 border border-emerald-800/40 rounded-xl">
-        <div className="w-8 h-8 flex-shrink-0 bg-emerald-950/60 border border-emerald-700/50 rounded-lg flex items-center justify-center text-emerald-400 text-sm">
+      <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+        <div className="w-8 h-8 flex-shrink-0 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-center text-emerald-700 text-sm">
           <i className="fas fa-shield-check" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-bold text-white leading-tight">100% Free &amp; Private On-Device Forensics</p>
-          <p className="text-[10px] text-slate-400 mt-0.5 leading-relaxed">
+          <p className="text-xs font-bold text-slate-900 leading-tight">100% Free &amp; Private On-Device Forensics</p>
+          <p className="text-[10px] text-slate-500 mt-0.5 leading-relaxed">
             Your images and files are analyzed directly inside your browser. No files are ever sent to or stored on our servers.
           </p>
         </div>
-        <span className="hidden sm:inline-flex px-2.5 py-1 text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-lg">
+        <span className="hidden sm:inline-flex px-2.5 py-1 text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg">
           Zero Cloud Upload
         </span>
       </div>
@@ -1020,9 +1020,9 @@ export default function FileMetadataInspector() {
           onChange={(event) => event.target.files?.[0] && inspectFile(event.target.files[0])}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
         />
-        <div className="border-2 border-dashed border-slate-700 hover:border-emerald-500/60 bg-slate-900/80 p-6 rounded-2xl text-center transition-colors">
-          <i className={`fas ${busy ? 'fa-circle-notch fa-spin text-emerald-400' : 'fa-magnifying-glass-location text-blue-400'} text-3xl mb-2 block`} />
-          <p className="text-xs font-semibold text-slate-200">
+        <div className="border-2 border-dashed border-slate-300 hover:border-emerald-500/60 bg-slate-50 p-6 rounded-2xl text-center transition-colors">
+          <i className={`fas ${busy ? 'fa-circle-notch fa-spin text-emerald-600' : 'fa-magnifying-glass-location text-blue-600'} text-3xl mb-2 block`} />
+          <p className="text-xs font-semibold text-slate-800">
             {file ? file.name : 'Upload a photo or document for deep forensic verification'}
           </p>
           <p className="mt-1 text-[11px] text-slate-500">

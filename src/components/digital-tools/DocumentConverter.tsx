@@ -263,18 +263,18 @@ export default function DocumentConverter() {
     : !!textContent.trim();
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 lg:p-8 shadow-2xl backdrop-blur">
+    <div className="bg-white border border-slate-200 rounded-3xl p-6 lg:p-8 shadow-sm text-slate-900">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 bg-purple-600/20 border border-purple-500/30 rounded-2xl flex items-center justify-center text-purple-400 text-xl font-bold">
+        <div className="w-12 h-12 bg-purple-50 border border-purple-200 rounded-2xl flex items-center justify-center text-purple-600 text-xl font-bold shadow-2xs">
           <i className="fas fa-file-contract"></i>
         </div>
         <div>
-          <h2 className="text-xl font-bold text-white">Document & PDF Converter</h2>
-          <p className="text-xs text-slate-400">Parse DOCX, preview PDFs, and generate clean Adobe-compatible PDF/TXT files</p>
+          <h2 className="text-xl font-bold text-slate-900">Document &amp; PDF Converter</h2>
+          <p className="text-xs text-slate-500">Parse DOCX, preview PDFs, and generate clean Adobe-compatible PDF/TXT files</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800 mb-6">
+      <div className="grid grid-cols-3 gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 mb-6">
         {([
           { key: 'docx-to-pdf', icon: 'fa-file-word' },
           { key: 'pdf-to-txt', icon: 'fa-file-pdf' },
@@ -286,8 +286,8 @@ export default function DocumentConverter() {
             onClick={() => changeMode(tab.key)}
             className={`py-2.5 px-3 text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition-all ${
               mode === tab.key
-                ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/30'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-purple-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <i className={`fas ${tab.icon}`}></i>
@@ -304,9 +304,9 @@ export default function DocumentConverter() {
             onChange={(e) => e.target.files?.[0] && handleFileChange(e.target.files[0])}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
           />
-          <div className="border-2 border-dashed border-slate-700 hover:border-purple-500/60 bg-slate-950/60 rounded-2xl p-8 text-center transition-all">
-            <i className="fas fa-file-arrow-up text-4xl text-purple-500/80 mb-3 animate-pulse"></i>
-            <h3 className="text-sm font-semibold text-slate-200">
+          <div className="border-2 border-dashed border-slate-300 hover:border-purple-500/60 bg-slate-50 rounded-2xl p-8 text-center transition-all">
+            <i className="fas fa-file-arrow-up text-4xl text-purple-600/80 mb-3 animate-pulse"></i>
+            <h3 className="text-sm font-semibold text-slate-800">
               {file ? file.name : `Select document file for ${MODE_LABELS[mode].toLowerCase()}`}
             </h3>
             <p className="text-xs text-slate-500 mt-1">

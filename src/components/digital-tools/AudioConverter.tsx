@@ -521,24 +521,24 @@ export default function AudioConverter() {
   // ─── UI ───────────────────────────────────────────────────────────────────
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 lg:p-8 shadow-2xl backdrop-blur">
+    <div className="bg-white border border-slate-200 rounded-3xl p-6 lg:p-8 shadow-sm text-slate-900">
 
       {/* ── Header ────────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 bg-red-600/20 border border-red-500/30 rounded-2xl flex items-center justify-center text-red-400 text-xl">
+        <div className="w-12 h-12 bg-red-50 border border-red-200 rounded-2xl flex items-center justify-center text-red-600 text-xl shadow-2xs">
           <i className="fas fa-file-video" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-white">MP4 to MP3 &amp; Audio Converter</h2>
-          <p className="text-xs text-slate-400">Upload video or audio · preview in-browser · export real MP3, WAV, OGG or WebM</p>
+          <h2 className="text-xl font-bold text-slate-900">MP4 to MP3 &amp; Audio Converter</h2>
+          <p className="text-xs text-slate-500">Upload video or audio · preview in-browser · export real MP3, WAV, OGG or WebM</p>
         </div>
       </div>
 
       {/* ── Mode Tabs ─────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800 mb-6">
+      <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 mb-6">
         {([
-          { key: 'mp4-to-mp3', label: 'Video to MP3', icon: 'fa-file-video', color: 'text-amber-400', fmt: 'mp3' as AudioFormat },
-          { key: 'audio-format', label: '🎵 Audio Format Converter', icon: 'fa-music', color: 'text-blue-400', fmt: undefined },
+          { key: 'mp4-to-mp3', label: 'Video to MP3', icon: 'fa-file-video', color: 'text-amber-500', fmt: 'mp3' as AudioFormat },
+          { key: 'audio-format', label: '🎵 Audio Format Converter', icon: 'fa-music', color: 'text-blue-500', fmt: undefined },
         ] as const).map(tab => (
           <button
             key={tab.key}
@@ -546,11 +546,11 @@ export default function AudioConverter() {
             onClick={() => { setActiveTab(tab.key); if (tab.fmt) setTargetFormat(tab.fmt); }}
             className={`py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
               activeTab === tab.key
-                ? 'bg-red-600 text-white shadow-lg shadow-red-900/30'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-red-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <i className={`fas ${tab.icon} ${tab.color}`} />
+            <i className={`fas ${tab.icon} ${activeTab === tab.key ? 'text-white' : tab.color}`} />
             <span>{tab.label}</span>
           </button>
         ))}
@@ -560,8 +560,8 @@ export default function AudioConverter() {
       <div
         className={`relative mb-6 rounded-2xl border-2 border-dashed transition-all ${
           isDragging
-            ? 'border-red-500 bg-red-500/10 scale-[1.01]'
-            : 'border-slate-700 hover:border-red-500/50 bg-slate-950/60'
+            ? 'border-red-500 bg-red-50 scale-[1.01]'
+            : 'border-slate-300 hover:border-red-500/50 bg-slate-50'
         }`}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
@@ -576,7 +576,7 @@ export default function AudioConverter() {
         />
         <div className="p-8 text-center pointer-events-none">
           <i className={`fas ${activeTab === 'mp4-to-mp3' ? 'fa-file-video text-amber-500' : 'fa-file-audio text-red-500'} text-4xl mb-3 block ${!file ? 'animate-pulse' : ''}`} />
-          <h3 className="text-sm font-semibold text-slate-200">
+          <h3 className="text-sm font-semibold text-slate-800">
             {file ? file.name : activeTab === 'mp4-to-mp3' ? 'Drag & Drop MP4 Video Here' : 'Drag & Drop Audio / Video File Here'}
           </h3>
           <p className="text-xs text-slate-500 mt-1">

@@ -270,31 +270,26 @@ export default function DigitalToolsHeader({ onSelectTool, activeToolId }: Digit
   }, [isHovered]);
 
   return (
-    <section className="relative overflow-hidden pt-2 pb-12 sm:pb-16 border-b border-slate-800/80">
-      {/* Dynamic ambient backdrop illumination */}
-      <div className="absolute top-0 left-1/4 -translate-x-1/2 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
-      <div className="absolute top-1/3 right-10 w-[480px] h-[480px] bg-amber-500/10 rounded-full blur-[100px] pointer-events-none -z-10" />
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-24 bg-indigo-500/5 blur-3xl pointer-events-none -z-10" />
-
+    <section className="relative overflow-hidden pt-2 pb-12 sm:pb-16 border-b border-slate-200">
       {/* Top micro-navigation */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-8 pb-4 border-b border-slate-800/60 text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-8 pb-4 border-b border-slate-200 text-xs">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-slate-400 hover:text-cyan-400 font-semibold tracking-wide transition-colors group"
+          className="inline-flex items-center gap-2 text-slate-600 hover:text-red-600 font-semibold tracking-wide transition-colors group"
         >
-          <span className="w-6 h-6 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-[11px] group-hover:-translate-x-0.5 transition-transform">
+          <span className="w-6 h-6 rounded-full bg-white border border-slate-200 flex items-center justify-center text-[11px] text-slate-700 group-hover:-translate-x-0.5 transition-transform shadow-2xs">
             ←
           </span>
           <span>Return to BridgeTech Home</span>
         </Link>
 
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-400 font-bold rounded-full flex items-center gap-1.5 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+          <span className="px-3 py-1 bg-amber-50 border border-amber-200 text-amber-800 font-bold rounded-full flex items-center gap-1.5 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
             300 DPI Executive Print Engine
           </span>
-          <span className="hidden sm:inline-flex px-3 py-1 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-bold rounded-full items-center gap-1.5">
-            <Zap className="w-3 h-3" />
+          <span className="hidden sm:inline-flex px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold rounded-full items-center gap-1.5 shadow-2xs">
+            <Zap className="w-3 h-3 text-emerald-600" />
             100% Client-Side Private
           </span>
         </div>
@@ -305,24 +300,24 @@ export default function DigitalToolsHeader({ onSelectTool, activeToolId }: Digit
         {/* Left Column: Hero Typography & Suite Feature Showcase */}
         <div className="lg:col-span-7 space-y-6 text-left">
           {/* Main Title Badge */}
-          <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 bg-slate-900/90 border border-slate-700/80 rounded-full text-xs font-bold text-slate-300 shadow-xl backdrop-blur">
+          <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-bold text-slate-700 shadow-2xs">
             <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600" />
             </span>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-amber-300 to-orange-400">
+            <span className="text-slate-800 font-semibold">
               Interactive 3D ID Card Studio &amp; Digital Suite
             </span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-[3.25rem] font-black tracking-tight text-white leading-[1.12]">
+          <h1 className="text-3xl sm:text-5xl lg:text-[3.25rem] font-black tracking-tight text-slate-900 leading-[1.15]">
             Next-Gen 3D Cards &amp;{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400">
+            <span className="text-red-600">
               Free Digital Toolkit
             </span>
           </h1>
 
-          <p className="text-slate-300/90 text-sm sm:text-base leading-relaxed max-w-2xl">
+          <p className="text-slate-600 text-sm sm:text-base leading-relaxed max-w-2xl">
             Design executive <strong>300 DPI business cards</strong>, high-security <strong>staff ID badges</strong>, and VIP passes with instant live 3D preview. Plus, access our complete suite of <strong>AI background removers</strong>, deepfake forensic detectors, media converters, and utilities with zero limits.
           </p>
 
@@ -330,7 +325,7 @@ export default function DigitalToolsHeader({ onSelectTool, activeToolId }: Digit
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <button
               onClick={() => onSelectTool('card-studio')}
-              className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-sm flex items-center gap-2.5 shadow-xl shadow-amber-500/25 hover:shadow-amber-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              className="px-6 py-3.5 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black text-sm flex items-center gap-2.5 shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.98] transition-all"
             >
               <CreditCard className="w-4 h-4" />
               <span>Launch 3D Card Studio</span>
@@ -342,21 +337,21 @@ export default function DigitalToolsHeader({ onSelectTool, activeToolId }: Digit
                 const el = document.getElementById('tools-directory-grid');
                 el?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="px-5 py-3.5 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-white font-bold text-sm flex items-center gap-2 shadow-lg transition-all hover:border-slate-600"
+              className="px-5 py-3.5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-bold text-sm flex items-center gap-2 shadow-2xs transition-all hover:border-slate-300"
             >
-              <Eye className="w-4 h-4 text-cyan-400" />
+              <Eye className="w-4 h-4 text-red-600" />
               <span>Explore All 13+ Free Tools</span>
             </button>
           </div>
 
           {/* Featured Tools Quick-Access Carousel / Grid */}
           <div className="pt-4 space-y-2.5">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-400">
-              <span className="flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <div className="flex items-center justify-between text-xs font-bold text-slate-500">
+              <span className="flex items-center gap-1.5 uppercase tracking-wider text-[11px] text-slate-600">
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                 Featured Creative &amp; Media Tools
               </span>
-              <span className="text-[10px] text-slate-500">Click to open instantly</span>
+              <span className="text-[10px] text-slate-400">Click to open instantly</span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
@@ -368,19 +363,19 @@ export default function DigitalToolsHeader({ onSelectTool, activeToolId }: Digit
                     onClick={() => onSelectTool(tool.id)}
                     className={`group text-left p-2.5 rounded-xl border transition-all relative overflow-hidden ${
                       isActive
-                        ? 'bg-slate-900 border-amber-400 shadow-md shadow-amber-500/20'
-                        : 'bg-slate-900/60 hover:bg-slate-900 border-slate-800/80 hover:border-slate-700'
+                        ? 'bg-red-50/60 border-red-500 shadow-2xs'
+                        : 'bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300 shadow-2xs'
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-white text-xs bg-gradient-to-tr ${tool.gradient} shadow-sm`}>
+                      <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-white text-xs bg-gradient-to-tr ${tool.gradient} shadow-2xs`}>
                         {tool.icon}
                       </span>
-                      <span className="text-[10px] font-black text-slate-300 truncate group-hover:text-white">
+                      <span className="text-[10px] font-bold text-slate-800 truncate group-hover:text-red-600">
                         {tool.title}
                       </span>
                     </div>
-                    <span className="text-[9px] font-semibold text-amber-400/90 block truncate pl-0.5">
+                    <span className="text-[9px] font-semibold text-red-600 block truncate pl-0.5">
                       {tool.tag}
                     </span>
                   </button>
@@ -628,23 +623,23 @@ export default function DigitalToolsHeader({ onSelectTool, activeToolId }: Digit
               <div className="flex items-center justify-between gap-2 px-1">
                 <button
                   onClick={() => setIsFlipped(!isFlipped)}
-                  className="px-3.5 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-xs font-bold text-white flex items-center gap-2 transition-all shadow-md active:scale-95"
+                  className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 flex items-center gap-2 transition-all shadow-2xs active:scale-95"
                 >
-                  <RotateCw className="w-3.5 h-3.5 text-amber-400" />
+                  <RotateCw className="w-3.5 h-3.5 text-amber-500" />
                   <span>Flip Card ({isFlipped ? 'Show Front' : 'Show Back'})</span>
                 </button>
 
                 <button
                   onClick={() => onSelectTool('card-studio')}
-                  className="px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 text-xs font-bold text-amber-300 flex items-center gap-1.5 transition-all shadow-sm"
+                  className="px-3.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-xs font-bold text-red-700 flex items-center gap-1.5 transition-all shadow-2xs"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
+                  <Sparkles className="w-3.5 h-3.5 text-red-600" />
                   <span>Customize in 3D Studio</span>
                 </button>
               </div>
 
               {/* Design Switcher Pills */}
-              <div className="grid grid-cols-4 gap-1.5 p-1.5 bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl">
+              <div className="grid grid-cols-4 gap-1.5 p-1.5 bg-white border border-slate-200 rounded-2xl shadow-2xs">
                 {CARD_DESIGNS.map((design, idx) => {
                   const isSelected = selectedDesignIndex === idx;
                   return (
@@ -656,11 +651,11 @@ export default function DigitalToolsHeader({ onSelectTool, activeToolId }: Digit
                       }}
                       className={`py-2 px-2 rounded-xl text-[10px] font-bold flex flex-col items-center gap-1 transition-all ${
                         isSelected
-                          ? 'bg-gradient-to-b from-slate-800 to-slate-950 text-white border border-amber-400/50 shadow-md'
-                          : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                          ? 'bg-slate-100 text-slate-900 border border-slate-300 shadow-2xs font-bold'
+                          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
                       }`}
                     >
-                      <span className={isSelected ? 'text-amber-400 scale-110' : 'text-slate-400'}>
+                      <span className={isSelected ? 'text-red-600 scale-110' : 'text-slate-400'}>
                         {design.icon}
                       </span>
                       <span className="truncate max-w-[64px]">{design.category}</span>

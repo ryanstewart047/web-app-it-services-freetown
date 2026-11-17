@@ -1095,22 +1095,22 @@ export default function ImageBackgroundRemover() {
   });
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 lg:p-8 shadow-2xl backdrop-blur space-y-6">
+    <div className="bg-white border border-slate-200 rounded-3xl p-6 lg:p-8 shadow-sm space-y-6 text-slate-900">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-to-tr from-purple-600 via-indigo-500 to-cyan-400 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-purple-900/30">
+          <div className="w-12 h-12 bg-purple-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md shadow-purple-600/20">
             <i className="fas fa-wand-magic-sparkles"></i>
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-white">AI Image Background Remover</h2>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1">
+              <h2 className="text-xl font-bold text-slate-900">AI Image Background Remover</h2>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1">
                 <i className="fas fa-brain text-[9px]"></i> Remove.bg Technology
               </span>
             </div>
-            <p className="text-xs text-slate-400">
-              High-accuracy AI segmentation • Sub-pixel edge feathering • Solid colors & studio gradients • 100% Free
+            <p className="text-xs text-slate-500">
+              High-accuracy AI segmentation • Sub-pixel edge feathering • Solid colors &amp; studio gradients • 100% Free
             </p>
           </div>
         </div>
@@ -1119,22 +1119,22 @@ export default function ImageBackgroundRemover() {
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={handleCopyToClipboard}
-              className="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl transition-all border border-slate-700 flex items-center gap-1.5 shadow-sm"
+              className="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all border border-slate-200 flex items-center gap-1.5 shadow-2xs"
               title="Copy transparent PNG to clipboard"
             >
-              <i className={`fas ${copySuccess ? 'fa-check text-emerald-400' : 'fa-copy'}`}></i>
+              <i className={`fas ${copySuccess ? 'fa-check text-emerald-600' : 'fa-copy'}`}></i>
               <span>{copySuccess ? 'Copied Cutout!' : 'Copy Cutout'}</span>
             </button>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="py-2 px-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl transition-all border border-slate-700 flex items-center gap-1.5"
+              className="py-2 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all border border-slate-200 flex items-center gap-1.5"
             >
               <i className="fas fa-arrow-up-from-bracket"></i>
               <span>New Photo</span>
             </button>
             <button
               onClick={() => handleDownload('png', 'white')}
-              className="py-2 px-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-purple-900/30 flex items-center gap-2"
+              className="py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-2"
             >
               <i className="fas fa-download"></i>
               <span>Download White PNG</span>

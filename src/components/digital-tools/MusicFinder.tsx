@@ -19,12 +19,13 @@ export interface MusicTrack {
   isExplicit: boolean;
   isFullTrack?: boolean;
   source?: string;
+  tags?: string[];
 }
 
 type DownloadFormat = 'mp3' | 'mp4' | 'cover';
 type RepeatMode = 'off' | 'all' | 'one';
 
-// 100% Clean Royalty-Free MP3 Streams (Afrobeat, Amapiano, Lo-Fi, Piano, Synthwave • No Watermarks • No Voiceovers)
+// 100% Clean Royalty-Free MP3 Library with diverse genres & search tags
 const DEFAULT_ROYALTY_PLAYLIST: MusicTrack[] = [
   {
     id: 'rf_afrobeat_1',
@@ -39,8 +40,9 @@ const DEFAULT_ROYALTY_PLAYLIST: MusicTrack[] = [
     artworkUrlSmall: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=300&auto=format&fit=crop&q=80',
     artworkUrlHD: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&auto=format&fit=crop&q=80',
     isFullTrack: true,
-    source: 'BridgeTech Afrobeat Studio (Full Track)',
+    source: 'BridgeTech Afrobeat Studio (Royalty-Free)',
     isExplicit: false,
+    tags: ['afrobeat', 'afrobeats', 'african', 'west africa', 'freetown', 'groove', 'percussion', 'dance', 'instrumental'],
   },
   {
     id: 'rf_afrobeat_2',
@@ -55,8 +57,9 @@ const DEFAULT_ROYALTY_PLAYLIST: MusicTrack[] = [
     artworkUrlSmall: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&auto=format&fit=crop&q=80',
     artworkUrlHD: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=800&auto=format&fit=crop&q=80',
     isFullTrack: true,
-    source: 'BridgeTech Afrobeat Studio (Full Track)',
+    source: 'BridgeTech Afrobeat Studio (Royalty-Free)',
     isExplicit: false,
+    tags: ['afrobeats', 'dancehall', 'swing', 'african', 'party', 'rhythm', 'drums', 'summer'],
   },
   {
     id: 'rf_afrobeat_3',
@@ -71,8 +74,9 @@ const DEFAULT_ROYALTY_PLAYLIST: MusicTrack[] = [
     artworkUrlSmall: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=300&auto=format&fit=crop&q=80',
     artworkUrlHD: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&auto=format&fit=crop&q=80',
     isFullTrack: true,
-    source: 'BridgeTech Afrobeat Studio (Full Track)',
+    source: 'BridgeTech Afrobeat Studio (Royalty-Free)',
     isExplicit: false,
+    tags: ['afro pop', 'afro swing', 'lagos', 'freetown', 'upbeat', 'dance', 'radio', 'catchy'],
   },
   {
     id: 'rf_afrobeat_4',
@@ -87,8 +91,9 @@ const DEFAULT_ROYALTY_PLAYLIST: MusicTrack[] = [
     artworkUrlSmall: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80',
     artworkUrlHD: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=80',
     isFullTrack: true,
-    source: 'BridgeTech Afrobeat Studio (Full Track)',
+    source: 'BridgeTech Afrobeat Studio (Royalty-Free)',
     isExplicit: false,
+    tags: ['amapiano', 'log drum', 'afro house', 'south africa', 'freetown', 'dance', 'club', 'groove'],
   },
   {
     id: 'rf_lofi_chill_1',
@@ -105,6 +110,7 @@ const DEFAULT_ROYALTY_PLAYLIST: MusicTrack[] = [
     isFullTrack: true,
     source: 'Pixabay Royalty-Free (Full Track)',
     isExplicit: false,
+    tags: ['lofi', 'chill', 'chillhop', 'study', 'relax', 'sleep', 'beats', 'peaceful', 'night'],
   },
   {
     id: 'rf_ambient_piano_2',
@@ -121,6 +127,7 @@ const DEFAULT_ROYALTY_PLAYLIST: MusicTrack[] = [
     isFullTrack: true,
     source: 'Pixabay Royalty-Free (Full Track)',
     isExplicit: false,
+    tags: ['piano', 'ambient', 'classical', 'dream', 'peaceful', 'relaxing', 'cinematic', 'meditation'],
   },
   {
     id: 'rf_synthwave_3',
@@ -137,6 +144,7 @@ const DEFAULT_ROYALTY_PLAYLIST: MusicTrack[] = [
     isFullTrack: true,
     source: 'Pixabay Royalty-Free (Full Track)',
     isExplicit: false,
+    tags: ['synthwave', 'retro', '80s', 'electronic', 'future', 'gaming', 'cyberpunk', 'synth'],
   },
   {
     id: 'rf_acoustic_guitar_4',
@@ -153,6 +161,7 @@ const DEFAULT_ROYALTY_PLAYLIST: MusicTrack[] = [
     isFullTrack: true,
     source: 'Pixabay Royalty-Free (Full Track)',
     isExplicit: false,
+    tags: ['acoustic', 'guitar', 'folk', 'breeze', 'warm', 'morning', 'travel', 'vlog', 'peaceful'],
   },
   {
     id: 'rf_electronic_beats_5',
@@ -169,6 +178,7 @@ const DEFAULT_ROYALTY_PLAYLIST: MusicTrack[] = [
     isFullTrack: true,
     source: 'Pixabay Royalty-Free (Full Track)',
     isExplicit: false,
+    tags: ['edm', 'electronic', 'beat', 'energetic', 'workout', 'sports', 'party', 'bass'],
   },
   {
     id: 'rf_cinematic_epic_6',
@@ -185,6 +195,7 @@ const DEFAULT_ROYALTY_PLAYLIST: MusicTrack[] = [
     isFullTrack: true,
     source: 'Pixabay Royalty-Free (Full Track)',
     isExplicit: false,
+    tags: ['cinematic', 'epic', 'orchestra', 'strings', 'trailer', 'heroic', 'adventure', 'drama'],
   },
   {
     id: 'rf_jazz_smooth_7',
@@ -201,6 +212,7 @@ const DEFAULT_ROYALTY_PLAYLIST: MusicTrack[] = [
     isFullTrack: true,
     source: 'Pixabay Royalty-Free (Full Track)',
     isExplicit: false,
+    tags: ['jazz', 'smooth', 'cafe', 'lounge', 'coffee', 'sax', 'chill', 'evening', 'relaxed'],
   },
   {
     id: 'rf_happy_upbeat_8',
@@ -217,8 +229,70 @@ const DEFAULT_ROYALTY_PLAYLIST: MusicTrack[] = [
     isFullTrack: true,
     source: 'Pixabay Royalty-Free (Full Track)',
     isExplicit: false,
+    tags: ['corporate', 'happy', 'upbeat', 'inspiring', 'presentation', 'tech', 'business', 'positive'],
+  },
+  {
+    id: 'rf_gospel_uplift_9',
+    title: 'Grace & Glory (Soulful Gospel & Piano)',
+    artist: 'BridgeTech Gospel Choir',
+    album: 'Freetown Spiritual Anthems',
+    genre: 'Gospel / Soul',
+    durationMs: 245000,
+    durationFormatted: '4:05',
+    previewUrl: 'https://cdn.pixabay.com/audio/2022/02/22/audio_d1718ab41b.mp3',
+    downloadUrl: 'https://cdn.pixabay.com/audio/2022/02/22/audio_d1718ab41b.mp3',
+    artworkUrlSmall: 'https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=300&auto=format&fit=crop&q=80',
+    artworkUrlHD: 'https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=800&auto=format&fit=crop&q=80',
+    isFullTrack: true,
+    source: 'BridgeTech Creative Studio (Royalty-Free)',
+    isExplicit: false,
+    tags: ['gospel', 'soul', 'church', 'spiritual', 'choir', 'piano', 'grace', 'worship', 'uplifting', 'freetown'],
+  },
+  {
+    id: 'rf_reggae_island_10',
+    title: 'Lumley Beach Sunset (Island Reggae Groove)',
+    artist: 'Lion Mountain Sounds',
+    album: 'Sierra Leone Coastal Vibes',
+    genre: 'Reggae / Island Roots',
+    durationMs: 215000,
+    durationFormatted: '3:35',
+    previewUrl: '/assets/audio/afrobeat/e-go-better.mp3',
+    downloadUrl: '/assets/audio/afrobeat/e-go-better.mp3',
+    artworkUrlSmall: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300&auto=format&fit=crop&q=80',
+    artworkUrlHD: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&auto=format&fit=crop&q=80',
+    isFullTrack: true,
+    source: 'BridgeTech Island Studio (Royalty-Free)',
+    isExplicit: false,
+    tags: ['reggae', 'island', 'roots', 'beach', 'sunset', 'freetown', 'lumley', 'summer', 'good vibes', 'peace'],
+  },
+  {
+    id: 'rf_deep_focus_11',
+    title: 'Deep Mind Flow (Alpha Waves & Binaural Chill)',
+    artist: 'NeuroSpace Lab',
+    album: 'BridgeTech Study & Productivity',
+    genre: 'Ambient / Binaural Study',
+    durationMs: 360000,
+    durationFormatted: '6:00',
+    previewUrl: 'https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3',
+    downloadUrl: 'https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3',
+    artworkUrlSmall: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=300&auto=format&fit=crop&q=80',
+    artworkUrlHD: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&auto=format&fit=crop&q=80',
+    isFullTrack: true,
+    source: 'NeuroSpace Studio (Royalty-Free)',
+    isExplicit: false,
+    tags: ['deep focus', 'focus', 'study', 'coding', 'productivity', 'ambient', 'alpha waves', 'meditation'],
   },
 ];
+
+// Fisher-Yates Dynamic Shuffle Algorithm
+function shuffleTracks<T>(items: T[]): T[] {
+  const shuffled = [...items];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
 
 export default function MusicFinder() {
   const [query, setQuery] = useState('');
@@ -227,12 +301,17 @@ export default function MusicFinder() {
 
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  // Results dynamically randomized on initial mount
   const [results, setResults] = useState<MusicTrack[]>(DEFAULT_ROYALTY_PLAYLIST);
   const [searchResults, setSearchResults] = useState<MusicTrack[]>([]);
   const [isSearchMode, setIsSearchMode] = useState(false);
-  const [totalResults, setTotalResults] = useState(DEFAULT_ROYALTY_PLAYLIST.length);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
+
+  // Dynamic Track Shuffling on Page Load
+  useEffect(() => {
+    setResults(shuffleTracks(DEFAULT_ROYALTY_PLAYLIST));
+  }, []);
 
   // Active Playback State
   const [activeTrack, setActiveTrack] = useState<MusicTrack | null>(null);
@@ -255,14 +334,13 @@ export default function MusicFinder() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [error, setError] = useState('');
 
-  // ── Moveable Floating Player Drag & Dock State ─────────────────────────────
+  // Moveable Floating Player Drag & Dock State
   const [playerPosition, setPlayerPosition] = useState<{ x: number; y: number } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isPlayerMinimized, setIsPlayerMinimized] = useState(false);
   const playerRef = useRef<HTMLDivElement | null>(null);
   const dragStartRef = useRef<{ startX: number; startY: number; initialLeft: number; initialTop: number } | null>(null);
 
-  // Helper to dynamically calculate navbar bottom threshold so floating player never passes or covers navbar
   const getNavBottom = useCallback((): number => {
     if (typeof window === 'undefined') return 72;
     const header = document.getElementById('site-sticky-header') || document.querySelector('.sticky-header-container');
@@ -278,7 +356,6 @@ export default function MusicFinder() {
     return (window.innerWidth < 640 ? 68 : 76) + 8;
   }, []);
 
-  // Resize listener to prevent player from ever falling out of screen viewport or passing navbar
   useEffect(() => {
     const handleResize = () => {
       setPlayerPosition((prev) => {
@@ -297,8 +374,6 @@ export default function MusicFinder() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [getNavBottom]);
-
-
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0 && e.pointerType === 'mouse') return;
@@ -328,7 +403,7 @@ export default function MusicFinder() {
 
     const minX = 8;
     const maxX = Math.max(8, window.innerWidth - rect.width - 8);
-    const minY = getNavBottom(); // Sticky top constraint: CANNOT pass the navbar on desktop or mobile!
+    const minY = getNavBottom();
     const maxY = Math.max(minY, window.innerHeight - rect.height - 8);
 
     const newLeft = Math.min(Math.max(dragStartRef.current.initialLeft + deltaX, minX), maxX);
@@ -351,10 +426,8 @@ export default function MusicFinder() {
     setPlayerPosition(null);
   };
 
-  // Audio element reference for continuous background screen-off playback
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Active Queue Reference to prevent stale closures in async auto-play events
   const activeQueue = isSearchMode && searchResults.length > 0 ? searchResults : results;
   const activeQueueRef = useRef<MusicTrack[]>(activeQueue);
   activeQueueRef.current = activeQueue;
@@ -412,7 +485,6 @@ export default function MusicFinder() {
     }
   }, [pastedUrl]);
 
-  // ── Bulletproof Auto-Advance to Next Song ────────────────────────────────────
   const playNextTrack = useCallback(() => {
     const queue = activeQueueRef.current;
     const current = activeTrackRef.current;
@@ -484,95 +556,78 @@ export default function MusicFinder() {
     }
   }, []);
 
-  // ── Screen-Off / Dark Screen Background Audio Playback & MediaSession ─────────
+  // Audio track change handler
   useEffect(() => {
-    if (!activeTrack) return;
-    setAudioError('');
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (!activeTrack || activeTrack.youtubeId) {
+      audio.pause();
+      return;
+    }
+
+    const streamUrl = activeTrack.previewUrl || activeTrack.downloadUrl;
+    if (audio.src !== streamUrl) {
+      audio.src = streamUrl;
+      audio.load();
+      if (isPlaying) {
+        audio.play().catch((e) => {
+          console.warn('Playback autoplay block:', e.message);
+          setAudioError('Click Play to start audio');
+        });
+      }
+    }
+  }, [activeTrack, isPlaying]);
+
+  // MediaSession API setup
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('mediaSession' in navigator) || !activeTrack) return;
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: activeTrack.title,
+      artist: activeTrack.artist,
+      album: activeTrack.album || 'Royalty-Free Audio',
+      artwork: [
+        { src: activeTrack.artworkUrlSmall || activeTrack.artworkUrlHD, sizes: '96x96', type: 'image/jpeg' },
+        { src: activeTrack.artworkUrlHD || activeTrack.artworkUrlSmall, sizes: '512x512', type: 'image/jpeg' },
+      ],
+    });
 
     const audio = audioRef.current;
 
-    // Handle Direct Playable Audio Streams (MP3, AAC, M4A, iTunes, SoundHelix)
-    if (!activeTrack.youtubeId && activeTrack.previewUrl) {
-      if (audio) {
-        audio.src = activeTrack.previewUrl;
-        audio.volume = isMuted ? 0 : volume;
-        audio.load();
-
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              setIsPlaying(true);
-              setAudioError('');
-              if ('mediaSession' in navigator) {
-                navigator.mediaSession.playbackState = 'playing';
-              }
-            })
-            .catch((err) => {
-              console.warn('Audio play notice:', err.message);
-              if (err.name === 'NotAllowedError') {
-                setAudioError('Tap play button to start audio (browser interaction required)');
-                setIsPlaying(false);
-              }
-            });
-        }
+    navigator.mediaSession.setActionHandler('play', () => {
+      if (audio && !activeTrack.youtubeId) {
+        audio.play().catch(() => {});
       }
-    } else {
-      // YouTube Embed Video Item
       setIsPlaying(true);
-    }
-
-    // ── Setup OS Lock-Screen / Dark-Screen Media Controls ──
-    if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: activeTrack.title,
-        artist: activeTrack.artist,
-        album: activeTrack.album || 'BridgeTech Royalty Music',
-        artwork: [
-          { src: activeTrack.artworkUrlSmall || activeTrack.artworkUrlHD, sizes: '96x96', type: 'image/jpeg' },
-          { src: activeTrack.artworkUrlHD || activeTrack.artworkUrlSmall, sizes: '512x512', type: 'image/jpeg' },
-        ],
-      });
-
       navigator.mediaSession.playbackState = 'playing';
+    });
 
-      navigator.mediaSession.setActionHandler('play', () => {
-        if (audio && !activeTrack.youtubeId) {
-          audio.play().then(() => {
-            setIsPlaying(true);
-            navigator.mediaSession.playbackState = 'playing';
-          }).catch(() => {});
-        } else {
-          setIsPlaying(true);
-        }
-      });
+    navigator.mediaSession.setActionHandler('pause', () => {
+      if (audio && !activeTrack.youtubeId) {
+        audio.pause();
+      }
+      setIsPlaying(false);
+      navigator.mediaSession.playbackState = 'paused';
+    });
 
-      navigator.mediaSession.setActionHandler('pause', () => {
-        if (audio && !activeTrack.youtubeId) {
-          audio.pause();
-        }
-        setIsPlaying(false);
-        navigator.mediaSession.playbackState = 'paused';
-      });
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+      playNextTrack();
+    });
 
-      navigator.mediaSession.setActionHandler('nexttrack', () => {
-        playNextTrack();
-      });
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+      playPrevTrack();
+    });
 
-      navigator.mediaSession.setActionHandler('previoustrack', () => {
-        playPrevTrack();
-      });
-
-      navigator.mediaSession.setActionHandler('seekto', (details) => {
-        if (details.seekTime !== undefined && audio) {
-          audio.currentTime = details.seekTime;
-          setCurrentTime(details.seekTime);
-        }
-      });
-    }
+    navigator.mediaSession.setActionHandler('seekto', (details) => {
+      if (details.seekTime !== undefined && audio) {
+        audio.currentTime = details.seekTime;
+        setCurrentTime(details.seekTime);
+      }
+    });
   }, [activeTrack, playNextTrack, playPrevTrack]);
 
-  // Sync volume/mute without reloading track
+  // Sync volume/mute
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = isMuted ? 0 : volume;
@@ -580,7 +635,6 @@ export default function MusicFinder() {
     }
   }, [volume, isMuted]);
 
-  // Update MediaSession position state during playback
   const handleTimeUpdate = () => {
     const audio = audioRef.current;
     if (audio) {
@@ -666,8 +720,13 @@ export default function MusicFinder() {
     }
   };
 
+  // ── Music Search with Multi-Word OR Logic & Partial Substring Sensitivity ──
   const searchMusic = async (searchQuery: string, pageNum = 1, append = false) => {
     if (!searchQuery.trim()) return;
+
+    const trimmed = searchQuery.trim();
+    // Split into distinct lowercase keyword tokens for OR logic
+    const tokens = trimmed.toLowerCase().split(/\s+/).filter(Boolean);
 
     if (append) {
       setLoadingMore(true);
@@ -677,27 +736,62 @@ export default function MusicFinder() {
     }
     setError('');
 
+    // Compute immediate local royalty-free matches with partial OR logic
+    const computeLocalScore = (track: MusicTrack): number => {
+      const haystack = `${track.title} ${track.artist} ${track.album} ${track.genre} ${(track.tags || []).join(' ')}`.toLowerCase();
+      let matchCount = 0;
+      for (const token of tokens) {
+        if (haystack.includes(token)) {
+          matchCount++;
+        }
+      }
+      return matchCount;
+    };
+
+    const immediateMatches = DEFAULT_ROYALTY_PLAYLIST.filter((track) => computeLocalScore(track) > 0)
+      .sort((a, b) => computeLocalScore(b) - computeLocalScore(a));
+
+    if (!append && immediateMatches.length > 0) {
+      setSearchResults(immediateMatches);
+      setIsSearchMode(true);
+    }
+
     try {
-      const res = await fetch(`/api/music/search?q=${encodeURIComponent(searchQuery)}&limit=50&page=${pageNum}`);
+      const res = await fetch(`/api/music/search?q=${encodeURIComponent(trimmed)}&limit=50&page=${pageNum}`);
       const data = await res.json();
 
       if (res.ok && data.results && data.results.length > 0) {
-        const combined = append ? [...searchResults, ...data.results] : data.results;
+        // Merge without duplicate IDs
+        const existingMap = new Map<string, MusicTrack>();
+        if (append) {
+          searchResults.forEach((t) => existingMap.set(t.id, t));
+        } else {
+          immediateMatches.forEach((t) => existingMap.set(t.id, t));
+        }
+
+        data.results.forEach((t: MusicTrack) => {
+          if (!existingMap.has(t.id)) {
+            existingMap.set(t.id, t);
+          }
+        });
+
+        const combined = Array.from(existingMap.values());
         setSearchResults(combined);
         setIsSearchMode(true);
-        setTotalResults(data.total || combined.length);
         setHasMore(data.hasMore || false);
       } else {
-        if (!append) {
-          setError(`No results found for "${searchQuery}". Showing curated playlist.`);
+        if (!append && immediateMatches.length === 0) {
+          setError(`No tracks found matching "${trimmed}". Showing shuffled playlist.`);
           setIsSearchMode(false);
           setSearchResults([]);
         }
       }
     } catch (err) {
       console.error(err);
-      setError('Connection error while searching music. Showing curated playlist.');
-      setIsSearchMode(false);
+      if (immediateMatches.length === 0) {
+        setError('Network error while searching music. Showing shuffled playlist.');
+        setIsSearchMode(false);
+      }
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -710,6 +804,16 @@ export default function MusicFinder() {
     setSearchResults([]);
     setError('');
     setHasMore(false);
+    // Dynamic re-shuffle when returning to default playlist
+    setResults(shuffleTracks(DEFAULT_ROYALTY_PLAYLIST));
+  };
+
+  const handleShufflePlaylist = () => {
+    if (isSearchMode && searchResults.length > 0) {
+      setSearchResults(shuffleTracks(searchResults));
+    } else {
+      setResults(shuffleTracks(DEFAULT_ROYALTY_PLAYLIST));
+    }
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -763,8 +867,8 @@ export default function MusicFinder() {
   const showPopupPlayer = !!activeTrack && !playerDismissed;
 
   return (
-    <div className={`bg-slate-900/90 border border-slate-800 rounded-3xl p-6 lg:p-8 shadow-2xl backdrop-blur space-y-6 ${showPopupPlayer ? 'pb-48 sm:pb-40' : 'pb-8'}`}>
-      {/* HTML5 Audio Element for Continuous Screen-Off Background Playback */}
+    <div className={`bg-white border border-slate-200 rounded-3xl p-6 lg:p-8 shadow-sm space-y-6 text-slate-900 ${showPopupPlayer ? 'pb-48 sm:pb-40' : 'pb-8'}`}>
+      {/* HTML5 Audio Element */}
       <audio
         ref={audioRef}
         playsInline
@@ -789,41 +893,49 @@ export default function MusicFinder() {
       />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-to-tr from-red-600 to-amber-500 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-red-900/30">
+          <div className="w-12 h-12 bg-red-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md shadow-red-600/20">
             <i className="fas fa-headphones"></i>
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl font-bold text-white">Royalty-Free MP3 Music Player</h2>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                <i className="fas fa-bolt text-[9px]"></i> Screen-Off MP3 Engine
+              <h2 className="text-xl font-bold text-slate-900">Royalty-Free MP3 Music Finder</h2>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                <i className="fas fa-bolt text-[9px]"></i> Screen-Off Audio Engine
               </span>
             </div>
-            <p className="text-xs text-slate-400">
-              Plays seamlessly song-to-song. Keeps playing when your screen is turned off or locked.
+            <p className="text-xs text-slate-500">
+              Plays seamlessly song-to-song. 100% royalty-free background tracks for videos, vlogs, and podcasts.
             </p>
           </div>
         </div>
 
-        {/* Global AutoPlay & Play All Control */}
-        <div className="flex items-center gap-2">
+        {/* Global Controls: Play All, Shuffle & AutoPlay */}
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => {
               if (displayList.length > 0) playTrack(displayList[0]);
             }}
-            className="py-2 px-3.5 bg-gradient-to-r from-red-600 to-orange-500 hover:opacity-90 text-white font-bold text-xs rounded-xl flex items-center gap-2 transition-all shadow-md"
+            className="py-2 px-3.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl flex items-center gap-2 transition-all shadow-xs"
           >
             <i className="fas fa-play"></i>
             <span>Play All</span>
           </button>
           <button
+            onClick={handleShufflePlaylist}
+            className="py-2 px-3 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700"
+            title="Shuffle Track Order"
+          >
+            <i className="fas fa-shuffle text-red-600"></i>
+            <span>Shuffle</span>
+          </button>
+          <button
             onClick={() => setAutoPlayNext(!autoPlayNext)}
             className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all border ${
               autoPlayNext
-                ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50'
-                : 'bg-slate-800 text-slate-400 border-slate-700'
+                ? 'bg-red-50 text-red-700 border-red-200'
+                : 'bg-slate-100 text-slate-600 border-slate-200'
             }`}
             title="Auto-Play Next Song"
           >
@@ -833,11 +945,11 @@ export default function MusicFinder() {
         </div>
       </div>
 
-      {/* Paste YouTube URL or Song Link */}
-      <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
-        <label className="block text-xs font-bold text-red-400 uppercase tracking-wider flex items-center gap-2">
-          <i className="fab fa-youtube"></i>
-          <span>Paste Any YouTube Video or Stream Link to Play</span>
+      {/* Optional: Paste YouTube URL or Song Link */}
+      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+          <i className="fab fa-youtube text-red-600 text-sm"></i>
+          <span>Paste Any YouTube Video or Audio Link to Preview &amp; Download</span>
         </label>
         <div className="relative">
           <input
@@ -845,13 +957,13 @@ export default function MusicFinder() {
             value={pastedUrl}
             onChange={(e) => setPastedUrl(e.target.value)}
             placeholder="Paste YouTube song link (e.g. https://www.youtube.com/watch?v=... or https://youtu.be/...)"
-            className="w-full px-4 py-3 pl-10 pr-24 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-red-500 text-sm font-mono transition-all"
+            className="w-full px-4 py-3 pl-10 pr-24 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-red-500 text-sm font-mono transition-all"
           />
-          <i className="fab fa-youtube absolute left-3 top-1/2 -translate-y-1/2 text-red-500 text-base"></i>
+          <i className="fab fa-youtube absolute left-3 top-1/2 -translate-y-1/2 text-red-600 text-base"></i>
           {pastedUrl && (
             <button
               onClick={() => { setPastedUrl(''); setPastedTrack(null); }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 hover:text-white px-2 py-1 rounded"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-700 px-2 py-1 rounded"
             >
               Clear
             </button>
@@ -859,43 +971,52 @@ export default function MusicFinder() {
         </div>
 
         {pastedTrack && (
-          <div className="p-3 bg-slate-900 rounded-xl border border-red-500/40 flex items-center justify-between gap-2">
-            <span className="text-xs font-bold text-emerald-400 truncate">✓ Track Loaded: {pastedTrack.title}</span>
+          <div className="p-3 bg-white rounded-xl border border-red-300 flex items-center justify-between gap-2 shadow-xs">
+            <span className="text-xs font-bold text-emerald-700 truncate">✓ Track Loaded: {pastedTrack.title}</span>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => playTrack(pastedTrack)}
-                className="py-1.5 px-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg text-xs flex items-center gap-1 shrink-0"
+                className="py-1.5 px-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs flex items-center gap-1 shrink-0 shadow-xs"
               >
                 <i className="fas fa-play"></i> Play Video
               </button>
               <button
                 onClick={() => openDownloadModal(pastedTrack, 'mp3')}
-                className="py-1.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs flex items-center gap-1 shrink-0"
+                className="py-1.5 px-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg text-xs flex items-center gap-1 shrink-0 shadow-xs"
               >
-                <i className="fas fa-download"></i> Download Servers
+                <i className="fas fa-download"></i> Download
               </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Search Input Bar & Quick Genre Chips */}
+      {/* Flexible Partial OR Search Input Bar & Quick Genre Chips */}
       <div className="space-y-3">
         <form onSubmit={handleSearchSubmit} className="relative">
           <input
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search millions of songs, lo-fi, afrobeat, gospel, pop, acoustic, electronic..."
-            className="w-full px-4 py-3.5 pl-12 pr-32 bg-slate-950 border border-slate-800 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 text-sm transition-all shadow-inner"
+            onChange={(e) => {
+              const val = e.target.value;
+              setQuery(val);
+              // Trigger instant partial search as user types or when multi-words are typed
+              if (!val.trim()) {
+                clearSearch();
+              } else if (val.trim().length >= 2) {
+                searchMusic(val, 1, false);
+              }
+            }}
+            placeholder="Search multiple keywords (e.g. afro piano, lofi guitar, upbeat acoustic)..."
+            className="w-full px-4 py-3.5 pl-12 pr-32 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-red-500 text-sm transition-all shadow-xs"
           />
-          <i className="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-base"></i>
+          <i className="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base"></i>
           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
             {isSearchMode && (
               <button
                 type="button"
                 onClick={clearSearch}
-                className="py-2 px-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all"
+                className="py-2 px-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl transition-all"
                 title="Clear Search"
               >
                 <i className="fas fa-xmark"></i>
@@ -904,7 +1025,7 @@ export default function MusicFinder() {
             <button
               type="submit"
               disabled={loading || !query.trim()}
-              className="py-2 px-4 bg-cyan-600 hover:bg-cyan-500 text-black text-xs font-bold rounded-xl transition-all disabled:opacity-50 flex items-center gap-1.5 shadow-md"
+              className="py-2 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-all disabled:opacity-50 flex items-center gap-1.5 shadow-xs"
             >
               {loading ? <i className="fas fa-circle-notch fa-spin"></i> : <span>Search</span>}
             </button>
@@ -913,20 +1034,20 @@ export default function MusicFinder() {
 
         {/* Quick Genre Chips */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-slate-500 font-bold uppercase mr-1">Quick Play:</span>
-          {['Afrobeats', 'Amapiano', 'West African', 'Lo-Fi Chill', 'Acoustic Guitar', 'Synthwave', 'Ambient Piano', 'Deep Focus', 'Gospel', 'Jazz'].map((genre) => {
-            const isAfrican = genre === 'Afrobeats' || genre === 'Amapiano' || genre === 'West African';
+          <span className="text-xs text-slate-400 font-bold uppercase mr-1">Quick Play:</span>
+          {['Afrobeats', 'Amapiano', 'Lo-Fi Chill', 'Acoustic Guitar', 'Ambient Piano', 'Synthwave', 'EDM', 'Cinematic', 'Gospel', 'Reggae', 'Deep Focus'].map((genre) => {
+            const isAfrican = genre === 'Afrobeats' || genre === 'Amapiano' || genre === 'Reggae';
             return (
               <button
                 key={genre}
                 onClick={() => handleChipClick(genre)}
-                className={`py-1 px-3 rounded-lg text-xs font-semibold transition-all border ${
+                className={`py-1.5 px-3 rounded-lg text-xs font-semibold transition-all border ${
                   isAfrican
-                    ? 'bg-amber-500/15 hover:bg-amber-500/25 border-amber-500/40 text-amber-300 hover:text-amber-200'
-                    : 'bg-slate-950 hover:bg-slate-800 border-slate-800 text-slate-300 hover:text-white'
+                    ? 'bg-amber-50 hover:bg-amber-100 border-amber-200 text-amber-800'
+                    : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 shadow-2xs'
                 }`}
               >
-                {isAfrican && <i className="fas fa-fire mr-1 text-amber-400 text-[10px]"></i>}
+                {isAfrican && <i className="fas fa-fire mr-1 text-amber-600 text-[10px]"></i>}
                 {genre}
               </button>
             );
@@ -936,28 +1057,28 @@ export default function MusicFinder() {
 
       {/* Active YouTube Video Player Box if a YouTube Track is Selected */}
       {activeTrack?.youtubeId && (
-        <div className="p-4 bg-slate-950 rounded-2xl border border-red-500/40 space-y-3 animate-fade-in">
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 animate-fade-in shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-red-400 flex items-center gap-1.5 truncate">
-              <i className="fab fa-youtube"></i> Now Playing: {activeTrack.title}
+            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5 truncate">
+              <i className="fab fa-youtube text-red-600"></i> Now Playing: {activeTrack.title}
             </span>
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => openDownloadModal(activeTrack, 'mp3')}
-                className="py-1 px-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg flex items-center gap-1"
+                className="py-1 px-3 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg flex items-center gap-1 shadow-xs"
               >
                 <i className="fas fa-download"></i> Download
               </button>
               <button
                 onClick={dismissPlayer}
-                className="w-7 h-7 bg-slate-800 hover:bg-red-600 text-slate-400 hover:text-white rounded-lg flex items-center justify-center text-xs transition-colors"
+                className="w-7 h-7 bg-slate-200 hover:bg-red-600 hover:text-white text-slate-600 rounded-lg flex items-center justify-center text-xs transition-colors"
                 title="Close Video"
               >
                 <i className="fas fa-xmark"></i>
               </button>
             </div>
           </div>
-          <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black border border-slate-800">
+          <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black border border-slate-200">
             <iframe
               src={`https://www.youtube-nocookie.com/embed/${activeTrack.youtubeId}?autoplay=1&enablejsapi=1&rel=0`}
               title={activeTrack.title}
@@ -971,11 +1092,11 @@ export default function MusicFinder() {
 
       {/* Audio Error Banner */}
       {audioError && (
-        <div className="p-3 bg-amber-950/40 border border-amber-700/50 rounded-xl text-xs text-amber-300 flex items-center justify-between gap-2">
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-center justify-between gap-2">
           <span className="flex items-center gap-2">
-            <i className="fas fa-circle-info text-amber-400"></i> {audioError}
+            <i className="fas fa-circle-info text-amber-600"></i> {audioError}
           </span>
-          <button onClick={() => setAudioError('')} className="text-amber-500 hover:text-white text-xs shrink-0">
+          <button onClick={() => setAudioError('')} className="text-amber-700 hover:text-amber-900 text-xs shrink-0">
             <i className="fas fa-xmark"></i>
           </button>
         </div>
@@ -983,38 +1104,38 @@ export default function MusicFinder() {
 
       {/* Error / Status Bar */}
       {error && (
-        <div className="p-3.5 bg-amber-950/40 border border-amber-800/60 rounded-xl text-xs text-amber-300 flex items-center gap-2">
-          <i className="fas fa-circle-info"></i>
+        <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-center gap-2">
+          <i className="fas fa-circle-info text-amber-600"></i>
           <span>{error}</span>
         </div>
       )}
 
       {/* Results / Playlist Grid */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between text-xs text-slate-400">
+        <div className="flex items-center justify-between text-xs text-slate-500">
           <div className="flex items-center gap-2">
-            <span className="font-bold uppercase tracking-wider text-slate-300">
-              {isSearchMode ? `Search Results (${displayList.length})` : `Queue Playlist (${displayList.length} Tracks)`}
+            <span className="font-bold uppercase tracking-wider text-slate-700">
+              {isSearchMode ? `Search Results (${displayList.length})` : `Curated Playlist (${displayList.length} Tracks)`}
             </span>
             {isSearchMode && (
               <button
                 onClick={clearSearch}
-                className="text-[10px] px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-full flex items-center gap-1 transition-colors"
+                className="text-[10px] px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-full flex items-center gap-1 transition-colors border border-slate-200"
               >
                 <i className="fas fa-xmark"></i> Clear
               </button>
             )}
           </div>
-          <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             Auto-Play Active
           </span>
         </div>
 
         {loading && (
-          <div className="flex items-center justify-center py-12 text-slate-400">
-            <i className="fas fa-circle-notch fa-spin text-2xl mr-3 text-cyan-400"></i>
-            <span className="text-sm">Searching songs and audio streams...</span>
+          <div className="flex items-center justify-center py-12 text-slate-500">
+            <i className="fas fa-circle-notch fa-spin text-2xl mr-3 text-red-600"></i>
+            <span className="text-sm">Searching royalty-free audio tracks...</span>
           </div>
         )}
 
@@ -1036,12 +1157,12 @@ export default function MusicFinder() {
                   }}
                   className={`group p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                     isThisActive
-                      ? 'bg-slate-800/90 border-cyan-500 shadow-lg shadow-cyan-950/40 ring-1 ring-cyan-500/30'
-                      : 'bg-slate-950/60 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900'
+                      ? 'bg-red-50/40 border-2 border-red-500 shadow-sm ring-1 ring-red-500/20'
+                      : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/80 shadow-2xs'
                   }`}
                 >
                   {/* Artwork Thumbnail with Play State */}
-                  <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-slate-800 flex-shrink-0">
+                  <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200">
                     <img
                       src={track.artworkUrlSmall || track.artworkUrlHD}
                       alt={track.title}
@@ -1058,26 +1179,26 @@ export default function MusicFinder() {
                   {/* Track Metadata */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500 font-mono">#{idx + 1}</span>
-                      <h4 className={`text-xs font-bold truncate ${isThisActive ? 'text-cyan-400' : 'text-white group-hover:text-cyan-300'}`}>
+                      <span className="text-xs text-slate-400 font-mono">#{idx + 1}</span>
+                      <h4 className={`text-xs font-bold truncate ${isThisActive ? 'text-red-700' : 'text-slate-900 group-hover:text-red-600'}`}>
                         {track.title}
                       </h4>
                     </div>
-                    <p className="text-[11px] text-slate-400 truncate mt-0.5">{track.artist}</p>
-                    {track.source && (
-                      <span className="text-[10px] text-slate-500">{track.source}</span>
+                    <p className="text-[11px] text-slate-500 truncate mt-0.5">{track.artist}</p>
+                    {track.genre && (
+                      <span className="text-[10px] text-slate-400">{track.genre}</span>
                     )}
                   </div>
 
                   {/* Duration & Download Action */}
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-xs font-mono text-slate-500">{track.durationFormatted}</span>
+                    <span className="text-xs font-mono text-slate-400">{track.durationFormatted}</span>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         openDownloadModal(track, 'mp3');
                       }}
-                      className="w-8 h-8 rounded-lg bg-slate-900 hover:bg-emerald-600 text-slate-400 hover:text-white flex items-center justify-center text-xs transition-colors"
+                      className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-red-600 hover:text-white text-slate-600 flex items-center justify-center text-xs transition-colors"
                       title="Download Options"
                     >
                       <i className="fas fa-download"></i>
@@ -1089,7 +1210,7 @@ export default function MusicFinder() {
           </div>
         )}
 
-        {/* Load More (Search Results) */}
+        {/* Load More */}
         {isSearchMode && hasMore && !loadingMore && (
           <button
             onClick={() => {
@@ -1097,19 +1218,19 @@ export default function MusicFinder() {
               setPage(nextPage);
               searchMusic(query, nextPage, true);
             }}
-            className="w-full py-3 bg-slate-950 hover:bg-slate-900 border border-slate-800 hover:border-cyan-600 text-slate-300 hover:text-white text-xs font-bold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-md"
+            className="w-full py-3 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 text-xs font-bold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-xs"
           >
             <i className="fas fa-ellipsis"></i> Load More Tracks
           </button>
         )}
         {loadingMore && (
-          <div className="flex items-center justify-center py-4 text-slate-400 text-sm">
-            <i className="fas fa-circle-notch fa-spin mr-2 text-cyan-400"></i> Loading more songs...
+          <div className="flex items-center justify-center py-4 text-slate-500 text-sm">
+            <i className="fas fa-circle-notch fa-spin mr-2 text-red-600"></i> Loading more songs...
           </div>
         )}
       </div>
 
-      {/* ── PERSISTENT MOVEABLE & DRAGGABLE FLOATING MP3 PLAYER BAR ── */}
+      {/* ── PERSISTENT MOVEABLE & DRAGGABLE FLOATING MP3 PLAYER BAR (Light Minimalist) ── */}
       {showPopupPlayer && (
         <div
           ref={playerRef}
@@ -1133,29 +1254,29 @@ export default function MusicFinder() {
             playerPosition
               ? 'fixed z-[9999]'
               : 'fixed bottom-0 left-0 right-0 sm:bottom-4 sm:left-4 sm:right-4 max-w-5xl mx-auto z-[9999]'
-          } bg-slate-900/98 border-2 border-cyan-500/60 backdrop-blur-2xl ${
+          } bg-white/95 border-2 border-slate-300 backdrop-blur-2xl ${
             playerPosition || isPlayerMinimized ? 'rounded-2xl sm:rounded-3xl' : 'sm:rounded-3xl rounded-t-2xl'
-          } shadow-2xl shadow-black/90 ring-1 ring-cyan-500/20 transition-all duration-100 ${
-            isDragging ? 'ring-2 ring-cyan-400 shadow-cyan-500/40 cursor-grabbing select-none scale-[1.01]' : ''
+          } shadow-2xl text-slate-900 transition-all duration-100 ${
+            isDragging ? 'ring-2 ring-red-500/40 shadow-red-500/20 cursor-grabbing select-none scale-[1.01]' : ''
           }`}
         >
           {/* Top Drag Handle Gripper Bar */}
           <div
-            className={`w-full px-3 py-1.5 flex items-center justify-between border-b border-slate-800/80 cursor-grab active:cursor-grabbing select-none touch-none bg-slate-950/40 ${
+            className={`w-full px-3 py-1.5 flex items-center justify-between border-b border-slate-200 cursor-grab active:cursor-grabbing select-none touch-none bg-slate-50/90 ${
               playerPosition || isPlayerMinimized ? 'rounded-t-2xl sm:rounded-t-3xl' : 'sm:rounded-t-3xl rounded-t-2xl'
             }`}
             title="Click & Drag to move player anywhere on your screen"
           >
             {/* Left: Drag Handle Indicator */}
-            <div className="flex items-center gap-1.5 text-slate-400 hover:text-cyan-300 transition-colors">
-              <i className="fas fa-arrows-up-down-left-right text-cyan-400 text-xs"></i>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <div className="flex items-center gap-1.5 text-slate-600 hover:text-red-600 transition-colors">
+              <i className="fas fa-arrows-up-down-left-right text-red-600 text-xs"></i>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
                 {isDragging ? 'Dragging...' : 'Drag To Move'}
               </span>
             </div>
 
             {/* Center: Gripper Pill Visual */}
-            <div className="w-12 h-1 bg-slate-700/80 rounded-full hover:bg-cyan-400 transition-colors"></div>
+            <div className="w-12 h-1 bg-slate-300 rounded-full hover:bg-red-500 transition-colors"></div>
 
             {/* Right: Dock & Minimize & Close Controls */}
             <div className="flex items-center gap-1.5" onPointerDown={(e) => e.stopPropagation()}>
@@ -1163,25 +1284,25 @@ export default function MusicFinder() {
                 <button
                   type="button"
                   onClick={dockPlayerToBottom}
-                  className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-800 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300 border border-slate-700/70 flex items-center gap-1 transition-all shadow-sm"
+                  className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 flex items-center gap-1 transition-all shadow-xs"
                   title="Dock player back to bottom screen edge"
                 >
-                  <i className="fas fa-arrow-down text-[9px] text-cyan-400"></i>
+                  <i className="fas fa-arrow-down text-[9px] text-red-600"></i>
                   <span>Dock</span>
                 </button>
               )}
               <button
                 type="button"
                 onClick={() => setIsPlayerMinimized(!isPlayerMinimized)}
-                className="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition-colors"
+                className="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center text-xs transition-colors"
                 title={isPlayerMinimized ? 'Expand full player controls' : 'Minimize to compact floating bar'}
               >
-                <i className={`fas ${isPlayerMinimized ? 'fa-chevron-up text-cyan-400' : 'fa-chevron-down'}`}></i>
+                <i className={`fas ${isPlayerMinimized ? 'fa-chevron-up text-red-600' : 'fa-chevron-down'}`}></i>
               </button>
               <button
                 type="button"
                 onClick={dismissPlayer}
-                className="w-6 h-6 rounded-lg bg-slate-800 hover:bg-rose-600 text-slate-400 hover:text-white flex items-center justify-center text-xs transition-colors"
+                className="w-6 h-6 rounded-lg bg-slate-100 hover:bg-red-600 hover:text-white text-slate-600 flex items-center justify-center text-xs transition-colors"
                 title="Close Player"
               >
                 <i className="fas fa-xmark"></i>
@@ -1191,10 +1312,10 @@ export default function MusicFinder() {
 
           {/* Player Body: Minimized Pill Mode OR Full Controls Mode */}
           {isPlayerMinimized ? (
-            /* ── Compact Floating Pill View ── */
+            /* Compact Floating Pill View */
             <div className="px-3.5 py-2.5 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className={`relative w-8 h-8 rounded-full overflow-hidden border border-cyan-400/80 flex-shrink-0 shadow-md ${isPlaying ? 'animate-spin [animation-duration:8s]' : ''}`}>
+                <div className={`relative w-8 h-8 rounded-full overflow-hidden border border-red-500 flex-shrink-0 shadow-xs ${isPlaying ? 'animate-spin [animation-duration:8s]' : ''}`}>
                   <img
                     src={activeTrack.artworkUrlSmall || activeTrack.artworkUrlHD}
                     alt={activeTrack.title}
@@ -1202,8 +1323,8 @@ export default function MusicFinder() {
                   />
                 </div>
                 <div className="min-w-0 max-w-[130px] sm:max-w-[190px]">
-                  <h4 className="text-xs font-bold text-white truncate leading-tight">{activeTrack.title}</h4>
-                  <p className="text-[10px] text-cyan-400 font-semibold truncate">{activeTrack.artist}</p>
+                  <h4 className="text-xs font-bold text-slate-900 truncate leading-tight">{activeTrack.title}</h4>
+                  <p className="text-[10px] text-red-600 font-semibold truncate">{activeTrack.artist}</p>
                 </div>
               </div>
 
@@ -1211,7 +1332,7 @@ export default function MusicFinder() {
                 <button
                   type="button"
                   onClick={togglePlayPause}
-                  className="w-8 h-8 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 text-black flex items-center justify-center text-xs font-black shadow-md hover:scale-105 active:scale-95 transition-transform"
+                  className="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center text-xs font-black shadow-xs hover:bg-red-700 active:scale-95 transition-transform"
                   title={isPlaying ? 'Pause' : 'Play'}
                 >
                   <i className={`fas ${isPlaying ? 'fa-pause' : 'fa-play ml-0.5'}`}></i>
@@ -1219,7 +1340,7 @@ export default function MusicFinder() {
                 <button
                   type="button"
                   onClick={playNextTrack}
-                  className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center text-xs transition-colors"
+                  className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-xs transition-colors"
                   title="Next Track"
                 >
                   <i className="fas fa-forward-step"></i>
@@ -1227,7 +1348,7 @@ export default function MusicFinder() {
                 <button
                   type="button"
                   onClick={() => setIsPlayerMinimized(false)}
-                  className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center text-xs transition-colors"
+                  className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-xs transition-colors"
                   title="Expand Full Controls"
                 >
                   <i className="fas fa-up-right-and-down-left-from-center text-[10px]"></i>
@@ -1235,10 +1356,10 @@ export default function MusicFinder() {
               </div>
             </div>
           ) : (
-            /* ── Full Controls View ── */
+            /* Full Controls View */
             <>
               {/* Progress Scrubber Bar */}
-              <div className="px-4 pt-2.5 flex items-center gap-3 text-[11px] text-slate-400 font-mono" onPointerDown={(e) => e.stopPropagation()}>
+              <div className="px-4 pt-2.5 flex items-center gap-3 text-[11px] text-slate-500 font-mono" onPointerDown={(e) => e.stopPropagation()}>
                 <span>{formatTime(currentTime)}</span>
                 <input
                   type="range"
@@ -1252,7 +1373,7 @@ export default function MusicFinder() {
                       audioRef.current.currentTime = newTime;
                     }
                   }}
-                  className="flex-1 accent-cyan-400 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                  className="flex-1 accent-red-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer"
                 />
                 <span>{formatTime(duration || (activeTrack.durationMs ? activeTrack.durationMs / 1000 : 0))}</span>
               </div>
@@ -1260,7 +1381,7 @@ export default function MusicFinder() {
               <div className="px-4 pb-3 pt-2 flex items-center justify-between gap-2 sm:gap-4">
                 {/* Song Meta & Animated Spinning Artwork */}
                 <div className="flex items-center gap-2.5 min-w-0 max-w-[32%] sm:max-w-[38%]">
-                  <div className={`relative w-10 h-10 rounded-full overflow-hidden border-2 border-cyan-400/80 flex-shrink-0 shadow-lg ${isPlaying ? 'animate-spin [animation-duration:8s]' : ''}`}>
+                  <div className={`relative w-10 h-10 rounded-full overflow-hidden border-2 border-red-500/60 flex-shrink-0 shadow-md ${isPlaying ? 'animate-spin [animation-duration:8s]' : ''}`}>
                     <img
                       src={activeTrack.artworkUrlSmall || activeTrack.artworkUrlHD}
                       alt={activeTrack.title}
@@ -1268,8 +1389,8 @@ export default function MusicFinder() {
                     />
                   </div>
                   <div className="min-w-0">
-                    <h4 className="text-xs font-bold text-white truncate leading-tight">{activeTrack.title}</h4>
-                    <p className="text-[10px] text-cyan-400 font-semibold truncate">{activeTrack.artist}</p>
+                    <h4 className="text-xs font-bold text-slate-900 truncate leading-tight">{activeTrack.title}</h4>
+                    <p className="text-[10px] text-red-600 font-semibold truncate">{activeTrack.artist}</p>
                   </div>
                 </div>
 
@@ -1279,7 +1400,7 @@ export default function MusicFinder() {
                   <button
                     onClick={() => setIsShuffle(!isShuffle)}
                     className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-colors ${
-                      isShuffle ? 'text-cyan-400 bg-cyan-950/70 border border-cyan-500/40' : 'text-slate-500 hover:text-slate-300'
+                      isShuffle ? 'text-red-600 bg-red-50 border border-red-200' : 'text-slate-400 hover:text-slate-600'
                     }`}
                     title="Shuffle Queue"
                   >
@@ -1289,7 +1410,7 @@ export default function MusicFinder() {
                   {/* Prev Track */}
                   <button
                     onClick={playPrevTrack}
-                    className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center text-xs transition-transform active:scale-95 shadow-sm"
+                    className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-xs transition-transform active:scale-95 shadow-2xs"
                     title="Previous Track"
                   >
                     <i className="fas fa-backward-step"></i>
@@ -1298,7 +1419,7 @@ export default function MusicFinder() {
                   {/* Main Play / Pause Button */}
                   <button
                     onClick={togglePlayPause}
-                    className="w-10 h-10 rounded-2xl bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-black font-black flex items-center justify-center text-base shadow-lg shadow-cyan-500/40 transition-transform active:scale-95"
+                    className="w-10 h-10 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black flex items-center justify-center text-base shadow-sm transition-transform active:scale-95"
                     title={isPlaying ? 'Pause' : 'Play'}
                   >
                     <i className={`fas ${isPlaying ? 'fa-pause' : 'fa-play ml-0.5'}`}></i>
@@ -1307,7 +1428,7 @@ export default function MusicFinder() {
                   {/* Next Track */}
                   <button
                     onClick={playNextTrack}
-                    className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center text-xs transition-transform active:scale-95 shadow-sm"
+                    className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-xs transition-transform active:scale-95 shadow-2xs"
                     title="Next Track"
                   >
                     <i className="fas fa-forward-step"></i>
@@ -1321,18 +1442,18 @@ export default function MusicFinder() {
                       else setRepeatMode('all');
                     }}
                     className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-colors ${
-                      repeatMode !== 'off' ? 'text-cyan-400 bg-cyan-950/70 border border-cyan-500/40' : 'text-slate-500 hover:text-slate-300'
+                      repeatMode !== 'off' ? 'text-red-600 bg-red-50 border border-red-200' : 'text-slate-400 hover:text-slate-600'
                     }`}
                     title={`Repeat: ${repeatMode.toUpperCase()}`}
                   >
-                    <i className={`fas ${repeatMode === 'one' ? 'fa-repeat text-amber-400' : 'fa-repeat'}`}></i>
+                    <i className={`fas ${repeatMode === 'one' ? 'fa-repeat text-amber-600' : 'fa-repeat'}`}></i>
                     {repeatMode === 'one' && <span className="text-[8px] font-bold ml-0.5">1</span>}
                   </button>
                 </div>
 
                 {/* Volume, Save/Download */}
                 <div className="flex items-center gap-1.5 sm:gap-2 shrink-0" onPointerDown={(e) => e.stopPropagation()}>
-                  {/* Volume Slider (Hidden on small mobile) */}
+                  {/* Volume Slider */}
                   <div className="hidden sm:flex items-center gap-1.5">
                     <button
                       onClick={() => {
@@ -1340,9 +1461,9 @@ export default function MusicFinder() {
                         setIsMuted(nextMute);
                         if (audioRef.current) audioRef.current.muted = nextMute;
                       }}
-                      className="text-slate-400 hover:text-white text-xs"
+                      className="text-slate-500 hover:text-slate-800 text-xs"
                     >
-                      <i className={`fas ${isMuted || volume === 0 ? 'fa-volume-xmark text-red-400' : 'fa-volume-high'}`}></i>
+                      <i className={`fas ${isMuted || volume === 0 ? 'fa-volume-xmark text-red-500' : 'fa-volume-high'}`}></i>
                     </button>
                     <input
                       type="range"
@@ -1359,17 +1480,17 @@ export default function MusicFinder() {
                           audioRef.current.muted = false;
                         }
                       }}
-                      className="w-14 accent-cyan-400 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                      className="w-14 accent-red-600 h-1 bg-slate-200 rounded-lg cursor-pointer"
                     />
                   </div>
 
                   {/* Download Modal Trigger */}
                   <button
                     onClick={() => openDownloadModal(activeTrack, 'mp3')}
-                    className="py-1.5 px-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1 transition-colors shadow-md"
+                    className="py-1.5 px-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl flex items-center gap-1 transition-colors shadow-2xs"
                   >
                     <i className="fas fa-download"></i>
-                    <span className="hidden sm:inline">Save</span>
+                    <span className="hidden sm:inline">Download</span>
                   </button>
                 </div>
               </div>
@@ -1378,44 +1499,42 @@ export default function MusicFinder() {
         </div>
       )}
 
-      {/* WORLDWIDE MULTI-MIRROR DOWNLOAD SERVERS MODAL */}
+      {/* DOWNLOAD MODAL (Clean Light Minimalist) */}
       {downloadModalTrack && (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4" onClick={() => setDownloadModalTrack(null)}>
-          <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-slate-950 border border-emerald-500/40 rounded-3xl p-6 shadow-2xl text-center space-y-5" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setDownloadModalTrack(null)}>
+          <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl text-center space-y-5" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => setDownloadModalTrack(null)}
-              className="absolute top-4 right-4 w-9 h-9 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-full flex items-center justify-center transition-colors text-lg"
+              className="absolute top-4 right-4 w-9 h-9 bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 rounded-full flex items-center justify-center transition-colors text-lg"
               title="Close"
             >
               <i className="fas fa-xmark"></i>
             </button>
 
             <div className="space-y-1">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full text-xs font-bold">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-50 border border-red-200 text-red-700 rounded-full text-xs font-bold">
                 <i className="fas fa-download"></i>
-                <span>High-Speed Download Servers</span>
+                <span>Download Audio &amp; Media</span>
               </div>
-              <h3 className="text-base font-bold text-white truncate px-4 pt-2">
+              <h3 className="text-base font-bold text-slate-900 truncate px-4 pt-2">
                 {downloadModalTrack.title}
               </h3>
-              <p className="text-xs text-slate-400 truncate">{downloadModalTrack.artist}</p>
+              <p className="text-xs text-slate-500 truncate">{downloadModalTrack.artist}</p>
             </div>
 
             {/* Format Selector */}
-            <div className="grid grid-cols-3 gap-2 bg-slate-900 p-1.5 rounded-2xl border border-slate-800">
+            <div className="grid grid-cols-3 gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
               {(['mp3', 'mp4', 'cover'] as DownloadFormat[]).map((fmt) => (
                 <button
                   key={fmt}
                   onClick={() => setSelectedFormat(fmt)}
                   className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
                     selectedFormat === fmt
-                      ? fmt === 'mp3' ? 'bg-emerald-600 text-white shadow-md'
-                        : fmt === 'mp4' ? 'bg-blue-600 text-white shadow-md'
-                        : 'bg-purple-600 text-white shadow-md'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  <i className={`fas ${fmt === 'mp3' ? 'fa-music' : fmt === 'mp4' ? 'fa-video' : 'fa-image'}`}></i>
+                  <i className={`fas ${fmt === 'mp3' ? 'fa-music text-red-600' : fmt === 'mp4' ? 'fa-video text-blue-600' : 'fa-image text-purple-600'}`}></i>
                   <span>{fmt === 'mp3' ? 'MP3' : fmt === 'mp4' ? 'MP4' : 'Cover'}</span>
                 </button>
               ))}
@@ -1423,8 +1542,8 @@ export default function MusicFinder() {
 
             {/* Download Server Options */}
             <div className="space-y-2.5 text-left">
-              <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider text-center">
-                Select Server for .{selectedFormat.toUpperCase()}:
+              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-center">
+                Select Option for .{selectedFormat.toUpperCase()}:
               </p>
 
               {downloadModalTrack.youtubeId ? (
@@ -1432,24 +1551,23 @@ export default function MusicFinder() {
                   {selectedFormat !== 'cover' && (
                     <>
                       {[
-                        { label: 'Y2Mate High-Speed', icon: 'fa-bolt', color: 'text-amber-400', href: `https://y2mate.nu/en1/?url=https://www.youtube.com/watch?v=${downloadModalTrack.youtubeId}` },
-                        { label: 'YT5s Direct', icon: 'fa-circle-play', color: 'text-blue-400', href: `https://yt5s.biz/en/watch?v=${downloadModalTrack.youtubeId}` },
-                        { label: '9Buddy Multi-Format', icon: 'fa-wand-magic-sparkles', color: 'text-purple-400', href: `https://9buddy.com/p?url=https://www.youtube.com/watch?v=${downloadModalTrack.youtubeId}` },
-                        { label: 'SSYouTube Mirror', icon: 'fa-youtube fab', color: 'text-red-500', href: `https://ssyoutube.com/watch?v=${downloadModalTrack.youtubeId}` },
-                        { label: 'Cobalt Downloader', icon: 'fa-server', color: 'text-cyan-400', href: 'https://cobalt.tools/' },
+                        { label: 'Y2Mate High-Speed', icon: 'fa-bolt', color: 'text-amber-500', href: `https://y2mate.nu/en1/?url=https://www.youtube.com/watch?v=${downloadModalTrack.youtubeId}` },
+                        { label: 'YT5s Direct', icon: 'fa-circle-play', color: 'text-blue-500', href: `https://yt5s.biz/en/watch?v=${downloadModalTrack.youtubeId}` },
+                        { label: '9Buddy Multi-Format', icon: 'fa-wand-magic-sparkles', color: 'text-purple-500', href: `https://9buddy.com/p?url=https://www.youtube.com/watch?v=${downloadModalTrack.youtubeId}` },
+                        { label: 'SSYouTube Mirror', icon: 'fa-youtube fab', color: 'text-red-600', href: `https://ssyoutube.com/watch?v=${downloadModalTrack.youtubeId}` },
                       ].map((s, i) => (
                         <a
                           key={i}
                           href={s.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-full p-3.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-emerald-500/60 rounded-xl text-xs font-bold text-slate-200 flex items-center justify-between transition-all group shadow-sm"
+                          className="w-full p-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-800 flex items-center justify-between transition-all group shadow-2xs"
                         >
                           <span className="flex items-center gap-2.5">
                             <i className={`fas ${s.icon} ${s.color} text-sm`}></i>
                             <span>Server {i + 1} — {s.label} {selectedFormat.toUpperCase()}</span>
                           </span>
-                          <i className="fas fa-arrow-right text-slate-500 group-hover:text-emerald-400 transition-colors"></i>
+                          <i className="fas fa-arrow-right text-slate-400 group-hover:text-red-600 transition-colors"></i>
                         </a>
                       ))}
                     </>
@@ -1458,7 +1576,7 @@ export default function MusicFinder() {
                   {selectedFormat === 'cover' && (
                     <button
                       onClick={() => handleDownloadArtwork(downloadModalTrack)}
-                      className="w-full p-3.5 bg-purple-600 hover:bg-purple-500 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-900/30"
+                      className="w-full p-3.5 bg-red-600 hover:bg-red-700 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 transition-all shadow-xs"
                     >
                       <i className="fas fa-image text-sm"></i>
                       <span>Download HD Cover Art Image</span>
@@ -1468,18 +1586,18 @@ export default function MusicFinder() {
                   <div className="pt-2 flex items-center gap-2">
                     <button
                       onClick={() => copyTrackLink(downloadModalTrack)}
-                      className="flex-1 p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs font-semibold text-slate-300 flex items-center justify-center gap-1.5 transition-all"
+                      className="flex-1 p-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 flex items-center justify-center gap-1.5 transition-all"
                     >
-                      <i className="fas fa-copy text-blue-400"></i>
+                      <i className="fas fa-copy text-blue-600"></i>
                       <span>{copiedLink ? 'Copied!' : 'Copy Link'}</span>
                     </button>
                     <a
                       href={`https://www.youtube.com/watch?v=${downloadModalTrack.youtubeId}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs font-semibold text-slate-300 flex items-center justify-center gap-1.5 transition-all"
+                      className="flex-1 p-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 flex items-center justify-center gap-1.5 transition-all"
                     >
-                      <i className="fab fa-youtube text-red-500"></i>
+                      <i className="fab fa-youtube text-red-600"></i>
                       <span>Open YouTube</span>
                     </a>
                   </div>
@@ -1490,7 +1608,7 @@ export default function MusicFinder() {
                     <a
                       href={downloadModalTrack.downloadUrl || downloadModalTrack.previewUrl}
                       download={`${downloadModalTrack.artist} - ${downloadModalTrack.title}.mp3`}
-                      className="w-full p-3.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 transition-all shadow-lg"
+                      className="w-full p-3.5 bg-red-600 hover:bg-red-700 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 transition-all shadow-xs"
                     >
                       <i className="fas fa-download"></i>
                       <span>Direct Download .{selectedFormat.toUpperCase()}</span>
@@ -1499,7 +1617,7 @@ export default function MusicFinder() {
                   {selectedFormat === 'cover' && (
                     <button
                       onClick={() => handleDownloadArtwork(downloadModalTrack)}
-                      className="w-full p-3.5 bg-purple-600 hover:bg-purple-500 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-900/30"
+                      className="w-full p-3.5 bg-red-600 hover:bg-red-700 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 transition-all shadow-xs"
                     >
                       <i className="fas fa-image"></i>
                       <span>Download HD Cover Art Image</span>
