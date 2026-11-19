@@ -633,16 +633,12 @@ function ApplyFormContent() {
                         <span>National ID Card / Passport / Voter Card <span className="text-red-500">*</span></span>
                       </label>
                       <p className="text-[11px] text-gray-500 mt-0.5">
-                        Upload photo of your valid national ID card, passport, driver license, or voter registration card for verification. <span className="text-red-500 font-semibold">(Mandatory)</span>
+                        Upload photo of your valid national ID card, passport, driver license, or voter registration card for verification.
                       </p>
                     </div>
-                    {idCardPhotoPreview ? (
+                    {idCardPhotoPreview && (
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
                         Uploaded ✓
-                      </span>
-                    ) : (
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700">
-                        Required *
                       </span>
                     )}
                   </div>
@@ -650,7 +646,7 @@ function ApplyFormContent() {
                   <div className="flex flex-wrap items-center gap-3 pt-1">
                     <label className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 text-xs font-semibold text-gray-800 cursor-pointer transition-colors shadow-xs">
                       <Upload className="w-3.5 h-3.5 text-gray-600" />
-                      <span>{idCardPhotoPreview ? 'Change ID Photo (JPG/PNG)' : 'Choose ID Photo (JPG/PNG) *'}</span>
+                      <span>{idCardPhotoPreview ? 'Change ID Photo (JPG/PNG)' : 'Choose ID Photo (JPG/PNG)'}</span>
                       <input
                         type="file"
                         accept="image/*"
