@@ -15,6 +15,7 @@ export interface ShortUrlMetadata {
   positionY?: number;
   layout?: string;
   previewType?: string;
+  buttonText?: string;
 }
 
 export interface ShortUrlRecord {

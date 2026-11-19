@@ -48,20 +48,34 @@ export async function POST(request: NextRequest) {
     const rawUrl = typeof body === 'string' ? body : body.url;
     const requestBaseUrl = request.nextUrl.origin;
     const url = cleanSocialShareDestination(rawUrl, requestBaseUrl);
-    const metadata: ShortUrlMetadata | undefined = body.metadata || (body.title ? {
-      title: body.title,
-      description: body.description,
-      price: body.price,
-      tag: body.tag,
-      image: body.image,
-      theme: body.theme,
-      fit: body.fit,
-      scale: body.scale,
-      positionX: body.positionX,
-      positionY: body.positionY,
-      layout: body.layout || 'photo-only',
-      previewType: body.previewType || 'product',
-    } : undefined);
+    const customButtonText = typeof body.buttonText === 'string' && body.buttonText.trim()
+      ? body.buttonText.trim()
+      : typeof body.buttonLabel === 'string' && body.buttonLabel.trim()
+      ? body.buttonLabel.trim()
+      : typeof body.ctaText === 'string' && body.ctaText.trim()
+      ? body.ctaText.trim()
+      : undefined;
+
+    const metadata: ShortUrlMetadata | undefined = body.metadata
+      ? {
+          ...body.metadata,
+          ...(customButtonText ? { buttonText: customButtonText } : {}),
+        }
+      : (body.title ? {
+          title: body.title,
+          description: body.description,
+          price: body.price,
+          tag: body.tag,
+          image: body.image,
+          theme: body.theme,
+          fit: body.fit,
+          scale: body.scale,
+          positionX: body.positionX,
+          positionY: body.positionY,
+          layout: body.layout || 'photo-only',
+          previewType: body.previewType || 'product',
+          buttonText: customButtonText,
+        } : undefined);
     
     if (!url) {
       return NextResponse.json(

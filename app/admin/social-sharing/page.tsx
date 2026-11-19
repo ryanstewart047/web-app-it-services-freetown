@@ -91,6 +91,7 @@ export default function SocialSharingAdminPage() {
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [landingUrl, setLandingUrl] = useState('');
+  const [buttonText, setButtonText] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [imageFit, setImageFit] = useState<ImageFit>('contain');
   const [imageScale, setImageScale] = useState(100);
@@ -106,6 +107,7 @@ export default function SocialSharingAdminPage() {
   const previewDescription = description.trim() || 'Your short product description appears here.';
   const previewTitle = productName.trim() || 'Product name';
   const previewPrice = formatPrice(price);
+  const previewButtonText = buttonText.trim() || 'View product';
 
   const invalidateLink = () => {
     setShortUrl('');
@@ -192,6 +194,7 @@ export default function SocialSharingAdminPage() {
           title: productName.trim(),
           description: description.trim(),
           price: price.trim(),
+          buttonText: buttonText.trim() || undefined,
           image: imageUrl.trim(),
           fit: imageFit,
           scale: imageScale,
@@ -283,7 +286,7 @@ export default function SocialSharingAdminPage() {
                     className="h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none ring-blue-600 focus:border-blue-600 focus:ring-2"
                   />
                 </label>
-                <label className="block">
+                <label className="block sm:col-span-2">
                   <span className="mb-1.5 block text-sm font-bold text-slate-700">Landing page URL</span>
                   <input
                     value={landingUrl}
@@ -292,6 +295,21 @@ export default function SocialSharingAdminPage() {
                     inputMode="url"
                     className="h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none ring-blue-600 focus:border-blue-600 focus:ring-2"
                   />
+                </label>
+                <label className="block sm:col-span-2">
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <span className="block text-sm font-bold text-slate-700">Landing page button text / name</span>
+                    <span className="text-xs text-slate-500">Default: &quot;View product&quot;</span>
+                  </div>
+                  <input
+                    value={buttonText}
+                    onChange={(event) => { setButtonText(event.target.value); invalidateLink(); }}
+                    placeholder="e.g. View product, Buy Now, Order on WhatsApp, Book Appointment, Read More..."
+                    className="h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none ring-blue-600 focus:border-blue-600 focus:ring-2"
+                  />
+                  <span className="mt-1 block text-xs text-slate-500">
+                    Change this to whatever name you want to appear on the destination landing page button.
+                  </span>
                 </label>
                 <label className="block sm:col-span-2">
                   <span className="mb-1.5 block text-sm font-bold text-slate-700">Short description</span>
@@ -458,6 +476,11 @@ export default function SocialSharingAdminPage() {
                     <h3 className="text-lg font-black leading-snug text-slate-950">{previewTitle}</h3>
                     <p className="text-sm leading-6 text-slate-600">{previewDescription}</p>
                     {previewPrice ? <p className="text-base font-black text-red-600">{previewPrice}</p> : null}
+                    <div className="pt-2">
+                      <span className="inline-flex min-h-9 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-xs font-bold text-white shadow-sm">
+                        {previewButtonText}
+                      </span>
+                    </div>
                   </div>
                 </article>
               </div>

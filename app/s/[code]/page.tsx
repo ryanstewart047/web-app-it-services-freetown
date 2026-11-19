@@ -183,7 +183,7 @@ export default async function ShortUrlPreview({ params }: Props) {
             href={safeOriginalUrl}
             className="inline-flex min-h-11 items-center justify-center rounded-md bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-blue-700"
           >
-            View product
+            {metadata.buttonText?.trim() || 'View product'}
           </a>
         </div>
       </article>
