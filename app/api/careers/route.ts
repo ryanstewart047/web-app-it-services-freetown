@@ -282,6 +282,12 @@ export async function POST(request: NextRequest) {
       if (!residentialAddress || !residentialAddress.trim()) {
         return NextResponse.json({ success: false, error: 'Residential address in Freetown is mandatory' }, { status: 400 });
       }
+      if (!idCardPhoto || !String(idCardPhoto).trim()) {
+        return NextResponse.json({ success: false, error: 'National ID Card / Passport / Voter Card photo is required for identity verification' }, { status: 400 });
+      }
+      if (!nationalIdNumber || !String(nationalIdNumber).trim()) {
+        return NextResponse.json({ success: false, error: 'National ID / NIN / Voter Card Number is required' }, { status: 400 });
+      }
 
       // Resolve Job Title
       const resolvedJob = TRADE_CATEGORIES.find(c => c.id === jobId);
