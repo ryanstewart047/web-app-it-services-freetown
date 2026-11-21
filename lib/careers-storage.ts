@@ -94,14 +94,32 @@ export async function ensureCareersTables(): Promise<boolean> {
         "interviewDate" TEXT,
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
-      );
-
-      CREATE INDEX IF NOT EXISTS "job_applications_jobId_idx" ON "job_applications"("jobId");
-      CREATE INDEX IF NOT EXISTS "job_applications_status_idx" ON "job_applications"("status");
-      CREATE INDEX IF NOT EXISTS "job_applications_createdAt_idx" ON "job_applications"("createdAt" DESC);
-
-      ALTER TABLE "job_applications" ADD COLUMN IF NOT EXISTS "certificatePhoto" TEXT;
+      )
     `);
+
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE INDEX IF NOT EXISTS "job_applications_jobId_idx" ON "job_applications"("jobId")
+      `);
+    } catch {}
+
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE INDEX IF NOT EXISTS "job_applications_status_idx" ON "job_applications"("status")
+      `);
+    } catch {}
+
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE INDEX IF NOT EXISTS "job_applications_createdAt_idx" ON "job_applications"("createdAt" DESC)
+      `);
+    } catch {}
+
+    try {
+      await prisma.$executeRawUnsafe(`
+        ALTER TABLE "job_applications" ADD COLUMN IF NOT EXISTS "certificatePhoto" TEXT
+      `);
+    } catch {}
 
     tablesInitialized = true;
     return true;
@@ -374,13 +392,27 @@ export async function updateJobApplication(id: string, updates: Partial<JobAppli
           "adminNotes" = $2,
           "rating" = $3,
           "interviewDate" = $4,
-          "updatedAt" = $5::timestamp
-        WHERE "id" = $6;
+          "phone" = $5,
+          "whatsapp" = $6,
+          "email" = $7,
+          "fullName" = $8,
+          "residentialAddress" = $9,
+          "locationArea" = $10,
+          "workSummary" = $11,
+          "updatedAt" = $12::timestamp
+        WHERE "id" = $13;
       `,
         updated.status,
         updated.adminNotes || null,
         updated.rating || 5,
         updated.interviewDate || null,
+        updated.phone,
+        updated.whatsapp || null,
+        updated.email || null,
+        updated.fullName,
+        updated.residentialAddress,
+        updated.locationArea,
+        updated.workSummary || null,
         new Date(updated.updatedAt),
         updated.id
       );

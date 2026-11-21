@@ -329,7 +329,20 @@ export async function POST(request: NextRequest) {
 
     // ── 2. Admin: Update Candidate Status & Notes ───────────────────────────
     if (action === 'update_status') {
-      const { id, status, adminNotes, rating, interviewDate } = body;
+      const { 
+        id, 
+        status, 
+        adminNotes, 
+        rating, 
+        interviewDate,
+        phone,
+        whatsapp,
+        email,
+        fullName,
+        residentialAddress,
+        locationArea,
+        workSummary
+      } = body;
       if (!id) {
         return NextResponse.json({ success: false, error: 'Application ID is required' }, { status: 400 });
       }
@@ -339,6 +352,13 @@ export async function POST(request: NextRequest) {
         ...(adminNotes !== undefined ? { adminNotes } : {}),
         ...(rating !== undefined ? { rating: Number(rating) } : {}),
         ...(interviewDate !== undefined ? { interviewDate } : {}),
+        ...(phone !== undefined ? { phone } : {}),
+        ...(whatsapp !== undefined ? { whatsapp } : {}),
+        ...(email !== undefined ? { email } : {}),
+        ...(fullName !== undefined ? { fullName } : {}),
+        ...(residentialAddress !== undefined ? { residentialAddress } : {}),
+        ...(locationArea !== undefined ? { locationArea } : {}),
+        ...(workSummary !== undefined ? { workSummary } : {}),
       });
 
       if (!updated) {

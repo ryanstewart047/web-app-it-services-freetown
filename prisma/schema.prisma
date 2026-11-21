@@ -756,3 +756,41 @@ model WebsiteQuestionnaire {
   @@index([email])
   @@map("website_questionnaires")
 }
+
+model JobApplication {
+  id                  String   @id
+  jobId               String
+  jobTitle            String
+  fullName            String
+  phone               String
+  whatsapp            String?
+  email               String?
+  gender              String?
+  dateOfBirth         String?
+  locationArea        String
+  residentialAddress  String
+  yearsExperience     String   @default("1-2")
+  secondarySkills     String?
+  toolOwnership       String   @default("basic_tools")
+  transportMode       String?  @default("commercial")
+  availability        String   @default("immediate_fulltime")
+  workSummary         String?  @db.Text
+  pastWorkPhotos      String?  @db.Text
+  nationalIdNumber    String?
+  idCardPhoto         String?  @db.Text
+  certificatePhoto    String?  @db.Text
+  resumeUrlOrData     String?  @db.Text
+  mobileMoneyProvider String   @default("orange")
+  mobileMoneyNumber   String
+  status              String   @default("pending")
+  adminNotes          String?  @db.Text
+  rating              Int?     @default(5)
+  interviewDate       String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @default(now()) @updatedAt
+
+  @@index([jobId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@map("job_applications")
+}

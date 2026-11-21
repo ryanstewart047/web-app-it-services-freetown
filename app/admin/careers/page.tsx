@@ -48,6 +48,10 @@ export default function AdminCareersPage() {
   const [newStatus, setNewStatus] = useState<JobApplication['status']>('pending');
   const [rating, setRating] = useState(5);
   const [interviewDate, setInterviewDate] = useState('');
+  const [candidatePhone, setCandidatePhone] = useState('');
+  const [candidateWhatsapp, setCandidateWhatsapp] = useState('');
+  const [candidateEmail, setCandidateEmail] = useState('');
+  const [candidateAddress, setCandidateAddress] = useState('');
 
   // Toast feedback
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -84,6 +88,10 @@ export default function AdminCareersPage() {
     setNewStatus(app.status);
     setRating(app.rating || 5);
     setInterviewDate(app.interviewDate || '');
+    setCandidatePhone(app.phone || '');
+    setCandidateWhatsapp(app.whatsapp || '');
+    setCandidateEmail(app.email || '');
+    setCandidateAddress(app.residentialAddress || '');
     setDetailModalOpen(true);
   };
 
@@ -101,6 +109,10 @@ export default function AdminCareersPage() {
           adminNotes,
           rating,
           interviewDate: interviewDate || undefined,
+          phone: candidatePhone.trim() || undefined,
+          whatsapp: candidateWhatsapp.trim() || undefined,
+          email: candidateEmail.trim() || undefined,
+          residentialAddress: candidateAddress.trim() || undefined,
         }),
       });
       const data = await res.json();
@@ -612,15 +624,66 @@ export default function AdminCareersPage() {
             {/* Candidate Dossier Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               
-              <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-slate-900/60 border border-gray-200 dark:border-slate-800 space-y-2">
-                <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-slate-500 block">
-                  Contact Information
-                </span>
-                <div><strong>Phone:</strong> <a href={`tel:${selectedApp.phone}`} className="text-blue-500 hover:underline">{selectedApp.phone}</a></div>
-                <div><strong>WhatsApp:</strong> <a href={`https://wa.me/${selectedApp.whatsapp?.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:underline">{selectedApp.whatsapp || selectedApp.phone}</a></div>
-                <div><strong>Email:</strong> {selectedApp.email || 'None provided'}</div>
-                <div><strong>Area:</strong> {selectedApp.locationArea}</div>
-                <div><strong>Address:</strong> {selectedApp.residentialAddress}</div>
+              <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-slate-900/60 border border-gray-200 dark:border-slate-800 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-slate-500 block">
+                    Contact Information
+                  </span>
+                  {selectedApp.whatsapp || selectedApp.phone ? (
+                    <a 
+                      href={`https://wa.me/${(selectedApp.whatsapp || selectedApp.phone)?.replace(/[^0-9]/g, '')}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-[11px] font-bold text-emerald-600 hover:underline flex items-center gap-1"
+                    >
+                      <i className="fab fa-whatsapp" /> Chat on WhatsApp
+                    </a>
+                  ) : null}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase">Phone Number</label>
+                  <input
+                    type="text"
+                    value={candidatePhone}
+                    onChange={e => setCandidatePhone(e.target.value)}
+                    placeholder="Candidate phone..."
+                    className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-xs text-gray-900 dark:text-white font-medium"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase">WhatsApp Number</label>
+                  <input
+                    type="text"
+                    value={candidateWhatsapp}
+                    onChange={e => setCandidateWhatsapp(e.target.value)}
+                    placeholder="WhatsApp number..."
+                    className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-xs text-gray-900 dark:text-white font-medium"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase">Email Address</label>
+                  <input
+                    type="text"
+                    value={candidateEmail}
+                    onChange={e => setCandidateEmail(e.target.value)}
+                    placeholder="Email address..."
+                    className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-xs text-gray-900 dark:text-white font-medium"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase">Residential Address</label>
+                  <input
+                    type="text"
+                    value={candidateAddress}
+                    onChange={e => setCandidateAddress(e.target.value)}
+                    placeholder="Freetown address..."
+                    className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-xs text-gray-900 dark:text-white font-medium"
+                  />
+                </div>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-slate-900/60 border border-gray-200 dark:border-slate-800 space-y-2">
