@@ -778,6 +778,7 @@ model JobApplication {
   pastWorkPhotos      String?  @db.Text
   nationalIdNumber    String?
   idCardPhoto         String?  @db.Text
+  idCardBackPhoto     String?  @db.Text
   certificatePhoto    String?  @db.Text
   resumeUrlOrData     String?  @db.Text
   mobileMoneyProvider String   @default("orange")

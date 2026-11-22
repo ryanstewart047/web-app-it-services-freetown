@@ -52,6 +52,7 @@ export default function AdminCareersPage() {
   const [candidateWhatsapp, setCandidateWhatsapp] = useState('');
   const [candidateEmail, setCandidateEmail] = useState('');
   const [candidateAddress, setCandidateAddress] = useState('');
+  const [candidateNin, setCandidateNin] = useState('');
 
   // Toast feedback
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -92,6 +93,7 @@ export default function AdminCareersPage() {
     setCandidateWhatsapp(app.whatsapp || '');
     setCandidateEmail(app.email || '');
     setCandidateAddress(app.residentialAddress || '');
+    setCandidateNin(app.nationalIdNumber || '');
     setDetailModalOpen(true);
   };
 
@@ -113,6 +115,7 @@ export default function AdminCareersPage() {
           whatsapp: candidateWhatsapp.trim() || undefined,
           email: candidateEmail.trim() || undefined,
           residentialAddress: candidateAddress.trim() || undefined,
+          nationalIdNumber: candidateNin.trim() || undefined,
         }),
       });
       const data = await res.json();
@@ -684,6 +687,20 @@ export default function AdminCareersPage() {
                     className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-xs text-gray-900 dark:text-white font-medium"
                   />
                 </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase flex items-center justify-between">
+                    <span>National ID / NIN Number</span>
+                    <span className="text-[9px] font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/40 px-1.5 py-0.2 rounded">Vetting ID</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={candidateNin}
+                    onChange={e => setCandidateNin(e.target.value)}
+                    placeholder="NIN or Voter ID..."
+                    className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-xs text-gray-900 dark:text-white font-medium"
+                  />
+                </div>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-slate-900/60 border border-gray-200 dark:border-slate-800 space-y-2">
@@ -711,50 +728,88 @@ export default function AdminCareersPage() {
               </div>
             )}
 
-            {/* Attached Documents: ID Card & Trade Certificate */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {selectedApp.idCardPhoto ? (
-                <div className="space-y-1.5 p-3 rounded-xl border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/60">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 dark:text-slate-400 block">
-                    National ID Card / Passport
-                  </span>
-                  <div className="h-40 rounded-lg overflow-hidden border border-gray-200 dark:border-slate-800 bg-black flex items-center justify-center">
-                    <img
-                      src={selectedApp.idCardPhoto}
-                      alt="ID Card"
-                      className="max-h-full max-w-full object-contain cursor-pointer"
-                      onClick={() => window.open(selectedApp.idCardPhoto, '_blank')}
-                      title="Click to view full size"
-                    />
-                  </div>
-                  <span className="text-[10px] text-gray-400 block text-center">Click to open full size</span>
-                </div>
-              ) : null}
+            {/* Attached Documents: ID Card Front, Back & Trade Certificate */}
+            <div className="space-y-2">
+              <span className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-blue-600" />
+                <span>Submitted Verification Documents</span>
+              </span>
 
-              {selectedApp.certificatePhoto ? (
-                <div className="space-y-1.5 p-3 rounded-xl border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/60">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 block">
-                    Trade / Professional Certificate
-                  </span>
-                  <div className="h-40 rounded-lg overflow-hidden border border-gray-200 dark:border-slate-800 bg-black flex items-center justify-center">
-                    <img
-                      src={selectedApp.certificatePhoto}
-                      alt="Certificate"
-                      className="max-h-full max-w-full object-contain cursor-pointer"
-                      onClick={() => window.open(selectedApp.certificatePhoto, '_blank')}
-                      title="Click to view full size"
-                    />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* ID Front */}
+                {selectedApp.idCardPhoto ? (
+                  <div className="space-y-1.5 p-3 rounded-xl border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/60">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-400 block">
+                        National ID (Front)
+                      </span>
+                      <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded">
+                        Front ✓
+                      </span>
+                    </div>
+                    <div className="h-36 rounded-lg overflow-hidden border border-gray-200 dark:border-slate-800 bg-black flex items-center justify-center">
+                      <img
+                        src={selectedApp.idCardPhoto}
+                        alt="ID Front"
+                        className="max-h-full max-w-full object-contain cursor-pointer"
+                        onClick={() => window.open(selectedApp.idCardPhoto, '_blank')}
+                        title="Click to view full size"
+                      />
+                    </div>
+                    <span className="text-[10px] text-gray-400 block text-center">Click to view full size</span>
                   </div>
-                  <span className="text-[10px] text-gray-400 block text-center">Click to open full size</span>
-                </div>
-              ) : null}
-            </div>
+                ) : null}
 
-            {!selectedApp.idCardPhoto && !selectedApp.certificatePhoto && (
-              <div className="p-3 rounded-xl border border-gray-200 dark:border-slate-800 text-gray-400 text-xs text-center">
-                No identity or certification documents were attached with this application.
+                {/* ID Back */}
+                {selectedApp.idCardBackPhoto ? (
+                  <div className="space-y-1.5 p-3 rounded-xl border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/60">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block">
+                        National ID (Back)
+                      </span>
+                      <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded">
+                        Back ✓
+                      </span>
+                    </div>
+                    <div className="h-36 rounded-lg overflow-hidden border border-gray-200 dark:border-slate-800 bg-black flex items-center justify-center">
+                      <img
+                        src={selectedApp.idCardBackPhoto}
+                        alt="ID Back"
+                        className="max-h-full max-w-full object-contain cursor-pointer"
+                        onClick={() => window.open(selectedApp.idCardBackPhoto, '_blank')}
+                        title="Click to view full size"
+                      />
+                    </div>
+                    <span className="text-[10px] text-gray-400 block text-center">Click to view full size</span>
+                  </div>
+                ) : null}
+
+                {/* Certificate */}
+                {selectedApp.certificatePhoto ? (
+                  <div className="space-y-1.5 p-3 rounded-xl border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/60">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 block">
+                      Trade / Professional Certificate
+                    </span>
+                    <div className="h-36 rounded-lg overflow-hidden border border-gray-200 dark:border-slate-800 bg-black flex items-center justify-center">
+                      <img
+                        src={selectedApp.certificatePhoto}
+                        alt="Certificate"
+                        className="max-h-full max-w-full object-contain cursor-pointer"
+                        onClick={() => window.open(selectedApp.certificatePhoto, '_blank')}
+                        title="Click to view full size"
+                      />
+                    </div>
+                    <span className="text-[10px] text-gray-400 block text-center">Click to view full size</span>
+                  </div>
+                ) : null}
               </div>
-            )}
+
+              {!selectedApp.idCardPhoto && !selectedApp.idCardBackPhoto && !selectedApp.certificatePhoto && (
+                <div className="p-3 rounded-xl border border-gray-200 dark:border-slate-800 text-gray-400 text-xs text-center">
+                  No identity or certification documents were attached with this application.
+                </div>
+              )}
+            </div>
 
             {/* Admin Controls: Status, Rating, Notes */}
             <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-slate-800">

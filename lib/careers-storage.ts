@@ -23,7 +23,9 @@ export interface JobApplication {
   workSummary?: string;
   pastWorkPhotos?: string[]; // base64 or photo URLs
   nationalIdNumber?: string;
-  idCardPhoto?: string;
+  idCardPhoto?: string; // Front of ID Card
+  idCardFrontPhoto?: string;
+  idCardBackPhoto?: string; // Back of ID Card
   certificatePhoto?: string;
   resumeUrlOrData?: string;
   mobileMoneyProvider: 'orange' | 'afrimoney';
@@ -84,6 +86,7 @@ export async function ensureCareersTables(): Promise<boolean> {
         "pastWorkPhotos" TEXT,
         "nationalIdNumber" TEXT,
         "idCardPhoto" TEXT,
+        "idCardBackPhoto" TEXT,
         "certificatePhoto" TEXT,
         "resumeUrlOrData" TEXT,
         "mobileMoneyProvider" TEXT NOT NULL DEFAULT 'orange',
@@ -118,6 +121,12 @@ export async function ensureCareersTables(): Promise<boolean> {
     try {
       await prisma.$executeRawUnsafe(`
         ALTER TABLE "job_applications" ADD COLUMN IF NOT EXISTS "certificatePhoto" TEXT
+      `);
+    } catch {}
+
+    try {
+      await prisma.$executeRawUnsafe(`
+        ALTER TABLE "job_applications" ADD COLUMN IF NOT EXISTS "idCardBackPhoto" TEXT
       `);
     } catch {}
 
@@ -190,7 +199,9 @@ function rowToApplication(row: any): JobApplication {
     workSummary: row.workSummary ? String(row.workSummary) : undefined,
     pastWorkPhotos,
     nationalIdNumber: row.nationalIdNumber ? String(row.nationalIdNumber) : undefined,
-    idCardPhoto: row.idCardPhoto ? String(row.idCardPhoto) : undefined,
+    idCardPhoto: row.idCardPhoto ? String(row.idCardPhoto) : (row.idCardFrontPhoto ? String(row.idCardFrontPhoto) : undefined),
+    idCardFrontPhoto: row.idCardPhoto ? String(row.idCardPhoto) : (row.idCardFrontPhoto ? String(row.idCardFrontPhoto) : undefined),
+    idCardBackPhoto: row.idCardBackPhoto ? String(row.idCardBackPhoto) : undefined,
     certificatePhoto: row.certificatePhoto ? String(row.certificatePhoto) : undefined,
     resumeUrlOrData: row.resumeUrlOrData ? String(row.resumeUrlOrData) : undefined,
     mobileMoneyProvider: (row.mobileMoneyProvider as any) || 'orange',
@@ -310,16 +321,19 @@ export async function createJobApplication(data: Omit<JobApplication, 'id' | 'cr
           "gender", "dateOfBirth", "locationArea", "residentialAddress",
           "yearsExperience", "secondarySkills", "toolOwnership", "transportMode",
           "availability", "workSummary", "pastWorkPhotos", "nationalIdNumber",
-          "idCardPhoto", "certificatePhoto", "resumeUrlOrData", "mobileMoneyProvider", "mobileMoneyNumber",
+          "idCardPhoto", "idCardBackPhoto", "certificatePhoto", "resumeUrlOrData", "mobileMoneyProvider", "mobileMoneyNumber",
           "status", "adminNotes", "rating", "interviewDate", "createdAt", "updatedAt"
         ) VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-          $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29::timestamp, $30::timestamp
+          $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30::timestamp, $31::timestamp
         )
         ON CONFLICT ("id") DO UPDATE SET
           "jobTitle" = EXCLUDED."jobTitle",
           "fullName" = EXCLUDED."fullName",
           "phone" = EXCLUDED."phone",
+          "nationalIdNumber" = EXCLUDED."nationalIdNumber",
+          "idCardPhoto" = EXCLUDED."idCardPhoto",
+          "idCardBackPhoto" = EXCLUDED."idCardBackPhoto",
           "status" = EXCLUDED."status",
           "updatedAt" = EXCLUDED."updatedAt";
       `,
@@ -343,6 +357,7 @@ export async function createJobApplication(data: Omit<JobApplication, 'id' | 'cr
         newApp.pastWorkPhotos && newApp.pastWorkPhotos.length > 0 ? JSON.stringify(newApp.pastWorkPhotos) : null,
         newApp.nationalIdNumber || null,
         newApp.idCardPhoto || null,
+        newApp.idCardBackPhoto || null,
         newApp.certificatePhoto || null,
         newApp.resumeUrlOrData || null,
         newApp.mobileMoneyProvider,
@@ -399,8 +414,11 @@ export async function updateJobApplication(id: string, updates: Partial<JobAppli
           "residentialAddress" = $9,
           "locationArea" = $10,
           "workSummary" = $11,
-          "updatedAt" = $12::timestamp
-        WHERE "id" = $13;
+          "nationalIdNumber" = COALESCE($12, "nationalIdNumber"),
+          "idCardPhoto" = COALESCE($13, "idCardPhoto"),
+          "idCardBackPhoto" = COALESCE($14, "idCardBackPhoto"),
+          "updatedAt" = $15::timestamp
+        WHERE "id" = $16;
       `,
         updated.status,
         updated.adminNotes || null,
@@ -413,6 +431,9 @@ export async function updateJobApplication(id: string, updates: Partial<JobAppli
         updated.residentialAddress,
         updated.locationArea,
         updated.workSummary || null,
+        updated.nationalIdNumber || null,
+        updated.idCardPhoto || null,
+        updated.idCardBackPhoto || null,
         new Date(updated.updatedAt),
         updated.id
       );

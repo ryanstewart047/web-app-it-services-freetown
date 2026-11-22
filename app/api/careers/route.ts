@@ -263,30 +263,45 @@ export async function POST(request: NextRequest) {
         pastWorkPhotos,
         nationalIdNumber,
         idCardPhoto,
+        idCardFrontPhoto,
+        idCardBackPhoto,
         certificatePhoto,
         resumeUrlOrData,
         mobileMoneyProvider,
         mobileMoneyNumber,
       } = body;
 
-      // Validation
+      // ── Strict Validation of Mandatory Fields ──
       if (!fullName || !fullName.trim()) {
-        return NextResponse.json({ success: false, error: 'Full name is required' }, { status: 400 });
+        return NextResponse.json({ success: false, error: 'Full legal name is mandatory' }, { status: 400 });
       }
       if (!phone || !phone.trim()) {
-        return NextResponse.json({ success: false, error: 'Active phone number is required' }, { status: 400 });
+        return NextResponse.json({ success: false, error: 'Active phone number is mandatory' }, { status: 400 });
       }
       if (!jobId || !jobId.trim()) {
         return NextResponse.json({ success: false, error: 'Please select the job role you are applying for' }, { status: 400 });
       }
-      if (!residentialAddress || !residentialAddress.trim()) {
-        return NextResponse.json({ success: false, error: 'Residential address in Freetown is mandatory' }, { status: 400 });
+      if (!locationArea || !locationArea.trim()) {
+        return NextResponse.json({ success: false, error: 'Location area in Freetown is mandatory' }, { status: 400 });
       }
-      if (!idCardPhoto || !String(idCardPhoto).trim()) {
-        return NextResponse.json({ success: false, error: 'National ID Card / Passport / Voter Card photo is required for identity verification' }, { status: 400 });
+      if (!residentialAddress || !residentialAddress.trim()) {
+        return NextResponse.json({ success: false, error: 'Residential physical address in Freetown is mandatory for vetting' }, { status: 400 });
       }
       if (!nationalIdNumber || !String(nationalIdNumber).trim()) {
-        return NextResponse.json({ success: false, error: 'National ID / NIN / Voter Card Number is required' }, { status: 400 });
+        return NextResponse.json({ success: false, error: 'National ID / NIN / Voter Card Number is mandatory' }, { status: 400 });
+      }
+      
+      const frontPhoto = idCardFrontPhoto || idCardPhoto;
+      if (!frontPhoto || !String(frontPhoto).trim()) {
+        return NextResponse.json({ success: false, error: 'Front side photo of your National ID / Voter Card / Passport is mandatory' }, { status: 400 });
+      }
+      if (!idCardBackPhoto || !String(idCardBackPhoto).trim()) {
+        return NextResponse.json({ success: false, error: 'Back side photo of your National ID / Voter Card is mandatory' }, { status: 400 });
+      }
+
+      const payoutNumber = (mobileMoneyNumber || phone || '').trim();
+      if (!payoutNumber) {
+        return NextResponse.json({ success: false, error: 'Registered mobile money number for weekly payouts is mandatory' }, { status: 400 });
       }
 
       // Resolve Job Title
@@ -298,7 +313,7 @@ export async function POST(request: NextRequest) {
         jobTitle: finalJobTitle,
         fullName: fullName.trim(),
         phone: phone.trim(),
-        whatsapp: whatsapp ? whatsapp.trim() : undefined,
+        whatsapp: whatsapp ? whatsapp.trim() : (phone.trim()),
         email: email ? email.trim() : undefined,
         gender: gender || 'unspecified',
         dateOfBirth: dateOfBirth || undefined,
@@ -311,12 +326,14 @@ export async function POST(request: NextRequest) {
         availability: availability || 'immediate_fulltime',
         workSummary: workSummary ? workSummary.trim() : undefined,
         pastWorkPhotos: Array.isArray(pastWorkPhotos) ? pastWorkPhotos : [],
-        nationalIdNumber: nationalIdNumber ? nationalIdNumber.trim() : undefined,
-        idCardPhoto: idCardPhoto || undefined,
-        certificatePhoto: certificatePhoto || undefined,
+        nationalIdNumber: nationalIdNumber.trim(),
+        idCardPhoto: frontPhoto.trim(),
+        idCardFrontPhoto: frontPhoto.trim(),
+        idCardBackPhoto: idCardBackPhoto.trim(),
+        certificatePhoto: certificatePhoto ? String(certificatePhoto).trim() : undefined,
         resumeUrlOrData: resumeUrlOrData || undefined,
         mobileMoneyProvider: mobileMoneyProvider || 'orange',
-        mobileMoneyNumber: (mobileMoneyNumber || phone).trim(),
+        mobileMoneyNumber: payoutNumber,
       });
 
       return NextResponse.json({
@@ -341,7 +358,10 @@ export async function POST(request: NextRequest) {
         fullName,
         residentialAddress,
         locationArea,
-        workSummary
+        workSummary,
+        nationalIdNumber,
+        idCardPhoto,
+        idCardBackPhoto,
       } = body;
       if (!id) {
         return NextResponse.json({ success: false, error: 'Application ID is required' }, { status: 400 });
@@ -359,6 +379,9 @@ export async function POST(request: NextRequest) {
         ...(residentialAddress !== undefined ? { residentialAddress } : {}),
         ...(locationArea !== undefined ? { locationArea } : {}),
         ...(workSummary !== undefined ? { workSummary } : {}),
+        ...(nationalIdNumber !== undefined ? { nationalIdNumber } : {}),
+        ...(idCardPhoto !== undefined ? { idCardPhoto } : {}),
+        ...(idCardBackPhoto !== undefined ? { idCardBackPhoto } : {}),
       });
 
       if (!updated) {

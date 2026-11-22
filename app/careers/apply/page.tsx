@@ -83,7 +83,8 @@ function ApplyFormContent() {
   const [mobileMoneyNumber, setMobileMoneyNumber] = useState('');
 
   // Document Upload States
-  const [idCardPhotoPreview, setIdCardPhotoPreview] = useState<string | null>(null);
+  const [idCardFrontPhotoPreview, setIdCardFrontPhotoPreview] = useState<string | null>(null);
+  const [idCardBackPhotoPreview, setIdCardBackPhotoPreview] = useState<string | null>(null);
   const [certificatePhotoPreview, setCertificatePhotoPreview] = useState<string | null>(null);
 
   // Submission State
@@ -162,9 +163,14 @@ function ApplyFormContent() {
     reader.readAsDataURL(file);
   };
 
-  const handleIdCardFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleIdCardFrontFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) processImageFile(file, setIdCardPhotoPreview);
+    if (file) processImageFile(file, setIdCardFrontPhotoPreview);
+  };
+
+  const handleIdCardBackFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processImageFile(file, setIdCardBackPhotoPreview);
   };
 
   const handleCertificateFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -176,24 +182,33 @@ function ApplyFormContent() {
     e.preventDefault();
     setErrorMsg(null);
 
+    // ── Strict Mandatory Field Checks ──
     if (!fullName.trim()) {
-      setErrorMsg('Please enter your full legal name');
+      setErrorMsg('Full legal name is mandatory');
       return;
     }
     if (!phone.trim()) {
-      setErrorMsg('Please enter an active phone number');
+      setErrorMsg('Active phone calling number is mandatory');
       return;
     }
     if (!residentialAddress.trim()) {
       setErrorMsg('Residential physical address in Freetown is mandatory for background verification');
       return;
     }
-    if (!idCardPhotoPreview) {
-      setErrorMsg('Please upload a clear photo of your National ID Card, Passport, or Voter Card for identity verification');
+    if (!nationalIdNumber.trim()) {
+      setErrorMsg('National ID / NIN / Voter Card Number is mandatory for background vetting');
       return;
     }
-    if (!nationalIdNumber.trim()) {
-      setErrorMsg('Please enter your National ID / NIN / Voter Card Number');
+    if (!idCardFrontPhotoPreview) {
+      setErrorMsg('Upload of the FRONT side of your National ID / Voter Card / Passport is mandatory');
+      return;
+    }
+    if (!idCardBackPhotoPreview) {
+      setErrorMsg('Upload of the BACK side of your National ID / Voter Card is mandatory');
+      return;
+    }
+    if (!mobileMoneyNumber.trim() && !phone.trim()) {
+      setErrorMsg('Registered mobile money number for weekly payouts is mandatory');
       return;
     }
 
@@ -208,24 +223,26 @@ function ApplyFormContent() {
           action: 'apply',
           jobId: selectedJobId,
           jobTitle: selectedJobObj?.title || 'Specialized Technician',
-          fullName,
-          phone,
-          whatsapp: whatsapp || phone,
+          fullName: fullName.trim(),
+          phone: phone.trim(),
+          whatsapp: (whatsapp || phone).trim(),
           email: email.trim() || undefined,
           gender,
           locationArea,
-          residentialAddress,
+          residentialAddress: residentialAddress.trim(),
           yearsExperience,
           secondarySkills: secondarySkills.trim() || undefined,
           toolOwnership,
           transportMode,
           availability,
           workSummary: workSummary.trim() || undefined,
-          nationalIdNumber: nationalIdNumber.trim() || undefined,
-          idCardPhoto: idCardPhotoPreview || undefined,
+          nationalIdNumber: nationalIdNumber.trim(),
+          idCardPhoto: idCardFrontPhotoPreview,
+          idCardFrontPhoto: idCardFrontPhotoPreview,
+          idCardBackPhoto: idCardBackPhotoPreview,
           certificatePhoto: certificatePhotoPreview || undefined,
           mobileMoneyProvider,
-          mobileMoneyNumber: mobileMoneyNumber || phone,
+          mobileMoneyNumber: (mobileMoneyNumber || phone).trim(),
         }),
       });
 
@@ -624,62 +641,119 @@ function ApplyFormContent() {
                   </div>
                 </div>
 
-                {/* NATIONAL ID UPLOAD */}
-                <div className={`p-4 rounded-xl border border-dashed transition-colors space-y-2 ${idCardPhotoPreview ? 'border-emerald-300 bg-emerald-50/30' : 'border-gray-300 bg-gray-50/50'}`}>
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <label className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
-                        <ShieldCheck className="w-4 h-4 text-blue-600" />
-                        <span>National ID Card / Passport / Voter Card <span className="text-red-500">*</span></span>
-                      </label>
-                      <p className="text-[11px] text-gray-500 mt-0.5">
-                        Upload photo of your valid national ID card, passport, driver license, or voter registration card for verification.
-                      </p>
-                    </div>
-                    {idCardPhotoPreview && (
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                        Uploaded ✓
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-3 pt-1">
-                    <label className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 text-xs font-semibold text-gray-800 cursor-pointer transition-colors shadow-xs">
-                      <Upload className="w-3.5 h-3.5 text-gray-600" />
-                      <span>{idCardPhotoPreview ? 'Change ID Photo (JPG/PNG)' : 'Choose ID Photo (JPG/PNG)'}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleIdCardFile}
-                        className="hidden"
-                      />
+                {/* NATIONAL ID UPLOAD (FRONT & BACK MANDATORY) */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-blue-600" />
+                      <span>National ID Card / Passport / Voter Card <span className="text-red-500">*</span></span>
                     </label>
+                    <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+                      Front &amp; Back Required
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-gray-500">
+                    Upload clear photos of both the <strong>Front</strong> and <strong>Back</strong> of your National ID, Voter Card, or Passport. Applications without both sides cannot be submitted.
+                  </p>
 
-                    {idCardPhotoPreview && (
-                      <div className="flex items-center gap-2">
-                        <div className="w-9 h-9 rounded-md overflow-hidden border border-gray-300 bg-white">
-                          <img src={idCardPhotoPreview} alt="ID preview" className="w-full h-full object-cover" />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setIdCardPhotoPreview(null)}
-                          className="text-xs text-red-600 hover:underline font-semibold"
-                        >
-                          Remove
-                        </button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {/* ID FRONT */}
+                    <div className={`p-3.5 rounded-xl border border-dashed transition-colors space-y-2.5 ${idCardFrontPhotoPreview ? 'border-emerald-300 bg-emerald-50/30' : 'border-gray-300 bg-gray-50/50'}`}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-gray-800">
+                          1. ID Front Side <span className="text-red-500">*</span>
+                        </span>
+                        {idCardFrontPhotoPreview && (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                            Front ✓
+                          </span>
+                        )}
                       </div>
-                    )}
+
+                      <label className="inline-flex items-center justify-center gap-2 w-full px-3 py-2.5 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 text-xs font-semibold text-gray-800 cursor-pointer transition-colors shadow-xs">
+                        <Upload className="w-3.5 h-3.5 text-gray-600" />
+                        <span>{idCardFrontPhotoPreview ? 'Change Front Photo' : 'Upload ID Front (JPG/PNG) *'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleIdCardFrontFile}
+                          className="hidden"
+                        />
+                      </label>
+
+                      {idCardFrontPhotoPreview && (
+                        <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-gray-200">
+                          <div className="flex items-center gap-2">
+                            <div className="w-12 h-9 rounded overflow-hidden border border-gray-300 bg-black flex items-center justify-center">
+                              <img src={idCardFrontPhotoPreview} alt="ID Front preview" className="w-full h-full object-cover" />
+                            </div>
+                            <span className="text-[11px] font-medium text-emerald-700">Front uploaded</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setIdCardFrontPhotoPreview(null)}
+                            className="text-xs text-red-600 hover:underline font-semibold"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* ID BACK */}
+                    <div className={`p-3.5 rounded-xl border border-dashed transition-colors space-y-2.5 ${idCardBackPhotoPreview ? 'border-emerald-300 bg-emerald-50/30' : 'border-gray-300 bg-gray-50/50'}`}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-gray-800">
+                          2. ID Back Side <span className="text-red-500">*</span>
+                        </span>
+                        {idCardBackPhotoPreview && (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                            Back ✓
+                          </span>
+                        )}
+                      </div>
+
+                      <label className="inline-flex items-center justify-center gap-2 w-full px-3 py-2.5 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 text-xs font-semibold text-gray-800 cursor-pointer transition-colors shadow-xs">
+                        <Upload className="w-3.5 h-3.5 text-gray-600" />
+                        <span>{idCardBackPhotoPreview ? 'Change Back Photo' : 'Upload ID Back (JPG/PNG) *'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleIdCardBackFile}
+                          className="hidden"
+                        />
+                      </label>
+
+                      {idCardBackPhotoPreview && (
+                        <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-gray-200">
+                          <div className="flex items-center gap-2">
+                            <div className="w-12 h-9 rounded overflow-hidden border border-gray-300 bg-black flex items-center justify-center">
+                              <img src={idCardBackPhotoPreview} alt="ID Back preview" className="w-full h-full object-cover" />
+                            </div>
+                            <span className="text-[11px] font-medium text-emerald-700">Back uploaded</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setIdCardBackPhotoPreview(null)}
+                            className="text-xs text-red-600 hover:underline font-semibold"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-700">
-                    National ID / NIN / Voter Card Number <span className="text-red-500">*</span>
+                  <label className="text-xs font-semibold text-gray-700 flex items-center justify-between">
+                    <span>National ID / NIN / Voter Card Number <span className="text-red-500">*</span></span>
+                    <span className="text-[10px] text-red-600 font-medium">Mandatory for vetting</span>
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. SL-ID-8492048 or NIN"
+                    placeholder="e.g. SL-ID-8492048 or NIN Number"
                     value={nationalIdNumber}
                     onChange={e => setNationalIdNumber(e.target.value)}
                     className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:border-red-600"
@@ -722,6 +796,21 @@ function ApplyFormContent() {
 
               {/* Declaration & Submission */}
               <div className="pt-4 border-t border-gray-200 space-y-3">
+                {/* Mandatory verification checklist banner */}
+                <div className={`p-3 rounded-lg text-xs flex items-center gap-2.5 ${(!idCardFrontPhotoPreview || !idCardBackPhotoPreview || !nationalIdNumber.trim()) ? 'bg-amber-50 border border-amber-200 text-amber-900' : 'bg-emerald-50 border border-emerald-200 text-emerald-900'}`}>
+                  {(!idCardFrontPhotoPreview || !idCardBackPhotoPreview || !nationalIdNumber.trim()) ? (
+                    <>
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                      <span><strong>Mandatory Identity Vetting:</strong> Please ensure your National ID/NIN number and BOTH Front &amp; Back ID photos are uploaded before submitting.</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span><strong>All Mandatory Identity Documents Attached:</strong> NIN number, Front ID, and Back ID have been provided.</span>
+                    </>
+                  )}
+                </div>
+
                 <p className="text-[11px] text-gray-500 leading-relaxed">
                   By submitting, you certify that all information provided is accurate and true. You agree to undergo standard identity verification and adhere to the BridgeTech 14-Day Customer Warranty &amp; Professional Service Standards.
                 </p>
@@ -729,7 +818,7 @@ function ApplyFormContent() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3.5 px-6 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold text-sm uppercase tracking-wide transition-colors shadow-sm flex items-center justify-center gap-2"
+                  className="w-full py-3.5 px-6 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold text-sm uppercase tracking-wide transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {isSubmitting ? (
                     <>
