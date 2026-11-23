@@ -120,6 +120,16 @@ const nextConfig = {
         destination: '/track-repair',
         permanent: true,
       },
+      {
+        source: '/apply',
+        destination: '/careers/apply',
+        permanent: false,
+      },
+      {
+        source: '/services',
+        destination: '/on-demand',
+        permanent: false,
+      },
     ];
   },
   

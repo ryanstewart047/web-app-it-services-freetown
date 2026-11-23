@@ -59,6 +59,18 @@ export default function CareersPortalPage() {
       .catch(err => console.error('Failed to load category image overrides:', err));
   }, []);
 
+  // Handle direct navigation via URL query params (e.g. from site search: /careers?search=electrician or /careers?dept=...)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get('search') || params.get('q') || params.get('job');
+      const dept = params.get('dept') || params.get('department');
+      if (q) setSearchQuery(q);
+      if (dept) setSelectedDepartment(dept);
+    } catch (_) {}
+  }, []);
+
   // Filter jobs
   const departments = ['all', 'Digital & IT Hardware', 'Electrical & Clean Energy', 'Plumbing & Mechanical', 'Construction & Finishing'];
 

@@ -32,6 +32,42 @@ export default function OnDemandServicesPage() {
       .catch(err => console.error('Failed to load category image overrides:', err));
   }, []);
 
+  // Handle direct navigation via URL query params (e.g. from site search: /on-demand?service=electrician or /on-demand?tab=artisan)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const serviceParam = params.get('service') || params.get('category') || params.get('job');
+      const tabParam = params.get('tab');
+      const bookParam = params.get('book');
+
+      if (tabParam === 'artisan' || tabParam === 'join' || tabParam === 'register' || tabParam === 'pro') {
+        setActiveTab('artisan');
+      } else if (tabParam === 'customer' || tabParam === 'services') {
+        setActiveTab('customer');
+      }
+
+      if (serviceParam) {
+        const found = TRADE_CATEGORIES.find(
+          c => c.id.toLowerCase() === serviceParam.toLowerCase() ||
+               c.title.toLowerCase().includes(serviceParam.toLowerCase())
+        );
+        if (found) {
+          const categoryWithImage = {
+            ...found,
+            image: customCategoryImages[found.id] || found.image,
+          };
+          setSelectedCategory(found.id);
+          if (bookParam === 'true' || bookParam === '1') {
+            setIsBookingModalOpen(true);
+          } else {
+            setSelectedDetailCategory(categoryWithImage);
+          }
+        }
+      }
+    } catch (_) {}
+  }, [customCategoryImages]);
+
   const activeCategories = TRADE_CATEGORIES.map(cat => ({
     ...cat,
     image: customCategoryImages[cat.id] || cat.image,

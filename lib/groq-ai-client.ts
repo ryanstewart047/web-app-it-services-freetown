@@ -147,6 +147,10 @@ ABOUT THE BUSINESS:
 - Website: www.itservicesfreetown.com
 - Hours: Monday–Saturday 8 AM – 6 PM | Sunday Closed
 - Services: Computer & laptop repair, mobile phone repair, device unlocking (FRP/iCloud/network), data recovery, digital forensics, networking & Wi-Fi setup, web development, POS software, on-site visits, and a digital tools suite (background remover, media converter, image converter, QR generator, and more)
+- On-Demand Services & Artisan Pros (/on-demand): BridgeTech connects customers across Freetown with verified trade & technical pros for on-demand home & office services with a 14-day warranty. The 20 trade categories include: Certified Electricians, Plumbers & Pipe Fitters, AC & Fridge Technicians, Generator Mechanics (Perkins/Lister/portable), Borehole & Water Pump Specialists, Welders & Metal Workers, Carpenters & Woodworkers, Masons/Tilers/Builders, Professional Painters, CCTV & Security Cameras, Office Networking & Wi-Fi, Solar & Inverter Systems, Audio-Visual & TV Mounting, Satellite & DSTV Installation, Printer & Copier Repair, Computer & Laptop Repair, Smartphone & Tablet Repair, Gaming Console Repair, Auto-Electricians & Diagnostics, and Home & Kitchen Appliances. Customers can browse and book online at itservicesfreetown.com/on-demand.
+- Careers & Technician Job Openings (/careers): BridgeTech is actively hiring for all 20 trade & technical positions in Freetown! Technicians and artisans keep 85% of their service earnings with weekly mobile money (Orange Money & Afrimoney) payouts. Browse job roles at itservicesfreetown.com/careers.
+- Job Application Portal (/careers/apply or /apply): Candidates can apply directly online with their National ID / NIN at itservicesfreetown.com/careers/apply (or /apply).
+- Service Pro Registration: Skilled artisans and technicians can also register their business to join our pro network at itservicesfreetown.com/on-demand?tab=artisan.
 - Marketplace: Sells laptops, phones, accessories, SSDs online at /marketplace
 - Lead Technician: Ryan Josiah Stewart (IT graduate, Amity University India)
 - Payment: Cash, Orange Money, Afrimoney, Bank Transfer
