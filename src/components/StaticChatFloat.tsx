@@ -9,6 +9,22 @@ export default function StaticChatFloat() {
   const [message, setMessage] = useState('')
   const [isDesktop, setIsDesktop] = useState(false)
   const [justOpened, setJustOpened] = useState(false)
+  const [isIframe, setIsIframe] = useState(false)
+
+  // Never show inside an iframe (e.g. embedded admin panels)
+  useEffect(() => {
+    try {
+      const inIframe =
+        window.self !== window.top ||
+        (window.parent && window.parent !== window) ||
+        window.location.search.includes('iframe=1')
+      if (inIframe) {
+        setIsIframe(true)
+      }
+    } catch {
+      setIsIframe(true)
+    }
+  }, [])
 
   // Function to play notification sound
   const playNotificationSound = () => {
@@ -117,6 +133,21 @@ export default function StaticChatFloat() {
       window.open(whatsappUrl, '_blank')
       setMessage('')
       setIsOpen(false)
+    }
+  }
+
+  if (isIframe) return null
+  if (typeof window !== 'undefined') {
+    try {
+      if (
+        window.self !== window.top ||
+        (window.parent && window.parent !== window) ||
+        window.location.search.includes('iframe=1')
+      ) {
+        return null
+      }
+    } catch {
+      return null
     }
   }
 

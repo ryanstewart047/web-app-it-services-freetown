@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import CookiePopup from '@/components/CookiePopup';
@@ -26,6 +26,23 @@ function ConditionalLayoutInner({ children }: ConditionalLayoutProps) {
   const searchParams = useSearchParams();
   const isIframeMode = searchParams?.get('iframe') === '1';
   const currentPath = pathname || (typeof window !== 'undefined' ? window.location.pathname : '');
+  const [inIframe, setInIframe] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (
+        window.self !== window.top ||
+        (window.parent && window.parent !== window) ||
+        window.location.search.includes('iframe=1')
+      ) {
+        setInIframe(true);
+      }
+    } catch {
+      setInIframe(true);
+    }
+  }, []);
+
+  const isActuallyIframe = isIframeMode || inIframe;
 
   // Paths that are "admin-adjacent" but not under /admin — suppress chrome when in iframe
   const isAdminAdjacentPage =
@@ -47,7 +64,7 @@ function ConditionalLayoutInner({ children }: ConditionalLayoutProps) {
   const isQuestionnairePage = currentPath?.startsWith('/website-questionnaire');
 
   // In iframe mode, always render bare children with no chrome
-  if (isIframeMode) {
+  if (isActuallyIframe) {
     return (
       <>
         <main className="w-full">{children}</main>

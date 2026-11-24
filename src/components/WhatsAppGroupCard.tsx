@@ -20,6 +20,22 @@ export default function WhatsAppGroupCard() {
   const [minimized, setMinimized] = useState(false);
   const [position, setPosition] = useState<Position | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isIframe, setIsIframe] = useState(false);
+
+  // Detect if running inside any iframe (e.g. admin panel tab iframes)
+  useEffect(() => {
+    try {
+      const inIframe =
+        window.self !== window.top ||
+        (window.parent && window.parent !== window) ||
+        window.location.search.includes('iframe=1');
+      if (inIframe) {
+        setIsIframe(true);
+      }
+    } catch {
+      setIsIframe(true);
+    }
+  }, []);
 
   const cardRef = useRef<HTMLDivElement>(null);
   const pillRef = useRef<HTMLButtonElement>(null);
@@ -82,6 +98,21 @@ export default function WhatsAppGroupCard() {
 
   // Initial visibility timing
   useEffect(() => {
+    // Never show inside an iframe
+    try {
+      if (
+        window.self !== window.top ||
+        (window.parent && window.parent !== window) ||
+        window.location.search.includes('iframe=1')
+      ) {
+        setVisible(false);
+        return;
+      }
+    } catch {
+      setVisible(false);
+      return;
+    }
+
     if (pathname?.startsWith('/surprise/') || pathname?.startsWith('/website-questionnaire')) {
       setVisible(false);
       return;
@@ -188,6 +219,21 @@ export default function WhatsAppGroupCard() {
     window.addEventListener('pointerup', onPointerUp);
     window.addEventListener('pointercancel', onPointerUp);
   }, []);
+
+  if (isIframe) return null;
+  if (typeof window !== 'undefined') {
+    try {
+      if (
+        window.self !== window.top ||
+        (window.parent && window.parent !== window) ||
+        window.location.search.includes('iframe=1')
+      ) {
+        return null;
+      }
+    } catch {
+      return null;
+    }
+  }
 
   if (pathname?.startsWith('/surprise/') || pathname?.startsWith('/website-questionnaire')) return null;
 
