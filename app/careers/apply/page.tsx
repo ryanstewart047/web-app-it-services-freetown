@@ -17,9 +17,13 @@ import {
   Award, 
   ArrowLeft,
   Phone,
-  MapPin
+  MapPin,
+  Download,
+  Eye
 } from 'lucide-react';
 import { TRADE_CATEGORIES } from '@/lib/on-demand-categories';
+import ImageViewerModal from '@/components/ImageViewerModal';
+import { generateApplicantDossierPDF } from '@/lib/application-pdf-generator';
 
 interface JobPosting {
   id: string;
@@ -89,6 +93,8 @@ function ApplyFormContent() {
 
   // Submission State
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState<{ src: string; title: string; subtitle?: string } | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successTrackingId, setSuccessTrackingId] = useState<string | null>(null);
 
@@ -317,22 +323,67 @@ function ApplyFormContent() {
               </ul>
             </div>
 
-            <div className="pt-2 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+            <div className="pt-2 flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
+              <button
+                type="button"
+                disabled={isDownloadingPDF}
+                onClick={async () => {
+                  setIsDownloadingPDF(true);
+                  try {
+                    await generateApplicantDossierPDF({
+                      id: successTrackingId,
+                      sourceType: 'career',
+                      fullName,
+                      phone,
+                      whatsapp: whatsapp || phone,
+                      email: email.trim() || undefined,
+                      gender,
+                      locationArea,
+                      residentialAddress,
+                      tradeTitle: selectedJob?.title || 'Specialized Technician',
+                      yearsExperience,
+                      secondarySkills: secondarySkills.trim() || undefined,
+                      toolOwnership,
+                      transportMode,
+                      availability,
+                      nationalIdNumber: nationalIdNumber.trim() || undefined,
+                      mobileMoneyProvider,
+                      mobileMoneyNumber: mobileMoneyNumber || phone,
+                      status: 'pending',
+                      workSummary: workSummary.trim() || undefined,
+                      createdAt: new Date().toISOString(),
+                      idCardFrontPhoto: idCardFrontPhotoPreview || undefined,
+                      idCardBackPhoto: idCardBackPhotoPreview || undefined,
+                      certificatePhoto: certificatePhotoPreview || undefined,
+                    });
+                  } catch (err) {
+                    console.error('Failed to generate application PDF:', err);
+                    alert('Failed to generate application PDF.');
+                  } finally {
+                    setIsDownloadingPDF(false);
+                  }
+                }}
+                className="flex-1 py-3 px-4 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wide transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
+              >
+                <Download className="w-4 h-4" />
+                <span>{isDownloadingPDF ? 'Generating...' : 'Download Application PDF'}</span>
+              </button>
+
               <a
                 href={`https://wa.me/23233399391?text=${encodeURIComponent(`Hello BridgeTech Recruitment, I submitted an application for ${selectedJob?.title} (Ref: ${successTrackingId}). Name: ${fullName}.`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 py-3 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wide transition-colors flex items-center justify-center gap-2 shadow-sm"
+                className="py-3 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wide transition-colors flex items-center justify-center gap-2 shadow-sm"
               >
                 <i className="fab fa-whatsapp text-base" />
-                <span>Notify Recruiter on WhatsApp</span>
+                <span>WhatsApp</span>
               </a>
 
               <Link
                 href="/careers"
-                className="py-3 px-5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold transition-colors flex items-center justify-center"
+                className="py-3 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold transition-colors flex items-center justify-center"
               >
-                View Other Openings
+                Other Openings
               </Link>
             </div>
           </div>
@@ -626,16 +677,37 @@ function ApplyFormContent() {
 
                     {certificatePhotoPreview && (
                       <div className="flex items-center gap-2">
-                        <div className="w-9 h-9 rounded-md overflow-hidden border border-gray-300 bg-white">
-                          <img src={certificatePhotoPreview} alt="Certificate preview" className="w-full h-full object-cover" />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setCertificatePhotoPreview(null)}
-                          className="text-xs text-red-600 hover:underline font-semibold"
+                        <div
+                          className="w-10 h-10 rounded-md overflow-hidden border border-gray-300 bg-black cursor-zoom-in group"
+                          onClick={() => setLightboxImage({
+                            src: certificatePhotoPreview,
+                            title: 'Trade Certificate Preview',
+                            subtitle: 'Uploaded candidate certification'
+                          })}
+                          title="Click to view full size"
                         >
-                          Remove
-                        </button>
+                          <img src={certificatePhotoPreview} alt="Certificate preview" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                        </div>
+                        <div className="flex flex-col">
+                          <button
+                            type="button"
+                            onClick={() => setLightboxImage({
+                              src: certificatePhotoPreview,
+                              title: 'Trade Certificate Preview',
+                              subtitle: 'Uploaded candidate certification'
+                            })}
+                            className="text-[11px] text-blue-600 hover:underline font-bold text-left flex items-center gap-1"
+                          >
+                            <Eye className="w-3 h-3" /> View full size
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCertificatePhotoPreview(null)}
+                            className="text-[10px] text-red-600 hover:underline font-semibold text-left"
+                          >
+                            Remove
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -683,11 +755,24 @@ function ApplyFormContent() {
 
                       {idCardFrontPhotoPreview && (
                         <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-gray-200">
-                          <div className="flex items-center gap-2">
+                          <div
+                            className="flex items-center gap-2 cursor-zoom-in group"
+                            onClick={() => setLightboxImage({
+                              src: idCardFrontPhotoPreview,
+                              title: 'National ID (Front Side) Preview',
+                              subtitle: 'Uploaded for identity vetting'
+                            })}
+                            title="Click to view full size"
+                          >
                             <div className="w-12 h-9 rounded overflow-hidden border border-gray-300 bg-black flex items-center justify-center">
-                              <img src={idCardFrontPhotoPreview} alt="ID Front preview" className="w-full h-full object-cover" />
+                              <img src={idCardFrontPhotoPreview} alt="ID Front preview" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                             </div>
-                            <span className="text-[11px] font-medium text-emerald-700">Front uploaded</span>
+                            <div>
+                              <span className="text-[11px] font-bold text-emerald-700 block">Front uploaded</span>
+                              <span className="text-[10px] text-blue-600 group-hover:underline flex items-center gap-0.5">
+                                <Eye className="w-2.5 h-2.5" /> View full size
+                              </span>
+                            </div>
                           </div>
                           <button
                             type="button"
@@ -726,11 +811,24 @@ function ApplyFormContent() {
 
                       {idCardBackPhotoPreview && (
                         <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-gray-200">
-                          <div className="flex items-center gap-2">
+                          <div
+                            className="flex items-center gap-2 cursor-zoom-in group"
+                            onClick={() => setLightboxImage({
+                              src: idCardBackPhotoPreview,
+                              title: 'National ID (Back Side) Preview',
+                              subtitle: 'Uploaded for identity vetting'
+                            })}
+                            title="Click to view full size"
+                          >
                             <div className="w-12 h-9 rounded overflow-hidden border border-gray-300 bg-black flex items-center justify-center">
-                              <img src={idCardBackPhotoPreview} alt="ID Back preview" className="w-full h-full object-cover" />
+                              <img src={idCardBackPhotoPreview} alt="ID Back preview" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                             </div>
-                            <span className="text-[11px] font-medium text-emerald-700">Back uploaded</span>
+                            <div>
+                              <span className="text-[11px] font-bold text-emerald-700 block">Back uploaded</span>
+                              <span className="text-[10px] text-blue-600 group-hover:underline flex items-center gap-0.5">
+                                <Eye className="w-2.5 h-2.5" /> View full size
+                              </span>
+                            </div>
                           </div>
                           <button
                             type="button"
@@ -837,6 +935,15 @@ function ApplyFormContent() {
         )}
 
       </div>
+
+      {/* ── FULL SIZE IMAGE VIEWER / LIGHTBOX MODAL ── */}
+      <ImageViewerModal
+        isOpen={!!lightboxImage}
+        src={lightboxImage?.src || null}
+        title={lightboxImage?.title}
+        subtitle={lightboxImage?.subtitle}
+        onClose={() => setLightboxImage(null)}
+      />
     </div>
   );
 }

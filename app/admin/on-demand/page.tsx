@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Download, Eye } from 'lucide-react';
 import { OnDemandRequest, OnDemandPro, OnDemandStats } from '@/lib/on-demand-storage';
 import { TRADE_CATEGORIES, TradeCategory } from '@/lib/on-demand-categories';
+import ImageViewerModal from '@/components/ImageViewerModal';
+import { downloadProApplicationPDF } from '@/lib/application-pdf-generator';
 
 export default function AdminOnDemandPage() {
   const [activeTab, setActiveTab] = useState<'requests' | 'pros' | 'service-images'>('requests');
@@ -46,6 +49,8 @@ export default function AdminOnDemandPage() {
   const [editingRequestId, setEditingRequestId] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<OnDemandRequest>>({});
   const [viewingPro, setViewingPro] = useState<OnDemandPro | null>(null);
+  const [lightboxImage, setLightboxImage] = useState<{ src: string; title: string; subtitle?: string } | null>(null);
+  const [isGeneratingProPDF, setIsGeneratingProPDF] = useState(false);
 
   const [actionLoadingProId, setActionLoadingProId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -1100,15 +1105,35 @@ export default function AdminOnDemandPage() {
                         </p>
                       )}
 
-                      {/* View Profile & ID Photos Button */}
-                      <button
-                        type="button"
-                        onClick={() => setViewingPro(pro)}
-                        className="w-full mt-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-xl text-xs font-bold border border-slate-800 flex items-center justify-center gap-1.5 transition-colors"
-                      >
-                        <i className="fas fa-id-card text-xs text-blue-400" />
-                        <span>View Profile &amp; ID Photos</span>
-                      </button>
+                      {/* View Profile & ID Photos + Download PDF Buttons */}
+                      <div className="flex items-center gap-1.5 mt-2.5">
+                        <button
+                          type="button"
+                          onClick={() => setViewingPro(pro)}
+                          className="flex-1 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-xl text-xs font-bold border border-slate-800 flex items-center justify-center gap-1.5 transition-colors"
+                        >
+                          <i className="fas fa-id-card text-xs text-blue-400" />
+                          <span>View Profile &amp; ID Photos</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              await downloadProApplicationPDF(pro);
+                              setToast({ message: `Dossier PDF for ${pro.fullName} downloaded!`, type: 'success' });
+                              setTimeout(() => setToast(null), 3000);
+                            } catch {
+                              setToast({ message: 'Failed to download PDF', type: 'error' });
+                              setTimeout(() => setToast(null), 3000);
+                            }
+                          }}
+                          className="px-2.5 py-1.5 bg-red-600/20 hover:bg-red-600/40 text-red-300 rounded-xl text-xs font-bold border border-red-500/30 flex items-center justify-center gap-1 transition-colors"
+                          title="Download Complete Application Dossier (PDF)"
+                        >
+                          <Download className="w-3.5 h-3.5 text-red-400" />
+                          <span className="hidden sm:inline">PDF</span>
+                        </button>
+                      </div>
                     </div>
 
                     {/* Onboarding Fee Status Box */}
@@ -1460,13 +1485,38 @@ export default function AdminOnDemandPage() {
                 <h3 className="text-lg font-black text-white">{viewingPro.fullName}</h3>
                 <p className="text-xs text-red-400 font-bold">{viewingPro.primaryTrade}</p>
               </div>
-              <button
-                type="button"
-                onClick={() => setViewingPro(null)}
-                className="w-8 h-8 rounded-full bg-slate-900 hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"
-              >
-                &times;
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={isGeneratingProPDF}
+                  onClick={async () => {
+                    setIsGeneratingProPDF(true);
+                    try {
+                      await downloadProApplicationPDF(viewingPro);
+                      setToast({ message: `Application Dossier PDF for ${viewingPro.fullName} downloaded!`, type: 'success' });
+                      setTimeout(() => setToast(null), 3000);
+                    } catch (err) {
+                      console.error('Failed to generate PDF:', err);
+                      setToast({ message: 'Failed to generate PDF dossier', type: 'error' });
+                      setTimeout(() => setToast(null), 3000);
+                    } finally {
+                      setIsGeneratingProPDF(false);
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-sm transition-all disabled:opacity-50"
+                  title="Download complete applicant dossier as PDF"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>{isGeneratingProPDF ? 'Generating...' : 'Download PDF'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewingPro(null)}
+                  className="w-8 h-8 rounded-full bg-slate-900 hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"
+                >
+                  &times;
+                </button>
+              </div>
             </div>
 
             {/* Photos Grid: Profile Photo + 2 ID Card Photos (Front & Back) */}
@@ -1475,14 +1525,27 @@ export default function AdminOnDemandPage() {
               <div className="space-y-1.5">
                 <span className="text-xs font-bold text-slate-300 block">1. Full Profile Photo</span>
                 {viewingPro.profilePhoto ? (
-                  <a href={viewingPro.profilePhoto} target="_blank" rel="noopener noreferrer" className="block group">
-                    <img
-                      src={viewingPro.profilePhoto}
-                      alt={viewingPro.fullName}
-                      className="w-full h-44 object-cover rounded-xl border border-slate-800 group-hover:border-emerald-500 transition-colors shadow-sm"
-                    />
-                    <span className="text-[10px] text-slate-400 mt-1 block group-hover:text-emerald-400">Click to open full size &rarr;</span>
-                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setLightboxImage({
+                      src: viewingPro.profilePhoto!,
+                      title: `Full Profile Photo — ${viewingPro.fullName}`,
+                      subtitle: `Pro ID: ${viewingPro.id} • ${viewingPro.primaryTrade}`
+                    })}
+                    className="w-full block text-left group cursor-zoom-in"
+                    title="Click to view full size"
+                  >
+                    <div className="w-full h-44 rounded-xl border border-slate-800 bg-black flex items-center justify-center overflow-hidden group-hover:border-emerald-500 transition-colors shadow-sm">
+                      <img
+                        src={viewingPro.profilePhoto}
+                        alt={viewingPro.fullName}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      />
+                    </div>
+                    <span className="text-[10px] text-slate-400 mt-1 flex items-center justify-center gap-1 group-hover:text-emerald-400 font-semibold">
+                      <Eye className="w-3 h-3" /> View in full size &rarr;
+                    </span>
+                  </button>
                 ) : (
                   <div className="w-full h-44 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 text-xs italic">
                     No photo uploaded
@@ -1494,14 +1557,27 @@ export default function AdminOnDemandPage() {
               <div className="space-y-1.5">
                 <span className="text-xs font-bold text-slate-300 block">2. ID Card (Front Side)</span>
                 {(viewingPro.idCardFrontPhoto || viewingPro.idCardPhoto) ? (
-                  <a href={viewingPro.idCardFrontPhoto || viewingPro.idCardPhoto} target="_blank" rel="noopener noreferrer" className="block group">
-                    <img
-                      src={viewingPro.idCardFrontPhoto || viewingPro.idCardPhoto}
-                      alt="ID Card Front"
-                      className="w-full h-44 object-cover rounded-xl border border-slate-800 group-hover:border-blue-500 transition-colors shadow-sm"
-                    />
-                    <span className="text-[10px] text-slate-400 mt-1 block group-hover:text-blue-400">Click to open full size &rarr;</span>
-                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setLightboxImage({
+                      src: (viewingPro.idCardFrontPhoto || viewingPro.idCardPhoto)!,
+                      title: `National ID Card (Front Side) — ${viewingPro.fullName}`,
+                      subtitle: `Pro ID: ${viewingPro.id} • NIN: ${viewingPro.nationalIdNumber || 'Under verification'}`
+                    })}
+                    className="w-full block text-left group cursor-zoom-in"
+                    title="Click to view full size"
+                  >
+                    <div className="w-full h-44 rounded-xl border border-slate-800 bg-black flex items-center justify-center overflow-hidden group-hover:border-blue-500 transition-colors shadow-sm">
+                      <img
+                        src={viewingPro.idCardFrontPhoto || viewingPro.idCardPhoto}
+                        alt="ID Card Front"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      />
+                    </div>
+                    <span className="text-[10px] text-slate-400 mt-1 flex items-center justify-center gap-1 group-hover:text-blue-400 font-semibold">
+                      <Eye className="w-3 h-3" /> View in full size &rarr;
+                    </span>
+                  </button>
                 ) : (
                   <div className="w-full h-44 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 text-xs italic">
                     No front ID photo
@@ -1513,14 +1589,27 @@ export default function AdminOnDemandPage() {
               <div className="space-y-1.5">
                 <span className="text-xs font-bold text-slate-300 block">3. ID Card (Back Side)</span>
                 {viewingPro.idCardBackPhoto ? (
-                  <a href={viewingPro.idCardBackPhoto} target="_blank" rel="noopener noreferrer" className="block group">
-                    <img
-                      src={viewingPro.idCardBackPhoto}
-                      alt="ID Card Back"
-                      className="w-full h-44 object-cover rounded-xl border border-slate-800 group-hover:border-blue-500 transition-colors shadow-sm"
-                    />
-                    <span className="text-[10px] text-slate-400 mt-1 block group-hover:text-blue-400">Click to open full size &rarr;</span>
-                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setLightboxImage({
+                      src: viewingPro.idCardBackPhoto!,
+                      title: `National ID Card (Back Side) — ${viewingPro.fullName}`,
+                      subtitle: `Pro ID: ${viewingPro.id} • NIN: ${viewingPro.nationalIdNumber || 'Under verification'}`
+                    })}
+                    className="w-full block text-left group cursor-zoom-in"
+                    title="Click to view full size"
+                  >
+                    <div className="w-full h-44 rounded-xl border border-slate-800 bg-black flex items-center justify-center overflow-hidden group-hover:border-blue-500 transition-colors shadow-sm">
+                      <img
+                        src={viewingPro.idCardBackPhoto}
+                        alt="ID Card Back"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      />
+                    </div>
+                    <span className="text-[10px] text-slate-400 mt-1 flex items-center justify-center gap-1 group-hover:text-blue-400 font-semibold">
+                      <Eye className="w-3 h-3" /> View in full size &rarr;
+                    </span>
+                  </button>
                 ) : (
                   <div className="w-full h-44 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 text-xs italic">
                     No back ID photo
@@ -1997,6 +2086,15 @@ export default function AdminOnDemandPage() {
           </div>
         </div>
       )}
+
+      {/* ── FULL SIZE IMAGE VIEWER / LIGHTBOX MODAL ── */}
+      <ImageViewerModal
+        isOpen={!!lightboxImage}
+        src={lightboxImage?.src || null}
+        title={lightboxImage?.title}
+        subtitle={lightboxImage?.subtitle}
+        onClose={() => setLightboxImage(null)}
+      />
 
     </div>
   );

@@ -31,6 +31,8 @@ import {
 } from 'lucide-react';
 import { JobApplication, CareersStats } from '@/lib/careers-storage';
 import { TRADE_CATEGORIES } from '@/lib/on-demand-categories';
+import ImageViewerModal from '@/components/ImageViewerModal';
+import { downloadCareerApplicationPDF } from '@/lib/application-pdf-generator';
 
 export default function AdminCareersPage() {
   const [applications, setApplications] = useState<JobApplication[]>([]);
@@ -43,6 +45,8 @@ export default function AdminCareersPage() {
   // Candidate Detail Drawer / Modal
   const [selectedApp, setSelectedApp] = useState<JobApplication | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState<{ src: string; title: string; subtitle?: string } | null>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
   const [newStatus, setNewStatus] = useState<JobApplication['status']>('pending');
@@ -562,6 +566,22 @@ export default function AdminCareersPage() {
                           </a>
 
                           <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                await downloadCareerApplicationPDF(app);
+                                showToast(`PDF Dossier for ${app.fullName} downloaded!`, 'success');
+                              } catch {
+                                showToast('Failed to download PDF dossier', 'error');
+                              }
+                            }}
+                            className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 transition-colors"
+                            title="Download Application Dossier (PDF)"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                          </button>
+
+                          <button
                             onClick={() => handleOpenDetail(app)}
                             className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 transition-colors"
                             title="View candidate details"
@@ -615,13 +635,36 @@ export default function AdminCareersPage() {
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setDetailModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-gray-500 flex items-center justify-center"
-              >
-                &times;
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={isGeneratingPDF}
+                  onClick={async () => {
+                    setIsGeneratingPDF(true);
+                    try {
+                      await downloadCareerApplicationPDF(selectedApp);
+                      showToast(`Dossier PDF for ${selectedApp.fullName} downloaded!`, 'success');
+                    } catch (err) {
+                      console.error('Failed to generate PDF:', err);
+                      showToast('Failed to generate PDF dossier', 'error');
+                    } finally {
+                      setIsGeneratingPDF(false);
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-sm transition-all disabled:opacity-50"
+                  title="Download complete applicant dossier as PDF"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>{isGeneratingPDF ? 'Generating...' : 'Download PDF'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDetailModalOpen(false)}
+                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-gray-500 flex items-center justify-center"
+                >
+                  &times;
+                </button>
+              </div>
             </div>
 
             {/* Candidate Dossier Grid */}
@@ -747,16 +790,33 @@ export default function AdminCareersPage() {
                         Front ✓
                       </span>
                     </div>
-                    <div className="h-36 rounded-lg overflow-hidden border border-gray-200 dark:border-slate-800 bg-black flex items-center justify-center">
+                    <div
+                      className="h-36 rounded-lg overflow-hidden border border-gray-200 dark:border-slate-800 bg-black flex items-center justify-center cursor-zoom-in group"
+                      onClick={() => setLightboxImage({
+                        src: selectedApp.idCardPhoto!,
+                        title: `National ID (Front Side) — ${selectedApp.fullName}`,
+                        subtitle: `Ref: ${selectedApp.id} • NIN: ${selectedApp.nationalIdNumber || 'Under verification'}`
+                      })}
+                      title="Click to view full size"
+                    >
                       <img
                         src={selectedApp.idCardPhoto}
                         alt="ID Front"
-                        className="max-h-full max-w-full object-contain cursor-pointer"
-                        onClick={() => window.open(selectedApp.idCardPhoto, '_blank')}
-                        title="Click to view full size"
+                        className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-200"
                       />
                     </div>
-                    <span className="text-[10px] text-gray-400 block text-center">Click to view full size</span>
+                    <button
+                      type="button"
+                      onClick={() => setLightboxImage({
+                        src: selectedApp.idCardPhoto!,
+                        title: `National ID (Front Side) — ${selectedApp.fullName}`,
+                        subtitle: `Ref: ${selectedApp.id} • NIN: ${selectedApp.nationalIdNumber || 'Under verification'}`
+                      })}
+                      className="w-full text-[10px] text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 font-semibold flex items-center justify-center gap-1 mt-1 transition-colors"
+                    >
+                      <Eye className="w-3 h-3" />
+                      <span>View in full size</span>
+                    </button>
                   </div>
                 ) : null}
 
@@ -771,16 +831,33 @@ export default function AdminCareersPage() {
                         Back ✓
                       </span>
                     </div>
-                    <div className="h-36 rounded-lg overflow-hidden border border-gray-200 dark:border-slate-800 bg-black flex items-center justify-center">
+                    <div
+                      className="h-36 rounded-lg overflow-hidden border border-gray-200 dark:border-slate-800 bg-black flex items-center justify-center cursor-zoom-in group"
+                      onClick={() => setLightboxImage({
+                        src: selectedApp.idCardBackPhoto!,
+                        title: `National ID (Back Side) — ${selectedApp.fullName}`,
+                        subtitle: `Ref: ${selectedApp.id} • NIN: ${selectedApp.nationalIdNumber || 'Under verification'}`
+                      })}
+                      title="Click to view full size"
+                    >
                       <img
                         src={selectedApp.idCardBackPhoto}
                         alt="ID Back"
-                        className="max-h-full max-w-full object-contain cursor-pointer"
-                        onClick={() => window.open(selectedApp.idCardBackPhoto, '_blank')}
-                        title="Click to view full size"
+                        className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-200"
                       />
                     </div>
-                    <span className="text-[10px] text-gray-400 block text-center">Click to view full size</span>
+                    <button
+                      type="button"
+                      onClick={() => setLightboxImage({
+                        src: selectedApp.idCardBackPhoto!,
+                        title: `National ID (Back Side) — ${selectedApp.fullName}`,
+                        subtitle: `Ref: ${selectedApp.id} • NIN: ${selectedApp.nationalIdNumber || 'Under verification'}`
+                      })}
+                      className="w-full text-[10px] text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 font-semibold flex items-center justify-center gap-1 mt-1 transition-colors"
+                    >
+                      <Eye className="w-3 h-3" />
+                      <span>View in full size</span>
+                    </button>
                   </div>
                 ) : null}
 
@@ -790,16 +867,33 @@ export default function AdminCareersPage() {
                     <span className="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 block">
                       Trade / Professional Certificate
                     </span>
-                    <div className="h-36 rounded-lg overflow-hidden border border-gray-200 dark:border-slate-800 bg-black flex items-center justify-center">
+                    <div
+                      className="h-36 rounded-lg overflow-hidden border border-gray-200 dark:border-slate-800 bg-black flex items-center justify-center cursor-zoom-in group"
+                      onClick={() => setLightboxImage({
+                        src: selectedApp.certificatePhoto!,
+                        title: `Trade Certificate — ${selectedApp.fullName}`,
+                        subtitle: `Ref: ${selectedApp.id} • ${selectedApp.jobTitle}`
+                      })}
+                      title="Click to view full size"
+                    >
                       <img
                         src={selectedApp.certificatePhoto}
                         alt="Certificate"
-                        className="max-h-full max-w-full object-contain cursor-pointer"
-                        onClick={() => window.open(selectedApp.certificatePhoto, '_blank')}
-                        title="Click to view full size"
+                        className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-200"
                       />
                     </div>
-                    <span className="text-[10px] text-gray-400 block text-center">Click to view full size</span>
+                    <button
+                      type="button"
+                      onClick={() => setLightboxImage({
+                        src: selectedApp.certificatePhoto!,
+                        title: `Trade Certificate — ${selectedApp.fullName}`,
+                        subtitle: `Ref: ${selectedApp.id} • ${selectedApp.jobTitle}`
+                      })}
+                      className="w-full text-[10px] text-gray-500 hover:text-amber-600 dark:text-gray-400 dark:hover:text-amber-400 font-semibold flex items-center justify-center gap-1 mt-1 transition-colors"
+                    >
+                      <Eye className="w-3 h-3" />
+                      <span>View in full size</span>
+                    </button>
                   </div>
                 ) : null}
               </div>
@@ -905,6 +999,15 @@ export default function AdminCareersPage() {
           </div>
         </div>
       )}
+
+      {/* ── FULL SIZE IMAGE VIEWER / LIGHTBOX MODAL ── */}
+      <ImageViewerModal
+        isOpen={!!lightboxImage}
+        src={lightboxImage?.src || null}
+        title={lightboxImage?.title}
+        subtitle={lightboxImage?.subtitle}
+        onClose={() => setLightboxImage(null)}
+      />
 
     </div>
   );
