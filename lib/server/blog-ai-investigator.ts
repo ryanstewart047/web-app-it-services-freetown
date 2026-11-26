@@ -536,12 +536,15 @@ export function ensureRealisticPhotosInArticle(
     if (bridgeTechIndex !== -1) {
       updatedHtml = updatedHtml.slice(0, bridgeTechIndex) + '\n' + secondaryFigure + '\n' + updatedHtml.slice(bridgeTechIndex);
     } else {
-      const h2Matches = [...updatedHtml.matchAll(/<h2[^>]*>/gi)];
-      if (h2Matches.length >= 3) {
-        const targetH2 = h2Matches[Math.floor(h2Matches.length / 2)];
-        if (targetH2 && targetH2.index !== undefined) {
-          updatedHtml = updatedHtml.slice(0, targetH2.index) + '\n' + secondaryFigure + '\n' + updatedHtml.slice(targetH2.index);
-        }
+      const h2Indices: number[] = [];
+      const h2Regex = /<h2[^>]*>/gi;
+      let h2Match: RegExpExecArray | null;
+      while ((h2Match = h2Regex.exec(updatedHtml)) !== null) {
+        h2Indices.push(h2Match.index);
+      }
+      if (h2Indices.length >= 3) {
+        const targetIndex = h2Indices[Math.floor(h2Indices.length / 2)];
+        updatedHtml = updatedHtml.slice(0, targetIndex) + '\n' + secondaryFigure + '\n' + updatedHtml.slice(targetIndex);
       }
     }
   }

@@ -808,40 +808,39 @@ export default function BlogAdminPage() {
           }),
         })
 
-          if (response.ok) {
-            const data = await response.json()
-            if (data.success && data.content) {
-              setContent(data.content)
-              setHtmlContent(data.content)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success && data.content) {
+            setContent(data.content)
+            setHtmlContent(data.content)
 
-              // Auto-populate Title if empty or short
-              if (!title.trim() || title.trim().length < 15) {
-                if (data.title) {
-                  setTitle(data.title)
-                }
+            // Auto-populate Title if empty or short
+            if (!title.trim() || title.trim().length < 15) {
+              if (data.title) {
+                setTitle(data.title)
               }
-
-              // Auto-populate Media gallery with real discovered photos
-              if (Array.isArray(data.media) && data.media.length > 0) {
-                setMedia((prev) => {
-                  const existingUrls = new Set(prev.map((m) => m.url))
-                  const newItems = data.media.filter((m: any) => !existingUrls.has(m.url))
-                  return [...prev, ...newItems]
-                })
-              }
-
-              toast.success(
-                `✨ Complete story generated! Attached ${data.media?.length || 0} real image(s) & ${data.sources?.length || 0} verified source(s).`,
-                { duration: 6000 }
-              )
-              setShowAIHelper(false)
-              setContentPrompt('')
-              return
             }
+
+            // Auto-populate Media gallery with real discovered photos
+            if (Array.isArray(data.media) && data.media.length > 0) {
+              setMedia((prev) => {
+                const existingUrls = new Set(prev.map((m) => m.url))
+                const newItems = data.media.filter((m: any) => !existingUrls.has(m.url))
+                return [...prev, ...newItems]
+              })
+            }
+
+            toast.success(
+              `✨ Complete story generated! Attached ${data.media?.length || 0} real image(s) & ${data.sources?.length || 0} verified source(s).`,
+              { duration: 6000 }
+            )
+            setShowAIHelper(false)
+            setContentPrompt('')
+            return
           }
-        } catch (investigateErr) {
-          console.warn('[AI Generator] Deep investigation endpoint error, using proxy fallback:', investigateErr)
         }
+      } catch (investigateErr) {
+        console.warn('[AI Generator] Deep investigation endpoint error, using proxy fallback:', investigateErr)
       }
 
       // Fallback: Direct proxy generation with 4096 tokens (never cut off)
@@ -2101,7 +2100,7 @@ Tips:
                         placeholder="Paste your HTML content here..."
                       />
                       <p className="text-xs text-gray-500 mt-2">
-                        💡 Edit HTML directly and click "Apply Changes" to update
+                        💡 Edit HTML directly and click &quot;Apply Changes&quot; to update
                       </p>
                     </div>
 
