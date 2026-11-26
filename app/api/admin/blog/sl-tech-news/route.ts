@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSierraLeoneTechNews, SL_TECH_CATEGORIES } from '../../../../../lib/server/sl-tech-news-finder';
+import { getSierraLeoneTechNews, SL_TECH_CATEGORIES } from '@/lib/server/sl-tech-news-finder';
 
 export const dynamic = 'force-dynamic';
 

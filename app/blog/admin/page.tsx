@@ -796,18 +796,17 @@ export default function BlogAdminPage() {
     }
 
     try {
-      if (deepInvestigate) {
-        setAiProgressMessage('🔍 Investigating web sources & real images...')
-        try {
-          const response = await fetch('/api/admin/blog/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              topic,
-              includeImages: true,
-              includeSources: true,
-            }),
-          })
+      setAiProgressMessage('🔍 Capturing realistic source photos & investigating facts...')
+      try {
+        const response = await fetch('/api/admin/blog/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            topic,
+            includeImages: true,
+            includeSources: true,
+          }),
+        })
 
           if (response.ok) {
             const data = await response.json()
