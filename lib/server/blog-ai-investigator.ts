@@ -9,7 +9,7 @@
  * 5. BridgeTech IT Services local industry perspective (Freetown, Sierra Leone).
  */
 
-import { CURATED_SL_TECH_TOPICS } from './sl-tech-news-finder';
+import { CURATED_SL_TECH_TOPICS, resolveGoogleNewsUrl } from './sl-tech-news-finder';
 
 export interface DiscoveredSource {
   title: string;
@@ -43,7 +43,7 @@ const VERIFIED_SIERRA_LEONE_TOPICS: Array<{
   images: DiscoveredImage[];
 }> = [
   {
-    keywords: ['21.9', 'unique group', 'unique solutions', 'mocti', 'salima bah', 'assembly', 'waiis', 'mou'],
+    keywords: ['21.9', 'unique group', 'unique solutions', 'waiis', 'phone assembly plant', 'mobile phone assembly'],
     title: "Sierra Leone's ICT Ministry Signs Landmark US$21.9M MoU with Unique Group for Mobile Phone & Electronics Assembly in Freetown",
     facts: [
       "On November 19-20, 2026, the Government of Sierra Leone, through the Ministry of Communication, Technology and Innovation (MoCTI) led by Minister Salima Monorma Bah, signed a historic Memorandum of Understanding (MoU) with Unique Group Company Ltd of The Gambia (represented by Managing Director Mr. Adama Touray and Chairman Papa Yusupha Njie).",
@@ -96,58 +96,66 @@ const VERIFIED_SIERRA_LEONE_TOPICS: Array<{
 ];
 
 /**
- * Perform a live Google News RSS query to extract recent facts and links
+ * Perform a live Google News RSS query to extract recent facts and resolved publisher links
  */
 async function searchGoogleNews(query: string): Promise<DiscoveredSource[]> {
   try {
     const encoded = encodeURIComponent(query.trim());
     const feedUrl = `https://news.google.com/rss/search?q=${encoded}&hl=en-US&gl=US&ceid=US:en`;
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 4000);
+    const timeout = setTimeout(() => controller.abort(), 4500);
 
     const res = await fetch(feedUrl, {
       signal: controller.signal,
-      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36' },
     });
     clearTimeout(timeout);
 
     if (!res.ok) return [];
 
     const xml = await res.text();
-    const items: DiscoveredSource[] = [];
-
     const itemMatches = xml.match(/<item>[\s\S]*?<\/item>/gi) || [];
-    for (const itemXml of itemMatches.slice(0, 4)) {
+
+    const resolvedPromises = itemMatches.slice(0, 4).map(async (itemXml): Promise<DiscoveredSource | null> => {
       const titleMatch = itemXml.match(/<title>([\s\S]*?)<\/title>/i);
       const linkMatch = itemXml.match(/<link>([\s\S]*?)<\/link>/i);
       const sourceMatch = itemXml.match(/<source[^>]*>([\s\S]*?)<\/source>/i);
 
-      if (titleMatch && linkMatch) {
-        const cleanTitle = titleMatch[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim();
-        const cleanLink = linkMatch[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim();
-        const cleanSource = sourceMatch ? sourceMatch[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim() : 'News Source';
+      if (!titleMatch || !linkMatch) return null;
 
-        if (cleanTitle && cleanLink) {
-          items.push({
-            title: cleanTitle,
-            url: cleanLink,
-            sourceName: cleanSource,
-          });
-        }
-      }
-    }
+      const cleanTitle = titleMatch[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim();
+      const rawLink = linkMatch[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim();
+      const cleanSource = sourceMatch ? sourceMatch[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim() : 'News Source';
 
-    return items;
+      if (!cleanTitle || !rawLink) return null;
+
+      const resolvedUrl = await resolveGoogleNewsUrl(rawLink);
+      return {
+        title: cleanTitle,
+        url: resolvedUrl,
+        sourceName: cleanSource,
+      };
+    });
+
+    const settled = await Promise.all(resolvedPromises);
+    return settled.filter((s): s is DiscoveredSource => s !== null);
   } catch {
     return [];
   }
 }
 
 /**
- * Fetch a webpage and extract realistic photos (OpenGraph, Twitter, JSON-LD, WordPress featured image)
+ * Fetch a webpage and extract realistic photos (OpenGraph, Twitter, JSON-LD, WordPress featured image, <article> hero <img>)
+ * plus a short text excerpt for factual grounding.
  */
-async function extractPhotosFromSourceWebpage(url: string): Promise<DiscoveredImage[]> {
+async function extractPhotosFromSourceWebpage(
+  url: string
+): Promise<{ images: DiscoveredImage[]; excerpt?: string }> {
   try {
+    if (!url || !url.startsWith('http') || url.includes('news.google.com')) {
+      return { images: [] };
+    }
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 4000);
 
@@ -156,90 +164,134 @@ async function extractPhotosFromSourceWebpage(url: string): Promise<DiscoveredIm
       headers: {
         'User-Agent':
           'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        Accept: 'text/html,application/xhtml+xml',
       },
       redirect: 'follow',
     });
     clearTimeout(timeout);
 
-    if (!res.ok) return [];
+    if (!res.ok) return { images: [] };
 
     const html = await res.text();
     const images: DiscoveredImage[] = [];
-
-    // 1. Check OpenGraph and Twitter meta tags
-    const ogImg =
-      html.match(/<meta property=["']og:image(?::secure_url)?["'] content=["']([^"']+)["']/i) ||
-      html.match(/<meta name=["']twitter:image(?::src)?["'] content=["']([^"']+)["']/i);
+    const seenUrls = new Set<string>();
 
     const ogTitle =
-      html.match(/<meta property=["']og:title["'] content=["']([^"']+)["']/i) ||
+      html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i) ||
+      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i) ||
       html.match(/<title>([^<]+)<\/title>/i);
 
-    const titleText = ogTitle ? ogTitle[1].replace(/&#8211;|-/g, ' ').trim() : 'Official News Source Photo';
+    const ogDesc =
+      html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i) ||
+      html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i);
 
-    if (ogImg && ogImg[1]) {
-      let imgUrl = ogImg[1];
-      if (imgUrl.startsWith('/')) {
-        const origin = new URL(url).origin;
-        imgUrl = `${origin}${imgUrl}`;
+    const hostname = (() => {
+      try {
+        return new URL(url).hostname.replace(/^www\./, '');
+      } catch {
+        return 'source';
       }
-      if (!imgUrl.includes('logo') && !imgUrl.includes('icon') && !imgUrl.includes('favicon') && !imgUrl.includes('avatar')) {
+    })();
+
+    const titleText = ogTitle ? ogTitle[1].replace(/&#8211;|&amp;|&quot;|&#39;|-/g, ' ').trim() : 'Source Article';
+
+    const pushCandidate = (rawImgUrl: string, label: string) => {
+      let absUrl = rawImgUrl.trim();
+      if (!absUrl || absUrl.startsWith('data:')) return;
+      try {
+        absUrl = new URL(absUrl, url).href;
+      } catch {
+        return;
+      }
+      if (
+        /(?:logo|icon|favicon|avatar|badge|pixel|1x1|blank|placeholder|spinner|doubleclick|ads)/i.test(absUrl) ||
+        /\.(?:svg|ico)(?:\?|$)/i.test(absUrl)
+      ) {
+        return;
+      }
+      if (!seenUrls.has(absUrl)) {
+        seenUrls.add(absUrl);
         images.push({
-          id: `src-og-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          id: `src-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
           type: 'image',
-          url: imgUrl,
-          caption: `Official press photograph from source: ${titleText}`,
+          url: absUrl,
+          caption: `${label} (${hostname}): ${titleText}`,
           altText: titleText,
         });
       }
+    };
+
+    // 1. Check OpenGraph and Twitter meta tags in BOTH attribute orders
+    const metaPatterns = [
+      /<meta[^>]+property=["']og:image(?::secure_url)?["'][^>]+content=["']([^"']+)["']/i,
+      /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image(?::secure_url)?["']/i,
+      /<meta[^>]+name=["']twitter:image(?::src)?["'][^>]+content=["']([^"']+)["']/i,
+      /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image(?::src)?["']/i,
+    ];
+    for (const pat of metaPatterns) {
+      const m = html.match(pat);
+      if (m && m[1]) pushCandidate(m[1], 'Original source photograph');
     }
 
-    // 2. Check JSON-LD newsArticle schema
-    const jsonLdMatches = html.match(/<script type=["']application\/ld\+json["']>([\s\S]*?)<\/script>/gi) || [];
+    // 2. Check JSON-LD NewsArticle schema
+    const jsonLdMatches = html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi) || [];
     for (const jsonStr of jsonLdMatches) {
       try {
         const rawJson = jsonStr.replace(/<script[^>]*>|<\/script>/gi, '');
         const parsed = JSON.parse(rawJson);
-        const imgCandidate =
-          parsed.image?.url ||
-          (typeof parsed.image === 'string' ? parsed.image : null) ||
-          parsed.thumbnailUrl;
+        const items = Array.isArray(parsed) ? parsed : [parsed];
+        for (const obj of items) {
+          const imgCandidate =
+            typeof obj?.image === 'string'
+              ? obj.image
+              : Array.isArray(obj?.image)
+              ? typeof obj.image[0] === 'string'
+                ? obj.image[0]
+                : obj.image[0]?.url
+              : obj?.image?.url || obj?.thumbnailUrl;
 
-        if (imgCandidate && typeof imgCandidate === 'string' && imgCandidate.startsWith('http')) {
-          if (!images.some((i) => i.url === imgCandidate)) {
-            images.push({
-              id: `src-jsonld-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-              type: 'image',
-              url: imgCandidate,
-              caption: `Archival source photograph: ${parsed.headline || titleText}`,
-              altText: parsed.headline || titleText,
-            });
+          if (typeof imgCandidate === 'string') {
+            pushCandidate(imgCandidate, 'Original press photograph');
           }
         }
       } catch {}
     }
 
     // 3. Check WordPress / article featured images
-    const wpImgMatch = html.match(/<img[^>]+class=["'][^"']*(?:wp-post-image|featured-image|entry-thumb)[^"']*["'][^>]+src=["']([^"']+)["']/i);
+    const wpImgMatch = html.match(
+      /<img[^>]+class=["'][^"']*(?:wp-post-image|featured-image|entry-thumb|hero-image|post-thumbnail)[^"']*["'][^>]+src=["']([^"']+)["']/i
+    );
     if (wpImgMatch && wpImgMatch[1]) {
-      let wpUrl = wpImgMatch[1];
-      if (wpUrl.startsWith('/')) {
-        wpUrl = `${new URL(url).origin}${wpUrl}`;
-      }
-      if (!images.some((i) => i.url === wpUrl)) {
-        images.push({
-          id: `src-wp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          type: 'image',
-          url: wpUrl,
-          caption: `Verified publisher photograph: ${titleText}`,
-          altText: titleText,
-        });
+      pushCandidate(wpImgMatch[1], 'Featured source photograph');
+    }
+
+    // 4. Fallback: Look for main content <article> <img> tags
+    if (images.length === 0) {
+      const articleMatch = html.match(/<article[\s\S]*?<\/article>/i);
+      const searchScope = articleMatch ? articleMatch[0] : html;
+      const imgRegex = /<img[^>]+src=["']([^"']+\.(?:jpg|jpeg|png|webp)[^"']*)["']/gi;
+      let m: RegExpExecArray | null;
+      while ((m = imgRegex.exec(searchScope)) !== null && images.length < 2) {
+        pushCandidate(m[1], 'Article photograph');
       }
     }
 
-    return images;
+    // Extract brief article lead text for factual grounding
+    let excerpt = ogDesc ? ogDesc[1].replace(/<[^>]+>/g, ' ').trim() : '';
+    const pMatches = html.match(/<p[^>]*>([^<]{80,400})<\/p>/gi) || [];
+    if (pMatches.length > 0) {
+      const paragraphs = pMatches
+        .slice(0, 3)
+        .map((p) => p.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim())
+        .join(' ');
+      if (paragraphs.length > excerpt.length) {
+        excerpt = paragraphs.slice(0, 700);
+      }
+    }
+
+    return { images, excerpt: excerpt || undefined };
   } catch {
-    return [];
+    return { images: [] };
   }
 }
 
@@ -315,33 +367,26 @@ async function fetchWikimediaRealisticPhotos(query: string): Promise<DiscoveredI
 function getCuratedTechImages(topic: string): DiscoveredImage[] {
   const lower = topic.toLowerCase();
 
-  if (lower.includes('phone') || lower.includes('mobile') || lower.includes('screen') || lower.includes('assembly') || lower.includes('unique group')) {
+  if (lower.includes('fintech') || lower.includes('orange money') || lower.includes('afrimoney') || lower.includes('payment') || lower.includes('wallet') || lower.includes('cashless') || lower.includes('bank')) {
     return [
       {
-        id: 'mocti-mou-signing',
+        id: 'mobile-money-retail',
         type: 'image',
-        url: 'https://mocti.gov.sl/wp-content/uploads/2026/11/government-unique-group-mobile-phone-assembly-mou-waiis-2026-1024x732.jpg',
-        caption: 'From left: Hon. Salima Bah (Minister of Communication, Technology & Innovation), H.E. Julius Maada Bio (President of Sierra Leone), and Mr. Adama Touray (Managing Director, Unique Group) at the US$21.9M MoU signing ceremony in Freetown.',
-        altText: 'MoCTI Minister Salima Bah and President Julius Maada Bio at the electronics assembly MoU signing',
+        url: 'https://images.unsplash.com/photo-1556742049-0a67e557224d?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Mobile wallet transaction and digital point-of-sale checkout accelerating cashless commerce in retail markets.',
+        altText: 'Digital mobile payment transaction on smartphone screen in retail store',
       },
       {
-        id: 'phone-repair-workbench',
+        id: 'secure-financial-network',
         type: 'image',
-        url: 'https://images.unsplash.com/photo-1597740985671-2a8a3b80532e?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Precision hardware servicing: Micro-soldering and motherboard component diagnostics at BridgeTech IT Services standards in Freetown.',
-        altText: 'Technician working with micro soldering iron on smartphone motherboard',
-      },
-      {
-        id: 'electronics-testing-lab',
-        type: 'image',
-        url: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1200&q=80',
-        caption: 'High-tech electronics cleanroom assembly line and quality assurance diagnostics station.',
-        altText: 'Electronics manufacturing and testing bench with modern diagnostic tools',
+        url: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Encrypted financial data transmission and fintech payment gateway architecture.',
+        altText: 'Digital encryption and security technology concept',
       },
     ];
   }
 
-  if (lower.includes('fiber') || lower.includes('telecom') || lower.includes('natca') || lower.includes('cable') || lower.includes('broadband') || lower.includes('4g') || lower.includes('5g') || lower.includes('starlink') || lower.includes('satellite')) {
+  if (lower.includes('fiber') || lower.includes('telecom') || lower.includes('natca') || lower.includes('cable') || lower.includes('broadband') || lower.includes('4g') || lower.includes('5g') || lower.includes('starlink') || lower.includes('satellite') || lower.includes('sierratel') || lower.includes('africell')) {
     return [
       {
         id: 'telecom-cell-tower',
@@ -357,50 +402,24 @@ function getCuratedTechImages(topic: string): DiscoveredImage[] {
         caption: 'High-speed terrestrial fiber optic data cables and transmission switching equipment interconnecting national communication lines.',
         altText: 'Fiber optic cables with glowing data illumination in telecommunications exchange',
       },
-      {
-        id: 'satellite-broadband-dish',
-        type: 'image',
-        url: 'https://images.unsplash.com/photo-1516849841032-87cbac4d88f7?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Satellite broadband terminal dish providing uninterrupted connectivity to remote enterprise locations.',
-        altText: 'Satellite dish communication terminal mounted outdoors',
-      },
     ];
   }
 
-  if (lower.includes('mocti') || lower.includes('salima bah') || lower.includes('bio') || lower.includes('government') || lower.includes('strategy') || lower.includes('ncra') || lower.includes('identity')) {
+  if (lower.includes('cyber') || lower.includes('security') || lower.includes('csirt') || lower.includes('nc3') || lower.includes('ransomware') || lower.includes('data center') || lower.includes('embassy')) {
     return [
       {
-        id: 'president-bio-official',
-        type: 'image',
-        url: 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Julius_Maada_Bio_White_House_delegation_2018_%28cropped%29.jpg',
-        caption: 'H.E. Dr. Julius Maada Bio, President of the Republic of Sierra Leone, championing national digital transformation and technology investment.',
-        altText: 'President Julius Maada Bio of Sierra Leone',
-      },
-      {
-        id: 'digital-governance-infrastructure',
-        type: 'image',
-        url: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Digital public infrastructure interconnecting government ministries, e-services, and citizen identification systems.',
-        altText: 'Digital connectivity map symbolizing government digital transformation',
-      },
-    ];
-  }
-
-  if (lower.includes('fintech') || lower.includes('money') || lower.includes('bank') || lower.includes('payment') || lower.includes('wallet') || lower.includes('orange money') || lower.includes('afrimoney')) {
-    return [
-      {
-        id: 'mobile-money-retail',
-        type: 'image',
-        url: 'https://images.unsplash.com/photo-1556742049-0a67e557224d?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Mobile wallet transaction and digital point-of-sale checkout accelerating cashless commerce in retail markets.',
-        altText: 'Digital mobile payment transaction on smartphone screen in retail store',
-      },
-      {
-        id: 'secure-financial-network',
+        id: 'cybersecurity-monitoring-center',
         type: 'image',
         url: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Encrypted financial data transmission and fintech payment gateway architecture.',
-        altText: 'Digital encryption and security technology concept',
+        caption: 'Cyber threat monitoring and real-time network defense operations at an enterprise security operations center (SOC).',
+        altText: 'Cybersecurity monitoring screen with firewall alert diagnostics',
+      },
+      {
+        id: 'enterprise-server-rack',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Enterprise server hardware racks with redundant power supplies and hardware firewall switches.',
+        altText: 'Server room data center equipment with illuminated network switches',
       },
     ];
   }
@@ -424,46 +443,58 @@ function getCuratedTechImages(topic: string): DiscoveredImage[] {
     ];
   }
 
-  if (lower.includes('cyber') || lower.includes('security') || lower.includes('csirt') || lower.includes('nc3') || lower.includes('ransomware') || lower.includes('server')) {
+  if (lower.includes('repair') || lower.includes('screen') || lower.includes('motherboard') || lower.includes('laptop') || lower.includes('smartphone') || lower.includes('solder')) {
     return [
       {
-        id: 'cybersecurity-monitoring-center',
+        id: 'phone-repair-workbench',
         type: 'image',
-        url: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Cyber threat monitoring and real-time network defense operations at an enterprise security operations center (SOC).',
-        altText: 'Cybersecurity monitoring screen with firewall alert diagnostics',
+        url: 'https://images.unsplash.com/photo-1597740985671-2a8a3b80532e?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Precision hardware servicing: Micro-soldering and motherboard component diagnostics at BridgeTech IT Services standards in Freetown.',
+        altText: 'Technician working with micro soldering iron on smartphone motherboard',
       },
       {
-        id: 'enterprise-server-rack',
+        id: 'computer-hardware-repair',
         type: 'image',
-        url: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Enterprise server hardware racks with redundant power supplies and hardware firewall switches.',
-        altText: 'Server room data center equipment with illuminated network switches',
+        url: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Precision hardware diagnostics and motherboard servicing at BridgeTech IT Services in Freetown.',
+        altText: 'Disassembled computer receiving professional motherboard maintenance',
+      },
+    ];
+  }
+
+  if (lower.includes('president') || lower.includes('bio') || lower.includes('ncra') || lower.includes('identity') || lower.includes('nin')) {
+    return [
+      {
+        id: 'president-bio-official',
+        type: 'image',
+        url: 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Julius_Maada_Bio_White_House_delegation_2018_%28cropped%29.jpg',
+        caption: 'H.E. Dr. Julius Maada Bio, President of the Republic of Sierra Leone, championing national digital transformation and technology investment.',
+        altText: 'President Julius Maada Bio of Sierra Leone',
+      },
+      {
+        id: 'digital-governance-infrastructure',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Digital public infrastructure interconnecting government ministries, e-services, and citizen identification systems.',
+        altText: 'Digital connectivity map symbolizing government digital transformation',
       },
     ];
   }
 
   return [
     {
+      id: 'digital-innovation-africa',
+      type: 'image',
+      url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80',
+      caption: 'Digital innovation in action: Technology professionals collaborating on infrastructure and digital systems.',
+      altText: 'Team of tech professionals collaborating in a modern workspace',
+    },
+    {
       id: 'freetown-aerial-view',
       type: 'image',
       url: 'https://upload.wikimedia.org/wikipedia/commons/4/4c/Freetown-aerialview.jpg',
       caption: 'Panoramic view of Freetown, Sierra Leone, reflecting the nation’s commercial core and expanding technology landscape.',
       altText: 'Aerial view of Freetown harbor and commercial cityscape in Sierra Leone',
-    },
-    {
-      id: 'digital-innovation-africa',
-      type: 'image',
-      url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80',
-      caption: 'Digital innovation in action: Young technology professionals collaborating on hardware architecture and digital systems.',
-      altText: 'Team of diverse tech professionals collaborating in a modern workspace',
-    },
-    {
-      id: 'computer-hardware-repair',
-      type: 'image',
-      url: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?auto=format&fit=crop&w=1200&q=80',
-      caption: 'Precision hardware diagnostics and motherboard servicing at BridgeTech IT Services in Freetown.',
-      altText: 'Disassembled computer receiving professional motherboard maintenance',
     },
   ];
 }
@@ -550,6 +581,70 @@ export function ensureRealisticPhotosInArticle(
   }
 
   return updatedHtml;
+}
+
+/**
+ * MANDATORY POST-PROCESSOR:
+ * Guarantees that EVERY single generated article includes a clickable Reference Links / Sources block.
+ * If the LLM omitted clickable source URLs or didn't include a Sources card, this injects it cleanly.
+ */
+export function ensureReferenceLinksInArticle(
+  html: string,
+  sources: DiscoveredSource[],
+  topic: string
+): string {
+  const validSources = sources.filter(
+    (s) => s.url && /^https?:\/\//i.test(s.url) && !s.url.includes('news.google.com/rss/articles/')
+  );
+
+  // Fallback to raw discovered sources or live Google News search link if all URLs were wrappers
+  const finalSources: DiscoveredSource[] =
+    validSources.length > 0
+      ? validSources.slice(0, 5)
+      : sources.length > 0
+      ? sources.slice(0, 4)
+      : [
+          {
+            title: `Google News Coverage: ${topic.slice(0, 80)}`,
+            url: `https://news.google.com/search?q=${encodeURIComponent(topic.slice(0, 100))}`,
+            sourceName: 'Google News Search',
+          },
+        ];
+
+  // Check if HTML already contains a sources card AND at least one clickable external link from finalSources
+  const hasSourcesSection = /sources-card|Sources &amp; Official References|Official Sources &amp; Verification References|Sources &amp; Reference Links/i.test(
+    html
+  );
+  const hasDirectSourceHref = finalSources.some((s) => html.includes(`href="${s.url}"`) || html.includes(`href='${s.url}'`));
+
+  if (hasSourcesSection && hasDirectSourceHref) {
+    return html;
+  }
+
+  const listItemsHtml = finalSources
+    .map((s) => {
+      const safeTitle = (s.title || s.url).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const safeSourceName = (s.sourceName || 'Verified Source').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return `    <li>
+      • <strong>${safeSourceName}:</strong>
+      <a href="${s.url}" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:underline break-all ml-1">${safeTitle}</a>
+    </li>`;
+    })
+    .join('\n');
+
+  const sourcesCardHtml = `
+<!-- Sources & Reference Links Card -->
+<div class="sources-card my-8 p-6 rounded-2xl bg-slate-900/90 border border-slate-700 text-sm shadow-xl">
+  <h4 class="font-bold text-sky-400 text-base mb-3 flex items-center gap-2">
+    <span>🔗</span> Sources &amp; Reference Links
+  </h4>
+  <ul class="space-y-2.5 text-slate-300">
+${listItemsHtml}
+  </ul>
+</div>
+`.trim();
+
+  return `${html.trim()}\n\n${sourcesCardHtml}`;
 }
 
 /**
@@ -655,36 +750,79 @@ export async function investigateAndGenerateStory(
   options: {
     includeImages?: boolean;
     includeSources?: boolean;
+    sourceUrl?: string;
+    sourceName?: string;
+    topicTitle?: string;
+    initialImageUrl?: string;
   } = {}
 ): Promise<GeneratedBlogStory> {
   const query = topicInput.trim();
-  const lowerQuery = query.toLowerCase();
+  const cleanSearchTerm = (options.topicTitle || query)
+    .replace(/^Investigate and write (?:a|an)[^:]*about\s*/i, '')
+    .replace(/^["']|["']$/g, '')
+    .slice(0, 140)
+    .trim();
+  const lowerQuery = `${query} ${options.topicTitle || ''}`.toLowerCase();
 
-  console.log(`[Blog Investigator] Investigating topic: "${query}"`);
-
-  // Step 1: Check verified knowledge base for high-confidence local stories
-  let matchedTopic = VERIFIED_SIERRA_LEONE_TOPICS.find((t) =>
-    t.keywords.some((kw) => lowerQuery.includes(kw))
-  );
+  console.log(`[Blog Investigator] Investigating topic: "${cleanSearchTerm}"`);
 
   const discoveredSources: DiscoveredSource[] = [];
   const discoveredImages: DiscoveredImage[] = [];
   const factualPoints: string[] = [];
 
+  // Step 0: If caller passed an explicit sourceUrl (e.g. from SL Tech News Finder), prioritize scraping its own photo & content first!
+  let primaryResolvedUrl = '';
+  if (options.sourceUrl && options.sourceUrl.startsWith('http')) {
+    primaryResolvedUrl = await resolveGoogleNewsUrl(options.sourceUrl);
+    discoveredSources.push({
+      title: options.topicTitle || cleanSearchTerm,
+      url: primaryResolvedUrl,
+      sourceName: options.sourceName || 'Primary Source',
+    });
+
+    const scrapedPrimary = await extractPhotosFromSourceWebpage(primaryResolvedUrl);
+    for (const img of scrapedPrimary.images) {
+      if (!discoveredImages.some((existing) => existing.url === img.url)) {
+        discoveredImages.push(img);
+      }
+    }
+    if (scrapedPrimary.excerpt) {
+      factualPoints.push(`From primary source (${options.sourceName || primaryResolvedUrl}): ${scrapedPrimary.excerpt}`);
+    }
+  }
+
+  // Step 1: Check verified knowledge base ONLY when specifically matched
+  let matchedTopic = VERIFIED_SIERRA_LEONE_TOPICS.find((t) =>
+    t.keywords.some((kw) => lowerQuery.includes(kw))
+  );
+
   if (matchedTopic) {
     console.log(`[Blog Investigator] Matched verified knowledge base: "${matchedTopic.title}"`);
     factualPoints.push(...matchedTopic.facts);
-    discoveredSources.push(...matchedTopic.sources);
-    discoveredImages.push(...matchedTopic.images);
+    for (const s of matchedTopic.sources) {
+      if (!discoveredSources.some((existing) => existing.url === s.url)) {
+        discoveredSources.push(s);
+      }
+    }
+    if (discoveredImages.length === 0) {
+      discoveredImages.push(...matchedTopic.images);
+    }
   } else {
-    // Check CURATED_SL_TECH_TOPICS from sl-tech-news-finder with stop-word filtering & scoring
+    // Check CURATED_SL_TECH_TOPICS (only if no explicit live external sourceUrl, or if sourceUrl matches curated item)
     const STOP_WORDS = new Set([
       'sierra', 'leone', 'freetown', 'digital', 'technology', 'national',
       'system', 'systems', 'services', 'africa', 'first', 'modern', 'local', 'across'
     ]);
     const matchedCurated = CURATED_SL_TECH_TOPICS.map((t) => {
-      if (lowerQuery.includes(t.id.toLowerCase()) || lowerQuery.includes(t.title.toLowerCase())) {
+      if (
+        (options.sourceUrl && t.sourceUrl === options.sourceUrl) ||
+        lowerQuery.includes(t.id.toLowerCase()) ||
+        lowerQuery.includes(t.title.toLowerCase())
+      ) {
         return { topic: t, score: 100 };
+      }
+      if (primaryResolvedUrl && !t.sourceUrl?.includes(new URL(primaryResolvedUrl).hostname)) {
+        return { topic: t, score: 0 };
       }
       const words = t.title
         .toLowerCase()
@@ -719,14 +857,20 @@ export async function investigateAndGenerateStory(
       };
       console.log(`[Blog Investigator] Matched curated SL tech topic: "${matchedCurated.title}"`);
       factualPoints.push(...matchedCurated.keyFacts);
-      discoveredSources.push(...matchedTopic.sources);
-      discoveredImages.push(...matchedTopic.images);
+      for (const s of matchedTopic.sources) {
+        if (!discoveredSources.some((existing) => existing.url === s.url)) {
+          discoveredSources.push(s);
+        }
+      }
+      if (discoveredImages.length === 0) {
+        discoveredImages.push(...matchedTopic.images);
+      }
     }
   }
 
-  // Step 2: Live Web Investigation via Google News RSS
+  // Step 2: Live Web Investigation via Google News RSS (with real URL resolution)
   try {
-    const newsItems = await searchGoogleNews(query);
+    const newsItems = await searchGoogleNews(cleanSearchTerm);
     if (newsItems.length > 0) {
       for (const item of newsItems) {
         if (!discoveredSources.some((s) => s.url === item.url)) {
@@ -738,62 +882,81 @@ export async function investigateAndGenerateStory(
     console.warn('[Blog Investigator] News search error:', e);
   }
 
-  // Step 3: Extract realistic photos from discovered source URLs
-  for (const src of discoveredSources.slice(0, 3)) {
+  // Step 3: Scrape original photos & lead context from discovered source URLs (up to 2 unique source images)
+  for (const src of discoveredSources.slice(0, 4)) {
+    if (discoveredImages.length >= 2) break;
+    if (src.url === primaryResolvedUrl) continue; // Already scraped in Step 0
     if (src.url.startsWith('http') && !src.url.includes('news.google.com')) {
-      const pagePhotos = await extractPhotosFromSourceWebpage(src.url);
-      for (const p of pagePhotos) {
-        if (!discoveredImages.some((img) => img.url === p.url)) {
+      const scraped = await extractPhotosFromSourceWebpage(src.url);
+      for (const p of scraped.images) {
+        if (discoveredImages.length < 2 && !discoveredImages.some((img) => img.url === p.url)) {
           discoveredImages.push(p);
         }
+      }
+      if (scraped.excerpt && factualPoints.length < 5) {
+        factualPoints.push(`Additional source (${src.sourceName || src.url}): ${scraped.excerpt}`);
       }
     }
   }
 
-  // Step 4: If still fewer than 2 images, search Wikimedia Commons for authentic photos
-  if (discoveredImages.length < 2) {
-    const wikiPhotos = await fetchWikimediaRealisticPhotos(query);
+  // Step 4: If source webpage scraping yielded 0 images (e.g. Cloudflare block), try caller initialImageUrl or Wikimedia Commons
+  if (discoveredImages.length === 0 && options.initialImageUrl && options.initialImageUrl.startsWith('http')) {
+    discoveredImages.push({
+      id: `init-${Date.now()}`,
+      type: 'image',
+      url: options.initialImageUrl,
+      caption: `Source photograph: ${options.topicTitle || cleanSearchTerm}`,
+      altText: options.topicTitle || cleanSearchTerm,
+    });
+  }
+
+  if (discoveredImages.length === 0) {
+    const wikiPhotos = await fetchWikimediaRealisticPhotos(cleanSearchTerm);
     for (const p of wikiPhotos) {
+      if (discoveredImages.length < 2 && !discoveredImages.some((img) => img.url === p.url)) {
+        discoveredImages.push(p);
+      }
+    }
+  }
+
+  // Step 5: Only if STILL 0 photos found anywhere, pull topic-specific curated imagery
+  if (discoveredImages.length === 0) {
+    const curatedFallback = getCuratedTechImages(cleanSearchTerm);
+    for (const p of curatedFallback.slice(0, 2)) {
       if (!discoveredImages.some((img) => img.url === p.url)) {
         discoveredImages.push(p);
       }
     }
   }
 
-  // Step 5: Fill from curated realistic tech photo bank to guarantee at least 2 photos
-  const curatedFallback = getCuratedTechImages(query);
-  for (const p of curatedFallback) {
-    if (!discoveredImages.some((img) => img.url === p.url)) {
-      discoveredImages.push(p);
-    }
-  }
+  const finalMedia = discoveredImages.slice(0, 2);
 
-  // Step 4: Construct Rich Context for the LLM
+  // Step 6: Construct Rich Context for the LLM
   const factsContext = factualPoints.length > 0
-    ? `VERIFIED FACTUAL DOSSIER:\n${factualPoints.map((f, i) => `${i + 1}. ${f}`).join('\n')}`
-    : `SEARCHED TOPIC: ${query}`;
+    ? `VERIFIED FACTUAL DOSSIER FOR THIS TOPIC:\n${factualPoints.map((f, i) => `${i + 1}. ${f}`).join('\n')}`
+    : `RESEARCHED TOPIC: ${query}`;
 
   const sourcesContext = discoveredSources.length > 0
-    ? `OFFICIAL CITATIONS & SOURCES:\n${discoveredSources.map((s) => `- ${s.title} (${s.sourceName || 'Web'}): ${s.url}`).join('\n')}`
+    ? `OFFICIAL CITATIONS & REFERENCE LINKS FOR THIS SPECIFIC POST:\n${discoveredSources.map((s) => `- ${s.title} (${s.sourceName || 'Web'}): ${s.url}`).join('\n')}`
     : '';
 
-  const imagesContext = discoveredImages.length > 0
-    ? `AVAILABLE IMAGES (Embed these using standard responsive HTML <figure> tags in the article):\n${discoveredImages.map((img) => `- URL: ${img.url}\n  CAPTION: ${img.caption}\n  ALT: ${img.altText}`).join('\n\n')}`
+  const imagesContext = finalMedia.length > 0
+    ? `ORIGINAL PHOTOS FOR THIS POST ONLY (Embed using HTML <figure> tags):\n${finalMedia.map((img) => `- URL: ${img.url}\n  CAPTION: ${img.caption}\n  ALT: ${img.altText}`).join('\n\n')}`
     : '';
 
   const systemPrompt = `You are a Senior Technology Investigative Journalist and Lead Technical Columnist writing for BridgeTech IT Services (itservicesfreetown.com) in Freetown, Sierra Leone.
-You write deeply reported, analytical, and complete feature stories.
+You write deeply reported, analytical, and complete feature stories strictly focused on the requested topic.
 
 CRITICAL INSTRUCTIONS:
 1. NEVER LEAVE THE STORY INCOMPLETE OR TRUNCATED. You MUST write the entire story from beginning to end with a complete conclusion and call to action.
-2. Rely strictly on verified facts. If discussing Sierra Leone government tech projects, cite official bodies such as the Ministry of Communication, Technology and Innovation (MoCTI), Minister Salima Monorma Bah, President Julius Maada Bio, and private partners (e.g., Unique Group Company Ltd).
-3. EMBED IMAGES IN THE ARTICLE: Use HTML <figure class="my-6 rounded-xl overflow-hidden bg-slate-900 border border-slate-800"><img src="IMAGE_URL" alt="ALT_TEXT" class="w-full h-auto object-cover max-h-[460px] rounded-t-xl" /><figcaption class="p-3 text-xs text-slate-400 text-center italic bg-slate-950">CAPTION</figcaption></figure>.
+2. STAY STRICTLY ON TOPIC: Focus 100% on the requested topic and facts provided below. Do NOT introduce unrelated stories or statistics from other news items.
+3. USE ONLY THIS POST'S PHOTOS: Embed ONLY the image URL(s) provided in ORIGINAL PHOTOS FOR THIS POST using HTML <figure class="my-8 rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl"><img src="IMAGE_URL" alt="ALT_TEXT" class="w-full h-auto object-cover max-h-[500px] rounded-t-2xl" /><figcaption class="p-4 text-xs text-slate-300 text-center italic bg-slate-950 border-t border-slate-800">CAPTION</figcaption></figure>.
 4. FORMATTING: Use clean, modern HTML with <h2> subheadings, <h3> deep dives, <p> paragraphs (3-4 sentences each), <ul> / <li> bulleted breakdowns, <strong>bold highlights</strong>, and <u>underlined key terms</u>. Do NOT use markdown.
-5. LOCAL INDUSTRY PERSPECTIVE: Include a dedicated section analyzing what this development means from the ground perspective of BridgeTech IT Services (located at No. 1 Regent Highway, Jui Junction, Freetown; Phone: +232 33 399 391) — specifically regarding local parts supply, phone repair turnarounds, diagnostic skills, and technical career opportunities for youth.
-6. SOURCES & REFERENCES BOX: At the bottom of the article, include a beautifully styled sources box with clickable links (<a href="URL" target="_blank" rel="noopener noreferrer" class="text-sky-400 underline">TITLE</a>).
-7. Call-to-action mentioning BridgeTech IT Services (+232 33 399 391 / Jui Junction) for device repairs, computer upgrades, and tech consultations.`;
+5. LOCAL INDUSTRY PERSPECTIVE: Include a dedicated section analyzing what this specific development means from the ground perspective of BridgeTech IT Services (No. 1 Regent Highway, Jui Junction, Freetown; Phone: +232 33 399 391).
+6. ALWAYS INCLUDE CLICKABLE REFERENCE LINKS: At the bottom of the article, include a <div class="sources-card ..."> box listing the exact clickable reference links (<a href="URL" target="_blank" rel="noopener noreferrer" class="text-sky-400 underline">TITLE</a>) from OFFICIAL CITATIONS & REFERENCE LINKS.
+7. Call-to-action mentioning BridgeTech IT Services (+232 33 399 391 / Jui Junction) for device repairs, enterprise IT, and tech consultations.`;
 
-  const userPrompt = `Investigate and write an authoritative, complete, comprehensive blog feature article based on:
+  const userPrompt = `Investigate and write an authoritative, complete, comprehensive blog feature article about:
 TOPIC: "${query}"
 
 ${factsContext}
@@ -806,14 +969,9 @@ Requirements:
 - Article Length: Comprehensive (800 to 1200 words).
 - Must have an eye-catching H1 Title (place inside <h1> or as top element).
 - A concise "Quick Summary / TL;DR" highlight box at the start.
-- Detailed sections with descriptive <h2> headers covering:
-  1. The Core Event & Financial Commitment (e.g. the $21.9M investment, WAIIS Summit, signing partners).
-  2. The Technological Roadmap (phased rollout: assembly, configuration, quality testing, repair facilities).
-  3. Digital Inclusion & Tackling Device Affordability in Sierra Leone.
-  4. Youth Training, Local Skills & Employment (the technical training center).
-  5. The BridgeTech IT Services Perspective (implications for Freetown's device repair ecosystem and technician mastery).
-  6. The Road Ahead & Strategic Outlook.
-  7. A formatted "Sources & Official References" box listing the reference URLs.
+- Detailed sections with descriptive <h2> headers strictly relevant to this specific topic (background, technical details, impact on Sierra Leone / consumers / businesses, BridgeTech IT Services perspective, outlook).
+- Embed the original source photo(s) listed above.
+- Include the formatted "Sources & Reference Links" card at the bottom with the clickable reference URLs listed above.
 - OUTPUT FORMAT: Return ONLY the raw HTML string for the entire article. Do NOT wrap in backticks or markdown code blocks.`;
 
   let htmlContent = '';
@@ -824,23 +982,19 @@ Requirements:
     }
   } catch (llmErr) {
     console.warn('[Blog Investigator] LLM API call failed or unavailable. Generating high-quality verified journalistic story fallback:', llmErr);
-    htmlContent = generateHighQualityFallbackStory(query, matchedTopic, discoveredSources, discoveredImages);
+    htmlContent = generateHighQualityFallbackStory(query, matchedTopic, discoveredSources, finalMedia, factualPoints);
   }
 
-  // Extract or generate a clean title
-  let generatedTitle = matchedTopic?.title || '';
+  // Extract or generate a clean title (never grab a numbered subheading like "1. Key Facts...")
+  let generatedTitle = options.topicTitle || matchedTopic?.title || '';
   const h1Match = htmlContent.match(/<h1[^>]*>(.*?)<\/h1>/i);
   if (h1Match) {
     generatedTitle = h1Match[1].replace(/<[^>]+>/g, '').trim();
-  } else {
-    const h2Match = htmlContent.match(/<h2[^>]*>(.*?)<\/h2>/i);
-    if (h2Match && !generatedTitle) {
-      generatedTitle = h2Match[1].replace(/<[^>]+>/g, '').trim();
-    }
-  }
-
-  if (!generatedTitle) {
-    generatedTitle = query.length > 10 ? query : 'Sierra Leone Digital Transformation & Tech Industry Report';
+  } else if (!generatedTitle) {
+    generatedTitle =
+      cleanSearchTerm.length > 10
+        ? cleanSearchTerm
+        : 'Sierra Leone Digital Transformation & Tech Industry Report';
   }
 
   // Extract TLDR
@@ -850,15 +1004,18 @@ Requirements:
     tldr = tldrMatch[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300);
   }
 
-  // MANDATORY: Guarantee that EVERY single post embeds realistic photos from the source directly in the HTML
-  htmlContent = ensureRealisticPhotosInArticle(htmlContent, discoveredImages, query, generatedTitle);
+  // MANDATORY POST-PROCESSORS:
+  // 1. Guarantee EVERY post embeds realistic photos from THIS post's own source directly in the HTML
+  htmlContent = ensureRealisticPhotosInArticle(htmlContent, finalMedia, cleanSearchTerm, generatedTitle);
+  // 2. Guarantee EVERY post includes clickable reference links at the bottom
+  htmlContent = ensureReferenceLinksInArticle(htmlContent, discoveredSources, cleanSearchTerm);
 
   return {
     title: generatedTitle,
     content: htmlContent,
-    media: discoveredImages,
+    media: finalMedia,
     sources: discoveredSources,
-    tldr: tldr || 'Comprehensive investigative coverage of technology advancements and electronics assembly in Sierra Leone.',
+    tldr: tldr || `Comprehensive investigative report on ${cleanSearchTerm} in Sierra Leone.`,
   };
 }
 
@@ -869,7 +1026,8 @@ function generateHighQualityFallbackStory(
   query: string,
   matchedTopic: any,
   sources: DiscoveredSource[],
-  images: DiscoveredImage[]
+  images: DiscoveredImage[],
+  factualPoints: string[] = []
 ): string {
   const isMouStory =
     query.toLowerCase().includes('21.9') ||
@@ -1017,38 +1175,45 @@ The choice of the <strong>West Africa Integration and Investment Summit (WAIIS) 
 `.trim();
   }
 
-  // General tech topic fallback - guarantee realistic photo embedding
+  // General tech topic fallback - include extracted facts, real source photos, and reference links
+  const factsList = (factualPoints.length > 0 ? factualPoints : matchedTopic?.facts || []).slice(0, 6);
+  const factsHtml =
+    factsList.length > 0
+      ? `<h2>1. Key Facts &amp; Developments Investigated</h2>
+<ul class="space-y-2.5 my-5 list-disc pl-6 text-slate-200 text-sm leading-relaxed">
+${factsList.map((f: string) => `  <li>${f.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</li>`).join('\n')}
+</ul>`
+      : `<h2>1. Understanding the Core Technical Landscape</h2>
+<p class="leading-relaxed mb-4">
+Examining <strong>${query}</strong> within Sierra Leone's rapidly evolving technology sector highlights why dependable digital infrastructure, modern connectivity, and local technical expertise are essential for everyday citizens and enterprises.
+</p>`;
+
   const rawFallback = `
 <div class="blog-tldr-box p-5 rounded-2xl mb-8 bg-slate-900/80 border border-slate-700 shadow-xl">
   <p class="font-bold text-sky-400 text-base mb-2.5 flex items-center gap-2">
     <span>⚡</span> Quick Summary &amp; Key Insights
   </p>
   <p class="text-slate-300 text-sm leading-relaxed">
-    Essential technical insights and best practices from BridgeTech IT Services on <strong>${query}</strong>. Discover practical diagnostics, preventive measures, and expert repair recommendations for electronics users in Freetown, Sierra Leone.
+    Comprehensive technology briefing and source-verified analysis from BridgeTech IT Services on <strong>${query}</strong>, covering practical impacts for users and organizations in Freetown and across Sierra Leone.
   </p>
 </div>
 
-<h2>1. Understanding the Core Technical Challenge</h2>
+${factsHtml}
+
+<h2>2. Impact on Sierra Leone's Digital Ecosystem</h2>
 <p class="leading-relaxed mb-4">
-When dealing with <strong>${query}</strong>, understanding the underlying hardware architecture and environmental stresses is critical for ensuring reliable long-term performance. In tropical and coastal environments like Freetown, electronic devices face accelerated wear due to humidity, power fluctuations, and airborne salinity.
+Across Freetown, Waterloo, Bo, Kenema, and Makeni, organizations and consumers increasingly depend on resilient hardware, stable connectivity, and secure digital workflows. Developments in this sector shape how businesses operate, how students access resources, and how technical teams plan long-term infrastructure upgrades.
 </p>
 
-<h2>2. Key Diagnostic Steps and Preventive Measures</h2>
-<ul class="space-y-2.5 my-5 list-disc pl-6 text-slate-200 text-sm leading-relaxed">
-  <li><strong>Routine Physical Inspection:</strong> Regularly examine ports, cables, and ventilation ducts for moisture accumulation or lint buildup.</li>
-  <li><strong>Voltage Stability:</strong> Always utilize surge protectors or dedicated uninterruptible power supplies (UPS) during charging and operation.</li>
-  <li><strong>Thermal Monitoring:</strong> Ensure thermal paste and heat sinks are serviced every 12 to 18 months to prevent processor throttling.</li>
-</ul>
-
-<h2>3. The BridgeTech IT Services Standard</h2>
+<h2>3. The BridgeTech IT Services Perspective</h2>
 <p class="leading-relaxed mb-4">
-At <strong>BridgeTech IT Services</strong> (No. 1 Regent Highway, Jui Junction, Freetown), our certified technicians provide comprehensive diagnostics and precision component-level repairs with genuine OEM parts and warranty coverage.
+At <strong>BridgeTech IT Services</strong> (No. 1 Regent Highway, Jui Junction, Freetown), our certified engineers track national and regional tech developments closely so clients can rely on accurate diagnostics, genuine OEM components, surge protection, and modern enterprise IT support.
 </p>
 
 <div class="my-8 p-6 rounded-2xl bg-gradient-to-r from-slate-900 to-indigo-950 border border-indigo-800 shadow-xl">
-  <h3 class="text-xl font-bold text-white mb-2">Need Help with Your Device?</h3>
+  <h3 class="text-xl font-bold text-white mb-2">Need Expert Tech Support or Diagnostics?</h3>
   <p class="text-slate-300 text-sm mb-4 leading-relaxed">
-    Contact BridgeTech IT Services today at <strong>+232 33 399 391</strong> or visit our repair facility at Jui Junction opposite FTC for prompt diagnosis and repair.
+    Contact BridgeTech IT Services today at <strong>+232 33 399 391</strong> or visit our facility at No. 1 Regent Highway, Jui Junction, Freetown for prompt assistance.
   </p>
   <a href="https://www.itservicesfreetown.com/book-appointment" target="_blank" class="inline-block bg-sky-600 hover:bg-sky-500 text-white font-semibold px-4 py-2 rounded-lg transition-colors">
     Book an Inspection Online
@@ -1056,6 +1221,7 @@ At <strong>BridgeTech IT Services</strong> (No. 1 Regent Highway, Jui Junction, 
 </div>
 `.trim();
 
-  return ensureRealisticPhotosInArticle(rawFallback, images, query);
+  const withPhotos = ensureRealisticPhotosInArticle(rawFallback, images, query);
+  return ensureReferenceLinksInArticle(withPhotos, sources, query);
 }
 

@@ -301,7 +301,188 @@ function categorizeNewsItem(title: string, snippet: string): SierraLeoneTechTopi
 }
 
 /**
- * Fetch live Sierra Leone tech news from Google News RSS
+ * Resolve Google News RSS redirect URLs (`news.google.com/rss/articles/...`)
+ * to the actual publisher article URL via Google News batchexecute RPC.
+ */
+export async function resolveGoogleNewsUrl(sourceUrl: string): Promise<string> {
+  if (!sourceUrl || !sourceUrl.includes('news.google.com/')) {
+    return sourceUrl;
+  }
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3500);
+
+    const res = await fetch(sourceUrl, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      },
+    });
+    const html = await res.text();
+
+    const sgMatch = html.match(/data-n-a-sg="([^"]+)"/);
+    const tsMatch = html.match(/data-n-a-ts="([^"]+)"/);
+    const idMatch = sourceUrl.match(/articles\/([^?]+)/);
+
+    if (!sgMatch || !tsMatch || !idMatch) {
+      clearTimeout(timer);
+      return sourceUrl;
+    }
+
+    const payload = JSON.stringify([
+      [
+        [
+          'Fbv4je',
+          JSON.stringify([
+            'garturlreq',
+            [
+              ['X', 'X', ['X', 'X'], null, null, 1, 1, 'US:en', null, 1, null, null, null, null, null, 0, 1],
+              'X',
+              'X',
+              1,
+              [1, 1, 1],
+              1,
+              1,
+              null,
+              0,
+              0,
+              null,
+              0,
+            ],
+            idMatch[1],
+            Number(tsMatch[1]),
+            sgMatch[1],
+          ]),
+          null,
+          'generic',
+        ],
+      ],
+    ]);
+
+    const bRes = await fetch('https://news.google.com/_/DotsSplashUi/data/batchexecute', {
+      signal: controller.signal,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36',
+      },
+      body: 'f.req=' + encodeURIComponent(payload),
+    });
+    clearTimeout(timer);
+
+    const bText = await bRes.text();
+    const line = bText.split('\n').find((l) => l.includes('garturlres'));
+    if (!line) return sourceUrl;
+
+    const outer = JSON.parse(line);
+    const inner = JSON.parse(outer[0][2]);
+    return typeof inner[1] === 'string' && inner[1].startsWith('http') ? inner[1] : sourceUrl;
+  } catch {
+    return sourceUrl;
+  }
+}
+
+/**
+ * Extract the real original article photo directly from a resolved publisher webpage
+ */
+export async function extractPrimarySourcePhoto(
+  url: string
+): Promise<{ url: string; caption?: string } | null> {
+  if (!url || !url.startsWith('http') || url.includes('news.google.com')) {
+    return null;
+  }
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3000);
+
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        Accept: 'text/html,application/xhtml+xml',
+      },
+      redirect: 'follow',
+    });
+    clearTimeout(timer);
+
+    if (!res.ok) return null;
+
+    const html = await res.text();
+    const ogTitle =
+      html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i) ||
+      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i) ||
+      html.match(/<title>([^<]+)<\/title>/i);
+    const cleanTitle = ogTitle ? cleanXmlText(ogTitle[1]) : undefined;
+
+    const candidates: string[] = [];
+
+    // Check OpenGraph & Twitter image tags in both attribute orders
+    const metaPatterns = [
+      /<meta[^>]+property=["']og:image(?::secure_url)?["'][^>]+content=["']([^"']+)["']/i,
+      /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image(?::secure_url)?["']/i,
+      /<meta[^>]+name=["']twitter:image(?::src)?["'][^>]+content=["']([^"']+)["']/i,
+      /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image(?::src)?["']/i,
+    ];
+    for (const pat of metaPatterns) {
+      const m = html.match(pat);
+      if (m && m[1]) candidates.push(m[1]);
+    }
+
+    // Check JSON-LD NewsArticle image
+    const jsonLdMatches = html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi) || [];
+    for (const block of jsonLdMatches) {
+      try {
+        const parsed = JSON.parse(block.replace(/<script[^>]*>|<\/script>/gi, ''));
+        const items = Array.isArray(parsed) ? parsed : [parsed];
+        for (const obj of items) {
+          const img =
+            typeof obj?.image === 'string'
+              ? obj.image
+              : Array.isArray(obj?.image)
+              ? typeof obj.image[0] === 'string'
+                ? obj.image[0]
+                : obj.image[0]?.url
+              : obj?.image?.url || obj?.thumbnailUrl;
+          if (typeof img === 'string') candidates.push(img);
+        }
+      } catch {}
+    }
+
+    // Check featured WordPress / hero images
+    const wpMatch = html.match(
+      /<img[^>]+class=["'][^"']*(?:wp-post-image|featured-image|entry-thumb|hero-image|post-thumbnail)[^"']*["'][^>]+src=["']([^"']+)["']/i
+    );
+    if (wpMatch && wpMatch[1]) candidates.push(wpMatch[1]);
+
+    for (const rawCandidate of candidates) {
+      let absUrl = rawCandidate.trim();
+      if (!absUrl || absUrl.startsWith('data:')) continue;
+      try {
+        absUrl = new URL(absUrl, url).href;
+      } catch {
+        continue;
+      }
+      if (!/(?:logo|icon|favicon|avatar|badge|pixel|1x1|blank|placeholder)/i.test(absUrl)) {
+        return {
+          url: absUrl,
+          caption: cleanTitle ? `Original source photo: ${cleanTitle}` : undefined,
+        };
+      }
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetch live Sierra Leone tech news from Google News RSS,
+ * resolving publisher URLs and capturing each source's own original photograph.
  */
 export async function fetchLiveGoogleNewsSL(searchQuery?: string): Promise<SierraLeoneTechTopic[]> {
   try {
@@ -327,36 +508,40 @@ export async function fetchLiveGoogleNewsSL(searchQuery?: string): Promise<Sierr
     if (!res.ok) return [];
 
     const xml = await res.text();
-    const items: SierraLeoneTechTopic[] = [];
     const itemMatches = xml.match(/<item>[\s\S]*?<\/item>/gi) || [];
 
-    for (const itemXml of itemMatches.slice(0, 8)) {
+    const parsedPromises = itemMatches.slice(0, 6).map(async (itemXml): Promise<SierraLeoneTechTopic | null> => {
       const titleMatch = itemXml.match(/<title>([\s\S]*?)<\/title>/i);
       const linkMatch = itemXml.match(/<link>([\s\S]*?)<\/link>/i);
       const pubDateMatch = itemXml.match(/<pubDate>([\s\S]*?)<\/pubDate>/i);
       const sourceMatch = itemXml.match(/<source[^>]*>([\s\S]*?)<\/source>/i);
       const descMatch = itemXml.match(/<description>([\s\S]*?)<\/description>/i);
 
-      if (titleMatch && linkMatch) {
-        const rawTitle = cleanXmlText(titleMatch[1]);
-        const link = cleanXmlText(linkMatch[1]);
-        const pubDateStr = pubDateMatch ? pubDateMatch[1].trim() : new Date().toLocaleDateString();
-        const sourceName = sourceMatch ? cleanXmlText(sourceMatch[1]) : 'Google News';
-        const rawDesc = descMatch ? cleanXmlText(descMatch[1]).replace(/<[^>]*>/g, '') : '';
+      if (!titleMatch || !linkMatch) return null;
 
-        // Clean source off title if Google News appends " - Publisher"
-        let cleanTitle = rawTitle;
-        const lastDash = rawTitle.lastIndexOf(' - ');
-        if (lastDash > 15) {
-          cleanTitle = rawTitle.slice(0, lastDash).trim();
-        }
+      const rawTitle = cleanXmlText(titleMatch[1]);
+      const rawLink = cleanXmlText(linkMatch[1]);
+      const pubDateStr = pubDateMatch ? pubDateMatch[1].trim() : new Date().toLocaleDateString();
+      const sourceName = sourceMatch ? cleanXmlText(sourceMatch[1]) : 'Google News';
+      const rawDesc = descMatch ? cleanXmlText(descMatch[1]).replace(/<[^>]*>/g, '') : '';
 
-        const category = categorizeNewsItem(cleanTitle, rawDesc);
+      // Clean source off title if Google News appends " - Publisher"
+      let cleanTitle = rawTitle;
+      const lastDash = rawTitle.lastIndexOf(' - ');
+      if (lastDash > 15) {
+        cleanTitle = rawTitle.slice(0, lastDash).trim();
+      }
 
-        // Assign curated photo by category
-        let imageUrl = 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80';
-        let imageCaption = 'Technology, innovation, and digital connectivity in West Africa.';
+      const category = categorizeNewsItem(cleanTitle, rawDesc);
 
+      // Decode Google News redirect to actual publisher URL and scrape its own photo
+      const resolvedUrl = await resolveGoogleNewsUrl(rawLink);
+      const sourcePhoto = await extractPrimarySourcePhoto(resolvedUrl);
+
+      let imageUrl = sourcePhoto?.url;
+      let imageCaption = sourcePhoto?.caption || `Original photo from ${sourceName}: ${cleanTitle}`;
+
+      if (!imageUrl) {
         if (category === 'Hardware & Assembly') {
           imageUrl = 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1200&q=80';
           imageCaption = 'Electronics assembly line and precision diagnostics workstation.';
@@ -375,34 +560,38 @@ export async function fetchLiveGoogleNewsSL(searchQuery?: string): Promise<Sierr
         } else if (category === 'Green Tech & Power') {
           imageUrl = 'https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&w=1200&q=80';
           imageCaption = 'Solar hybrid systems providing clean power to telecom and computer systems.';
+        } else {
+          imageUrl = 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80';
+          imageCaption = 'Technology, innovation, and digital connectivity in West Africa.';
         }
-
-        const id = `live-${Buffer.from(cleanTitle.slice(0, 30)).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0, 16)}`;
-
-        items.push({
-          id,
-          title: cleanTitle,
-          suggestedBlogTitle: `${cleanTitle}: What It Means for Sierra Leone's Tech Ecosystem`,
-          category,
-          source: sourceName,
-          sourceUrl: link,
-          pubDate: pubDateStr,
-          summary: rawDesc.slice(0, 280) || `Breaking development in Sierra Leone: ${cleanTitle}`,
-          keyFacts: [
-            `Reported by ${sourceName} regarding Sierra Leone technology development.`,
-            `Direct relevance to Freetown's expanding digital infrastructure and economy.`,
-            `Analyzed with local perspective from BridgeTech IT Services.`
-          ],
-          suggestedAngle: `Investigate how this recent development influences technology adoption, enterprise IT, and digital opportunities in Sierra Leone.`,
-          writingPrompt: `Investigate and write an in-depth journalistic feature about "${cleanTitle}". Analyze its significance for Sierra Leone's digital infrastructure, cite statements from relevant authorities, and incorporate professional technology insights from BridgeTech IT Services at Jui Junction, Freetown.`,
-          imageUrl,
-          imageCaption,
-          isLive: true,
-        });
       }
-    }
 
-    return items;
+      const id = `live-${Buffer.from(cleanTitle.slice(0, 30)).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0, 16)}`;
+
+      return {
+        id,
+        title: cleanTitle,
+        suggestedBlogTitle: `${cleanTitle}: What It Means for Sierra Leone's Tech Ecosystem`,
+        category,
+        source: sourceName,
+        sourceUrl: resolvedUrl,
+        pubDate: pubDateStr,
+        summary: rawDesc.slice(0, 280) || `Breaking development in Sierra Leone (${sourceName}): ${cleanTitle}`,
+        keyFacts: [
+          `Reported by ${sourceName} regarding Sierra Leone technology development.`,
+          `Source Reference: ${resolvedUrl}`,
+          `Analyzed with local perspective from BridgeTech IT Services in Freetown.`
+        ],
+        suggestedAngle: `Investigate how this recent development influences technology adoption, enterprise IT, and digital opportunities in Sierra Leone.`,
+        writingPrompt: `Investigate and write an in-depth journalistic feature about "${cleanTitle}" (Source: ${sourceName}, Reference URL: ${resolvedUrl}). Analyze its significance for Sierra Leone's digital infrastructure, cite official statements and the source URL, and incorporate professional technology insights from BridgeTech IT Services at Jui Junction, Freetown.`,
+        imageUrl,
+        imageCaption,
+        isLive: true,
+      };
+    });
+
+    const settled = await Promise.all(parsedPromises);
+    return settled.filter((item): item is SierraLeoneTechTopic => item !== null);
   } catch (error) {
     console.warn('[SL Tech News Finder] Live RSS fetch failed, relying on curated topics:', error);
     return [];

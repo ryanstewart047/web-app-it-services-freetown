@@ -311,6 +311,12 @@ export default function BlogAdminPage() {
   const [slNewsSearch, setSlNewsSearch] = useState('')
   const [showSLNewsFinder, setShowSLNewsFinder] = useState(false)
   const [slNewsLoaded, setSlNewsLoaded] = useState(false)
+  const [selectedTopicMeta, setSelectedTopicMeta] = useState<{
+    sourceUrl?: string
+    sourceName?: string
+    topicTitle?: string
+    initialImageUrl?: string
+  } | null>(null)
 
   useScrollAnimations()
 
@@ -756,31 +762,57 @@ export default function BlogAdminPage() {
   }
 
   const handleWriteStoryFromTopic = async (topicItem: any) => {
+    const newTitle = topicItem.suggestedBlogTitle || topicItem.title
+    const meta = {
+      sourceUrl: topicItem.sourceUrl,
+      sourceName: topicItem.source,
+      topicTitle: topicItem.title,
+      initialImageUrl: topicItem.imageUrl,
+    }
+
+    // Reset previous post state so old images/text never leak into the new post
+    setEditingPostId(null)
+    setMedia([])
+    setContent('')
+    setHtmlContent('')
+    setSelectedTopicMeta(meta)
     setShowAIHelper(true)
     setContentPrompt(topicItem.writingPrompt)
-    const newTitle = topicItem.suggestedBlogTitle || topicItem.title
     setTitle(newTitle)
     setDeepInvestigate(true)
 
     // Smooth scroll to top of editor area
     window.scrollTo({ top: 320, behavior: 'smooth' })
-    toast(`🇸🇱 Investigating: "${topicItem.title.slice(0, 42)}..."`, { duration: 4000 })
+    toast(`🇸🇱 Capturing source photos & investigating: "${topicItem.title.slice(0, 42)}..."`, { duration: 4000 })
 
-    await generateAIContent(topicItem.writingPrompt, newTitle)
+    await generateAIContent(topicItem.writingPrompt, newTitle, meta)
   }
 
   const handleLoadTopicToPrompt = (topicItem: any) => {
+    const meta = {
+      sourceUrl: topicItem.sourceUrl,
+      sourceName: topicItem.source,
+      topicTitle: topicItem.title,
+      initialImageUrl: topicItem.imageUrl,
+    }
+    setEditingPostId(null)
+    setMedia([])
+    setContent('')
+    setHtmlContent('')
+    setSelectedTopicMeta(meta)
     setShowAIHelper(true)
     setContentPrompt(topicItem.writingPrompt)
-    if (!title.trim() || title.trim().length < 15) {
-      setTitle(topicItem.suggestedBlogTitle || topicItem.title)
-    }
+    setTitle(topicItem.suggestedBlogTitle || topicItem.title)
     setDeepInvestigate(true)
     window.scrollTo({ top: 350, behavior: 'smooth' })
     toast.success('Topic loaded into AI Writer! Customize prompt or click Generate Complete Story.')
   }
 
-  const generateAIContent = async (overridePrompt?: string | any, overrideTitle?: string) => {
+  const generateAIContent = async (
+    overridePrompt?: string | any,
+    overrideTitle?: string,
+    topicMeta?: { sourceUrl?: string; sourceName?: string; topicTitle?: string; initialImageUrl?: string }
+  ) => {
     const promptStr = typeof overridePrompt === 'string' ? overridePrompt : ''
     const rawPrompt = (promptStr || contentPrompt || title).trim()
     if (!rawPrompt) {
@@ -790,19 +822,29 @@ export default function BlogAdminPage() {
 
     setGeneratingContent(true)
     const topic = rawPrompt
+    const activeMeta = topicMeta || selectedTopicMeta || undefined
 
-    if (overrideTitle && typeof overrideTitle === 'string' && (!title.trim() || title.trim().length < 15)) {
+    // Clear previous AI media before generating fresh images for this specific post
+    if (!editingPostId) {
+      setMedia([])
+    }
+
+    if (overrideTitle && typeof overrideTitle === 'string') {
       setTitle(overrideTitle)
     }
 
     try {
-      setAiProgressMessage('🔍 Capturing realistic source photos & investigating facts...')
+      setAiProgressMessage('🔍 Capturing original source photos, verifying reference links & writing story...')
       try {
         const response = await fetch('/api/admin/blog/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             topic,
+            sourceUrl: activeMeta?.sourceUrl,
+            sourceName: activeMeta?.sourceName,
+            topicTitle: activeMeta?.topicTitle,
+            initialImageUrl: activeMeta?.initialImageUrl,
             includeImages: true,
             includeSources: true,
           }),
@@ -814,28 +856,21 @@ export default function BlogAdminPage() {
             setContent(data.content)
             setHtmlContent(data.content)
 
-            // Auto-populate Title if empty or short
-            if (!title.trim() || title.trim().length < 15) {
-              if (data.title) {
-                setTitle(data.title)
-              }
+            // Always use this generated post's title when generating from a new prompt
+            if (data.title && (!editingPostId || !title.trim() || Boolean(promptStr || contentPrompt.trim()))) {
+              setTitle(data.title)
             }
 
-            // Auto-populate Media gallery with real discovered photos
-            if (Array.isArray(data.media) && data.media.length > 0) {
-              setMedia((prev) => {
-                const existingUrls = new Set(prev.map((m) => m.url))
-                const newItems = data.media.filter((m: any) => !existingUrls.has(m.url))
-                return [...prev, ...newItems]
-              })
-            }
+            // REPLACE media gallery with ONLY this post's captured source photos (never keep old post's photos)
+            setMedia(Array.isArray(data.media) ? data.media : [])
 
             toast.success(
-              `✨ Complete story generated! Attached ${data.media?.length || 0} real image(s) & ${data.sources?.length || 0} verified source(s).`,
+              `✨ Complete story generated! Captured ${data.media?.length || 0} post photo(s) & ${data.sources?.length || 0} reference link(s).`,
               { duration: 6000 }
             )
             setShowAIHelper(false)
             setContentPrompt('')
+            setSelectedTopicMeta(null)
             return
           }
         }
@@ -1785,6 +1820,22 @@ ${htmlContent || content || 'Empty draft'}`
                               {topic.title}
                             </h4>
 
+                            {/* Source Photo Preview */}
+                            {topic.imageUrl && (
+                              <div className="mb-2.5 rounded-lg overflow-hidden border border-slate-700/70 bg-slate-900">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={topic.imageUrl}
+                                  alt={topic.title}
+                                  className="w-full h-32 object-cover"
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    ;(e.currentTarget.parentElement as HTMLElement).style.display = 'none'
+                                  }}
+                                />
+                              </div>
+                            )}
+
                             {/* Summary */}
                             <p className="text-xs text-slate-300 leading-relaxed mb-3 line-clamp-3">
                               {topic.summary}
@@ -1922,7 +1973,10 @@ ${htmlContent || content || 'Empty draft'}`
                             <button
                               key={idx}
                               type="button"
-                              onClick={() => setContentPrompt(chip.prompt)}
+                              onClick={() => {
+                                setSelectedTopicMeta(null)
+                                setContentPrompt(chip.prompt)
+                              }}
                               className="text-xs bg-white hover:bg-purple-50 text-gray-700 hover:text-purple-700 px-2.5 py-1 rounded-lg border border-gray-200 hover:border-purple-300 transition-all text-left"
                             >
                               {chip.label}

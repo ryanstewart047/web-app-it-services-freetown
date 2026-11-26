@@ -29,12 +29,20 @@ export async function POST(request: NextRequest) {
 
     const includeImages = body.includeImages !== false;
     const includeSources = body.includeSources !== false;
+    const sourceUrl = typeof body.sourceUrl === 'string' ? body.sourceUrl.trim() : undefined;
+    const sourceName = typeof body.sourceName === 'string' ? body.sourceName.trim() : undefined;
+    const topicTitle = typeof body.topicTitle === 'string' ? body.topicTitle.trim() : undefined;
+    const initialImageUrl = typeof body.initialImageUrl === 'string' ? body.initialImageUrl.trim() : undefined;
 
-    console.log(`[API Blog Generate] Initiating story generation for: "${topic}"`);
+    console.log(`[API Blog Generate] Initiating story generation for: "${topicTitle || topic}"`);
 
     const result = await investigateAndGenerateStory(topic, {
       includeImages,
       includeSources,
+      sourceUrl,
+      sourceName,
+      topicTitle,
+      initialImageUrl,
     });
 
     return NextResponse.json({
