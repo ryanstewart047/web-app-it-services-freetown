@@ -226,6 +226,7 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<any
           ],
           generationConfig: {
             temperature: 0.7,
+            maxOutputTokens: 4096,
           },
         }),
         signal: controller.signal,
@@ -283,6 +284,7 @@ async function callGroq(systemPrompt: string, userPrompt: string): Promise<any> 
           { role: 'user', content: userPrompt },
         ],
         temperature: 0.7,
+        max_tokens: 4096,
       };
 
       if (isJsonModeSupported) {

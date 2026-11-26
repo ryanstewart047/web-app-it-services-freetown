@@ -196,7 +196,7 @@ YOUR BEHAVIOUR:
       model: 'llama-3.3-70b-versatile',
       messages: messages,
       temperature: 0.6,
-      max_tokens: 1024,
+      max_tokens: 4096,
       top_p: 0.95,
       stream: false
     }

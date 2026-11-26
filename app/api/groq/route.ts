@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
     }
 
     const temperature = body.temperature ?? 0.6;
-    const max_tokens = body.max_tokens ?? 1024;
+    const max_tokens = Math.min(body.max_tokens ?? 4096, 8192);
 
     // Clean and normalize messages for Groq/OpenAI:
     // 1. Ensure system messages stay at the top.

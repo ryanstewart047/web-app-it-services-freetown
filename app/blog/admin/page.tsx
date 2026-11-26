@@ -288,6 +288,8 @@ export default function BlogAdminPage() {
   const [generatingContent, setGeneratingContent] = useState(false)
   const [contentPrompt, setContentPrompt] = useState('')
   const [showAIHelper, setShowAIHelper] = useState(false)
+  const [deepInvestigate, setDeepInvestigate] = useState(true)
+  const [aiProgressMessage, setAiProgressMessage] = useState('')
   const [publishProgress, setPublishProgress] = useState(0)
   const [isPublishing, setIsPublishing] = useState(false)
   const [showManagePosts, setShowManagePosts] = useState(false)
@@ -723,13 +725,62 @@ export default function BlogAdminPage() {
     }
 
     setGeneratingContent(true)
+    const topic = contentPrompt.trim() || title.trim()
 
     try {
-      // Use local API route (works for Vercel deployment)
+      if (deepInvestigate) {
+        setAiProgressMessage('🔍 Investigating web sources & real images...')
+        try {
+          const response = await fetch('/api/admin/blog/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              topic,
+              includeImages: true,
+              includeSources: true,
+            }),
+          })
+
+          if (response.ok) {
+            const data = await response.json()
+            if (data.success && data.content) {
+              setContent(data.content)
+              setHtmlContent(data.content)
+
+              // Auto-populate Title if empty or short
+              if (!title.trim() || title.trim().length < 15) {
+                if (data.title) {
+                  setTitle(data.title)
+                }
+              }
+
+              // Auto-populate Media gallery with real discovered photos
+              if (Array.isArray(data.media) && data.media.length > 0) {
+                setMedia((prev) => {
+                  const existingUrls = new Set(prev.map((m) => m.url))
+                  const newItems = data.media.filter((m: any) => !existingUrls.has(m.url))
+                  return [...prev, ...newItems]
+                })
+              }
+
+              toast.success(
+                `✨ Complete story generated! Attached ${data.media?.length || 0} real image(s) & ${data.sources?.length || 0} verified source(s).`,
+                { duration: 6000 }
+              )
+              setShowAIHelper(false)
+              setContentPrompt('')
+              return
+            }
+          }
+        } catch (investigateErr) {
+          console.warn('[AI Generator] Deep investigation endpoint error, using proxy fallback:', investigateErr)
+        }
+      }
+
+      // Fallback: Direct proxy generation with 4096 tokens (never cut off)
+      setAiProgressMessage('✍️ Writing complete journalistic story...')
       const GROQ_PROXY_URL = '/api/groq'
 
-      const topic = contentPrompt.trim() || title.trim()
-      
       const response = await fetch(GROQ_PROXY_URL, {
         method: 'POST',
         headers: {
@@ -740,26 +791,29 @@ export default function BlogAdminPage() {
           messages: [
             {
               role: 'system',
-              content: `You are an expert, professional tech blog writer for BridgeTech IT Services, a computer and mobile repair service. Write highly engaging, informative, and modern blog posts that help customers understand tech issues and solutions. You must use well-structured HTML format (e.g., <h2>, <h3>, <p>, <strong>, <em>, <u>, <ul>, <li>, <blockquote>) to ensure the post is ready for a rich text editor. Do NOT use markdown. Ensure there is proper spacing, clear headings, structured paragraphs, and underlined text for emphasis where appropriate. Always mention contacting BridgeTech IT Services at +23233399391 or visiting #1 Regent Highway Jui Junction when professional help is needed. Keep the tone friendly, modern, and highly professional.`
+              content: `You are an expert, professional investigative tech journalist and technical columnist for BridgeTech IT Services (itservicesfreetown.com), located at No. 1 Regent Highway, Jui Junction, Freetown (Phone: +232 33 399 391).
+Write highly engaging, deeply researched, and complete blog posts.
+CRITICAL INSTRUCTION: You MUST write the ENTIRE story from introduction to conclusion. NEVER truncate or leave a section unfinished.
+Format with clean, modern HTML tags: <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>, <u>, <blockquote>. Do NOT use markdown.
+Ensure there is a compelling TL;DR summary box, structured sections, local industry perspective from BridgeTech IT Services, and a strong conclusion with a call-to-action.`
             },
             {
               role: 'user',
-              content: `Write a detailed, beautifully formatted HTML blog post about: "${topic}". 
+              content: `Write a complete, detailed, beautifully formatted HTML blog feature about: "${topic}". 
 
 Requirements:
-- Write 400-600 words of rich content.
-- MUST output ONLY valid HTML code (do NOT wrap it in backticks or markdown blocks, just return raw HTML).
-- Use proper HTML tags for structure: <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>, <u>, <blockquote>.
-- Include a logical flow with an introduction, main points with headings, practical tips or steps, and a conclusion.
-- Use underlining (<u>) to highlight key technical terms or important concepts.
-- Add a compelling call-to-action mentioning BridgeTech IT Services contact: +23233399391 and location: #1 Regent Highway Jui Junction.
-- Ensure the formatting is modern, readable, and visually appealing for a blog post.
+- Comprehensive coverage: Write 800-1200 words of rich content.
+- MUST output ONLY valid HTML code (do NOT wrap it in backticks or markdown code blocks).
+- NEVER cut off or stop midway: complete every single section thoroughly from introduction to final conclusion.
+- Include an introduction with context, detailed core points with descriptive <h2> headers, key statistics highlighted in <strong>, underlined key terms with <u>, and a full conclusion.
+- Add local perspective from BridgeTech IT Services (#1 Regent Highway, Jui Junction, Freetown | +232 33 399 391).
+- Include a "Sources & References" section at the end.
 
-Write the HTML content now:`
+Write the complete HTML article now:`
             }
           ],
           temperature: 0.7,
-          max_tokens: 800
+          max_tokens: 4096 // Upgraded from 800 to 4096 to prevent truncation
         })
       })
 
@@ -768,21 +822,35 @@ Write the HTML content now:`
       }
 
       const data = await response.json()
-      const generatedContent = data.choices[0]?.message?.content || ''
+      let generatedContent = data.choices[0]?.message?.content || ''
 
       if (generatedContent) {
+        if (generatedContent.startsWith('```')) {
+          generatedContent = generatedContent.replace(/^```(?:html)?\s*/i, '').replace(/\s*```$/i, '')
+        }
         setContent(generatedContent)
+        setHtmlContent(generatedContent)
+
+        // If title is empty, deduce title from first heading
+        if (!title.trim()) {
+          const hMatch = generatedContent.match(/<h[12][^>]*>(.*?)<\/h[12]>/i)
+          if (hMatch) {
+            setTitle(hMatch[1].replace(/<[^>]+>/g, '').trim())
+          }
+        }
+
         toast.success('AI content generated successfully!')
         setShowAIHelper(false)
         setContentPrompt('')
       } else {
         throw new Error('No content generated')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating content:', error)
-      toast.error('Failed to generate content. Please try again.')
+      toast.error(error.message || 'Failed to generate content. Please try again.')
     } finally {
       setGeneratingContent(false)
+      setAiProgressMessage('')
     }
   }
 
@@ -1472,47 +1540,119 @@ ${htmlContent || content || 'Empty draft'}`
 
               {/* AI Content Generator */}
               {showAIHelper && (
-                <div className="mb-4 p-4 bg-gradient-to-r from-red-50 to-gray-50 rounded-lg border-2 border-red-200">
-                  <div className="flex items-start space-x-2 mb-3">
-                    <Sparkles className="w-5 h-5 text-red-600 mt-0.5" />
+                <div className="mb-4 p-4 sm:p-5 bg-gradient-to-r from-red-50 via-white to-purple-50 rounded-xl border-2 border-purple-200 shadow-md">
+                  <div className="flex items-start space-x-3 mb-3">
+                    <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
+                      <Sparkles className="w-5 h-5" />
+                    </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-1">AI Content Generator</h3>
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="font-bold text-gray-900 text-base flex items-center gap-2">
+                          AI Investigative Blog & Story Writer
+                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">4000+ Tokens Full Stories</span>
+                        </h3>
+                      </div>
                       <p className="text-sm text-gray-600 mb-3">
-                        Describe what you want to write about, and AI will create professional blog content for you.
+                        Enter any topic, news development, or repair guide. The AI will thoroughly investigate the story, gather real press photos from the web, cite official sources, and write a complete, beautifully structured article.
                       </p>
-                      <input
-                        type="text"
+
+                      <textarea
                         value={contentPrompt}
                         onChange={(e) => setContentPrompt(e.target.value)}
-                        placeholder="E.g., 'Tips for preventing malware on phones' or 'How to backup iPhone data'"
-                        className="w-full px-4 py-2 border-2 border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent mb-3"
+                        placeholder="E.g., 'Investigate and write a story about the 21.9 million dollar project signed in Freetown' or 'How to protect laptops from tropical humidity in Sierra Leone'..."
+                        rows={3}
+                        className="w-full px-4 py-2.5 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent mb-2.5 text-sm transition-all"
                         disabled={generatingContent}
                       />
+
+                      {/* Deep Investigation Checkbox */}
+                      <label className="flex items-center space-x-2.5 text-xs sm:text-sm text-gray-700 font-medium mb-3 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={deepInvestigate}
+                          onChange={(e) => setDeepInvestigate(e.target.checked)}
+                          className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500 cursor-pointer"
+                          disabled={generatingContent}
+                        />
+                        <span>
+                          🔍 <strong>Deep Investigation & Real Media:</strong> Search web for verified facts, embed real press photographs, and include official citations & links.
+                        </span>
+                      </label>
+
+                      {/* Quick Prompt Suggestion Chips */}
+                      <div className="mb-3">
+                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1.5">
+                          💡 Quick Investigation Topics:
+                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {[
+                            {
+                              label: "🇸🇱 $21.9M Mobile Assembly Project (MoCTI & Unique Group)",
+                              prompt: "Investigate and write a comprehensive feature story about the 21.9 million dollar mobile phone and electronics assembly MoU signed in Freetown between Sierra Leone's ICT Ministry and Unique Group Company Ltd."
+                            },
+                            {
+                              label: "⚡ Why Device Repair Skills Drive Digital Economy",
+                              prompt: "How local electronics assembly and professional motherboard repair facilities in Freetown create high-paying technical jobs for Sierra Leonean youth."
+                            },
+                            {
+                              label: "📱 5 Signs Your Smartphone Screen Needs Replacement",
+                              prompt: "5 critical warning signs that your smartphone screen or digitizer needs professional replacement before causing permanent display failure."
+                            },
+                            {
+                              label: "🛡️ Protecting Laptops & Electronics in Freetown's Climate",
+                              prompt: "The ultimate guide to protecting laptops, desktop computers, and smartphones from salt air, humidity, and power fluctuations in Freetown."
+                            }
+                          ].map((chip, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => setContentPrompt(chip.prompt)}
+                              className="text-xs bg-white hover:bg-purple-50 text-gray-700 hover:text-purple-700 px-2.5 py-1 rounded-lg border border-gray-200 hover:border-purple-300 transition-all text-left"
+                            >
+                              {chip.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Progress Notification */}
+                      {generatingContent && (
+                        <div className="mb-3 p-3 bg-purple-50 border border-purple-200 rounded-lg flex items-center gap-2 text-xs text-purple-800 animate-pulse">
+                          <RefreshCw className="w-4 h-4 animate-spin text-purple-600 flex-shrink-0" />
+                          <span>{aiProgressMessage || 'Investigating live facts, gathering real images, and generating complete story...'}</span>
+                        </div>
+                      )}
+
                       <div className="flex space-x-2">
                         <button
                           type="button"
                           onClick={generateAIContent}
                           disabled={generatingContent}
-                          className="flex-1 flex items-center justify-center px-4 py-2 rounded-lg font-semibold text-white transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex-1 flex items-center justify-center px-4 py-2.5 rounded-xl font-semibold text-white transition-all duration-300 hover:scale-[1.02] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                           style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' }}
                         >
                           {generatingContent ? (
                             <>
                               <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                              Generating...
+                              Investigating & Generating Story...
                             </>
                           ) : (
                             <>
                               <Sparkles className="w-4 h-4 mr-2" />
-                              Generate Content
+                              Generate Complete Story
                             </>
                           )}
                         </button>
                         {content && (
                           <button
                             type="button"
-                            onClick={() => setContent('')}
-                            className="px-4 py-2 rounded-lg font-semibold text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 transition-all duration-300"
+                            onClick={() => {
+                              if (confirm('Clear the current editor content?')) {
+                                setContent('');
+                                setHtmlContent('');
+                              }
+                            }}
+                            className="px-4 py-2.5 rounded-xl font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-all duration-300"
                           >
                             Clear
                           </button>
