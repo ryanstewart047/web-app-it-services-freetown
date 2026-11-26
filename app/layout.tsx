@@ -215,6 +215,26 @@ export default function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href={BRAND_APPLE_TOUCH_ICON_SRC} />
         <link rel="apple-touch-icon" sizes="152x152" href={BRAND_APPLE_TOUCH_ICON_SRC} />
         <link rel="apple-touch-icon" sizes="167x167" href={BRAND_APPLE_TOUCH_ICON_SRC} />
+
+        {/* Automated Feed & Sitemap Discovery Links for Google Search, Discover & Google News */}
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="BridgeTech IT Services Tech News & Guides (Feed)"
+          href="https://www.itservicesfreetown.com/feed.xml"
+        />
+        <link
+          rel="sitemap"
+          type="application/xml"
+          title="Sitemap"
+          href="https://www.itservicesfreetown.com/sitemap.xml"
+        />
+        <link
+          rel="sitemap"
+          type="application/xml"
+          title="Google News Sitemap"
+          href="https://www.itservicesfreetown.com/news-sitemap.xml"
+        />
         
         {/* Structured Data - Local Business Schema */}
         <script

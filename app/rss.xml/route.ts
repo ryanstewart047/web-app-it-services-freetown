@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import { fetchBlogPosts } from '@/lib/github-blog-storage';
+import { fetchPublishedBlogPosts } from '@/lib/github-blog-storage';
 import { BRAND_NAME, BRAND_SITE_URL } from '@/lib/brand';
+import { getPostCategory, getPrimaryImage } from '../blog/blog-utils';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 3600; // Cache and revalidate every hour
+export const revalidate = 60; // Fresh feed every 60 seconds for rapid Google News/Discover pickup
 
 function escapeXml(unsafe: string): string {
   return unsafe
@@ -24,6 +25,27 @@ function toRfc822Date(dateString?: string): string {
   return isNaN(date.getTime()) ? new Date().toUTCString() : date.toUTCString();
 }
 
+function inferImageMimeType(url: string): string {
+  const lower = url.toLowerCase().split('?')[0];
+  if (lower.endsWith('.png')) return 'image/png';
+  if (lower.endsWith('.webp')) return 'image/webp';
+  return 'image/jpeg';
+}
+
+function normalizeImageUrl(rawUrl?: string): string {
+  const fallback = `${BRAND_SITE_URL}/assets/images/slide01.jpg`;
+  if (!rawUrl) return fallback;
+  let url = rawUrl.trim();
+  if (url.startsWith('/')) url = `${BRAND_SITE_URL}${url}`;
+  if (url.includes('github.com') && url.includes('/blob/')) {
+    url = url
+      .replace('https://github.com/', 'https://raw.githubusercontent.com/')
+      .replace('/blob/', '/')
+      .replace(/[?&]raw=true/, '');
+  }
+  return url.startsWith('http') ? url : fallback;
+}
+
 // Evergreen repair guides to guarantee a rich feed even if external APIs have delays
 const EVERGREEN_GUIDES = [
   {
@@ -34,6 +56,7 @@ const EVERGREEN_GUIDES = [
     pubDate: new Date('2026-09-01T00:00:00Z').toUTCString(),
     category: 'Repair Guide',
     author: BRAND_NAME,
+    image: `${BRAND_SITE_URL}/assets/images/slide01.jpg`,
   },
   {
     title: 'Laptop Running Slow: Practical Performance Recovery',
@@ -43,6 +66,7 @@ const EVERGREEN_GUIDES = [
     pubDate: new Date('2026-09-05T00:00:00Z').toUTCString(),
     category: 'Computer Maintenance',
     author: BRAND_NAME,
+    image: `${BRAND_SITE_URL}/assets/images/slide01.jpg`,
   },
   {
     title: 'Water Damage Response: First 60 Minutes Checklist for Mobile Devices',
@@ -52,6 +76,7 @@ const EVERGREEN_GUIDES = [
     pubDate: new Date('2026-09-10T00:00:00Z').toUTCString(),
     category: 'Emergency Guide',
     author: BRAND_NAME,
+    image: `${BRAND_SITE_URL}/assets/images/slide01.jpg`,
   },
   {
     title: 'Cracked Screen: Repair vs Replace Decision Guide',
@@ -61,6 +86,7 @@ const EVERGREEN_GUIDES = [
     pubDate: new Date('2026-09-15T00:00:00Z').toUTCString(),
     category: 'Mobile Repair',
     author: BRAND_NAME,
+    image: `${BRAND_SITE_URL}/assets/images/slide01.jpg`,
   },
   {
     title: 'Battery Health and Safe Charging Habits in West Africa',
@@ -70,6 +96,7 @@ const EVERGREEN_GUIDES = [
     pubDate: new Date('2026-09-20T00:00:00Z').toUTCString(),
     category: 'Hardware Care',
     author: BRAND_NAME,
+    image: `${BRAND_SITE_URL}/assets/images/slide01.jpg`,
   },
   {
     title: 'Data Backup Before Service: Customer Security Checklist',
@@ -79,37 +106,52 @@ const EVERGREEN_GUIDES = [
     pubDate: new Date('2026-09-25T00:00:00Z').toUTCString(),
     category: 'Data Protection',
     author: BRAND_NAME,
+    image: `${BRAND_SITE_URL}/assets/images/slide01.jpg`,
   },
 ];
 
 export async function GET() {
   const feedUrl = `${BRAND_SITE_URL}/rss.xml`;
   const siteUrl = BRAND_SITE_URL;
-  const siteTitle = `${BRAND_NAME} - Computer & Mobile Repair Guides, Tech News & IT Services Freetown`;
+  const siteTitle = `${BRAND_NAME} - Tech News, Repair Guides & IT Services Freetown`;
   const siteDescription =
-    'Latest technology news, smartphone and computer repair guides, hardware maintenance tips, and professional IT services in Freetown, Sierra Leone.';
+    'Latest Sierra Leone technology news, smartphone and computer repair guides, hardware maintenance tips, and professional IT services in Freetown.';
 
   let blogPosts: any[] = [];
   try {
-    blogPosts = await fetchBlogPosts();
+    blogPosts = await fetchPublishedBlogPosts();
   } catch (error) {
     console.error('Error fetching blog posts for RSS feed:', error);
   }
 
-  // Map blog posts to RSS items
-  const blogItems = (blogPosts || []).map((post) => {
+  // Sort newest first by full ISO timestamp
+  const sortedPosts = [...(blogPosts || [])].sort((a, b) => {
+    const aTime = new Date(a.publishedAt || a.date || 0).getTime();
+    const bTime = new Date(b.publishedAt || b.date || 0).getTime();
+    return bTime - aTime;
+  });
+
+  // Map published blog posts to Google News / Discover compatible RSS items
+  const blogItems = sortedPosts.map((post) => {
     const postLink = `${siteUrl}/blog/${post.id}`;
-    const plainExcerpt = stripHtml(post.content || '').slice(0, 300);
-    const pubDate = toRfc822Date(post.date);
+    const plainExcerpt = stripHtml(post.content || '').slice(0, 320);
+    const pubDate = toRfc822Date(post.publishedAt || post.date);
+    const category = getPostCategory(post) || 'Tech News';
+    const imageUrl = normalizeImageUrl(getPrimaryImage(post));
+    const mimeType = inferImageMimeType(imageUrl);
+    const authorName = post.author || BRAND_NAME;
 
     return `    <item>
       <title>${escapeXml(post.title || 'Tech Update')}</title>
       <link>${escapeXml(postLink)}</link>
       <guid isPermaLink="true">${escapeXml(postLink)}</guid>
       <pubDate>${pubDate}</pubDate>
-      <author>${escapeXml(post.author || BRAND_NAME)}</author>
-      <category>Tech News</category>
-      <description>${escapeXml(plainExcerpt || post.title)}...</description>
+      <dc:creator>${escapeXml(authorName)}</dc:creator>
+      <category>${escapeXml(category)}</category>
+      <description>${escapeXml(plainExcerpt || post.title)}</description>
+      <media:content url="${escapeXml(imageUrl)}" medium="image" type="${mimeType}" width="1200" />
+      <media:thumbnail url="${escapeXml(imageUrl)}" />
+      <enclosure url="${escapeXml(imageUrl)}" type="${mimeType}" length="0" />
       <content:encoded><![CDATA[${post.content || ''}]]></content:encoded>
     </item>`;
   });
@@ -121,29 +163,35 @@ export async function GET() {
       <link>${escapeXml(guide.link)}</link>
       <guid isPermaLink="true">${escapeXml(guide.link)}</guid>
       <pubDate>${guide.pubDate}</pubDate>
-      <author>${escapeXml(guide.author)}</author>
+      <dc:creator>${escapeXml(guide.author)}</dc:creator>
       <category>${escapeXml(guide.category)}</category>
       <description>${escapeXml(guide.description)}</description>
+      <media:content url="${escapeXml(guide.image)}" medium="image" type="image/jpeg" width="1200" />
+      <enclosure url="${escapeXml(guide.image)}" type="image/jpeg" length="0" />
       <content:encoded><![CDATA[<p>${guide.description}</p><p><a href="${guide.link}">Read full guide on BridgeTech IT Services</a></p>]]></content:encoded>
     </item>`;
   });
 
   const allItems = [...blogItems, ...guideItems].join('\n');
-  const lastBuildDate = new Date().toUTCString();
+  const lastBuildDate = sortedPosts[0]
+    ? toRfc822Date(sortedPosts[0].updatedAt || sortedPosts[0].publishedAt || sortedPosts[0].date)
+    : new Date().toUTCString();
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:media="http://search.yahoo.com/mrss/" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
     <title>${escapeXml(siteTitle)}</title>
-    <link>${siteUrl}</link>
+    <link>${siteUrl}/blog</link>
     <description>${escapeXml(siteDescription)}</description>
     <language>en-us</language>
     <lastBuildDate>${lastBuildDate}</lastBuildDate>
+    <ttl>15</ttl>
     <atom:link href="${feedUrl}" rel="self" type="application/rss+xml"/>
+    <atom:link href="https://pubsubhubbub.appspot.com/" rel="hub"/>
     <image>
       <url>${siteUrl}/assets/images/slide01.jpg</url>
       <title>${escapeXml(BRAND_NAME)}</title>
-      <link>${siteUrl}</link>
+      <link>${siteUrl}/blog</link>
     </image>
 ${allItems}
   </channel>
@@ -152,8 +200,8 @@ ${allItems}
   return new NextResponse(xml, {
     status: 200,
     headers: {
-      'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400',
+      'Content-Type': 'application/rss+xml; charset=utf-8',
+      'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
     },
   });
 }

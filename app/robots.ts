@@ -50,7 +50,17 @@ export default function robots(): MetadataRoute.Robots {
       },
       {
         userAgent: 'Googlebot',
-        allow: ['/', '/ads.txt'],
+        allow: ['/', '/ads.txt', '/rss.xml', '/feed.xml', '/sitemap.xml', '/news-sitemap.xml'],
+        disallow: blockedPaths,
+      },
+      {
+        userAgent: 'Googlebot-News',
+        allow: ['/', '/blog/', '/news-sitemap.xml', '/rss.xml', '/feed.xml'],
+        disallow: blockedPaths,
+      },
+      {
+        userAgent: 'Googlebot-Image',
+        allow: ['/'],
         disallow: blockedPaths,
       },
       {
@@ -72,6 +82,9 @@ export default function robots(): MetadataRoute.Robots {
         allow: ['/'],
       },
     ],
-    sitemap: 'https://www.itservicesfreetown.com/sitemap.xml',
+    sitemap: [
+      'https://www.itservicesfreetown.com/sitemap.xml',
+      'https://www.itservicesfreetown.com/news-sitemap.xml',
+    ],
   };
 }

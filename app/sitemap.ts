@@ -1,15 +1,15 @@
 import { MetadataRoute } from 'next';
 import { prisma } from '@/lib/prisma';
-import { fetchBlogPosts } from '@/lib/github-blog-storage';
+import { fetchPublishedBlogPosts } from '@/lib/github-blog-storage';
 import { seoServices } from '@/data/seo-services';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 3600; // Revalidate every hour
+export const revalidate = 60; // Revalidate every 60s so newly published posts appear promptly
 
-// Fetch blog posts from GitHub Issues API
+// Fetch published blog posts (excludes [DRAFT] posts) from GitHub Issues API
 async function getBlogPosts() {
   try {
-    return await fetchBlogPosts();
+    return await fetchPublishedBlogPosts();
   } catch (error) {
     console.error('Error fetching blog posts for sitemap:', error);
     return [];
@@ -211,12 +211,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.85,
   }));
 
-  // Blog post pages from GitHub Issues
+  // Published blog post pages from GitHub Issues (newest updated timestamps & high crawl priority)
   const blogPages: MetadataRoute.Sitemap = blogPosts.map((post: any) => ({
     url: `${baseUrl}/blog/${post.id}`,
-    lastModified: post.date ? new Date(post.date) : new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: 0.75,
+    lastModified: post.updatedAt || post.publishedAt || post.date
+      ? new Date(post.updatedAt || post.publishedAt || post.date)
+      : new Date(),
+    changeFrequency: 'daily' as const,
+    priority: 0.85,
   }));
 
   return [...staticPages, ...repairPages, ...blogPages, ...productPages];

@@ -11,7 +11,7 @@ import {
   ThumbsUp,
   User,
 } from 'lucide-react'
-import { fetchBlogPosts, fetchPostComments } from '@/lib/github-blog-storage'
+import { fetchPublishedBlogPosts, fetchPostComments } from '@/lib/github-blog-storage'
 import { DisplayAd, InArticleAd, MultiplexAd } from '@/components/AdSense'
 import ArticleInteractions from './ArticleInteractions'
 import styles from '../blog.module.css'
@@ -37,10 +37,14 @@ function getTagClass(category: string) {
   return styles.tagInsight
 }
 
+// Enable on-demand rendering + 60s revalidation so newly published blog posts are immediately crawlable by Google
+export const dynamicParams = true
+export const revalidate = 60
+
 // Pre-generate all known blog post paths at build time so Google can crawl them
 export async function generateStaticParams() {
   try {
-    const posts = await fetchBlogPosts()
+    const posts = await fetchPublishedBlogPosts()
     return posts.map((post) => ({ id: post.id }))
   } catch {
     return []
@@ -49,7 +53,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
-    const posts = await fetchBlogPosts()
+    const posts = await fetchPublishedBlogPosts()
     const post = posts.find((entry) => entry.id === params.id)
 
     if (!post) {
@@ -63,6 +67,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const contentPreview = getExcerpt(post.content, 200)
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.itservicesfreetown.com'
     const canonicalUrl = `${baseUrl}/blog/${params.id}`
+    const category = getPostCategory(post)
+    const publishedTime = post.publishedAt || post.date
+    const modifiedTime = post.updatedAt || publishedTime
 
     // Direct image URL for OG preview (prevents Vercel serverless image rendering origin transfer)
     const primaryImg = getPrimaryImage(post);
@@ -80,6 +87,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: contentPreview,
       alternates: {
         canonical: canonicalUrl,
+        types: {
+          'application/rss+xml': `${baseUrl}/rss.xml`,
+        },
       },
       openGraph: {
         type: 'article',
@@ -90,10 +100,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         images: [
           {
             url: blogImage,
+            width: 1200,
+            height: 630,
             alt: post.title,
           },
         ],
-        publishedTime: post.date,
+        publishedTime,
+        modifiedTime,
+        section: category,
         authors: [post.author],
       },
       twitter: {
@@ -110,6 +124,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           follow: true,
           'max-snippet': -1,
           'max-image-preview': 'large',
+          'max-video-preview': -1,
         },
       },
     }
@@ -123,7 +138,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function BlogPostPage({ params }: Props) {
-  const posts = await fetchBlogPosts()
+  const posts = await fetchPublishedBlogPosts()
   const post = posts.find((entry) => entry.id === params.id)
 
   if (!post) {
@@ -335,20 +350,29 @@ export default async function BlogPostPage({ params }: Props) {
               dangerouslySetInnerHTML={{
                 __html: JSON.stringify({
                   '@context': 'https://schema.org',
-                  '@type': 'BlogPosting',
+                  '@type': ['NewsArticle', 'BlogPosting'],
                   headline: post.title,
                   description: leadExcerpt,
+                  image: [heroImage || 'https://www.itservicesfreetown.com/assets/images/slide01.jpg'],
                   author: {
-                    '@type': 'Person',
+                    '@type': 'Organization',
                     name: post.author,
+                    url: 'https://www.itservicesfreetown.com/about',
                   },
                   publisher: {
                     '@type': 'Organization',
                     name: 'BridgeTech IT Services',
                     url: 'https://www.itservicesfreetown.com',
+                    logo: {
+                      '@type': 'ImageObject',
+                      url: 'https://www.itservicesfreetown.com/assets/bridgetech-social-transparent.png',
+                    },
                   },
-                  datePublished: post.date,
-                  dateModified: post.date,
+                  datePublished: post.publishedAt || post.date,
+                  dateModified: post.updatedAt || post.publishedAt || post.date,
+                  articleSection: category,
+                  inLanguage: 'en',
+                  isAccessibleForFree: true,
                   url: `https://www.itservicesfreetown.com/blog/${params.id}`,
                   mainEntityOfPage: {
                     '@type': 'WebPage',

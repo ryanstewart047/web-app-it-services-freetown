@@ -52,6 +52,8 @@ interface BlogPost {
   content: string
   author: string
   date: string
+  publishedAt?: string
+  updatedAt?: string
   likes: number
   dislikes: number
   media?: any[]
@@ -101,6 +103,8 @@ export async function fetchBlogPosts(): Promise<BlogPost[]> {
         content: parsedContent,
         author: normalizeBlogAuthor(metadata.author),
         date: new Date(issue.created_at).toISOString().split('T')[0],
+        publishedAt: issue.created_at,
+        updatedAt: issue.updated_at,
         likes: issue.reactions['+1'] || 0,
         dislikes: issue.reactions['-1'] || 0,
         media: metadata.media,
@@ -114,6 +118,14 @@ export async function fetchBlogPosts(): Promise<BlogPost[]> {
     console.error('Error fetching blog posts:', error)
     return []
   }
+}
+
+/**
+ * Fetch only published blog posts (excludes [DRAFT] issues) for search engines, sitemaps, and RSS feeds.
+ */
+export async function fetchPublishedBlogPosts(): Promise<BlogPost[]> {
+  const posts = await fetchBlogPosts()
+  return posts.filter((post) => !post.title.trim().startsWith('[DRAFT]'))
 }
 
 /**

@@ -649,9 +649,18 @@ export default function BlogAdminPage() {
 
       if (result.success) {
         setPublishProgress(100)
-        toast.success(editingPostId ? '✅ Blog post updated successfully!' : '✅ Blog post published to GitHub Issues!')
+        toast.success(editingPostId ? '✅ Blog post updated successfully!' : '✅ Blog post published! Notifying Google News & RSS feeds...')
         localStorage.removeItem('blog_auto_save');
         setLastAutoSaved(null);
+
+        // Immediately revalidate feeds/sitemaps and ping Google WebSub hub for instant indexing
+        fetch('/api/admin/blog/notify-search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            postId: editingPostId || ('issueNumber' in result ? result.issueNumber : null),
+          }),
+        }).catch(() => {});
         
         setTimeout(() => {
           setIsPublishing(false)
