@@ -9,6 +9,8 @@
  * 5. BridgeTech IT Services local industry perspective (Freetown, Sierra Leone).
  */
 
+import { CURATED_SL_TECH_TOPICS } from './sl-tech-news-finder';
+
 export interface DiscoveredSource {
   title: string;
   url: string;
@@ -365,6 +367,33 @@ export async function investigateAndGenerateStory(
     factualPoints.push(...matchedTopic.facts);
     discoveredSources.push(...matchedTopic.sources);
     discoveredImages.push(...matchedTopic.images);
+  } else {
+    // Check CURATED_SL_TECH_TOPICS from sl-tech-news-finder
+    const matchedCurated = CURATED_SL_TECH_TOPICS.find((t) =>
+      lowerQuery.includes(t.id.toLowerCase()) ||
+      lowerQuery.includes(t.title.toLowerCase()) ||
+      t.title.toLowerCase().split(/\s+/).filter(w => w.length > 5).some(w => lowerQuery.includes(w))
+    );
+    if (matchedCurated) {
+      console.log(`[Blog Investigator] Matched curated SL tech topic: "${matchedCurated.title}"`);
+      factualPoints.push(...matchedCurated.keyFacts);
+      if (matchedCurated.sourceUrl) {
+        discoveredSources.push({
+          title: matchedCurated.title,
+          url: matchedCurated.sourceUrl,
+          sourceName: matchedCurated.source,
+        });
+      }
+      if (matchedCurated.imageUrl) {
+        discoveredImages.push({
+          id: matchedCurated.id,
+          type: 'image',
+          url: matchedCurated.imageUrl,
+          caption: matchedCurated.imageCaption || matchedCurated.title,
+          altText: matchedCurated.title,
+        });
+      }
+    }
   }
 
   // Step 2: Live Web Investigation via Google News RSS

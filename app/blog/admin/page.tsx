@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
-import { ArrowLeft, Save, Eye, Upload, X, Image as ImageIcon, Video, Lock, Sparkles, RefreshCw, Trash2, List, Edit } from 'lucide-react'
+import { ArrowLeft, Save, Eye, Upload, X, Image as ImageIcon, Video, Lock, Sparkles, RefreshCw, Trash2, List, Edit, Search, ExternalLink, Globe, Newspaper, Zap, Filter, ChevronRight, CheckCircle2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { createBlogPost, fetchBlogPosts, deleteBlogPost, updateBlogPost } from '@/lib/github-blog-storage'
 import dynamic from 'next/dynamic'
@@ -303,6 +303,14 @@ export default function BlogAdminPage() {
   const [loadingAutomatedDrafts, setLoadingAutomatedDrafts] = useState(false)
   const [runningAutomation, setRunningAutomation] = useState(false)
   const autoSavePromptedRef = React.useRef(false)
+
+  // Sierra Leone Tech News Finder state
+  const [slNewsTopics, setSlNewsTopics] = useState<any[]>([])
+  const [loadingSlNews, setLoadingSlNews] = useState(false)
+  const [slNewsCategory, setSlNewsCategory] = useState('All Categories')
+  const [slNewsSearch, setSlNewsSearch] = useState('')
+  const [showSLNewsFinder, setShowSLNewsFinder] = useState(false)
+  const [slNewsLoaded, setSlNewsLoaded] = useState(false)
 
   useScrollAnimations()
 
@@ -718,14 +726,74 @@ export default function BlogAdminPage() {
     }
   }
 
-  const generateAIContent = async () => {
-    if (!contentPrompt.trim() && !title.trim()) {
+  const loadSierraLeoneTechNews = async (customQuery?: string, cat?: string, forceRefresh = false) => {
+    setLoadingSlNews(true)
+    try {
+      const params = new URLSearchParams()
+      const q = typeof customQuery === 'string' ? customQuery : slNewsSearch
+      const c = cat !== undefined ? cat : slNewsCategory
+
+      if (q && q.trim()) params.append('q', q.trim())
+      if (c && c !== 'All Categories') params.append('category', c)
+      if (forceRefresh) params.append('refresh', 'true')
+
+      const res = await fetch(`/api/admin/blog/sl-tech-news?${params.toString()}`)
+      if (res.ok) {
+        const data = await res.json()
+        if (data.success && Array.isArray(data.topics)) {
+          setSlNewsTopics(data.topics)
+          setSlNewsLoaded(true)
+        }
+      } else {
+        toast.error('Failed to fetch Sierra Leone tech news')
+      }
+    } catch (err: any) {
+      console.warn('[SL Tech News] Fetch failed:', err)
+      toast.error('Failed to connect to tech news finder')
+    } finally {
+      setLoadingSlNews(false)
+    }
+  }
+
+  const handleWriteStoryFromTopic = async (topicItem: any) => {
+    setShowAIHelper(true)
+    setContentPrompt(topicItem.writingPrompt)
+    const newTitle = topicItem.suggestedBlogTitle || topicItem.title
+    setTitle(newTitle)
+    setDeepInvestigate(true)
+
+    // Smooth scroll to top of editor area
+    window.scrollTo({ top: 320, behavior: 'smooth' })
+    toast(`🇸🇱 Investigating: "${topicItem.title.slice(0, 42)}..."`, { duration: 4000 })
+
+    await generateAIContent(topicItem.writingPrompt, newTitle)
+  }
+
+  const handleLoadTopicToPrompt = (topicItem: any) => {
+    setShowAIHelper(true)
+    setContentPrompt(topicItem.writingPrompt)
+    if (!title.trim() || title.trim().length < 15) {
+      setTitle(topicItem.suggestedBlogTitle || topicItem.title)
+    }
+    setDeepInvestigate(true)
+    window.scrollTo({ top: 350, behavior: 'smooth' })
+    toast.success('Topic loaded into AI Writer! Customize prompt or click Generate Complete Story.')
+  }
+
+  const generateAIContent = async (overridePrompt?: string | any, overrideTitle?: string) => {
+    const promptStr = typeof overridePrompt === 'string' ? overridePrompt : ''
+    const rawPrompt = (promptStr || contentPrompt || title).trim()
+    if (!rawPrompt) {
       toast.error('Please provide a topic or title first')
       return
     }
 
     setGeneratingContent(true)
-    const topic = contentPrompt.trim() || title.trim()
+    const topic = rawPrompt
+
+    if (overrideTitle && typeof overrideTitle === 'string' && (!title.trim() || title.trim().length < 15)) {
+      setTitle(overrideTitle)
+    }
 
     try {
       if (deepInvestigate) {
@@ -1523,20 +1591,257 @@ ${htmlContent || content || 'Empty draft'}`
                     </button>
                   </div>
                   
-                  <button
-                    type="button"
-                    onClick={() => setShowAIHelper(!showAIHelper)}
-                    className="flex items-center px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
-                    style={{ 
-                      background: showAIHelper ? 'linear-gradient(135deg, #9333ea 0%, #7c3aed 100%)' : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                      color: 'white'
-                    }}
-                  >
-                    <Sparkles className="w-4 h-4 mr-1" />
-                    {showAIHelper ? 'Hide AI Helper' : 'AI Writer'}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = !showSLNewsFinder
+                        setShowSLNewsFinder(next)
+                        if (next && !slNewsLoaded) {
+                          loadSierraLeoneTechNews()
+                        }
+                      }}
+                      className="flex items-center px-3 py-1.5 text-sm font-semibold rounded-lg transition-all duration-300 hover:scale-105 border border-emerald-400/60 bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-sm"
+                    >
+                      <span className="mr-1.5 text-base leading-none">🇸🇱</span>
+                      {showSLNewsFinder ? 'Hide SL News' : 'Find SL Tech News'}
+                      {slNewsTopics.length > 0 && (
+                        <span className="ml-1.5 px-1.5 py-0.2 bg-emerald-800 text-white font-bold rounded-full text-[10px]">
+                          {slNewsTopics.length}
+                        </span>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowAIHelper(!showAIHelper)}
+                      className="flex items-center px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
+                      style={{ 
+                        background: showAIHelper ? 'linear-gradient(135deg, #9333ea 0%, #7c3aed 100%)' : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                        color: 'white'
+                      }}
+                    >
+                      <Sparkles className="w-4 h-4 mr-1" />
+                      {showAIHelper ? 'Hide AI Helper' : 'AI Writer'}
+                    </button>
+                  </div>
                 </div>
               </div>
+
+              {/* Sierra Leone Tech News & Storyline Finder Section */}
+              {showSLNewsFinder && (
+                <div className="mb-6 p-4 sm:p-6 bg-gradient-to-br from-slate-900 via-slate-950 to-emerald-950 text-white rounded-2xl border-2 border-emerald-500/50 shadow-2xl transition-all">
+                  {/* Finder Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-emerald-800/40">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xl">🇸🇱</span>
+                        <h3 className="font-extrabold text-base sm:text-lg text-emerald-400 flex items-center gap-2">
+                          Sierra Leone Tech News & Storyline Finder
+                          <span className="text-[11px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full font-semibold">
+                            Live & Curated
+                          </span>
+                        </h3>
+                      </div>
+                      <p className="text-xs text-slate-300 max-w-2xl">
+                        Discover breaking tech news, MoCTI government policies, 4G/5G fiber expansion, fintech (Orange Money & Afrimoney), and hardware assembly deals in Sierra Leone. Click <strong>&quot;Write Story with AI&quot;</strong> to instantly investigate and write a complete blog post!
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => loadSierraLeoneTechNews(slNewsSearch, slNewsCategory, true)}
+                        disabled={loadingSlNews}
+                        className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${loadingSlNews ? 'animate-spin' : ''}`} />
+                        {loadingSlNews ? 'Scanning...' : 'Refresh Live News'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowSLNewsFinder(false)}
+                        className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors"
+                        title="Close Finder"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Search & Category Filter Bar */}
+                  <div className="space-y-3 mb-5">
+                    {/* Search Input */}
+                    <div className="relative">
+                      <Search className="w-4 h-4 text-emerald-400 absolute left-3.5 top-3" />
+                      <input
+                        type="text"
+                        value={slNewsSearch}
+                        onChange={(e) => setSlNewsSearch(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            loadSierraLeoneTechNews(e.currentTarget.value, slNewsCategory)
+                          }
+                        }}
+                        placeholder="Search Sierra Leone tech topics (e.g., 'Starlink', 'Unique Group', 'Fiber', 'MoCTI', 'Fintech', 'Assembly')..."
+                        className="w-full pl-10 pr-24 py-2 bg-slate-800/90 border border-emerald-500/30 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+                      />
+                      <div className="absolute right-1.5 top-1.5 flex items-center gap-1">
+                        {slNewsSearch && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSlNewsSearch('')
+                              loadSierraLeoneTechNews('', slNewsCategory)
+                            }}
+                            className="text-xs text-slate-400 hover:text-white px-1.5 py-1"
+                          >
+                            Clear
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => loadSierraLeoneTechNews(slNewsSearch, slNewsCategory)}
+                          className="text-xs bg-emerald-600/80 hover:bg-emerald-500 text-white font-medium px-2.5 py-1 rounded-lg transition-colors"
+                        >
+                          Search
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Category Pills */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin text-xs">
+                      {[
+                        'All Categories',
+                        'Digital Governance & MoCTI',
+                        'Hardware & Assembly',
+                        'Telecom & 4G/5G',
+                        'FinTech & Payments',
+                        'Cybersecurity & Enterprise',
+                        'Green Tech & Power',
+                        'Startups & Youth STEM',
+                      ].map((cat) => (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => {
+                            setSlNewsCategory(cat)
+                            loadSierraLeoneTechNews(slNewsSearch, cat)
+                          }}
+                          className={`whitespace-nowrap px-3 py-1 rounded-lg font-medium transition-all ${
+                            slNewsCategory === cat
+                              ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
+                              : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700/60'
+                          }`}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Content / Cards Grid */}
+                  {loadingSlNews ? (
+                    <div className="py-12 text-center text-slate-400">
+                      <RefreshCw className="w-8 h-8 animate-spin mx-auto text-emerald-400 mb-2" />
+                      <p className="text-sm font-medium text-slate-300">Scanning Sierra Leone tech news & MoCTI dossiers...</p>
+                      <p className="text-xs text-slate-500 mt-1">Checking live Google News RSS and verified national tech reports</p>
+                    </div>
+                  ) : slNewsTopics.length === 0 ? (
+                    <div className="py-8 text-center border border-dashed border-emerald-900/50 rounded-xl bg-slate-900/40">
+                      <p className="text-slate-300 text-sm">No topics found matching &quot;{slNewsSearch}&quot;.</p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSlNewsSearch('')
+                          setSlNewsCategory('All Categories')
+                          loadSierraLeoneTechNews('', 'All Categories')
+                        }}
+                        className="mt-2 text-xs text-emerald-400 hover:underline font-semibold"
+                      >
+                        Reset filters and show all topics
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[580px] overflow-y-auto pr-1">
+                      {slNewsTopics.map((topic) => (
+                        <div
+                          key={topic.id}
+                          className="flex flex-col justify-between p-4 bg-slate-800/80 border border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-sm group hover:bg-slate-800"
+                        >
+                          <div>
+                            {/* Category & Source Header */}
+                            <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                                {topic.category}
+                              </span>
+                              <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                                <span className="truncate max-w-[140px] font-medium text-slate-300">{topic.source}</span>
+                                <span>•</span>
+                                <span>{topic.pubDate}</span>
+                              </div>
+                            </div>
+
+                            {/* Title */}
+                            <h4 className="font-bold text-white text-sm sm:text-base leading-snug mb-2 group-hover:text-emerald-300 transition-colors">
+                              {topic.title}
+                            </h4>
+
+                            {/* Summary */}
+                            <p className="text-xs text-slate-300 leading-relaxed mb-3 line-clamp-3">
+                              {topic.summary}
+                            </p>
+
+                            {/* Suggested Angle */}
+                            {topic.suggestedAngle && (
+                              <div className="mb-3 p-2 rounded-lg bg-emerald-950/40 border border-emerald-500/20 text-[11px] text-emerald-200">
+                                <strong className="text-emerald-400">💡 Suggested Angle:</strong> {topic.suggestedAngle}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Actions Footer */}
+                          <div className="pt-3 border-t border-slate-700/60 flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleWriteStoryFromTopic(topic)}
+                                disabled={generatingContent}
+                                className="px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs rounded-lg transition-all shadow-sm flex items-center gap-1 hover:scale-[1.02] disabled:opacity-50"
+                                title="Investigate this topic and write a full story with AI"
+                              >
+                                <Sparkles className="w-3.5 h-3.5 text-slate-950" />
+                                Write Story with AI
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleLoadTopicToPrompt(topic)}
+                                className="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs rounded-lg transition-colors flex items-center gap-1"
+                                title="Copy topic and prompt into AI Writer box"
+                              >
+                                Use as Prompt
+                              </button>
+                            </div>
+
+                            {topic.sourceUrl && (
+                              <a
+                                href={topic.sourceUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[11px] text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 flex-shrink-0"
+                                title="Open original news article"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                                Source
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* AI Content Generator */}
               {showAIHelper && (
@@ -1581,9 +1886,22 @@ ${htmlContent || content || 'Empty draft'}`
 
                       {/* Quick Prompt Suggestion Chips */}
                       <div className="mb-3">
-                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1.5">
-                          💡 Quick Investigation Topics:
-                        </span>
+                        <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block">
+                            💡 Quick Investigation Topics:
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowSLNewsFinder(true)
+                              if (!slNewsLoaded) loadSierraLeoneTechNews()
+                            }}
+                            className="text-xs text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md font-medium inline-flex items-center gap-1 transition-colors"
+                          >
+                            <span>🇸🇱</span>
+                            <span>Browse Sierra Leone Tech News Topics &raquo;</span>
+                          </button>
+                        </div>
                         <div className="flex flex-wrap gap-1.5">
                           {[
                             {
@@ -1626,7 +1944,7 @@ ${htmlContent || content || 'Empty draft'}`
                       <div className="flex space-x-2">
                         <button
                           type="button"
-                          onClick={generateAIContent}
+                          onClick={() => generateAIContent()}
                           disabled={generatingContent}
                           className="flex-1 flex items-center justify-center px-4 py-2.5 rounded-xl font-semibold text-white transition-all duration-300 hover:scale-[1.02] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                           style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' }}
