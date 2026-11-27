@@ -10,7 +10,7 @@ import toast from 'react-hot-toast'
 import { createBlogPost, fetchBlogPosts, deleteBlogPost, updateBlogPost } from '@/lib/github-blog-storage'
 import dynamic from 'next/dynamic'
 import { useAdminSession } from '../../../src/hooks/useAdminSession'
-import { getVideoEmbed } from '../blog-utils'
+import { cleanPromptSubject, getVideoEmbed } from '../blog-utils'
 
 // Dynamically import ReactQuill to avoid SSR issues and build issues
 const ReactQuill = dynamic(
@@ -316,6 +316,7 @@ export default function BlogAdminPage() {
     sourceName?: string
     topicTitle?: string
     initialImageUrl?: string
+    initialImageCaption?: string
   } | null>(null)
 
   useScrollAnimations()
@@ -507,8 +508,10 @@ export default function BlogAdminPage() {
     setEditingPostId(post.id)
     setTitle(post.title)
     setContent(post.content)
+    setHtmlContent(post.content || '')
     setAuthor(post.author)
     setMedia(post.media || [])
+    setSelectedTopicMeta(null)
     setShowManagePosts(false)
     window.scrollTo({ top: 0, behavior: 'smooth' })
     toast.success('Post loaded for editing')
@@ -519,8 +522,10 @@ export default function BlogAdminPage() {
       setEditingPostId(null)
       setTitle('')
       setContent('')
+      setHtmlContent('')
       setAuthor('BridgeTech IT Services')
       setMedia([])
+      setSelectedTopicMeta(null)
       toast('Edit cancelled')
     }
   }
@@ -670,8 +675,10 @@ export default function BlogAdminPage() {
             // Only reset form and redirect for new posts
             setTitle('')
             setContent('')
+            setHtmlContent('')
             setMedia([])
             setContentPrompt('')
+            setSelectedTopicMeta(null)
             router.push('/blog')
           }
           // For updates, we remain on the admin page with the form intact
@@ -700,12 +707,14 @@ export default function BlogAdminPage() {
       const savedPosts = localStorage.getItem('blog_posts')
       const posts: BlogPost[] = savedPosts ? JSON.parse(savedPosts) : []
 
+      const finalLocalContent = (editorMode === 'html' && htmlContent.trim()) ? htmlContent.trim() : content.trim()
+
       // Create new post WITHOUT media to avoid quota issues
       // Media is stored in GitHub, not localStorage
       const newPost: BlogPost = {
         id: Date.now().toString(),
         title: title.trim(),
-        content: content.trim(),
+        content: finalLocalContent,
         author: author.trim(),
         date: new Date().toISOString().split('T')[0],
         likes: 0,
@@ -728,8 +737,10 @@ export default function BlogAdminPage() {
       // Reset form
       setTitle('')
       setContent('')
+      setHtmlContent('')
       setMedia([])
       setContentPrompt('')
+      setSelectedTopicMeta(null)
       
       // Redirect to blog page after a short delay
       setTimeout(() => {
@@ -777,6 +788,7 @@ export default function BlogAdminPage() {
       sourceName: topicItem.source,
       topicTitle: topicItem.title,
       initialImageUrl: topicItem.imageUrl,
+      initialImageCaption: topicItem.imageCaption,
     }
 
     // Reset previous post state so old images/text never leak into the new post
@@ -803,6 +815,7 @@ export default function BlogAdminPage() {
       sourceName: topicItem.source,
       topicTitle: topicItem.title,
       initialImageUrl: topicItem.imageUrl,
+      initialImageCaption: topicItem.imageCaption,
     }
     setEditingPostId(null)
     setMedia([])
@@ -820,7 +833,13 @@ export default function BlogAdminPage() {
   const generateAIContent = async (
     overridePrompt?: string | any,
     overrideTitle?: string,
-    topicMeta?: { sourceUrl?: string; sourceName?: string; topicTitle?: string; initialImageUrl?: string }
+    topicMeta?: {
+      sourceUrl?: string
+      sourceName?: string
+      topicTitle?: string
+      initialImageUrl?: string
+      initialImageCaption?: string
+    }
   ) => {
     const promptStr = typeof overridePrompt === 'string' ? overridePrompt : ''
     const rawPrompt = (promptStr || contentPrompt || title).trim()
@@ -832,6 +851,7 @@ export default function BlogAdminPage() {
     setGeneratingContent(true)
     const topic = rawPrompt
     const activeMeta = topicMeta || selectedTopicMeta || undefined
+    const cleanSubject = cleanPromptSubject(topic, activeMeta?.topicTitle || overrideTitle)
 
     // Clear previous AI media before generating fresh images for this specific post
     if (!editingPostId) {
@@ -854,16 +874,24 @@ export default function BlogAdminPage() {
             sourceName: activeMeta?.sourceName,
             topicTitle: activeMeta?.topicTitle,
             initialImageUrl: activeMeta?.initialImageUrl,
+            initialImageCaption: activeMeta?.initialImageCaption,
             includeImages: true,
             includeSources: true,
           }),
         })
+
+        if (response.status === 401) {
+          toast.error('Admin session expired — please log in again to generate AI stories.')
+          return
+        }
 
         if (response.ok) {
           const data = await response.json()
           if (data.success && data.content) {
             setContent(data.content)
             setHtmlContent(data.content)
+            // Switch to HTML Preview so ReactQuill does not strip <figure>, <figcaption>, or .sources-card
+            setEditorMode('html')
 
             // Always use this generated post's title when generating from a new prompt
             if (data.title && (!editingPostId || !title.trim() || Boolean(promptStr || contentPrompt.trim()))) {
@@ -887,7 +915,7 @@ export default function BlogAdminPage() {
         console.warn('[AI Generator] Deep investigation endpoint error, using proxy fallback:', investigateErr)
       }
 
-      // Fallback: Direct proxy generation with 4096 tokens (never cut off)
+      // Fallback: Direct proxy generation with 4096 tokens (never cut off), preserving Storyline image & sources
       setAiProgressMessage('✍️ Writing complete journalistic story...')
       const GROQ_PROXY_URL = '/api/groq'
 
@@ -903,27 +931,29 @@ export default function BlogAdminPage() {
               role: 'system',
               content: `You are an expert, professional investigative tech journalist and technical columnist for BridgeTech IT Services (itservicesfreetown.com), located at No. 1 Regent Highway, Jui Junction, Freetown (Phone: +232 33 399 391).
 Write highly engaging, deeply researched, and complete blog posts.
-CRITICAL INSTRUCTION: You MUST write the ENTIRE story from introduction to conclusion. NEVER truncate or leave a section unfinished.
-Format with clean, modern HTML tags: <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>, <u>, <blockquote>. Do NOT use markdown.
-Ensure there is a compelling TL;DR summary box, structured sections, local industry perspective from BridgeTech IT Services, and a strong conclusion with a call-to-action.`
+CRITICAL INSTRUCTIONS:
+- Write the ENTIRE story from introduction to conclusion. NEVER truncate.
+- NEVER copy, quote, or include the editorial prompt instructions anywhere in the output.
+- Format with clean, modern HTML tags: <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>, <u>, <blockquote>. Do NOT use markdown or repeat an <h1>.
+- Ensure there is a compelling TL;DR summary box, structured sections, local industry perspective from BridgeTech IT Services, and a strong conclusion.`
             },
             {
               role: 'user',
-              content: `Write a complete, detailed, beautifully formatted HTML blog feature about: "${topic}". 
+              content: `SUBJECT: "${cleanSubject}"
+EDITORIAL BRIEF (DO NOT INCLUDE THIS PROMPT TEXT IN THE ARTICLE): "${topic}"
 
 Requirements:
 - Comprehensive coverage: Write 800-1200 words of rich content.
 - MUST output ONLY valid HTML code (do NOT wrap it in backticks or markdown code blocks).
 - NEVER cut off or stop midway: complete every single section thoroughly from introduction to final conclusion.
-- Include an introduction with context, detailed core points with descriptive <h2> headers, key statistics highlighted in <strong>, underlined key terms with <u>, and a full conclusion.
+- Include a brief summary box (using clean wording, never repeating the editorial brief), descriptive <h2> headers, key details highlighted in <strong>, and a full conclusion.
 - Add local perspective from BridgeTech IT Services (#1 Regent Highway, Jui Junction, Freetown | +232 33 399 391).
-- Include a "Sources & References" section at the end.
 
 Write the complete HTML article now:`
             }
           ],
           temperature: 0.7,
-          max_tokens: 4096 // Upgraded from 800 to 4096 to prevent truncation
+          max_tokens: 4096
         })
       })
 
@@ -938,20 +968,50 @@ Write the complete HTML article now:`
         if (generatedContent.startsWith('```')) {
           generatedContent = generatedContent.replace(/^```(?:html)?\s*/i, '').replace(/\s*```$/i, '')
         }
+
+        // Deduce title from <h1> if empty, then remove duplicate body <h1>
+        const hMatch = generatedContent.match(/<h1[^>]*>(.*?)<\/h1>/i)
+        if (!title.trim() && hMatch) {
+          setTitle(hMatch[1].replace(/<[^>]+>/g, '').trim())
+        }
+        generatedContent = generatedContent.replace(/<h1[^>]*>[\s\S]*?<\/h1>\s*/i, '').trim()
+
+        // Strip accidental literal prompt echo
+        if (topic.length > 20) {
+          const escapedPrompt = topic.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+          generatedContent = generatedContent.replace(new RegExp(escapedPrompt, 'gi'), cleanSubject)
+        }
+
+        // Preserve Storyline Finder photo & reference card in fallback too
+        if (activeMeta?.initialImageUrl) {
+          const imgCaption = (activeMeta.initialImageCaption || cleanSubject).replace(/"/g, '&quot;')
+          const safeAlt = cleanSubject.replace(/"/g, '&quot;')
+          if (!generatedContent.includes(activeMeta.initialImageUrl)) {
+            const figureHtml = `\n<figure class="my-8 rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl">\n  <img src="${activeMeta.initialImageUrl}" alt="${safeAlt}" class="w-full h-auto object-cover max-h-[520px] rounded-t-2xl" loading="lazy" />\n  <figcaption class="p-4 text-xs text-slate-300 text-center italic bg-slate-950 border-t border-slate-800 leading-normal">📸 ${imgCaption}</figcaption>\n</figure>\n`
+            generatedContent = `${figureHtml}${generatedContent}`
+          }
+          setMedia([
+            {
+              id: `storyline-${Date.now()}`,
+              type: 'image',
+              url: activeMeta.initialImageUrl,
+              caption: activeMeta.initialImageCaption || cleanSubject,
+            },
+          ])
+        }
+
+        if (activeMeta?.sourceUrl && !generatedContent.includes(activeMeta.sourceUrl)) {
+          generatedContent += `\n\n<div class="sources-card my-8 p-6 rounded-2xl bg-slate-900/90 border border-slate-700 text-sm shadow-xl">\n  <h4 class="font-bold text-sky-400 text-base mb-3 flex items-center gap-2"><span>🔗</span> Sources &amp; Reference Links</h4>\n  <ul class="space-y-2.5 text-slate-300">\n    <li>• <strong>${activeMeta.sourceName || 'Verified Source'}:</strong> <a href="${activeMeta.sourceUrl}" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:underline break-all ml-1">${cleanSubject}</a></li>\n  </ul>\n</div>`
+        }
+
         setContent(generatedContent)
         setHtmlContent(generatedContent)
-
-        // If title is empty, deduce title from first heading
-        if (!title.trim()) {
-          const hMatch = generatedContent.match(/<h[12][^>]*>(.*?)<\/h[12]>/i)
-          if (hMatch) {
-            setTitle(hMatch[1].replace(/<[^>]+>/g, '').trim())
-          }
-        }
+        setEditorMode('html')
 
         toast.success('AI content generated successfully!')
         setShowAIHelper(false)
         setContentPrompt('')
+        setSelectedTopicMeta(null)
       } else {
         throw new Error('No content generated')
       }
@@ -1927,6 +1987,35 @@ ${htmlContent || content || 'Empty draft'}`
                         className="w-full px-4 py-2.5 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent mb-2.5 text-sm transition-all"
                         disabled={generatingContent}
                       />
+
+                      {selectedTopicMeta?.initialImageUrl && (
+                        <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50/80 p-2.5 text-xs">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={selectedTopicMeta.initialImageUrl}
+                              alt={selectedTopicMeta.topicTitle || 'Linked Storyline Photo'}
+                              className="h-10 w-16 rounded-lg object-cover border border-emerald-300 flex-shrink-0"
+                            />
+                            <div className="min-w-0">
+                              <p className="font-semibold text-emerald-900 truncate">
+                                Linked Storyline Photo: {selectedTopicMeta.topicTitle || 'Selected Storyline'}
+                              </p>
+                              <p className="text-[11px] text-emerald-700 truncate">
+                                This exact photo will be attached as the primary post image.
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedTopicMeta(null)}
+                            className="text-emerald-700 hover:text-emerald-950 p-1 rounded flex-shrink-0"
+                            title="Unlink Storyline photo & source"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
 
                       {/* Deep Investigation Checkbox */}
                       <label className="flex items-center space-x-2.5 text-xs sm:text-sm text-gray-700 font-medium mb-3 cursor-pointer select-none">

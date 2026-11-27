@@ -33,6 +33,8 @@ export async function POST(request: NextRequest) {
     const sourceName = typeof body.sourceName === 'string' ? body.sourceName.trim() : undefined;
     const topicTitle = typeof body.topicTitle === 'string' ? body.topicTitle.trim() : undefined;
     const initialImageUrl = typeof body.initialImageUrl === 'string' ? body.initialImageUrl.trim() : undefined;
+    const initialImageCaption =
+      typeof body.initialImageCaption === 'string' ? body.initialImageCaption.trim() : undefined;
 
     console.log(`[API Blog Generate] Initiating story generation for: "${topicTitle || topic}"`);
 
@@ -43,6 +45,7 @@ export async function POST(request: NextRequest) {
       sourceName,
       topicTitle,
       initialImageUrl,
+      initialImageCaption,
     });
 
     return NextResponse.json({

@@ -9,7 +9,13 @@
  * 5. BridgeTech IT Services local industry perspective (Freetown, Sierra Leone).
  */
 
-import { CURATED_SL_TECH_TOPICS, resolveGoogleNewsUrl } from './sl-tech-news-finder';
+import {
+  CURATED_SL_TECH_TOPICS,
+  getCategoryFallbackImages,
+  resolveGoogleNewsUrl,
+  verifyReachableImageUrl,
+} from './sl-tech-news-finder';
+import { cleanPromptSubject } from '../../app/blog/blog-utils';
 
 export interface DiscoveredSource {
   title: string;
@@ -156,6 +162,15 @@ async function extractPhotosFromSourceWebpage(
       return { images: [] };
     }
 
+    try {
+      const parsedUrl = new URL(url);
+      if (!parsedUrl.pathname || parsedUrl.pathname === '/') {
+        return { images: [] };
+      }
+    } catch {
+      return { images: [] };
+    }
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 4000);
 
@@ -173,7 +188,7 @@ async function extractPhotosFromSourceWebpage(
     if (!res.ok) return { images: [] };
 
     const html = await res.text();
-    const images: DiscoveredImage[] = [];
+    const rawCandidates: Array<{ url: string; label: string }> = [];
     const seenUrls = new Set<string>();
 
     const ogTitle =
@@ -196,7 +211,7 @@ async function extractPhotosFromSourceWebpage(
     const titleText = ogTitle ? ogTitle[1].replace(/&#8211;|&amp;|&quot;|&#39;|-/g, ' ').trim() : 'Source Article';
 
     const pushCandidate = (rawImgUrl: string, label: string) => {
-      let absUrl = rawImgUrl.trim();
+      let absUrl = rawImgUrl.trim().replace(/&amp;/g, '&');
       if (!absUrl || absUrl.startsWith('data:')) return;
       try {
         absUrl = new URL(absUrl, url).href;
@@ -211,13 +226,7 @@ async function extractPhotosFromSourceWebpage(
       }
       if (!seenUrls.has(absUrl)) {
         seenUrls.add(absUrl);
-        images.push({
-          id: `src-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          type: 'image',
-          url: absUrl,
-          caption: `${label} (${hostname}): ${titleText}`,
-          altText: titleText,
-        });
+        rawCandidates.push({ url: absUrl, label });
       }
     };
 
@@ -266,15 +275,34 @@ async function extractPhotosFromSourceWebpage(
     }
 
     // 4. Fallback: Look for main content <article> <img> tags
-    if (images.length === 0) {
+    if (rawCandidates.length === 0) {
       const articleMatch = html.match(/<article[\s\S]*?<\/article>/i);
       const searchScope = articleMatch ? articleMatch[0] : html;
       const imgRegex = /<img[^>]+src=["']([^"']+\.(?:jpg|jpeg|png|webp)[^"']*)["']/gi;
       let m: RegExpExecArray | null;
-      while ((m = imgRegex.exec(searchScope)) !== null && images.length < 2) {
+      while ((m = imgRegex.exec(searchScope)) !== null && rawCandidates.length < 3) {
         pushCandidate(m[1], 'Article photograph');
       }
     }
+
+    // Verify top candidates are reachable HTTP 2xx images before returning them
+    const verifiedChecks = await Promise.all(
+      rawCandidates.slice(0, 3).map(async (c) => ({
+        candidate: c,
+        ok: await verifyReachableImageUrl(c.url),
+      }))
+    );
+
+    const images: DiscoveredImage[] = verifiedChecks
+      .filter((entry) => entry.ok)
+      .slice(0, 2)
+      .map((entry) => ({
+        id: `src-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        type: 'image' as const,
+        url: entry.candidate.url,
+        caption: `${entry.candidate.label} (${hostname}): ${titleText}`,
+        altText: titleText,
+      }));
 
     // Extract brief article lead text for factual grounding
     let excerpt = ogDesc ? ogDesc[1].replace(/<[^>]+>/g, ' ').trim() : '';
@@ -362,178 +390,100 @@ async function fetchWikimediaRealisticPhotos(query: string): Promise<DiscoveredI
 }
 
 /**
- * Get curated, realistic high-res technical imagery for contextual fallback
+ * Get verified realistic imagery for contextual fallback (reusing Storyline Finder's verified map)
  */
 function getCuratedTechImages(topic: string): DiscoveredImage[] {
-  const lower = topic.toLowerCase();
+  return getCategoryFallbackImages(topic).map((img) => ({
+    id: img.id,
+    type: 'image' as const,
+    url: img.url,
+    caption: img.caption,
+    altText: img.altText,
+  }));
+}
 
-  if (lower.includes('fintech') || lower.includes('orange money') || lower.includes('afrimoney') || lower.includes('payment') || lower.includes('wallet') || lower.includes('cashless') || lower.includes('bank')) {
-    return [
-      {
-        id: 'mobile-money-retail',
-        type: 'image',
-        url: 'https://images.unsplash.com/photo-1556742049-0a67e557224d?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Mobile wallet transaction and digital point-of-sale checkout accelerating cashless commerce in retail markets.',
-        altText: 'Digital mobile payment transaction on smartphone screen in retail store',
-      },
-      {
-        id: 'secure-financial-network',
-        type: 'image',
-        url: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Encrypted financial data transmission and fintech payment gateway architecture.',
-        altText: 'Digital encryption and security technology concept',
-      },
-    ];
+function escapeHtmlAttr(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/**
+ * Strip duplicate H1 tags and any leaked AI editorial prompt text from generated article HTML.
+ */
+export function stripPromptLeaksFromHtml(
+  html: string,
+  rawPrompt: string,
+  displayTopic: string
+): string {
+  let cleaned = html
+    // Body shouldn't duplicate the page hero <h1>
+    .replace(/<h1[^>]*>[\s\S]*?<\/h1>\s*/i, '');
+
+  const normalizedPrompt = rawPrompt.trim();
+  if (normalizedPrompt.length > 20) {
+    const escapedPrompt = normalizedPrompt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    cleaned = cleaned.replace(new RegExp(escapedPrompt, 'gi'), displayTopic);
   }
 
-  if (lower.includes('fiber') || lower.includes('telecom') || lower.includes('natca') || lower.includes('cable') || lower.includes('broadband') || lower.includes('4g') || lower.includes('5g') || lower.includes('starlink') || lower.includes('satellite') || lower.includes('sierratel') || lower.includes('africell')) {
-    return [
-      {
-        id: 'telecom-cell-tower',
-        type: 'image',
-        url: 'https://upload.wikimedia.org/wikipedia/commons/0/01/Steps_leading_to_Lonestar_telecommunications_tower_along_Redlight-Ganta_Highway.jpg',
-        caption: 'Telecommunications base station tower and transmission infrastructure serving coastal and inland network links.',
-        altText: 'Cellular network communications tower in West Africa',
-      },
-      {
-        id: 'fiber-optic-splicing',
-        type: 'image',
-        url: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80',
-        caption: 'High-speed terrestrial fiber optic data cables and transmission switching equipment interconnecting national communication lines.',
-        altText: 'Fiber optic cables with glowing data illumination in telecommunications exchange',
-      },
-    ];
-  }
+  // Strip common prompt instruction fragments that may sneak into summaries or headings
+  cleaned = cleaned.replace(
+    /\b(?:please\s+)?(?:investigate\s+and\s+write|write|draft|create|generate)\s+(?:a|an|the)\s+[^<>.?!]{5,80}?\b(?:blog\s+post|blog\s+article|feature(?:\s+story|\s+article)?|article|guide|advisory|report)\s+(?:about|on|detailing|explaining|covering|for|regarding)\s+/gi,
+    ''
+  );
 
-  if (lower.includes('cyber') || lower.includes('security') || lower.includes('csirt') || lower.includes('nc3') || lower.includes('ransomware') || lower.includes('data center') || lower.includes('embassy')) {
-    return [
-      {
-        id: 'cybersecurity-monitoring-center',
-        type: 'image',
-        url: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Cyber threat monitoring and real-time network defense operations at an enterprise security operations center (SOC).',
-        altText: 'Cybersecurity monitoring screen with firewall alert diagnostics',
-      },
-      {
-        id: 'enterprise-server-rack',
-        type: 'image',
-        url: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Enterprise server hardware racks with redundant power supplies and hardware firewall switches.',
-        altText: 'Server room data center equipment with illuminated network switches',
-      },
-    ];
-  }
-
-  if (lower.includes('solar') || lower.includes('power') || lower.includes('energy') || lower.includes('inverter') || lower.includes('battery')) {
-    return [
-      {
-        id: 'solar-hybrid-installation',
-        type: 'image',
-        url: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Solar hybrid photovoltaic arrays and lithium storage bank providing clean, uninterrupted power to telecom and server equipment.',
-        altText: 'Commercial solar panels installed for clean technology power generation',
-      },
-      {
-        id: 'solar-panel-array-assembling',
-        type: 'image',
-        url: 'https://upload.wikimedia.org/wikipedia/commons/9/9d/Solar_panels_assembling.jpg',
-        caption: 'Renewable energy engineering: Solar panel assembly and testing for off-grid infrastructure resilience.',
-        altText: 'Solar panel assembly line and testing bench',
-      },
-    ];
-  }
-
-  if (lower.includes('repair') || lower.includes('screen') || lower.includes('motherboard') || lower.includes('laptop') || lower.includes('smartphone') || lower.includes('solder')) {
-    return [
-      {
-        id: 'phone-repair-workbench',
-        type: 'image',
-        url: 'https://images.unsplash.com/photo-1597740985671-2a8a3b80532e?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Precision hardware servicing: Micro-soldering and motherboard component diagnostics at BridgeTech IT Services standards in Freetown.',
-        altText: 'Technician working with micro soldering iron on smartphone motherboard',
-      },
-      {
-        id: 'computer-hardware-repair',
-        type: 'image',
-        url: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Precision hardware diagnostics and motherboard servicing at BridgeTech IT Services in Freetown.',
-        altText: 'Disassembled computer receiving professional motherboard maintenance',
-      },
-    ];
-  }
-
-  if (lower.includes('president') || lower.includes('bio') || lower.includes('ncra') || lower.includes('identity') || lower.includes('nin')) {
-    return [
-      {
-        id: 'president-bio-official',
-        type: 'image',
-        url: 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Julius_Maada_Bio_White_House_delegation_2018_%28cropped%29.jpg',
-        caption: 'H.E. Dr. Julius Maada Bio, President of the Republic of Sierra Leone, championing national digital transformation and technology investment.',
-        altText: 'President Julius Maada Bio of Sierra Leone',
-      },
-      {
-        id: 'digital-governance-infrastructure',
-        type: 'image',
-        url: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Digital public infrastructure interconnecting government ministries, e-services, and citizen identification systems.',
-        altText: 'Digital connectivity map symbolizing government digital transformation',
-      },
-    ];
-  }
-
-  return [
-    {
-      id: 'digital-innovation-africa',
-      type: 'image',
-      url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80',
-      caption: 'Digital innovation in action: Technology professionals collaborating on infrastructure and digital systems.',
-      altText: 'Team of tech professionals collaborating in a modern workspace',
-    },
-    {
-      id: 'freetown-aerial-view',
-      type: 'image',
-      url: 'https://upload.wikimedia.org/wikipedia/commons/4/4c/Freetown-aerialview.jpg',
-      caption: 'Panoramic view of Freetown, Sierra Leone, reflecting the nation’s commercial core and expanding technology landscape.',
-      altText: 'Aerial view of Freetown harbor and commercial cityscape in Sierra Leone',
-    },
-  ];
+  return cleaned.trim();
 }
 
 /**
  * MANDATORY POST-PROCESSOR:
- * Guarantees that EVERY single generated article embeds realistic photos directly in the HTML body.
- * If the LLM omitted image tags or only included text, this function injects the primary and secondary
- * realistic photographs with responsive styling, captions, and source attribution.
+ * Guarantees that EVERY generated article embeds ONLY this post's verified realistic photos
+ * (removing any hallucinated or mismatched images the LLM may have invented).
  */
 export function ensureRealisticPhotosInArticle(
   html: string,
   images: DiscoveredImage[],
-  topic: string,
-  articleTitle?: string
+  topic: string
 ): string {
   if (!images || images.length === 0) {
     return html;
   }
 
-  let updatedHtml = html;
+  const allowedUrls = new Set(images.map((img) => img.url));
+
+  // Remove any hallucinated/unrelated <figure> or standalone <img> tags whose URL isn't in verified `images`
+  let updatedHtml = html.replace(/<figure\b[\s\S]*?<\/figure>/gi, (figBlock) => {
+    const srcMatch = figBlock.match(/<img[^>]+src=["']([^"']+)["']/i);
+    if (!srcMatch || !allowedUrls.has(srcMatch[1])) {
+      return '';
+    }
+    return figBlock;
+  });
+
+  updatedHtml = updatedHtml.replace(/<img\b[^>]*src=["']([^"']+)["'][^>]*>/gi, (imgTag, srcUrl) => {
+    return allowedUrls.has(srcUrl) ? imgTag : '';
+  });
+
   const primaryImg = images[0];
   const secondaryImg = images.length > 1 ? images[1] : null;
+  const safeTopic = escapeHtmlAttr(topic);
 
-  // 1. Check if the primary image is already embedded
-  const hasPrimaryImg = updatedHtml.includes(primaryImg.url);
-  const hasAnyImg = /<img[^>]+src=["'][^"']+["']/i.test(updatedHtml);
-
-  if (!hasPrimaryImg && !hasAnyImg) {
+  // 1. Always embed primaryImg if not already present (never let an unrelated img block injection)
+  if (!updatedHtml.includes(primaryImg.url)) {
+    const safeAlt = escapeHtmlAttr(primaryImg.altText || primaryImg.caption || safeTopic);
+    const safeCaption = escapeHtmlAttr(primaryImg.caption || safeTopic);
     const primaryFigure = `
 <figure class="my-8 rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl">
-  <img src="${primaryImg.url}" alt="${primaryImg.altText || primaryImg.caption || topic}" class="w-full h-auto object-cover max-h-[520px] rounded-t-2xl" loading="lazy" />
+  <img src="${primaryImg.url}" alt="${safeAlt}" class="w-full h-auto object-cover max-h-[520px] rounded-t-2xl" loading="lazy" />
   <figcaption class="p-4 text-xs text-slate-300 text-center italic bg-slate-950 border-t border-slate-800 leading-normal">
-    📸 ${primaryImg.caption || `Official source photograph relating to ${topic}`}
+    📸 ${safeCaption}
   </figcaption>
 </figure>
 `;
 
-    // Inject after the summary box, or after the first </p>, or after </h1>
+    // Inject after the summary box, or after the first </p>, or at the start
     if (updatedHtml.includes('</div>') && /blog-tldr-box|Quick Summary|Key Takeaways/i.test(updatedHtml)) {
       const divEnd = updatedHtml.indexOf('</div>');
       if (divEnd !== -1) {
@@ -544,21 +494,20 @@ export function ensureRealisticPhotosInArticle(
     } else if (updatedHtml.includes('</p>')) {
       const pEnd = updatedHtml.indexOf('</p>');
       updatedHtml = updatedHtml.slice(0, pEnd + 4) + '\n' + primaryFigure + '\n' + updatedHtml.slice(pEnd + 4);
-    } else if (updatedHtml.includes('</h1>')) {
-      const h1End = updatedHtml.indexOf('</h1>');
-      updatedHtml = updatedHtml.slice(0, h1End + 5) + '\n' + primaryFigure + '\n' + updatedHtml.slice(h1End + 5);
     } else {
       updatedHtml = primaryFigure + '\n' + updatedHtml;
     }
   }
 
-  // 2. Check if secondary image can be injected in the second half of the article
-  if (secondaryImg && !updatedHtml.includes(secondaryImg.url)) {
+  // 2. Inject distinct secondary image in the second half of the article
+  if (secondaryImg && secondaryImg.url !== primaryImg.url && !updatedHtml.includes(secondaryImg.url)) {
+    const safeAlt = escapeHtmlAttr(secondaryImg.altText || secondaryImg.caption || safeTopic);
+    const safeCaption = escapeHtmlAttr(secondaryImg.caption || `Technical context for ${safeTopic}`);
     const secondaryFigure = `
 <figure class="my-8 rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl">
-  <img src="${secondaryImg.url}" alt="${secondaryImg.altText || secondaryImg.caption || topic}" class="w-full h-auto object-cover max-h-[460px] rounded-t-2xl" loading="lazy" />
+  <img src="${secondaryImg.url}" alt="${safeAlt}" class="w-full h-auto object-cover max-h-[460px] rounded-t-2xl" loading="lazy" />
   <figcaption class="p-4 text-xs text-slate-300 text-center italic bg-slate-950 border-t border-slate-800 leading-normal">
-    📸 ${secondaryImg.caption || `Technical and infrastructure context for ${topic}`}
+    📸 ${safeCaption}
   </figcaption>
 </figure>
 `;
@@ -754,14 +703,11 @@ export async function investigateAndGenerateStory(
     sourceName?: string;
     topicTitle?: string;
     initialImageUrl?: string;
+    initialImageCaption?: string;
   } = {}
 ): Promise<GeneratedBlogStory> {
   const query = topicInput.trim();
-  const cleanSearchTerm = (options.topicTitle || query)
-    .replace(/^Investigate and write (?:a|an)[^:]*about\s*/i, '')
-    .replace(/^["']|["']$/g, '')
-    .slice(0, 140)
-    .trim();
+  const cleanSearchTerm = cleanPromptSubject(query, options.topicTitle);
   const lowerQuery = `${query} ${options.topicTitle || ''}`.toLowerCase();
 
   console.log(`[Blog Investigator] Investigating topic: "${cleanSearchTerm}"`);
@@ -770,7 +716,21 @@ export async function investigateAndGenerateStory(
   const discoveredImages: DiscoveredImage[] = [];
   const factualPoints: string[] = [];
 
-  // Step 0: If caller passed an explicit sourceUrl (e.g. from SL Tech News Finder), prioritize scraping its own photo & content first!
+  // Step 0: Preserve Storyline Finder's exact preview photo FIRST (when valid & reachable) so generated post matches admin card
+  if (options.initialImageUrl && /^https?:\/\//i.test(options.initialImageUrl)) {
+    const normalizedInitialUrl = options.initialImageUrl.trim().replace(/&amp;/g, '&');
+    if (await verifyReachableImageUrl(normalizedInitialUrl)) {
+      discoveredImages.push({
+        id: `storyline-${Date.now()}`,
+        type: 'image',
+        url: normalizedInitialUrl,
+        caption: options.initialImageCaption || `Featured photo: ${cleanSearchTerm}`,
+        altText: options.topicTitle || cleanSearchTerm,
+      });
+    }
+  }
+
+  // Step 0b: If caller passed an explicit sourceUrl, resolve & extract excerpt (and secondary photo if needed)
   let primaryResolvedUrl = '';
   if (options.sourceUrl && options.sourceUrl.startsWith('http')) {
     primaryResolvedUrl = await resolveGoogleNewsUrl(options.sourceUrl);
@@ -782,7 +742,7 @@ export async function investigateAndGenerateStory(
 
     const scrapedPrimary = await extractPhotosFromSourceWebpage(primaryResolvedUrl);
     for (const img of scrapedPrimary.images) {
-      if (!discoveredImages.some((existing) => existing.url === img.url)) {
+      if (discoveredImages.length < 2 && !discoveredImages.some((existing) => existing.url === img.url)) {
         discoveredImages.push(img);
       }
     }
@@ -868,9 +828,11 @@ export async function investigateAndGenerateStory(
     }
   }
 
+  const displayTopic = cleanPromptSubject(query, options.topicTitle, matchedTopic?.title);
+
   // Step 2: Live Web Investigation via Google News RSS (with real URL resolution)
   try {
-    const newsItems = await searchGoogleNews(cleanSearchTerm);
+    const newsItems = await searchGoogleNews(displayTopic);
     if (newsItems.length > 0) {
       for (const item of newsItems) {
         if (!discoveredSources.some((s) => s.url === item.url)) {
@@ -882,10 +844,10 @@ export async function investigateAndGenerateStory(
     console.warn('[Blog Investigator] News search error:', e);
   }
 
-  // Step 3: Scrape original photos & lead context from discovered source URLs (up to 2 unique source images)
+  // Step 3: Scrape secondary photos & context from discovered source URLs ONLY if no Storyline/source photo yet (or need a 2nd image)
   for (const src of discoveredSources.slice(0, 4)) {
     if (discoveredImages.length >= 2) break;
-    if (src.url === primaryResolvedUrl) continue; // Already scraped in Step 0
+    if (src.url === primaryResolvedUrl) continue; // Already scraped in Step 0b
     if (src.url.startsWith('http') && !src.url.includes('news.google.com')) {
       const scraped = await extractPhotosFromSourceWebpage(src.url);
       for (const p of scraped.images) {
@@ -899,29 +861,23 @@ export async function investigateAndGenerateStory(
     }
   }
 
-  // Step 4: If source webpage scraping yielded 0 images (e.g. Cloudflare block), try caller initialImageUrl or Wikimedia Commons
-  if (discoveredImages.length === 0 && options.initialImageUrl && options.initialImageUrl.startsWith('http')) {
-    discoveredImages.push({
-      id: `init-${Date.now()}`,
-      type: 'image',
-      url: options.initialImageUrl,
-      caption: `Source photograph: ${options.topicTitle || cleanSearchTerm}`,
-      altText: options.topicTitle || cleanSearchTerm,
-    });
-  }
-
+  // Step 4: If source webpage scraping yielded 0 images, try Wikimedia Commons (verify reachability)
   if (discoveredImages.length === 0) {
-    const wikiPhotos = await fetchWikimediaRealisticPhotos(cleanSearchTerm);
+    const wikiPhotos = await fetchWikimediaRealisticPhotos(displayTopic);
     for (const p of wikiPhotos) {
-      if (discoveredImages.length < 2 && !discoveredImages.some((img) => img.url === p.url)) {
+      if (
+        discoveredImages.length < 2 &&
+        !discoveredImages.some((img) => img.url === p.url) &&
+        (await verifyReachableImageUrl(p.url))
+      ) {
         discoveredImages.push(p);
       }
     }
   }
 
-  // Step 5: Only if STILL 0 photos found anywhere, pull topic-specific curated imagery
+  // Step 5: Only if STILL 0 photos found anywhere, pull verified category-matched imagery
   if (discoveredImages.length === 0) {
-    const curatedFallback = getCuratedTechImages(cleanSearchTerm);
+    const curatedFallback = getCuratedTechImages(displayTopic);
     for (const p of curatedFallback.slice(0, 2)) {
       if (!discoveredImages.some((img) => img.url === p.url)) {
         discoveredImages.push(p);
@@ -934,7 +890,7 @@ export async function investigateAndGenerateStory(
   // Step 6: Construct Rich Context for the LLM
   const factsContext = factualPoints.length > 0
     ? `VERIFIED FACTUAL DOSSIER FOR THIS TOPIC:\n${factualPoints.map((f, i) => `${i + 1}. ${f}`).join('\n')}`
-    : `RESEARCHED TOPIC: ${query}`;
+    : `RESEARCHED SUBJECT: ${displayTopic}`;
 
   const sourcesContext = discoveredSources.length > 0
     ? `OFFICIAL CITATIONS & REFERENCE LINKS FOR THIS SPECIFIC POST:\n${discoveredSources.map((s) => `- ${s.title} (${s.sourceName || 'Web'}): ${s.url}`).join('\n')}`
@@ -945,19 +901,20 @@ export async function investigateAndGenerateStory(
     : '';
 
   const systemPrompt = `You are a Senior Technology Investigative Journalist and Lead Technical Columnist writing for BridgeTech IT Services (itservicesfreetown.com) in Freetown, Sierra Leone.
-You write deeply reported, analytical, and complete feature stories strictly focused on the requested topic.
+You write deeply reported, analytical, and complete feature stories strictly focused on the requested subject.
 
 CRITICAL INSTRUCTIONS:
 1. NEVER LEAVE THE STORY INCOMPLETE OR TRUNCATED. You MUST write the entire story from beginning to end with a complete conclusion and call to action.
-2. STAY STRICTLY ON TOPIC: Focus 100% on the requested topic and facts provided below. Do NOT introduce unrelated stories or statistics from other news items.
-3. USE ONLY THIS POST'S PHOTOS: Embed ONLY the image URL(s) provided in ORIGINAL PHOTOS FOR THIS POST using HTML <figure class="my-8 rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl"><img src="IMAGE_URL" alt="ALT_TEXT" class="w-full h-auto object-cover max-h-[500px] rounded-t-2xl" /><figcaption class="p-4 text-xs text-slate-300 text-center italic bg-slate-950 border-t border-slate-800">CAPTION</figcaption></figure>.
-4. FORMATTING: Use clean, modern HTML with <h2> subheadings, <h3> deep dives, <p> paragraphs (3-4 sentences each), <ul> / <li> bulleted breakdowns, <strong>bold highlights</strong>, and <u>underlined key terms</u>. Do NOT use markdown.
-5. LOCAL INDUSTRY PERSPECTIVE: Include a dedicated section analyzing what this specific development means from the ground perspective of BridgeTech IT Services (No. 1 Regent Highway, Jui Junction, Freetown; Phone: +232 33 399 391).
-6. ALWAYS INCLUDE CLICKABLE REFERENCE LINKS: At the bottom of the article, include a <div class="sources-card ..."> box listing the exact clickable reference links (<a href="URL" target="_blank" rel="noopener noreferrer" class="text-sky-400 underline">TITLE</a>) from OFFICIAL CITATIONS & REFERENCE LINKS.
-7. Call-to-action mentioning BridgeTech IT Services (+232 33 399 391 / Jui Junction) for device repairs, enterprise IT, and tech consultations.`;
+2. NEVER ECHO OR INCLUDE PROMPT TEXT: Never copy, repeat, or quote the prompt instructions (e.g., "Write a practical and informative blog post...", "Investigate and write...") inside the title, summary, paragraphs, captions, or anywhere in the article.
+3. STAY STRICTLY ON TOPIC: Focus 100% on the requested subject and facts provided below. Do NOT introduce unrelated stories or statistics from other news items.
+4. USE ONLY THIS POST'S PHOTOS: Embed ONLY the exact image URL(s) provided in ORIGINAL PHOTOS FOR THIS POST using HTML <figure class="my-8 rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl"><img src="IMAGE_URL" alt="ALT_TEXT" class="w-full h-auto object-cover max-h-[500px] rounded-t-2xl" /><figcaption class="p-4 text-xs text-slate-300 text-center italic bg-slate-950 border-t border-slate-800">CAPTION</figcaption></figure>.
+5. FORMATTING: Use clean, modern HTML with <h2> subheadings, <h3> deep dives, <p> paragraphs (3-4 sentences each), <ul> / <li> bulleted breakdowns, <strong>bold highlights</strong>, and <u>underlined key terms</u>. Do NOT use markdown or repeat an <h1> inside the body.
+6. LOCAL INDUSTRY PERSPECTIVE: Include a dedicated section analyzing what this specific development means from the ground perspective of BridgeTech IT Services (No. 1 Regent Highway, Jui Junction, Freetown; Phone: +232 33 399 391).
+7. ALWAYS INCLUDE CLICKABLE REFERENCE LINKS: At the bottom of the article, include a <div class="sources-card ..."> box listing the exact clickable reference links (<a href="URL" target="_blank" rel="noopener noreferrer" class="text-sky-400 underline">TITLE</a>) from OFFICIAL CITATIONS & REFERENCE LINKS.
+8. Call-to-action mentioning BridgeTech IT Services (+232 33 399 391 / Jui Junction) for device repairs, enterprise IT, and tech consultations.`;
 
-  const userPrompt = `Investigate and write an authoritative, complete, comprehensive blog feature article about:
-TOPIC: "${query}"
+  const userPrompt = `SUBJECT: "${displayTopic}"
+EDITORIAL ANGLE / INSTRUCTIONS (DO NOT REPEAT THIS TEXT IN THE ARTICLE): "${query}"
 
 ${factsContext}
 
@@ -967,10 +924,9 @@ ${imagesContext}
 
 Requirements:
 - Article Length: Comprehensive (800 to 1200 words).
-- Must have an eye-catching H1 Title (place inside <h1> or as top element).
-- A concise "Quick Summary / TL;DR" highlight box at the start.
-- Detailed sections with descriptive <h2> headers strictly relevant to this specific topic (background, technical details, impact on Sierra Leone / consumers / businesses, BridgeTech IT Services perspective, outlook).
-- Embed the original source photo(s) listed above.
+- Start with an engaging <h1> headline (for metadata extraction), followed by a concise "Quick Summary / TL;DR" highlight box.
+- Detailed sections with descriptive <h2> headers strictly relevant to this specific subject (background, technical details, impact on Sierra Leone / consumers / businesses, BridgeTech IT Services perspective, outlook).
+- Embed the exact source photo(s) listed above.
 - Include the formatted "Sources & Reference Links" card at the bottom with the clickable reference URLs listed above.
 - OUTPUT FORMAT: Return ONLY the raw HTML string for the entire article. Do NOT wrap in backticks or markdown code blocks.`;
 
@@ -982,22 +938,25 @@ Requirements:
     }
   } catch (llmErr) {
     console.warn('[Blog Investigator] LLM API call failed or unavailable. Generating high-quality verified journalistic story fallback:', llmErr);
-    htmlContent = generateHighQualityFallbackStory(query, matchedTopic, discoveredSources, finalMedia, factualPoints);
+    htmlContent = generateHighQualityFallbackStory(displayTopic, matchedTopic, discoveredSources, finalMedia, factualPoints);
   }
 
-  // Extract or generate a clean title (never grab a numbered subheading like "1. Key Facts...")
+  // Extract or generate a clean title (never grab prompt text or numbered subheadings)
   let generatedTitle = options.topicTitle || matchedTopic?.title || '';
   const h1Match = htmlContent.match(/<h1[^>]*>(.*?)<\/h1>/i);
   if (h1Match) {
-    generatedTitle = h1Match[1].replace(/<[^>]+>/g, '').trim();
-  } else if (!generatedTitle) {
-    generatedTitle =
-      cleanSearchTerm.length > 10
-        ? cleanSearchTerm
-        : 'Sierra Leone Digital Transformation & Tech Industry Report';
+    const extracted = h1Match[1].replace(/<[^>]+>/g, '').trim();
+    if (extracted.length > 10 && !/^(?:write|investigate|create|draft)\s+(?:a|an)\b/i.test(extracted)) {
+      generatedTitle = extracted;
+    }
+  }
+  if (!generatedTitle) {
+    generatedTitle = displayTopic;
   }
 
-  // Extract TLDR
+  // Extract TLDR cleanly after stripping any prompt leaks
+  htmlContent = stripPromptLeaksFromHtml(htmlContent, query, displayTopic);
+
   let tldr = '';
   const tldrMatch = htmlContent.match(/(?:<div[^>]*class=["'][^"']*tldr[^"']*["'][^>]*>|Quick Summary|Key Takeaways)([\s\S]*?)<\/div>/i);
   if (tldrMatch) {
@@ -1005,17 +964,17 @@ Requirements:
   }
 
   // MANDATORY POST-PROCESSORS:
-  // 1. Guarantee EVERY post embeds realistic photos from THIS post's own source directly in the HTML
-  htmlContent = ensureRealisticPhotosInArticle(htmlContent, finalMedia, cleanSearchTerm, generatedTitle);
+  // 1. Guarantee EVERY post embeds ONLY verified photos from THIS post's own source/Storyline preview directly in HTML
+  htmlContent = ensureRealisticPhotosInArticle(htmlContent, finalMedia, displayTopic);
   // 2. Guarantee EVERY post includes clickable reference links at the bottom
-  htmlContent = ensureReferenceLinksInArticle(htmlContent, discoveredSources, cleanSearchTerm);
+  htmlContent = ensureReferenceLinksInArticle(htmlContent, discoveredSources, displayTopic);
 
   return {
     title: generatedTitle,
     content: htmlContent,
     media: finalMedia,
     sources: discoveredSources,
-    tldr: tldr || `Comprehensive investigative report on ${cleanSearchTerm} in Sierra Leone.`,
+    tldr: tldr || `Comprehensive investigative report on ${displayTopic} in Sierra Leone.`,
   };
 }
 
@@ -1023,16 +982,17 @@ Requirements:
  * Generates an exhaustive, beautifully formatted journalistic story when live LLM APIs are unreachable
  */
 function generateHighQualityFallbackStory(
-  query: string,
+  topicSubject: string,
   matchedTopic: any,
   sources: DiscoveredSource[],
   images: DiscoveredImage[],
   factualPoints: string[] = []
 ): string {
+  const safeSubject = cleanPromptSubject(topicSubject, matchedTopic?.title).replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const isMouStory =
-    query.toLowerCase().includes('21.9') ||
-    query.toLowerCase().includes('unique group') ||
-    (query.toLowerCase().includes('assembly') && query.toLowerCase().includes('mou'));
+    topicSubject.toLowerCase().includes('21.9') ||
+    topicSubject.toLowerCase().includes('unique group') ||
+    (topicSubject.toLowerCase().includes('assembly') && topicSubject.toLowerCase().includes('mou'));
 
   if (isMouStory) {
     const primaryImg = images[0]?.url || 'https://mocti.gov.sl/wp-content/uploads/2026/11/government-unique-group-mobile-phone-assembly-mou-waiis-2026-1024x732.jpg';
@@ -1185,7 +1145,7 @@ ${factsList.map((f: string) => `  <li>${f.replace(/</g, '&lt;').replace(/>/g, '&
 </ul>`
       : `<h2>1. Understanding the Core Technical Landscape</h2>
 <p class="leading-relaxed mb-4">
-Examining <strong>${query}</strong> within Sierra Leone's rapidly evolving technology sector highlights why dependable digital infrastructure, modern connectivity, and local technical expertise are essential for everyday citizens and enterprises.
+Examining <strong>${safeSubject}</strong> within Sierra Leone's rapidly evolving technology sector highlights why dependable digital infrastructure, modern connectivity, and local technical expertise are essential for everyday citizens and enterprises.
 </p>`;
 
   const rawFallback = `
@@ -1194,7 +1154,7 @@ Examining <strong>${query}</strong> within Sierra Leone's rapidly evolving techn
     <span>⚡</span> Quick Summary &amp; Key Insights
   </p>
   <p class="text-slate-300 text-sm leading-relaxed">
-    Comprehensive technology briefing and source-verified analysis from BridgeTech IT Services on <strong>${query}</strong>, covering practical impacts for users and organizations in Freetown and across Sierra Leone.
+    Comprehensive technology briefing and source-verified analysis from BridgeTech IT Services on <strong>${safeSubject}</strong>, covering practical impacts for users and organizations in Freetown and across Sierra Leone.
   </p>
 </div>
 
@@ -1221,7 +1181,7 @@ At <strong>BridgeTech IT Services</strong> (No. 1 Regent Highway, Jui Junction, 
 </div>
 `.trim();
 
-  const withPhotos = ensureRealisticPhotosInArticle(rawFallback, images, query);
-  return ensureReferenceLinksInArticle(withPhotos, sources, query);
+  const withPhotos = ensureRealisticPhotosInArticle(rawFallback, images, safeSubject);
+  return ensureReferenceLinksInArticle(withPhotos, sources, safeSubject);
 }
 

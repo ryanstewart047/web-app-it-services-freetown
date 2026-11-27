@@ -147,7 +147,7 @@ export const CURATED_SL_TECH_TOPICS: SierraLeoneTechTopic[] = [
     ],
     suggestedAngle: "Explain how small businesses and tech companies in Freetown can integrate mobile money payment gateways on their websites and retail checkouts.",
     writingPrompt: "Write an engaging feature on the rise of mobile money interoperability (Orange Money & Afrimoney) and fintech innovation in Sierra Leone. Analyze the Bank of Sierra Leone's digital payment initiatives, the shift away from physical cash, and how retail businesses can integrate secure digital payment gateways with the help of BridgeTech IT Services.",
-    imageUrl: 'https://images.unsplash.com/photo-1556742049-0a67e557224d?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1556742044-3c52d6e88c62?auto=format&fit=crop&w=1200&q=80',
     imageCaption: 'Digital payment checkout and mobile wallet transactions in retail business.',
     isLive: false,
   },
@@ -189,7 +189,7 @@ export const CURATED_SL_TECH_TOPICS: SierraLeoneTechTopic[] = [
     ],
     suggestedAngle: "A practical guide showing how local businesses can pair pure sine wave inverters with solar panels to prevent computer motherboard burnout.",
     writingPrompt: "Write a high-value practical guide on solving electrical power instability for computers, servers, and network equipment in Freetown, Sierra Leone. Explain how voltage spikes destroy delicate silicon circuits, compare Lead-Acid vs Lithium LiFePO4 batteries, and detail how solar hybrid inverter setups engineered by BridgeTech IT Services provide 24/7 clean power.",
-    imageUrl: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&w=1200&q=80',
     imageCaption: 'Solar photovoltaic panels generating sustainable, clean energy for tech hubs and communication towers.',
     isLive: false,
   },
@@ -252,8 +252,8 @@ export const CURATED_SL_TECH_TOPICS: SierraLeoneTechTopic[] = [
     ],
     suggestedAngle: "Explain the vulnerability of undersea internet cables and what Freetown businesses must do to maintain uninterrupted operations during international cable cuts.",
     writingPrompt: "Write a deeply informative technical and strategic blog post on submarine fiber optic cable resilience in Sierra Leone. Discuss the vulnerability of relying on a single subsea landing, analyze the push for secondary cable landings by MoCTI, and outline practical multi-WAN failover strategies that BridgeTech IT Services recommends for Freetown businesses.",
-    imageUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1200&q=80',
-    imageCaption: 'High-bandwidth undersea fiber optic communication cables connecting continents and nations.',
+    imageUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80',
+    imageCaption: 'High-bandwidth undersea fiber optic communication cables and core switching hardware connecting nations.',
     isLive: false,
   }
 ];
@@ -384,6 +384,262 @@ export async function resolveGoogleNewsUrl(sourceUrl: string): Promise<string> {
   }
 }
 
+export interface FallbackImageSpec {
+  id: string;
+  url: string;
+  caption: string;
+  altText: string;
+}
+
+/**
+ * Verify that a candidate remote image URL actually responds with HTTP 2xx and an image Content-Type.
+ * Fast-paths first-party site assets to avoid unnecessary self-fetch round-trips.
+ */
+export async function verifyReachableImageUrl(url: string): Promise<boolean> {
+  if (!url || !/^https?:\/\//i.test(url)) return false;
+  if (/^https:\/\/(?:www\.)?itservicesfreetown\.com\//i.test(url)) return true;
+
+  const probe = async (method: 'HEAD' | 'GET', headers: Record<string, string>): Promise<Response> => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 2200);
+    try {
+      return await fetch(url, {
+        method,
+        signal: controller.signal,
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+          ...headers,
+        },
+        redirect: 'follow',
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
+  try {
+    let res = await probe('HEAD', {});
+    if (res.status === 405 || res.status === 403 || res.status === 501) {
+      res = await probe('GET', { Range: 'bytes=0-0' });
+    }
+    if (!res.ok) return false;
+    const contentType = (res.headers.get('content-type') || '').toLowerCase();
+    return contentType.startsWith('image/');
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Unified, verified HTTP-200 category image fallbacks shared by Storyline Finder & AI Story Investigator.
+ */
+export function getCategoryFallbackImages(categoryOrTopic: string): FallbackImageSpec[] {
+  const lower = categoryOrTopic.toLowerCase();
+
+  if (
+    lower.includes('fintech') ||
+    lower.includes('orange money') ||
+    lower.includes('afrimoney') ||
+    lower.includes('payment') ||
+    lower.includes('wallet') ||
+    lower.includes('cashless') ||
+    lower.includes('bank')
+  ) {
+    return [
+      {
+        id: 'mobile-money-retail',
+        url: 'https://images.unsplash.com/photo-1556742044-3c52d6e88c62?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Mobile wallet transaction and digital point-of-sale checkout accelerating cashless commerce.',
+        altText: 'Digital mobile payment transaction on smartphone screen in retail store',
+      },
+      {
+        id: 'fintech-card-terminal',
+        url: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Contactless digital payments and secure fintech payment gateway infrastructure.',
+        altText: 'Contactless mobile payment and digital checkout terminal',
+      },
+    ];
+  }
+
+  if (
+    lower.includes('hardware') ||
+    lower.includes('assembly') ||
+    lower.includes('repair') ||
+    lower.includes('screen') ||
+    lower.includes('motherboard') ||
+    lower.includes('laptop') ||
+    lower.includes('smartphone') ||
+    lower.includes('solder')
+  ) {
+    return [
+      {
+        id: 'hardware-assembly-line',
+        url: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Precision electronics assembly line and component diagnostics testing.',
+        altText: 'Technician assembling and testing electronic circuit hardware',
+      },
+      {
+        id: 'bridgetech-motherboard-bench',
+        url: 'https://www.itservicesfreetown.com/assets/images/slider/motherboard-repair.jpg',
+        caption: 'Precision hardware diagnostics and motherboard micro-soldering at BridgeTech IT Services standards in Freetown.',
+        altText: 'Technician performing motherboard diagnostics and repair at BridgeTech IT Services',
+      },
+    ];
+  }
+
+  if (
+    lower.includes('fiber') ||
+    lower.includes('telecom') ||
+    lower.includes('natca') ||
+    lower.includes('cable') ||
+    lower.includes('subsea') ||
+    lower.includes('broadband') ||
+    lower.includes('4g') ||
+    lower.includes('5g') ||
+    lower.includes('sierratel') ||
+    lower.includes('africell')
+  ) {
+    return [
+      {
+        id: 'fiber-optic-splicing',
+        url: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80',
+        caption: 'High-speed terrestrial fiber optic data cables and transmission switching hardware.',
+        altText: 'Fiber optic communication cables in telecommunications exchange',
+      },
+      {
+        id: 'core-telecom-rack',
+        url: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Core telecom routing and optical network switching infrastructure.',
+        altText: 'Network switching racks and enterprise telecom servers',
+      },
+    ];
+  }
+
+  if (lower.includes('starlink') || lower.includes('satellite')) {
+    return [
+      {
+        id: 'satellite-broadband-dish',
+        url: 'https://images.unsplash.com/photo-1516849841032-87cbac4d88f7?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Satellite communication array supporting off-grid high-speed broadband connectivity.',
+        altText: 'Satellite communication infrastructure for broadband internet',
+      },
+      {
+        id: 'network-home-office',
+        url: 'https://www.itservicesfreetown.com/assets/images/ai-generated/ai_home_office_network.jpg',
+        caption: 'Enterprise WAN failover and local Wi-Fi network distribution in Freetown.',
+        altText: 'Enterprise router and local network distribution setup',
+      },
+    ];
+  }
+
+  if (
+    lower.includes('cyber') ||
+    lower.includes('security') ||
+    lower.includes('csirt') ||
+    lower.includes('nc3') ||
+    lower.includes('ransomware') ||
+    lower.includes('data center') ||
+    lower.includes('embassy')
+  ) {
+    return [
+      {
+        id: 'cybersecurity-monitoring-center',
+        url: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Network security monitoring, intrusion detection, and enterprise cyber defense.',
+        altText: 'Cybersecurity monitoring dashboard and network defense system',
+      },
+      {
+        id: 'enterprise-server-rack',
+        url: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Enterprise server hardware racks with redundant power and hardware firewall switches.',
+        altText: 'Server room data center equipment with illuminated network switches',
+      },
+    ];
+  }
+
+  if (
+    lower.includes('solar') ||
+    lower.includes('power') ||
+    lower.includes('green') ||
+    lower.includes('energy') ||
+    lower.includes('inverter') ||
+    lower.includes('battery')
+  ) {
+    return [
+      {
+        id: 'solar-hybrid-installation',
+        url: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Solar photovoltaic arrays providing clean, uninterrupted power to IT and telecom equipment.',
+        altText: 'Commercial solar panels installed for clean technology power generation',
+      },
+      {
+        id: 'telecom-network-hardware',
+        url: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Uninterrupted enterprise server and network equipment protected by clean hybrid power.',
+        altText: 'Enterprise server rack powered by clean backup energy',
+      },
+    ];
+  }
+
+  if (
+    lower.includes('governance') ||
+    lower.includes('mocti') ||
+    lower.includes('policy') ||
+    lower.includes('ncra') ||
+    lower.includes('identity') ||
+    lower.includes('nin')
+  ) {
+    return [
+      {
+        id: 'digital-governance-network',
+        url: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Digital connectivity and public network infrastructure powering national services.',
+        altText: 'Digital connectivity network interconnecting public infrastructure',
+      },
+      {
+        id: 'digital-identity-office',
+        url: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Digital transformation strategy, biometric systems, and institutional governance.',
+        altText: 'Technology leadership team reviewing digital transformation systems',
+      },
+    ];
+  }
+
+  if (lower.includes('startup') || lower.includes('stem') || lower.includes('youth') || lower.includes('coding')) {
+    return [
+      {
+        id: 'youth-coding-bootcamp',
+        url: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Young technology professionals collaborating on software engineering and STEM training.',
+        altText: 'Software engineers collaborating at a coding workshop',
+      },
+      {
+        id: 'tech-team-collaboration',
+        url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Digital innovation and startup collaboration in modern tech workspaces.',
+        altText: 'Team of tech professionals collaborating in a modern workspace',
+      },
+    ];
+  }
+
+  return [
+    {
+      id: 'digital-innovation-africa',
+      url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80',
+      caption: 'Technology professionals collaborating on modern digital systems and IT services.',
+      altText: 'Team of tech professionals collaborating in a modern workspace',
+    },
+    {
+      id: 'bridgetech-service-bench',
+      url: 'https://www.itservicesfreetown.com/assets/images/slider/slide-2-technician-repair-bench.jpg',
+      caption: 'BridgeTech IT Services hardware repair and diagnostics workshop in Freetown, Sierra Leone.',
+      altText: 'BridgeTech IT Services technician bench in Freetown',
+    },
+  ];
+}
+
 /**
  * Extract the real original article photo directly from a resolved publisher webpage
  */
@@ -395,6 +651,11 @@ export async function extractPrimarySourcePhoto(
   }
 
   try {
+    const parsedUrl = new URL(url);
+    if (!parsedUrl.pathname || parsedUrl.pathname === '/') {
+      return null;
+    }
+
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 3000);
 
@@ -458,17 +719,30 @@ export async function extractPrimarySourcePhoto(
     );
     if (wpMatch && wpMatch[1]) candidates.push(wpMatch[1]);
 
+    const normalizedUnique: string[] = [];
     for (const rawCandidate of candidates) {
-      let absUrl = rawCandidate.trim();
+      let absUrl = rawCandidate.trim().replace(/&amp;/g, '&');
       if (!absUrl || absUrl.startsWith('data:')) continue;
       try {
         absUrl = new URL(absUrl, url).href;
       } catch {
         continue;
       }
-      if (!/(?:logo|icon|favicon|avatar|badge|pixel|1x1|blank|placeholder)/i.test(absUrl)) {
+      if (
+        /(?:logo|icon|favicon|avatar|badge|pixel|1x1|blank|placeholder|spinner|doubleclick|ads)/i.test(absUrl) ||
+        /\.(?:svg|ico)(?:\?|$)/i.test(absUrl)
+      ) {
+        continue;
+      }
+      if (!normalizedUnique.includes(absUrl)) {
+        normalizedUnique.push(absUrl);
+      }
+    }
+
+    for (const candidateUrl of normalizedUnique.slice(0, 3)) {
+      if (await verifyReachableImageUrl(candidateUrl)) {
         return {
-          url: absUrl,
+          url: candidateUrl,
           caption: cleanTitle ? `Original source photo: ${cleanTitle}` : undefined,
         };
       }
@@ -484,7 +758,7 @@ export async function extractPrimarySourcePhoto(
  * Fetch live Sierra Leone tech news from Google News RSS,
  * resolving publisher URLs and capturing each source's own original photograph.
  */
-export async function fetchLiveGoogleNewsSL(searchQuery?: string): Promise<SierraLeoneTechTopic[]> {
+export async function fetchLiveGoogleNewsSL(searchQuery?: string, forceLive = false): Promise<SierraLeoneTechTopic[]> {
   try {
     const defaultQuery = searchQuery 
       ? `"${searchQuery}" "Sierra Leone"`
@@ -496,13 +770,15 @@ export async function fetchLiveGoogleNewsSL(searchQuery?: string): Promise<Sierr
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 4500);
 
-    const res = await fetch(feedUrl, {
+    const fetchOptions: RequestInit & { next?: { revalidate: number } } = {
       signal: controller.signal,
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)',
       },
-      next: { revalidate: 3600 },
-    } as any);
+      ...(forceLive ? { cache: 'no-store' as const } : { next: { revalidate: 3600 } }),
+    };
+
+    const res = await fetch(feedUrl, fetchOptions);
     clearTimeout(timeout);
 
     if (!res.ok) return [];
@@ -534,37 +810,15 @@ export async function fetchLiveGoogleNewsSL(searchQuery?: string): Promise<Sierr
 
       const category = categorizeNewsItem(cleanTitle, rawDesc);
 
-      // Decode Google News redirect to actual publisher URL and scrape its own photo
+      // Decode Google News redirect to actual publisher URL and scrape its own verified photo
       const resolvedUrl = await resolveGoogleNewsUrl(rawLink);
       const sourcePhoto = await extractPrimarySourcePhoto(resolvedUrl);
 
-      let imageUrl = sourcePhoto?.url;
-      let imageCaption = sourcePhoto?.caption || `Original photo from ${sourceName}: ${cleanTitle}`;
-
-      if (!imageUrl) {
-        if (category === 'Hardware & Assembly') {
-          imageUrl = 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1200&q=80';
-          imageCaption = 'Electronics assembly line and precision diagnostics workstation.';
-        } else if (category === 'Telecom & 4G/5G') {
-          imageUrl = 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80';
-          imageCaption = 'Fiber optic communication cables and telecommunications switching equipment.';
-        } else if (category === 'Digital Governance & MoCTI') {
-          imageUrl = 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80';
-          imageCaption = 'Digital governance network interconnecting public services.';
-        } else if (category === 'FinTech & Payments') {
-          imageUrl = 'https://images.unsplash.com/photo-1556742049-0a67e557224d?auto=format&fit=crop&w=1200&q=80';
-          imageCaption = 'Mobile digital payments and e-commerce transaction processing.';
-        } else if (category === 'Cybersecurity & Enterprise') {
-          imageUrl = 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1200&q=80';
-          imageCaption = 'Enterprise network security defense and cyber threat monitoring.';
-        } else if (category === 'Green Tech & Power') {
-          imageUrl = 'https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&w=1200&q=80';
-          imageCaption = 'Solar hybrid systems providing clean power to telecom and computer systems.';
-        } else {
-          imageUrl = 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80';
-          imageCaption = 'Technology, innovation, and digital connectivity in West Africa.';
-        }
-      }
+      const fallbackSpec = getCategoryFallbackImages(category)[0];
+      const imageUrl = sourcePhoto?.url || fallbackSpec.url;
+      const imageCaption = sourcePhoto?.url
+        ? sourcePhoto.caption || `Original photo from ${sourceName}: ${cleanTitle}`
+        : fallbackSpec.caption;
 
       const id = `live-${Buffer.from(cleanTitle.slice(0, 30)).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0, 16)}`;
 
@@ -614,7 +868,7 @@ export async function getSierraLeoneTechNews(options: {
 
   let liveItems: SierraLeoneTechTopic[] = [];
   try {
-    liveItems = await fetchLiveGoogleNewsSL(query);
+    liveItems = await fetchLiveGoogleNewsSL(query, Boolean(forceLive));
   } catch {
     liveItems = [];
   }

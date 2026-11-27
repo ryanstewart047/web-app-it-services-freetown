@@ -65,6 +65,48 @@ export function stripHtml(content: string) {
     .trim()
 }
 
+/**
+ * Derive a clean, publication-safe subject title from an AI prompt or explicit topic title.
+ * Strips prompt imperatives ("Write a practical...", "Investigate and write...", source instructions)
+ * so raw editorial prompts never leak into published articles, summaries, or captions.
+ */
+export function cleanPromptSubject(
+  rawPrompt: string,
+  explicitTitle?: string,
+  matchedTitle?: string
+): string {
+  const promptVerbPattern =
+    /^(?:please\s+)?(?:investigate(?:\s+and\s+write)?|write|create|draft|generate|compose|produce|prepare)\s+(?:a|an|the)?\s*(?:[^:.?!\n]{0,80}?\b(?:blog\s+post|blog\s+article|feature(?:\s+story|\s+article)?|article|story|guide|advisory|report|post|briefing|analysis)\b)\s*(?:about|on|regarding|detailing|explaining|covering|discussing|analyzing|examining|for|:)?\s*/i
+
+  const editorialTrailingSentencePattern =
+    /\.\s+(?:analyze|discuss|cover|explain|detail|outline|highlight|incorporate|provide|include|cite|offer)\b[\s\S]*$/i
+
+  const sanitizeCandidate = (input?: string): string => {
+    if (!input) return ''
+    let cleaned = stripHtml(input)
+      .replace(/\(Source:[\s\S]*?\)/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+
+    cleaned = cleaned.replace(promptVerbPattern, '').trim()
+    cleaned = cleaned.replace(editorialTrailingSentencePattern, '').trim()
+    cleaned = cleaned.replace(/^["'“”‘’]+|["'“”‘’.]+$/g, '').trim()
+    if (!cleaned) return ''
+    return cleaned.charAt(0).toUpperCase() + cleaned.slice(1)
+  }
+
+  const fromExplicit = sanitizeCandidate(explicitTitle)
+  if (fromExplicit.length >= 6) return fromExplicit.slice(0, 180)
+
+  const fromMatched = sanitizeCandidate(matchedTitle)
+  if (fromMatched.length >= 6) return fromMatched.slice(0, 180)
+
+  const fromPrompt = sanitizeCandidate(rawPrompt)
+  if (fromPrompt.length >= 6) return fromPrompt.slice(0, 180)
+
+  return 'Sierra Leone Technology & Digital Infrastructure Update'
+}
+
 export function getExcerpt(content: string, maxLength = 180) {
   const plainText = stripHtml(content)
 
