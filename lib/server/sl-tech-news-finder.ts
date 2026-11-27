@@ -27,6 +27,8 @@ export interface SierraLeoneTechTopic {
   writingPrompt: string;
   imageUrl?: string;
   imageCaption?: string;
+  sourceImages?: Array<{ url: string; caption?: string }>;
+  extractedFacts?: string[];
   isLive?: boolean;
 }
 
@@ -62,7 +64,7 @@ export const CURATED_SL_TECH_TOPICS: SierraLeoneTechTopic[] = [
       "Aims to slash smartphone retail prices by 25-35% and serve as an ECOWAS hardware export hub."
     ],
     suggestedAngle: "Analyze how domestic smartphone assembly slashes device import costs and creates high-skilled micro-soldering and technician jobs for Freetown youth.",
-    writingPrompt: "Investigate and write an in-depth journalistic feature about the US$21.9 Million mobile phone and electronics assembly plant MoU signed between Sierra Leone's Ministry of Communication, Technology and Innovation (MoCTI) and Unique Group at WAIIS 2026. Detail the factory plans, youth vocational training, regional export strategy, and local hardware repair perspective from BridgeTech IT Services at Jui Junction.",
+    writingPrompt: "Investigate and write a long-form journalistic feature about the US$21.9 Million mobile phone and electronics assembly plant MoU signed between Sierra Leone's Ministry of Communication, Technology and Innovation (MoCTI) and Unique Group at WAIIS 2026. Detail the factory rollout, youth vocational training, ECOWAS export strategy, affordability impact, and only add BridgeTech IT Services' local repair-ecosystem commentary in the closing section right before the references.",
     imageUrl: 'https://mocti.gov.sl/wp-content/uploads/2026/11/government-unique-group-mobile-phone-assembly-mou-waiis-2026-1024x732.jpg',
     imageCaption: 'Official MoCTI Signing: Minister Salima Bah and Unique Group MD Adama Touray sign the US$21.9M MoU in Freetown.',
     isLive: false,
@@ -83,7 +85,7 @@ export const CURATED_SL_TECH_TOPICS: SierraLeoneTechTopic[] = [
       "Prioritizing digital literacy training across rural school districts."
     ],
     suggestedAngle: "Examine how the 10-year strategy will modernize everyday public services and drive private sector IT adoption in Sierra Leone.",
-    writingPrompt: "Write a comprehensive analytical blog post about Sierra Leone's National Digital Development Strategy (2025–2034) spearheaded by MoCTI Minister Salima Monorma Bah. Explain the pillars of universal connectivity, government digitalization, data sovereignty, and how local IT service providers like BridgeTech IT Services support enterprise digital readiness.",
+    writingPrompt: "Write a long-form analytical article examining Sierra Leone's National Digital Development Strategy (2025–2034) spearheaded by MoCTI Minister Salima Monorma Bah. Break down the pillars of universal connectivity, MDA fiber interconnection, sovereign cloud infrastructure, and rural STEM literacy, reserving BridgeTech IT Services' brief commentary solely for the closing section before the references.",
     imageUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80',
     imageCaption: 'Digital connectivity and fiber optic data infrastructure powering national development initiatives.',
     isLive: false,
@@ -104,7 +106,7 @@ export const CURATED_SL_TECH_TOPICS: SierraLeoneTechTopic[] = [
       "Promoting infrastructure sharing between telecom operators to reduce consumer data costs."
     ],
     suggestedAngle: "Help business owners and remote workers understand why fiber and telecom QoS improvements mean faster cloud backups and fewer dropped VoIP calls.",
-    writingPrompt: "Write a practical and informative blog post detailing the new NaTCA Quality of Service (QoS) regulations and terrestrial fiber expansion in Sierra Leone. Discuss the impact on internet reliability for corporate offices and home workers, and offer advice from BridgeTech IT Services on enterprise routers, fiber failover switches, and local network optimization.",
+    writingPrompt: "Write a detailed, technical industry analysis of the new NaTCA Quality of Service (QoS) regulations and terrestrial fiber expansion in Sierra Leone. Examine how uptime mandates, packet-loss rules, and provincial fiber backhaul reshape reliability for banks, schools, and remote teams, placing BridgeTech IT Services' network-hardware perspective solely in the closing section before the source links.",
     imageUrl: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80',
     imageCaption: 'High-speed fiber optic data cables and telecommunication network hardware.',
     isLive: false,
@@ -125,7 +127,7 @@ export const CURATED_SL_TECH_TOPICS: SierraLeoneTechTopic[] = [
       "NaTCA regulatory framework ensures lawful frequency spectrum alignment and security compliance."
     ],
     suggestedAngle: "A technical guide for businesses evaluating satellite internet: equipment setup, power backup, lightning protection, and local IT installation.",
-    writingPrompt: "Write a comprehensive commercial and technical guide on satellite broadband (including Starlink and VSAT) in Sierra Leone. Cover the regulatory backdrop with NaTCA, installation requirements in coastal Freetown, power surge protection, and how BridgeTech IT Services helps businesses integrate satellite feeds into local enterprise LANs.",
+    writingPrompt: "Write an exhaustive field report and technical breakdown of satellite broadband (including Starlink and VSAT) across Sierra Leone. Cover NaTCA spectrum licensing, coastal weather/lightning resilience, throughput benchmarks, and enterprise WAN integration, keeping BridgeTech IT Services' perspective strictly at the end right before the references.",
     imageUrl: 'https://images.unsplash.com/photo-1516849841032-87cbac4d88f7?auto=format&fit=crop&w=1200&q=80',
     imageCaption: 'Satellite communication dish providing broadband connectivity to remote and off-grid facilities.',
     isLive: false,
@@ -146,7 +148,7 @@ export const CURATED_SL_TECH_TOPICS: SierraLeoneTechTopic[] = [
       "Spurs e-commerce adoption for local supermarkets, restaurants, and IT service providers in Freetown."
     ],
     suggestedAngle: "Explain how small businesses and tech companies in Freetown can integrate mobile money payment gateways on their websites and retail checkouts.",
-    writingPrompt: "Write an engaging feature on the rise of mobile money interoperability (Orange Money & Afrimoney) and fintech innovation in Sierra Leone. Analyze the Bank of Sierra Leone's digital payment initiatives, the shift away from physical cash, and how retail businesses can integrate secure digital payment gateways with the help of BridgeTech IT Services.",
+    writingPrompt: "Write an analytical feature on mobile money interoperability (Orange Money & Afrimoney) and the Bank of Sierra Leone's fintech initiatives. Detail how wallet-to-wallet clearing, merchant QR systems, and sandbox APIs transform SME commerce across Freetown and the provinces, reserving BridgeTech IT Services' commentary exclusively for the closing section before the source links.",
     imageUrl: 'https://images.unsplash.com/photo-1556742044-3c52d6e88c62?auto=format&fit=crop&w=1200&q=80',
     imageCaption: 'Digital payment checkout and mobile wallet transactions in retail business.',
     isLive: false,
@@ -167,7 +169,7 @@ export const CURATED_SL_TECH_TOPICS: SierraLeoneTechTopic[] = [
       "BridgeTech IT Services provides proactive firewall auditing, endpoint antivirus deployment, and disaster recovery planning in Freetown."
     ],
     suggestedAngle: "An urgent, actionable cybersecurity checklist for Sierra Leone business owners, school administrators, and corporate IT managers.",
-    writingPrompt: "Write an authoritative cybersecurity advisory for businesses and organizations in Sierra Leone. Highlight recent threats reported by NC3/MoCTI, explain why default router configurations and unlicensed software pose catastrophic risks, and detail a step-by-step security hardening blueprint provided by BridgeTech IT Services in Freetown.",
+    writingPrompt: "Write a deep-dive cybersecurity dossier for organizations in Sierra Leone under the Cyber Security and Crime Act 2021 and NC3/CSIRT guidance. Analyze BEC spear-phishing, ransomware exposure, router misconfigurations, and zero-trust backup controls, placing BridgeTech IT Services' commentary solely at the very end before the reference card.",
     imageUrl: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1200&q=80',
     imageCaption: 'Network security monitoring, intrusion detection, and data encryption shields.',
     isLive: false,
@@ -188,7 +190,7 @@ export const CURATED_SL_TECH_TOPICS: SierraLeoneTechTopic[] = [
       "BridgeTech IT Services designs and installs customized commercial solar backups and surge-suppression systems at Jui Junction."
     ],
     suggestedAngle: "A practical guide showing how local businesses can pair pure sine wave inverters with solar panels to prevent computer motherboard burnout.",
-    writingPrompt: "Write a high-value practical guide on solving electrical power instability for computers, servers, and network equipment in Freetown, Sierra Leone. Explain how voltage spikes destroy delicate silicon circuits, compare Lead-Acid vs Lithium LiFePO4 batteries, and detail how solar hybrid inverter setups engineered by BridgeTech IT Services provide 24/7 clean power.",
+    writingPrompt: "Write a detailed engineering and market analysis on solar hybrid power and LiFePO4 lithium storage for ICT infrastructure in Sierra Leone. Compare grid volatility costs, diesel displacement on telecom towers, pure-sine-wave hardware protection, and TCO economics, leaving BridgeTech IT Services' viewpoint strictly for the closing section before the sources.",
     imageUrl: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&w=1200&q=80',
     imageCaption: 'Solar photovoltaic panels generating sustainable, clean energy for tech hubs and communication towers.',
     isLive: false,
@@ -209,7 +211,7 @@ export const CURATED_SL_TECH_TOPICS: SierraLeoneTechTopic[] = [
       "Local tech businesses provide apprenticeship pathways and real-world project mentorship."
     ],
     suggestedAngle: "Celebrate the growing tech talent pool in Sierra Leone and discuss how young graduates can turn coding skills into high-paying freelance careers or IT enterprise roles.",
-    writingPrompt: "Write an inspiring, informative blog post on the explosion of youth coding bootcamps, university tech labs, and STEM innovation centers in Freetown, Sierra Leone. Discuss the skills in highest demand by local businesses, provide tips for self-taught programmers, and explain how BridgeTech IT Services mentors upcoming technicians and engineers.",
+    writingPrompt: "Write an investigative spotlight on youth STEM education, university innovation labs, and software engineering bootcamps in Sierra Leone. Examine graduation numbers, employer skill gaps, women-in-tech pathways, and remote tech exports, keeping BridgeTech IT Services' perspective solely at the very end before the reference links.",
     imageUrl: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1200&q=80',
     imageCaption: 'Young technology students collaborating on software programming and digital innovation in West Africa.',
     isLive: false,
@@ -251,7 +253,7 @@ export const CURATED_SL_TECH_TOPICS: SierraLeoneTechTopic[] = [
       "BridgeTech IT Services emphasizes the critical importance of multi-WAN failover routers for local enterprise networks."
     ],
     suggestedAngle: "Explain the vulnerability of undersea internet cables and what Freetown businesses must do to maintain uninterrupted operations during international cable cuts.",
-    writingPrompt: "Write a deeply informative technical and strategic blog post on submarine fiber optic cable resilience in Sierra Leone. Discuss the vulnerability of relying on a single subsea landing, analyze the push for secondary cable landings by MoCTI, and outline practical multi-WAN failover strategies that BridgeTech IT Services recommends for Freetown businesses.",
+    writingPrompt: "Write a thorough technical investigation into submarine fiber optic cable resilience in Sierra Leone and along West Africa's coast. Analyze single-landing risk on the ACE cable, regional redundancy spurs, multi-WAN continuity architecture, and national telecom strategy, placing BridgeTech IT Services' commentary solely at the closing section before the sources.",
     imageUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80',
     imageCaption: 'High-bandwidth undersea fiber optic communication cables and core switching hardware connecting nations.',
     isLive: false,
@@ -395,21 +397,22 @@ export interface FallbackImageSpec {
  * Verify that a candidate remote image URL actually responds with HTTP 2xx and an image Content-Type.
  * Fast-paths first-party site assets to avoid unnecessary self-fetch round-trips.
  */
-export async function verifyReachableImageUrl(url: string): Promise<boolean> {
+export async function verifyReachableImageUrl(url: string, refererUrl?: string): Promise<boolean> {
   if (!url || !/^https?:\/\//i.test(url)) return false;
   if (/^https:\/\/(?:www\.)?itservicesfreetown\.com\//i.test(url)) return true;
 
   const probe = async (method: 'HEAD' | 'GET', headers: Record<string, string>): Promise<Response> => {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 2200);
+    const timer = setTimeout(() => controller.abort(), 2400);
     try {
       return await fetch(url, {
         method,
         signal: controller.signal,
         headers: {
           'User-Agent':
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
           Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+          ...(refererUrl ? { Referer: refererUrl } : {}),
           ...headers,
         },
         redirect: 'follow',
@@ -640,48 +643,228 @@ export function getCategoryFallbackImages(categoryOrTopic: string): FallbackImag
   ];
 }
 
-/**
- * Extract the real original article photo directly from a resolved publisher webpage
- */
-export async function extractPrimarySourcePhoto(
-  url: string
-): Promise<{ url: string; caption?: string } | null> {
-  if (!url || !url.startsWith('http') || url.includes('news.google.com')) {
+export interface SourcePhotoCandidate {
+  url: string;
+  caption?: string;
+  altText?: string;
+}
+
+export interface ExtractedSourceDetails {
+  images: SourcePhotoCandidate[];
+  excerpt?: string;
+  paragraphs: string[];
+  title?: string;
+}
+
+const IMAGE_NOISE_PATTERN =
+  /(?:logo|icon|favicon|avatar|badge|pixel|1x1|blank|placeholder|spinner|doubleclick|ads|share|social|fb\.png|x\.png|yt\.png|rss\.png|twitter\.png|linkedin\.png|whatsapp|emoji|smilies|gravatar)/i;
+const TINY_THUMB_PATTERN = /(?:-(?:1[0-4]\d|[5-9]\d)x(?:1[0-4]\d|[5-9]\d)\b|[?&](?:w|width)=(?:[1-9]\d|1\d\d)\b)/i;
+
+function pickLargestFromSrcset(srcset: string): string | null {
+  const parts = srcset
+    .split(',')
+    .map((part) => {
+      const tokens = part.trim().split(/\s+/);
+      const urlPart = tokens[0] || '';
+      const widthMatch = tokens[1]?.match(/^(\d+)w$/i);
+      return { url: urlPart, width: widthMatch ? Number(widthMatch[1]) : 0 };
+    })
+    .filter((entry) => entry.url && !entry.url.startsWith('data:'));
+
+  if (parts.length === 0) return null;
+  parts.sort((a, b) => b.width - a.width);
+  return parts[0].url;
+}
+
+function normalizeCandidateImageUrl(rawCandidate: string, baseUrl: string): string | null {
+  let absUrl = rawCandidate.trim().replace(/&amp;/g, '&');
+  if (!absUrl || absUrl.startsWith('data:') || absUrl.startsWith('blob:')) return null;
+  try {
+    absUrl = new URL(absUrl, baseUrl).href;
+  } catch {
     return null;
+  }
+  if (
+    !/^https?:\/\//i.test(absUrl) ||
+    IMAGE_NOISE_PATTERN.test(absUrl) ||
+    TINY_THUMB_PATTERN.test(absUrl) ||
+    /\.(?:svg|ico|gif)(?:\?|$)/i.test(absUrl)
+  ) {
+    return null;
+  }
+  return absUrl;
+}
+
+function extractArticleProse(htmlChunk: string, maxChars = 4500): { excerpt?: string; paragraphs: string[] } {
+  const stripped = htmlChunk
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ')
+    .replace(/<(?:nav|aside|footer|header|form|svg)[\s\S]*?<\/(?:nav|aside|footer|header|form|svg)>/gi, ' ');
+
+  const blockMatches = stripped.match(/<(?:p|li|blockquote|h2|h3)\b[^>]*>[\s\S]*?<\/(?:p|li|blockquote|h2|h3)>/gi) || [];
+  const paragraphs: string[] = [];
+  const seen = new Set<string>();
+  let totalLen = 0;
+
+  for (const block of blockMatches) {
+    const clean = cleanXmlText(block.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
+    if (clean.length < 40) continue;
+    if (/^(?:cookie|subscribe|sign up|follow us|copyright|all rights reserved|read also|related)/i.test(clean)) continue;
+    const key = clean.slice(0, 60).toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    paragraphs.push(clean);
+    totalLen += clean.length + 1;
+    if (totalLen >= maxChars) break;
+  }
+
+  return {
+    excerpt: paragraphs.length > 0 ? paragraphs.join('\n').slice(0, maxChars) : undefined,
+    paragraphs,
+  };
+}
+
+/**
+ * Fallback to WordPress JSON REST API when direct HTML returns 403/401/bot-challenge.
+ */
+async function tryWordPressRestFallback(articleUrl: string): Promise<ExtractedSourceDetails | null> {
+  try {
+    const parsed = new URL(articleUrl);
+    const segments = parsed.pathname.split('/').filter(Boolean);
+    const slug = segments[segments.length - 1];
+    if (!slug || slug.length < 3) return null;
+
+    const apiUrl = `${parsed.origin}/wp-json/wp/v2/posts?slug=${encodeURIComponent(slug)}&_embed`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3200);
+    const res = await fetch(apiUrl, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        Accept: 'application/json',
+      },
+    });
+    clearTimeout(timer);
+    if (!res.ok) return null;
+
+    const posts = await res.json();
+    const post = Array.isArray(posts) ? posts[0] : null;
+    if (!post) return null;
+
+    const hostname = parsed.hostname.replace(/^www\./, '');
+    const title = post.title?.rendered ? cleanXmlText(post.title.rendered.replace(/<[^>]+>/g, '')) : undefined;
+    const candidates: Array<{ url: string; caption?: string }> = [];
+
+    const featured = post._embedded?.['wp:featuredmedia']?.[0];
+    if (featured?.source_url) {
+      const normalized = normalizeCandidateImageUrl(featured.source_url, articleUrl);
+      if (normalized) {
+        candidates.push({
+          url: normalized,
+          caption: featured.caption?.rendered
+            ? cleanXmlText(featured.caption.rendered.replace(/<[^>]+>/g, ''))
+            : `Original source photo (${hostname}): ${title || 'Featured photograph'}`,
+        });
+      }
+    }
+
+    const contentHtml = post.content?.rendered || '';
+    const wpImgRegex = /<img[^>]+(?:data-src|src)=["']([^"']+)["'][^>]*>/gi;
+    let wpImgMatch: RegExpExecArray | null;
+    while ((wpImgMatch = wpImgRegex.exec(contentHtml)) !== null) {
+      const normalized = normalizeCandidateImageUrl(wpImgMatch[1], articleUrl);
+      if (normalized && !candidates.some((c) => c.url === normalized)) {
+        candidates.push({
+          url: normalized,
+          caption: `Original source photo (${hostname}): ${title || 'Article photograph'}`,
+        });
+      }
+    }
+
+    const checks = await Promise.all(
+      candidates.slice(0, 6).map(async (c) => ({
+        candidate: c,
+        ok: await verifyReachableImageUrl(c.url, articleUrl),
+      }))
+    );
+
+    const images = checks
+      .filter((x) => x.ok)
+      .slice(0, 5)
+      .map((x) => ({
+        url: x.candidate.url,
+        caption: x.candidate.caption,
+        altText: title || 'Original source photograph',
+      }));
+
+    const { excerpt, paragraphs } = extractArticleProse(contentHtml, 4500);
+    return { images, excerpt, paragraphs, title };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Extract multiple real source photos (up to 5) AND deep article prose from a resolved publisher article URL.
+ */
+export async function extractSourceArticleDetails(url: string): Promise<ExtractedSourceDetails> {
+  if (!url || !url.startsWith('http') || url.includes('news.google.com')) {
+    return { images: [], paragraphs: [] };
   }
 
   try {
     const parsedUrl = new URL(url);
     if (!parsedUrl.pathname || parsedUrl.pathname === '/') {
-      return null;
+      return { images: [], paragraphs: [] };
     }
 
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 3000);
+    const timer = setTimeout(() => controller.abort(), 4500);
 
     const res = await fetch(url, {
       signal: controller.signal,
       headers: {
         'User-Agent':
-          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        Accept: 'text/html,application/xhtml+xml',
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
       },
       redirect: 'follow',
     });
     clearTimeout(timer);
 
-    if (!res.ok) return null;
+    if (!res.ok) {
+      if (res.status === 403 || res.status === 401) {
+        const wpFallback = await tryWordPressRestFallback(url);
+        if (wpFallback) return wpFallback;
+      }
+      return { images: [], paragraphs: [] };
+    }
 
     const html = await res.text();
+    const hostname = parsedUrl.hostname.replace(/^www\./, '');
     const ogTitle =
       html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i) ||
       html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i) ||
       html.match(/<title>([^<]+)<\/title>/i);
     const cleanTitle = ogTitle ? cleanXmlText(ogTitle[1]) : undefined;
 
-    const candidates: string[] = [];
+    const candidates: Array<{ url: string; caption?: string; altText?: string }> = [];
+    const seenUrls = new Set<string>();
 
-    // Check OpenGraph & Twitter image tags in both attribute orders
+    const pushCandidate = (rawImgUrl: string, caption?: string, altText?: string) => {
+      const absUrl = normalizeCandidateImageUrl(rawImgUrl, url);
+      if (!absUrl || seenUrls.has(absUrl)) return;
+      seenUrls.add(absUrl);
+      candidates.push({
+        url: absUrl,
+        caption: caption || (cleanTitle ? `Original source photo (${hostname}): ${cleanTitle}` : `Original source photo (${hostname})`),
+        altText: altText || cleanTitle || 'Original source photograph',
+      });
+    };
+
+    // 1. OpenGraph & Twitter meta images
     const metaPatterns = [
       /<meta[^>]+property=["']og:image(?::secure_url)?["'][^>]+content=["']([^"']+)["']/i,
       /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image(?::secure_url)?["']/i,
@@ -690,73 +873,119 @@ export async function extractPrimarySourcePhoto(
     ];
     for (const pat of metaPatterns) {
       const m = html.match(pat);
-      if (m && m[1]) candidates.push(m[1]);
+      if (m && m[1]) pushCandidate(m[1]);
     }
 
-    // Check JSON-LD NewsArticle image
+    // 2. JSON-LD schema images (handles strings, objects, and arrays of photos)
     const jsonLdMatches = html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi) || [];
     for (const block of jsonLdMatches) {
       try {
         const parsed = JSON.parse(block.replace(/<script[^>]*>|<\/script>/gi, ''));
         const items = Array.isArray(parsed) ? parsed : [parsed];
         for (const obj of items) {
-          const img =
-            typeof obj?.image === 'string'
-              ? obj.image
-              : Array.isArray(obj?.image)
-              ? typeof obj.image[0] === 'string'
-                ? obj.image[0]
-                : obj.image[0]?.url
-              : obj?.image?.url || obj?.thumbnailUrl;
-          if (typeof img === 'string') candidates.push(img);
+          const imgs = Array.isArray(obj?.image) ? obj.image : obj?.image ? [obj.image] : [];
+          for (const entry of imgs) {
+            const u = typeof entry === 'string' ? entry : entry?.url;
+            if (typeof u === 'string') pushCandidate(u);
+          }
+          if (typeof obj?.thumbnailUrl === 'string') pushCandidate(obj.thumbnailUrl);
         }
       } catch {}
     }
 
-    // Check featured WordPress / hero images
+    // 3. Featured & inline content photos strictly inside the article container (ignoring sidebar/nav/footer/related widgets)
+    const containerMatch =
+      html.match(/<article\b[\s\S]*?<\/article>/i) ||
+      html.match(/<div[^>]+class=["'][^"']*(?:entry-content|post-content|article-content|td-post-content|single-post-content|node__content)[^"']*["'][^>]*>[\s\S]*?<\/div>\s*(?:<\/div>|<footer|<aside|<div[^>]+class=["'][^"']*(?:related|share|comment))/i) ||
+      html.match(/<main\b[\s\S]*?<\/main>/i);
+
+    const articleScope = (containerMatch ? containerMatch[0] : html)
+      .replace(/<(?:aside|nav|footer|script|style)[\s\S]*?<\/(?:aside|nav|footer|script|style)>/gi, ' ')
+      .replace(/<div[^>]+class=["'][^"']*(?:related|recommended|popular-posts|trending|sidebar|comments|author-box)[^"']*["'][\s\S]*?<\/div>/gi, ' ');
+
     const wpMatch = html.match(
-      /<img[^>]+class=["'][^"']*(?:wp-post-image|featured-image|entry-thumb|hero-image|post-thumbnail)[^"']*["'][^>]+src=["']([^"']+)["']/i
+      /<img[^>]+class=["'][^"']*(?:wp-post-image|featured-image|entry-thumb|hero-image|post-thumbnail)[^"']*["'][^>]+(?:data-full-src|data-original|data-lazy-src|data-src|src)=["']([^"']+)["']/i
     );
-    if (wpMatch && wpMatch[1]) candidates.push(wpMatch[1]);
+    if (wpMatch && wpMatch[1]) pushCandidate(wpMatch[1]);
 
-    const normalizedUnique: string[] = [];
-    for (const rawCandidate of candidates) {
-      let absUrl = rawCandidate.trim().replace(/&amp;/g, '&');
-      if (!absUrl || absUrl.startsWith('data:')) continue;
-      try {
-        absUrl = new URL(absUrl, url).href;
-      } catch {
-        continue;
-      }
-      if (
-        /(?:logo|icon|favicon|avatar|badge|pixel|1x1|blank|placeholder|spinner|doubleclick|ads)/i.test(absUrl) ||
-        /\.(?:svg|ico)(?:\?|$)/i.test(absUrl)
-      ) {
-        continue;
-      }
-      if (!normalizedUnique.includes(absUrl)) {
-        normalizedUnique.push(absUrl);
+    // Extract ALL inline article <img> tags (supporting lazy-loaded data-src, data-lazy-src, data-original, srcset, and src)
+    const figureRegex = /<figure\b[\s\S]*?<\/figure>/gi;
+    let figMatch: RegExpExecArray | null;
+    while ((figMatch = figureRegex.exec(articleScope)) !== null) {
+      const figHtml = figMatch[0];
+      const capMatch = figHtml.match(/<figcaption\b[^>]*>([\s\S]*?)<\/figcaption>/i);
+      const figCaption = capMatch ? cleanXmlText(capMatch[1].replace(/<[^>]+>/g, ' ').trim()) : undefined;
+      const altMatch = figHtml.match(/\balt=["']([^"']+)["']/i);
+      const imgUrlMatch =
+        figHtml.match(/\b(?:data-full-src|data-original|data-lazy-src|data-src)=["']([^"']+)["']/i) ||
+        figHtml.match(/\bsrc=["']([^"']+)["']/i);
+      const srcsetMatch = figHtml.match(/\b(?:data-srcset|srcset)=["']([^"']+)["']/i);
+      const chosen = (srcsetMatch && pickLargestFromSrcset(srcsetMatch[1])) || imgUrlMatch?.[1];
+      if (chosen) {
+        pushCandidate(chosen, figCaption ? `${figCaption} (${hostname})` : undefined, altMatch?.[1]);
       }
     }
 
-    for (const candidateUrl of normalizedUnique.slice(0, 3)) {
-      if (await verifyReachableImageUrl(candidateUrl)) {
-        return {
-          url: candidateUrl,
-          caption: cleanTitle ? `Original source photo: ${cleanTitle}` : undefined,
-        };
+    const inlineImgRegex = /<img\b([^>]+)>/gi;
+    let imgTagMatch: RegExpExecArray | null;
+    while ((imgTagMatch = inlineImgRegex.exec(articleScope)) !== null) {
+      const attrs = imgTagMatch[1];
+      const altMatch = attrs.match(/\balt=["']([^"']+)["']/i);
+      const srcsetMatch = attrs.match(/\b(?:data-srcset|srcset)=["']([^"']+)["']/i);
+      const lazyMatch = attrs.match(/\b(?:data-full-src|data-original|data-lazy-src|data-src)=["']([^"']+)["']/i);
+      const srcMatch = attrs.match(/\bsrc=["']([^"']+)["']/i);
+      const chosen =
+        (srcsetMatch && pickLargestFromSrcset(srcsetMatch[1])) ||
+        lazyMatch?.[1] ||
+        srcMatch?.[1];
+      if (chosen) {
+        pushCandidate(
+          chosen,
+          altMatch?.[1] ? `${cleanXmlText(altMatch[1])} (${hostname})` : undefined,
+          altMatch?.[1] ? cleanXmlText(altMatch[1]) : undefined
+        );
       }
     }
 
-    return null;
+    // Verify top candidates in parallel (pass referer so hotlink-protected CDNs allow probe)
+    const verifiedChecks = await Promise.all(
+      candidates.slice(0, 8).map(async (c) => ({
+        candidate: c,
+        ok: await verifyReachableImageUrl(c.url, url),
+      }))
+    );
+
+    const images = verifiedChecks
+      .filter((entry) => entry.ok)
+      .slice(0, 5)
+      .map((entry) => entry.candidate);
+
+    const prose = extractArticleProse(articleScope, 4500);
+    return {
+      images,
+      excerpt: prose.excerpt,
+      paragraphs: prose.paragraphs,
+      title: cleanTitle,
+    };
   } catch {
-    return null;
+    return { images: [], paragraphs: [] };
   }
 }
 
 /**
+ * Extract the primary original article photo directly from a resolved publisher webpage
+ */
+export async function extractPrimarySourcePhoto(
+  url: string
+): Promise<{ url: string; caption?: string } | null> {
+  const details = await extractSourceArticleDetails(url);
+  if (details.images.length === 0) return null;
+  return { url: details.images[0].url, caption: details.images[0].caption };
+}
+
+/**
  * Fetch live Sierra Leone tech news from Google News RSS,
- * resolving publisher URLs and capturing each source's own original photograph.
+ * resolving publisher URLs and capturing multiple original photos & facts from each source.
  */
 export async function fetchLiveGoogleNewsSL(searchQuery?: string, forceLive = false): Promise<SierraLeoneTechTopic[]> {
   try {
@@ -786,7 +1015,7 @@ export async function fetchLiveGoogleNewsSL(searchQuery?: string, forceLive = fa
     const xml = await res.text();
     const itemMatches = xml.match(/<item>[\s\S]*?<\/item>/gi) || [];
 
-    const parsedPromises = itemMatches.slice(0, 6).map(async (itemXml): Promise<SierraLeoneTechTopic | null> => {
+    const parsedPromises = itemMatches.slice(0, 8).map(async (itemXml): Promise<SierraLeoneTechTopic | null> => {
       const titleMatch = itemXml.match(/<title>([\s\S]*?)<\/title>/i);
       const linkMatch = itemXml.match(/<link>([\s\S]*?)<\/link>/i);
       const pubDateMatch = itemXml.match(/<pubDate>([\s\S]*?)<\/pubDate>/i);
@@ -810,17 +1039,24 @@ export async function fetchLiveGoogleNewsSL(searchQuery?: string, forceLive = fa
 
       const category = categorizeNewsItem(cleanTitle, rawDesc);
 
-      // Decode Google News redirect to actual publisher URL and scrape its own verified photo
+      // Decode Google News redirect to actual publisher URL and extract real photos + article paragraphs
       const resolvedUrl = await resolveGoogleNewsUrl(rawLink);
-      const sourcePhoto = await extractPrimarySourcePhoto(resolvedUrl);
+      const sourceDetails = await extractSourceArticleDetails(resolvedUrl);
 
       const fallbackSpec = getCategoryFallbackImages(category)[0];
-      const imageUrl = sourcePhoto?.url || fallbackSpec.url;
-      const imageCaption = sourcePhoto?.url
-        ? sourcePhoto.caption || `Original photo from ${sourceName}: ${cleanTitle}`
+      const hasRealSourcePhotos = sourceDetails.images.length > 0;
+      const imageUrl = hasRealSourcePhotos ? sourceDetails.images[0].url : fallbackSpec.url;
+      const imageCaption = hasRealSourcePhotos
+        ? sourceDetails.images[0].caption || `Original photo from ${sourceName}: ${cleanTitle}`
         : fallbackSpec.caption;
 
       const id = `live-${Buffer.from(cleanTitle.slice(0, 30)).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0, 16)}`;
+
+      const extractedFacts = sourceDetails.paragraphs.slice(0, 5);
+      const richSummary =
+        sourceDetails.paragraphs[0]?.slice(0, 280) ||
+        rawDesc.slice(0, 280) ||
+        `Breaking development in Sierra Leone (${sourceName}): ${cleanTitle}`;
 
       return {
         id,
@@ -830,16 +1066,22 @@ export async function fetchLiveGoogleNewsSL(searchQuery?: string, forceLive = fa
         source: sourceName,
         sourceUrl: resolvedUrl,
         pubDate: pubDateStr,
-        summary: rawDesc.slice(0, 280) || `Breaking development in Sierra Leone (${sourceName}): ${cleanTitle}`,
-        keyFacts: [
-          `Reported by ${sourceName} regarding Sierra Leone technology development.`,
-          `Source Reference: ${resolvedUrl}`,
-          `Analyzed with local perspective from BridgeTech IT Services in Freetown.`
-        ],
-        suggestedAngle: `Investigate how this recent development influences technology adoption, enterprise IT, and digital opportunities in Sierra Leone.`,
-        writingPrompt: `Investigate and write an in-depth journalistic feature about "${cleanTitle}" (Source: ${sourceName}, Reference URL: ${resolvedUrl}). Analyze its significance for Sierra Leone's digital infrastructure, cite official statements and the source URL, and incorporate professional technology insights from BridgeTech IT Services at Jui Junction, Freetown.`,
+        summary: richSummary,
+        keyFacts:
+          extractedFacts.length > 0
+            ? extractedFacts
+            : [
+                `Reported by ${sourceName} regarding Sierra Leone technology development.`,
+                `Source Reference: ${resolvedUrl}`,
+              ],
+        extractedFacts,
+        suggestedAngle: `Write a deeply reported feature examining every angle of this development in Sierra Leone.`,
+        writingPrompt: `Write a comprehensive, deeply researched journalistic article about "${cleanTitle}" (Source: ${sourceName}, Reference URL: ${resolvedUrl}). Cover the full factual background, key stakeholders, technical/economic implications for Sierra Leone, and place BridgeTech IT Services' brief commentary solely at the very end immediately before the reference card.`,
         imageUrl,
         imageCaption,
+        sourceImages: hasRealSourcePhotos
+          ? sourceDetails.images.map((img) => ({ url: img.url, caption: img.caption }))
+          : undefined,
         isLive: true,
       };
     });
@@ -873,8 +1115,10 @@ export async function getSierraLeoneTechNews(options: {
     liveItems = [];
   }
 
-  // Combine curated topics with live items (curated topics first for deep dossier richness)
-  const combined = [...CURATED_SL_TECH_TOPICS, ...liveItems];
+  // Prioritize verified live Sierra Leone stories (especially those with real source photography), followed by curated dossiers
+  const liveWithPhotos = liveItems.filter((item) => item.sourceImages && item.sourceImages.length > 0);
+  const liveWithoutPhotos = liveItems.filter((item) => !item.sourceImages || item.sourceImages.length === 0);
+  const combined = [...liveWithPhotos, ...CURATED_SL_TECH_TOPICS.slice(0, 1), ...liveWithoutPhotos, ...CURATED_SL_TECH_TOPICS.slice(1)];
 
   // Deduplicate by title similarity
   const seenTitles = new Set<string>();

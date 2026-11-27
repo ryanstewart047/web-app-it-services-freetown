@@ -317,7 +317,9 @@ export default function BlogAdminPage() {
     topicTitle?: string
     initialImageUrl?: string
     initialImageCaption?: string
+    initialImageUrls?: Array<{ url: string; caption?: string }>
   } | null>(null)
+  const [lastGeneratedStyleId, setLastGeneratedStyleId] = useState<string>('')
 
   useScrollAnimations()
 
@@ -789,6 +791,7 @@ export default function BlogAdminPage() {
       topicTitle: topicItem.title,
       initialImageUrl: topicItem.imageUrl,
       initialImageCaption: topicItem.imageCaption,
+      initialImageUrls: Array.isArray(topicItem.sourceImages) ? topicItem.sourceImages : undefined,
     }
 
     // Reset previous post state so old images/text never leak into the new post
@@ -816,6 +819,7 @@ export default function BlogAdminPage() {
       topicTitle: topicItem.title,
       initialImageUrl: topicItem.imageUrl,
       initialImageCaption: topicItem.imageCaption,
+      initialImageUrls: Array.isArray(topicItem.sourceImages) ? topicItem.sourceImages : undefined,
     }
     setEditingPostId(null)
     setMedia([])
@@ -839,6 +843,7 @@ export default function BlogAdminPage() {
       topicTitle?: string
       initialImageUrl?: string
       initialImageCaption?: string
+      initialImageUrls?: Array<{ url: string; caption?: string }>
     }
   ) => {
     const promptStr = typeof overridePrompt === 'string' ? overridePrompt : ''
@@ -852,6 +857,9 @@ export default function BlogAdminPage() {
     const topic = rawPrompt
     const activeMeta = topicMeta || selectedTopicMeta || undefined
     const cleanSubject = cleanPromptSubject(topic, activeMeta?.topicTitle || overrideTitle)
+    const prevStyle =
+      lastGeneratedStyleId ||
+      (typeof window !== 'undefined' ? localStorage.getItem('blog_last_ai_style') || '' : '')
 
     // Clear previous AI media before generating fresh images for this specific post
     if (!editingPostId) {
@@ -863,7 +871,7 @@ export default function BlogAdminPage() {
     }
 
     try {
-      setAiProgressMessage('🔍 Capturing original source photos, verifying reference links & writing story...')
+      setAiProgressMessage('🔍 Gathering multi-photo source evidence & writing longform feature...')
       try {
         const response = await fetch('/api/admin/blog/generate', {
           method: 'POST',
@@ -875,6 +883,8 @@ export default function BlogAdminPage() {
             topicTitle: activeMeta?.topicTitle,
             initialImageUrl: activeMeta?.initialImageUrl,
             initialImageCaption: activeMeta?.initialImageCaption,
+            initialImageUrls: activeMeta?.initialImageUrls,
+            previousStyleId: prevStyle || undefined,
             includeImages: true,
             includeSources: true,
           }),
@@ -893,6 +903,13 @@ export default function BlogAdminPage() {
             // Switch to HTML Preview so ReactQuill does not strip <figure>, <figcaption>, or .sources-card
             setEditorMode('html')
 
+            if (data.styleId) {
+              setLastGeneratedStyleId(data.styleId)
+              try {
+                localStorage.setItem('blog_last_ai_style', data.styleId)
+              } catch {}
+            }
+
             // Always use this generated post's title when generating from a new prompt
             if (data.title && (!editingPostId || !title.trim() || Boolean(promptStr || contentPrompt.trim()))) {
               setTitle(data.title)
@@ -901,8 +918,9 @@ export default function BlogAdminPage() {
             // REPLACE media gallery with ONLY this post's captured source photos (never keep old post's photos)
             setMedia(Array.isArray(data.media) ? data.media : [])
 
+            const styleBadge = data.styleName ? ` (${data.styleName})` : ''
             toast.success(
-              `✨ Complete story generated! Captured ${data.media?.length || 0} post photo(s) & ${data.sources?.length || 0} reference link(s).`,
+              `✨ Story generated${styleBadge}! ${data.media?.length || 0} source photo(s) & ${data.sources?.length || 0} reference link(s).`,
               { duration: 6000 }
             )
             setShowAIHelper(false)
@@ -915,8 +933,8 @@ export default function BlogAdminPage() {
         console.warn('[AI Generator] Deep investigation endpoint error, using proxy fallback:', investigateErr)
       }
 
-      // Fallback: Direct proxy generation with 4096 tokens (never cut off), preserving Storyline image & sources
-      setAiProgressMessage('✍️ Writing complete journalistic story...')
+      // Fallback: Direct proxy generation preserving style variety, deep length, Storyline images & end-only BridgeTech commentary
+      setAiProgressMessage('✍️ Writing longform journalistic story...')
       const GROQ_PROXY_URL = '/api/groq'
 
       const response = await fetch(GROQ_PROXY_URL, {
@@ -929,13 +947,13 @@ export default function BlogAdminPage() {
           messages: [
             {
               role: 'system',
-              content: `You are an expert, professional investigative tech journalist and technical columnist for BridgeTech IT Services (itservicesfreetown.com), located at No. 1 Regent Highway, Jui Junction, Freetown (Phone: +232 33 399 391).
-Write highly engaging, deeply researched, and complete blog posts.
+              content: `You are a Senior Technology Investigative Journalist writing longform features for itservicesfreetown.com in Freetown, Sierra Leone.
+Write deeply reported, substantive articles (1,400 to 2,000+ words) with varied structure and fresh narrative voice.
 CRITICAL INSTRUCTIONS:
-- Write the ENTIRE story from introduction to conclusion. NEVER truncate.
+- Write the ENTIRE story from introduction to conclusion thoroughly; never summarize briefly or truncate.
 - NEVER copy, quote, or include the editorial prompt instructions anywhere in the output.
-- Format with clean, modern HTML tags: <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>, <u>, <blockquote>. Do NOT use markdown or repeat an <h1>.
-- Ensure there is a compelling TL;DR summary box, structured sections, local industry perspective from BridgeTech IT Services, and a strong conclusion.`
+- STRICT BRIDGETECH PLACEMENT: Do NOT mention BridgeTech IT Services, Jui Junction, or phone numbers in the intro or body sections. Add ONE closing <h2> commentary section for BridgeTech IT Services ONLY at the very last prose section immediately before the Sources card.
+- Format with clean HTML: <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>, <u>, <blockquote>. No Markdown or duplicate body <h1>.`
             },
             {
               role: 'user',
@@ -943,17 +961,15 @@ CRITICAL INSTRUCTIONS:
 EDITORIAL BRIEF (DO NOT INCLUDE THIS PROMPT TEXT IN THE ARTICLE): "${topic}"
 
 Requirements:
-- Comprehensive coverage: Write 800-1200 words of rich content.
-- MUST output ONLY valid HTML code (do NOT wrap it in backticks or markdown code blocks).
-- NEVER cut off or stop midway: complete every single section thoroughly from introduction to final conclusion.
-- Include a brief summary box (using clean wording, never repeating the editorial brief), descriptive <h2> headers, key details highlighted in <strong>, and a full conclusion.
-- Add local perspective from BridgeTech IT Services (#1 Regent Highway, Jui Junction, Freetown | +232 33 399 391).
+- Comprehensive deep-dive: Write 1,400-2,000 words of rich, factual reporting across 5-6 detailed <h2> sections.
+- Output ONLY valid HTML code (no markdown code fences).
+- Mention BridgeTech IT Services (#1 Regent Highway, Jui Junction, Freetown | +232 33 399 391) ONLY in the final prose section immediately before sources.
 
 Write the complete HTML article now:`
             }
           ],
-          temperature: 0.7,
-          max_tokens: 4096
+          temperature: 0.78,
+          max_tokens: 6000
         })
       })
 
@@ -982,22 +998,38 @@ Write the complete HTML article now:`
           generatedContent = generatedContent.replace(new RegExp(escapedPrompt, 'gi'), cleanSubject)
         }
 
-        // Preserve Storyline Finder photo & reference card in fallback too
-        if (activeMeta?.initialImageUrl) {
-          const imgCaption = (activeMeta.initialImageCaption || cleanSubject).replace(/"/g, '&quot;')
+        // Preserve Storyline Finder photo(s) & reference card in fallback too
+        const fallbackPhotos = [
+          ...(activeMeta?.initialImageUrl
+            ? [{ url: activeMeta.initialImageUrl, caption: activeMeta.initialImageCaption || cleanSubject }]
+            : []),
+          ...(Array.isArray(activeMeta?.initialImageUrls) ? activeMeta.initialImageUrls : []),
+        ].filter((item, index, arr) => item.url && arr.findIndex((x) => x.url === item.url) === index)
+
+        if (fallbackPhotos.length > 0) {
           const safeAlt = cleanSubject.replace(/"/g, '&quot;')
-          if (!generatedContent.includes(activeMeta.initialImageUrl)) {
-            const figureHtml = `\n<figure class="my-8 rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl">\n  <img src="${activeMeta.initialImageUrl}" alt="${safeAlt}" class="w-full h-auto object-cover max-h-[520px] rounded-t-2xl" loading="lazy" />\n  <figcaption class="p-4 text-xs text-slate-300 text-center italic bg-slate-950 border-t border-slate-800 leading-normal">📸 ${imgCaption}</figcaption>\n</figure>\n`
-            generatedContent = `${figureHtml}${generatedContent}`
-          }
-          setMedia([
-            {
-              id: `storyline-${Date.now()}`,
-              type: 'image',
-              url: activeMeta.initialImageUrl,
-              caption: activeMeta.initialImageCaption || cleanSubject,
-            },
-          ])
+          fallbackPhotos.slice(0, 3).reverse().forEach((img, rIdx) => {
+            if (!generatedContent.includes(img.url)) {
+              const cap = (img.caption || cleanSubject).replace(/"/g, '&quot;')
+              const fig = `\n<figure class="my-8 rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl">\n  <img src="${img.url}" alt="${safeAlt}" class="w-full h-auto object-cover max-h-[500px] rounded-t-2xl" loading="lazy" />\n  <figcaption class="p-4 text-xs text-slate-300 text-center italic bg-slate-950 border-t border-slate-800 leading-normal">📸 ${cap}</figcaption>\n</figure>\n`
+              if (rIdx === fallbackPhotos.slice(0, 3).length - 1) {
+                generatedContent = `${fig}${generatedContent}`
+              } else {
+                const firstH2 = generatedContent.search(/<h2[^>]*>/i)
+                generatedContent = firstH2 !== -1
+                  ? `${generatedContent.slice(0, firstH2)}${fig}${generatedContent.slice(firstH2)}`
+                  : `${generatedContent}${fig}`
+              }
+            }
+          })
+          setMedia(
+            fallbackPhotos.map((img, i) => ({
+              id: `storyline-${i}-${Date.now()}`,
+              type: 'image' as const,
+              url: img.url,
+              caption: img.caption || cleanSubject,
+            }))
+          )
         }
 
         if (activeMeta?.sourceUrl && !generatedContent.includes(activeMeta.sourceUrl)) {
@@ -1891,7 +1923,7 @@ ${htmlContent || content || 'Empty draft'}`
 
                             {/* Source Photo Preview */}
                             {topic.imageUrl && (
-                              <div className="mb-2.5 rounded-lg overflow-hidden border border-slate-700/70 bg-slate-900">
+                              <div className="relative mb-2.5 rounded-lg overflow-hidden border border-slate-700/70 bg-slate-900">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                   src={topic.imageUrl}
@@ -1902,6 +1934,11 @@ ${htmlContent || content || 'Empty draft'}`
                                     ;(e.currentTarget.parentElement as HTMLElement).style.display = 'none'
                                   }}
                                 />
+                                {Array.isArray(topic.sourceImages) && topic.sourceImages.length > 0 && (
+                                  <span className="absolute bottom-1.5 right-1.5 px-2 py-0.5 rounded bg-slate-950/85 border border-emerald-500/40 text-[10px] font-semibold text-emerald-300">
+                                    📸 {topic.sourceImages.length} source photo{topic.sourceImages.length > 1 ? 's' : ''}
+                                  </span>
+                                )}
                               </div>
                             )}
 

@@ -35,6 +35,8 @@ export async function POST(request: NextRequest) {
     const initialImageUrl = typeof body.initialImageUrl === 'string' ? body.initialImageUrl.trim() : undefined;
     const initialImageCaption =
       typeof body.initialImageCaption === 'string' ? body.initialImageCaption.trim() : undefined;
+    const initialImageUrls = Array.isArray(body.initialImageUrls) ? body.initialImageUrls : undefined;
+    const previousStyleId = typeof body.previousStyleId === 'string' ? body.previousStyleId.trim() : undefined;
 
     console.log(`[API Blog Generate] Initiating story generation for: "${topicTitle || topic}"`);
 
@@ -46,6 +48,8 @@ export async function POST(request: NextRequest) {
       topicTitle,
       initialImageUrl,
       initialImageCaption,
+      initialImageUrls,
+      previousStyleId,
     });
 
     return NextResponse.json({
@@ -55,6 +59,8 @@ export async function POST(request: NextRequest) {
       media: result.media,
       sources: result.sources,
       tldr: result.tldr,
+      styleId: result.styleId,
+      styleName: result.styleName,
     });
   } catch (err: any) {
     console.error('[API Blog Generate] Generation failed:', err);
