@@ -27,8 +27,42 @@ export interface BlogPost {
 
 export type BlogFilter = 'all' | 'latest' | 'popular' | 'discussed'
 
+const NAMED_HTML_ENTITIES: Record<string, string> = {
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  apos: "'",
+  nbsp: ' ',
+  rsquo: "'",
+  lsquo: "'",
+  rdquo: '"',
+  ldquo: '"',
+  ndash: '–',
+  mdash: '—',
+  hellip: '…',
+}
+
+/** Decode common named and numeric HTML entities into plain text characters. */
+export function decodeHtmlEntities(text: string): string {
+  return text.replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (match, entity: string) => {
+    const lower = entity.toLowerCase()
+    if (lower.startsWith('#x')) {
+      const codePoint = Number.parseInt(lower.slice(2), 16)
+      return Number.isFinite(codePoint) ? String.fromCodePoint(codePoint) : match
+    }
+    if (lower.startsWith('#')) {
+      const codePoint = Number.parseInt(lower.slice(1), 10)
+      return Number.isFinite(codePoint) ? String.fromCodePoint(codePoint) : match
+    }
+    return NAMED_HTML_ENTITIES[lower] ?? match
+  })
+}
+
 export function stripHtml(content: string) {
-  return content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+  return decodeHtmlEntities(content.replace(/<[^>]*>?/g, ' '))
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 export function getExcerpt(content: string, maxLength = 180) {

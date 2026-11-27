@@ -378,7 +378,7 @@ export default async function BlogPostPage({ params }: Props) {
                     '@type': 'WebPage',
                     '@id': `https://www.itservicesfreetown.com/blog/${params.id}`,
                   },
-                }),
+                }).replace(/</g, '\\u003c'),
               }}
             />
 

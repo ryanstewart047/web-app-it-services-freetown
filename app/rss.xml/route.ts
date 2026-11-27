@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { fetchPublishedBlogPosts } from '@/lib/github-blog-storage';
 import { BRAND_NAME, BRAND_SITE_URL } from '@/lib/brand';
-import { getPostCategory, getPrimaryImage } from '../blog/blog-utils';
+import { decodeHtmlEntities, getPostCategory, getPrimaryImage, stripHtml } from '../blog/blog-utils';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 60; // Fresh feed every 60 seconds for rapid Google News/Discover pickup
@@ -13,10 +13,6 @@ function escapeXml(unsafe: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;');
-}
-
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
 }
 
 function toRfc822Date(dateString?: string): string {
@@ -141,14 +137,16 @@ export async function GET() {
     const mimeType = inferImageMimeType(imageUrl);
     const authorName = post.author || BRAND_NAME;
 
+    const safeTitle = decodeHtmlEntities(post.title || 'Tech Update');
+
     return `    <item>
-      <title>${escapeXml(post.title || 'Tech Update')}</title>
+      <title>${escapeXml(safeTitle)}</title>
       <link>${escapeXml(postLink)}</link>
       <guid isPermaLink="true">${escapeXml(postLink)}</guid>
       <pubDate>${pubDate}</pubDate>
       <dc:creator>${escapeXml(authorName)}</dc:creator>
       <category>${escapeXml(category)}</category>
-      <description>${escapeXml(plainExcerpt || post.title)}</description>
+      <description>${escapeXml(plainExcerpt || safeTitle)}</description>
       <media:content url="${escapeXml(imageUrl)}" medium="image" type="${mimeType}" width="1200" />
       <media:thumbnail url="${escapeXml(imageUrl)}" />
       <enclosure url="${escapeXml(imageUrl)}" type="${mimeType}" length="0" />
