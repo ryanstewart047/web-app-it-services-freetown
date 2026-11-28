@@ -61,6 +61,7 @@ export async function POST(request: NextRequest) {
       tldr: result.tldr,
       styleId: result.styleId,
       styleName: result.styleName,
+      provider: result.provider,
     });
   } catch (err: any) {
     console.error('[API Blog Generate] Generation failed:', err);

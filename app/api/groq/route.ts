@@ -27,6 +27,7 @@ async function fetchActiveGroqModels(apiKey: string): Promise<string[]> {
         const chatModels = ids.filter(
           (id) =>
             !id.includes('whisper') &&
+            !id.includes('orpheus') &&
             !id.includes('guard') &&
             !id.includes('vision') &&
             !id.includes('embedding') &&
@@ -37,9 +38,10 @@ async function fetchActiveGroqModels(apiKey: string): Promise<string[]> {
         if (chatModels.length > 0) {
           const preferred = [
             'llama-3.3-70b-versatile',
+            'qwen/qwen3.8-27b',
+            'openai/gpt-oss-120b',
+            'openai/gpt-oss-20b',
             'llama-3.1-8b-instant',
-            'gemma2-9b-it',
-            'mixtral-8x7b-32768',
           ];
           const sorted = [
             ...preferred.filter((p) => chatModels.includes(p)),
@@ -181,9 +183,9 @@ export async function POST(request: NextRequest) {
     }
 
     // ── 2. Try Google Gemini with robust conversation formatting ─────────────
-    const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY;
+    const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
     if (geminiKey) {
-      const geminiModels = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-1.5-flash-8b'];
+      const geminiModels = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-pro-latest', 'gemini-2.5-flash-lite', 'gemini-flash-lite-latest'];
 
       // Format messages for Gemini (must strictly alternate user/model and start with user)
       const rawContents = body.messages
@@ -525,7 +527,7 @@ export async function GET(request: NextRequest) {
           availableChatModels: modelsJson?.data
             ? modelsJson.data
                 .map((m: any) => m.id)
-                .filter((id: string) => !id.includes('whisper') && !id.includes('guard'))
+                .filter((id: string) => !id.includes('whisper') && !id.includes('orpheus') && !id.includes('guard'))
                 .slice(0, 10)
             : null,
           modelsError: modelsJson?.error || (!modelsRes.ok ? modelsText.slice(0, 300) : null),

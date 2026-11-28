@@ -41,6 +41,7 @@ export interface GeneratedBlogStory {
   tldr: string;
   styleId?: string;
   styleName?: string;
+  provider?: string;
 }
 
 // Verified Sierra Leone Tech & News Knowledge Base
@@ -562,61 +563,173 @@ ${listItemsHtml}
   return `${html.trim()}\n\n${sourcesCardHtml}`;
 }
 
+function stripLLMArtifacts(rawText: string): string {
+  return rawText
+    .replace(/<think>[\s\S]*?<\/think>/gi, '')
+    .replace(/%PDF-1\.\d[\s\S]*?%%EOF/gi, '')
+    .trim();
+}
+
+async function discoverActiveGroqModels(apiKey: string): Promise<string[]> {
+  const defaults = [
+    process.env.GROQ_MODEL,
+    'llama-3.3-70b-versatile',
+    'qwen/qwen3.8-27b',
+    'openai/gpt-oss-120b',
+    'openai/gpt-oss-20b',
+    'llama-3.1-8b-instant',
+  ].filter(Boolean) as string[];
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch('https://api.groq.com/openai/v1/models', {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
+    if (!res.ok) return defaults;
+    const data = await res.json();
+    const ids: string[] = (Array.isArray(data?.data) ? data.data : [])
+      .map((m: any) => String(m.id || ''))
+      .filter(
+        (id: string) =>
+          id &&
+          !id.includes('whisper') &&
+          !id.includes('orpheus') &&
+          !id.includes('guard') &&
+          !id.includes('vision') &&
+          !id.includes('embedding') &&
+          !id.includes('tts')
+      );
+    if (ids.length === 0) return defaults;
+    return [
+      ...defaults.filter((d) => ids.includes(d)),
+      ...ids.filter((id) => !defaults.includes(id)),
+    ];
+  } catch {
+    return defaults;
+  }
+}
+
+async function discoverActiveGeminiModels(apiKey: string): Promise<string[]> {
+  const preferred = [
+    'gemini-3.8-flash',
+    'gemini-flash-latest',
+    'gemini-pro-latest',
+    'gemini-2.5-flash-lite',
+    'gemini-flash-lite-latest',
+  ];
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`, {
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
+    if (!res.ok) return preferred;
+    const data = await res.json();
+    const supported: string[] = (Array.isArray(data?.models) ? data.models : [])
+      .filter(
+        (m: any) =>
+          Array.isArray(m.supportedGenerationMethods) &&
+          m.supportedGenerationMethods.includes('generateContent')
+      )
+      .map((m: any) => String(m.name || '').replace(/^models\//, ''))
+      .filter(
+        (name: string) =>
+          name &&
+          !name.includes('-tts') &&
+          !name.includes('embedding') &&
+          !name.includes('imagen') &&
+          !name.includes('veo')
+      );
+    if (supported.length === 0) return preferred;
+    return [
+      ...preferred.filter((p) => supported.includes(p)),
+      ...supported.filter((s) => !preferred.includes(s)),
+    ];
+  } catch {
+    return preferred;
+  }
+}
+
 /**
- * Execute LLM call via Groq, Google Gemini, or intelligent fallback
+ * Execute LLM call via dynamically discovered Groq, Gemini, or OpenAI active models
  */
-async function callLLM(systemPrompt: string, userPrompt: string): Promise<string> {
+async function callLLM(systemPrompt: string, userPrompt: string): Promise<{ text: string; provider: string }> {
   const groqKey = process.env.GROQ_API_KEY || process.env.GROQ_KEY;
-  const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY;
+  const geminiKey =
+    process.env.GEMINI_API_KEY ||
+    process.env.GOOGLE_AI_KEY ||
+    process.env.GOOGLE_API_KEY ||
+    process.env.GEMINI_API_KEY_SECRET;
+  const openaiKey = process.env.OPENAI_API_KEY;
+  const providerErrors: string[] = [];
 
-  // 1. Try Groq with high token capacity for deep 1400-2000+ word journalism
+  // 1. Try Groq using dynamically discovered active chat models (prevents 400/404 on deprecated models)
   if (groqKey) {
-    const models = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant'];
-    for (const model of models) {
-      try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 38000);
+    const models = await discoverActiveGroqModels(groqKey);
+    for (const model of models.slice(0, 5)) {
+      for (const maxTokens of [3800, 2600]) {
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 32000);
 
-        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${groqKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt },
-            ],
-            temperature: 0.78,
-            max_tokens: 6000,
-            top_p: 0.95,
-          }),
-          signal: controller.signal,
-        });
-        clearTimeout(timeout);
+          const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${groqKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt },
+              ],
+              temperature: 0.78,
+              max_tokens: maxTokens,
+              top_p: 0.95,
+            }),
+            signal: controller.signal,
+          });
+          clearTimeout(timeout);
 
-        if (res.ok) {
-          const data = await res.json();
-          const text = data.choices?.[0]?.message?.content;
-          if (text && text.trim().length > 200) {
-            return text.trim();
+          if (res.ok) {
+            const data = await res.json();
+            const choice = data.choices?.[0];
+            const raw = choice?.message?.content || choice?.message?.reasoning || choice?.message?.reasoning_content || '';
+            const cleaned = stripLLMArtifacts(raw);
+            if (cleaned.length > 350) {
+              return { text: cleaned, provider: `groq:${model}` };
+            }
+            providerErrors.push(`groq:${model} empty/short response (${cleaned.length} chars)`);
+            break;
           }
+
+          const errText = await res.text();
+          providerErrors.push(`groq:${model} HTTP ${res.status}: ${errText.slice(0, 140)}`);
+          // Only retry smaller max_tokens on 400/413 payload/TPM limits; otherwise move to next model
+          if (res.status !== 400 && res.status !== 413) {
+            break;
+          }
+        } catch (err: any) {
+          providerErrors.push(`groq:${model} err: ${err?.message || String(err)}`);
+          break;
         }
-      } catch (err) {
-        console.warn(`[Investigator LLM] Groq ${model} error:`, err);
       }
     }
   }
 
-  // 2. Try Google Gemini with 6000 tokens
+  // 2. Try Google Gemini using dynamically discovered active generateContent models
   if (geminiKey) {
-    const geminiModels = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro'];
-    for (const model of geminiModels) {
+    const geminiModels = await discoverActiveGeminiModels(geminiKey);
+    for (const model of geminiModels.slice(0, 5)) {
       try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 35000);
+        const timeout = setTimeout(() => controller.abort(), 32000);
 
         const res = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`,
@@ -627,12 +740,15 @@ async function callLLM(systemPrompt: string, userPrompt: string): Promise<string
               contents: [
                 {
                   role: 'user',
-                  parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }],
+                  parts: [{ text: userPrompt }],
                 },
               ],
+              systemInstruction: {
+                parts: [{ text: systemPrompt }],
+              },
               generationConfig: {
                 temperature: 0.78,
-                maxOutputTokens: 6000,
+                maxOutputTokens: 4500,
               },
             }),
             signal: controller.signal,
@@ -642,18 +758,61 @@ async function callLLM(systemPrompt: string, userPrompt: string): Promise<string
 
         if (res.ok) {
           const data = await res.json();
-          const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (text && text.trim().length > 200) {
-            return text.trim();
+          const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          const cleaned = stripLLMArtifacts(raw);
+          if (cleaned.length > 350) {
+            return { text: cleaned, provider: `gemini:${model}` };
           }
+          providerErrors.push(`gemini:${model} empty/short response`);
+        } else {
+          const errText = await res.text();
+          providerErrors.push(`gemini:${model} HTTP ${res.status}: ${errText.slice(0, 140)}`);
         }
-      } catch (err) {
-        console.warn(`[Investigator LLM] Gemini ${model} error:`, err);
+      } catch (err: any) {
+        providerErrors.push(`gemini:${model} err: ${err?.message || String(err)}`);
       }
     }
   }
 
-  throw new Error('All AI providers failed to generate content');
+  // 3. Try OpenAI if configured
+  if (openaiKey) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 32000);
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${openaiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          temperature: 0.78,
+          max_tokens: 4500,
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      if (res.ok) {
+        const data = await res.json();
+        const cleaned = stripLLMArtifacts(data.choices?.[0]?.message?.content || '');
+        if (cleaned.length > 350) {
+          return { text: cleaned, provider: 'openai:gpt-4o-mini' };
+        }
+      } else {
+        providerErrors.push(`openai HTTP ${res.status}`);
+      }
+    } catch (err: any) {
+      providerErrors.push(`openai err: ${err?.message || String(err)}`);
+    }
+  }
+
+  console.warn('[Investigator LLM] All providers failed:', providerErrors.join(' | '));
+  throw new Error(`All AI providers failed to generate content (${providerErrors.slice(0, 3).join('; ')})`);
 }
 
 /**
@@ -892,21 +1051,21 @@ export async function investigateAndGenerateStory(
 
   const finalMedia = discoveredImages.slice(0, MAX_POST_IMAGES);
 
-  // Step 6: Construct Rich Longform Dossier for the LLM
+  // Step 6: Construct Rich Longform Dossier within TPM-safe token limits so Groq/Gemini never reject with 413
   const factsContext = factualPoints.length > 0
-    ? `VERIFIED FACTUAL DOSSIER FOR THIS TOPIC (cite concrete numbers, names, and facts deeply):\n${factualPoints.slice(0, 14).map((f, i) => `${i + 1}. ${f}`).join('\n')}`.slice(0, 12000)
+    ? `VERIFIED FACTUAL DOSSIER FOR THIS TOPIC (cite concrete numbers, names, and facts deeply):\n${factualPoints.slice(0, 12).map((f, i) => `${i + 1}. ${f}`).join('\n')}`.slice(0, 5200)
     : `RESEARCHED SUBJECT: ${displayTopic}`;
 
   const sourcesContext = discoveredSources.length > 0
-    ? `OFFICIAL CITATIONS & REFERENCE LINKS FOR THIS SPECIFIC POST:\n${discoveredSources.map((s) => `- ${s.title} (${s.sourceName || 'Web'}): ${s.url}`).join('\n')}`
+    ? `OFFICIAL CITATIONS & REFERENCE LINKS FOR THIS SPECIFIC POST:\n${discoveredSources.slice(0, 5).map((s) => `- ${s.title} (${s.sourceName || 'Web'}): ${s.url}`).join('\n')}`
     : '';
 
   const imagesContext = finalMedia.length > 0
     ? `VERIFIED SOURCE PHOTOS FOR THIS POST (${finalMedia.length} photos — embed ALL ${finalMedia.length} evenly across body sections using HTML <figure> tags):\n${finalMedia.map((img, idx) => `${idx + 1}. URL: ${img.url}\n   CAPTION: ${img.caption}\n   ALT: ${img.altText}`).join('\n\n')}`
     : '';
 
-  const systemPrompt = `You are a Senior Technology Investigative Journalist writing longform features for itservicesfreetown.com in Freetown, Sierra Leone.
-You adapt your voice and structure for every publication so each article reads freshly and never follows a stale copy-paste template.
+  const systemPrompt = `You are a Senior Technology Investigative Journalist writing original longform features for itservicesfreetown.com in Freetown, Sierra Leone.
+You adapt your voice, structure, examples, and vocabulary to each specific topic so no two posts sound repetitive or formulaic.
 
 ASSIGNED EDITORIAL STYLE FOR THIS POST: "${editorialStyle.name}"
 - VOICE & TONE: ${editorialStyle.voice}
@@ -914,9 +1073,9 @@ ASSIGNED EDITORIAL STYLE FOR THIS POST: "${editorialStyle.name}"
 - SECTION ARCHITECTURE: ${editorialStyle.structureRule}
 
 MANDATORY EDITORIAL & CONTENT RULES:
-1. WRITE SUBSTANTIAL, DEEP JOURNALISM (1,400 TO 2,000+ WORDS): Thoroughly unpack background context, technical mechanics, concrete statistics/funding/policies from the dossier, stakeholder impacts across Freetown and provincial Sierra Leone, regional comparisons, and practical constraints. Every section should have 2–4 well-developed <p> paragraphs plus lists or pull-quotes where fitting. NEVER summarize superficially or truncate early.
-2. STRICT BRIDGETECH PLACEMENT — CLOSING SECTION ONLY: Do NOT mention "BridgeTech IT Services", "Jui Junction", or "+232 33 399 391" in the title, opening, summary box, or main body sections. Keep the entire journalism focused purely on the subject matter. Add ONE dedicated closing <h2> commentary section (e.g., "BridgeTech IT Services Perspective" or "Final Commentary from BridgeTech IT Services") ONLY AT THE VERY LAST SECTION OF PROSE immediately before the Sources & Reference Links card.
-3. NEVER ECHO OR INCLUDE PROMPT TEXT: Never copy, repeat, or quote editorial instructions (e.g., "Write a practical...", "Investigate and write...") inside the title, summary, paragraphs, or captions.
+1. 100% TOPIC-SPECIFIC DEEP JOURNALISM (1,400 TO 2,000+ WORDS): Every heading, paragraph, argument, and detail MUST belong uniquely to "${displayTopic}" and the factual dossier provided. NEVER insert generic filler paragraphs, canned city rosters, or unrelated checklists (such as generic telecom/surge-protection/enforcement clichés unless this topic is genuinely about them). Every section should contain 2–4 detailed, concrete <p> paragraphs anchored in the facts.
+2. STRICT BRIDGETECH PLACEMENT — CLOSING SECTION ONLY: Do NOT mention "BridgeTech IT Services", "Jui Junction", or "+232 33 399 391" in the title, opening, summary box, or main body sections. Keep the entire journalism focused purely on the subject matter. Add ONE dedicated closing <h2> commentary section (e.g., "BridgeTech IT Services Perspective" or "Final Commentary from BridgeTech IT Services") ONLY AT THE VERY LAST SECTION OF PROSE immediately before the Sources & Reference Links card, giving a brief, topic-relevant closing view.
+3. NEVER ECHO OR INCLUDE PROMPT TEXT: Never copy, repeat, or quote editorial instructions inside the title, summary, paragraphs, or captions.
 4. EMBED ALL VERIFIED SOURCE PHOTOS PROVIDED: Distribute ALL provided image URL(s) from VERIFIED SOURCE PHOTOS throughout the body sections (between sections, before the closing BridgeTech section) using <figure class="my-8 rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl"><img src="IMAGE_URL" alt="ALT_TEXT" class="w-full h-auto object-cover max-h-[500px] rounded-t-2xl" /><figcaption class="p-4 text-xs text-slate-300 text-center italic bg-slate-950 border-t border-slate-800">CAPTION</figcaption></figure>. Do NOT invent or alter any image URLs.
 5. CLEAN HTML FORMATTING: Use <h2>, <h3>, <p>, <ul>/<li>, <blockquote>, <strong>, <u>. No Markdown. Do not duplicate <h1> after the first heading.
 6. REFERENCE LINKS CARD AT THE VERY END: Place <div class="sources-card ..."> as the absolute last block of the article listing clickable <a href="URL" target="_blank" rel="noopener noreferrer" class="text-sky-400 underline">TITLE</a> items from OFFICIAL CITATIONS & REFERENCE LINKS.`;
@@ -931,20 +1090,23 @@ ${sourcesContext}
 ${imagesContext}
 
 Checklist before outputting raw HTML:
-- Target word count: 1,400–2,000+ words of deeply informative analysis grounded strictly in the subject.
-- Follow the "${editorialStyle.name}" style rules cleanly so structure differs from other posts.
+- Write 1,400–2,000+ words deeply tailored ONLY to "${displayTopic}" using facts and context specific to this subject.
+- Follow the "${editorialStyle.name}" style rules cleanly so structure and phrasing differ completely from earlier posts.
 - Embed ALL ${finalMedia.length} verified source photo(s) evenly across the article sections.
 - Mention BridgeTech IT Services ONLY in the very last prose section immediately before the Sources & Reference Links card.
 - Return ONLY raw HTML (no Markdown code fences).`;
 
   let htmlContent = '';
+  let providerUsed = 'fallback';
   try {
-    htmlContent = await callLLM(systemPrompt, userPrompt);
+    const llmResult = await callLLM(systemPrompt, userPrompt);
+    htmlContent = llmResult.text;
+    providerUsed = llmResult.provider;
     if (htmlContent.startsWith('```')) {
       htmlContent = htmlContent.replace(/^```(?:html)?\s*/i, '').replace(/\s*```$/i, '');
     }
   } catch (llmErr) {
-    console.warn('[Blog Investigator] LLM API call failed or unavailable. Generating rich fallback story:', llmErr);
+    console.warn('[Blog Investigator] All live LLM API calls failed, generating clean topic-grounded fallback:', llmErr);
     htmlContent = generateHighQualityFallbackStory(
       displayTopic,
       matchedTopic,
@@ -993,14 +1155,15 @@ Checklist before outputting raw HTML:
     content: htmlContent,
     media: finalMedia,
     sources: discoveredSources,
-    tldr: tldr || `In-depth investigative analysis on ${displayTopic} in Sierra Leone.`,
+    tldr: tldr || `Investigative report on ${displayTopic}.`,
     styleId: editorialStyle.id,
     styleName: editorialStyle.name,
+    provider: providerUsed,
   };
 }
 
 /**
- * Generates an exhaustive, beautifully formatted journalistic story when live LLM APIs are unreachable
+ * Generates a clean, topic-grounded story ONLY if all live LLM providers fail (never injects canned cross-topic boilerplate)
  */
 function generateHighQualityFallbackStory(
   topicSubject: string,
@@ -1064,68 +1227,50 @@ From our bench at <strong>BridgeTech IT Services</strong> (No. 1 Regent Highway,
     return ensureReferenceLinksInArticle(withAllMouPhotos, sources, safeSubject);
   }
 
-  // Deep multi-section fallback tailored to the rotated editorial style,
-  // with zero BridgeTech mentions until the closing section immediately before Sources.
+  // Strictly topic-grounded synthesis from real scraped evidence — zero canned boilerplate sections
   const factsList = (factualPoints.length > 0 ? factualPoints : matchedTopic?.facts || [])
     .map((f: string) => f.replace(/^(?:From primary source|Corroborating report)\s*\([^)]*\):\s*/i, '').trim())
     .filter((f: string) => f.length > 20)
-    .slice(0, 10);
+    .slice(0, 12);
 
-  const primaryEvidence = factsList.slice(0, 4);
-  const deeperEvidence = factsList.slice(4, 10);
+  const escapeText = (s: string) => s.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const leadParagraph = factsList[0]
+    ? escapeText(factsList[0])
+    : `Recent reporting centers on <strong>${safeSubject}</strong> and its direct significance within Sierra Leone’s evolving technology landscape.`;
 
   const openingHtml =
     editorialStyle.id === 'executive-briefing' || editorialStyle.id === 'deep-dive-dossier'
       ? `<div class="blog-tldr-box p-5 rounded-2xl mb-8 bg-slate-900/80 border border-slate-700 shadow-xl">
   <p class="font-bold text-sky-400 text-base mb-2.5 flex items-center gap-2">
-    <span>⚡</span> ${editorialStyle.id === 'deep-dive-dossier' ? 'Verified Milestones at a Glance' : 'Key Figures &amp; Context'}
+    <span>⚡</span> ${editorialStyle.id === 'deep-dive-dossier' ? 'At a Glance' : 'Executive Context'}
   </p>
-  <p class="text-slate-300 text-sm leading-relaxed">
-    ${(primaryEvidence[0] || `An in-depth look at ${safeSubject} and what recent developments reveal for Sierra Leone's digital landscape, businesses, and everyday technology users.`).replace(/</g, '&lt;').replace(/>/g, '&gt;')}
-  </p>
+  <p class="text-slate-300 text-sm leading-relaxed">${leadParagraph}</p>
 </div>`
-      : `<p class="text-lg leading-relaxed text-slate-200 mb-6 font-normal">
-  ${(primaryEvidence[0] || `${safeSubject} marks an important milestone in Sierra Leone’s fast-changing digital and technology sector, carrying concrete implications for connectivity, enterprise infrastructure, and everyday citizens.`).replace(/</g, '&lt;').replace(/>/g, '&gt;')}
-</p>`;
+      : `<p class="text-lg leading-relaxed text-slate-200 mb-6 font-normal">${leadParagraph}</p>`;
 
-  const evidenceSectionHtml =
-    factsList.length > 0
-      ? `<h2>${editorialStyle.id === 'policy-impact' ? 'Policy Commitments &amp; Verified Evidence' : editorialStyle.id === 'field-explainer' ? 'What Happened and How It Works' : 'Inside the Reporting: Core Developments'}</h2>
-${primaryEvidence.slice(1).map((p: string) => `<p class="leading-relaxed mb-4">${p.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`).join('\n')}
-${deeperEvidence.length > 0 ? `<ul class="space-y-2.5 my-5 list-disc pl-6 text-slate-200 text-sm leading-relaxed">\n${deeperEvidence.map((p: string) => `  <li>${p.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</li>`).join('\n')}\n</ul>` : ''}`
-      : `<h2>Understanding the Core Developments</h2>
-<p class="leading-relaxed mb-4">
-Developments surrounding <strong>${safeSubject}</strong> highlight how rapidly infrastructure, regulation, and user expectations are shifting across Sierra Leone’s digital economy. From Freetown’s commercial corridors to growing provincial centers, reliable systems and transparent technical standards increasingly separate resilient organizations from vulnerable ones.
-</p>
-<p class="leading-relaxed mb-4">
-Industry stakeholders point to three persistent realities shaping implementation on the ground: total cost of ownership for hardware and bandwidth, electrical grid stability and surge resilience, and the availability of trained local technical personnel capable of sustaining deployments beyond initial launch announcements.
-</p>`;
+  const midFacts = factsList.slice(1, 6);
+  const tailFacts = factsList.slice(6, 12);
+
+  const midSectionHtml =
+    midFacts.length > 0
+      ? `<h2>Key Details on ${safeSubject}</h2>\n${midFacts.map((p: string) => `<p class="leading-relaxed mb-4">${escapeText(p)}</p>`).join('\n')}`
+      : `<h2>Overview: ${safeSubject}</h2>\n<p class="leading-relaxed mb-4">This report examines <strong>${safeSubject}</strong> based on available public disclosures and industry reporting referenced below.</p>`;
+
+  const tailSectionHtml =
+    tailFacts.length > 0
+      ? `<h2>Additional Context from Source Reporting</h2>\n<ul class="space-y-2.5 my-5 list-disc pl-6 text-slate-200 text-sm leading-relaxed">\n${tailFacts.map((p: string) => `  <li>${escapeText(p)}</li>`).join('\n')}\n</ul>`
+      : '';
 
   const rawFallback = `
 ${openingHtml}
 
-<p class="leading-relaxed mb-6">
-Examining <strong>${safeSubject}</strong> in detail requires looking past headline announcements to see how technical requirements, regulatory oversight, investment economics, and real infrastructure capacity intersect on the ground in Sierra Leone.
-</p>
+${midSectionHtml}
 
-${evidenceSectionHtml}
-
-<h2>Implications for Consumers, Businesses &amp; Institutions in Sierra Leone</h2>
-<p class="leading-relaxed mb-4">
-Across Freetown, Waterloo, Bo, Kenema, and Makeni, schools, clinics, banks, and small enterprises depend directly on predictable connectivity, trustworthy hardware supply chains, and secure digital workflows. Shifts in national policy, telecom standards, or hardware ecosystems quickly ripple down to daily operating costs and service uptime.
-</p>
-<p class="leading-relaxed mb-6">
-For institutional IT leads and small business owners alike, aligning early with emerging technical benchmarks—whether through redundant network links, proper surge protection, updated security hygiene, or verified equipment sourcing—reduces downtime and prevents costly reactive repairs later on.
-</p>
-
-<h2>Execution Challenges &amp; What to Watch Next</h2>
-<p class="leading-relaxed mb-4">
-Sustained impact will hinge on transparent enforcement, consistent power availability, affordable last-mile access outside central Freetown, and continuous skills development for Sierra Leonean engineers and technicians. Observers will be tracking measurable rollout benchmarks and public accountability over the coming quarters.
-</p>
+${tailSectionHtml}
 
 <h2>BridgeTech IT Services Perspective</h2>
 <p class="leading-relaxed mb-4">
-Closing perspective from <strong>BridgeTech IT Services</strong> (No. 1 Regent Highway, Jui Junction, Freetown): on our diagnostics benches and enterprise client sites across the Western Area, developments like <strong>${safeSubject}</strong> matter most when paired with dependable hardware maintenance, surge-protected infrastructure, and honest technical diagnostics. Readers or organizations seeking hands-on inspection or IT guidance can call <strong>+232 33 399 391</strong> or <a href="https://www.itservicesfreetown.com/book-appointment" target="_blank" class="text-sky-400 underline">book an appointment online</a>.
+At <strong>BridgeTech IT Services</strong> (No. 1 Regent Highway, Jui Junction, Freetown), our team closely monitors developments like <strong>${safeSubject}</strong> and their practical impact on local users and organizations. For hardware servicing, diagnostics, or IT advisory, reach us at <strong>+232 33 399 391</strong> or <a href="https://www.itservicesfreetown.com/book-appointment" target="_blank" class="text-sky-400 underline">book an appointment online</a>.
 </p>
 `.trim();
 
