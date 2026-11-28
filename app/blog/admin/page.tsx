@@ -5,19 +5,69 @@ import { useRouter } from 'next/navigation'
 import { useScrollAnimations } from '@/hooks/useScrollAnimations'
 import { usePageLoader } from '@/hooks/usePageLoader'
 import LoadingOverlay from '@/components/LoadingOverlay'
-import { ArrowLeft, Save, Eye, Upload, X, Image as ImageIcon, Video, Lock, Sparkles, RefreshCw, Trash2, List, Edit, Search, ExternalLink, Globe, Newspaper, Zap, Filter, ChevronRight, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, Save, Eye, Upload, X, Image as ImageIcon, Video, Lock, Sparkles, RefreshCw, Trash2, List, Edit, Search, ExternalLink, Globe, Newspaper, Zap, Filter, ChevronRight, CheckCircle2, Undo2, Redo2, Maximize2, Minimize2, Table, Minus, Quote } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { createBlogPost, fetchBlogPosts, deleteBlogPost, updateBlogPost } from '@/lib/github-blog-storage'
 import dynamic from 'next/dynamic'
 import { useAdminSession } from '../../../src/hooks/useAdminSession'
-import { cleanPromptSubject, getVideoEmbed } from '../blog-utils'
+import { cleanPromptSubject, getVideoEmbed, stripHtml } from '../blog-utils'
 
-// Dynamically import ReactQuill to avoid SSR issues and build issues
+const BLOG_FONT_SIZE_OPTIONS: Array<string | false> = [
+  '12px',
+  '14px',
+  false,
+  '18px',
+  '20px',
+  '24px',
+  '28px',
+  '32px',
+  '36px',
+]
+
+const BLOG_FONT_OPTIONS: Array<{ value: string | false; label: string; cssFamily: string }> = [
+  { value: false, label: 'Default Sans', cssFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif' },
+  { value: 'Inter, sans-serif', label: 'Inter', cssFamily: 'Inter, sans-serif' },
+  { value: 'Plus Jakarta Sans, sans-serif', label: 'Plus Jakarta Sans', cssFamily: 'Plus Jakarta Sans, sans-serif' },
+  { value: 'Roboto, Arial, sans-serif', label: 'Roboto', cssFamily: 'Roboto, Arial, sans-serif' },
+  { value: 'Merriweather, Georgia, serif', label: 'Merriweather', cssFamily: 'Merriweather, Georgia, serif' },
+  { value: 'Source Serif 4, Georgia, serif', label: 'Source Serif 4', cssFamily: 'Source Serif 4, Georgia, serif' },
+  { value: 'Lora, Georgia, serif', label: 'Lora', cssFamily: 'Lora, Georgia, serif' },
+  { value: 'Playfair Display, Georgia, serif', label: 'Playfair Display', cssFamily: 'Playfair Display, Georgia, serif' },
+  { value: 'Georgia, serif', label: 'Georgia Classic', cssFamily: 'Georgia, serif' },
+  { value: 'JetBrains Mono, monospace', label: 'JetBrains Mono', cssFamily: 'JetBrains Mono, monospace' },
+]
+
+// Dynamically import ReactQuill and register style-based sizing, professional fonts, and undo/redo icons
 const ReactQuill = dynamic(
-  () => import('react-quill'),
-  { 
+  async () => {
+    const mod = await import('react-quill')
+    const RQ = mod.default as any
+    const Quill = RQ?.Quill
+    if (Quill) {
+      const SizeStyle = Quill.import('attributors/style/size')
+      SizeStyle.whitelist = BLOG_FONT_SIZE_OPTIONS.filter(Boolean)
+      Quill.register(SizeStyle, true)
+
+      const FontStyle = Quill.import('attributors/style/font')
+      FontStyle.whitelist = BLOG_FONT_OPTIONS.map((f) => f.value).filter(Boolean)
+      Quill.register(FontStyle, true)
+
+      const icons = Quill.import('ui/icons')
+      if (icons) {
+        icons.undo =
+          '<svg viewBox="0 0 18 18"><polygon class="ql-fill ql-stroke" points="6 10 4 12 2 10 6 10"></polygon><path class="ql-stroke" d="M8.09,13.91A4.6,4.6,0,0,0,9,14,5,5,0,1,0,4,9"></path></svg>'
+        icons.redo =
+          '<svg viewBox="0 0 18 18"><polygon class="ql-fill ql-stroke" points="12 10 14 12 16 10 12 10"></polygon><path class="ql-stroke" d="M9.91,13.91A4.6,4.6,0,0,1,9,14a5,5,0,1,1,5-5"></path></svg>'
+      }
+    }
+
+    const WrappedQuill = ({ forwardedRef, ...props }: any) => <RQ ref={forwardedRef} {...props} />
+    WrappedQuill.displayName = 'WrappedQuill'
+    return WrappedQuill
+  },
+  {
     ssr: false,
-    loading: () => <div className="animate-pulse bg-gray-200 h-64 rounded">Loading editor...</div>
+    loading: () => <div className="animate-pulse bg-gray-200 h-64 rounded">Loading editor...</div>,
   }
 )
 
@@ -42,50 +92,72 @@ interface BlogPost {
 
 // Rich text editor configuration
 const quillModules = {
+  history: {
+    delay: 600,
+    maxStack: 200,
+    userOnly: true,
+  },
   toolbar: {
     container: [
-      [{ 'header': [1, 2, 3, false] }],
+      ['undo', 'redo'],
+      [{ header: [1, 2, 3, 4, false] }],
+      [{ font: BLOG_FONT_OPTIONS.map((f) => f.value) }],
+      [{ size: BLOG_FONT_SIZE_OPTIONS }],
       ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'color': [] }, { 'background': [] }],
-      [{ 'font': [] }],
-      [{ 'align': [] }],
+      [{ color: [] }, { background: [] }],
+      [{ script: 'sub' }, { script: 'super' }],
+      [{ list: 'ordered' }, { list: 'bullet' }, { list: 'check' }],
+      [{ indent: '-1' }, { indent: '+1' }],
+      [{ align: [] }],
+      ['blockquote', 'code-block'],
       ['link', 'image', 'video'],
-      ['clean']
+      ['clean'],
     ],
     handlers: {
-      image: function() {
-        const url = prompt('Enter image URL (e.g. from Imgur or PostImages):');
+      undo: function () {
+        // @ts-ignore
+        this.quill?.history?.undo()
+      },
+      redo: function () {
+        // @ts-ignore
+        this.quill?.history?.redo()
+      },
+      image: function () {
+        const url = prompt('Enter image URL (e.g. from Imgur or PostImages):')
         if (url) {
           // @ts-ignore
-          const quill = this.quill;
-          const range = quill.getSelection(true);
-          quill.insertEmbed(range.index, 'image', url);
+          const quill = this.quill
+          const range = quill.getSelection(true)
+          quill.insertEmbed(range.index, 'image', url)
         }
       },
-      video: function() {
-        const url = prompt('Enter video URL (e.g. YouTube embed URL):');
+      video: function () {
+        const url = prompt('Enter video URL (e.g. YouTube embed URL):')
         if (url) {
           // @ts-ignore
-          const quill = this.quill;
-          const range = quill.getSelection(true);
-          quill.insertEmbed(range.index, 'video', url);
+          const quill = this.quill
+          const range = quill.getSelection(true)
+          quill.insertEmbed(range.index, 'video', url)
         }
-      }
-    }
-  }
+      },
+    },
+  },
 }
 
 const quillFormats = [
   'header',
-  'bold', 'italic', 'underline', 'strike',
-  'list', 'bullet',
-  'color', 'background',
   'font',
+  'size',
+  'bold', 'italic', 'underline', 'strike',
+  'color', 'background',
+  'script',
+  'list', 'bullet', 'check',
+  'indent',
   'align',
+  'blockquote', 'code-block',
   'link',
   'image',
-  'video'
+  'video',
 ]
 
 const AdminLoginForm = ({ 
@@ -320,6 +392,139 @@ export default function BlogAdminPage() {
     initialImageUrls?: Array<{ url: string; caption?: string }>
   } | null>(null)
   const [lastGeneratedStyleId, setLastGeneratedStyleId] = useState<string>('')
+  const [editorExpanded, setEditorExpanded] = useState(false)
+  const quillRef = React.useRef<any>(null)
+  const htmlTextareaRef = React.useRef<HTMLTextAreaElement | null>(null)
+  const htmlHistoryRef = React.useRef<string[]>([''])
+  const htmlHistoryIndexRef = React.useRef<number>(0)
+  const htmlHistoryTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const resetHtmlHistory = (initialHtml: string) => {
+    if (htmlHistoryTimerRef.current) {
+      clearTimeout(htmlHistoryTimerRef.current)
+      htmlHistoryTimerRef.current = null
+    }
+    htmlHistoryRef.current = [initialHtml]
+    htmlHistoryIndexRef.current = 0
+  }
+
+  const recordHtmlSnapshot = (nextHtml: string, immediate = false) => {
+    const commit = () => {
+      const current = htmlHistoryRef.current[htmlHistoryIndexRef.current]
+      if (current === nextHtml) return
+      const truncated = htmlHistoryRef.current.slice(0, htmlHistoryIndexRef.current + 1)
+      truncated.push(nextHtml)
+      if (truncated.length > 100) truncated.shift()
+      htmlHistoryRef.current = truncated
+      htmlHistoryIndexRef.current = truncated.length - 1
+    }
+    if (htmlHistoryTimerRef.current) {
+      clearTimeout(htmlHistoryTimerRef.current)
+      htmlHistoryTimerRef.current = null
+    }
+    if (immediate) {
+      commit()
+    } else {
+      htmlHistoryTimerRef.current = setTimeout(commit, 400)
+    }
+  }
+
+  const handleHtmlSourceChange = (nextHtml: string) => {
+    setHtmlContent(nextHtml)
+    recordHtmlSnapshot(nextHtml, false)
+  }
+
+  const handleEditorUndo = () => {
+    if (editorMode === 'rich') {
+      const editor = quillRef.current?.getEditor?.()
+      if (editor?.history) {
+        editor.history.undo()
+        return
+      }
+    }
+    if (htmlHistoryIndexRef.current > 0) {
+      htmlHistoryIndexRef.current -= 1
+      const prev = htmlHistoryRef.current[htmlHistoryIndexRef.current] ?? ''
+      setHtmlContent(prev)
+      setContent(prev)
+    }
+  }
+
+  const handleEditorRedo = () => {
+    if (editorMode === 'rich') {
+      const editor = quillRef.current?.getEditor?.()
+      if (editor?.history) {
+        editor.history.redo()
+        return
+      }
+    }
+    if (htmlHistoryIndexRef.current < htmlHistoryRef.current.length - 1) {
+      htmlHistoryIndexRef.current += 1
+      const next = htmlHistoryRef.current[htmlHistoryIndexRef.current] ?? ''
+      setHtmlContent(next)
+      setContent(next)
+    }
+  }
+
+  const handleInsertSnippet = (snippetType: 'callout' | 'table' | 'divider' | 'quote') => {
+    const snippets: Record<'callout' | 'table' | 'divider' | 'quote', string> = {
+      callout: `\n<div class="blog-tldr-box p-5 rounded-2xl my-6 bg-slate-900/85 border border-slate-700 shadow-lg">\n  <p class="font-bold text-sky-400 text-base mb-2">📌 Key Takeaway</p>\n  <p class="text-slate-200 text-sm leading-relaxed">Write your highlighted takeaway or reader note here...</p>\n</div>\n`,
+      table: `\n<table>\n  <thead>\n    <tr><th>Feature / Item</th><th>Details</th><th>Impact</th></tr>\n  </thead>\n  <tbody>\n    <tr><td>Example Item 1</td><td>Specification or metric</td><td>Benefit for users</td></tr>\n    <tr><td>Example Item 2</td><td>Specification or metric</td><td>Long-term outcome</td></tr>\n  </tbody>\n</table>\n`,
+      divider: `\n<hr />\n`,
+      quote: `\n<blockquote>\n  <p>"Add an impactful quote, statistic, or key statement here."</p>\n</blockquote>\n`,
+    }
+    const snippetHtml = snippets[snippetType]
+
+    if (editorMode === 'rich') {
+      const editor = quillRef.current?.getEditor?.()
+      if (editor) {
+        if (snippetType === 'quote') {
+          const range = editor.getSelection(true) || { index: editor.getLength(), length: 0 }
+          editor.insertText(range.index, '\nAdd an impactful quote or statistic here.\n', { blockquote: true })
+          toast.success('Quote block inserted!')
+          return
+        }
+        const nextRichHtml = `${content}${snippetHtml}`
+        setContent(nextRichHtml)
+        setHtmlContent(nextRichHtml)
+        if (snippetType === 'callout' || snippetType === 'table') {
+          setEditorMode('html')
+          recordHtmlSnapshot(nextRichHtml, true)
+          toast.success('Structured block inserted & switched to HTML Preview so layout stays intact!')
+        } else {
+          toast.success('Block inserted!')
+        }
+        return
+      }
+    }
+
+    const textarea = htmlTextareaRef.current
+    if (textarea) {
+      const start = textarea.selectionStart ?? htmlContent.length
+      const end = textarea.selectionEnd ?? htmlContent.length
+      const updated = htmlContent.slice(0, start) + snippetHtml + htmlContent.slice(end)
+      setHtmlContent(updated)
+      setContent(updated)
+      recordHtmlSnapshot(updated, true)
+      requestAnimationFrame(() => {
+        textarea.focus()
+        const cursor = start + snippetHtml.length
+        textarea.setSelectionRange(cursor, cursor)
+      })
+    } else {
+      const updated = `${htmlContent}${snippetHtml}`
+      setHtmlContent(updated)
+      setContent(updated)
+      recordHtmlSnapshot(updated, true)
+    }
+    toast.success('Editorial block inserted!')
+  }
+
+  const activeEditorHtml = editorMode === 'html' ? htmlContent : content
+  const plainEditorText = stripHtml(activeEditorHtml || '')
+  const editorWordCount = plainEditorText ? plainEditorText.split(/\s+/).filter(Boolean).length : 0
+  const editorCharCount = plainEditorText.length
+  const editorReadMins = Math.max(1, Math.round(editorWordCount / 220))
 
   useScrollAnimations()
 
@@ -900,6 +1105,7 @@ export default function BlogAdminPage() {
           if (data.success && data.content) {
             setContent(data.content)
             setHtmlContent(data.content)
+            resetHtmlHistory(data.content)
             // Switch to HTML Preview so ReactQuill does not strip <figure>, <figcaption>, or .sources-card
             setEditorMode('html')
 
@@ -1038,6 +1244,7 @@ Write the complete HTML article now:`
 
         setContent(generatedContent)
         setHtmlContent(generatedContent)
+        resetHtmlHistory(generatedContent)
         setEditorMode('html')
 
         toast.success('AI content generated successfully!')
@@ -1713,6 +1920,7 @@ ${htmlContent || content || 'Empty draft'}`
                       type="button"
                       onClick={() => {
                         setHtmlContent(content)
+                        recordHtmlSnapshot(content, true)
                         setEditorMode('html')
                       }}
                       className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
@@ -2168,11 +2376,88 @@ ${htmlContent || content || 'Empty draft'}`
                 </div>
               )}
 
+              {/* Editor Toolbar Utility Bar (Undo/Redo, Snippets, Word Count, Expand) */}
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handleEditorUndo}
+                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
+                    title="Undo (Ctrl/Cmd + Z)"
+                  >
+                    <Undo2 className="w-3.5 h-3.5" />
+                    Undo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleEditorRedo}
+                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
+                    title="Redo (Ctrl/Cmd + Y or Cmd + Shift + Z)"
+                  >
+                    <Redo2 className="w-3.5 h-3.5" />
+                    Redo
+                  </button>
+                  <span className="mx-1 h-4 w-px bg-slate-300" />
+                  <button
+                    type="button"
+                    onClick={() => handleInsertSnippet('callout')}
+                    className="inline-flex items-center gap-1 rounded-lg border border-sky-200 bg-sky-50 px-2.5 py-1.5 font-medium text-sky-800 hover:bg-sky-100 transition-colors"
+                    title="Insert highlighted key-takeaway box"
+                  >
+                    <Zap className="w-3.5 h-3.5" />
+                    Callout Box
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleInsertSnippet('table')}
+                    className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 font-medium text-indigo-800 hover:bg-indigo-100 transition-colors"
+                    title="Insert comparison table"
+                  >
+                    <Table className="w-3.5 h-3.5" />
+                    Table
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleInsertSnippet('quote')}
+                    className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 font-medium text-amber-800 hover:bg-amber-100 transition-colors"
+                    title="Insert blockquote"
+                  >
+                    <Quote className="w-3.5 h-3.5" />
+                    Quote
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleInsertSnippet('divider')}
+                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 font-medium text-slate-700 hover:bg-slate-100 transition-colors"
+                    title="Insert horizontal divider"
+                  >
+                    <Minus className="w-3.5 h-3.5" />
+                    Divider
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2.5 text-slate-600">
+                  <span className="rounded-md bg-white border border-slate-200 px-2 py-1 font-medium">
+                    {editorWordCount.toLocaleString()} words • {editorCharCount.toLocaleString()} chars • ~{editorReadMins} min read
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setEditorExpanded((prev) => !prev)}
+                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 font-medium text-slate-700 hover:bg-slate-100 transition-colors"
+                    title={editorExpanded ? 'Compact editor height' : 'Expand writing area'}
+                  >
+                    {editorExpanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+                    {editorExpanded ? 'Compact' : 'Expand'}
+                  </button>
+                </div>
+              </div>
+
               {/* Rich Text Editor (Default Mode) */}
               {editorMode === 'rich' && (
                 <>
                   <div className="quill-wrapper">
-                    <ReactQuill 
+                    <ReactQuill
+                      forwardedRef={quillRef}
                       theme="snow"
                       value={content}
                       onChange={setContent}
@@ -2181,15 +2466,14 @@ ${htmlContent || content || 'Empty draft'}`
                       placeholder="Write your blog post content here...
 
 Tips:
-- Use the toolbar above for formatting
-- Keep paragraphs short and readable
-- Include actionable advice
-- Add contact information when relevant"
-                      style={{ height: '400px', marginBottom: '50px' }}
+- Pick professional fonts & text sizes (12px–36px) from the toolbar
+- Use Undo / Redo anytime or press Ctrl/Cmd + Z
+- Insert Callout Boxes, Tables, Quotes, or switch to HTML Preview"
+                      style={{ height: editorExpanded ? '660px' : '460px', marginBottom: '54px' }}
                     />
                   </div>
                   <p className="text-sm text-gray-500 mt-2">
-                    💡 Tip: Use the AI Writer to generate professional content instantly, or write manually with rich text formatting
+                    💡 Tip: Select text to change font family or size (12px–36px), or use AI Writer to draft deep multi-photo features.
                   </p>
                 </>
               )}
@@ -2282,14 +2566,28 @@ Tips:
                         </button>
                       </div>
                       <textarea
+                        ref={htmlTextareaRef}
                         value={htmlContent}
-                        onChange={(e) => setHtmlContent(e.target.value)}
-                        className="w-full h-[500px] p-4 font-mono text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none bg-white"
+                        onChange={(e) => handleHtmlSourceChange(e.target.value)}
+                        onKeyDown={(e) => {
+                          if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
+                            e.preventDefault()
+                            if (e.shiftKey) {
+                              handleEditorRedo()
+                            } else {
+                              handleEditorUndo()
+                            }
+                          } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'y') {
+                            e.preventDefault()
+                            handleEditorRedo()
+                          }
+                        }}
+                        className={`w-full ${editorExpanded ? 'h-[660px]' : 'h-[500px]'} p-4 font-mono text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-y bg-white`}
                         style={{ whiteSpace: 'pre-wrap' }}
                         placeholder="Paste your HTML content here..."
                       />
                       <p className="text-xs text-gray-500 mt-2">
-                        💡 Edit HTML directly and click &quot;Apply Changes&quot; to update
+                        💡 Edit HTML directly (supports Undo/Redo via Ctrl/Cmd+Z &amp; Ctrl/Cmd+Y) and click &quot;Apply Changes&quot; to sync
                       </p>
                     </div>
 
@@ -2668,8 +2966,89 @@ Tips:
         }
         
         .quill-wrapper .ql-editor {
-          min-height: 400px;
-          font-family: inherit;
+          min-height: 460px;
+          font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+          line-height: 1.75;
+        }
+
+        /* Text sizing picker labels */
+        .quill-wrapper .ql-snow .ql-picker.ql-size {
+          width: 92px;
+        }
+        .quill-wrapper .ql-snow .ql-picker.ql-size .ql-picker-label::before,
+        .quill-wrapper .ql-snow .ql-picker.ql-size .ql-picker-item::before {
+          content: '16px (Normal)';
+        }
+        .quill-wrapper .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="12px"]::before,
+        .quill-wrapper .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="12px"]::before { content: '12px'; }
+        .quill-wrapper .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="14px"]::before,
+        .quill-wrapper .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="14px"]::before { content: '14px'; }
+        .quill-wrapper .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="18px"]::before,
+        .quill-wrapper .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="18px"]::before { content: '18px'; }
+        .quill-wrapper .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="20px"]::before,
+        .quill-wrapper .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="20px"]::before { content: '20px'; }
+        .quill-wrapper .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="24px"]::before,
+        .quill-wrapper .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="24px"]::before { content: '24px'; }
+        .quill-wrapper .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="28px"]::before,
+        .quill-wrapper .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="28px"]::before { content: '28px'; }
+        .quill-wrapper .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="32px"]::before,
+        .quill-wrapper .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="32px"]::before { content: '32px'; }
+        .quill-wrapper .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="36px"]::before,
+        .quill-wrapper .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="36px"]::before { content: '36px'; }
+
+        /* Professional font family picker labels & typeface previews */
+        .quill-wrapper .ql-snow .ql-picker.ql-font {
+          width: 165px;
+        }
+        .quill-wrapper .ql-snow .ql-picker.ql-font .ql-picker-label::before,
+        .quill-wrapper .ql-snow .ql-picker.ql-font .ql-picker-item::before {
+          content: 'Default Sans';
+          font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        .quill-wrapper .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Inter, sans-serif"]::before,
+        .quill-wrapper .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Inter, sans-serif"]::before {
+          content: 'Inter';
+          font-family: Inter, sans-serif;
+        }
+        .quill-wrapper .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Plus Jakarta Sans, sans-serif"]::before,
+        .quill-wrapper .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Plus Jakarta Sans, sans-serif"]::before {
+          content: 'Plus Jakarta Sans';
+          font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .quill-wrapper .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Roboto, Arial, sans-serif"]::before,
+        .quill-wrapper .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Roboto, Arial, sans-serif"]::before {
+          content: 'Roboto';
+          font-family: Roboto, Arial, sans-serif;
+        }
+        .quill-wrapper .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Merriweather, Georgia, serif"]::before,
+        .quill-wrapper .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Merriweather, Georgia, serif"]::before {
+          content: 'Merriweather';
+          font-family: Merriweather, Georgia, serif;
+        }
+        .quill-wrapper .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Source Serif 4, Georgia, serif"]::before,
+        .quill-wrapper .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Source Serif 4, Georgia, serif"]::before {
+          content: 'Source Serif 4';
+          font-family: 'Source Serif 4', Georgia, serif;
+        }
+        .quill-wrapper .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Lora, Georgia, serif"]::before,
+        .quill-wrapper .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Lora, Georgia, serif"]::before {
+          content: 'Lora';
+          font-family: Lora, Georgia, serif;
+        }
+        .quill-wrapper .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Playfair Display, Georgia, serif"]::before,
+        .quill-wrapper .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Playfair Display, Georgia, serif"]::before {
+          content: 'Playfair Display';
+          font-family: 'Playfair Display', Georgia, serif;
+        }
+        .quill-wrapper .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Georgia, serif"]::before,
+        .quill-wrapper .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Georgia, serif"]::before {
+          content: 'Georgia Classic';
+          font-family: Georgia, serif;
+        }
+        .quill-wrapper .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="JetBrains Mono, monospace"]::before,
+        .quill-wrapper .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="JetBrains Mono, monospace"]::before {
+          content: 'JetBrains Mono';
+          font-family: 'JetBrains Mono', monospace;
         }
         
         .quill-wrapper .ql-editor.ql-blank::before {

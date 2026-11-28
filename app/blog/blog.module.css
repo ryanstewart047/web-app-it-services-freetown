@@ -581,6 +581,40 @@
   display: flex !important;
 }
 
+.articleProse :global(.ql-align-center) {
+  text-align: center;
+}
+
+.articleProse :global(.ql-align-right) {
+  text-align: right;
+}
+
+.articleProse :global(.ql-align-justify) {
+  text-align: justify;
+}
+
+.articleProse :global(.ql-indent-1) { padding-left: 2rem; }
+.articleProse :global(.ql-indent-2) { padding-left: 4rem; }
+.articleProse :global(.ql-indent-3) { padding-left: 6rem; }
+.articleProse :global(.ql-indent-4) { padding-left: 8rem; }
+
+.articleProse :global(pre.ql-syntax) {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 0.9rem;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  margin: 1.5rem 0;
+}
+
+.articleProse :global(hr) {
+  border: none;
+  border-top: 2px solid rgba(15, 27, 97, 0.12);
+  margin: 2rem 0;
+}
+
 .attachmentCard {
   overflow: hidden;
   border-radius: 1.5rem;

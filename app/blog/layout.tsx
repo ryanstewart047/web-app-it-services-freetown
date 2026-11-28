@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import './blog-fonts.css'
 
 export const metadata: Metadata = {
   title: 'Blog - Tech News, Expert Guides & IT Insights',
