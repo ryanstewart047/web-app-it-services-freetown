@@ -932,15 +932,24 @@ export async function investigateAndGenerateStory(
       'sierra', 'leone', 'freetown', 'digital', 'technology', 'national',
       'system', 'systems', 'services', 'africa', 'first', 'modern', 'local', 'across'
     ]);
+    const isSpecificArticleUrl = (u?: string) => {
+      if (!u) return false;
+      try {
+        return new URL(u).pathname.length > 1;
+      } catch {
+        return false;
+      }
+    };
     const matchedCurated = CURATED_SL_TECH_TOPICS.map((t) => {
       if (
-        (options.sourceUrl && t.sourceUrl === options.sourceUrl) ||
+        (options.topicTitle && t.title.toLowerCase() === options.topicTitle.toLowerCase()) ||
         lowerQuery.includes(t.id.toLowerCase()) ||
-        lowerQuery.includes(t.title.toLowerCase())
+        lowerQuery.includes(t.title.toLowerCase()) ||
+        (isSpecificArticleUrl(options.sourceUrl) && t.sourceUrl === options.sourceUrl)
       ) {
         return { topic: t, score: 100 };
       }
-      if (primaryResolvedUrl && !t.sourceUrl?.includes(new URL(primaryResolvedUrl).hostname)) {
+      if (isSpecificArticleUrl(primaryResolvedUrl) && !t.sourceUrl?.includes(new URL(primaryResolvedUrl).hostname)) {
         return { topic: t, score: 0 };
       }
       const words = t.title
