@@ -146,8 +146,8 @@ export default async function BlogPostPage({ params }: Props) {
       <div className={styles.pageShell}>
         <div className={styles.meshOrbOne} />
         <div className={styles.meshOrbTwo} />
-        <main className="relative mx-auto flex min-h-screen max-w-5xl items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-          <div className={`${styles.emptyState} w-full max-w-xl px-6 py-14 text-center sm:px-10`}>
+        <main className="relative mx-auto flex min-h-screen max-w-5xl items-center justify-center px-0 py-8 sm:px-6 sm:py-12 lg:px-8">
+          <div className={`${styles.emptyState} w-full max-w-xl px-5 py-12 text-center sm:px-10`}>
             <BookOpenText className="mx-auto h-14 w-14 text-primary-950/70" />
             <h1 className="mt-5 text-4xl font-black text-slate-900">Post not found</h1>
             <p className="mt-4 text-slate-600">
@@ -191,8 +191,8 @@ export default async function BlogPostPage({ params }: Props) {
       <div className={styles.meshOrbOne} />
       <div className={styles.meshOrbTwo} />
 
-      <main className="relative mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
-        <div className={`${styles.backPanel} inline-flex p-1`}>
+      <main className="relative mx-auto max-w-6xl px-0 pt-4 pb-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
+        <div className={`${styles.backPanel} mx-3 sm:mx-0 inline-flex p-1`}>
           <Link
             href="/blog"
             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-primary-950"
@@ -202,8 +202,8 @@ export default async function BlogPostPage({ params }: Props) {
           </Link>
         </div>
 
-        <section className={`${styles.articleHero} mt-6 p-6 sm:p-8 lg:p-10`}>
-          <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+        <section className={`${styles.articleHero} mt-4 sm:mt-6 px-4 py-6 sm:p-8 lg:p-10`}>
+          <div className="grid gap-6 sm:gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
             <div>
               <div className="flex flex-wrap items-center gap-3">
                 <span className={`${styles.tagBase} ${getTagClass(category)}`}>
@@ -218,14 +218,14 @@ export default async function BlogPostPage({ params }: Props) {
               <p className="mt-5 text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
                 BridgeTech IT Services Blog
               </p>
-              <h1 className="mt-4 text-4xl font-black leading-tight text-slate-900 sm:text-5xl">
+              <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-black leading-tight text-slate-900">
                 {post.title}
               </h1>
-              <p className={`${styles.articleLead} mt-6 text-base leading-8 sm:text-lg`}>
+              <p className={`${styles.articleLead} mt-5 sm:mt-6 text-base leading-7 sm:leading-8 sm:text-lg`}>
                 {leadExcerpt}
               </p>
 
-              <div className="mt-6 flex flex-wrap items-center gap-3">
+              <div className="mt-5 sm:mt-6 flex flex-wrap items-center gap-3">
                 <span className={`${styles.metaChip} text-sm font-semibold`}>
                   <Calendar className="h-4 w-4" />
                   {publishedDate}
@@ -237,7 +237,7 @@ export default async function BlogPostPage({ params }: Props) {
               </div>
             </div>
 
-            <div className={styles.articleHeroMedia}>
+            <div className={`${styles.articleHeroMedia} -mx-4 sm:mx-0`}>
               {heroImage ? (
                 <img
                   src={heroImage}
@@ -261,13 +261,13 @@ export default async function BlogPostPage({ params }: Props) {
           </div>
         </section>
 
-        <div className="mt-8">
+        <div className="mt-6 sm:mt-8">
           <DisplayAd />
         </div>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)]">
+        <div className="mt-6 sm:mt-8 grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)]">
           <aside className={styles.articleSidebarSticky}>
-            <div className={`${styles.articleSidebarCard} p-5`}>
+            <div className={`${styles.articleSidebarCard} px-4 py-5 sm:p-5`}>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
                 Quick facts
               </p>
@@ -344,7 +344,7 @@ export default async function BlogPostPage({ params }: Props) {
             </div>
           </aside>
 
-          <article className={`${styles.articleContentCard} p-6 sm:p-8 lg:p-10`}>
+          <article className={`${styles.articleContentCard} px-4 py-6 sm:p-8 lg:p-10`}>
             <script
               type="application/ld+json"
               dangerouslySetInnerHTML={{
@@ -466,13 +466,13 @@ export default async function BlogPostPage({ params }: Props) {
           </article>
         </div>
 
-        <div className="mt-12">
+        <div className="mt-8 sm:mt-12">
           <MultiplexAd />
         </div>
 
         {/* ── Related Articles (Improves Page Stickiness & Internal Linking) ── */}
         {relatedPosts.length > 0 && (
-          <section className="mt-12 rounded-3xl border border-slate-200 bg-white/90 p-6 sm:p-8 shadow-sm">
+          <section className="mt-8 sm:mt-12 rounded-none sm:rounded-3xl border-y sm:border border-slate-200 bg-white/90 px-4 py-6 sm:p-8 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 pb-4 border-b border-slate-100">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-600">
@@ -546,7 +546,7 @@ export default async function BlogPostPage({ params }: Props) {
         )}
 
         {/* ── Internal Cross-Link: Free Digital Tools Studio ── */}
-        <section className="mt-8 rounded-3xl bg-gradient-to-r from-blue-900 via-indigo-900 to-[#040e40] p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+        <section className="mt-6 sm:mt-8 rounded-none sm:rounded-3xl bg-gradient-to-r from-blue-900 via-indigo-900 to-[#040e40] px-4 py-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="max-w-xl space-y-2">
               <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-white/20 text-amber-300 border border-white/20 inline-flex items-center gap-1.5">
@@ -570,7 +570,7 @@ export default async function BlogPostPage({ params }: Props) {
         </section>
 
         {/* ── Main Bottom CTA ── */}
-        <section className={`${styles.ctaPanel} mt-8 p-6 sm:p-8`}>
+        <section className={`${styles.ctaPanel} mt-6 sm:mt-8 px-4 py-6 sm:p-8`}>
           <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-600">
